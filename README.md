@@ -32,6 +32,10 @@ $ python run.py --config=example_configs/toy_data_config.json --mode=train --log
 ```
 OR
 **Two GPUs:**
+To start multi-GPU training, set ```"num_gpus"``` parameter in model config accordingly.
+
+The ```"batch_size"``` parameter specifies batch size *per GPU*. Hence, global (or algorithmic) batch size will be equal ```"num_gpus"*"batch_size"```
+
 ```
 $ python run.py --config=example_configs/toy_data_config_2GPUs.json --mode=train --logdir=ModelAndLogFolder
 ```
@@ -58,12 +62,12 @@ Edit the 'wmt_large.json' file and replace [WMT16_DATA_LOCATION] with correct da
 ## Run training
 Edit "num_gpus" section of wmt_large.json - set it to the number of GPUs you want to use.
 ```
-python run.py --config=example_configs/wmt_large.json --mode=train --logdir=WMT_DE_EN --eval_frequency=500 --checkpoint_frequency=1000
+python run.py --config_file=example_configs/nmt.json --logdir=nmt --checkpoint_frequency=2000 --summary_frequency=50 --eval_frequency=1000
 ```
 
 ## Run Inference
 ```
-python run.py --config=example_configs/wmt_large.json --mode=infer --logdir=WMT_DE_EN --inference_out=wmt_pred.txt
+python run.py --config_file=example_configs/nmt.json --logdir=nmt --mode=infer --inference_out=wmt_pred.txt
 ```
 
 Clean ```wmt_pred.txt``` and ```newstest2015.tok.bpe.32000.en``` from BPE segmentation
@@ -73,10 +77,13 @@ Clean ```wmt_pred.txt``` and ```newstest2015.tok.bpe.32000.en``` from BPE segmen
 $ cat {file_with_BPE_segmentation} | sed -r 's/(@@ )|(@@ ?$)//g' > {cleaned_file}
 ```
 
-Run ```multi-blue.perl``` script on cleaned data. We are able to get BLEU 25.11 after ~23 hours of training on 4 GP100.
+Run ```multi-blue.perl``` script on cleaned data.
+For this *example* config you should get BLEU score around 22.66.
+On Quadro GP100 (16GB) it takes around 24 hours to get this result.
+Train longer (and/or using more GPUs) to get better results.
 
 ### Authors
-[Oleksii Kuchaiev](https://github.com/okuchaiev) and [Siddharth Bhatnagar](https://github.com/siddharthbhatnagar)
+[Oleksii Kuchaiev](https://github.com/okuchaiev) and [Siddharth Bhatnagar](https://github.com/siddharthbhatnagar) (internship work at NVIDIA)
 
 Contributions are welcome!
 
