@@ -33,7 +33,7 @@ $ python run.py --config=example_configs/toy_data_config.json --mode=train --log
 * You can monitor training progress with Tensorboard: ```tensorboard --logdir=ModelAndLogFolder```
 
 
-**Mult-GPU:**
+**Multi-GPU:**
 
 We follow *data parallel* approach for training. Each GPU receives a full copy of the model and its own mini-batch.
 
@@ -51,7 +51,7 @@ Once you have trained the model and saved it in ``ModelAndLogFolder``, run:
 $ python run.py --config=example_configs/toy_data_config_2GPUs.json --mode=infer --logdir=ModelAndLogFolder --inference_out=pred.txt
 ```
 
-## Bleu Score Calculation using Moses Script
+## BLEU Score Calculation using Moses Script
 ```
 $ ./multi-bleu.perl test/toy_data/test/target.txt < pred.txt
 ```
@@ -62,7 +62,7 @@ If you just used provided configs, your BLUE score should be > 98 for both singl
 ## First, get the data:
 Download and execute [this script](https://github.com/google/seq2seq/blob/master/bin/data/wmt16_en_de.sh)
 
-Edit the 'wmt_large.json' file and replace [WMT16_DATA_LOCATION] with correct data location.
+Edit the 'nmt.json' file and replace [WMT16_DATA_LOCATION] with correct data location.
 
 ## Run training
 Edit "num_gpus" section of nmt.json - set it to the number of GPUs you want to use.
@@ -70,6 +70,7 @@ Edit "num_gpus" section of nmt.json - set it to the number of GPUs you want to u
 python run.py --config_file=example_configs/nmt.json --logdir=nmt --checkpoint_frequency=2000 --summary_frequency=50 --eval_frequency=1000
 ```
 * If you are getting OOM exceptions try decreasing batch_size parameter in ```nmt.json```
+
 ## Run Inference
 ```
 python run.py --config_file=example_configs/nmt.json --logdir=nmt --mode=infer --inference_out=wmt_pred.txt
@@ -102,4 +103,5 @@ Contributions are welcome!
 * [OpenNMT (Torch)](http://opennmt.net/)
 * [OpenNMT (Pytorch)](https://github.com/OpenNMT/OpenNMT-py)
 * [Tf-seq2seq](https://github.com/google/seq2seq)
+* [Moses](http://www.statmt.org/moses/)
 
