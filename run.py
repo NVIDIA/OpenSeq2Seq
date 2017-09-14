@@ -1,5 +1,6 @@
 # Copyright (c) 2017 NVIDIA Corporation
 import os
+import sys
 import json
 import time
 import tensorflow as tf
@@ -13,7 +14,7 @@ tf.flags.DEFINE_string("config_file", "",
                        """Path to the file with configuration""")
 tf.flags.DEFINE_string("logdir", "",
                        """Path to where save logs and checkpoints""")
-tf.flags.DEFINE_string("inference_out", "",
+tf.flags.DEFINE_string("inference_out", "stdout",
                        """where to output inference results""")
 tf.flags.DEFINE_integer("checkpoint_frequency", 300,
                         """iterations after which a checkpoint is made. Only the last 5 checkpoints are saved""")
@@ -219,26 +220,31 @@ def infer(config):
             deco_print("Trying to restore from: {}".format(tf.train.latest_checkpoint(FLAGS.logdir)))
             saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
             deco_print("Saving inference results to: " + FLAGS.inference_out)
-            with open(FLAGS.inference_out, 'w') as fout:
-                for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
-                    # need to check outputs for beam search, and if required, make a common approach
-                    # to handle both greedy and beam search decoding methods
-                    samples = sess.run(fetches=fetches,
-                                       feed_dict={
-                                           model.x: x,
-                                           model.x_length: len_x,
-                                       })
-                    if i % 200 == 0:
-                        print(utils.pretty_print_array(
-                            samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                            vocab=dl.target_idx2seq,
-                            ignore_special=False,
-                            delim=config["delimiter"]))
-                    fout.write(utils.pretty_print_array(
+            if FLAGS.inference_out == "stdout":
+                fout = sys.stdout
+            else:
+                fout = open(FLAGS.inference_out, 'w')
+            for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
+                # need to check outputs for beam search, and if required, make a common approach
+                # to handle both greedy and beam search decoding methods
+                samples = sess.run(fetches=fetches,
+                                   feed_dict={
+                                       model.x: x,
+                                       model.x_length: len_x,
+                                   })
+                if i % 200 == 0:
+                    print(utils.pretty_print_array(
                         samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
                         vocab=dl.target_idx2seq,
-                        ignore_special=True,
-                        delim=config["delimiter"]) + "\n")
+                        ignore_special=False,
+                        delim=config["delimiter"]))
+                fout.write(utils.pretty_print_array(
+                    samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
+                    vocab=dl.target_idx2seq,
+                    ignore_special=True,
+                    delim=config["delimiter"]) + "\n")
+            if FLAGS.inference_out != "stdout":
+                fout.close()
     deco_print("Inference finished")
 
 
