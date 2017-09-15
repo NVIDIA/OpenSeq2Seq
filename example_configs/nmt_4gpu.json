@@ -1,6 +1,6 @@
 {
-    "src_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
-    "tgt_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
+    "src_vocab_file": "[WMT16_DATA_LOCATION]/wmt16_de_en/vocab.bpe.32000",
+    "tgt_vocab_file": "[WMT16_DATA_LOCATION]/wmt16_de_en/vocab.bpe.32000",
 
     "batch_size" : 256,
 
@@ -26,8 +26,8 @@
     "bucket_src_test": [650],
     "bucket_tgt_test": [650],
 
-    "num_gpus" : 1,
-    "num_epochs" : 4,
+    "num_gpus" : 4,
+    "num_epochs" : 20,
 
     "encoder_cell_type" : "lstm",
     "encoder_type": "bidirectional",
@@ -61,7 +61,7 @@
     "learning_rate" : 0.001,
     "max_grad_norm": 5.0,
 
-    "use_decay" : false,
+    "use_decay" : true,
     "begin_decay_at" : 30000,
     "min_learning_rate" : 0.00025,
     "decay_steps" : 15000,
