@@ -252,74 +252,6 @@ def infer(config):
 						f_out.write('%d\t%d\t%s\n' %(ans[ii,0], ans[ii,1], dl.pretty_print_array(x[ii, ans[ii,0]:ans[ii,1]], vocab=dl.idx2seq, ignore_special=True, delim=config["delimiter"])))
 			deco_print("Inference finished in {} seconds\n\n".format(time.time() - start))
 
-def profile(config):
-	deco_print('Executing profiling mode')
-	deco_print('Creating data layer')
-	config['shuffle'] = False
-	dl = ParallelDataInRamInputLayer(params=config)
-	deco_print('Data layer created')
-
-	with tf.Graph().as_default():
-		global_step = tf.contrib.framework.get_or_create_global_step()
-		if 'baseline' in config and config['baseline'] == True:
-			model = BasicRNet_baseline(model_params=config, global_step=global_step, embedding=dl.embedding)
-		else:
-			model = BasicRNet(model_params=config, global_step=global_step, embedding=dl.embedding)
-		fetches_s = [model.loss, model.train_op, model.predict]
-		sess_config = tf.ConfigProto(allow_soft_placement=True)
-
-		with tf.Session(config=sess_config) as sess:
-			sess.run(tf.global_variables_initializer())
-
-			for epoch in range(config['num_epochs']):
-				deco_print('\n\n')
-				deco_print('Doing epoch {}'.format(epoch))
-				for i, (x, x_char, y, y_char, z, z_pos, bucket_id, len_x, len_x_char, len_y, len_y_char, len_z, z_cand) in enumerate(dl.iterate_one_epoch()):
-
-					deco_print('In epoch {}, step {}'.format(epoch, i))
-					deco_print("EVAL CONTEXT[0]: " + dl.pretty_print_array(x[0,:],
-						vocab=dl.idx2seq,
-						delim=config["delimiter"]))
-					deco_print("EVAL QUESTION[0]: " + dl.pretty_print_array(y[0,:],
-						vocab=dl.idx2seq,
-						delim = config["delimiter"]))
-					deco_print("EVAL ANSWER[0]: " + dl.pretty_print_array(z[0,:],
-						vocab=dl.idx2seq,
-						delim = config["delimiter"]))
-
-					if epoch == config['num_epochs'] - 1:
-						run_options = tf.RunOptions(trace_level=tf.RunOptions.FULL_TRACE)
-						run_metadata = tf.RunMetadata()
-						loss, _, pos = sess.run(fetches=fetches_s, feed_dict={
-							model.x: x,
-							model.x_char: x_char,
-							model.y: y,
-							model.y_char: y_char,
-							model.x_length: len_x,
-							model.x_char_length: len_x_char,
-							model.y_length: len_y,
-							model.y_char_length: len_y_char,
-							model.z_pos: z_pos}, options=run_options, run_metadata=run_metadata)
-						tl = timeline.Timeline(run_metadata.step_stats)
-						ctf = tl.generate_chrome_trace_format()
-						deco_print('Running profiler')
-						with open('output/timeline.json', 'w') as f:
-							f.write(ctf)
-						deco_print('Finished profiling! ')
-					else:
-						loss, _, pos = sess.run(fetches=fetches_s, feed_dict={
-							model.x: x,
-							model.x_char: x_char,
-							model.y: y,
-							model.y_char: y_char,
-							model.x_length: len_x,
-							model.x_char_length: len_x_char,
-							model.y_length: len_y,
-							model.y_char_length: len_y_char,
-							model.z_pos: z_pos})
-					break
-				dl.bucketize()
-
 def deco_print(line):
 	print(">==================> " + line)
 
@@ -337,9 +269,6 @@ def main(_):
 	elif config["mode"] == "infer":
 		deco_print("Running in inference mode")
 		infer(config)
-	elif config["mode"] == "profiling":
-		deco_print("Running in profiling mode")
-		profile(config)
 	else:
 		raise ValueError("Unknown mode in config file")
 
