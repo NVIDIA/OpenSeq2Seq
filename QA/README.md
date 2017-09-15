@@ -1,9 +1,9 @@
 # Speedup R-NET with CudnnLSTM and Attention Modifications
 | MODEL          | TRAINING TIME (50 EPOCHS) | F1 ON DEV | EM ON DEV | CONFIG    |
 |:--------------:|:-------------------------:|:---------:|:---------:|:---------:|
-| baseline       | 1d 4h 15m 43s             | 69.67     | 59.33     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_baseline_gpu_2.json |
-| cuDNN_LSTMCell | 1d 1h 15m 48s (1.1x)      | 69.15     | 58.78     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_cudnn_rnn_cell_gpu_2.json |
-| CudnnLSTM      | 4h 45m 41s (5.9x)         | 66.77     | 56.40     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_cudnn_rnn_gpu_2.json |
+| baseline       |~ day          | 69.67     | 59.33     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_baseline_gpu_2.json |
+| cuDNN_LSTMCell |~ day (1.1x)      | 69.15     | 58.78     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_cudnn_rnn_cell_gpu_2.json |
+| CudnnLSTM      |~ few hours (5.9x)         | 66.77     | 56.40     | SQuAD_encoder_layer_2_encoder_size_32_layer_1_cudnn_rnn_gpu_2.json |
 
 ### Requirements
   * TensorFlow v1.3+
