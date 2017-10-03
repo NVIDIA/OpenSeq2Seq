@@ -108,7 +108,7 @@ On a single Quadro GP100 (16GB) it takes around 24 hours (4 epochs) to get this 
 Train longer (and/or using more GPUs) to get better results.
 
 ### Authors
-[Oleksii Kuchaiev](https://github.com/okuchaiev) and [Siddharth Bhatnagar](https://github.com/siddharthbhatnagar) (internship work at NVIDIA)
+[Oleksii Kuchaiev](https://github.com/okuchaiev) and [Siddharth Bhatnagar](https://github.com/siddharthbhatnagar) (internship work @ NVIDIA)
 
 Contributions are welcome!
 
