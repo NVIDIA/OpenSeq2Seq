@@ -3,6 +3,7 @@ import abc
 import six
 import tensorflow as tf
 from .model_utils import deco_print
+from .optimizers import optimize_loss
 
 six.add_metaclass(abc.ABCMeta)
 class ModelBase:
@@ -112,7 +113,8 @@ class ModelBase:
 
     if self._mode == "train":
       self._lr = tf.Variable(initial_value=self.model_params['learning_rate'], trainable=False)
-      self.train_op = tf.contrib.layers.optimize_loss(
+      #self.train_op = tf.contrib.layers.optimize_loss(
+      self.train_op = optimize_loss(
         loss = self.loss,
         global_step = tf.contrib.framework.get_global_step(),
         learning_rate = self.model_params['learning_rate'],
@@ -126,7 +128,8 @@ class ModelBase:
         name = "Loss_Optimization",
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"],
         colocate_gradients_with_ops = True,
-        increment_global_step = True
+        increment_global_step = True,
+        LARS_nu = None if 'lars_nu' not in self.model_params else self.model_params['lars_nu']
       )
 
       print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')

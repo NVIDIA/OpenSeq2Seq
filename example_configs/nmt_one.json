@@ -1,6 +1,6 @@
 {
-    "src_vocab_file": "[WMT16_DATA_LOCATION]/wmt16_de_en/vocab.bpe.32000",
-    "tgt_vocab_file": "[WMT16_DATA_LOCATION]/wmt16_de_en/vocab.bpe.32000",
+    "src_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
+    "tgt_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
 
     "batch_size" : 256,
 
@@ -10,8 +10,8 @@
     "source_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.de",
     "target_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.en",
 
-    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.bpe.32000.de",
-    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.bpe.32000.en",
+    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.de",
+    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.en",
 
     "eval_bleu": true,
     "bpe_used" : true,
@@ -26,8 +26,8 @@
     "bucket_src_test": [650],
     "bucket_tgt_test": [650],
 
-    "num_gpus" : 4,
-    "num_epochs" : 20,
+    "num_gpus" : 1,
+    "num_epochs" : 7,
 
     "encoder_cell_type" : "lstm",
     "encoder_type": "bidirectional",
@@ -54,14 +54,14 @@
     "use_attention": true,
     "attention_type" : "bahdanau",
     "attention_layer_size" : 512,
-    "bahdanau_normalize" : false,
+    "bahdanau_normalize" : true,
     "luong_scale" : false,
 
     "optimizer" : "Adam",
     "learning_rate" : 0.001,
-    "max_grad_norm": 5.0,
+    "lars_nu": 0.001,
 
-    "use_decay" : true,
+    "use_decay" : false,
     "begin_decay_at" : 30000,
     "min_learning_rate" : 0.00025,
     "decay_steps" : 15000,
