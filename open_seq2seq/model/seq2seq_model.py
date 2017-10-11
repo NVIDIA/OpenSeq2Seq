@@ -1,6 +1,5 @@
 # Copyright (c) 2017 NVIDIA Corporation
 import tensorflow as tf
-from tensorflow.contrib.seq2seq.python.ops import attention_wrapper
 from tensorflow.python.layers import core as layers_core
 from .model_utils import create_rnn_cell, getdtype
 from .model_base import ModelBase
@@ -95,13 +94,13 @@ class BasicSeq2SeqWithAttention(ModelBase):
       attention_depth = self.model_params['attention_layer_size']
       if self.model_params['attention_type'] == 'bahdanau':
         bah_normalize = self.model_params['bahdanau_normalize'] if 'bahdanau_normalize' in self.model_params else False
-        attention_mechanism = attention_wrapper.BahdanauAttention(num_units=attention_depth,
+        attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(num_units=attention_depth,
                                              memory=encoder_outputs, normalize = bah_normalize,
                                              memory_sequence_length=encoder_sequence_length,
                                              probability_fn=tf.nn.softmax)
       elif self.model_params['attention_type'] == 'luong':
         luong_scale = self.model_params['luong_scale'] if 'luong_scale' in self.model_params else False
-        attention_mechanism = attention_wrapper.LuongAttention(num_units=attention_depth,
+        attention_mechanism = tf.contrib.seq2seq.LuongAttention(num_units=attention_depth,
                                              memory=encoder_outputs, scale = luong_scale,
                                              memory_sequence_length=encoder_sequence_length,
                                              probability_fn=tf.nn.softmax)
@@ -164,7 +163,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
           tiled_enc_outputs = tf.contrib.seq2seq.tile_batch(encoder_outputs, multiplier=self._beam_width)
           tiled_enc_src_lengths = tf.contrib.seq2seq.tile_batch(enc_src_lengths, multiplier=self._beam_width)
           attention_mechanism = self._build_attention(tiled_enc_outputs, tiled_enc_src_lengths)
-          attentive_decoder_cell = attention_wrapper.AttentionWrapper(cell=decoder_cell,
+          attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cell,
                                                                       attention_mechanism=attention_mechanism,
                                                                       cell_input_fn=attn_decoder_custom_fn)
           batch_size_tensor = tf.constant(batch_size)
@@ -180,7 +179,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
             length_penalty_weight=self._length_penalty_weight)
         else:
           attention_mechanism = self._build_attention(encoder_outputs, enc_src_lengths)
-          attentive_decoder_cell = attention_wrapper.AttentionWrapper(cell=decoder_cell,
+          attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cell,
                                                                       attention_mechanism=attention_mechanism,
                                                                       cell_input_fn=attn_decoder_custom_fn)
           helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
@@ -194,7 +193,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
             output_layer=output_layer)
       elif self.mode == "train" or self.mode == "eval":
         attention_mechanism = self._build_attention(encoder_outputs, enc_src_lengths)
-        attentive_decoder_cell = attention_wrapper.AttentionWrapper(cell=decoder_cell,
+        attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cell,
                                                                     attention_mechanism=attention_mechanism,
                                                                     cell_input_fn=attn_decoder_custom_fn)
         input_vectors = tf.nn.embedding_lookup(self._tgt_w, tgt_inputs)
