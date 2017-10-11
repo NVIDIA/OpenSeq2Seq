@@ -95,15 +95,11 @@ $ ./multi-bleu.perl cleaned_newstest2015.tok.bpe.32000.en < cleaned_wmt_pred.txt
 ```
 
 ## Models and Recepies
-| MODEL          | Language Pair | Steps  | Elapsed time | newstest2015 BLUE | Pre-trained model |
+| MODEL          | Language Pair | Epochs  | Elapsed time | newstest2014 BLUE | Pre-trained model |
 |:--------------:|:--:|:-------------:|:---: |:---: |:---: |
-| nmt.json       | De->En |    59,208    |  21h 7m on 1x Quadro GP100 (16GB) | 23.36    | |
-| nmt_4gpu.json  | De->En |    51,100    | - |  25.21   | [Download](https://drive.google.com/file/d/0B8NYpqxq57n7YUhHRlY4Y09ud00/view?usp=sharing)|
+| nmt_one      | De->En |    7    | - | 23.10    | |
+| open_nmt_692-like  | De->En |    13    | - |  20.24   | |
 
-
-For this *example* config you should get BLEU score around 22.66.
-
-On a single Quadro GP100 (16GB) it takes around 24 hours (4 epochs) to get this result.
 
 Train longer (and/or using more GPUs) to get better results.
 
