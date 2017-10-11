@@ -1,6 +1,14 @@
 # OpenSeq2Seq: multi-gpu sequence to sequence learning
 This is a research project, not an official NVIDIA product.
 
+## Features
+1. Sequence to sequence learning
+   1. Different cell types: LSTM, GRU, GLSTM
+   2. Attention mechanisms: Bahdanau and Luong
+   3. Beam search for inference
+2. Data parallel multi-gpu training
+3. LARS norm scaling algorithm
+
 # Getting started
 
 ## Requirements
