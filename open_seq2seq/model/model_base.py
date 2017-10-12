@@ -129,7 +129,8 @@ class ModelBase:
         summaries=["learning_rate", "loss", "gradients", "gradient_norm"],
         colocate_gradients_with_ops = True,
         increment_global_step = True,
-        LARS_nu = None if 'lars_nu' not in self.model_params else self.model_params['lars_nu']
+        LARS_nu = None if 'lars_nu' not in self.model_params else self.model_params['lars_nu'],
+        loss_scale = 1.0 if not "loss_scale" in self.model_params else self.model_params['loss_scale']
       )
 
       print('%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%')
