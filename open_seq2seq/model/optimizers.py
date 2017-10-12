@@ -77,7 +77,8 @@ def optimize_loss(loss,
                   colocate_gradients_with_ops=False,
                   increment_global_step=True,
                   LARS_nu=None,
-                  LARS_epsilon=1.0/16384.0):
+                  LARS_epsilon=1.0/16384.0,
+                  loss_scale=1.0):
   """Given loss and parameters for optimizer, returns a training op.
 
   Various ways of passing optimizers include:
@@ -247,9 +248,11 @@ def optimize_loss(loss,
 
     # Compute gradients.
     gradients = opt.compute_gradients(
-        loss,
+        loss if loss_scale==1.0 else loss_scale*loss,
         variables,
         colocate_gradients_with_ops=colocate_gradients_with_ops)
+    if loss_scale!=1.0:
+      math_ops.scalar_mul(1.0/loss_scale, gradients)
 
     # LARS gradient re-scaling
     if LARS_nu is not None and isinstance(LARS_nu, float):
