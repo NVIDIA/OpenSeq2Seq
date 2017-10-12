@@ -18,7 +18,7 @@
 
     "shuffle" : true,
     "delimiter" : " ",
-    "use_swap_memory": false,
+    "use_swap_memory": true,
 
     "bucket_src" : [50],
     "bucket_tgt": [50],
