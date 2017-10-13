@@ -2,6 +2,7 @@
 import tensorflow as tf
 from tensorflow.python.ops.rnn_cell import LSTMCell, GRUCell, ResidualWrapper, DropoutWrapper, MultiRNNCell
 from tensorflow.contrib.rnn import GLSTMCell
+from .slstm import BasicSLSTMCell
 
 def create_rnn_cell(cell_type,
                     cell_params,
@@ -30,7 +31,11 @@ def create_rnn_cell(cell_type,
       cell_class = GRUCell
     elif cell_type == "glstm":
       cell_class = GLSTMCell
-      num_groups = 4#cell_params["num_groups"]
+      num_groups = 4
+    elif cell_type == "slstm":
+      cell_class = BasicSLSTMCell
+    else:
+      raise ValueError("Unknown RNN cell class: {}".format(cell_type))
 
     if residual_connections:
       if dp_input_keep_prob !=1.0 or dp_output_keep_prob != 1.0:
