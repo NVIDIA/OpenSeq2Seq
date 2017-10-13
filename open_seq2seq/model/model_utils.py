@@ -8,7 +8,8 @@ def create_rnn_cell(cell_type,
                     num_layers=1,
                     dp_input_keep_prob=1.0,
                     dp_output_keep_prob=1.0,
-                    residual_connections=False):
+                    residual_connections=False,
+                    wrap_to_multi_rnn=True):
   """
   TODO: MOVE THIS properly to utils. Write doc
   :param cell_type:
@@ -63,7 +64,13 @@ def create_rnn_cell(cell_type,
           return cell_class(num_units=size, number_of_groups=num_groups)
 
   if num_layers > 1:
-    return MultiRNNCell([single_cell(cell_params) for _ in range(num_layers)])
+    if wrap_to_multi_rnn:
+      return MultiRNNCell([single_cell(cell_params) for _ in range(num_layers)])
+    else:
+      cells = [] # for GNMT-like attention in decoder
+      for i in range(num_layers):
+        cells.append(single_cell(cell_params))
+      return cells
   else:
     return single_cell(cell_params)
 

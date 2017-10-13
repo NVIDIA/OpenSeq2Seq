@@ -1,0 +1,66 @@
+{
+    "src_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
+    "tgt_vocab_file": "[WMT16_DATA_LOCATION]/vocab.bpe.32000",
+
+    "batch_size" : 128,
+
+    "source_file": "[WMT16_DATA_LOCATION]/train.tok.clean.bpe.32000.de",
+    "target_file": "[WMT16_DATA_LOCATION]/train.tok.clean.bpe.32000.en",
+
+    "source_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.de",
+    "target_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.en",
+
+    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.de",
+    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.en",
+
+    "eval_bleu": true,
+    "bpe_used" : true,
+
+    "shuffle" : true,
+    "delimiter" : " ",
+    "use_swap_memory": true,
+
+    "bucket_src" : [50],
+    "bucket_tgt": [50],
+
+    "bucket_src_test": [650],
+    "bucket_tgt_test": [650],
+
+    "num_gpus" : 4,
+    "num_epochs" : 16,
+
+    "encoder_cell_type" : "lstm",
+    "encoder_type": "gnmt",
+    "encoder_cell_units" : 1024,
+    "encoder_layers" : 8,
+    "encoder_dp_input_keep_prob" : 0.8,
+    "encoder_dp_output_keep_prob" : 1.0,
+
+    "decoder_type": "beam_search",
+    "beam_width" : 10,
+    "length_penalty": 1.0,
+
+    "decoder_cell_type" : "lstm",
+    "decoder_cell_units" : 1024,
+    "decoder_layers" : 8,
+    "decoder_dp_input_keep_prob" : 0.8,
+    "decoder_dp_output_keep_prob" : 1.0,
+
+    "src_emb_size": 1024,
+    "tgt_emb_size": 1024,
+
+    "use_attention": true,
+    "attention_type" : "gnmt_v2",
+    "attention_layer_size" : 1024,
+
+    "optimizer" : "Adam",
+    "learning_rate" : 0.002,
+    "lars_nu": 0.001,
+
+    "use_decay" : false,
+    "begin_decay_at" : 30000,
+    "min_learning_rate" : 0.00025,
+    "decay_steps" : 15000,
+    "decay_rate" : 0.5,
+    "use_staircase_decay" : true
+}

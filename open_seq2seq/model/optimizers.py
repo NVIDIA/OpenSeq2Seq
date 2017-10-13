@@ -77,7 +77,8 @@ def optimize_loss(loss,
                   colocate_gradients_with_ops=False,
                   increment_global_step=True,
                   LARS_nu=None,
-                  LARS_epsilon=1.0/16384.0):
+                  LARS_epsilon=1.0/16384.0,
+                  loss_scale=1.0):
   """Given loss and parameters for optimizer, returns a training op.
 
   Various ways of passing optimizers include:
@@ -247,9 +248,11 @@ def optimize_loss(loss,
 
     # Compute gradients.
     gradients = opt.compute_gradients(
-        loss,
+        loss if loss_scale==1.0 else loss_scale*loss,
         variables,
         colocate_gradients_with_ops=colocate_gradients_with_ops)
+    if loss_scale!=1.0:
+      gradients = _multiply_gradients_const(gradients, 1.0 / loss_scale)
 
     # LARS gradient re-scaling
     if LARS_nu is not None and isinstance(LARS_nu, float):
@@ -458,6 +461,19 @@ def _multiply_gradients(grads_and_vars, gradient_multipliers):
       key = var if var in gradient_multipliers else var.name
       multiplier = constant_op.constant(
           gradient_multipliers[key], dtype=dtypes.float32)
+      if isinstance(grad, ops.IndexedSlices):
+        grad_values = grad.values * multiplier
+        grad = ops.IndexedSlices(grad_values, grad.indices, grad.dense_shape)
+      else:
+        grad *= multiplier
+    multiplied_grads_and_vars.append((grad, var))
+  return multiplied_grads_and_vars
+
+def _multiply_gradients_const(grads_and_vars, multiplier):
+  """Multiply specified gradients."""
+  multiplied_grads_and_vars = []
+  for grad, var in grads_and_vars:
+    if grad is not None:
       if isinstance(grad, ops.IndexedSlices):
         grad_values = grad.values * multiplier
         grad = ops.IndexedSlices(grad_values, grad.indices, grad.dense_shape)
