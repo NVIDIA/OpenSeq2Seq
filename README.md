@@ -3,7 +3,7 @@ This is a research project, not an official NVIDIA product.
 
 ## Features
 1. Sequence to sequence learning
-   1. Different cell types: LSTM, GRU, GLSTM
+   1. Different cell types: LSTM, GRU, GLSTM, SLSTM
    2. Encoders: RNN-based, unidirectional, bi-directional, GNMT-like
    3. Attention mechanisms: Bahdanau, Luong, GNMT-like
    4. Beam search for inference
