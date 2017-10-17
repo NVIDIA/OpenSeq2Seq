@@ -4,6 +4,7 @@ from . import data_layer
 import re
 
 def pretty_print_array(row, vocab, ignore_special=False, delim=' '):
+  n = len(vocab)
   if ignore_special:
     f_row = []
     for i in range(0, len(row)):
@@ -12,9 +13,9 @@ def pretty_print_array(row, vocab, ignore_special=False, delim=' '):
         break
       if char_id!=data_layer.DataLayer.PAD_ID and char_id!=data_layer.DataLayer.S_ID:
         f_row += [char_id]
-    return delim.join(map(lambda x: vocab[x], [r for r in f_row if r > 0]))
+    return delim.join(map(lambda x: vocab[x], [r for r in f_row if r > 0 and r < n]))
   else:
-    return delim.join(map(lambda x: vocab[x], [r for r in row if r > 0]))
+    return delim.join(map(lambda x: vocab[x], [r for r in row if r > 0 and r < n]))
 
 
 def weighted_choice(choices):
@@ -31,6 +32,7 @@ def weighted_choice(choices):
 
 
 def transform_for_bleu(row, vocab, ignore_special=False, delim=' ', bpe_used=False):
+  n = len(vocab)
   if ignore_special:
     f_row = []
     for i in range(0, len(row)):
@@ -39,9 +41,9 @@ def transform_for_bleu(row, vocab, ignore_special=False, delim=' ', bpe_used=Fal
         break
       if char_id!=data_layer.DataLayer.PAD_ID and char_id!=data_layer.DataLayer.S_ID:
         f_row += [char_id]
-    sentence = [vocab[r] for r in f_row if r > 0]
+    sentence = [vocab[r] for r in f_row if r > 0 and r < n]
   else:
-    sentence = [vocab[r] for r in row if r > 0]
+    sentence = [vocab[r] for r in row if r > 0 and r < n]
 
   if bpe_used:
     sentence = delim.join(sentence)

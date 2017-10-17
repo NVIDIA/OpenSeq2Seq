@@ -5,6 +5,7 @@ import json
 import time
 import tensorflow as tf
 import copy
+import math
 import nltk
 from open_seq2seq.model import seq2seq_model
 from open_seq2seq.data import data_layer, utils
@@ -38,9 +39,12 @@ def train(config):
   deco_print("Executing training mode")
   deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
-  config['src_vocab_size'] = len(dl.source_seq2idx)
-  config['tgt_vocab_size'] = len(dl.target_seq2idx)
-
+  if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
+    config['src_vocab_size'] = math.ceil(len(dl.source_seq2idx) / 8) * 8
+    config['tgt_vocab_size'] = math.ceil(len(dl.target_seq2idx) / 8) * 8
+  else:
+    config['src_vocab_size'] = len(dl.source_seq2idx)
+    config['tgt_vocab_size'] = len(dl.target_seq2idx)
   eval_using_bleu = True if "eval_bleu" not in config else config["eval_bleu"]
   bpe_used = False if "bpe_used" not in config else config["bpe_used"]
 
@@ -197,8 +201,12 @@ def infer(config):
   deco_print("Executing training mode")
   deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
-  config['src_vocab_size'] = len(dl.source_seq2idx)
-  config['tgt_vocab_size'] = len(dl.target_seq2idx)
+  if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
+    config['src_vocab_size'] = math.ceil(len(dl.source_seq2idx) / 8) * 8
+    config['tgt_vocab_size'] = math.ceil(len(dl.target_seq2idx) / 8) * 8
+  else:
+    config['src_vocab_size'] = len(dl.source_seq2idx)
+    config['tgt_vocab_size'] = len(dl.target_seq2idx)
   use_beam_search = False if "decoder_type" not in config else config["decoder_type"] == "beam_search"
   deco_print("Data layer created")
 
