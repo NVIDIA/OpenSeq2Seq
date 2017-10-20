@@ -1,7 +1,7 @@
 {
     "src_vocab_file": "[WMT16_DATA_LOCATION]/vocab.50k.de",
     "tgt_vocab_file": "[WMT16_DATA_LOCATION]/vocab.50k.en",
-
+    "pad_vocabs_to_eight": true,
     "batch_size" : 256,
 
     "source_file": "[WMT16_DATA_LOCATION]/train.tok.clean.de",
@@ -10,8 +10,8 @@
     "source_file_eval": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.de",
     "target_file_eval": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.en",
 
-    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.de",
-    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.en",
+    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.clean.de",
+    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.clean.en",
 
     "eval_bleu": true,
     "bpe_used" : false,
@@ -57,8 +57,9 @@
     "bahdanau_normalize" : false,
     "luong_scale" : false,
     "optimizer" : "Adam",
-    "learning_rate" : 0.001,
+    "learning_rate" : 0.0008,
     "lars_nu" : 0.001,
+    "loss_scale" : 1024,
 
     "use_decay" : false,
     "begin_decay_at" : 30000,

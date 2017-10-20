@@ -10,8 +10,8 @@
     "source_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.de",
     "target_file_eval": "[WMT16_DATA_LOCATION]/newstest2013.tok.bpe.32000.en",
 
-    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.de",
-    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2014.tok.clean.bpe.32000.en",
+    "source_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.clean.bpe.32000.de",
+    "target_file_test": "[WMT16_DATA_LOCATION]/newstest2015.tok.clean.bpe.32000.en",
 
     "eval_bleu": true,
     "bpe_used" : true,
@@ -26,8 +26,8 @@
     "bucket_src_test": [650],
     "bucket_tgt_test": [650],
 
-    "num_gpus" : 4,
-    "num_epochs" : 16,
+    "num_gpus" : 1,
+    "num_epochs" : 20,
 
     "encoder_cell_type" : "lstm",
     "encoder_type": "gnmt",
@@ -54,7 +54,7 @@
     "attention_layer_size" : 1024,
 
     "optimizer" : "Adam",
-    "learning_rate" : 0.002,
+    "learning_rate" : 0.0001,
     "lars_nu": 0.001,
 
     "use_decay" : false,
