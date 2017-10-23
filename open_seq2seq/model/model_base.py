@@ -55,11 +55,18 @@ class ModelBase:
 
     eval_ops = []
     losses = []
+
+    if 'init_scale' not in self.model_params:
+      initializer = None
+    else:
+      initializer = tf.random_uniform_initializer(-self.model_params['init_scale'], self.model_params['init_scale'])
+
     for gpu_ind in range(0, num_gpus):
       with tf.device("/gpu:{}".format(gpu_ind)), tf.variable_scope(
         name_or_scope=tf.get_variable_scope(),
         # re-using variables across GPUs.
-        reuse=force_var_reuse or (gpu_ind > 0)):
+        reuse=force_var_reuse or (gpu_ind > 0),
+        initializer=initializer):
         deco_print("Building graph on GPU:{}".format(gpu_ind))
         if self.mode == "train" or self.mode == "eval":
           sample_ops, loss_i = self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
