@@ -4,6 +4,7 @@ from tensorflow.python.layers import core as layers_core
 from .model_utils import create_rnn_cell, getdtype
 from .model_base import ModelBase
 from .gnmt import GNMTAttentionMultiCell
+import copy
 
 
 class BasicSeq2SeqWithAttention(ModelBase):
@@ -51,8 +52,10 @@ class BasicSeq2SeqWithAttention(ModelBase):
     :param src_lengths:
     :return:
     """
+    cell_params = copy.deepcopy(self.model_params)
+    cell_params["num_units"] = self.model_params['encoder_cell_units']
     encoder_cell_fw = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                      cell_params={"num_units": self.model_params['encoder_cell_units']},
+                                      cell_params=cell_params,
                                       num_layers=self.model_params['encoder_layers'],
                                       dp_input_keep_prob=self.model_params['encoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
                                       dp_output_keep_prob=self.model_params['encoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
@@ -70,15 +73,17 @@ class BasicSeq2SeqWithAttention(ModelBase):
     :param src_lengths:
     :return:
     """
+    cell_params = copy.deepcopy(self.model_params)
+    cell_params["num_units"] = self.model_params['encoder_cell_units']
     encoder_cell_fw = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                      cell_params={"num_units": self.model_params['encoder_cell_units']},
+                                      cell_params=cell_params,
                                       num_layers=self.model_params['encoder_layers'],
                                       dp_input_keep_prob=self.model_params['encoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
                                       dp_output_keep_prob=self.model_params['encoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
                                       residual_connections=self.model_params['encoder_use_skip_connections'])
 
     encoder_cell_bw = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                      cell_params={"num_units": self.model_params['encoder_cell_units']},
+                                      cell_params=cell_params,
                                       num_layers=self.model_params['encoder_layers'],
                                       dp_input_keep_prob=self.model_params['encoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
                                       dp_output_keep_prob=self.model_params['encoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
@@ -94,19 +99,21 @@ class BasicSeq2SeqWithAttention(ModelBase):
     if self.model_params['encoder_layers'] < 2:
       raise ValueError("GNMT encoder must have at least 2 layers")
 
+    cell_params = copy.deepcopy(self.model_params)
+    cell_params["num_units"] = self.model_params['encoder_cell_units']
     encoder_l1_cell_fw = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                      cell_params={"num_units": self.model_params['encoder_cell_units']},
-                                      num_layers=1,
-                                      dp_input_keep_prob=1.0,
-                                      dp_output_keep_prob=1.0,
-                                      residual_connections=False)
+                                         cell_params=cell_params,
+                                         num_layers=1,
+                                         dp_input_keep_prob=1.0,
+                                         dp_output_keep_prob=1.0,
+                                         residual_connections=False)
 
     encoder_l1_cell_bw = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                      cell_params={"num_units": self.model_params['encoder_cell_units']},
-                                      num_layers=1,
-                                      dp_input_keep_prob=1.0,
-                                      dp_output_keep_prob=1.0,
-                                      residual_connections=False)
+                                         cell_params=cell_params,
+                                         num_layers=1,
+                                         dp_input_keep_prob=1.0,
+                                         dp_output_keep_prob=1.0,
+                                         residual_connections=False)
 
     _encoder_output, _ = tf.nn.bidirectional_dynamic_rnn(
       cell_fw=encoder_l1_cell_fw,
@@ -119,12 +126,12 @@ class BasicSeq2SeqWithAttention(ModelBase):
     encoder_l1_outputs = tf.concat(_encoder_output, 2)
 
     encoder_cells = create_rnn_cell(cell_type=self.model_params['encoder_cell_type'],
-                                   cell_params={"num_units": self.model_params['encoder_cell_units']},
-                                   num_layers=self.model_params['encoder_layers'] - 1,
-                                   dp_input_keep_prob=self.model_params['encoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
-                                   dp_output_keep_prob=self.model_params['encoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
-                                   residual_connections=False,
-                                   wrap_to_multi_rnn=False)
+                                    cell_params=cell_params,
+                                    num_layers=self.model_params['encoder_layers'] - 1,
+                                    dp_input_keep_prob=self.model_params['encoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
+                                    dp_output_keep_prob=self.model_params['encoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
+                                    residual_connections=False,
+                                    wrap_to_multi_rnn=False)
     # add residual connections starting from the third layer
     for idx, cell in enumerate(encoder_cells):
       if idx>0:
@@ -203,16 +210,18 @@ class BasicSeq2SeqWithAttention(ModelBase):
                                     shape=[tgt_vocab_size, tgt_emb_size], dtype=getdtype())
       batch_size = self.model_params['batch_size']
 
+      cell_params = copy.deepcopy(self.model_params)
+      cell_params["num_units"] = self.model_params['decoder_cell_units']
       decoder_cells = create_rnn_cell(cell_type=self.model_params['decoder_cell_type'],
-                                     cell_params={"num_units": self.model_params['decoder_cell_units']},
-                                     num_layers=self.model_params['decoder_layers'],
-                                     dp_input_keep_prob=self.model_params[
+                                      cell_params=cell_params,
+                                      num_layers=self.model_params['decoder_layers'],
+                                      dp_input_keep_prob=self.model_params[
                                        'decoder_dp_input_keep_prob'] if self._mode == "train" else 1.0,
-                                     dp_output_keep_prob=self.model_params[
+                                      dp_output_keep_prob=self.model_params[
                                        'decoder_dp_output_keep_prob'] if self._mode == "train" else 1.0,
-                                     residual_connections=False if self.model_params['attention_type'].startswith('gnmt')
-                                     else self.model_params['decoder_use_skip_connections'],
-                                     wrap_to_multi_rnn=not self.model_params['attention_type'].startswith('gnmt'))
+                                      residual_connections=False if self.model_params['attention_type'].startswith('gnmt')
+                                      else self.model_params['decoder_use_skip_connections'],
+                                      wrap_to_multi_rnn=not self.model_params['attention_type'].startswith('gnmt'))
 
       output_layer = layers_core.Dense(tgt_vocab_size, use_bias=False,
                                        activation = out_layer_activation)
