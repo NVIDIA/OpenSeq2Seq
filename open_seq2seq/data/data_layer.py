@@ -6,7 +6,7 @@ import numpy as np
 import random
 import csv
 import copy
-from .utils import weighted_choice
+import io
 
 @six.add_metaclass(abc.ABCMeta)
 class DataLayer:
@@ -61,7 +61,7 @@ class ParallelDataInRamInputLayer(DataLayer):
   bucket_sizes = [60, 120, 180, 240, 300, 360]
 
   def __init__(self, params):
-    super().__init__(params)
+    super(ParallelDataInRamInputLayer, self).__init__(params)
     self._batch_size = self.params['batch_size'] * self.params["num_gpus"] if "num_gpus" in self.params else self.params["batch_size"]
     self.source_file = self.params['source_file']
     self.target_file = self.params['target_file']
@@ -119,7 +119,7 @@ class ParallelDataInRamInputLayer(DataLayer):
     :return: list of sentences with S_ID and EOS_ID added
     """
     sentences = []
-    with open(path, newline = '', encoding = 'utf-8') as f:
+    with io.open(path, newline = '', encoding = 'utf-8') as f:
       corpus_reader = csv.reader(f, delimiter = ' ')
       for line in corpus_reader:
           sentences.append([ParallelDataInRamInputLayer.S_ID] + list(
@@ -144,7 +144,7 @@ class ParallelDataInRamInputLayer(DataLayer):
     """
     idx = ParallelDataInRamInputLayer.PAD_ID + 1
     vocab = {}
-    with open(path, newline='', encoding = 'utf-8') as f:
+    with io.open(path, newline='', encoding = 'utf-8') as f:
       vocab_reader = csv.reader(f, delimiter='\t')
       for seq in vocab_reader:
         vocab[seq[0]] = idx
@@ -273,6 +273,7 @@ class ParallelDataInRamInputLayer(DataLayer):
     Iterates through the data ones
     :return: yield mini-batched x and y
     """
+    from .utils import weighted_choice
     start_inds = {}
     choices = copy.deepcopy(self._bucket_sizes)
     for bucket_id in choices.keys():
