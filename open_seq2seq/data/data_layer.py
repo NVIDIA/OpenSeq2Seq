@@ -4,7 +4,6 @@ import abc
 import six
 import numpy as np
 import random
-import csv
 import copy
 import io
 
@@ -119,9 +118,9 @@ class ParallelDataInRamInputLayer(DataLayer):
     :return: list of sentences with S_ID and EOS_ID added
     """
     sentences = []
-    with io.open(path, newline = '', encoding = 'utf-8') as f:
-      corpus_reader = csv.reader(f, delimiter = ' ')
-      for line in corpus_reader:
+    with io.open(path, newline='', encoding='utf-8') as f:
+      for raw_line in f:
+          line = raw_line.split(' ')
           sentences.append([ParallelDataInRamInputLayer.S_ID] + list(
               map(lambda word: vocab[word] if word in vocab else ParallelDataInRamInputLayer.UNK_ID, line)) +
                            [ParallelDataInRamInputLayer.EOS_ID])
@@ -144,10 +143,9 @@ class ParallelDataInRamInputLayer(DataLayer):
     """
     idx = ParallelDataInRamInputLayer.PAD_ID + 1
     vocab = {}
-    with io.open(path, newline='', encoding = 'utf-8') as f:
-      vocab_reader = csv.reader(f, delimiter='\t')
-      for seq in vocab_reader:
-        vocab[seq[0]] = idx
+    with io.open(path, newline='', encoding='utf-8') as f:
+      for line in f:
+        vocab[line.rstrip()] = idx
         idx += 1
     return vocab
 

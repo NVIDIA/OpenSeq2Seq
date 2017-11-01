@@ -1,5 +1,10 @@
 # Copyright (c) 2017 NVIDIA Corporation
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
+
 import os
+import io
 import sys
 import json
 import time
@@ -40,8 +45,8 @@ def train(config):
   deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
   if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
-    config['src_vocab_size'] = math.ceil(len(dl.source_seq2idx) / 8) * 8
-    config['tgt_vocab_size'] = math.ceil(len(dl.target_seq2idx) / 8) * 8
+    config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
+    config['tgt_vocab_size'] = int(math.ceil(len(dl.target_seq2idx) / 8) * 8)
   else:
     config['src_vocab_size'] = len(dl.source_seq2idx)
     config['tgt_vocab_size'] = len(dl.target_seq2idx)
@@ -202,8 +207,8 @@ def infer(config):
   deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
   if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
-    config['src_vocab_size'] = math.ceil(len(dl.source_seq2idx) / 8) * 8
-    config['tgt_vocab_size'] = math.ceil(len(dl.target_seq2idx) / 8) * 8
+    config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
+    config['tgt_vocab_size'] = int(math.ceil(len(dl.target_seq2idx) / 8) * 8)
   else:
     config['src_vocab_size'] = len(dl.source_seq2idx)
     config['tgt_vocab_size'] = len(dl.target_seq2idx)
@@ -226,7 +231,7 @@ def infer(config):
       if FLAGS.inference_out == "stdout":
         fout = sys.stdout
       else:
-        fout = open(FLAGS.inference_out, 'w')
+        fout = io.open(FLAGS.inference_out, 'w', encoding='utf-8')
 
       for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
         # need to check outputs for beam search, and if required, make a common approach
