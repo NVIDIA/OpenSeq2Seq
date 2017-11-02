@@ -120,7 +120,7 @@ class ParallelDataInRamInputLayer(DataLayer):
     sentences = []
     with io.open(path, newline='', encoding='utf-8') as f:
       for raw_line in f:
-          line = raw_line.split(' ')
+          line = raw_line.rstrip().split(' ')
           sentences.append([ParallelDataInRamInputLayer.S_ID] + list(
               map(lambda word: vocab[word] if word in vocab else ParallelDataInRamInputLayer.UNK_ID, line)) +
                            [ParallelDataInRamInputLayer.EOS_ID])
@@ -145,7 +145,8 @@ class ParallelDataInRamInputLayer(DataLayer):
     vocab = {}
     with io.open(path, newline='', encoding='utf-8') as f:
       for line in f:
-        vocab[line.rstrip()] = idx
+        word = line.rstrip().split('\t')[0]
+        vocab[word] = idx
         idx += 1
     return vocab
 
