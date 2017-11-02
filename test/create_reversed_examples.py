@@ -1,6 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
+from __future__ import unicode_literals
 import numpy as np
 import os, errno
+import io
 
 TRAIN_CORPUS_SIZE = 10000
 DEV_CORPUS_SIZE = 1000
@@ -26,20 +28,30 @@ VOCAB_TARGET_PATH = VOCAB_PATH + "target.txt"
 
 source_vocab = {}
 
+vocab_map = {0: '\u03B1',
+             1: '\u03B2',
+             2: '\u03B3',
+             3: '\u03B4',
+             4: '\u03B5',
+             5: '\u03B6',
+             6: '\u03B7',
+             7: '\u03B8',
+             8: '\u03B9',
+             9: '\u03BA'}
+
 def create_source(size):
 	global source_vocab
 	source = []
 	for i in range(0,size):
 		new_rol = []
 		for j in range(0, np.random.randint(low=5, high=51)):
-			new_dig = np.random.randint(low=0, high=10)
-			new_rol.append(new_dig)
+			new_dig = np.random.randint(low=0, high=len(vocab_map))
+			new_rol.append(vocab_map[new_dig])
 			if new_dig not in source_vocab:
 				source_vocab[new_dig] = 0
 			else:
 				source_vocab[new_dig] += 1
 		source.append(new_rol)
-
 	return source
 
 def create_target(size, source):
@@ -50,15 +62,15 @@ def create_target(size, source):
 	return target
 
 def write_to_file(path, data):
-	with open(path, 'w') as f:
+	with io.open(path, 'w', encoding='utf-8') as f:
 		for row in data:
-			f.write(str(row)[1:-1].replace(',','') + '\n')
+			f.write(' '.join(row) + '\n')
 	f.close()
 
 def write_vocab_to_file(path, data):
-	with open(path, 'w') as f:
+	with io.open(path, 'w', encoding='utf-8') as f:
 		for key, value in data.items():
-			f.write(str(key)+'\t'+str(value)+'\n')
+			f.write(vocab_map[key]+'\t'+str(value)+'\n')
 	f.close()
 
 def create_directory(path):
