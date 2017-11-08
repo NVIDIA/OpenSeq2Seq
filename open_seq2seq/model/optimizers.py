@@ -254,18 +254,6 @@ def optimize_loss(loss,
     if loss_scale!=1.0:
       gradients = _multiply_gradients_const(gradients, 1.0 / loss_scale)
 
-    # LARS gradient re-scaling
-    if LARS_nu is not None and isinstance(LARS_nu, float):
-      for idx, (g, v) in enumerate(gradients):
-        v_norm = linalg_ops.norm(tensor=v, ord=2)
-        g_norm = linalg_ops.norm(tensor=g, ord=2)
-        lars_local_lr = control_flow_ops.cond(
-          pred = math_ops.logical_and(math_ops.not_equal(v_norm, array_ops.constant(0.0)),
-                                      math_ops.not_equal(g_norm, array_ops.constant(0.0))),
-          true_fn = lambda: LARS_nu * v_norm / g_norm,
-          false_fn = lambda: LARS_epsilon)
-        gradients[idx] = (math_ops.scalar_mul(lars_local_lr, g), v)
-
     # Optionally add gradient noise.
     if gradient_noise_scale is not None:
       gradients = _add_scaled_noise_to_gradients(gradients,
@@ -284,6 +272,8 @@ def optimize_loss(loss,
                      clip_ops.global_norm(list(zip(*gradients))[0]))
 
     # Optionally clip gradients by global norm.
+    if clip_gradients is not None and LARS_nu is not None:
+      raise AttributeError("LARS and gradient norm clipping should not be used together")
     if isinstance(clip_gradients, float):
       gradients = _clip_gradients_by_norm(gradients, clip_gradients)
     elif callable(clip_gradients):
@@ -315,6 +305,18 @@ def optimize_loss(loss,
                                        "gradient_norm" in summaries):
       summary.scalar("global_norm/clipped_gradient_norm",
                      clip_ops.global_norm(list(zip(*gradients))[0]))
+
+    # LARS gradient re-scaling
+    if LARS_nu is not None and isinstance(LARS_nu, float):
+      for idx, (g, v) in enumerate(gradients):
+        v_norm = linalg_ops.norm(tensor=v, ord=2)
+        g_norm = linalg_ops.norm(tensor=g, ord=2)
+        lars_local_lr = control_flow_ops.cond(
+          pred = math_ops.logical_and(math_ops.not_equal(v_norm, array_ops.constant(0.0)),
+                                      math_ops.not_equal(g_norm, array_ops.constant(0.0))),
+          true_fn = lambda: LARS_nu * v_norm / g_norm,
+          false_fn = lambda: LARS_epsilon)
+        gradients[idx] = (math_ops.scalar_mul(lars_local_lr, g), v)
 
     # Create gradient updates.
     grad_updates = opt.apply_gradients(
