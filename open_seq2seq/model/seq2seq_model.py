@@ -236,7 +236,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
 
       if self.mode == "infer":
         if self._decoder_type == "beam_search":
-          self._length_penalty_weight = 1.0 if "length_penalty" not in self.model_params else self.model_params[
+          self._length_penalty_weight = 0.0 if "length_penalty" not in self.model_params else self.model_params[
             "length_penalty"]
           # beam_width of 1 should be same as argmax decoder
           self._beam_width = 1 if "beam_width" not in self.model_params else self.model_params["beam_width"]
@@ -297,7 +297,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
             initial_state=attentive_decoder_cell.zero_state(batch_size=batch_size, dtype=getdtype()),
             output_layer=output_layer)
 
-      elif self.mode == "train" or self.mode == "eval":
+      elif self.mode == "train":
         attention_mechanism = self._build_attention(encoder_outputs, enc_src_lengths)
         if self.model_params['attention_type'].startswith('gnmt'):
           attention_cell = decoder_cells.pop(0)
@@ -356,9 +356,9 @@ class BasicSeq2SeqWithAttention(ModelBase):
 
     encoder_outputs, _, enc_src_lengths = self._build_encoder(src_inputs = source_sequence,
                                                               src_lengths = src_length)
-    def temp(input):
+    def temp(temp_input):
       t = self._temp if self._temp is not None else 0.5
-      return tf.scalar_mul(1.0/t, input)
+      return tf.scalar_mul(1.0/t, temp_input)
 
     final_outputs, final_state, final_sequence_lengths = self._build_decoder(
       encoder_outputs = encoder_outputs,
@@ -397,3 +397,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
       return final_outputs, loss
     else:
       print("Inference Mode. Loss part of graph isn't built.")
+
+  @property
+  def final_outputs(self):
+    return self._final_outputs

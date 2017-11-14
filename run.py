@@ -9,9 +9,7 @@ import sys
 import json
 import time
 import tensorflow as tf
-import copy
 import math
-import nltk
 from open_seq2seq.model import seq2seq_model
 from open_seq2seq.data import data_layer, utils
 from tensorflow.core.framework import summary_pb2
@@ -35,14 +33,15 @@ tf.flags.DEFINE_string("mode", "train",
 
 FLAGS = tf.flags.FLAGS
 
-def train(config):
+def train(config, eval_config=None):
   """
   Implements training mode
   :param config: python dictionary describing model and data layer
+  :param eval_config: (default) None python dictionary describing model and data layer used for evaluation
   :return: nothing
   """
-  deco_print("Executing training mode")
-  deco_print("Creating data layer")
+  utils.deco_print("Executing training mode")
+  utils.deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
   if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
     config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
@@ -50,40 +49,42 @@ def train(config):
   else:
     config['src_vocab_size'] = len(dl.source_seq2idx)
     config['tgt_vocab_size'] = len(dl.target_seq2idx)
+  utils.deco_print("Data layer created")
+
   eval_using_bleu = True if "eval_bleu" not in config else config["eval_bleu"]
   bpe_used = False if "bpe_used" not in config else config["bpe_used"]
-
-  #create eval config
-  do_eval = False
-  if 'source_file_eval' in config and 'target_file_eval' in config:
-    do_eval = True
-    eval_config = copy.deepcopy(config)
-    eval_config['source_file'] = eval_config['source_file_eval']
-    eval_config['target_file'] = eval_config['target_file_eval']
-    deco_print('Creating eval data layer')
+  do_eval = eval_config is not None
+  if do_eval:
+    utils.deco_print('Creating eval data layer')
     eval_dl = data_layer.ParallelDataInRamInputLayer(params=eval_config)
+    eval_use_beam_search = False if "decoder_type" not in eval_config else eval_config["decoder_type"] == "beam_search"
+    if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
+      eval_config['src_vocab_size'] = int(math.ceil(len(eval_dl.source_seq2idx) / 8) * 8)
+      eval_config['tgt_vocab_size'] = int(math.ceil(len(eval_dl.target_seq2idx) / 8) * 8)
+    else:
+      eval_config['src_vocab_size'] = len(eval_dl.source_seq2idx)
+      eval_config['tgt_vocab_size'] = len(eval_dl.target_seq2idx)
 
-  deco_print("Data layer created")
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
-    #create model
+
+    # Create train model
     model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=config,
                                                     global_step=global_step,
                                                     mode="train")
-    #create eval model
+    tf.summary.scalar(name="loss", tensor=model.loss)
+    summary_op = tf.summary.merge_all()
+    fetches = [model.loss, model.train_op, model.lr]
+    fetches_s = [model.loss, model.train_op, model.final_outputs, summary_op, model.lr]
+
+    # Create eval model. It will re-use vars from train model (force_var_reuse=True)
     if do_eval:
       e_model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=eval_config,
                                                         global_step=global_step,
+                                                        tgt_max_size=max(eval_config["bucket_tgt"]),
                                                         force_var_reuse=True,
-                                                        mode="eval")
-
-    tf.summary.scalar(name="loss", tensor=model.loss)
-    if do_eval:
-      eval_fetches = [e_model._eval_y, e_model._eval_ops]
-    summary_op = tf.summary.merge_all()
-
-    fetches = [model.loss, model.train_op, model._lr]
-    fetches_s = [model.loss, model.train_op, model._final_outputs, summary_op, model._lr]
+                                                        mode="infer")
+      eval_fetches = [e_model.final_outputs]
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)
 
@@ -97,59 +98,59 @@ def train(config):
 
       if tf.train.latest_checkpoint(FLAGS.logdir) is not None:
           saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
-          deco_print("Restored checkpoint. Resuming training")
+          utils.deco_print("Restored checkpoint. Resuming training")
       else:
           sess.run(tf.global_variables_initializer())
+          utils.deco_print("Started training: Initialized variables")
 
       #begin training
       for epoch in range(0, config['num_epochs']):
-        deco_print("\n\n")
-        deco_print("Doing epoch {}".format(epoch))
+        utils.deco_print("\n\n")
+        utils.deco_print("Doing epoch {}".format(epoch))
         epoch_start = time.time()
         total_train_loss = 0.0
         t_cnt = 0
         for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
           # run evaluation
           if do_eval and i % FLAGS.eval_frequency == 0:
-            deco_print("Evaluation on validation set")
+            utils.deco_print("Evaluation on validation set")
             preds = []
             targets = []
             #iterate through evaluation data
-            for j, (x, y, bucket_id, len_x, len_y) in enumerate(eval_dl.iterate_one_epoch()):
-              tgt, samples = sess.run(fetches=eval_fetches,
-                                  feed_dict={
-                                    e_model.x: x,
-                                    e_model.y: y,
-                                    e_model.x_length: len_x,
-                                    e_model.y_length: len_y
-                                  })
+            for j, (ex, ey, ebucket_id, elen_x, elen_y) in enumerate(eval_dl.iterate_one_epoch()):
+              samples = sess.run(fetches=eval_fetches,
+                                 feed_dict={
+                                   e_model.x: ex,
+                                   e_model.x_length: elen_x,
+                                 })
+              samples = samples[0].predicted_ids[:, :, 0]  if eval_use_beam_search else samples[0].sample_id
 
               if eval_using_bleu:
                 preds.extend([utils.transform_for_bleu(si,
                                              vocab=eval_dl.target_idx2seq,
                                              ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used) for sample in samples for si in sample.sample_id])
+                                             delim=config["delimiter"], bpe_used=bpe_used) for sample in [samples] for si in sample])
                 targets.extend([[utils.transform_for_bleu(yi,
                                              vocab=eval_dl.target_idx2seq,
                                              ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used)] for yii in tgt for yi in yii])
+                                             delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey] for yi in yii])
 
             eval_dl.bucketize()
 
             if eval_using_bleu:
-              eval_bleu = calculate_bleu(preds, targets)
+              eval_bleu = utils.calculate_bleu(preds, targets)
               bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
               bleu_summary = summary_pb2.Summary(value=[bleu_value])
               sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
               sw.flush()
 
             if i > 0:
-              deco_print("Saving EVAL checkpoint")
+              utils.deco_print("Saving EVAL checkpoint")
               epoch_saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model-eval"), global_step=global_step)
 
           # save model
           if i % FLAGS.checkpoint_frequency == 0 and i > 0: # save freq arg
-              deco_print("Saving checkpoint")
+              utils.deco_print("Saving checkpoint")
               saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
           # print sample
@@ -162,14 +163,14 @@ def train(config):
                                           model.y_length: len_y
                                         })
             sw.add_summary(sm, global_step=sess.run(global_step))
-            deco_print("In epoch {}, step {} the loss is {}".format(epoch, i, loss))
-            deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
+            utils.deco_print("In epoch {}, step {} the loss is {}".format(epoch, i, loss))
+            utils.deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
                                                                       vocab=dl.source_idx2seq,
                                                                       delim=config["delimiter"]))
-            deco_print("Train Target[0]:     " + utils.pretty_print_array(y[0,:],
+            utils.deco_print("Train Target[0]:     " + utils.pretty_print_array(y[0,:],
                                                                       vocab=dl.target_idx2seq,
                                                                       delim = config["delimiter"]))
-            deco_print("Train Prediction[0]: " + utils.pretty_print_array(samples.sample_id[0,:],
+            utils.deco_print("Train Prediction[0]: " + utils.pretty_print_array(samples.sample_id[0,:],
                                                                           vocab=dl.target_idx2seq,
                                                                           delim=config["delimiter"]))
           else:
@@ -185,16 +186,16 @@ def train(config):
 
         # epoch finished
         epoch_end = time.time()
-        deco_print('Epoch {} training loss: {}'.format(epoch, total_train_loss / t_cnt))
+        utils.deco_print('Epoch {} training loss: {}'.format(epoch, total_train_loss / t_cnt))
         value = summary_pb2.Summary.Value(tag="TrainEpochLoss", simple_value= total_train_loss / t_cnt)
         summary = summary_pb2.Summary(value=[value])
         sw.add_summary(summary=summary, global_step=epoch)
         sw.flush()
-        deco_print("Did epoch {} in {} seconds".format(epoch, epoch_end - epoch_start))
+        utils.deco_print("Did epoch {} in {} seconds".format(epoch, epoch_end - epoch_start))
         dl.bucketize()
 
       # end of epoch loop
-      deco_print("Saving last checkpoint")
+        utils.deco_print("Saving last checkpoint")
       saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
 def infer(config):
@@ -203,8 +204,8 @@ def infer(config):
   :param config: python dictionary describing model and data layer
   :return: nothing
   """
-  deco_print("Executing training mode")
-  deco_print("Creating data layer")
+  utils.deco_print("Executing training mode")
+  utils.deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
   if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
     config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
@@ -213,7 +214,7 @@ def infer(config):
     config['src_vocab_size'] = len(dl.source_seq2idx)
     config['tgt_vocab_size'] = len(dl.target_seq2idx)
   use_beam_search = False if "decoder_type" not in config else config["decoder_type"] == "beam_search"
-  deco_print("Data layer created")
+  utils.deco_print("Data layer created")
 
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
@@ -225,9 +226,9 @@ def infer(config):
     sess_config = tf.ConfigProto(allow_soft_placement=True)
     saver = tf.train.Saver()
     with tf.train.MonitoredTrainingSession(config=sess_config) as sess:
-      deco_print("Trying to restore from: {}".format(tf.train.latest_checkpoint(FLAGS.logdir)))
+      utils.deco_print("Trying to restore from: {}".format(tf.train.latest_checkpoint(FLAGS.logdir)))
       saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
-      deco_print("Saving inference results to: " + FLAGS.inference_out)
+      utils.deco_print("Saving inference results to: " + FLAGS.inference_out)
       if FLAGS.inference_out == "stdout":
         fout = sys.stdout
       else:
@@ -252,53 +253,22 @@ def infer(config):
                                             delim=config["delimiter"]) + "\n")
       if FLAGS.inference_out != "stdout":
           fout.close()
-  deco_print("Inference finished")
-
-def calculate_bleu(preds, targets):
-  '''
-  :param preds: list of lists
-  :param targets: list of lists
-  :return: bleu score - float32
-  '''
-  bleu_score = nltk.translate.bleu_score.corpus_bleu(targets, preds, emulate_multibleu=True)
-  print("EVAL BLEU")
-  print(bleu_score)
-  return bleu_score
-
-def deco_print(line):
-  print(">==================> " + line)
-
-def configure_params(config, mode="train"):
-  config["mode"] = mode
-  if mode == "infer":
-    config["shuffle"] = False
-    config["encoder_dp_input_keep_prob"] = 1.0
-    config["decoder_dp_input_keep_prob"] = 1.0
-    config["batch_size"] = 1
-    config["num_gpus"] = 1
-    config["source_file"] = config["source_file_test"]
-    config["target_file"] = config["target_file_test"]
-    if "bucket_src_test" in config:
-      config["bucket_src"] = config["bucket_src_test"]
-    if "bucket_tgt_test" in config:
-      config["bucket_tgt"] = config["bucket_tgt_test"]
-  elif mode == "train":
-    config["shuffle"] = True
-    config["decoder_type"] = "greedy"
-  else:
-    raise ValueError("Unknown mode")
-  return config
+  utils.deco_print("Inference finished")
 
 def main(_):
   with open(FLAGS.config_file) as data_file:
-    config = json.load(data_file)
+    in_config = json.load(data_file)
   if FLAGS.mode == "train":
-    config = configure_params(config, "train")
-    deco_print("Running in training mode")
-    train(config)
+    utils.deco_print("Running in training mode")
+    train_config = utils.configure_params(in_config, "train")
+    if 'source_file_eval' in in_config and 'target_file_eval' in in_config:
+      eval_config = utils.configure_params(in_config, "eval")
+      train(train_config, eval_config)
+    else:
+      train(train_config, None)
   elif FLAGS.mode == "infer":
-    config = configure_params(config, "infer")
-    deco_print("Running in inference mode")
+    config = utils.configure_params(in_config, "infer")
+    utils.deco_print("Running in inference mode")
     infer(config)
   else:
     raise ValueError("Unknown mode in config file")

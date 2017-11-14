@@ -53,7 +53,6 @@ class ModelBase:
     ys = tf.split(value=self.y, num_or_size_splits=num_gpus, axis=0)
     y_lengths = tf.split(value=self.y_length, num_or_size_splits=num_gpus, axis=0)
 
-    eval_ops = []
     losses = []
 
     if 'init_scale' not in self.model_params:
@@ -68,15 +67,13 @@ class ModelBase:
         reuse=force_var_reuse or (gpu_ind > 0),
         initializer=initializer):
         deco_print("Building graph on GPU:{}".format(gpu_ind))
-        if self.mode == "train" or self.mode == "eval":
+        if self.mode == "train":
           sample_ops, loss_i = self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
                                                               src_length=x_lengths[gpu_ind],
                                                               target_sequence = ys[gpu_ind],
                                                               tgt_length=y_lengths[gpu_ind],
                                                               gpu_id=gpu_ind)
           losses.append(loss_i)
-          if self.mode == "eval":
-            eval_ops.append(sample_ops)
 
         elif self.mode == "infer":
           self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
@@ -86,11 +83,8 @@ class ModelBase:
           raise ValueError("Unknown mode")
     # end of for gpu_ind loop
 
-    if self.mode != "infer":
-      self._eval_ops = eval_ops
-      self._eval_y = ys
+    if self.mode == "train":
       self.loss = tf.reduce_mean(losses)
-
 
     def exp_decay(learning_rate, var_global_step):
       new_lr = tf.cond(
@@ -106,20 +100,6 @@ class ModelBase:
       final_lr = tf.maximum(self.model_params['min_learning_rate'], new_lr)
       self._lr = final_lr
       return final_lr
-      """new_lr = tf.train.exponential_decay(learning_rate=learning_rate,
-                                          global_step=var_global_step,
-                                          decay_steps=self.model_params['decay_steps'],
-                                          decay_rate=self.model_params['decay_rate'],
-                                          staircase=self.model_params['use_staircase_decay'])
-      boundaries = [self.model_params['begin_decay_at']]
-      values = [learning_rate, new_lr]
-      min_rate = self.model_params['min_learning_rate']
-      final_lr = tf.maximum(tf.train.piecewise_constant(
-        x=tf.to_int32(var_global_step),
-        boundaries=boundaries,
-        values=values), min_rate)
-      self._lr = final_lr
-      return final_lr"""
 
     lr_decay_fn = exp_decay if 'use_decay' in self.model_params and self.model_params['use_decay'] == True else None
 
@@ -129,7 +109,6 @@ class ModelBase:
                                              self.model_params['opt_momentum'])
     else:
       optimizer = self.model_params['optimizer']
-
 
     if self._mode == "train":
       self._lr = tf.Variable(initial_value=self.model_params['learning_rate'], trainable=False)
@@ -212,3 +191,7 @@ class ModelBase:
   @property
   def mode(self):
     return self._mode
+
+  @property
+  def lr(self):
+      return self._lr

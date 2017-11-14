@@ -288,6 +288,10 @@ class ParallelDataInRamInputLayer(DataLayer):
       end_ind = min(start_inds[bucket_id] + self.batch_size, self._bucket_id_to_src_example[bucket_id].shape[0])
       x = self._bucket_id_to_src_example[bucket_id][start_inds[bucket_id]:end_ind]
       len_x = np.asarray(list(map(lambda row: len(row), x)))
+      if start_inds[bucket_id] >= end_ind:
+        bucket_id = (weighted_choice(choices))
+        print('Eval dl corner case')
+        continue
       x = np.vstack(
         map(lambda row: np.asarray(self._pad_to_bucket_size(row, np.max(len_x))), x))
       if self._istrain:
