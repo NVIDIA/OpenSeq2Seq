@@ -91,6 +91,8 @@ def configure_params(in_config, mode="train"):
     config["encoder_dp_input_keep_prob"] = 1.0
     config["decoder_dp_input_keep_prob"] = 1.0
     config["num_gpus"] = 1
+    if "eval_batch_size" in config:
+      config["batch_size"] = config["eval_batch_size"]
     if "length_penalty" in config:
       # this is needed to have beam search on GPU
       # see: https://github.com/tensorflow/nmt/issues/110 waiting for tf
