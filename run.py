@@ -65,13 +65,16 @@ def train(config, eval_config=None):
       eval_config['src_vocab_size'] = len(eval_dl.source_seq2idx)
       eval_config['tgt_vocab_size'] = len(eval_dl.target_seq2idx)
 
+  gpu_ids = list(range(0, config["num_gpus"]))
+
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
 
     # Create train model
     model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=config,
                                                     global_step=global_step,
-                                                    mode="train")
+                                                    mode="train",
+                                                    gpu_ids=gpu_ids)
     tf.summary.scalar(name="loss", tensor=model.loss)
     summary_op = tf.summary.merge_all()
     fetches = [model.loss, model.train_op, model.lr]
@@ -83,7 +86,8 @@ def train(config, eval_config=None):
                                                         global_step=global_step,
                                                         tgt_max_size=max(eval_config["bucket_tgt"]),
                                                         force_var_reuse=True,
-                                                        mode="infer")
+                                                        mode="infer",
+                                                        gpu_ids=gpu_ids[-1:])
       eval_fetches = [e_model.final_outputs]
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)

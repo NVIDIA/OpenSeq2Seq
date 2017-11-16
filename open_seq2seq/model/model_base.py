@@ -15,7 +15,8 @@ class ModelBase:
                force_var_reuse=False,
                src_max_size=None,
                tgt_max_size=None,
-               mode=None):
+               mode=None,
+               gpu_ids=None):
     """
     Constructor
     :param model_params: Python dictionary - parameters describing seq2seq model
@@ -27,6 +28,12 @@ class ModelBase:
     """
     self._model_params = model_params
     num_gpus = self.model_params["num_gpus"] if "num_gpus" in self.model_params else 1
+    if gpu_ids is None:
+      gpu_ids = list(range(0, num_gpus))
+    else:
+      if num_gpus!=len(gpu_ids):
+        raise ValueError("Number of provided GPUs does not match the one in config")
+
     # note, that model_params["batch_size"] should specify batch_size per GPU
     # global batch size is "algo", or "global" is total batch size
     self._per_gpu_batch_size = self.model_params["batch_size"]
@@ -60,13 +67,14 @@ class ModelBase:
     else:
       initializer = tf.random_uniform_initializer(-self.model_params['init_scale'], self.model_params['init_scale'])
 
-    for gpu_ind in range(0, num_gpus):
-      with tf.device("/gpu:{}".format(gpu_ind)), tf.variable_scope(
+    #for gpu_ind in range(0, num_gpus):
+    for gpu_ind, gpu_id in enumerate(gpu_ids):
+      with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
         name_or_scope=tf.get_variable_scope(),
         # re-using variables across GPUs.
         reuse=force_var_reuse or (gpu_ind > 0),
         initializer=initializer):
-        deco_print("Building graph on GPU:{}".format(gpu_ind))
+        deco_print("Building graph on GPU:{}".format(gpu_id))
         if self.mode == "train":
           sample_ops, loss_i = self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
                                                               src_length=x_lengths[gpu_ind],
