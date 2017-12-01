@@ -3,9 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
-import io
-import sys
 import json
 import time
 import tensorflow as tf
@@ -55,10 +52,10 @@ def train(config, eval_config=None):
     config['tgt_vocab_size'] = len(dl.target_seq2idx)
   utils.deco_print("Data layer created")
 
-  eval_using_bleu = True if "eval_bleu" not in config else config["eval_bleu"]
-  bpe_used = False if "bpe_used" not in config else config["bpe_used"]
-  do_eval = eval_config is not None and hvd.rank() == 0#hvd.size() - 1
+  do_eval = eval_config is not None and hvd.rank() == 0
   if do_eval:
+    eval_using_bleu = True if "eval_bleu" not in config else config["eval_bleu"]
+    bpe_used = False if "bpe_used" not in config else config["bpe_used"]
     utils.deco_print('Creating eval data layer')
     eval_dl = data_layer.ParallelDataInRamInputLayer(params=eval_config)
     eval_use_beam_search = False if "decoder_type" not in eval_config else eval_config["decoder_type"] == "beam_search"
@@ -71,41 +68,43 @@ def train(config, eval_config=None):
 
   with tf.Graph().as_default():
     global_step = tf.contrib.framework.get_or_create_global_step()
-
     # Create train model
-    model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=config,
-                                                    global_step=global_step,
-                                                    mode="train",
-                                                    gpu_ids="horovod")
-
+    model = seq2seq_model.BasicSeq2SeqWithAttention(model_params = config,
+                                                    global_step = global_step,
+                                                    mode = "train",
+                                                    gpu_ids = "horovod")
+    fetches = [model.loss, model.train_op, model.lr]
+    # Create evaluation graph
     if do_eval:
-      e_model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=eval_config,
-                                                        global_step=global_step,
-                                                        tgt_max_size=max(eval_config["bucket_tgt"]),
-                                                        force_var_reuse=True,
-                                                        mode="infer",
-                                                        gpu_ids=[0])
+      e_model = seq2seq_model.BasicSeq2SeqWithAttention(model_params = eval_config,
+                                                        global_step = global_step,
+                                                        tgt_max_size = max(eval_config["bucket_tgt"]),
+                                                        force_var_reuse = True,
+                                                        mode = "infer",
+                                                        gpu_ids = [0])
       eval_fetches = [e_model.final_outputs]
 
-    tf.summary.scalar(name="loss", tensor=model.loss)
-    summary_op = tf.summary.merge_all()
-    fetches = [model.loss, model.train_op, model.lr]
     if hvd.rank()==0:
+      tf.summary.scalar(name="loss", tensor=model.loss)
+      summary_op = tf.summary.merge_all()
       fetches_s = [model.loss, model.train_op, model.final_outputs, summary_op, model.lr]
+      sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
+    # done constructing graph at this point
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)
     sess_config.gpu_options.visible_device_list = str(hvd.local_rank())
-    hooks = [hvd.BroadcastGlobalVariablesHook(0)]
+    sess_config.gpu_options.allow_growth = True
+
+    hooks = [hvd.BroadcastGlobalVariablesHook(hvd.size()-1)]
     checkpoint_dir = FLAGS.logdir if hvd.rank() == 0 else None
 
-    with tf.train.MonitoredTrainingSession(checkpoint_dir=checkpoint_dir,
-                                           save_summaries_steps=FLAGS.summary_frequency,
-                                           config=sess_config,
-                                           save_checkpoint_secs=FLAGS.checkpoint_frequency,
-                                           hooks=hooks) as sess:
-      if hvd.rank() == 0:
-        sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
-        #eval_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
+    with tf.train.MonitoredTrainingSession(checkpoint_dir = checkpoint_dir,
+                                           save_summaries_steps = FLAGS.summary_frequency,
+                                           config = sess_config,
+                                           save_checkpoint_secs = FLAGS.checkpoint_frequency,
+                                           log_step_count_steps = FLAGS.summary_frequency,
+                                           stop_grace_period_secs = 300,
+                                           hooks = hooks) as sess:
       #begin training
       for epoch in range(0, config['num_epochs']):
         utils.deco_print("\n\n")
@@ -125,7 +124,8 @@ def train(config, eval_config=None):
                                         })
             if hvd.rank() == 0:
               sw.add_summary(sm, global_step=sess.run(global_step))
-            utils.deco_print("In epoch {}, step {} the loss is {}. Global step is {}".format(epoch, i, loss, sess.run(global_step)))
+            utils.deco_print("In epoch {}, step {} the loss is {}. Global step is {}"
+                             .format(epoch, i, loss, sess.run(global_step)))
             utils.deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
                                                                       vocab=dl.source_idx2seq,
                                                                       delim=config["delimiter"]))
@@ -172,16 +172,13 @@ def train(config, eval_config=None):
                                                           delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey]
                                 for yi in yii])
             eval_dl.bucketize()
+
             if eval_using_bleu:
               eval_bleu = utils.calculate_bleu(preds, targets)
               bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
               bleu_summary = summary_pb2.Summary(value=[bleu_value])
               sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
               sw.flush()
-
-            # if i > 0:
-            #  utils.deco_print("Saving EVAL checkpoint")
-            #  eval_saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model-eval"), global_step=global_step)
 
         # epoch finished
         epoch_end = time.time()
@@ -191,7 +188,8 @@ def train(config, eval_config=None):
           summary = summary_pb2.Summary(value=[value])
           sw.add_summary(summary=summary, global_step=epoch)
           sw.flush()
-        utils.deco_print("Did epoch {} in {} seconds".format(epoch, epoch_end - epoch_start))
+
+        utils.deco_print("Did epoch {} in {} seconds on Horovod rank {}".format(epoch, epoch_end - epoch_start), hvd.rank())
         dl.bucketize()
       # end of epoch loop
 
