@@ -21,8 +21,8 @@ tf.flags.DEFINE_string("logdir", "",
                        """Path to where save logs and checkpoints""")
 tf.flags.DEFINE_string("inference_out", "stdout",
                        """where to output inference results""")
-tf.flags.DEFINE_integer("checkpoint_frequency", 300,
-                       """iterations after which a checkpoint is made. Only the last 5 checkpoints are saved""")
+tf.flags.DEFINE_integer("checkpoint_frequency", 60,
+                       """How often (in seconds) to save checkpoints""")
 tf.flags.DEFINE_integer("summary_frequency", 20,
                        """summary step frequencey save rate""")
 tf.flags.DEFINE_integer("eval_frequency", 35,
@@ -101,6 +101,7 @@ def train(config, eval_config=None):
     with tf.train.MonitoredTrainingSession(checkpoint_dir=checkpoint_dir,
                                            save_summaries_steps=FLAGS.summary_frequency,
                                            config=sess_config,
+                                           save_summaries_secs=FLAGS.checkpoint_frequency,
                                            hooks=hooks) as sess:
       if hvd.rank() == 0:
         sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
