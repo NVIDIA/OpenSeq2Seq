@@ -101,7 +101,7 @@ def train(config, eval_config=None):
     with tf.train.MonitoredTrainingSession(checkpoint_dir=checkpoint_dir,
                                            save_summaries_steps=FLAGS.summary_frequency,
                                            config=sess_config,
-                                           save_summaries_secs=FLAGS.checkpoint_frequency,
+                                           save_checkpoint_secs=FLAGS.checkpoint_frequency,
                                            hooks=hooks) as sess:
       if hvd.rank() == 0:
         sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
