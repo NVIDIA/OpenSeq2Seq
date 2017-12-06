@@ -41,6 +41,13 @@ class DataLayer:
     """
     pass
 
+  @abc.abstractclassmethod
+  def iterate_forever(self):
+    """
+    Goes through data set indefinitely
+    :return: yields rectangular 2D numpy array with mini-batch data
+    """
+
   @property
   def params(self):
     return self._params
@@ -144,6 +151,8 @@ class ParallelDataInRamInputLayer(DataLayer):
             map(lambda word: vocab[word] if word in vocab else ParallelDataInRamInputLayer.UNK_ID, line)) +
                          [ParallelDataInRamInputLayer.EOS_ID])
         ind += 1
+    if self._use_horovod:
+      print('******** Data layer on rank {} loaded {} sentences'.format(self._worker_id, len(sentences)))
     return sentences
 
   def load_corpus(self):
@@ -342,3 +351,11 @@ class ParallelDataInRamInputLayer(DataLayer):
     for epoch_ind in range(num_epochs):
       for x, y, bucket_id_to_yield, len_x, len_y in self.iterate_one_epoch():
         yield x, y, bucket_id_to_yield, len_x, len_y
+
+  def iterate_forever(self):
+    while True:
+      for x, y, bucket_id_to_yield, len_x, len_y in self.iterate_one_epoch():
+        yield x, y, bucket_id_to_yield, len_x, len_y
+      if self._use_horovod:
+        print("****************** Did epoch on rank {}".format(self._worker_id))
+      self.bucketize()
