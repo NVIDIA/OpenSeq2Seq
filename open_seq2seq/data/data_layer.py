@@ -41,7 +41,7 @@ class DataLayer:
     """
     pass
 
-  @abc.abstractclassmethod
+  @abc.abstractmethod
   def iterate_forever(self):
     """
     Goes through data set indefinitely
