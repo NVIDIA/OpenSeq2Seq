@@ -8,7 +8,8 @@ This is a research project, not an official NVIDIA product.
    3. Attention mechanisms: Bahdanau, Luong, GNMT-like
    4. Beam search for inference
 2. Data parallel multi-gpu training
-3. LARS norm scaling algorithm
+3. Distributed (data-parallel) multi-node training using Horovod
+4. LARS norm scaling algorithm
 
 
 ## [Documentation](https://github.com/NVIDIA/OpenSeq2Seq/wiki)
