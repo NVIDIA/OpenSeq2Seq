@@ -8,23 +8,16 @@ import tensorflow as tf
 import math
 from open_seq2seq.model import seq2seq_model
 from open_seq2seq.data import data_layer, utils
-from tensorflow.core.framework import summary_pb2
 import horovod.tensorflow as hvd
 
 tf.flags.DEFINE_string("config_file", "",
                        """Path to the file with configuration""")
 tf.flags.DEFINE_string("logdir", "",
                        """Path to where save logs and checkpoints""")
-tf.flags.DEFINE_string("inference_out", "stdout",
-                       """where to output inference results""")
-tf.flags.DEFINE_integer("checkpoint_frequency", 60,
+tf.flags.DEFINE_integer("checkpoint_frequency", 7200,
                        """How often (in seconds) to save checkpoints""")
-tf.flags.DEFINE_integer("summary_frequency", 20,
+tf.flags.DEFINE_integer("summary_frequency", 50,
                        """summary step frequencey save rate""")
-tf.flags.DEFINE_integer("eval_frequency", 35,
-                       """iterations after which validation takes place""")
-tf.flags.DEFINE_integer("max_eval_checkpoints", 5,
-                        """maximum eval checkpoints to keep""")
 tf.flags.DEFINE_integer("max_steps", 300000,
                         """maximum training steps""")
 tf.flags.DEFINE_string("mode", "train",
@@ -34,7 +27,7 @@ tf.flags.DEFINE_boolean("split_data_per_rank", False,
 
 FLAGS = tf.flags.FLAGS
 
-def train(config, eval_config=None):
+def train(config):
   """
   Implements training mode
   :param config: python dictionary describing model and data layer
@@ -138,10 +131,8 @@ def main(_):
     utils.deco_print("Running in training mode")
     train_config = utils.configure_params(in_config, "train")
     if 'source_file_eval' in in_config and 'target_file_eval' in in_config:
-      eval_config = utils.configure_params(in_config, "eval")
-      train(train_config, eval_config)
-    else:
-      train(train_config, None)
+      utils.deco_print("Eval is not supported when using Horovod")
+    train(train_config, None)
   else:
     raise ValueError("Unknown mode in config file. For inference, do not use Horovod")
 
