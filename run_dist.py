@@ -132,7 +132,7 @@ def main(_):
     train_config = utils.configure_params(in_config, "train")
     if 'source_file_eval' in in_config and 'target_file_eval' in in_config:
       utils.deco_print("Eval is not supported when using Horovod")
-    train(train_config, None)
+    train(train_config)
   else:
     raise ValueError("Unknown mode in config file. For inference, do not use Horovod")
 
