@@ -64,7 +64,7 @@ def train(config):
       tf.summary.scalar(name="loss", tensor=model.loss)
       summary_op = tf.summary.merge_all()
       fetches_s = [model.loss, model.train_op, model.final_outputs, summary_op, model.lr]
-      sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
+      #sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
     # done constructing graph at this point
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)
@@ -95,7 +95,7 @@ def train(config):
                                           model.x_length: len_x,
                                           model.y_length: len_y
                                         })
-            sw.add_summary(sm, global_step=sess.run(global_step))
+            #sw.add_summary(sm, global_step=sess.run(global_step))
             utils.deco_print("Step: " + str(i))
             utils.deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
                                                                     vocab=dl.source_idx2seq,
