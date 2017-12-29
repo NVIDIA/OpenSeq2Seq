@@ -7,8 +7,8 @@ This is a research project, not an official NVIDIA product.
    2. Encoders: RNN-based, unidirectional, bi-directional, GNMT-like
    3. Attention mechanisms: Bahdanau, Luong, GNMT-like
    4. Beam search for inference
-2. Data parallel multi-gpu training
-3. Distributed (data-parallel) multi-node training using Horovod
+2. Single box data parallel multi-gpu training
+3. Distributed (data-parallel) multi-node, mult-gpu training using Horovod
 4. LARS norm scaling algorithm
 
 
@@ -18,4 +18,5 @@ This is a research project, not an official NVIDIA product.
 * [Toy Data Example](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Toy-data-example)
 * [Training German to English translator](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Training-German-to-English-translator)
 * [Models and Recepies](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Models-and-Recepies)
+* [Distributed training using Horovod](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Distributed-training)
 * [Question Answering](https://github.com/NVIDIA/OpenSeq2Seq/blob/master/QuestionAnswering/README.md) (related project)

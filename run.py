@@ -152,11 +152,6 @@ def train(config, eval_config=None):
               utils.deco_print("Saving EVAL checkpoint")
               epoch_saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model-eval"), global_step=global_step)
 
-          # save model
-          if i % FLAGS.checkpoint_frequency == 0 and i > 0: # save freq arg
-              utils.deco_print("Saving checkpoint")
-              saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
-
           # print sample
           if i % FLAGS.summary_frequency == 0: # print arg
             loss, _, samples, sm, lr = sess.run(fetches=fetches_s,
@@ -187,6 +182,11 @@ def train(config, eval_config=None):
                              })
           total_train_loss += loss
           t_cnt += 1
+
+          # save model
+          if i % FLAGS.checkpoint_frequency == 0 and i > 0:  # save freq arg
+            utils.deco_print("Saving checkpoint")
+            saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
         # epoch finished
         epoch_end = time.time()
