@@ -25,16 +25,26 @@ class ModelBase:
     :param src_max_size: TF tensor of shape [batch_size] - max size of src sequence
     :param tgt_max_size: TF tensor of shape [batch_size] - max size of tgt sequence
     :param mode: string, currently "train" or "infer"
+    :param gpu_ids: a list of gpu ids, None, or "horovod" string for distributed training
+     using Horovod
     """
+    self._on_horovod = False
     self._model_params = model_params
     num_gpus = self.model_params["num_gpus"] if "num_gpus" in self.model_params else 1
     if gpu_ids is None:
       gpu_ids = list(range(0, num_gpus))
     else:
-      if num_gpus!=len(gpu_ids):
+      if isinstance(gpu_ids, six.string_types):
+        if gpu_ids.strip().lower() == "horovod":
+          self._on_horovod = True
+          import horovod.tensorflow as hvd
+          deco_print("*****USING HOROVOD*****")
+        else:
+          raise ValueError("Unknown gpu_ids parameter")
+      elif num_gpus!=len(gpu_ids):
         raise ValueError("Number of provided GPUs does not match the one in config")
 
-    # note, that model_params["batch_size"] should specify batch_size per GPU
+    # note, that model_params["batch_size"] should specify batch_size per GPU/process
     # global batch size is "algo", or "global" is total batch size
     self._per_gpu_batch_size = self.model_params["batch_size"]
     self._global_batch_size = self._per_gpu_batch_size * num_gpus
@@ -48,51 +58,68 @@ class ModelBase:
       self.global_step = tf.contrib.framework.get_or_create_global_step()
 
     # placeholders for feeding data
-    self.x = tf.placeholder(tf.int32, [self.global_batch_size, None])
-    self.x_length = tf.placeholder(tf.int32, [self.global_batch_size])
-    self.y = tf.placeholder(tf.int32, [self.global_batch_size, None])
-    self.y_length = tf.placeholder(tf.int32, [self.global_batch_size])
-
-    # below we follow data parallelism for multi-GPU training
-    # actual per GPU data feeds
-    xs = tf.split(value=self.x, num_or_size_splits=num_gpus, axis=0)
-    x_lengths = tf.split(value=self.x_length, num_or_size_splits=num_gpus, axis=0)
-    ys = tf.split(value=self.y, num_or_size_splits=num_gpus, axis=0)
-    y_lengths = tf.split(value=self.y_length, num_or_size_splits=num_gpus, axis=0)
-
-    losses = []
+    self.x = tf.placeholder(tf.int32, [self.global_batch_size if not self._on_horovod else self._per_gpu_batch_size, None])
+    self.x_length = tf.placeholder(tf.int32, [self.global_batch_size if not self._on_horovod else self._per_gpu_batch_size])
+    self.y = tf.placeholder(tf.int32, [self.global_batch_size if not self._on_horovod else self._per_gpu_batch_size, None])
+    self.y_length = tf.placeholder(tf.int32, [self.global_batch_size if not self._on_horovod else self._per_gpu_batch_size])
 
     if 'init_scale' not in self.model_params:
       initializer = None
     else:
       initializer = tf.random_uniform_initializer(-self.model_params['init_scale'], self.model_params['init_scale'])
 
-    #for gpu_ind in range(0, num_gpus):
-    for gpu_ind, gpu_id in enumerate(gpu_ids):
-      with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
-        name_or_scope=tf.get_variable_scope(),
-        # re-using variables across GPUs.
-        reuse=force_var_reuse or (gpu_ind > 0),
-        initializer=initializer):
-        deco_print("Building graph on GPU:{}".format(gpu_id))
-        if self.mode == "train":
-          sample_ops, loss_i = self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
-                                                              src_length=x_lengths[gpu_ind],
-                                                              target_sequence = ys[gpu_ind],
-                                                              tgt_length=y_lengths[gpu_ind],
-                                                              gpu_id=gpu_ind)
-          losses.append(loss_i)
+    if not self._on_horovod: # not using Horovod
+      # below we follow data parallelism for multi-GPU training
+      # actual per GPU data feeds
+      xs = tf.split(value=self.x, num_or_size_splits=num_gpus, axis=0)
+      x_lengths = tf.split(value=self.x_length, num_or_size_splits=num_gpus, axis=0)
+      ys = tf.split(value=self.y, num_or_size_splits=num_gpus, axis=0)
+      y_lengths = tf.split(value=self.y_length, num_or_size_splits=num_gpus, axis=0)
 
+      losses = []
+      for gpu_ind, gpu_id in enumerate(gpu_ids):
+        with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
+          name_or_scope=tf.get_variable_scope(),
+          # re-using variables across GPUs.
+          reuse=force_var_reuse or (gpu_ind > 0),
+          initializer=initializer):
+          deco_print("Building graph on GPU:{}".format(gpu_id))
+          if self.mode == "train":
+            _, loss_i = self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
+                                                                src_length = x_lengths[gpu_ind],
+                                                                target_sequence = ys[gpu_ind],
+                                                                tgt_length = y_lengths[gpu_ind],
+                                                                gpu_id = gpu_ind)
+            losses.append(loss_i)
+
+          elif self.mode == "infer":
+            self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
+                                           src_length=x_lengths[gpu_ind],
+                                           gpu_id=gpu_ind)
+          else:
+            raise ValueError("Unknown mode")
+      # end of for gpu_ind loop
+      if self.mode == "train":
+        self.loss = tf.reduce_mean(losses)
+    else: # is using Horovod
+      with tf.variable_scope(
+              name_or_scope=tf.get_variable_scope(),
+              reuse=force_var_reuse,
+              initializer=initializer):
+
+        deco_print("Building graph in Horovod rank: {}".format(hvd.rank()))
+        if self.mode == "train":
+          _, self.loss = self._build_forward_pass_graph(source_sequence = self.x,
+                                                              src_length = self.x_length,
+                                                              target_sequence = self.y,
+                                                              tgt_length = self.y_length,
+                                                              gpu_id=hvd.rank())
         elif self.mode == "infer":
-          self._build_forward_pass_graph(source_sequence = xs[gpu_ind],
-                                         src_length=x_lengths[gpu_ind],
-                                         gpu_id=gpu_ind)
+          self._build_forward_pass_graph(source_sequence=self.x,
+                                         src_length=self.x_length,
+                                         gpu_id=hvd.rank())
         else:
           raise ValueError("Unknown mode")
-    # end of for gpu_ind loop
-
-    if self.mode == "train":
-      self.loss = tf.reduce_mean(losses)
 
     def exp_decay(learning_rate, var_global_step):
       new_lr = tf.cond(
@@ -115,12 +142,21 @@ class ModelBase:
       optimizer = tf.train.MomentumOptimizer(learning_rate=self.model_params['learning_rate'],
                                              momentum=0.9 if 'opt_momentum' not in self.model_params else
                                              self.model_params['opt_momentum'])
+    elif self.model_params['optimizer'].lower() == 'sgd':
+      optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.model_params['learning_rate'])
+    elif self.model_params['optimizer'].lower() == 'adagrad':
+      optimizer = tf.train.AdagradOptimizer(learning_rate=self.model_params['learning_rate'])
+    elif self.model_params['optimizer'].lower() == 'adadelta':
+      optimizer = tf.train.AdadeltaOptimizer(learning_rate=self.model_params['learning_rate'])
+    elif self.model_params['optimizer'].lower() == 'adam':
+      optimizer = tf.train.AdamOptimizer(learning_rate=self.model_params['learning_rate'])
     else:
-      optimizer = self.model_params['optimizer']
+      raise ValueError('Unknown optimizer type')
+    if self._on_horovod:
+      optimizer = hvd.DistributedOptimizer(optimizer)
 
     if self._mode == "train":
       self._lr = tf.Variable(initial_value=self.model_params['learning_rate'], trainable=False)
-      #self.train_op = tf.contrib.layers.optimize_loss(
       self.train_op = optimize_loss(
         loss = self.loss,
         global_step = tf.contrib.framework.get_global_step(),

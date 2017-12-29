@@ -18,11 +18,19 @@ class DataLayer:
   """Abstract class that specifies data access operations
   """
   @abc.abstractmethod
-  def __init__(self, params):
-    """Initialize data layer
+  def __init__(self, params,
+               num_workers=None,
+               worker_id=None):
+    """
+    Initialize data layer
     :param params: Python dictionary with options,
     specifying mini-batch shapes, padding, etc.
+    :param num_workers:  when using Horovod, this should be hvd.size()
+    :param worker_id: when using Horovod, this should be hvd.rank()
     """
+    self._num_workers = num_workers
+    self._worker_id = worker_id
+    self._use_horovod = self._worker_id is not None and self._num_workers is not None
     self._params = params
 
   @abc.abstractmethod
@@ -32,6 +40,13 @@ class DataLayer:
     :return: yields rectangular 2D numpy array with mini-batch data
     """
     pass
+
+  @abc.abstractmethod
+  def iterate_forever(self):
+    """
+    Goes through data set indefinitely
+    :return: yields rectangular 2D numpy array with mini-batch data
+    """
 
   @property
   def params(self):
@@ -59,9 +74,15 @@ class ParallelDataInRamInputLayer(DataLayer):
 
   bucket_sizes = [60, 120, 180, 240, 300, 360]
 
-  def __init__(self, params):
-    super(ParallelDataInRamInputLayer, self).__init__(params)
-    self._batch_size = self.params['batch_size'] * self.params["num_gpus"] if "num_gpus" in self.params else self.params["batch_size"]
+  def __init__(self, params,
+               num_workers=None,
+               worker_id=None):
+    super(ParallelDataInRamInputLayer, self).__init__(params, num_workers, worker_id)
+    if self._use_horovod:
+      self._batch_size = self.params['batch_size']
+    else:
+      self._batch_size = self.params['batch_size'] * self.params["num_gpus"] if "num_gpus" in self.params else self.params["batch_size"]
+
     self.source_file = self.params['source_file']
     self.target_file = self.params['target_file']
 
@@ -109,8 +130,8 @@ class ParallelDataInRamInputLayer(DataLayer):
   def target_idx2seq(self):
       return  self.tgt_idx2seq
 
-  @staticmethod
-  def load_file_word(path, vocab):
+
+  def load_file_word(self, path, vocab):
     """
     Load file word-by-word
     :param path: path to data
@@ -119,11 +140,19 @@ class ParallelDataInRamInputLayer(DataLayer):
     """
     sentences = []
     with io.open(path, newline='', encoding='utf-8') as f:
+      ind = 0
       for raw_line in f:
-          line = raw_line.rstrip().split(' ')
-          sentences.append([ParallelDataInRamInputLayer.S_ID] + list(
-              map(lambda word: vocab[word] if word in vocab else ParallelDataInRamInputLayer.UNK_ID, line)) +
-                           [ParallelDataInRamInputLayer.EOS_ID])
+        line = raw_line.rstrip().split(' ')
+        if self._use_horovod:
+          if ind % self._num_workers != self._worker_id: # we will load 1/self._num_workers of the epoch
+            ind += 1
+            continue
+        sentences.append([ParallelDataInRamInputLayer.S_ID] + list(
+            map(lambda word: vocab[word] if word in vocab else ParallelDataInRamInputLayer.UNK_ID, line)) +
+                         [ParallelDataInRamInputLayer.EOS_ID])
+        ind += 1
+    if self._use_horovod:
+      print('******** Data layer on rank {} loaded {} sentences'.format(self._worker_id, len(sentences)))
     return sentences
 
   def load_corpus(self):
@@ -322,3 +351,11 @@ class ParallelDataInRamInputLayer(DataLayer):
     for epoch_ind in range(num_epochs):
       for x, y, bucket_id_to_yield, len_x, len_y in self.iterate_one_epoch():
         yield x, y, bucket_id_to_yield, len_x, len_y
+
+  def iterate_forever(self):
+    while True:
+      for x, y, bucket_id_to_yield, len_x, len_y in self.iterate_one_epoch():
+        yield x, y, bucket_id_to_yield, len_x, len_y
+      if self._use_horovod:
+        print("****************** Did epoch on rank {}".format(self._worker_id))
+      self.bucketize()
