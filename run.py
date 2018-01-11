@@ -91,21 +91,29 @@ def train(config, eval_config=None):
       eval_fetches = [e_model.final_outputs]
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)
-
-    # regular checkpoint saver
-    saver = tf.train.Saver()
     # eval checkpoint saver
-    epoch_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
+    # epoch_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
 
-    with tf.Session(config=sess_config) as sess:
+    class SaveAtEnd(tf.train.SessionRunHook):
+      def begin(self):
+        self._saver = tf.train.Saver()
+
+      def end(self, session):
+        utils.deco_print("Saving last checkpoint")
+        self._saver.save(session, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
+
+    hooks = [SaveAtEnd(),
+             tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency,
+                                          checkpoint_dir=FLAGS.logdir)]
+    with tf.train.MonitoredTrainingSession(checkpoint_dir = FLAGS.logdir,
+                                           is_chief=True,
+                                           save_summaries_steps = FLAGS.summary_frequency,
+                                           config = sess_config,
+                                           save_checkpoint_secs = None,
+                                           log_step_count_steps = FLAGS.summary_frequency,
+                                           stop_grace_period_secs = 300,
+                                           hooks = hooks) as sess:
       sw = tf.summary.FileWriter(logdir=FLAGS.logdir, graph=sess.graph, flush_secs=60)
-
-      if tf.train.latest_checkpoint(FLAGS.logdir) is not None:
-          saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
-          utils.deco_print("Restored checkpoint. Resuming training")
-      else:
-          sess.run(tf.global_variables_initializer())
-          utils.deco_print("Started training: Initialized variables")
 
       #begin training
       for epoch in range(0, config['num_epochs']):
@@ -116,7 +124,7 @@ def train(config, eval_config=None):
         t_cnt = 0
         for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
           # run evaluation
-          if do_eval and i % FLAGS.eval_frequency == 0:
+          if do_eval and i % FLAGS.eval_frequency == 0 and i>0:
             utils.deco_print("Evaluation on validation set")
             preds = []
             targets = []
@@ -148,10 +156,6 @@ def train(config, eval_config=None):
               sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
               sw.flush()
 
-            if i > 0:
-              utils.deco_print("Saving EVAL checkpoint")
-              epoch_saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model-eval"), global_step=global_step)
-
           # print sample
           if i % FLAGS.summary_frequency == 0: # print arg
             loss, _, samples, sm, lr = sess.run(fetches=fetches_s,
@@ -161,7 +165,6 @@ def train(config, eval_config=None):
                                           model.x_length: len_x,
                                           model.y_length: len_y
                                         })
-            sw.add_summary(sm, global_step=sess.run(global_step))
             utils.deco_print("In epoch {}, step {} the loss is {}".format(epoch, i, loss))
             utils.deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
                                                                       vocab=dl.source_idx2seq,
@@ -184,9 +187,9 @@ def train(config, eval_config=None):
           t_cnt += 1
 
           # save model
-          if i % FLAGS.checkpoint_frequency == 0 and i > 0:  # save freq arg
-            utils.deco_print("Saving checkpoint")
-            saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
+          #if i % FLAGS.checkpoint_frequency == 0 and i > 0:  # save freq arg
+          #  utils.deco_print("Saving checkpoint")
+          #  saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
         # epoch finished
         epoch_end = time.time()
@@ -199,8 +202,8 @@ def train(config, eval_config=None):
         dl.bucketize()
 
       # end of epoch loop
-        utils.deco_print("Saving last checkpoint")
-      saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
+      #utils.deco_print("Saving last checkpoint")
+      #saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
 def infer(config):
   """
