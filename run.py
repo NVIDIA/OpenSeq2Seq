@@ -3,7 +3,6 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
 import io
 import sys
 import json
@@ -90,57 +89,19 @@ def train(config, eval_config=None):
                                                         force_var_reuse=True,
                                                         mode="infer",
                                                         gpu_ids=gpu_ids[-1:])
-      eval_fetches = [e_model.final_outputs]
 
     sess_config = tf.ConfigProto(allow_soft_placement=True)
-    # eval checkpoint saver
-    # epoch_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
-    class EvalHook(tf.train.SessionRunHook):
-      def begin(self):
-        self._e_model = e_model
-
-      def after_run(self, run_context, run_values):
-        sess = run_context.session
-        i = sess.run(global_step)
-        if do_eval and i % FLAGS.eval_frequency == 0 and i > 0:
-          utils.deco_print("Evaluation on validation set")
-          preds = []
-          targets = []
-          # iterate through evaluation data
-          for j, (ex, ey, ebucket_id, elen_x, elen_y) in enumerate(eval_dl.iterate_one_epoch()):
-            samples = sess.run(fetches=eval_fetches,
-                               feed_dict={
-                                 e_model.x: ex,
-                                 e_model.x_length: elen_x,
-                                 e_model.y: ey,
-                                 e_model.y_length: elen_y
-                               })
-            samples = samples[0].predicted_ids[:, :, 0] if eval_use_beam_search else samples[0].sample_id
-
-            if eval_using_bleu:
-              preds.extend([utils.transform_for_bleu(si,
-                                                     vocab=eval_dl.target_idx2seq,
-                                                     ignore_special=True,
-                                                     delim=config["delimiter"], bpe_used=bpe_used) for sample in
-                            [samples] for si in sample])
-              targets.extend([[utils.transform_for_bleu(yi,
-                                                        vocab=eval_dl.target_idx2seq,
-                                                        ignore_special=True,
-                                                        delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey]
-                              for yi in yii])
-
-          eval_dl.bucketize()
-
-          if eval_using_bleu:
-            eval_bleu = utils.calculate_bleu(preds, targets)
-            bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
-            bleu_summary = summary_pb2.Summary(value=[bleu_value])
-            sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
-            sw.flush()
-
-    hooks = [model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step), EvalHook(),
-             tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency,
-                                          checkpoint_dir=FLAGS.logdir)]
+    sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
+    if do_eval:
+      hooks = [model_utils.EvalHook(evaluation_model=e_model, eval_dl=eval_dl, global_step=global_step,
+                                    eval_frequency=FLAGS.eval_frequency, summary_writer=sw,
+                                    eval_use_beam_search=eval_use_beam_search,
+                                    eval_using_bleu=eval_using_bleu,bpe_used=bpe_used, delimiter=eval_config["delimiter"]),
+               model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
+               tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency, checkpoint_dir=FLAGS.logdir)]
+    else:
+      hooks = [model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
+               tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency, checkpoint_dir=FLAGS.logdir)]
     with tf.train.MonitoredTrainingSession(checkpoint_dir = FLAGS.logdir,
                                            is_chief=True,
                                            save_summaries_steps = FLAGS.summary_frequency,
@@ -149,8 +110,6 @@ def train(config, eval_config=None):
                                            log_step_count_steps = FLAGS.summary_frequency,
                                            stop_grace_period_secs = 300,
                                            hooks = hooks) as sess:
-      sw = tf.summary.FileWriter(logdir=FLAGS.logdir, graph=sess.graph, flush_secs=60)
-
       #begin training
       for epoch in range(0, config['num_epochs']):
         utils.deco_print("\n\n")
@@ -159,8 +118,6 @@ def train(config, eval_config=None):
         total_train_loss = 0.0
         t_cnt = 0
         for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
-
-
           # print sample
           if i % FLAGS.summary_frequency == 0: # print arg
             loss, _, samples, sm, lr = sess.run(fetches=fetches_s,
@@ -191,11 +148,6 @@ def train(config, eval_config=None):
           total_train_loss += loss
           t_cnt += 1
 
-          # save model
-          #if i % FLAGS.checkpoint_frequency == 0 and i > 0:  # save freq arg
-          #  utils.deco_print("Saving checkpoint")
-          #  saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
-
         # epoch finished
         epoch_end = time.time()
         utils.deco_print('Epoch {} training loss: {}'.format(epoch, total_train_loss / t_cnt))
@@ -205,10 +157,6 @@ def train(config, eval_config=None):
         sw.flush()
         utils.deco_print("Did epoch {} in {} seconds".format(epoch, epoch_end - epoch_start))
         dl.bucketize()
-
-      # end of epoch loop
-      #utils.deco_print("Saving last checkpoint")
-      #saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
 
 def infer(config):
   """
