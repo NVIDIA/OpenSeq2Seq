@@ -29,8 +29,11 @@ tf.flags.DEFINE_integer("max_eval_checkpoints", 5,
                         """maximum eval checkpoints to keep""")
 tf.flags.DEFINE_integer("force_num_gpus", None,
                         """If not None, will overwrite num_gpus parameter in config""")
+tf.flags.DEFINE_integer("max_steps", 300000,
+                        """maximum training steps""")
 tf.flags.DEFINE_string("mode", "train",
                        """Mode: train - for training mode, infer - for inference mode""")
+
 
 FLAGS = tf.flags.FLAGS
 
@@ -93,14 +96,16 @@ def train(config, eval_config=None):
     sess_config = tf.ConfigProto(allow_soft_placement=True)
     sw = tf.summary.FileWriter(logdir=FLAGS.logdir, flush_secs=60)
     if do_eval:
-      hooks = [model_utils.EvalHook(evaluation_model=e_model, eval_dl=eval_dl, global_step=global_step,
+      hooks = [tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
+               model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
+               model_utils.EvalHook(evaluation_model=e_model, eval_dl=eval_dl, global_step=global_step,
                                     eval_frequency=FLAGS.eval_frequency, summary_writer=sw,
                                     eval_use_beam_search=eval_use_beam_search,
-                                    eval_using_bleu=eval_using_bleu,bpe_used=bpe_used, delimiter=eval_config["delimiter"]),
-               model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
+                                    eval_using_bleu=eval_using_bleu, bpe_used=bpe_used, delimiter=eval_config["delimiter"]),
                tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency, checkpoint_dir=FLAGS.logdir)]
     else:
-      hooks = [model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
+      hooks = [tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
+               model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step),
                tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency, checkpoint_dir=FLAGS.logdir)]
     with tf.train.MonitoredTrainingSession(checkpoint_dir = FLAGS.logdir,
                                            is_chief=True,
@@ -118,6 +123,8 @@ def train(config, eval_config=None):
         total_train_loss = 0.0
         t_cnt = 0
         for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
+          if sess.should_stop():
+            exit(0)
           # print sample
           if i % FLAGS.summary_frequency == 0: # print arg
             loss, _, samples, sm, lr = sess.run(fetches=fetches_s,
