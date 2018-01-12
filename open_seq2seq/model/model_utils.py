@@ -131,3 +131,17 @@ def getdtype():
 def deco_print(line):
   print(">==================> " + line)
 
+
+class SaveAtEnd(tf.train.SessionRunHook):
+  def __init__(self, logdir, global_step):
+    super(tf.train.SessionRunHook, self).__init__()
+    self._logdir = logdir
+    self._global_step = global_step
+
+  def begin(self):
+    self._saver = tf.train.Saver()
+
+  def end(self, session):
+    deco_print("Saving last checkpoint")
+    # self._saver.save(session, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
+    self._saver.save(session, save_path=os.path.join(self._logdir, "model"), global_step=self._global_step)

@@ -10,7 +10,7 @@ import json
 import time
 import tensorflow as tf
 import math
-from open_seq2seq.model import seq2seq_model
+from open_seq2seq.model import seq2seq_model, model_utils
 from open_seq2seq.data import data_layer, utils
 from tensorflow.core.framework import summary_pb2
 
@@ -28,6 +28,8 @@ tf.flags.DEFINE_integer("eval_frequency", 35,
                        """iterations after which validation takes place""")
 tf.flags.DEFINE_integer("max_eval_checkpoints", 5,
                         """maximum eval checkpoints to keep""")
+tf.flags.DEFINE_integer("force_num_gpus", None,
+                        """If not None, will overwrite num_gpus parameter in config""")
 tf.flags.DEFINE_string("mode", "train",
                        """Mode: train - for training mode, infer - for inference mode""")
 
@@ -93,16 +95,50 @@ def train(config, eval_config=None):
     sess_config = tf.ConfigProto(allow_soft_placement=True)
     # eval checkpoint saver
     # epoch_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
-
-    class SaveAtEnd(tf.train.SessionRunHook):
+    class EvalHook(tf.train.SessionRunHook):
       def begin(self):
-        self._saver = tf.train.Saver()
+        self._e_model = e_model
 
-      def end(self, session):
-        utils.deco_print("Saving last checkpoint")
-        self._saver.save(session, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
+      def after_run(self, run_context, run_values):
+        sess = run_context.session
+        i = sess.run(global_step)
+        if do_eval and i % FLAGS.eval_frequency == 0 and i > 0:
+          utils.deco_print("Evaluation on validation set")
+          preds = []
+          targets = []
+          # iterate through evaluation data
+          for j, (ex, ey, ebucket_id, elen_x, elen_y) in enumerate(eval_dl.iterate_one_epoch()):
+            samples = sess.run(fetches=eval_fetches,
+                               feed_dict={
+                                 e_model.x: ex,
+                                 e_model.x_length: elen_x,
+                                 e_model.y: ey,
+                                 e_model.y_length: elen_y
+                               })
+            samples = samples[0].predicted_ids[:, :, 0] if eval_use_beam_search else samples[0].sample_id
 
-    hooks = [SaveAtEnd(),
+            if eval_using_bleu:
+              preds.extend([utils.transform_for_bleu(si,
+                                                     vocab=eval_dl.target_idx2seq,
+                                                     ignore_special=True,
+                                                     delim=config["delimiter"], bpe_used=bpe_used) for sample in
+                            [samples] for si in sample])
+              targets.extend([[utils.transform_for_bleu(yi,
+                                                        vocab=eval_dl.target_idx2seq,
+                                                        ignore_special=True,
+                                                        delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey]
+                              for yi in yii])
+
+          eval_dl.bucketize()
+
+          if eval_using_bleu:
+            eval_bleu = utils.calculate_bleu(preds, targets)
+            bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
+            bleu_summary = summary_pb2.Summary(value=[bleu_value])
+            sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
+            sw.flush()
+
+    hooks = [model_utils.SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step), EvalHook(),
              tf.train.CheckpointSaverHook(save_steps=FLAGS.checkpoint_frequency,
                                           checkpoint_dir=FLAGS.logdir)]
     with tf.train.MonitoredTrainingSession(checkpoint_dir = FLAGS.logdir,
@@ -123,38 +159,7 @@ def train(config, eval_config=None):
         total_train_loss = 0.0
         t_cnt = 0
         for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
-          # run evaluation
-          if do_eval and i % FLAGS.eval_frequency == 0 and i>0:
-            utils.deco_print("Evaluation on validation set")
-            preds = []
-            targets = []
-            #iterate through evaluation data
-            for j, (ex, ey, ebucket_id, elen_x, elen_y) in enumerate(eval_dl.iterate_one_epoch()):
-              samples = sess.run(fetches=eval_fetches,
-                                 feed_dict={
-                                   e_model.x: ex,
-                                   e_model.x_length: elen_x,
-                                 })
-              samples = samples[0].predicted_ids[:, :, 0]  if eval_use_beam_search else samples[0].sample_id
 
-              if eval_using_bleu:
-                preds.extend([utils.transform_for_bleu(si,
-                                             vocab=eval_dl.target_idx2seq,
-                                             ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used) for sample in [samples] for si in sample])
-                targets.extend([[utils.transform_for_bleu(yi,
-                                             vocab=eval_dl.target_idx2seq,
-                                             ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey] for yi in yii])
-
-            eval_dl.bucketize()
-
-            if eval_using_bleu:
-              eval_bleu = utils.calculate_bleu(preds, targets)
-              bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
-              bleu_summary = summary_pb2.Summary(value=[bleu_value])
-              sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
-              sw.flush()
 
           # print sample
           if i % FLAGS.summary_frequency == 0: # print arg
@@ -265,6 +270,9 @@ def infer(config):
 def main(_):
   with open(FLAGS.config_file) as data_file:
     in_config = json.load(data_file)
+    if FLAGS.force_num_gpus is not None:
+      utils.deco_print("Overwriting num_gpus to: %d".format(FLAGS.force_num_gpus))
+      in_config['num_gpus'] = FLAGS.force_num_gpus
   if FLAGS.mode == "train":
     utils.deco_print("Running in training mode")
     train_config = utils.configure_params(in_config, "train")
