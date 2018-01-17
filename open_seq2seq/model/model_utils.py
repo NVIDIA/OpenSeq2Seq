@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper, MultiRNNCell
 from tensorflow.contrib.rnn import GLSTMCell
 from .slstm import BasicSLSTMCell
+import os
 
 def create_rnn_cell(cell_type,
                     cell_params,
@@ -131,3 +132,17 @@ def getdtype():
 def deco_print(line):
   print(">==================> " + line)
 
+class SaveAtEnd(tf.train.SessionRunHook):
+  """Session Hook which forces model save at the end of the session
+  """
+  def __init__(self, logdir, global_step):
+    super(tf.train.SessionRunHook, self).__init__()
+    self._logdir = logdir
+    self._global_step = global_step
+
+  def begin(self):
+    self._saver = tf.train.Saver()
+
+  def end(self, session):
+    deco_print("Saving last checkpoint")
+    self._saver.save(session, save_path=os.path.join(self._logdir, "model"), global_step=self._global_step)

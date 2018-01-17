@@ -7,6 +7,7 @@ import json
 import tensorflow as tf
 import math
 from open_seq2seq.model import seq2seq_model
+from open_seq2seq.model.model_utils import SaveAtEnd
 from open_seq2seq.data import data_layer, utils
 import horovod.tensorflow as hvd
 
@@ -24,6 +25,8 @@ tf.flags.DEFINE_string("mode", "train",
                        """Mode: train - for training mode, infer - for inference mode""")
 tf.flags.DEFINE_boolean("split_data_per_rank", False,
                         "splits data between horovod ranks. may use less ram")
+tf.flags.DEFINE_float("lr", None,
+                      "If not None, this will overwrite learning rate in config")
 
 FLAGS = tf.flags.FLAGS
 
@@ -73,7 +76,8 @@ def train(config):
 
     hooks = [hvd.BroadcastGlobalVariablesHook(hvd.size()-1),
              tf.train.StepCounterHook(every_n_steps=FLAGS.summary_frequency),
-             tf.train.StopAtStepHook(last_step=FLAGS.max_steps)]
+             tf.train.StopAtStepHook(last_step=FLAGS.max_steps),
+             SaveAtEnd(logdir=FLAGS.logdir, global_step=global_step)]
     checkpoint_dir = FLAGS.logdir if hvd.rank() == 0 else None
 
     with tf.train.MonitoredTrainingSession(checkpoint_dir = checkpoint_dir,
@@ -122,6 +126,9 @@ def train(config):
 def main(_):
   with open(FLAGS.config_file) as data_file:
     in_config = json.load(data_file)
+    if FLAGS.lr is not None:
+      in_config["learning_rate"] = FLAGS.lr
+      utils.deco_print("using LR from command line: {}".format(FLAGS.lr))
     if 'num_gpus' in in_config:
       utils.deco_print("num_gpus parameters is ignored when using Horovod")
     if 'num_epochs' in in_config:

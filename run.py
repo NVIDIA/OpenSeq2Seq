@@ -30,6 +30,8 @@ tf.flags.DEFINE_integer("max_eval_checkpoints", 5,
                         """maximum eval checkpoints to keep""")
 tf.flags.DEFINE_string("mode", "train",
                        """Mode: train - for training mode, infer - for inference mode""")
+tf.flags.DEFINE_float("lr", None,
+                      "If not None, this will overwrite learning rate in config")
 
 FLAGS = tf.flags.FLAGS
 
@@ -262,6 +264,9 @@ def infer(config):
 def main(_):
   with open(FLAGS.config_file) as data_file:
     in_config = json.load(data_file)
+    if FLAGS.lr is not None:
+      in_config["learning_rate"] = FLAGS.lr
+      utils.deco_print("using LR from command line: {}".format(FLAGS.lr))
   if FLAGS.mode == "train":
     utils.deco_print("Running in training mode")
     train_config = utils.configure_params(in_config, "train")
