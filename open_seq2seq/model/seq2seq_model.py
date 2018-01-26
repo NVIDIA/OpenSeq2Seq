@@ -3,13 +3,13 @@ import tensorflow as tf
 from tensorflow.python.layers import core as layers_core
 from .model_utils import create_rnn_cell, getdtype
 from .model_base import ModelBase
-from .gnmt import GNMTAttentionMultiCell
+from .gnmt import GNMTAttentionMultiCell, gnmt_residual_fn
 import copy
 
 
 class BasicSeq2SeqWithAttention(ModelBase):
   """
-  Bascic sequence 2 sequence model with attention
+  Basic sequence-2-sequence model with attention
   """
   def _build_encoder(self, src_inputs, src_lengths=None):
     """
@@ -200,7 +200,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
     def _add_residual_wrapper(cells, start_ind=1):
       for idx, cell in enumerate(cells):
         if idx>=start_ind:
-          cells[idx] = tf.contrib.rnn.ResidualWrapper(cell)
+          cells[idx] = tf.contrib.rnn.ResidualWrapper(cell, residual_fn=gnmt_residual_fn)
       return  cells
 
     with tf.variable_scope("Decoder"):
@@ -226,14 +226,6 @@ class BasicSeq2SeqWithAttention(ModelBase):
       output_layer = layers_core.Dense(tgt_vocab_size, use_bias=False,
                                        activation = out_layer_activation)
 
-      def attn_decoder_custom_fn(inputs, attention):
-          # to make shapes equal for skip connections
-          if self.model_params['decoder_use_skip_connections']:
-             input_layer = layers_core.Dense(self.model_params['decoder_cell_units'], dtype=getdtype())
-             return input_layer(tf.concat([inputs, attention], -1))
-          else:
-            return tf.concat([inputs, attention], -1)
-
       if self.mode == "infer":
         if self._decoder_type == "beam_search":
           self._length_penalty_weight = 0.0 if "length_penalty" not in self.model_params else self.model_params[
@@ -257,8 +249,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
               use_new_attention=(self.model_params['attention_type']=='gnmt_v2'))
           else:
             attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cells,
-                                                                      attention_mechanism=attention_mechanism,
-                                                                      cell_input_fn=attn_decoder_custom_fn)
+                                                                         attention_mechanism=attention_mechanism)
           batch_size_tensor = tf.constant(batch_size)
           decoder = tf.contrib.seq2seq.BeamSearchDecoder(
             cell=attentive_decoder_cell,
@@ -285,8 +276,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
               use_new_attention=(self.model_params['attention_type']=='gnmt_v2'))
           else:
             attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cells,
-                                                                      attention_mechanism=attention_mechanism,
-                                                                      cell_input_fn=attn_decoder_custom_fn)
+                                                                         attention_mechanism=attention_mechanism)
           helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
             embedding=self._tgt_w,
             start_tokens=tf.fill([batch_size], GO_SYMBOL),
@@ -312,8 +302,7 @@ class BasicSeq2SeqWithAttention(ModelBase):
             use_new_attention=(self.model_params['attention_type'] == 'gnmt_v2'))
         else:
           attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(cell=decoder_cells,
-                                                                       attention_mechanism=attention_mechanism,
-                                                                       cell_input_fn=attn_decoder_custom_fn)
+                                                                       attention_mechanism=attention_mechanism)
         input_vectors = tf.nn.embedding_lookup(self._tgt_w, tgt_inputs)
         helper = tf.contrib.seq2seq.TrainingHelper(
           inputs = input_vectors,
