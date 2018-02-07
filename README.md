@@ -1,4 +1,4 @@
-# OpenSeq2Seq: multi-gpu sequence to sequence learning
+# OpenSeq2Seq: sequence to sequence learning
 This is a research project, not an official NVIDIA product.
 
 ## Features
@@ -20,3 +20,17 @@ This is a research project, not an official NVIDIA product.
 * [Models and Recepies](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Models-and-Recepies)
 * [Distributed training using Horovod](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Distributed-training)
 * [Question Answering](https://github.com/NVIDIA/OpenSeq2Seq/blob/master/QuestionAnswering/README.md) (related project)
+
+Contributions are welcome!
+
+## Related resources
+* [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt)
+* [OpenNMT (Torch)](http://opennmt.net/)
+* [OpenNMT (Pytorch)](https://github.com/OpenNMT/OpenNMT-py)
+* [Tf-seq2seq](https://github.com/google/seq2seq)
+* [Moses](http://www.statmt.org/moses/)
+
+## References
+* [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473)
+* [Massive Exploration of Neural Machine Translation Architectures](https://arxiv.org/abs/1703.03906)
+* [Effective approaches to attention-based neural machine translation](https://arxiv.org/abs/1508.04025)
