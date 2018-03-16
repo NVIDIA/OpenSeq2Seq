@@ -239,16 +239,29 @@ def infer(config):
         fout = sys.stdout
       else:
         fout = io.open(FLAGS.inference_out, 'w', encoding='utf-8')
-
+      tokens=0
+      total_time=0
       for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
         # need to check outputs for beam search, and if required, make a common approach
         # to handle both greedy and beam search decoding methods
+        s_time = time.time()
         samples = sess.run(fetches=fetches,
                            feed_dict={
                                model.x: x,
                                model.x_length: len_x,
                            })
+        e_time = time.time()
+        total_time += (e_time-s_time)
+        split_line = utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
+                                            vocab=dl.target_idx2seq,
+                                            ignore_special=True,
+                                            delim=config["delimiter"]).split(config["delimiter"])
+        tokens += (sum(len_x) + len(split_line))
+     
         if i % 200 == 0 and FLAGS.inference_out != "stdout":
+          print("Tokens/second (including source sentence): {}".format(tokens/total_time))
+          tokens=0
+          total_time=0
           print(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
                                          vocab=dl.target_idx2seq,
                                          ignore_special=False,
