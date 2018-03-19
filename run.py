@@ -210,6 +210,11 @@ def infer(config):
   :param config: python dictionary describing model and data layer
   :return: nothing
   """
+  if config["batch_size"] != 1:
+    utils.deco_print("Batch sizes greater than 1 should only be used for perf measurements")
+    utils.deco_print("and not for actual inference. To do actual inference, use batch_size of 1")
+    utils.deco_print("because then you will not miss incomplete batches.")
+
   utils.deco_print("Executing training mode")
   utils.deco_print("Creating data layer")
   dl = data_layer.ParallelDataInRamInputLayer(params=config)
@@ -244,6 +249,11 @@ def infer(config):
       for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
         # need to check outputs for beam search, and if required, make a common approach
         # to handle both greedy and beam search decoding methods
+        if x.shape[0]<config["batch_size"]:
+          print("WARNING: SKIPPED PARTIAL BATCH")
+          continue
+        
+        # measure time
         s_time = time.time()
         samples = sess.run(fetches=fetches,
                            feed_dict={
@@ -252,24 +262,26 @@ def infer(config):
                            })
         e_time = time.time()
         total_time += (e_time-s_time)
-        split_line = utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                                            vocab=dl.target_idx2seq,
-                                            ignore_special=True,
-                                            delim=config["delimiter"]).split(config["delimiter"])
-        tokens += (sum(len_x) + len(split_line))
+        
+        # count tokens
+        tokens += sum(len_x) # source sequences
+        for k in range(0, x.shape[0]): # loop over batch size
+          split_line = utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
+                                              vocab=dl.target_idx2seq,
+                                              ignore_special=True,
+                                              delim=config["delimiter"]).split(config["delimiter"])
+          tokens += len(split_line)        
      
-        if i % 200 == 0 and FLAGS.inference_out != "stdout":
-          print("Tokens/second (including source sentence): {}".format(tokens/total_time))
+        if i > 0:
+          stat_line = "##### Batch time in seconds: {}. Tokens/second (including source sentence): {}".format(total_time, tokens/total_time)
+          sys.stdout.write(stat_line+'\n')         
           tokens=0
-          total_time=0
-          print(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                                         vocab=dl.target_idx2seq,
-                                         ignore_special=False,
-                                         delim=config["delimiter"]))
-        fout.write(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                                            vocab=dl.target_idx2seq,
-                                            ignore_special=True,
-                                            delim=config["delimiter"]) + "\n")
+          total_time=0          
+        for k in range(0,x.shape[0]):
+          fout.write(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][k] if use_beam_search else samples[0].sample_id[0],
+                                              vocab=dl.target_idx2seq,
+                                              ignore_special=True,
+                                              delim=config["delimiter"]) + "\n")
       if FLAGS.inference_out != "stdout":
           fout.close()
   utils.deco_print("Inference finished")
