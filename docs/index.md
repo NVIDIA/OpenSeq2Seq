@@ -14,9 +14,11 @@ python -m unittest test/model_tests.py
 ```
 
 # Contents
-* [Toy Data Example](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Toy-data-example)
-* [Training German to English translator](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Training-German-to-English-translator)
-* [Models and Recepies](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Models-and-Recepies)
+* [Getting Started](Getting-started.md)
+* [Toy Data Example](Toy-data-example.md)
+* [Training German to English translator](Training-German-to-English-translator.md)
+* [Distributed training using Horovod](Distributed-training.md)
+* [Models and Recepies](Models-and-Recepies.md)
 * [Question Answering](https://github.com/NVIDIA/OpenSeq2Seq/blob/master/QuestionAnswering/README.md) (related project)
 
 ### Authors
