@@ -1,5 +1,7 @@
+#v0.1
+
 ## Requirements
-* Python 3.6
+* Python 3.6 or 2.7
 * Tensorflow r1.2 or r1.3 (with GPU support)
 * NLTK v3.2.3+
 

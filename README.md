@@ -1,4 +1,4 @@
-# OpenSeq2Seq: sequence to sequence learning
+# OpenSeq2Seq v0.1: sequence to sequence learning
 This is a research project, not an official NVIDIA product.
 
 ## Features
