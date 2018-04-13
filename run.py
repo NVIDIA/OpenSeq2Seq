@@ -1,286 +1,214 @@
 # Copyright (c) 2017 NVIDIA Corporation
+from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import os
-import io
-import sys
-import json
-import time
 import tensorflow as tf
-import math
-from open_seq2seq.model import seq2seq_model
-from open_seq2seq.data import data_layer, utils
-from tensorflow.core.framework import summary_pb2
+import numpy as np
+import argparse
+import pprint
+import runpy
+import time
+import copy
+import os
 
-tf.flags.DEFINE_string("config_file", "",
-                       """Path to the file with configuration""")
-tf.flags.DEFINE_string("logdir", "",
-                       """Path to where save logs and checkpoints""")
-tf.flags.DEFINE_string("inference_out", "stdout",
-                       """where to output inference results""")
-tf.flags.DEFINE_integer("checkpoint_frequency", 300,
-                       """iterations after which a checkpoint is made. Only the last 5 checkpoints are saved""")
-tf.flags.DEFINE_integer("summary_frequency", 20,
-                       """summary step frequencey save rate""")
-tf.flags.DEFINE_integer("eval_frequency", 35,
-                       """iterations after which validation takes place""")
-tf.flags.DEFINE_integer("max_eval_checkpoints", 5,
-                        """maximum eval checkpoints to keep""")
-tf.flags.DEFINE_string("mode", "train",
-                       """Mode: train - for training mode, infer - for inference mode""")
-tf.flags.DEFINE_float("lr", None,
-                      "If not None, this will overwrite learning rate in config")
+from open_seq2seq.utils import deco_print
+from open_seq2seq.training import train, infer, evaluate
+from open_seq2seq.training.model_builders import \
+  create_encoder_decoder_loss_model
 
-FLAGS = tf.flags.FLAGS
 
-def train(config, eval_config=None):
-  """
-  Implements training mode
-  :param config: python dictionary describing model and data layer
-  :param eval_config: (default) None python dictionary describing model and data layer used for evaluation
-  :return: nothing
-  """
-  utils.deco_print("Executing training mode")
-  utils.deco_print("Creating data layer")
-  dl = data_layer.ParallelDataInRamInputLayer(params=config)
-  if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
-    config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
-    config['tgt_vocab_size'] = int(math.ceil(len(dl.target_seq2idx) / 8) * 8)
+def main():
+  parser = argparse.ArgumentParser(description='Experiment params')
+  parser.add_argument("--config_file", help="Path to the configuration file")
+  parser.add_argument("--mode", default='train',
+                      help="Could be \"train\", \"eval\", "
+                           "\"train_eval\" or \"infer\"")
+  parser.add_argument("--infer_output_file",
+                      help="Path to the output of inference")
+  parser.add_argument('--continue_learning', dest='continue_learning',
+                      action='store_true', help="whether to continue learning")
+  parser.add_argument('--no_dir_check', dest='no_dir_check',
+                      action='store_true',
+                      help="whether to check that everything is correct "
+                           "with log directory")
+  parser.add_argument('--benchmark', dest='benchmark', action='store_true',
+                      help='automatic config change for benchmarking')
+  parser.add_argument('--bench_steps', type=int, default='20',
+                      help='max_steps for benchmarking')
+  args, unknown = parser.parse_known_args()
+
+  if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
+    raise ValueError("Mode has to be one of "
+                     "['train', 'eval', 'train_eval', 'infer']")
+  config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
+  base_config = config_module['base_params']
+
+  # after we read the config, trying to overwrite some of the properties
+  # with command line arguments that were passed to the script
+  parser_unk = argparse.ArgumentParser()
+  for pm, value in base_config.items():
+    if type(value) is int or type(value) is float or type(value) is str or \
+       type(value) is bool:
+      parser_unk.add_argument('--' + pm, default=value, type=type(value))
+  config_update = parser_unk.parse_args(unknown)
+  base_config.update(vars(config_update))
+
+  train_config = copy.deepcopy(base_config)
+  eval_config = copy.deepcopy(base_config)
+  infer_config = copy.deepcopy(base_config)
+
+  if base_config['use_horovod']:
+    if args.mode == "infer" or args.mode == "eval":
+      raise NotImplementedError("Inference or evaluation on horovod "
+                                "is not supported yet")
+    if args.mode == "train_eval":
+      deco_print("Evaluation during training is not yet supported on horovod, "
+                 "defaulting to just doing mode=\"train\"")
+      args.mode = "train"
+    import horovod.tensorflow as hvd
+    hvd.init()
+    if hvd.rank() == 0:
+      deco_print("Using horovod")
   else:
-    config['src_vocab_size'] = len(dl.source_seq2idx)
-    config['tgt_vocab_size'] = len(dl.target_seq2idx)
-  utils.deco_print("Data layer created")
+    hvd = None
 
-  eval_using_bleu = True if "eval_bleu" not in config else config["eval_bleu"]
-  bpe_used = False if "bpe_used" not in config else config["bpe_used"]
-  do_eval = eval_config is not None
-  if do_eval:
-    utils.deco_print('Creating eval data layer')
-    eval_dl = data_layer.ParallelDataInRamInputLayer(params=eval_config)
-    eval_use_beam_search = False if "decoder_type" not in eval_config else eval_config["decoder_type"] == "beam_search"
-    if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
-      eval_config['src_vocab_size'] = int(math.ceil(len(eval_dl.source_seq2idx) / 8) * 8)
-      eval_config['tgt_vocab_size'] = int(math.ceil(len(eval_dl.target_seq2idx) / 8) * 8)
+  if args.mode == 'train' or args.mode == 'train_eval':
+    if 'train_params' in config_module:
+      train_config.update(copy.deepcopy(config_module['train_params']))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Training config:")
+      pprint.pprint(train_config)
+  if args.mode == 'eval' or args.mode == 'train_eval':
+    if 'eval_params' in config_module:
+      eval_config.update(copy.deepcopy(config_module['eval_params']))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Evaluation config:")
+      pprint.pprint(eval_config)
+  if args.mode == "infer":
+    if args.infer_output_file is None:
+      raise ValueError("\"infer_output_file\" command line parameter is "
+                       "required in inference mode")
+    infer_config.update(copy.deepcopy(config_module['infer_params']))
+    deco_print("Inference can be run only on one GPU. Setting num_gpus to 1")
+    infer_config['num_gpus'] = 1
+    deco_print("Inference config:")
+    pprint.pprint(infer_config)
+
+  # checking that everything is correct with log directory
+  logdir = base_config['logdir']
+  if args.benchmark:
+    args.no_dir_check = True
+  try:
+    if args.mode == 'train' or args.mode == 'train_eval':
+      if os.path.isfile(logdir):
+        raise IOError("There is a file with the same name as \"logdir\" "
+                      "parameter. You should change the log directory path "
+                      "or delete the file to continue.")
+
+      # check if "logdir" directory exists and non-empty
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        checkpoint = tf.train.latest_checkpoint(logdir)
+        if not args.continue_learning:
+          raise IOError("Log directory is not empty. If you want to continue "
+                        "learning, you should provide "
+                        "\"--continue_learning\" flag")
+        if checkpoint is None:
+          raise IOError("There is no valid TensorFlow checkpoint in the "
+                        "log directory. Can't restore variables.")
+      else:
+        if args.continue_learning:
+          raise IOError("The log directory is empty or does not exist. "
+                        "You should probably not provide "
+                        "\"--continue_learning\" flag?")
+        checkpoint = None
+    elif args.mode == 'infer' or args.mode == 'eval':
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        checkpoint = tf.train.latest_checkpoint(logdir)
+        if checkpoint is None:
+          raise IOError("There is no valid TensorFlow checkpoint in the "
+                        "{} directory. Can't load model".format(logdir))
+      else:
+        raise IOError(
+          "{} does not exist or is empty, can't restore model".format(logdir)
+        )
+  except IOError as e:
+    if args.no_dir_check:
+      print("Warning: {}".format(e))
+      print("Resuming operation since no_dir_check argument was provided")
     else:
-      eval_config['src_vocab_size'] = len(eval_dl.source_seq2idx)
-      eval_config['tgt_vocab_size'] = len(eval_dl.target_seq2idx)
+      raise
 
-  gpu_ids = list(range(0, config["num_gpus"]))
+  if args.benchmark:
+    deco_print("Adjusting config for benchmarking")
+    train_config['print_samples_frequency'] = None
+    train_config['print_loss_frequency'] = 1
+    train_config['summary_frequency'] = None
+    train_config['checkpoint_frequency'] = None
+    train_config['logdir'] = str("")
+    if 'num_epochs' in train_config:
+      del train_config['num_epochs']
+    train_config['max_steps'] = args.bench_steps
+    deco_print("New benchmarking config:")
+    pprint.pprint(train_config)
+    args.mode = "train"
+    checkpoint = None
+
+  # checking that frequencies of samples and loss are aligned
+  s_fr = base_config['print_samples_frequency']
+  l_fr = base_config['print_loss_frequency']
+  if s_fr is not None and l_fr is not None and s_fr % l_fr != 0:
+    raise ValueError("print_samples_frequency has to be a multiple of "
+                     "print_loss_frequency.")
 
   with tf.Graph().as_default():
-    global_step = tf.contrib.framework.get_or_create_global_step()
+    # setting random seed
+    rs = base_config.get('random_seed', int(time.time()))
+    if hvd is not None:
+      rs += hvd.rank()
+    tf.set_random_seed(rs)
+    np.random.seed(rs)
 
-    # Create train model
-    model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=config,
-                                                    global_step=global_step,
-                                                    mode="train",
-                                                    gpu_ids=gpu_ids)
-    tf.summary.scalar(name="loss", tensor=model.loss)
-    summary_op = tf.summary.merge_all()
-    fetches = [model.loss, model.train_op, model.lr]
-    fetches_s = [model.loss, model.train_op, model.final_outputs, summary_op, model.lr]
+    if args.mode == 'train' or args.mode == 'train_eval':
+      if hvd is None or hvd.rank() == 0:
+        if checkpoint is None:
+          deco_print("Starting training from scratch")
+        else:
+          deco_print(
+            "Restored checkpoint from {}. Resuming training".format(checkpoint),
+          )
+    elif args.mode == 'eval' or args.mode == 'infer':
+      deco_print("Loading model from {}".format(checkpoint))
 
-    # Create eval model. It will re-use vars from train model (force_var_reuse=True)
-    if do_eval:
-      e_model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=eval_config,
-                                                        global_step=global_step,
-                                                        tgt_max_size=max(eval_config["bucket_tgt"]),
-                                                        force_var_reuse=True,
-                                                        mode="infer",
-                                                        gpu_ids=gpu_ids[-1:])
-      eval_fetches = [e_model.final_outputs]
+    if args.mode == 'train':
+      train_model = create_encoder_decoder_loss_model(config=train_config,
+                                                      mode="train",
+                                                      hvd=hvd)
+      train(train_config, train_model, None, hvd=hvd)
+    elif args.mode == 'train_eval':
+      train_model = create_encoder_decoder_loss_model(config=train_config,
+                                                      mode="train",
+                                                      hvd=hvd)
+      eval_model = create_encoder_decoder_loss_model(config=eval_config,
+                                                     mode="eval",
+                                                     hvd=hvd,
+                                                     reuse=True)
+      train(train_config, train_model, eval_model, hvd=hvd)
+    elif args.mode == "eval":
+      eval_model = create_encoder_decoder_loss_model(
+        config=eval_config,
+        mode="eval",
+        hvd=hvd,
+      )
+      evaluate(eval_config, eval_model, checkpoint)
+    elif args.mode == "infer":    
+      infer_model = create_encoder_decoder_loss_model(config=infer_config,
+                                                      mode="infer",
+                                                      hvd=hvd)
+      infer(infer_config, infer_model, checkpoint,
+            output_file=args.infer_output_file)
 
-    sess_config = tf.ConfigProto(allow_soft_placement=True)
 
-    # regular checkpoint saver
-    saver = tf.train.Saver()
-    # eval checkpoint saver
-    epoch_saver = tf.train.Saver(max_to_keep=FLAGS.max_eval_checkpoints)
-
-    with tf.Session(config=sess_config) as sess:
-      sw = tf.summary.FileWriter(logdir=FLAGS.logdir, graph=sess.graph, flush_secs=60)
-
-      if tf.train.latest_checkpoint(FLAGS.logdir) is not None:
-          saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
-          utils.deco_print("Restored checkpoint. Resuming training")
-      else:
-          sess.run(tf.global_variables_initializer())
-          utils.deco_print("Started training: Initialized variables")
-
-      #begin training
-      for epoch in range(0, config['num_epochs']):
-        utils.deco_print("\n\n")
-        utils.deco_print("Doing epoch {}".format(epoch))
-        epoch_start = time.time()
-        total_train_loss = 0.0
-        t_cnt = 0
-        for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
-          # run evaluation
-          if do_eval and i % FLAGS.eval_frequency == 0:
-            utils.deco_print("Evaluation on validation set")
-            preds = []
-            targets = []
-            #iterate through evaluation data
-            for j, (ex, ey, ebucket_id, elen_x, elen_y) in enumerate(eval_dl.iterate_one_epoch()):
-              samples = sess.run(fetches=eval_fetches,
-                                 feed_dict={
-                                   e_model.x: ex,
-                                   e_model.x_length: elen_x,
-                                 })
-              samples = samples[0].predicted_ids[:, :, 0]  if eval_use_beam_search else samples[0].sample_id
-
-              if eval_using_bleu:
-                preds.extend([utils.transform_for_bleu(si,
-                                             vocab=eval_dl.target_idx2seq,
-                                             ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used) for sample in [samples] for si in sample])
-                targets.extend([[utils.transform_for_bleu(yi,
-                                             vocab=eval_dl.target_idx2seq,
-                                             ignore_special=True,
-                                             delim=config["delimiter"], bpe_used=bpe_used)] for yii in [ey] for yi in yii])
-
-            eval_dl.bucketize()
-
-            if eval_using_bleu:
-              eval_bleu = utils.calculate_bleu(preds, targets)
-              bleu_value = summary_pb2.Summary.Value(tag="Eval_BLEU_Score", simple_value=eval_bleu)
-              bleu_summary = summary_pb2.Summary(value=[bleu_value])
-              sw.add_summary(summary=bleu_summary, global_step=sess.run(global_step))
-              sw.flush()
-
-            if i > 0:
-              utils.deco_print("Saving EVAL checkpoint")
-              epoch_saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model-eval"), global_step=global_step)
-
-          # print sample
-          if i % FLAGS.summary_frequency == 0: # print arg
-            loss, _, samples, sm, lr = sess.run(fetches=fetches_s,
-                                        feed_dict={
-                                          model.x: x,
-                                          model.y: y,
-                                          model.x_length: len_x,
-                                          model.y_length: len_y
-                                        })
-            sw.add_summary(sm, global_step=sess.run(global_step))
-            utils.deco_print("In epoch {}, step {} the loss is {}".format(epoch, i, loss))
-            utils.deco_print("Train Source[0]:     " + utils.pretty_print_array(x[0, :],
-                                                                      vocab=dl.source_idx2seq,
-                                                                      delim=config["delimiter"]))
-            utils.deco_print("Train Target[0]:     " + utils.pretty_print_array(y[0,:],
-                                                                      vocab=dl.target_idx2seq,
-                                                                      delim = config["delimiter"]))
-            utils.deco_print("Train Prediction[0]: " + utils.pretty_print_array(samples.sample_id[0,:],
-                                                                          vocab=dl.target_idx2seq,
-                                                                          delim=config["delimiter"]))
-          else:
-            loss, _, lr = sess.run(fetches=fetches,
-                            feed_dict={
-                                model.x: x,
-                                model.y: y,
-                                model.x_length: len_x,
-                                model.y_length: len_y
-                             })
-          total_train_loss += loss
-          t_cnt += 1
-
-          # save model
-          if i % FLAGS.checkpoint_frequency == 0 and i > 0:  # save freq arg
-            utils.deco_print("Saving checkpoint")
-            saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
-
-        # epoch finished
-        epoch_end = time.time()
-        utils.deco_print('Epoch {} training loss: {}'.format(epoch, total_train_loss / t_cnt))
-        value = summary_pb2.Summary.Value(tag="TrainEpochLoss", simple_value= total_train_loss / t_cnt)
-        summary = summary_pb2.Summary(value=[value])
-        sw.add_summary(summary=summary, global_step=epoch)
-        sw.flush()
-        utils.deco_print("Did epoch {} in {} seconds".format(epoch, epoch_end - epoch_start))
-        dl.bucketize()
-
-      # end of epoch loop
-        utils.deco_print("Saving last checkpoint")
-      saver.save(sess, save_path=os.path.join(FLAGS.logdir, "model"), global_step=global_step)
-
-def infer(config):
-  """
-  Implements inference mode
-  :param config: python dictionary describing model and data layer
-  :return: nothing
-  """
-  utils.deco_print("Executing training mode")
-  utils.deco_print("Creating data layer")
-  dl = data_layer.ParallelDataInRamInputLayer(params=config)
-  if 'pad_vocabs_to_eight' in config and config['pad_vocabs_to_eight']:
-    config['src_vocab_size'] = int(math.ceil(len(dl.source_seq2idx) / 8) * 8)
-    config['tgt_vocab_size'] = int(math.ceil(len(dl.target_seq2idx) / 8) * 8)
-  else:
-    config['src_vocab_size'] = len(dl.source_seq2idx)
-    config['tgt_vocab_size'] = len(dl.target_seq2idx)
-  use_beam_search = False if "decoder_type" not in config else config["decoder_type"] == "beam_search"
-  utils.deco_print("Data layer created")
-
-  with tf.Graph().as_default():
-    global_step = tf.contrib.framework.get_or_create_global_step()
-    model = seq2seq_model.BasicSeq2SeqWithAttention(model_params=config,
-                                                    global_step=global_step,
-                                                    tgt_max_size=max(config["bucket_tgt"]),
-                                                    mode="infer")
-    fetches = [model._final_outputs]
-    sess_config = tf.ConfigProto(allow_soft_placement=True)
-    saver = tf.train.Saver()
-    with tf.train.MonitoredTrainingSession(config=sess_config) as sess:
-      utils.deco_print("Trying to restore from: {}".format(tf.train.latest_checkpoint(FLAGS.logdir)))
-      saver.restore(sess, tf.train.latest_checkpoint(FLAGS.logdir))
-      utils.deco_print("Saving inference results to: " + FLAGS.inference_out)
-      if FLAGS.inference_out == "stdout":
-        fout = sys.stdout
-      else:
-        fout = io.open(FLAGS.inference_out, 'w', encoding='utf-8')
-
-      for i, (x, y, bucket_id, len_x, len_y) in enumerate(dl.iterate_one_epoch()):
-        # need to check outputs for beam search, and if required, make a common approach
-        # to handle both greedy and beam search decoding methods
-        samples = sess.run(fetches=fetches,
-                           feed_dict={
-                               model.x: x,
-                               model.x_length: len_x,
-                           })
-        if i % 200 == 0 and FLAGS.inference_out != "stdout":
-          print(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                                         vocab=dl.target_idx2seq,
-                                         ignore_special=False,
-                                         delim=config["delimiter"]))
-        fout.write(utils.pretty_print_array(samples[0].predicted_ids[:, :, 0][0] if use_beam_search else samples[0].sample_id[0],
-                                            vocab=dl.target_idx2seq,
-                                            ignore_special=True,
-                                            delim=config["delimiter"]) + "\n")
-      if FLAGS.inference_out != "stdout":
-          fout.close()
-  utils.deco_print("Inference finished")
-
-def main(_):
-  with open(FLAGS.config_file) as data_file:
-    in_config = json.load(data_file)
-    if FLAGS.lr is not None:
-      in_config["learning_rate"] = FLAGS.lr
-      utils.deco_print("using LR from command line: {}".format(FLAGS.lr))
-  if FLAGS.mode == "train":
-    utils.deco_print("Running in training mode")
-    train_config = utils.configure_params(in_config, "train")
-    if 'source_file_eval' in in_config and 'target_file_eval' in in_config:
-      eval_config = utils.configure_params(in_config, "eval")
-      train(train_config, eval_config)
-    else:
-      train(train_config, None)
-  elif FLAGS.mode == "infer":
-    config = utils.configure_params(in_config, "infer")
-    utils.deco_print("Running in inference mode")
-    infer(config)
-  else:
-    raise ValueError("Unknown mode in config file")
-
-if __name__ == "__main__":
-  tf.app.run()
+if __name__ == '__main__':
+  main()
