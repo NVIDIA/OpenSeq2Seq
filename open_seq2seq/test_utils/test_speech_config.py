@@ -11,10 +11,10 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 121,
+  "num_epochs": 111,
 
-  "num_gpus": 2,
-  "batch_size_per_gpu": 2,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 10,
   "summary_frequency": 10,
   "print_loss_frequency": 10,
   "print_samples_frequency": 20,
@@ -71,6 +71,7 @@ base_params = {
     },
     "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
     "data_format": "channels_first",
+    "bn_momentum": 0.1,
   },
 
   "decoder": FullyConnectedCTCDecoder,

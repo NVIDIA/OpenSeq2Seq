@@ -160,7 +160,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       outputs_per_batch.append(outputs)
       total_loss += loss
 
-    total_loss /= cnt
+    total_loss /= (cnt + 1)
     deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
     dict_to_log = self._model.maybe_evaluate(
       inputs_per_batch,

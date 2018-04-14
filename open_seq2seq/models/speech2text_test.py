@@ -187,6 +187,7 @@ class Speech2TextModelTests(tf.test.TestCase):
                                                 mode="train",
                                                 hvd=None)
     model._num_gpus = 5
+    model.params['batch_size_per_gpu'] = 2
     alphabet = model.data_layer.params['alphabet']
     inputs = [
       ['this is a great day', 'london is the capital of great britain'],

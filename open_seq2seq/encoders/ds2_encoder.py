@@ -7,7 +7,8 @@ from .encoder import Encoder
 
 
 def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
-                   padding, regularizer, training, data_format):
+                   padding, regularizer, training, data_format, bn_momentum,
+                   bn_epsilon):
   conv = tf.layers.conv2d(
     name="{}".format(name),
     inputs=inputs,
@@ -25,6 +26,8 @@ def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
     gamma_regularizer=regularizer,
     training=training,
     axis=-1 if data_format == 'channels_last' else 1,
+    momentum=bn_momentum,
+    epsilon=bn_epsilon,
   )
   output = activation_fn(bn)
   return output
@@ -52,7 +55,7 @@ def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
 
 
 def row_conv(name, input_layer, batch, channels, width, activation_fn,
-             regularizer, training, data_format):
+             regularizer, training, data_format, bn_momentum, bn_epsilon):
   if width < 2:
     return input_layer
 
@@ -86,6 +89,8 @@ def row_conv(name, input_layer, batch, channels, width, activation_fn,
     gamma_regularizer=regularizer,
     training=training,
     axis=-1 if data_format == 'channels_last' else 1,
+    momentum=bn_momentum,
+    epsilon=bn_epsilon,
   )
   output = activation_fn(bn)
   if data_format == 'channels_first':
@@ -117,6 +122,8 @@ class DeepSpeech2Encoder(Encoder):
     return dict(Encoder.get_optional_params(), **{
       'row_conv_width': int,
       'data_format': ['channels_first', 'channels_last'],
+      'bn_momentum': float,
+      'bn_epsilon': float,
     })
 
   def __init__(self, params=None, name="ds2_encoder", mode='train'):
@@ -130,6 +137,8 @@ class DeepSpeech2Encoder(Encoder):
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
+    bn_momentum = self.params.get('bn_momentum', 0.99)
+    bn_epsilon = self.params.get('bn_epsilon', 1e-3)
 
     input_layer = tf.expand_dims(source_sequence, dim=-1)
     batch_size = input_layer.get_shape().as_list()[0]
@@ -163,6 +172,8 @@ class DeepSpeech2Encoder(Encoder):
         regularizer=regularizer,
         training=training,
         data_format=data_format,
+        bn_momentum=bn_momentum,
+        bn_epsilon=bn_epsilon,
       )
     if data_format == 'channels_first':
       top_layer = tf.transpose(top_layer, [0, 2, 3, 1])
@@ -254,6 +265,8 @@ class DeepSpeech2Encoder(Encoder):
         regularizer=regularizer,
         training=training,
         data_format=data_format,
+        bn_momentum=bn_momentum,
+        bn_epsilon=bn_epsilon,
       )
 
     # Reshape [B, T, C] --> [T*B, C]
