@@ -84,7 +84,7 @@ class Speech2TextModelTests(tf.test.TestCase):
       self.assertGreaterEqual(loss, 500.0)
       self.assertGreaterEqual(eval_loss, 500.0)
       self.assertGreaterEqual(eval_dict['Eval MED'], 0.8)
-      self.assertGreaterEqual(eval_dict['Eval WER'], 1.0)
+      self.assertGreaterEqual(eval_dict['Eval WER'], 0.95)
 
   def test_convergence(self):
     for dtype in [tf.float32, "mixed"]:
@@ -104,7 +104,7 @@ class Speech2TextModelTests(tf.test.TestCase):
 
   def test_infer(self):
     train_config, infer_config = self.prepare_config()
-    train_config['num_epochs'] = 150
+    train_config['num_epochs'] = 200
     infer_config['batch_size_per_gpu'] = 5
     infer_config['num_gpus'] = 1
 
