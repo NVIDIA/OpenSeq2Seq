@@ -1,9 +1,16 @@
 .. _api-docs:
 
-open_seq2seq
-============
+API documentation
+=================
 
 .. toctree::
    :maxdepth: 4
 
-   open_seq2seq
+   models
+   data
+   encoders
+   decoders
+   losses
+   optimizers
+   parts
+   running
