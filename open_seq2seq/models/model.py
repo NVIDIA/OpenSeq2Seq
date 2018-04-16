@@ -94,9 +94,7 @@ class Model:
 
     self._on_horovod = hvd is not None
     self._params = copy.deepcopy(params)
-
-    if 'dtype' not in params:
-      self._params['dtype'] = tf.float32
+    self._dtype = self._params.get("dtype", tf.float32)
 
     if self._on_horovod:
         self._num_gpus = 1
@@ -132,8 +130,7 @@ class Model:
           # re-using variables across GPUs.
           reuse=force_var_reuse or (gpu_ind > 0),
           initializer=initializer,
-          dtype=tf.float16 if self.params['dtype'] == "mixed"
-                         else self.params['dtype'],
+          dtype=self.get_tf_dtype(),
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
@@ -153,8 +150,7 @@ class Model:
           name_or_scope=tf.get_variable_scope(),
           reuse=force_var_reuse,
           initializer=initializer,
-          dtype=tf.float16 if self.params['dtype'] == "mixed"
-                         else self.params['dtype'],
+          dtype=self.get_tf_dtype(),
       ):
         deco_print("Building graph in Horovod rank: {}".format(hvd.rank()))
         loss, self._outputs[0] = self._build_forward_pass_graph(input_tensors,
@@ -333,6 +329,13 @@ class Model:
       list: list with output tensors.
     """
     return self._outputs
+
+  def get_tf_dtype(self):
+    """Returns actual TesnorFlow dtype that will be used as variables dtype."""
+    if self._dtype == "mixed":
+      return tf.float16
+    else:
+      return self._dtype
 
   @property
   def params(self):
