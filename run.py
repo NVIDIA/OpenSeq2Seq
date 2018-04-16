@@ -13,9 +13,9 @@ import time
 import copy
 import os
 
-from open_seq2seq.utils import deco_print
-from open_seq2seq.training import train, infer, evaluate
-from open_seq2seq.training.model_builders import \
+from open_seq2seq.utils.utils import deco_print
+from open_seq2seq.utils import train, infer, evaluate
+from open_seq2seq.utils.model_builders import \
   create_encoder_decoder_loss_model
 
 

@@ -5,9 +5,9 @@ import six
 import tensorflow as tf
 import copy
 
-from open_seq2seq.utils import deco_print
+from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
-from open_seq2seq.utils import check_params
+from open_seq2seq.utils.utils import check_params
 
 
 @six.add_metaclass(abc.ABCMeta)

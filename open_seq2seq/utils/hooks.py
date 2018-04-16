@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import time
 
-from open_seq2seq.utils import deco_print
+from open_seq2seq.utils.utils import deco_print
 
 
 def log_summaries_from_dict(dict_to_log, output_dir, step):

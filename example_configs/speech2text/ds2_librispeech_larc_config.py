@@ -16,6 +16,7 @@ base_params = {
 
   "num_epochs": 100,
 
+  "bench_start": 1000,
   "summary_frequency": 100,
   "print_loss_frequency": 10,
   "print_samples_frequency": 5000,

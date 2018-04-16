@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import abc
 import six
 import copy
-from open_seq2seq.utils import check_params
+from open_seq2seq.utils.utils import check_params
 
 
 @six.add_metaclass(abc.ABCMeta)

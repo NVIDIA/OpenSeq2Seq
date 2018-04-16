@@ -10,11 +10,11 @@ import os
 import pandas as pd
 
 from .speech2text import levenshtein
-from open_seq2seq.training.model_builders import create_encoder_decoder_loss_model
+from open_seq2seq.utils.model_builders import create_encoder_decoder_loss_model
 from open_seq2seq.test_utils.test_speech_config import base_params, \
                                                        train_params, \
                                                        eval_params
-from open_seq2seq.training import train, evaluate, infer
+from open_seq2seq.utils import train, evaluate, infer
 
 
 class Speech2TextModelTests(tf.test.TestCase):

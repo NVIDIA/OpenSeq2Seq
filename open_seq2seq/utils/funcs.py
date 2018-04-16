@@ -3,8 +3,8 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import time
 
-from .utils import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook
-from open_seq2seq.utils import deco_print
+from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook
+from open_seq2seq.utils.utils import deco_print
 
 
 def train(config,
