@@ -94,7 +94,9 @@ class Model:
 
     self._on_horovod = hvd is not None
     self._params = copy.deepcopy(params)
-    self._dtype = self._params.get("dtype", tf.float32)
+
+    if 'dtype' not in params:
+      self._params['dtype'] = tf.float32
 
     if self._on_horovod:
         self._num_gpus = 1
@@ -130,7 +132,8 @@ class Model:
           # re-using variables across GPUs.
           reuse=force_var_reuse or (gpu_ind > 0),
           initializer=initializer,
-          dtype=self.get_dtype(),
+          dtype=tf.float16 if self.params['dtype'] == "mixed"
+                         else self.params['dtype'],
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
@@ -150,7 +153,8 @@ class Model:
           name_or_scope=tf.get_variable_scope(),
           reuse=force_var_reuse,
           initializer=initializer,
-          dtype=self.get_dtype(),
+          dtype=tf.float16 if self.params['dtype'] == "mixed"
+                         else self.params['dtype'],
       ):
         deco_print("Building graph in Horovod rank: {}".format(hvd.rank()))
         loss, self._outputs[0] = self._build_forward_pass_graph(input_tensors,
@@ -246,7 +250,7 @@ class Model:
 
       Samples tensors are stored in the :attr:`_outputs` attribute and can be
       accessed by calling :meth:`get_output_tensors` function. For example,
-      this happens inside :class:`open_seq2seq.training.utils.RunEvaluationHook`
+      this happens inside :class:`utils.hooks.RunEvaluationHook`
       to fetch output values for evaluation.
 
       Both loss and samples can be None when corresponding part of the graph
@@ -259,74 +263,114 @@ class Model:
     For example, you can print sample input sequences and their corresponding
     predictions. This function will be called every ``print_samples_frequency``
     (config parameter) iterations and input/output values will be populated
-    automatically by calling ``sess.run`` on corresponding tensors.
+    automatically by calling ``sess.run`` on corresponding tensors. Note that
+    this function is not abstract and does not have to be implemented in
+    derived classes. But if additional printing functionality is required,
+    overwriting this function can be a useful way to add it.
 
     Args:
-      input_values: evaluation of ``self.data_layer.get_input_tensors()``
-      output_values: evaluation of ``self.get_output_tensors()``
+      input_values: evaluation of :meth:`self.data_layer.get_input_tensors()
+                                  <data.data_layer.DataLayer.get_input_tensors>`.
+      output_values: evaluation of :meth:`self.get_output_tensors()
+                                          <get_output_tensors>`.
 
     Returns:
-      dict: dictionary with values that need to be logged (can be empty).
+      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
     """
     # by default return an empty dictionary and do nothing
     return {}
 
   def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
-    """
-    ...
-    :param inputs_per_batch: list with evaluation of
-                             data_layer.get_input_tensors() for each batch
-    :param outputs_per_batch: list with evaluation of
-                              model.get_output_tensors() for each batch
-    :return: dictionary with values that need to be logged
+    """This function can be used to calculate evaluation metrics.
+    For example, for speech-to-text models this function can calculate
+    word-error-rate on the validation data. For text-to-text models, this
+    function can compute BLEU score. Look at the corresponding derived classes
+    for examples of this. This function will be called every
+    ``eval_frequency`` (config parameter) iterations and
+    input/output values will be populated automatically by calling ``sess.run``
+    on corresponding tensors for each batch (using evaluation model). Note that
+    this function is not abstract and does not have to be implemented in
+    derived classes. But if evaluation functionality is required,
+    overwriting this function can be a useful way to add it.
+
+    Args:
+      inputs_per_batch (list): list with evaluation of
+          :meth:`self.data_layer.get_input_tensors()
+          <data.data_layer.DataLayer.get_input_tensors>`
+          for each batch in evaluation dataset.
+      outputs_per_batch (list): list with evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>`
+          for each batch in evaluation dataset.
+
+    Returns:
+      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
     """
     # by default return an empty dictionary and do nothing
     return {}
 
   def infer(self, inputs_per_batch, outputs_per_batch, output_file):
-    """
-    Function which performs inference
+    """ This function should be implemented if the model support inference mode.
+    For example for speech-to-text and text-to-text models, this function will
+    log the corresponding input-output pair to the output_file.
+
+    Args:
+      inputs_per_batch (list): list with evaluation of
+          :meth:`self.data_layer.get_input_tensors()
+          <data.data_layer.DataLayer.get_input_tensors>`
+          for each batch in evaluation dataset.
+      outputs_per_batch (list): list with evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>`
+          for each batch in evaluation dataset.
+      output_file (str): name of the output file that inference results should
+          be saved to.
     """
     return None
 
   def get_output_tensors(self):
+    """Returns output tensors generated by :meth:`_build_forward_pass_graph.`
+
+    Returns:
+      list: list with output tensors.
+    """
     return self._outputs
 
   @property
   def params(self):
-    """Parameters used to construct the model"""
+    """Parameters used to construct the model (dictionary)."""
     return self._params
 
   @property
   def data_layer(self):
+    """Model data layer."""
     return self._data_layer
 
   @property
   def step_size(self):
+    """Number of samples the model processes per step.
+    This parameter is only populated if ``num_epochs`` was specified in the
+    config. It is used in training hooks to correctly print epoch number.
+    """
     return self._step_size
 
   @property
   def last_step(self):
+    """Number of steps the training should be run for."""
     return self._last_step
 
   @property
   def num_gpus(self):
+    """Number of GPUs the model will be run on.
+    For Horovod this is always 1 and actual number of GPUs is controlled by
+    mpi parameters.
+    """
     return self._num_gpus
 
   @property
   def on_horovod(self):
+    """Whether the model is run on Horovod or not."""
     return self._on_horovod
 
   @property
   def mode(self):
+    """Mode the model is executed in ("train", "eval" or "infer")."""
     return self._mode
-
-  @property
-  def lr(self):
-      return self._lr
-
-  def get_dtype(self):
-    if self._dtype == "mixed":
-      return tf.float16
-    else:
-      return self._dtype
