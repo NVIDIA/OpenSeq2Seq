@@ -7,7 +7,7 @@ import codecs
 
 from .seq2seq import Seq2Seq
 from open_seq2seq.data.text2text import SpecialTextTokens
-from open_seq2seq.utils import deco_print, array_to_string, text_ids_to_string
+from open_seq2seq.utils.utils import deco_print, array_to_string, text_ids_to_string
 
 
 def transform_for_bleu(row, vocab, ignore_special=False,

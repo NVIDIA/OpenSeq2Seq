@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import runpy
 
-from open_seq2seq.running.model_builders import create_encoder_decoder_loss_model
+from open_seq2seq.utils.model_builders import create_encoder_decoder_loss_model
 from open_seq2seq.test_utils.create_reversed_examples import create_data, \
                                                              remove_data
 

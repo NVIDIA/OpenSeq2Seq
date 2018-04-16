@@ -10,7 +10,7 @@ import tensorflow as tf
 from functools import reduce
 
 from .loss import Loss
-from open_seq2seq.utils import mask_nans
+from open_seq2seq.utils.utils import mask_nans
 
 
 def gather_nd(params, indices, shape):

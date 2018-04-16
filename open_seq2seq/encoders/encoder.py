@@ -4,7 +4,7 @@ import abc
 import six
 import tensorflow as tf
 import copy
-from open_seq2seq.utils import check_params
+from open_seq2seq.utils.utils import check_params
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 
 

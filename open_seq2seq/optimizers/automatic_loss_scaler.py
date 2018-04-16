@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import tensorflow as tf
 
+
 class AutomaticLossScaler:
   SUPPORTED_ALGOS = ['Backoff', 'LogMax']
 

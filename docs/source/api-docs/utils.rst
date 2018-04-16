@@ -1,7 +1,7 @@
-running
-=======
+utils
+=====
 
-.. automodule:: running
+.. automodule:: utils
     :members:
     :undoc-members:
     :show-inheritance:
@@ -9,7 +9,7 @@ running
 funcs
 ---------------------
 
-.. automodule:: running.funcs
+.. automodule:: utils.funcs
     :members:
     :undoc-members:
     :show-inheritance:
@@ -17,7 +17,15 @@ funcs
 model\_builders
 -------------------------------
 
-.. automodule:: running.model_builders
+.. automodule:: utils.model_builders
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+hooks
+---------------------
+
+.. automodule:: utils.hooks
     :members:
     :undoc-members:
     :show-inheritance:
@@ -25,7 +33,7 @@ model\_builders
 utils
 ---------------------
 
-.. automodule:: running.utils
+.. automodule:: utils.utils
     :members:
     :undoc-members:
     :show-inheritance:
