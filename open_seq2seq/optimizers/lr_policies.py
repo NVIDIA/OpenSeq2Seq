@@ -74,23 +74,30 @@ def transformer_policy(learning_rate,
                        d_model,
                        warmup_steps,
                        max_lr=None,
+                       coefficient=1.0,
                        dtype=tf.float32):
   """
-  Transformer's learning rate policy from https://arxiv.org/pdf/1706.03762.pdf
-  :param learning_rate:
-  :param var_global_step:
-  :param d_model:
-  :param warmup_steps:
+  Transformer's learning rate policy from https://arxiv.org/pdf/1706.03762.pdf,
+  with a hat (max_lr).
+  (Also called "noam" learning_rate_decay_scheme)
+  :param learning_rate: learning_rate
+  :param var_global_step: global step
+  :param d_model: model dimensionality
+  :param warmup_steps: steps to do warmup
+  :param max_lr: max_lr, e.g. hat
+  :param coefficient: optimizer adjustment. Recommended 0.002 if "Adam" else 1.0
   :param dtype:
-  :return:
+  :return: adjusted learning rate
   """
-  gs = tf.cast(var_global_step, dtype=dtype)
+  step_num = tf.cast(var_global_step, dtype=dtype)
   ws = tf.cast(warmup_steps, dtype=dtype)
-  t_lr = tf.scalar_mul(scalar=pow(1.0*d_model, -0.5),
-                       x=tf.minimum(tf.pow(gs, -0.5),
-                       gs*tf.pow(ws, -1.5)))
+
+  decay = coefficient * d_model ** -0.5 * tf.minimum(
+    (step_num + 1) * ws ** -1.5, (step_num + 1) ** -0.5)
+
+  new_lr = decay * learning_rate
   if max_lr is not None:
-    return tf.minimum(max_lr, t_lr)
+    return tf.minimum(max_lr, new_lr)
   else:
-    return t_lr
+    return new_lr
 
