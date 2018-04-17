@@ -11,7 +11,7 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 101,
+  "num_epochs": 100,
 
   "num_gpus": 2,
   "batch_size_per_gpu": 2,
