@@ -3,12 +3,11 @@
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-import tensorflow as tf
 import copy
 
 from open_seq2seq.models import BasicText2TextWithAttention, Speech2Text
 from open_seq2seq.data import MultiGPUWrapper
-from open_seq2seq.utils import check_params
+from open_seq2seq.utils.utils import check_params
 
 
 def safe_fill_params(cfg_from, cfgs_to, pm_list):

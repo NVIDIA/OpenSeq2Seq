@@ -45,7 +45,7 @@ from tensorflow.python.training import training as train
 
 from .automatic_loss_scaler import AutomaticLossScaler
 from .mp_wrapper import MixedPrecisionOptimizerWrapper
-from open_seq2seq.utils import mask_nans
+from open_seq2seq.utils.utils import mask_nans
 
 
 OPTIMIZER_CLS_NAMES = {

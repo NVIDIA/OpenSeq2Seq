@@ -7,7 +7,7 @@
 
 from __future__ import absolute_import, division, print_function
 from .seq2seq import Seq2Seq
-from open_seq2seq.utils import deco_print
+from open_seq2seq.utils.utils import deco_print
 import pandas as pd
 
 
