@@ -1,11 +1,10 @@
-.. _walk-through:
+.. tutorials:
 
-Implementation tutorials
-========================
+Tutorials
+=========
 
 .. toctree::
    :maxdepth: 2
 
-   walk-through/structure
-   walk-through/nmt
-   walk-through/asr
+   tutorials/using-existing-models
+   tutorials/internal-structure

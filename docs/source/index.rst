@@ -5,6 +5,7 @@
    self
    installation-instructions
    getting-started
+   tutorials
    extending
    api-docs/modules
 
@@ -20,4 +21,4 @@ To start using this toolkit, look at the
 see the :ref:`getting started <getting-started>` page.
 If you are already familiar with the basics and have
 everything set up, you can find some useful information in the
-:ref:`Adding new models <extending>` section or in the :ref:`API documentation <api-docs>`.
+:ref:`adding new models <extending>` section or in the :ref:`API documentation <api-docs>`.
