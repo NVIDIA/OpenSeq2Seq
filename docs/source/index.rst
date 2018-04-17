@@ -23,15 +23,14 @@ OpenSeq2Seq v0.2 has the following features:
 * Has a built-in support for mixed-precision (which makes the models
   run faster and use less memory)
 
-* Allows to easily experiment with different encoder-decoder combinations,
-  e.g. you can combine cnn-based encoder with rnn-based decoder or experiment
-  with Transformers architecture with just a few lines change in the config
+* Allows researchers to easily experiment with different encoder-decoder
+  combinations, e.g. you can combine CNN-based encoder with RNN-based decoder
+  or experiment with Transformers architecture with just a few lines change in
+  the config
 
-* Allows to easily switch between different input-output modalities, i.e.
-  speech-to-text or text-to-text
-
-* Allows to easily switch between different execution modes, i.e. training,
-  evaluation or inference
+* Supports different input-output modalities, i.e.
+  speech-to-text or text-to-text and different execution modes, i.e. training,
+  evaluation and inference
 
 * When training the model the toolkit will automatically:
 
