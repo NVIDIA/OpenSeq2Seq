@@ -5,7 +5,7 @@ This module implements attention mechanisms described in
 """
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
-import numpy as np
+from .common import inf
 
 def scaled_dot_attention_fn(Q,
                             K,
@@ -28,7 +28,9 @@ def scaled_dot_attention_fn(Q,
   with tf.name_scope("ScaledDotAttention"):
     logits = tf.matmul(Q, K, transpose_b=True)
     if sqrt_normalize:
-      softmax_input = tf.scalar_mul(scalar=tf.sqrt(tf.to_float(dk)),
+      #softmax_input = tf.scalar_mul(scalar=tf.sqrt(tf.to_float(dk)),
+      softmax_input = tf.scalar_mul(scalar=tf.sqrt(tf.cast(dk,
+                                                           dtype=logits.dtype)),
                                     x=logits)
     else:
       softmax_input = logits
@@ -53,7 +55,6 @@ def get_future_masking_bias(Q, K):
       [batch_ind, head_ind, :, :] is an upper diagonal (without diagonal) and
       all non zero entries are -INF
   """
-  inf = -1e20
   tf.assert_equal(tf.shape(Q), tf.shape(K))
   shape = [tf.shape(Q)[0], tf.shape(Q)[1], tf.shape(Q)[2], tf.shape(K)[2]]
   return (tf.matrix_band_part(tf.ones(shape=shape, dtype=Q.dtype), 0, -1) -

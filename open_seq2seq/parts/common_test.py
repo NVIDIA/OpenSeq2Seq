@@ -2,7 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import numpy as np
-from open_seq2seq.parts.common import get_pad_masking_bias
+from open_seq2seq.parts.common import get_pad_masking_bias, inf
 from open_seq2seq.data.text2text import SpecialTextTokens
 
 
@@ -22,7 +22,6 @@ class Get_pad_masking_biasTest(tf.test.TestCase):
     K = tf.placeholder(dtype=tf.float32, shape=[batch_size, K_len])
     mask = get_pad_masking_bias(x=Q, y=K, PAD_ID=SpecialTextTokens.PAD_ID.value,
                                 heads=heads)
-    inf = -1e9
     eQ = np.array([[0.3, 4.4, 4.5, SpecialTextTokens.PAD_ID.value]])
     eK = np.array([[0.3, 1.3, SpecialTextTokens.PAD_ID.value]])
     with self.test_session(use_gpu=True) as sess:

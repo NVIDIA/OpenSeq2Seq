@@ -10,7 +10,7 @@ from open_seq2seq.parts.attention import multi_head_attention_fn
 from open_seq2seq.parts.common import ffn_and_layer_norm, \
                                       embed_and_maybe_add_position_signal, \
                                       get_pad_masking_bias, \
-                                      normalize
+                                      dropout_normalize_add_btd
 from open_seq2seq.data.text2text import SpecialTextTokens
 
 
@@ -23,7 +23,6 @@ def transformer_decoder_fn(decoder_input_seq,
                            d_model,
                            ffn_inner_dim,
                            attention_heads,
-                           batch_size,
                            dropout_drop_prob=0.0):
   """
   Transformer decoder function. It will train all steps in parallel,
@@ -58,10 +57,10 @@ def transformer_decoder_fn(decoder_input_seq,
     encoder_decoder_bias = get_pad_masking_bias(x=decoder_input_seq,
                                                 y=encoder_input_seq,
                                                 PAD_ID=SpecialTextTokens.PAD_ID.value,
-                                                heads=attention_heads)
+                                                heads=attention_heads,
+                                                dtype=dec_emb_w.dtype)
 
-    x = tf.layers.dropout(inputs=x, rate=dropout_drop_prob,
-                          noise_shape=[batch_size, 1, d_model])
+    x = dropout_normalize_add_btd(output=x, drop_prob=dropout_drop_prob)
 
     for block_ind in range(num_decoder_blocks):
       with tf.variable_scope("DecoderBlock_{}".format(block_ind)):
@@ -69,17 +68,12 @@ def transformer_decoder_fn(decoder_input_seq,
           att_out = multi_head_attention_fn(Q=x, K=x, V=x,
                                             d_model=d_model,
                                             # because of residual connections this is masked in every block
-                                            mask_future=True,# if block_ind == 0 else False,# if mode == "train" and block_ind == 0 else False,
+                                            mask_future=True,
                                             h=attention_heads,
                                             additional_bias=decoder_self_bias)
 
-          att_out = tf.layers.dropout(inputs=att_out, rate=dropout_drop_prob,
-                                      noise_shape=[batch_size, 1, d_model])
-          #if block_ind != 0:
-          #  x = normalize(att_out + x)
-          #else:
-          #  x = normalize(att_out)
-          x = normalize(att_out + x)
+          x = dropout_normalize_add_btd(output=att_out, input=x,
+                                        drop_prob=dropout_drop_prob)
         with tf.variable_scope("Attend2Encoder"):
           att_out = multi_head_attention_fn(Q=x,
                                             K=encoder_outputs,
@@ -87,14 +81,9 @@ def transformer_decoder_fn(decoder_input_seq,
                                             d_model=d_model,
                                             h=attention_heads,
                                             additional_bias=encoder_decoder_bias)
-          #att_out = tf.nn.dropout(att_out, 1 - dropout_drop_prob,
-          #                        noise_shape=[tf.shape(att_out)[0],
-          #                                     tf.shape(att_out)[1],
-          #                                     1]
-          #                        )
-          att_out = tf.layers.dropout(inputs=att_out, rate=dropout_drop_prob,
-                                      noise_shape=[batch_size, 1, d_model])
-          x = normalize(att_out + x)
+          x = dropout_normalize_add_btd(output=att_out, input=x,
+                                              drop_prob=dropout_drop_prob)
+
         x = ffn_and_layer_norm(x,
                                inner_dim=ffn_inner_dim,
                                resulting_dim=d_model,
@@ -198,7 +187,6 @@ class TransformerDecoder(Decoder):
           d_model=d_model,
           ffn_inner_dim=ffn_inner_dim,
           attention_heads=attention_heads,
-          batch_size=self._batch_size,
           dropout_drop_prob=self._drop_prob)
 
         return {
@@ -232,7 +220,6 @@ class TransformerDecoder(Decoder):
             d_model=d_model,
             ffn_inner_dim=ffn_inner_dim,
             attention_heads=attention_heads,
-            batch_size=self._batch_size,
             dropout_drop_prob=self._drop_prob)
 
           decoder_argmx = tf.argmax(step_logits, axis=-1, output_type=tf.int32)
@@ -240,13 +227,13 @@ class TransformerDecoder(Decoder):
           if not self._is_unittest:
             _done_decoding |= tf.equal(step_out, self.END_SYMBOL)
 
-
           steps_so_far = tf.concat([steps_so_far, tf.expand_dims(step_out, 1)],
                                    axis=1)
           return tf.add(loop_var, 1), _done_decoding, steps_so_far, step_logits
         
         output = tf.zeros(shape=[self._batch_size, decoding_length,
-                                 self._tgt_vocab_size])
+                                 self._tgt_vocab_size],
+                          dtype=self.params['dtype'])
 
         _, _, decoder_ids_so_far, output = tf.while_loop(cond=loop_stop_condition,
                                                          body=while_function,
