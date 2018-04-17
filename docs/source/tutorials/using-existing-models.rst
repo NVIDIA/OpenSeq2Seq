@@ -78,7 +78,16 @@ The experiment parameters are completely defined in one Python configuration
 file. This file must define ``base_params`` dictionary and can define additional
 ``train_params``, ``eval_params`` and ``infer_params`` dictionaries that will
 overwrite corresponding parts of ``base_params`` when the corresponding mode
-is used.
+is used. Here is an example of configuration file for the speech-to-text model:
+
+.. literalinclude:: ../../../example_configs/speech2text/ds2_toy_data_config.py
+   :linenos:
+
+That's a big file with a lot of parameters, but you will rarely need to write it
+yourself from scratch. Most of the time you can just copy one of the example
+configs and make a few lines modification to customize it for your specific
+problems. So let's walk-through this file to make sure you understand all the
+possible configuration parameters.
 
 ...
 
