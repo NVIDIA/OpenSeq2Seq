@@ -97,10 +97,10 @@ def train(config,
   else:
     deco_print("Finished training")
 
-  if step + 1 > bench_start:
+  if step > bench_start:
     deco_print(
       "Avg time per step: {:.3}s".format(
-        1.0 * total_time / (step + 1 - bench_start))
+        1.0 * total_time / (step - bench_start))
     )
   else:
     deco_print("Not enough steps for benchmarking")
@@ -128,10 +128,10 @@ def get_batches_for_epoch(model, checkpoint, config):
       ending = '\r' if step < total_batches - 1 else '\n'
       deco_print("Processed {}/{} batches".format(step + 1, total_batches),
                  end=ending)
-  if step + 1 > bench_start:
+  if step > bench_start:
     deco_print(
       "Avg time per step: {:.3}s".format(
-        1.0 * total_time / (step + 1 - bench_start))
+        1.0 * total_time / (step - bench_start))
     )
   else:
     deco_print("Not enough steps for benchmarking")

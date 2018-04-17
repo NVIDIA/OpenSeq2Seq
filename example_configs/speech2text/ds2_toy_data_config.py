@@ -16,7 +16,6 @@ base_params = {
   "num_gpus": 2,
   "batch_size_per_gpu": 2,
 
-  "bench_start": 10,
   "summary_frequency": 10,
   "print_loss_frequency": 10,
   "print_samples_frequency": 20,
