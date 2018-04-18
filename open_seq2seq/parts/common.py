@@ -4,30 +4,34 @@ from open_seq2seq.parts.t2t_timing_signal import add_timing_signal
 from open_seq2seq.data.text2text import SpecialTextTokens
 
 inf = -1e4
-#inf = 0.0
+
 
 def normalize(input):
+  """Normalizes input (currently just layer_norm)
+  :param input: tensor of shape [batch, Time, dim]
+  :return: tensor of shape [batch, Time, dim]
+  """
   return tf.contrib.layers.layer_norm(input,
                                       begin_norm_axis=-1,
                                       begin_params_axis=-1)
 
 
-def dropout_normalize_add_btd(output, input=None, drop_prob=0.0):
-  """
-  Performs dropout on output, normalizes and adds input
-  :param output:
-  :param input:
-  :param drop_prob:
-  :return:
+def dropout_normalize_add_NTC(x, residual_x=None, drop_prob=0.0):
+  """Performs dropout on output,
+  :param x: output of the block. A tensor of shape [batch, Time, dim]
+  :param residual_x: (default: None) input to the block.
+  If None, will be ignored
+  :param drop_prob: dropout drop probability
+  :return: A tensor of shape [batch, Time, dim]
   """
   if drop_prob != 0.0:
-    output = tf.nn.dropout(x=output, keep_prob=1-drop_prob,
-                           noise_shape=[tf.shape(output)[0], 1, tf.shape(output)[2]])
+    x = tf.nn.dropout(x=x, keep_prob=1 - drop_prob,
+                      noise_shape=[tf.shape(x)[0], 1, tf.shape(x)[2]])
   # residual connection
-  if input is not None:
-    output += input
+  if residual_x is not None:
+    x += residual_x
 
-  return normalize(output)
+  return normalize(x)
 
 
 def get_pad_masking_bias(x, y, PAD_ID, heads, dtype=tf.float32):
@@ -38,17 +42,11 @@ def get_pad_masking_bias(x, y, PAD_ID, heads, dtype=tf.float32):
   """
   maskQ = tf.to_float(tf.not_equal(x, PAD_ID))
   maskK = tf.to_float(tf.not_equal(y, PAD_ID))
-  #maskQ = tf.not_equal(x, PAD_ID)
-  #maskK = tf.not_equal(y, PAD_ID)
   attention_bias = tf.matmul(tf.expand_dims(maskQ, -1), tf.expand_dims(maskK, 1))
   attention_bias = tf.expand_dims(attention_bias, 1) # add dimension for heads
   attention_bias = tf.tile(attention_bias, multiples=[1, heads, 1, 1])
   attention_bias = tf.to_float(tf.equal(attention_bias, 0))
-  #attention_bias = tf.cast(tf.equal(attention_bias, 0))
-  #attention_bias = tf.Print(attention_bias,
-  #                          [tf.reduce_max(tf.abs(attention_bias))], message="Before")
   attention_bias = tf.scalar_mul(scalar=inf, x=attention_bias)
-  #attention_bias = tf.Print(attention_bias, [tf.reduce_max(tf.abs(attention_bias))], message="After")
   return tf.cast(attention_bias, dtype=dtype)
 
 
@@ -57,8 +55,7 @@ def ffn_and_layer_norm(inpt,
                        resulting_dim,
                        drop_prob=0.0,
                        inner_activation=tf.nn.relu):
-  """
-  Position-wise fully connected feed-forward network with layer norm
+  """Position-wise fully connected feed-forward network with layer norm
   and residual connection
   :param inpt: input tensor
   :param inner_dim: bottleneck dimension
@@ -77,7 +74,7 @@ def ffn_and_layer_norm(inpt,
                               activation=None,
                               name="second_dense")
 
-    res = dropout_normalize_add_btd(output=ffn_out, input=inpt,
+    res = dropout_normalize_add_NTC(x=ffn_out, residual_x=inpt,
                                     drop_prob=drop_prob)
     return res
 
@@ -85,8 +82,15 @@ def ffn_and_layer_norm(inpt,
 def embed_and_maybe_add_position_signal(inpt,
                                         emb_W,
                                         num_timescales,                                        
-                                        heads,
-                                        d_model=None):
+                                        heads):
+  """
+  Performs embedding and adds sinusoid signals
+  :param inpt: a tensor of shape [batch, T]
+  :param emb_W: embedding matrix
+  :param num_timescales: set this to d_model/2
+  :param heads: number of heads
+  :return: a tensor of shape [batch, T, dim] and a tensor of shape [bath, heads, T, dim]
+  """
   with tf.name_scope("embed_and_maybe_add_position_signal"):
     with tf.name_scope("embed"):
       embedded_inputs = tf.nn.embedding_lookup(emb_W,

@@ -9,7 +9,7 @@ from .encoder import Encoder
 from open_seq2seq.parts.attention import multi_head_attention_fn
 from open_seq2seq.parts.common import ffn_and_layer_norm, \
                                       embed_and_maybe_add_position_signal, \
-                                      dropout_normalize_add_btd
+                                      dropout_normalize_add_NTC
 
 
 class TransformerEncoder(Encoder):
@@ -65,9 +65,9 @@ class TransformerEncoder(Encoder):
       inpt=input_dict['src_inputs'],
       emb_W=enc_emb_w,
       num_timescales=int(d_model/2),
-      d_model=d_model, heads=attention_heads)
+      heads=attention_heads)
 
-    x = dropout_normalize_add_btd(output=embedded_inputs_with_pos,
+    x = dropout_normalize_add_NTC(x=embedded_inputs_with_pos,
                                   drop_prob=self._drop_prob)
 
     for block_ind in range(self.params['encoder_layers']):
@@ -78,8 +78,7 @@ class TransformerEncoder(Encoder):
                                             h=attention_heads,
                                             additional_bias=bias)
 
-          ff_input = dropout_normalize_add_btd(output=att_out,
-                                               input=x,
+          ff_input = dropout_normalize_add_NTC(x=att_out, residual_x=x,
                                                drop_prob=self._drop_prob)
 
         x = ffn_and_layer_norm(inpt=ff_input,

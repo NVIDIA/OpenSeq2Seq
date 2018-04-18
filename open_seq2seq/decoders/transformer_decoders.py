@@ -10,7 +10,7 @@ from open_seq2seq.parts.attention import multi_head_attention_fn
 from open_seq2seq.parts.common import ffn_and_layer_norm, \
                                       embed_and_maybe_add_position_signal, \
                                       get_pad_masking_bias, \
-                                      dropout_normalize_add_btd
+                                      dropout_normalize_add_NTC
 from open_seq2seq.data.text2text import SpecialTextTokens
 
 
@@ -51,7 +51,6 @@ def transformer_decoder_fn(decoder_input_seq,
       inpt=decoder_input_seq,
       emb_W=dec_emb_w,
       num_timescales=int(d_model/2),
-      d_model=d_model, 
       heads=attention_heads)      
    
     encoder_decoder_bias = get_pad_masking_bias(x=decoder_input_seq,
@@ -60,7 +59,7 @@ def transformer_decoder_fn(decoder_input_seq,
                                                 heads=attention_heads,
                                                 dtype=dec_emb_w.dtype)
 
-    x = dropout_normalize_add_btd(output=x, drop_prob=dropout_drop_prob)
+    x = dropout_normalize_add_NTC(x=x, drop_prob=dropout_drop_prob)
 
     for block_ind in range(num_decoder_blocks):
       with tf.variable_scope("DecoderBlock_{}".format(block_ind)):
@@ -72,7 +71,7 @@ def transformer_decoder_fn(decoder_input_seq,
                                             h=attention_heads,
                                             additional_bias=decoder_self_bias)
 
-          x = dropout_normalize_add_btd(output=att_out, input=x,
+          x = dropout_normalize_add_NTC(x=att_out, residual_x=x,
                                         drop_prob=dropout_drop_prob)
         with tf.variable_scope("Attend2Encoder"):
           att_out = multi_head_attention_fn(Q=x,
@@ -81,8 +80,8 @@ def transformer_decoder_fn(decoder_input_seq,
                                             d_model=d_model,
                                             h=attention_heads,
                                             additional_bias=encoder_decoder_bias)
-          x = dropout_normalize_add_btd(output=att_out, input=x,
-                                              drop_prob=dropout_drop_prob)
+          x = dropout_normalize_add_NTC(x=att_out, residual_x=x,
+                                        drop_prob=dropout_drop_prob)
 
         x = ffn_and_layer_norm(x,
                                inner_dim=ffn_inner_dim,
