@@ -26,16 +26,17 @@ def scaled_dot_attention_fn(Q,
   dk = Q.shape[-1].value or tf.shape(Q)[-1]  # last dimension
   assert(dk == K.shape[-1].value or tf.shape(K)[-1])
   with tf.name_scope("ScaledDotAttention"):
+    #logits = tf.cast(tf.matmul(Q, K, transpose_b=True), dtype=tf.float32)
     logits = tf.matmul(Q, K, transpose_b=True)
     if sqrt_normalize:
-      #softmax_input = tf.scalar_mul(scalar=tf.sqrt(tf.to_float(dk)),
-      softmax_input = tf.scalar_mul(scalar=tf.sqrt(tf.cast(dk,
-                                                           dtype=logits.dtype)),
-                                    x=logits)
+      softmax_input = tf.scalar_mul(
+        scalar=tf.sqrt(tf.cast(dk, dtype=logits.dtype)),
+        x=logits)
     else:
       softmax_input = logits
 
     if bias is not None:
+      #softmax_input += tf.cast(bias, dtype=logits.dtype)
       softmax_input += bias
     else:
       softmax_input = logits
@@ -57,8 +58,8 @@ def get_future_masking_bias(Q, K):
   """
   tf.assert_equal(tf.shape(Q), tf.shape(K))
   shape = [tf.shape(Q)[0], tf.shape(Q)[1], tf.shape(Q)[2], tf.shape(K)[2]]
-  return (tf.matrix_band_part(tf.ones(shape=shape, dtype=Q.dtype), 0, -1) -
-          tf.matrix_band_part(tf.ones(shape=shape, dtype=Q.dtype), 0, 0))*inf
+  return tf.cast((tf.matrix_band_part(tf.ones(shape=shape), 0, -1) -
+          tf.matrix_band_part(tf.ones(shape=shape), 0, 0))*inf, dtype=Q.dtype)
 
 def multi_head_attention_fn(Q,
                             K,

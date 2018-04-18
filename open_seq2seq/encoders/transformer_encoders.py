@@ -58,7 +58,8 @@ class TransformerEncoder(Encoder):
     enc_emb_w = tf.get_variable(name="EncoderEmbeddingMatrix",
                                 shape=[
                                   self.params['src_vocab_size'],
-                                  self.params['d_model']])
+                                  self.params['d_model']],
+                                dtype=self.params['dtype'])
 
     embedded_inputs_with_pos, bias = embed_and_maybe_add_position_signal(
       inpt=input_dict['src_inputs'],

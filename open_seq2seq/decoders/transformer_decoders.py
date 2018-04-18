@@ -162,7 +162,8 @@ class TransformerDecoder(Decoder):
       else:
         dec_emb_w = tf.get_variable(name='DecoderEmbeddingMatrix',
                                     shape=[self._tgt_vocab_size,
-                                           self._tgt_emb_size])
+                                           self._tgt_emb_size],
+                                    dtype=self.params['dtype'])
       if self.params.get('tie_emb_and_proj', False):
         output_projection_layer = lambda x: tf.reshape(
           tf.matmul(a=tf.reshape(x, shape=[-1, self._tgt_emb_size]),

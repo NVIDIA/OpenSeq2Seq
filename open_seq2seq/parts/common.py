@@ -3,7 +3,8 @@ import tensorflow as tf
 from open_seq2seq.parts.t2t_timing_signal import add_timing_signal
 from open_seq2seq.data.text2text import SpecialTextTokens
 
-inf = -1e5
+inf = -1e4
+#inf = 0.0
 
 def normalize(input):
   return tf.contrib.layers.layer_norm(input,
@@ -35,17 +36,20 @@ def get_pad_masking_bias(x, y, PAD_ID, heads, dtype=tf.float32):
   :param src: a tensor of shape [batch_size, y_len]
   :return: a tensor of shape [batch, heads, x_len, y_len]
   """
-  #maskQ = tf.to_float(tf.not_equal(x, PAD_ID))
-  #maskK = tf.to_float(tf.not_equal(y, PAD_ID))
-  maskQ = tf.cast(tf.not_equal(x, PAD_ID), dtype=dtype)
-  maskK = tf.cast(tf.not_equal(y, PAD_ID), dtype=dtype)
+  maskQ = tf.to_float(tf.not_equal(x, PAD_ID))
+  maskK = tf.to_float(tf.not_equal(y, PAD_ID))
+  #maskQ = tf.not_equal(x, PAD_ID)
+  #maskK = tf.not_equal(y, PAD_ID)
   attention_bias = tf.matmul(tf.expand_dims(maskQ, -1), tf.expand_dims(maskK, 1))
   attention_bias = tf.expand_dims(attention_bias, 1) # add dimension for heads
   attention_bias = tf.tile(attention_bias, multiples=[1, heads, 1, 1])
-  #attention_bias = tf.to_float(tf.equal(attention_bias, 0))
-  attention_bias = tf.cast(tf.equal(attention_bias, 0), dtype=dtype)
+  attention_bias = tf.to_float(tf.equal(attention_bias, 0))
+  #attention_bias = tf.cast(tf.equal(attention_bias, 0))
+  #attention_bias = tf.Print(attention_bias,
+  #                          [tf.reduce_max(tf.abs(attention_bias))], message="Before")
   attention_bias = tf.scalar_mul(scalar=inf, x=attention_bias)
-  return attention_bias
+  #attention_bias = tf.Print(attention_bias, [tf.reduce_max(tf.abs(attention_bias))], message="After")
+  return tf.cast(attention_bias, dtype=dtype)
 
 
 def ffn_and_layer_norm(inpt,
@@ -83,15 +87,19 @@ def embed_and_maybe_add_position_signal(inpt,
                                         num_timescales,                                        
                                         heads,
                                         d_model=None):
-  embedded_inputs = tf.nn.embedding_lookup(emb_W,
-                                           inpt)
+  with tf.name_scope("embed_and_maybe_add_position_signal"):
+    with tf.name_scope("embed"):
+      embedded_inputs = tf.nn.embedding_lookup(emb_W,
+                                             inpt)
 
-  bias = get_pad_masking_bias(inpt, inpt, PAD_ID=SpecialTextTokens.PAD_ID.value,
-                              heads=heads, dtype=emb_W.dtype)
+    with tf.name_scope("pad_masking"):
+      bias = get_pad_masking_bias(inpt, inpt, PAD_ID=SpecialTextTokens.PAD_ID.value,
+                                  heads=heads, dtype=emb_W.dtype)
 
-  if num_timescales != 0:
-    embedded_inputs_with_pos = add_timing_signal(embedded_inputs,
-                                                 num_timescales=num_timescales)
-  else:
-    return embedded_inputs, bias
-  return embedded_inputs_with_pos, bias
+    with tf.name_scope("timing_signal"):
+      if num_timescales != 0:
+        embedded_inputs_with_pos = add_timing_signal(embedded_inputs,
+                                                     num_timescales=num_timescales)
+      else:
+        return embedded_inputs, bias
+      return embedded_inputs_with_pos, bias
