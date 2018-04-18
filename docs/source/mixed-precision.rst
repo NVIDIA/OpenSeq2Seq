@@ -18,58 +18,52 @@ For more details see "Mixed Precision Training" white paper https://arxiv.org/ab
 
 How to port models from float32 to mixed precision
 --------------------------
+Enabling mixed precision with existing models in OpenSeq2Seq is easy:
+change ``dtype`` parameter of ``model_params`` to "mixed". 
+You might need to enable loss scaling: either statically, by setting
+``loss_scale`` parameter inside ``model_params`` to the desired number, or
+you can use dynamic loss scaling by setting ``automatic_loss_scaling`` parameter
+to "Backoff" or "LogMax".
 
-To switch model from float32 to mixed precision, one should add dtype parameter to model description:
+To switch model from float32 to mixed precision, one should add dtype parameter to model description::
 
-base_params = {
-  ...
-  "dtype": 'mixed',
-  ...
-}
+  "model_params" = {
+    ...
+    "dtype": 'mixed',
+    ...
+  }
 
-One can also set the optional global scale:
+One can also set the optional global scale::
 
-base_params = {
+  "model_params" = {
+    ...
+    "dtype": 'mixed',
+    "loss_scale": 10.,
+    ...
+  }
 
-  ...
+One can also experiment with more fine presion granularity. For example set encoder precison in float16 and decoder in float32::
 
-  "dtype": 'mixed',
+  "model_params": {
+    ...
+    "dtype": tf.float16,
+    ...
+  }
+  "decoder_params": {
+    ...
+    "dtype": tf.float32,  
+    ...
+  }
 
-  "loss_scale": 10.,
-
-  ...
-
-}
-
-One can also experiment with more fine presion granularity. For example set encoder precison in float16 and decoder in float32:
-
-"encoder_params": {
-
-  ...
-
-  "dtype": tf.float16,
-
-  ...
-
-}
-
-"decoder_params": {
-
-  ...
-
-  "dtype": tf.float32,
-
-  ...
-
-}
 
 
 Implementation details
 ----------------------
 
-...
+... This section should also describe loss scaling types? ...
 
 Training in pure float16
 ----------------------
 
 ...
+
