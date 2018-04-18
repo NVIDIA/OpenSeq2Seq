@@ -2,10 +2,14 @@
    :hidden:
    :maxdepth: 2
 
-   self
+   Introduction <self>
    installation-instructions
    getting-started
-   tutorials
+   models-and-recipes
+   distr-training
+   mixed-precision
+   using-existing-models
+   internal-structure
    extending
    api-docs/modules
 

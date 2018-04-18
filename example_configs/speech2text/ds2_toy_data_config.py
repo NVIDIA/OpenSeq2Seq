@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
