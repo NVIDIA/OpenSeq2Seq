@@ -3,7 +3,7 @@ from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import TransformerDecoder
 from open_seq2seq.data.text2text import ParallelTextDataLayer
-from open_seq2seq.losses import CrossEntropyWithSmoothing
+from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
@@ -18,60 +18,61 @@ base_params = {
   "num_gpus": 1,
   "batch_size_per_gpu": 64,
   "max_steps": 1100,
-  "summary_frequency": 10,
-  "print_loss_frequency": 10,
-  "print_samples_frequency": 20,
+  "summary_frequency": 50,
+  "print_loss_frequency": 50,
+  "print_samples_frequency": 50,
   "eval_frequency": 50,
   "checkpoint_frequency": 300,
   "base_model": BasicText2TextWithAttention,
-  "logdir": "ReversalTask-TransformerDP08",
+  "logdir": "ReversalTask-TransformerFP32",
 
   "model_params": {
     "optimizer": "Adam",
     "optimizer_params": {
       "beta1": 0.9,
       "beta2": 0.98,
-      "epsilon": 0.000000001,   
-    },    
-    "learning_rate": 0.0003,
+      "epsilon": 0.001,
+    },
+    "learning_rate": 1.0,
     "lr_policy": transformer_policy,
     "lr_policy_params": {
       "warmup_steps": 600,
       "d_model": 64,
     },
     "dtype": tf.float32,
+    #"dtype": "mixed",
   },
 
   "encoder": TransformerEncoder,
   "encoder_params": {
-    "initializer": tf.glorot_uniform_initializer,
+    "initializer": tf.uniform_unit_scaling_initializer,
     "d_model": 64,
     "ffn_inner_dim": 128,
     "encoder_layers": 1,
     "attention_heads": 8,
-    "encoder_drop_prob": 0.8,
+    "encoder_drop_prob": 0.0,
   },
 
   "decoder": TransformerDecoder,
   "decoder_params": {
-    "initializer": tf.glorot_uniform_initializer,
+    "initializer": tf.uniform_unit_scaling_initializer,
     "use_encoder_emb": True,
     "tie_emb_and_proj": True,
     "d_model": 64,
     "ffn_inner_dim": 128,
     "decoder_layers": 1,
     "attention_heads": 8,
-    "decoder_drop_prob": 0.8,
+    "decoder_drop_prob": 0.0,
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,    
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
 
-  "loss": CrossEntropyWithSmoothing,
+  "loss": BasicSequenceLoss,
   "loss_params": {
     "offset_target_by_one": True,
     "do_mask": True,
-    "label_smoothing": 0.01,
+    #"label_smoothing": 0.01,
   }
 }
 

@@ -34,8 +34,8 @@ Text-to-text workflow uses some functions from [Tensor2Tensor](https://github.co
 ## Related resources
 * [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor)
 * [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt)
-* [OpenNMT (Torch)](http://opennmt.net/)
-* [OpenNMT (Pytorch)](https://github.com/OpenNMT/OpenNMT-py)
+* [OpenNMT](http://opennmt.net/)
+* [Sockeye](https://github.com/awslabs/sockeye)
 * [TF-seq2seq](https://github.com/google/seq2seq)
 * [Moses](http://www.statmt.org/moses/)
 

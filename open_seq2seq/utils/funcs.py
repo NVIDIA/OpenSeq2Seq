@@ -5,7 +5,7 @@ import time
 
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook
 from open_seq2seq.utils.utils import deco_print
-
+from tensorflow.python import debug as tf_debug
 
 def train(config,
           train_model,
@@ -74,6 +74,7 @@ def train(config,
   total_time = 0.0
   bench_start = config.get('bench_start', 10)
 
+  #hooks.append(tf_debug.TensorBoardDebugHook("Trantor:6067"))
   # starting training
   with tf.train.MonitoredTrainingSession(
       checkpoint_dir=checkpoint_dir,
@@ -82,8 +83,7 @@ def train(config,
       save_checkpoint_secs=None,
       log_step_count_steps=config['summary_frequency'],
       stop_grace_period_secs=300,
-      hooks=hooks,
-  ) as sess:
+      hooks=hooks) as sess:
     for step, feed_dict in enumerate(train_model.data_layer.iterate_forever()):
       if sess.should_stop():
         break

@@ -9,7 +9,7 @@ from .encoder import Encoder
 from open_seq2seq.parts.attention import multi_head_attention_fn
 from open_seq2seq.parts.common import ffn_and_layer_norm, \
                                       embed_and_maybe_add_position_signal, \
-                                      normalize
+                                      dropout_normalize_add_NTC
 
 
 class TransformerEncoder(Encoder):
@@ -58,28 +58,29 @@ class TransformerEncoder(Encoder):
     enc_emb_w = tf.get_variable(name="EncoderEmbeddingMatrix",
                                 shape=[
                                   self.params['src_vocab_size'],
-                                  self.params['d_model']])
+                                  self.params['d_model']],
+                                dtype=self.params['dtype'])
 
     embedded_inputs_with_pos, bias = embed_and_maybe_add_position_signal(
       inpt=input_dict['src_inputs'],
       emb_W=enc_emb_w,
       num_timescales=int(d_model/2),
-      d_model=d_model, heads=attention_heads)
+      heads=attention_heads)
 
-    x = tf.layers.dropout(inputs=embedded_inputs_with_pos,
-                          rate=self._drop_prob,
-                          noise_shape=[self._batch_size, 1, d_model])
+    x = dropout_normalize_add_NTC(x=embedded_inputs_with_pos,
+                                  drop_prob=self._drop_prob)
 
     for block_ind in range(self.params['encoder_layers']):
       with tf.variable_scope("EncoderBlock_{}".format(block_ind)):
         # self-attention
         with tf.variable_scope("SelfAttention"):
           att_out = multi_head_attention_fn(Q=x, K=x, V=x, d_model=d_model,
-                                            h=attention_heads, additional_bias=bias)
+                                            h=attention_heads,
+                                            additional_bias=bias)
 
-          att_out = tf.layers.dropout(inputs=att_out, rate=self._drop_prob,
-                                      noise_shape=[self._batch_size, 1, d_model])
-          ff_input = normalize(att_out + x)
+          ff_input = dropout_normalize_add_NTC(x=att_out, residual_x=x,
+                                               drop_prob=self._drop_prob)
+
         x = ffn_and_layer_norm(inpt=ff_input,
                                inner_dim=ffn_inner_dim,
                                resulting_dim=d_model,
