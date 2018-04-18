@@ -68,7 +68,14 @@ that everything is saved if you run this script multiple times).
 Second, it will log the current git commit and git diff in the
 "gitinfo\_<time stamp>.log" file to make it possible to completely reproduce the
 experiment. Finally, it will save the current experiment configuration in the
-"config\_<time stamp>.py" file.
+"config\_<time stamp>.py" file. To run ``start_experiment.sh`` you will need to
+define the following environment variables: ``LOGDIR`` (path to the desired log
+directory), ``CONFIG_FILE`` (path to the Python configuration file), ``MODE``
+(mode to execute ``run.py`` in) and ``CONTINUE_LEARNING`` (whether to specify
+``--continue_learning`` flag for ``run.py``, could be 1 or 0). For example to
+train DeepSpeech2-like model on the toy speech data you can run::
+
+   LOGDIR=experiments/librispeech CONFIG_FILE=example_configs/speech2text/ds2_toy_data_config.py MODE=train_eval CONTINUE_LEARNING=0 ./start_experiment.sh
 
 .. _config-params:
 Config parameters
@@ -80,7 +87,7 @@ file. This file must define ``base_params`` dictionary and can define additional
 overwrite corresponding parts of ``base_params`` when the corresponding mode
 is used. Here is an example of configuration file for the speech-to-text model:
 
-.. literalinclude:: ../../../example_configs/speech2text/ds2_toy_data_config.py
+.. literalinclude:: ../../../example_configs/speech2text/ds2_librispeech_adam_config.py
    :linenos:
 
 That's a big file with a lot of parameters, but you will rarely need to write it
@@ -89,7 +96,12 @@ configs and make a few lines modification to customize it for your specific
 problems. So let's walk-through this file to make sure you understand all the
 possible configuration parameters.
 
-...
+Since the configuration file is just a regular Python file, it starts with a
+series of imports (lines 1--7). Then the main configuration dictionary
+``base_params`` is defined which has several groups of parameters. The first
+group (lines 11--23) is the general experiment configuration parameters, such as
+random seed, number of GPUs to use, batch size per GPU, etc. Most of these
+parameters are self-explanatory,
 
 Text-to-text specifics
 ~~~~~~~~~~~~~~~~~~~~~~~~
