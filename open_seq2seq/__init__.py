@@ -1,3 +1,4 @@
 # Copyright (c) 2017 NVIDIA Corporation
-from . import data
-from . import model
+"""
+This package provides multi-node, multi-GPU sequence to sequence learning
+"""
