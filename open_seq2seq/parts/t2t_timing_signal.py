@@ -44,7 +44,8 @@ def shape_list(x):
 def get_timing_signal(length,
                       min_timescale=1,
                       max_timescale=1e4,
-                      num_timescales=16):
+                      num_timescales=16,
+                      dtype=tf.float32):
   """Create Tensor of sinusoids of different frequencies.
 
   Args:
@@ -56,11 +57,13 @@ def get_timing_signal(length,
   Returns:
     Tensor of shape (length, 2*num_timescales)
   """
-  positions = tf.to_float(tf.range(length))
+  #positions = tf.to_float(tf.range(length))
+  positions = tf.cast(tf.range(length), dtype=dtype)
   log_timescale_increment = (
       math.log(max_timescale / min_timescale) / (num_timescales - 1))
   inv_timescales = min_timescale * tf.exp(
-      tf.to_float(tf.range(num_timescales)) * -log_timescale_increment)
+      #tf.to_float(tf.range(num_timescales)) * -log_timescale_increment)
+      tf.cast(tf.range(num_timescales), dtype=dtype) * -log_timescale_increment)
   scaled_time = tf.expand_dims(positions, 1) * tf.expand_dims(inv_timescales, 0)
   return tf.concat([tf.sin(scaled_time), tf.cos(scaled_time)], axis=1)
 
@@ -94,6 +97,6 @@ def add_timing_signal(x, min_timescale=1, max_timescale=1e4, num_timescales=2):
   length = shape_list(x)[1]
   depth = shape_list(x)[2]
   signal = get_timing_signal(length, min_timescale, max_timescale,
-                             num_timescales)
+                             num_timescales, dtype=x.dtype)
   padded_signal = tf.pad(signal, [[0, 0], [0, depth - 2 * num_timescales]])
   return x + tf.reshape(padded_signal, [1, length, depth])
