@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import time
+import os
 
 from open_seq2seq.utils.utils import deco_print
 
@@ -130,6 +131,8 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     ]
     self._triggered = False
     self._last_step = last_step
+    self._eval_saver = tf.train.Saver()
+    self._best_eval_loss = 1e9
 
   def begin(self):
     self._iter_count = 0
@@ -167,6 +170,17 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       outputs_per_batch,
     )
     dict_to_log['eval_loss'] = total_loss
+
+    # saving the best validation model
+    if total_loss < self._best_eval_loss:
+      self._best_eval_loss = total_loss
+      self._eval_saver.save(
+        run_context.session,
+        os.path.join(self._model.params['logdir'], 'best_models',
+                     'val_loss={:.4f}-step'.format(total_loss)),
+        global_step=step + 1,
+      )
+
     # optionally logging to tensorboard any values
     # returned from maybe_print_logs
     if dict_to_log:

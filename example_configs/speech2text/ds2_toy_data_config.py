@@ -1,4 +1,3 @@
-from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
@@ -11,12 +10,11 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 101,
+  "num_epochs": 100,
 
   "num_gpus": 2,
   "batch_size_per_gpu": 2,
 
-  "bench_start": 10,
   "summary_frequency": 10,
   "print_loss_frequency": 10,
   "print_samples_frequency": 20,

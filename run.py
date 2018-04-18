@@ -20,8 +20,9 @@ from open_seq2seq.utils.model_builders import \
 
 
 def main():
-  parser = argparse.ArgumentParser(description='Experiment params')
-  parser.add_argument("--config_file", help="Path to the configuration file")
+  parser = argparse.ArgumentParser(description='Experiment parameters')
+  parser.add_argument("--config_file", required=True,
+                      help="Path to the configuration file")
   parser.add_argument("--mode", default='train',
                       help="Could be \"train\", \"eval\", "
                            "\"train_eval\" or \"infer\"")
@@ -37,6 +38,8 @@ def main():
                       help='automatic config change for benchmarking')
   parser.add_argument('--bench_steps', type=int, default='20',
                       help='max_steps for benchmarking')
+  parser.add_argument('--bench_start', type=int,
+                      help='first step to start counting time for benchmarking')
   args, unknown = parser.parse_known_args()
 
   if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
@@ -150,6 +153,11 @@ def main():
     if 'num_epochs' in train_config:
       del train_config['num_epochs']
     train_config['max_steps'] = args.bench_steps
+    if args.bench_start:
+      train_config['bench_start'] = args.bench_start
+    elif 'bench_start' not in train_config:
+      train_config['bench_start'] = 10  # default value
+
     deco_print("New benchmarking config:")
     pprint.pprint(train_config)
     args.mode = "train"

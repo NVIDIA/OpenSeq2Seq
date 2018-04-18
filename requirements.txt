@@ -3,5 +3,4 @@ nltk>=3.2.3
 resampy
 python_speech_features
 pandas
-horovod
 six
