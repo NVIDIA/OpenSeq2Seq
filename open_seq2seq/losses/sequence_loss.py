@@ -167,6 +167,8 @@ class CrossEntropyWithSmoothing(Loss):
       "offset_target_by_one", True)
     self._do_mask = self.params.get("do_mask", True)
     self._label_smoothing = self.params.get("label_smoothing", 0.0)
+    self._average_across_timestep = self.params.get(
+      "average_across_timestep", False)
 
   def compute_loss(self, input_dict):
     """
@@ -227,6 +229,10 @@ class CrossEntropyWithSmoothing(Loss):
               weights=mask,
               label_smoothing=self._label_smoothing,
               reduction=tf.losses.Reduction.NONE)
+
     loss = tf.reduce_sum(loss * tf.reshape(mask, shape=[-1]))
-    loss /= self._batch_size_per_gpu
+    if self._average_across_timestep:
+      loss /= tf.reduce_sum(mask)
+    else:
+      loss /= self._batch_size_per_gpu
     return loss
