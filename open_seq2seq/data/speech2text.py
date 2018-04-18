@@ -211,6 +211,7 @@ class Speech2TextDataLayer(DataLayer):
 
 
 class Speech2TextRandomDataLayer(DataLayer):
+  """This class should be used for performance profiling only."""
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
