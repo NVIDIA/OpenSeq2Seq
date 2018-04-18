@@ -85,6 +85,7 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "max_length": 56,
+    "pad_lengths_to_eight": True,
   },
 }
 
@@ -102,6 +103,7 @@ eval_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 16,
     "max_length": 32,
+    "pad_lengths_to_eight": True,
   },
 }
 
@@ -117,5 +119,7 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
+    "pad_lengths_to_eight": True,
+    "max_length": 256,
   },
 }
