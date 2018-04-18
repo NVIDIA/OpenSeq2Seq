@@ -210,6 +210,83 @@ class Speech2TextDataLayer(DataLayer):
     return {self.get_input_tensors(): self.next_batch()}
 
 
+class Speech2TextRandomDataLayer(DataLayer):
+  @staticmethod
+  def get_required_params():
+    return dict(DataLayer.get_required_params(), **{
+      'num_audio_features': int,
+      'input_type': ['spectrogram', 'mfcc'],
+      'alphabet_config_path': str,
+      'dataset_path': list,
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(DataLayer.get_optional_params(), **{
+      'augmentation': dict,
+    })
+
+  def __init__(self, params):
+    """
+    Random data for speech check
+    """
+    super(Speech2TextRandomDataLayer, self).__init__(params)
+    self.random_data = None
+    self.params['alphabet'] = Alphabet(
+      os.path.abspath(params['alphabet_config_path'])
+    )
+
+  def shuffle(self):
+    pass
+
+  def gen_input_tensors(self):
+    x = tf.placeholder(
+      self.params['dtype'],
+      [self.params['batch_size'], None,
+       self.params['num_audio_features']],
+      name="ph_x",
+    )
+    x_length = tf.placeholder(
+      tf.int32,
+      [self.params['batch_size']],
+      name="ph_xlen",
+    )
+    if self.params['use_targets']:
+      y = tf.placeholder(
+        tf.int32,
+        [self.params['batch_size'], None],
+        name="ph_y",
+      )
+      y_length = tf.placeholder(
+        tf.int32,
+        [self.params['batch_size']],
+        name="ph_ylen",
+      )
+      return [x, x_length, y, y_length]
+    else:
+      return [x, x_length]
+
+  def get_size_in_samples(self):
+    return 10000
+
+  def next_batch_feed_dict(self):
+    if self.random_data is None:
+      self.random_data = [None] * 4
+      seq_length = 2048
+      self.random_data[0] = np.random.rand(
+        self.params['batch_size'], seq_length, self.params['num_audio_features']
+      )
+      self.random_data[1] = np.ones(self.params['batch_size']) * seq_length
+      tgt_length = 50
+      self.random_data[2] = np.random.randint(
+        0, 10, size=(self.params['batch_size'], tgt_length)
+      )
+      self.random_data[3] = np.ones(self.params['batch_size']) * tgt_length
+
+    return {self.get_input_tensors(): self.random_data}
+
+
+
 class Speech2TextTFDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
