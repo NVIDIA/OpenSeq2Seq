@@ -105,6 +105,13 @@ After that you should be able to run toy speech example with no errors::
 
     python run.py --config_file=example_configs/speech2text/ds2_toy_data_config.py --mode=train_eval
 
+Horovod installation
+--------------------
+
+After TensorFlow and all other requirements are installed, you can also follow
+`these steps <https://github.com/uber/horovod#install>`_ to enable
+Horovod-based distributed training.
+
 Running tests
 -------------
 In order to check that everything is installed correctly it is recommended to

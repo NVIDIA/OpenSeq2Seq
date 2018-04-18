@@ -101,7 +101,7 @@ series of imports (lines 1--7). Then the main configuration dictionary
 ``base_params`` is defined which has several groups of parameters. The first
 group (lines 11--23) is the general experiment configuration parameters, such as
 random seed, number of GPUs to use, batch size per GPU, etc. Most of these
-parameters are self-explanatory,
+parameters are self-explanatory, ...
 
 Text-to-text specifics
 ~~~~~~~~~~~~~~~~~~~~~~~~
