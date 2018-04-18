@@ -8,7 +8,7 @@ from open_seq2seq.utils.utils import deco_print
 from tensorflow.python import debug as tf_debug
 
 
-def train(config, train_model, eval_model=None, hvd=None, debug=False):
+def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
   """
   Training Loop function
   :param config:
@@ -72,8 +72,10 @@ def train(config, train_model, eval_model=None, hvd=None, debug=False):
   total_time = 0.0
   bench_start = config.get('bench_start', 10)
 
-  if debug:
-    hooks.append(tf_debug.TensorBoardDebugHook("localhost:6067"))
+  if debug_port:
+    hooks.append(
+      tf_debug.TensorBoardDebugHook("localhost:{}".format(debug_port))
+    )
 
   # starting training
   with tf.train.MonitoredTrainingSession(

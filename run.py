@@ -40,8 +40,8 @@ def main():
                       help='max_steps for benchmarking')
   parser.add_argument('--bench_start', type=int,
                       help='first step to start counting time for benchmarking')
-  parser.add_argument('--debug', dest='debug', action='store_true',
-                      help='run tensorflow debug mode')
+  parser.add_argument('--debug_port', type=int,
+                      help='run TensorFlow in debug mode on specified port')
   args, unknown = parser.parse_known_args()
 
   if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
@@ -195,7 +195,8 @@ def main():
       train_model = create_encoder_decoder_loss_model(config=train_config,
                                                       mode="train",
                                                       hvd=hvd)
-      train(train_config, train_model, None, hvd=hvd, debug=args.debug)
+      train(train_config, train_model, None, hvd=hvd,
+            debug_port=args.debug_port)
     elif args.mode == 'train_eval':
       train_model = create_encoder_decoder_loss_model(config=train_config,
                                                       mode="train",
@@ -204,7 +205,8 @@ def main():
                                                      mode="eval",
                                                      hvd=hvd,
                                                      reuse=True)
-      train(train_config, train_model, eval_model, hvd=hvd, debug=args.debug)
+      train(train_config, train_model, eval_model,
+            hvd=hvd, debug_port=args.debug_port)
     elif args.mode == "eval":
       eval_model = create_encoder_decoder_loss_model(
         config=eval_config,
