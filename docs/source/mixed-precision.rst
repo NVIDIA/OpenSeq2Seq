@@ -13,3 +13,18 @@ In this section we will describe
   model. Should also contain example of what we did for our cases: profiling
   GPU/CPU placement, profiling which operations are bottleneck,
   debugging infs/nans, converting some layers to fp32, etc.
+
+How to use mixed precision
+--------------------------
+
+...
+
+Implementation details
+----------------------
+
+...
+
+Designing new models in MP
+--------------------------
+
+...
