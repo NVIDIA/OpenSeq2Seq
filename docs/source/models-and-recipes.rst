@@ -7,7 +7,7 @@ Models and recipes
 .. supports, exact config parameters to train them, final training/validation/test
 .. metrics and links to checkpoints (tensorboards also?) of trained models.
 
-..note:
+.. note::
     This section is work in progress. Some of the info is not ready. Check back soon.
 
 Currently OpenSeq2Seq has implemented models for machine translation and
