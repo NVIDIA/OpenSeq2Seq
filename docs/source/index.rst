@@ -35,7 +35,11 @@ OpenSeq2Seq is a toolkit for efficient experimentation with various sequence-to-
 
 OpenSeq2Seq is built using TensorFlow. To start using this toolkit, look at the
 :ref:`installation instructions <installation-instructions>` and then
-see the :ref:`getting started <getting-started>` page.
+see the :ref:`getting started <getting-started>` page. For more detailed
+tutorials you can look into :ref:`in-depth tutorials <in_depth>` section.
 If you are already familiar with the basics and have
-everything set up, you can find some useful information in the :ref:`mixed precision training <mixed_precision>`,
-:ref:`distributed training <distributed_training>`, :ref:`adding new models <extending>` or :ref:`API documentation <api-docs>` sections.
+everything set up, check out the list of available
+:ref:`models and recipes <models_and_recipes>`. You can also find some useful
+information in the :ref:`mixed precision training <mixed_precision>` and
+:ref:`distributed training <distributed_training>` sections or look through our
+:ref:`API documentation <api-docs>`.
