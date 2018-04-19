@@ -1,4 +1,9 @@
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
+<div align="center">
+  <img src="./docs/logo.png" alt="OpenSeq2Seq" style="width: 200px">
+  <br><br>
+</div>
+
 This is a research project, not an official NVIDIA product.
 
 OpenSeq2Seq main goal is to allow researchers to most effectively
@@ -38,4 +43,3 @@ Text-to-text workflow uses some functions from [Tensor2Tensor](https://github.co
 * [Sockeye](https://github.com/awslabs/sockeye)
 * [TF-seq2seq](https://github.com/google/seq2seq)
 * [Moses](http://www.statmt.org/moses/)
-
