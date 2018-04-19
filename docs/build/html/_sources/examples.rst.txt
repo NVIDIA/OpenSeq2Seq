@@ -1,0 +1,9 @@
+.. _examples:
+
+Examples
+========
+
+.. toctree::
+   :maxdepth: 2
+
+   examples/adding-new-data-layer

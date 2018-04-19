@@ -1,36 +1,45 @@
-# OpenSeq2Seq v0.1: sequence to sequence learning
+# OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
+<div align="center">
+  <img src="./docs/logo.png" alt="OpenSeq2Seq" width="200px">
+  <br><br>
+</div>
+
 This is a research project, not an official NVIDIA product.
+
+OpenSeq2Seq main goal is to allow researchers to most effectively
+explore various
+sequence-to-sequence models. The
+efficiency is achieved by fully supporting
+distributed and mixed-precision training.
+OpenSeq2Seq is built using Tensorflow and provides all the necessary
+building blocks for training encoder-decoder
+models for neural machine translation
+and automatic speech recognition.
+We plan to extend it with other modalities
+in the future.
 
 ## Features
 1. Sequence to sequence learning
-   1. Different cell types: LSTM, GRU, GLSTM, SLSTM
-   2. Encoders: RNN-based, unidirectional, bi-directional, GNMT-like
-   3. Attention mechanisms: Bahdanau, Luong, GNMT-like
-   4. Beam search for inference
-2. Single box data parallel multi-gpu training
-3. Distributed (data-parallel) multi-node, mult-gpu training using Horovod
-4. LARS norm scaling algorithm
+   1. Neural Machine Translation
+   2. Automatic Speech Recognition
+2. Data-parallel distributed training
+   1. Multi-GPU
+   2. Multi-node
+3. Mixed precision training for NVIDIA Volta GPUs
 
 
-## [Documentation](https://github.com/NVIDIA/OpenSeq2Seq/wiki)
+## Documentation
+https://nvidia.github.io/OpenSeq2Seq/
 
-* [Getting Started](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Getting-started)
-* [Toy Data Example](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Toy-data-example)
-* [Training German to English translator](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Training-German-to-English-translator)
-* [Models and Recepies](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Models-and-Recepies)
-* [Distributed training using Horovod](https://github.com/NVIDIA/OpenSeq2Seq/wiki/Distributed-training)
-* [Question Answering](https://github.com/NVIDIA/OpenSeq2Seq/blob/master/QuestionAnswering/README.md) (related project)
+## Acknowledgments
+Speech-to-text workflow uses some parts of [Mozilla DeepSpeech](https://github.com/Mozilla/DeepSpeech) project.
 
-Contributions are welcome!
+Text-to-text workflow uses some functions from [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor) and [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt).
 
 ## Related resources
+* [Tensor2Tensor](https://github.com/tensorflow/tensor2tensor)
 * [Neural Machine Translation (seq2seq) Tutorial](https://github.com/tensorflow/nmt)
-* [OpenNMT (Torch)](http://opennmt.net/)
-* [OpenNMT (Pytorch)](https://github.com/OpenNMT/OpenNMT-py)
-* [Tf-seq2seq](https://github.com/google/seq2seq)
+* [OpenNMT](http://opennmt.net/)
+* [Sockeye](https://github.com/awslabs/sockeye)
+* [TF-seq2seq](https://github.com/google/seq2seq)
 * [Moses](http://www.statmt.org/moses/)
-
-## References
-* [Neural Machine Translation by Jointly Learning to Align and Translate](https://arxiv.org/abs/1409.0473)
-* [Massive Exploration of Neural Machine Translation Architectures](https://arxiv.org/abs/1703.03906)
-* [Effective approaches to attention-based neural machine translation](https://arxiv.org/abs/1508.04025)

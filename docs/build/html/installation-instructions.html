@@ -1,0 +1,373 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation instructions &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Getting started" href="getting-started.html" />
+    <link rel="prev" title="OpenSeq2Seq" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation instructions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#general-installation">General installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#openseq2seq-for-speech">OpenSeq2Seq for speech</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-add-ctc-decoder-with-language-model-to-tensorflow">How to add CTC decoder with language model to TensorFlow</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#how-to-download-language-model">How to download language model</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#horovod-installation">Horovod installation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-tests">Running tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation instructions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/installation-instructions.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation-instructions">
+<span id="id1"></span><h1>Installation instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="general-installation">
+<h2>General installation<a class="headerlink" href="#general-installation" title="Permalink to this headline">¶</a></h2>
+<p>The simplest way to obtain complete and working version of OpenSeq2Seq is by
+using our docker container: TODO: add link.</p>
+<p>If you are using docker, you can skip the rest of this page. Otherwise, follow
+the instructions below to have everything set up:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">NVIDIA</span><span class="o">/</span><span class="n">OpenSeq2Seq</span>
+<span class="n">cd</span> <span class="n">OpenSeq2Seq</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>Now, if you are not going to use speech-to-text models, you can just install
+TensorFlow using pip:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">tensorflow</span><span class="o">-</span><span class="n">gpu</span>
+</pre></div>
+</div>
+<p>and skip the next section that describes speech-specific installation process.
+If you need speech models, then you have to build TensorFlow from sources as described
+in the next section.</p>
+</div>
+<div class="section" id="openseq2seq-for-speech">
+<h2>OpenSeq2Seq for speech<a class="headerlink" href="#openseq2seq-for-speech" title="Permalink to this headline">¶</a></h2>
+<p>To obtain the best results for automatic speech recognition it is necessary to
+use CTC decoder with language model. Since TensorFlow does not support it by
+default, you will need to build TensorFlow from sources with
+custom CTC decoder with language model operation. In order to do that, follow
+the steps below. Alternatively, you can disable language model by setting
+&#8220;use_language_model&#8221; parameter of decoder to False, but that will lead to a much
+worse model accuracy.</p>
+<div class="section" id="how-to-add-ctc-decoder-with-language-model-to-tensorflow">
+<h3>How to add CTC decoder with language model to TensorFlow<a class="headerlink" href="#how-to-add-ctc-decoder-with-language-model-to-tensorflow" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic">
+<li><p class="first">Install <a class="reference external" href="http://www.boost.org">boost</a>:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libboost</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">dev</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Build <a class="reference external" href="https://github.com/kpu/kenlm">kenlm</a> (assuming you are in the
+OpenSeq2Seq folder):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">ctc_decoder_with_lm</span>
+<span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">kpu</span><span class="o">/</span><span class="n">kenlm</span>
+<span class="n">cd</span> <span class="n">kenlm</span>
+<span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="n">build</span>
+<span class="n">cd</span> <span class="n">build</span>
+<span class="n">cmake</span> <span class="o">..</span>
+<span class="n">make</span> <span class="o">-</span><span class="n">j</span>
+</pre></div>
+</div>
+<p>If you prefer to build kenlm in different location, you will need to set
+the corresponding symlink:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OpenSeq2Seq</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span>
+<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">kenlm</span> <span class="n">location</span><span class="o">&gt;</span> <span class="n">kenlm</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Download and build TensorFlow with custom decoder operation:</p>
+<p>On Ubuntu 16.04 the following sequence of commands should work.
+At the location that you want to install TensorFlow to, run:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
+<span class="n">cd</span> <span class="n">tensorflow</span>
+<span class="o">./</span><span class="n">configure</span>
+<span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>
+<span class="n">bazel</span> <span class="n">build</span> <span class="o">-</span><span class="n">c</span> <span class="n">opt</span> <span class="o">--</span><span class="n">copt</span><span class="o">=-</span><span class="n">O3</span> <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">cuda</span> <span class="o">//</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">pip_package</span><span class="p">:</span><span class="n">build_pip_package</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_cc</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_framework</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">libctc_decoder_with_kenlm</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">generate_trie</span>
+<span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/*.</span><span class="n">so</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
+<span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/</span><span class="n">generate_trie</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
+<span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">pip_package</span><span class="o">/</span><span class="n">build_pip_package</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tensorflow_pkg</span>
+<span class="n">pip</span> <span class="n">install</span> <span class="o">/</span><span class="n">tmp</span><span class="o">/</span><span class="n">tensorflow_pkg</span><span class="o">/&lt;</span><span class="n">your</span> <span class="n">tensorflow</span> <span class="n">build</span><span class="o">&gt;.</span><span class="n">whl</span>
+</pre></div>
+</div>
+<p>If you are not on Ubuntu 16.04 or if something does not work, try to follow
+the usual TensorFlow
+<a class="reference external" href="https://www.tensorflow.org/install/install_sources">installation instructions</a>,
+except when running bazel build use the following commands instead
+(assuming you are in tensorflow directory):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>
+<span class="n">bazel</span> <span class="n">build</span> <span class="o">-</span><span class="n">c</span> <span class="n">opt</span> <span class="o">--</span><span class="n">copt</span><span class="o">=-</span><span class="n">O3</span>  <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">cuda</span> <span class="o">//</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">pip_package</span><span class="p">:</span><span class="n">build_pip_package</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_cc</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_framework</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">libctc_decoder_with_kenlm</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">generate_trie</span>
+<span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/*.</span><span class="n">so</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
+<span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/</span><span class="n">generate_trie</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
+</pre></div>
+</div>
+</li>
+</ol>
+</div>
+<div class="section" id="how-to-download-language-model">
+<h3>How to download language model<a class="headerlink" href="#how-to-download-language-model" title="Permalink to this headline">¶</a></h3>
+<p>In order to achieve the best accuracy, you should download the big language
+model from <a class="reference external" href="https://github.com/mozilla/DeepSpeech/tree/master/data/lm">Mozilla&#8217;s DeepSpeech repository</a>.
+This can be done by running <code class="docutils literal"><span class="pre">download_lm.sh</span></code> script
+(might take some time, since the size of the model is around 1.5Gb):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">download_lm</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<p>If the script fails with 503 Error, try running at again or download &#8220;lm.binary&#8221;
+and &#8220;trie&#8221; files manually from Mozilla&#8217;s GitHub and put them in language_model
+folder.</p>
+<p>After that you should be able to run toy speech example with no errors:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="horovod-installation">
+<h2>Horovod installation<a class="headerlink" href="#horovod-installation" title="Permalink to this headline">¶</a></h2>
+<p>After TensorFlow and all other requirements are installed, you can also follow
+<a class="reference external" href="https://github.com/uber/horovod#install">these steps</a> to enable
+Horovod-based distributed training.</p>
+</div>
+<div class="section" id="running-tests">
+<h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h2>
+<p>In order to check that everything is installed correctly it is recommended to
+run unittests (you need to have at least two GPUs in order to do that):</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">open_seq2seq</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;*_test.py&#39;</span>
+</pre></div>
+</div>
+<p>It might take up to 10 minutes. You should see a lot of output, but no errors
+in the end.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="getting-started.html" class="btn btn-neutral float-right" title="Getting started" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="OpenSeq2Seq" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

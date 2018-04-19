@@ -1,0 +1,483 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utils &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="experimental_rnn_cells" href="parts.experimental_rnn_cells.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.html">parts</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">utils</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.funcs">funcs</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_builders">model_builders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-utils.hooks">hooks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">utils</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+      <li>utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/utils.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-utils">
+<span id="utils"></span><h1>utils<a class="headerlink" href="#module-utils" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-utils.funcs">
+<span id="funcs"></span><h2>funcs<a class="headerlink" href="#module-utils.funcs" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="utils.funcs.evaluate">
+<code class="descclassname">utils.funcs.</code><code class="descname">evaluate</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.funcs.get_batches_for_epoch">
+<code class="descclassname">utils.funcs.</code><code class="descname">get_batches_for_epoch</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#get_batches_for_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.get_batches_for_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.funcs.infer">
+<code class="descclassname">utils.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.infer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.funcs.train">
+<code class="descclassname">utils.funcs.</code><code class="descname">train</code><span class="sig-paren">(</span><em>config</em>, <em>train_model</em>, <em>eval_model=None</em>, <em>hvd=None</em>, <em>debug_port=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training Loop function
+:param config:
+:param train_model:
+:param eval_model:
+:param hvd:
+:return:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-utils.model_builders">
+<span id="model-builders"></span><h2>model_builders<a class="headerlink" href="#module-utils.model_builders" title="Permalink to this headline">¶</a></h2>
+<p>Helper functions to create models with various topologies</p>
+<dl class="function">
+<dt id="utils.model_builders.create_encoder_decoder_loss_model">
+<code class="descclassname">utils.model_builders.</code><code class="descname">create_encoder_decoder_loss_model</code><span class="sig-paren">(</span><em>config</em>, <em>mode</em>, <em>hvd</em>, <em>reuse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/model_builders.html#create_encoder_decoder_loss_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.model_builders.create_encoder_decoder_loss_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a model specified in the configuration file.
+This function takes in Python config and creates all parts of the model:
+data layer, encoder, decoder and loss. They are all then combined in one
+model instance which is returned.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>config</strong> (<em>dict</em>) &#8211; dictionary containing run parameters. For complete list of
+possible values see &#8220;Config parameters&#8221; section.</li>
+<li><strong>mode</strong> (<em>str</em>) &#8211; mode to create the model in. Could be &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.</li>
+<li><strong>hvd</strong> &#8211; if Horovod is used, this should be <code class="docutils literal"><span class="pre">horovod.tensorflow</span></code> module.
+If Horovod is not used it should be None.</li>
+<li><strong>reuse</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; whether to reuse variables in the model. Useful
+for creating evaluation model during training.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">instance of <code class="docutils literal"><span class="pre">base_model</span></code> class specified in the config.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>random_seed</strong> (int) &#8212; random seed to use.</li>
+<li><strong>use_horovod</strong> (bool) &#8212; whether to use Horovod for distributed execution.</li>
+<li><strong>num_gpus</strong> (int) &#8212; number of GPUs to use. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
+this parameter is ignored.</li>
+<li><strong>batch_size_per_gpu</strong> (int) &#8212; batch size to use for each GPU.</li>
+<li><strong>num_epochs</strong> (int) &#8212; number of epochs to run training for.
+This parameter cannot be used if <code class="docutils literal"><span class="pre">max_steps</span></code> is specified.</li>
+<li><strong>max_steps</strong> (int) &#8212; number of steps to run training for.
+This parameter cannot be used if <code class="docutils literal"><span class="pre">num_epochs</span></code> is specified.</li>
+<li><strong>save_summaries_steps</strong> (int or None) &#8212; how often to save summaries.
+Setting it to None disables summaries saving.</li>
+<li><strong>print_loss_steps</strong> (int or None) &#8212; how often to print loss during
+training. Setting it to None disables loss printing.</li>
+<li><strong>print_sample_steps</strong> (int or None) &#8212; how often to print training samples
+(input sequences, correct answers and model predictions).
+Setting it to None disables samples printing.</li>
+<li><strong>save_checkpoint_steps</strong> (int or None) &#8212; how often to save model
+checkpoints. Setting it to None disables checkpoint saving.</li>
+<li><strong>eval_steps</strong> (int) &#8212; how often to run evaluation during training.
+This parameter is only checked if <code class="docutils literal"><span class="pre">--mode</span></code> argument of <code class="docutils literal"><span class="pre">run.py</span></code> is
+&#8220;train_eval&#8221;. If no evaluation is needed you should use &#8220;train&#8221; mode.</li>
+<li><strong>logdir</strong> (string) &#8212; path to the log directory where all checkpoints and
+summaries will be saved.</li>
+<li><strong>base_model</strong> (any class derived from
+<a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) &#8212; base model class to use.
+Currently can only be <a class="reference internal" href="models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal"><span class="pre">Speech2Text</span></code></a>
+or
+<a class="reference internal" href="models.html#models.text2text.BasicText2TextWithAttention" title="models.text2text.BasicText2TextWithAttention"><code class="xref py py-class docutils literal"><span class="pre">BasicText2TextWithAttention</span></code></a>.
+Note that this parameter is not a string, but an actual Python class, so you
+will need to add corresponding imports in the configuration file.</li>
+<li><strong>model_params</strong> (dict) &#8212; dictionary with model configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>data_layer</strong> (any class derived from
+<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>) &#8212; data layer class to use.</li>
+<li><strong>data_layer_params</strong> (dict) &#8212; dictionary with data layer configuration.
+For complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>encoder</strong> (any class derived from
+<a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">Encoder</span></code></a>) &#8212; encoder class to use.</li>
+<li><strong>encoder_params</strong> (dict) &#8212; dictionary with encoder configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>decoder</strong> (any class derived from
+<a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">Decoder</span></code></a>) &#8212; decoder class to use.</li>
+<li><strong>decoder_params</strong> (dict) &#8212; dictionary with decoder configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>loss</strong> (any class derived from
+<a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">Loss</span></code></a>) &#8212; loss class to use.</li>
+<li><strong>loss_params</strong> (dict) &#8212; dictionary with loss configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.model_builders.safe_fill_params">
+<code class="descclassname">utils.model_builders.</code><code class="descname">safe_fill_params</code><span class="sig-paren">(</span><em>cfg_from</em>, <em>cfgs_to</em>, <em>pm_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/model_builders.html#safe_fill_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.model_builders.safe_fill_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-utils.hooks">
+<span id="hooks"></span><h2>hooks<a class="headerlink" href="#module-utils.hooks" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="utils.hooks.PrintLossAndTimeHook">
+<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that prints training samples and prediction from time to time</p>
+<dl class="method">
+<dt id="utils.hooks.PrintLossAndTimeHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.PrintLossAndTimeHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.PrintLossAndTimeHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.hooks.PrintSamplesHook">
+<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintSamplesHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that prints training samples and prediction from time to time</p>
+<dl class="method">
+<dt id="utils.hooks.PrintSamplesHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.PrintSamplesHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.PrintSamplesHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="utils.hooks.RunEvaluationHook">
+<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>last_step=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that runs evaluation on a validation set</p>
+<dl class="method">
+<dt id="utils.hooks.RunEvaluationHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.RunEvaluationHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="utils.hooks.RunEvaluationHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.hooks.log_summaries_from_dict">
+<code class="descclassname">utils.hooks.</code><code class="descname">log_summaries_from_dict</code><span class="sig-paren">(</span><em>dict_to_log</em>, <em>output_dir</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#log_summaries_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.log_summaries_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="id1">
+<h2>utils<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-utils.utils"></span><dl class="function">
+<dt id="utils.utils.array_to_string">
+<code class="descclassname">utils.utils.</code><code class="descname">array_to_string</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>delim=' '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#array_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.array_to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.check_params">
+<code class="descclassname">utils.utils.</code><code class="descname">check_params</code><span class="sig-paren">(</span><em>config</em>, <em>required_dict</em>, <em>optional_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#check_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.check_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.deco_print">
+<code class="descclassname">utils.utils.</code><code class="descname">deco_print</code><span class="sig-paren">(</span><em>line</em>, <em>offset=0</em>, <em>start='*** '</em>, <em>end='\n'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#deco_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.deco_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.mask_nans">
+<code class="descclassname">utils.utils.</code><code class="descname">mask_nans</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#mask_nans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.mask_nans" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.text_ids_to_string">
+<code class="descclassname">utils.utils.</code><code class="descname">text_ids_to_string</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>S_ID</em>, <em>EOS_ID</em>, <em>PAD_ID</em>, <em>ignore_special=False</em>, <em>delim=' '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#text_ids_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.text_ids_to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>For _-to-text outputs this function takes a row with ids,
+target vocabulary and prints it as a human-readable string</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="parts.experimental_rnn_cells.html" class="btn btn-neutral" title="experimental_rnn_cells" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

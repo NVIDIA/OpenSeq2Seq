@@ -1,0 +1,356 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.data.speech_utils_test &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extending.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">open_seq2seq</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>open_seq2seq.data.speech_utils_test</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for open_seq2seq.data.speech_utils_test</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">scipy.io.wavfile</span> <span class="k">as</span> <span class="nn">wave</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">numpy.testing</span> <span class="k">as</span> <span class="nn">npt</span>
+
+<span class="kn">from</span> <span class="nn">.speech_utils</span> <span class="k">import</span> <span class="n">get_speech_features</span><span class="p">,</span> <span class="n">get_speech_features_from_file</span><span class="p">,</span> \
+                          <span class="n">augment_audio_signal</span>
+
+
+<div class="viewcode-block" id="SpeechUtilsTests"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.speech_utils_test.SpeechUtilsTests">[docs]</a><span class="k">class</span> <span class="nc">SpeechUtilsTests</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechUtilsTests.test_augment_audio_signal"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.speech_utils_test.SpeechUtilsTests.test_augment_audio_signal">[docs]</a>  <span class="k">def</span> <span class="nf">test_augment_audio_signal</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav&#39;</span>
+    <span class="n">fs</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+    <span class="n">augmentation</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># just checking length requirements here for now</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+      <span class="n">signal_augm</span> <span class="o">=</span> <span class="n">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">signal_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.2</span><span class="p">,</span> <span class="n">signal_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">augmentation</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="c1"># just checking length requirements here for now</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">100</span><span class="p">):</span>
+      <span class="n">signal_augm</span> <span class="o">=</span> <span class="n">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">signal_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertGreaterEqual</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <span class="mf">1.5</span><span class="p">,</span> <span class="n">signal_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="SpeechUtilsTests.test_get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.speech_utils_test.SpeechUtilsTests.test_get_speech_features_from_file">[docs]</a>  <span class="k">def</span> <span class="nf">test_get_speech_features_from_file</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">dirname</span> <span class="o">=</span> <span class="s1">&#39;open_seq2seq/test_utils/toy_speech_data/wav_files/&#39;</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;46gc040q.wav&#39;</span><span class="p">,</span> <span class="s1">&#39;206o0103.wav&#39;</span><span class="p">,</span> <span class="s1">&#39;48rc041b.wav&#39;</span><span class="p">]:</span>
+      <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dirname</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">num_features</span> <span class="ow">in</span> <span class="p">[</span><span class="mi">161</span><span class="p">,</span> <span class="mi">120</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">window_stride</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">10e-3</span><span class="p">,</span> <span class="mf">5e-3</span><span class="p">,</span> <span class="mf">40e-3</span><span class="p">]:</span>
+          <span class="k">for</span> <span class="n">window_size</span> <span class="ow">in</span> <span class="p">[</span><span class="mf">20e-3</span><span class="p">,</span> <span class="mf">30e-3</span><span class="p">]:</span>
+            <span class="k">for</span> <span class="n">features_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">]:</span>
+              <span class="n">fs</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
+              <span class="n">n_window_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">window_size</span><span class="p">)</span>
+              <span class="n">n_window_stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">window_stride</span><span class="p">)</span>
+              <span class="n">length</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
+                <span class="p">(</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">n_window_size</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_window_stride</span><span class="p">)</span>
+              <span class="p">)</span>
+              <span class="k">if</span> <span class="n">length</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">length</span> <span class="o">+=</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">length</span> <span class="o">%</span> <span class="mi">8</span>
+              <span class="n">right_shape</span> <span class="o">=</span> <span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">num_features</span><span class="p">)</span>
+              <span class="n">input_features</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+                <span class="n">filename</span><span class="p">,</span>
+                <span class="n">num_features</span><span class="p">,</span>
+                <span class="n">features_type</span><span class="o">=</span><span class="n">features_type</span><span class="p">,</span>
+                <span class="n">window_size</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                <span class="n">window_stride</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+              <span class="p">)</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">input_features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+
+              <span class="bp">self</span><span class="o">.</span><span class="n">assertTupleEqual</span><span class="p">(</span><span class="n">right_shape</span><span class="p">,</span> <span class="n">input_features</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">input_features</span><span class="p">),</span> <span class="mf">0.0</span><span class="p">)</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">assertAlmostEqual</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">input_features</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+            <span class="c1"># only for spectrogram</span>
+            <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">assertRaises</span><span class="p">(</span><span class="ne">AssertionError</span><span class="p">):</span>
+              <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+                <span class="n">filename</span><span class="p">,</span>
+                <span class="n">num_features</span><span class="o">=</span><span class="n">n_window_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">2</span><span class="p">,</span>
+                <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
+                <span class="n">window_size</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                <span class="n">window_stride</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+              <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpeechUtilsTests.test_get_speech_features_from_file_augmentation"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.speech_utils_test.SpeechUtilsTests.test_get_speech_features_from_file_augmentation">[docs]</a>  <span class="k">def</span> <span class="nf">test_get_speech_features_from_file_augmentation</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">augmentation</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="s1">&#39;open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav&#39;</span>
+    <span class="n">num_features</span> <span class="o">=</span> <span class="mi">161</span>
+    <span class="n">input_features_clean</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+      <span class="n">filename</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">input_features_augm</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+      <span class="n">filename</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">augmentation</span><span class="o">=</span><span class="n">augmentation</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># just checking that result is different with and without augmentation</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">not_equal</span><span class="p">(</span><span class="n">input_features_clean</span><span class="p">,</span>
+                                        <span class="n">input_features_augm</span><span class="p">)))</span>
+
+    <span class="n">augmentation</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+      <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="n">input_features_augm</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+      <span class="n">filename</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">augmentation</span><span class="o">=</span><span class="n">augmentation</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span>
+      <span class="n">input_features_clean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+      <span class="n">input_features_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">input_features_clean</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+      <span class="n">input_features_augm</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="SpeechUtilsTests.test_get_speech_features_with_sine"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.speech_utils_test.SpeechUtilsTests.test_get_speech_features_with_sine">[docs]</a>  <span class="k">def</span> <span class="nf">test_get_speech_features_with_sine</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">fs</span> <span class="o">=</span> <span class="mf">16000.0</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">fs</span><span class="p">)</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="mi">4000</span> <span class="o">*</span> <span class="n">t</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="mi">161</span><span class="p">)</span>
+    <span class="n">npt</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span>
+      <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">features</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+      <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">features</span><span class="p">),</span>
+      <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">80</span><span class="p">):</span>
+      <span class="n">npt</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">features</span><span class="p">[:,</span> <span class="mi">79</span> <span class="o">-</span> <span class="n">i</span><span class="p">],</span> <span class="n">features</span><span class="p">[:,</span> <span class="mi">81</span> <span class="o">+</span> <span class="n">i</span><span class="p">],</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertGreater</span><span class="p">(</span><span class="n">features</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">80</span> <span class="o">-</span> <span class="n">i</span><span class="p">],</span> <span class="n">features</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">80</span> <span class="o">-</span> <span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">])</span></div></div>
+
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">tf</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

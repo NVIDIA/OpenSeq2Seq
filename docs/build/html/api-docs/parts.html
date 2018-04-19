@@ -1,0 +1,1084 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>parts &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="experimental_rnn_cells" href="parts.experimental_rnn_cells.html" />
+    <link rel="prev" title="optimizers" href="optimizers.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">parts</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parts.experimental_rnn_cells.html">experimental_rnn_cells</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-parts.attention">attention</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-parts.attention_wrapper">attention_wrapper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-parts.common">common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-parts.t2t_timing_signal">t2t_timing_signal</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-parts.utils">utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+      <li>parts</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/parts.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-parts">
+<span id="parts"></span><h1>parts<a class="headerlink" href="#module-parts" title="Permalink to this headline">¶</a></h1>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="parts.experimental_rnn_cells.html">experimental_rnn_cells</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.flstm">flstm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.glstm">glstm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.gnmt">gnmt</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.slstm">slstm</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="module-parts.attention">
+<span id="attention"></span><h2>attention<a class="headerlink" href="#module-parts.attention" title="Permalink to this headline">¶</a></h2>
+<p>This module implements attention mechanisms described in
+&#8220;Attention is All You Need&#8221; <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a></p>
+<dl class="function">
+<dt id="parts.attention.get_future_masking_bias">
+<code class="descclassname">parts.attention.</code><code class="descname">get_future_masking_bias</code><span class="sig-paren">(</span><em>Q</em>, <em>K</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention.html#get_future_masking_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention.get_future_masking_bias" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs future masking for decoder, by setting everything &gt;
+current position to -INF (-1e9).
+It asserts that Q and K are of the same shape
+:param Q: Queries tensor [batch, num_heads, Q_length, dk]
+:param K: Keys tensor [batch, num_heads, K_length, dk]
+:return: tensor with same dtype as Q and
+of shape [batch, num_heads, Q_length, K_length],
+where for all batch_ind and head_ind:</p>
+<blockquote>
+<div>[batch_ind, head_ind, :, :] is an upper diagonal (without diagonal) and
+all non zero entries are -INF</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.attention.multi_head_attention_fn">
+<code class="descclassname">parts.attention.</code><code class="descname">multi_head_attention_fn</code><span class="sig-paren">(</span><em>Q</em>, <em>K</em>, <em>V</em>, <em>d_model</em>, <em>dk=None</em>, <em>dv=None</em>, <em>h=2</em>, <em>mask_future=False</em>, <em>additional_bias=None</em>, <em>initializer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention.html#multi_head_attention_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention.multi_head_attention_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes multi-head attention (sess Section 3.2. in the paper above)
+:param Q: Queries tensor [batch, Q_length, orig_dq]
+:param K: Keys tensor [batch, K_length, orig_dk]
+:param V: Values tensor [batch, V_length, orig_dv]
+:param d_model: model dimensionality
+:param dk: (default: d_model/h) Q and K will be projected to dk
+:param dv: (default: d_model/h) V will be projected to dv
+:param h: (default: 2) number of heads in attention
+:param mask_future: (default: False) whether to mask future steps
+:param additional_bias: (default: None) additional bias, such as pad masking bias
+should be a tensor of shape [batch, heads, Q_length, K_length]
+:param initializer: (default: None) initializer for projection
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.attention.scaled_dot_attention_fn">
+<code class="descclassname">parts.attention.</code><code class="descname">scaled_dot_attention_fn</code><span class="sig-paren">(</span><em>Q</em>, <em>K</em>, <em>V</em>, <em>sqrt_normalize=True</em>, <em>bias=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention.html#scaled_dot_attention_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention.scaled_dot_attention_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes scaled dot attention (formula 1 from Section 3.2.1 in the
+paper above). Per batch per head
+Contains no trainable parameters
+:param Q: Queries tensor [batch, num_heads, Q_length, dk]
+:param K: Keys tensor [batch, num_heads, K_length, dk]
+:param V: Values tensor [batch, num_heads, V_length, dv]
+:param sqrt_normalize: (default: True) whether to normalize by sqrt(dk)
+:param bias: (default: None) masking bias
+:return: scaled dot attention tensor of shape [batch, num_heads, length_q, dv]</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.attention_wrapper">
+<span id="attention-wrapper"></span><h2>attention_wrapper<a class="headerlink" href="#module-parts.attention_wrapper" title="Permalink to this headline">¶</a></h2>
+<p>A powerful dynamic attention wrapper object.</p>
+<dl class="class">
+<dt id="parts.attention_wrapper.AttentionMechanism">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionMechanism</code><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionMechanism"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionMechanism" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="parts.attention_wrapper.AttentionMechanism.alignments_size">
+<code class="descname">alignments_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionMechanism.alignments_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="parts.attention_wrapper.AttentionMechanism.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionMechanism.state_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.AttentionWrapper">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionWrapper</code><span class="sig-paren">(</span><em>cell</em>, <em>attention_mechanism</em>, <em>attention_layer_size=None</em>, <em>alignment_history=False</em>, <em>cell_input_fn=None</em>, <em>output_attention=True</em>, <em>initial_cell_state=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<p>Wraps another <cite>RNNCell</cite> with attention.</p>
+<dl class="method">
+<dt id="parts.attention_wrapper.AttentionWrapper.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>cell</em>, <em>attention_mechanism</em>, <em>attention_layer_size=None</em>, <em>alignment_history=False</em>, <em>cell_input_fn=None</em>, <em>output_attention=True</em>, <em>initial_cell_state=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the <cite>AttentionWrapper</cite>.</p>
+<p><strong>NOTE</strong> If you are using the <cite>BeamSearchDecoder</cite> with a cell wrapped in
+<cite>AttentionWrapper</cite>, then you must ensure that:</p>
+<ul class="simple">
+<li>The encoder output has been tiled to <cite>beam_width</cite> via
+&#64;{tf.contrib.seq2seq.tile_batch} (NOT <cite>tf.tile</cite>).</li>
+<li>The <cite>batch_size</cite> argument passed to the <cite>zero_state</cite> method of this
+wrapper is equal to <cite>true_batch_size * beam_width</cite>.</li>
+<li>The initial state created with <cite>zero_state</cite> above contains a
+<cite>cell_state</cite> value containing properly tiled final state from the
+encoder.</li>
+</ul>
+<p>An example:</p>
+<p><a href="#id1"><span class="problematic" id="id2">``</span></a>`
+tiled_encoder_outputs = tf.contrib.seq2seq.tile_batch(</p>
+<blockquote>
+<div>encoder_outputs, multiplier=beam_width)</div></blockquote>
+<dl class="docutils">
+<dt>tiled_encoder_final_state = tf.conrib.seq2seq.tile_batch(</dt>
+<dd>encoder_final_state, multiplier=beam_width)</dd>
+<dt>tiled_sequence_length = tf.contrib.seq2seq.tile_batch(</dt>
+<dd>sequence_length, multiplier=beam_width)</dd>
+<dt>attention_mechanism = MyFavoriteAttentionMechanism(</dt>
+<dd>num_units=attention_depth,
+memory=tiled_inputs,
+memory_sequence_length=tiled_sequence_length)</dd>
+</dl>
+<p>attention_cell = AttentionWrapper(cell, attention_mechanism, ...)
+decoder_initial_state = attention_cell.zero_state(</p>
+<blockquote>
+<div>dtype, batch_size=true_batch_size * beam_width)</div></blockquote>
+<dl class="docutils">
+<dt>decoder_initial_state = decoder_initial_state.clone(</dt>
+<dd>cell_state=tiled_encoder_final_state)</dd>
+</dl>
+<p><a href="#id3"><span class="problematic" id="id4">``</span></a><a href="#id5"><span class="problematic" id="id6">`</span></a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cell</strong> &#8211; An instance of <cite>RNNCell</cite>.</li>
+<li><strong>attention_mechanism</strong> &#8211; A list of <cite>AttentionMechanism</cite> instances or a single
+instance.</li>
+<li><strong>attention_layer_size</strong> &#8211; A list of Python integers or a single Python
+integer, the depth of the attention (output) layer(s). If None
+(default), use the context as attention at each time step. Otherwise,
+feed the context and cell output into the attention layer to generate
+attention at each time step. If attention_mechanism is a list,
+attention_layer_size must be a list of the same length.</li>
+<li><strong>alignment_history</strong> &#8211; Python boolean, whether to store alignment history
+from all time steps in the final output state (currently stored as a
+time major <cite>TensorArray</cite> on which you must call <cite>stack()</cite>).</li>
+<li><strong>cell_input_fn</strong> &#8211; (optional) A <cite>callable</cite>.  The default is:
+<cite>lambda inputs, attention: array_ops.concat([inputs, attention], -1)</cite>.</li>
+<li><strong>output_attention</strong> &#8211; Python bool.  If <cite>True</cite> (default), the output at each
+time step is the attention value.  This is the behavior of Luong-style
+attention mechanisms.  If <cite>False</cite>, the output at each time step is
+the output of <cite>cell</cite>.  This is the beahvior of Bhadanau-style
+attention mechanisms.  In both cases, the <cite>attention</cite> tensor is
+propagated to the next time step via the state and is used there.
+This flag only controls whether the attention mechanism is propagated
+up to the next cell in an RNN stack or to the top RNN output.</li>
+<li><strong>initial_cell_state</strong> &#8211; The initial state value to use for the cell when
+the user calls <cite>zero_state()</cite>.  Note that if this value is provided
+now, and the user uses a <cite>batch_size</cite> argument of <cite>zero_state</cite> which
+does not match the batch size of <cite>initial_cell_state</cite>, proper
+behavior is not guaranteed.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; <cite>attention_layer_size</cite> is not None and (<cite>attention_mechanism</cite>
+is a list but <cite>attention_layer_size</cite> is not; or vice versa).</li>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if <cite>attention_layer_size</cite> is not None, <cite>attention_mechanism</cite>
+is a list, and its length does not match that of <cite>attention_layer_size</cite>.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.attention_wrapper.AttentionWrapper._item_or_tuple">
+<code class="descname">_item_or_tuple</code><span class="sig-paren">(</span><em>seq</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper._item_or_tuple"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper._item_or_tuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>seq</cite> as tuple or the singular element.</p>
+<p>Which is returned is determined by how the AttentionMechanism(s) were passed
+to the constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seq</strong> &#8211; A non-empty sequence of items or generator.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Either the values in the sequence as a tuple if AttentionMechanism(s)
+were passed to the constructor as a sequence or the singular element.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.attention_wrapper.AttentionWrapper.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a step of attention-wrapped RNN.</p>
+<ul class="simple">
+<li>Step 1: Mix the <cite>inputs</cite> and previous step&#8217;s <cite>attention</cite> output via
+<cite>cell_input_fn</cite>.</li>
+<li>Step 2: Call the wrapped <cite>cell</cite> with this input and its previous state.</li>
+<li>Step 3: Score the cell&#8217;s output with <cite>attention_mechanism</cite>.</li>
+<li>Step 4: Calculate the alignments by passing the score through the
+<cite>normalizer</cite>.</li>
+<li>Step 5: Calculate the context vector as the inner product between the
+alignments and the attention_mechanism&#8217;s values (memory).</li>
+<li>Step 6: Calculate the attention output by concatenating the cell output
+and context through the attention layer (a linear layer with
+<cite>attention_layer_size</cite> outputs).</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> &#8211; (Possibly nested tuple of) Tensor, the input at this time step.</li>
+<li><strong>state</strong> &#8211; An instance of <cite>AttentionWrapperState</cite> containing
+tensors from the previous time step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><ul class="simple">
+<li><cite>attention_or_cell_output</cite> depending on <cite>output_attention</cite>.</li>
+<li><dl class="first docutils">
+<dt><cite>next_state</cite> is an instance of <cite>AttentionWrapperState</cite></dt>
+<dd>containing the state calculated at this time step.</dd>
+</dl>
+</li>
+</ul>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">A tuple <cite>(attention_or_cell_output, next_state)</cite>, where</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If <cite>state</cite> is not an instance of <cite>AttentionWrapperState</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.attention_wrapper.AttentionWrapper.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="parts.attention_wrapper.AttentionWrapper.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.state_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The <cite>state_size</cite> property of <cite>AttentionWrapper</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">An <cite>AttentionWrapperState</cite> tuple containing shapes used by this object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.attention_wrapper.AttentionWrapper.zero_state">
+<code class="descname">zero_state</code><span class="sig-paren">(</span><em>batch_size</em>, <em>dtype</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper.zero_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.zero_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an initial (zero) state tuple for this <cite>AttentionWrapper</cite>.</p>
+<p><strong>NOTE</strong> Please see the initializer documentation for details of how
+to call <cite>zero_state</cite> if using an <cite>AttentionWrapper</cite> with a
+<cite>BeamSearchDecoder</cite>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>batch_size</strong> &#8211; <cite>0D</cite> integer tensor: the batch size.</li>
+<li><strong>dtype</strong> &#8211; The internal state data type.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An <cite>AttentionWrapperState</cite> tuple containing zeroed out tensors and,
+possibly, empty <cite>TensorArray</cite> objects.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; (or, possibly at runtime, InvalidArgument), if
+<cite>batch_size</cite> does not match the output size of the encoder passed
+to the wrapper object at initialization time.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.AttentionWrapperState">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionWrapperState</code><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapperState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapperState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#parts.attention_wrapper.AttentionWrapperState" title="parts.attention_wrapper.AttentionWrapperState"><code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper.AttentionWrapperState</span></code></a></p>
+<p><cite>namedtuple</cite> storing the state of a <cite>AttentionWrapper</cite>.</p>
+<p>Contains:</p>
+<blockquote>
+<div><ul class="simple">
+<li><cite>cell_state</cite>: The state of the wrapped <cite>RNNCell</cite> at the previous time
+step.</li>
+<li><cite>attention</cite>: The attention emitted at the previous time step.</li>
+<li><cite>time</cite>: int32 scalar containing the current time step.</li>
+<li><dl class="first docutils">
+<dt><cite>alignments</cite>: A single or tuple of <a href="#id7"><span class="problematic" id="id8">`</span></a>Tensor`(s) containing the alignments</dt>
+<dd>emitted at the previous time step for each attention mechanism.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><cite>alignment_history</cite>: (if enabled) a single or tuple of <a href="#id9"><span class="problematic" id="id10">`</span></a>TensorArray`(s)</dt>
+<dd>containing alignment matrices from all time steps for each attention
+mechanism. Call <cite>stack()</cite> on each to convert to a <cite>Tensor</cite>.</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt><cite>attention_state</cite>: A single or tuple of nested objects</dt>
+<dd>containing attention mechanism state for each attention mechanism.
+The objects may contain Tensors or TensorArrays.</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<dl class="method">
+<dt id="parts.attention_wrapper.AttentionWrapperState.clone">
+<code class="descname">clone</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapperState.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapperState.clone" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clone this object, overriding components provided by kwargs.</p>
+<p>The new state fields&#8217; shape must match original state fields&#8217; shape. This
+will be validated, and original fields&#8217; shape will be propagated to new
+fields.</p>
+<p>Example:</p>
+<p><code class="docutils literal"><span class="pre">`python</span>
+<span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">attention_wrapper.zero_state(dtype=...,</span> <span class="pre">batch_size=...)</span>
+<span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">initial_state.clone(cell_state=encoder_state)</span>
+<span class="pre">`</span></code></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> &#8211; Any properties of the state object to replace in the returned
+<cite>AttentionWrapperState</cite>.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A new <cite>AttentionWrapperState</cite> whose properties are the same as
+this one, except any overridden properties as provided in <cite>kwargs</cite>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.LuongAttention">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">LuongAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='LuongAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<p>Implements Luong-style (multiplicative) attention scoring.</p>
+<p>This attention has two forms.  The first is standard Luong attention,
+as described in:</p>
+<p>Minh-Thang Luong, Hieu Pham, Christopher D. Manning.
+&#8220;Effective Approaches to Attention-based Neural Machine Translation.&#8221;
+EMNLP 2015.  <a class="reference external" href="https://arxiv.org/abs/1508.04025">https://arxiv.org/abs/1508.04025</a></p>
+<p>The second is the scaled form inspired partly by the normalized form of
+Bahdanau attention.</p>
+<p>To enable the second form, construct the object with parameter
+<cite>scale=True</cite>.</p>
+<dl class="method">
+<dt id="parts.attention_wrapper.LuongAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='LuongAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the AttentionMechanism mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> &#8211; The depth of the attention mechanism.</li>
+<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
+<li><strong>memory_sequence_length</strong> &#8211; (optional) Sequence lengths for the batch entries
+in memory.  If provided, the memory tensor rows are masked with zeros
+for values past the respective sequence lengths.</li>
+<li><strong>scale</strong> &#8211; Python boolean.  Whether to scale the energy term.</li>
+<li><strong>probability_fn</strong> &#8211; (optional) A <cite>callable</cite>.  Converts the score to
+probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
+&#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
+Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
+<li><strong>score_mask_value</strong> &#8211; (optional) The mask value for score before passing into
+<cite>probability_fn</cite>. The default is -inf. Only used if
+<cite>memory_sequence_length</cite> is not None.</li>
+<li><strong>dtype</strong> &#8211; The data type for the memory layer of the attention mechanism.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.BahdanauAttention">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">BahdanauAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='BahdanauAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<p>Implements Bahdanau-style (additive) attention.</p>
+<p>This attention has two forms.  The first is Bahdanau attention,
+as described in:</p>
+<p>Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
+&#8220;Neural Machine Translation by Jointly Learning to Align and Translate.&#8221;
+ICLR 2015. <a class="reference external" href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a></p>
+<p>The second is the normalized form.  This form is inspired by the
+weight normalization article:</p>
+<p>Tim Salimans, Diederik P. Kingma.
+&#8220;Weight Normalization: A Simple Reparameterization to Accelerate</p>
+<blockquote>
+<div>Training of Deep Neural Networks.&#8221;</div></blockquote>
+<p><a class="reference external" href="https://arxiv.org/abs/1602.07868">https://arxiv.org/abs/1602.07868</a></p>
+<p>To enable the second form, construct the object with parameter
+<cite>normalize=True</cite>.</p>
+<dl class="method">
+<dt id="parts.attention_wrapper.BahdanauAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='BahdanauAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the Attention mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
+<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+in memory.  If provided, the memory tensor rows are masked with zeros
+for values past the respective sequence lengths.</li>
+<li><strong>normalize</strong> &#8211; Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>probability_fn</strong> &#8211; (optional) A <cite>callable</cite>.  Converts the score to
+probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
+&#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
+Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
+<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<cite>probability_fn</cite>. The default is -inf. Only used if
+<cite>memory_sequence_length</cite> is not None.</li>
+<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+mechanism.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.attention_wrapper.hardmax">
+<code class="descclassname">parts.attention_wrapper.</code><code class="descname">hardmax</code><span class="sig-paren">(</span><em>logits</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#hardmax"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.hardmax" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns batched one-hot vectors.</p>
+<p>The depth index containing the <cite>1</cite> is that of the maximum logit value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>logits</strong> &#8211; A batch tensor of logit values.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A batched one-hot tensor.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.attention_wrapper.safe_cumprod">
+<code class="descclassname">parts.attention_wrapper.</code><code class="descname">safe_cumprod</code><span class="sig-paren">(</span><em>x</em>, <em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#safe_cumprod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.safe_cumprod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes cumprod of x in logspace using cumsum to avoid underflow.</p>
+<p>The cumprod function and its gradient can result in numerical instabilities
+when its argument has very small and/or zero values.  As long as the argument
+is all positive, we can instead compute the cumulative product as
+exp(cumsum(log(x))).  This function can be called identically to tf.cumprod.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> &#8211; Tensor to take the cumulative product of.</li>
+<li><strong>*args</strong> &#8211; Passed on to cumsum; these are identical to those in cumprod.</li>
+<li><strong>**kwargs</strong> &#8211; Passed on to cumsum; these are identical to those in cumprod.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Cumulative product of x.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.attention_wrapper.monotonic_attention">
+<code class="descclassname">parts.attention_wrapper.</code><code class="descname">monotonic_attention</code><span class="sig-paren">(</span><em>p_choose_i</em>, <em>previous_attention</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#monotonic_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.monotonic_attention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute monotonic attention distribution from choosing probabilities.</p>
+<p>Monotonic attention implies that the input sequence is processed in an
+explicitly left-to-right manner when generating the output sequence.  In
+addition, once an input sequence element is attended to at a given output
+timestep, elements occurring before it cannot be attended to at subsequent
+output timesteps.  This function generates attention distributions according
+to these assumptions.  For more information, see <a href="#id11"><span class="problematic" id="id12">``</span></a>Online and Linear-Time
+Attention by Enforcing Monotonic Alignments&#8217;&#8216;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>p_choose_i</strong> &#8211; Probability of choosing input sequence/memory element i.  Should
+be of shape (batch_size, input_sequence_length), and should all be in the
+range [0, 1].</li>
+<li><strong>previous_attention</strong> &#8211; The attention distribution from the previous output
+timestep.  Should be of shape (batch_size, input_sequence_length).  For
+the first output timestep, preevious_attention[n] should be [1, 0, 0, ...,
+0] for all n in [0, ... batch_size - 1].</li>
+<li><strong>mode</strong> &#8211; <p>How to compute the attention distribution.  Must be one of
+&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.</p>
+<blockquote>
+<div><ul>
+<li>&#8216;recursive&#8217; uses tf.scan to recursively compute the distribution.
+This is slowest but is exact, general, and does not suffer from
+numerical instabilities.</li>
+<li>&#8216;parallel&#8217; uses parallelized cumulative-sum and cumulative-product
+operations to compute a closed-form solution to the recurrence
+relation defining the attention distribution.  This makes it more
+efficient than &#8216;recursive&#8217;, but it requires numerical checks which
+make the distribution non-exact.  This can be a problem in particular
+when input_sequence_length is long and/or p_choose_i has entries very
+close to 0 or 1.</li>
+<li>&#8216;hard&#8217; requires that the probabilities in p_choose_i are all either 0
+or 1, and subsequently uses a more efficient and exact solution.</li>
+</ul>
+</div></blockquote>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A tensor of shape (batch_size, input_sequence_length) representing the
+attention distributions for each sequence in the batch.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; mode is not one of &#8216;recursive&#8217;, &#8216;parallel&#8217;, &#8216;hard&#8217;.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.BahdanauMonotonicAttention">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">BahdanauMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='BahdanauMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauMonotonicAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<p>Monotonic attention mechanism with Bahadanau-style energy function.</p>
+<p>This type of attention encorces a monotonic constraint on the attention
+distributions; that is once the model attends to a given point in the memory
+it can&#8217;t attend to any prior points at subsequence output timesteps.  It
+achieves this by using the _monotonic_probability_fn instead of softmax to
+construct its attention distributions.  Since the attention scores are passed
+through a sigmoid, a learnable scalar bias parameter is applied after the
+score function and before the sigmoid.  Otherwise, it is equivalent to
+BahdanauAttention.  This approach is proposed in</p>
+<p>Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,
+&#8220;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&#8221;
+ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784">https://arxiv.org/abs/1704.00784</a></p>
+<dl class="method">
+<dt id="parts.attention_wrapper.BahdanauMonotonicAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='BahdanauMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauMonotonicAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauMonotonicAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the Attention mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
+<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+in memory.  If provided, the memory tensor rows are masked with zeros
+for values past the respective sequence lengths.</li>
+<li><strong>normalize</strong> &#8211; Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<cite>probability_fn</cite>. The default is -inf. Only used if
+<cite>memory_sequence_length</cite> is not None.</li>
+<li><strong>sigmoid_noise</strong> &#8211; Standard deviation of pre-sigmoid noise.  See the docstring
+for <cite>_monotonic_probability_fn</cite> for more information.</li>
+<li><strong>sigmoid_noise_seed</strong> &#8211; (optional) Random seed for pre-sigmoid noise.</li>
+<li><strong>score_bias_init</strong> &#8211; Initial value for score bias scalar.  It&#8217;s recommended to
+initialize this to a negative value when the length of the memory is
+large.</li>
+<li><strong>mode</strong> &#8211; How to compute the attention distribution.  Must be one of
+&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.  See the docstring for
+<cite>tf.contrib.seq2seq.monotonic_attention</cite> for more information.</li>
+<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+mechanism.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.attention_wrapper.LuongMonotonicAttention">
+<em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">LuongMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='LuongMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongMonotonicAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<p>Monotonic attention mechanism with Luong-style energy function.</p>
+<p>This type of attention encorces a monotonic constraint on the attention
+distributions; that is once the model attends to a given point in the memory
+it can&#8217;t attend to any prior points at subsequence output timesteps.  It
+achieves this by using the _monotonic_probability_fn instead of softmax to
+construct its attention distributions.  Otherwise, it is equivalent to
+LuongAttention.  This approach is proposed in</p>
+<p>Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,
+&#8220;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&#8221;
+ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784">https://arxiv.org/abs/1704.00784</a></p>
+<dl class="method">
+<dt id="parts.attention_wrapper.LuongMonotonicAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='LuongMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongMonotonicAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongMonotonicAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the Attention mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
+<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+in memory.  If provided, the memory tensor rows are masked with zeros
+for values past the respective sequence lengths.</li>
+<li><strong>scale</strong> &#8211; Python boolean.  Whether to scale the energy term.</li>
+<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<cite>probability_fn</cite>. The default is -inf. Only used if
+<cite>memory_sequence_length</cite> is not None.</li>
+<li><strong>sigmoid_noise</strong> &#8211; Standard deviation of pre-sigmoid noise.  See the docstring
+for <cite>_monotonic_probability_fn</cite> for more information.</li>
+<li><strong>sigmoid_noise_seed</strong> &#8211; (optional) Random seed for pre-sigmoid noise.</li>
+<li><strong>score_bias_init</strong> &#8211; Initial value for score bias scalar.  It&#8217;s recommended to
+initialize this to a negative value when the length of the memory is
+large.</li>
+<li><strong>mode</strong> &#8211; How to compute the attention distribution.  Must be one of
+&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.  See the docstring for
+<cite>tf.contrib.seq2seq.monotonic_attention</cite> for more information.</li>
+<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+mechanism.</li>
+<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.common">
+<span id="common"></span><h2>common<a class="headerlink" href="#module-parts.common" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="parts.common.dropout_normalize_add_NTC">
+<code class="descclassname">parts.common.</code><code class="descname">dropout_normalize_add_NTC</code><span class="sig-paren">(</span><em>x</em>, <em>residual_x=None</em>, <em>drop_prob=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#dropout_normalize_add_NTC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.dropout_normalize_add_NTC" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs dropout on output,
+:param x: output of the block. A tensor of shape [batch, Time, dim]
+:param residual_x: (default: None) input to the block.
+If None, will be ignored
+:param drop_prob: dropout drop probability
+:return: A tensor of shape [batch, Time, dim]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.common.embed_and_maybe_add_position_signal">
+<code class="descclassname">parts.common.</code><code class="descname">embed_and_maybe_add_position_signal</code><span class="sig-paren">(</span><em>inpt</em>, <em>emb_W</em>, <em>num_timescales</em>, <em>heads</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#embed_and_maybe_add_position_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.embed_and_maybe_add_position_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs embedding and adds sinusoid signals
+:param inpt: a tensor of shape [batch, T]
+:param emb_W: embedding matrix
+:param num_timescales: set this to d_model/2
+:param heads: number of heads
+:return: a tensor of shape [batch, T, dim] and a tensor of shape [bath, heads, T, dim]</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.common.ffn_and_layer_norm">
+<code class="descclassname">parts.common.</code><code class="descname">ffn_and_layer_norm</code><span class="sig-paren">(</span><em>inpt</em>, <em>inner_dim</em>, <em>resulting_dim</em>, <em>drop_prob=0.0</em>, <em>inner_activation=&lt;function relu&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#ffn_and_layer_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.ffn_and_layer_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Position-wise fully connected feed-forward network with layer norm
+and residual connection
+:param inpt: input tensor
+:param inner_dim: bottleneck dimension
+:param resulting_dim: output dimensionality
+:param drop_prob: dropout probability of drop
+:param inner_activation: inner activation function
+:return:</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.common.get_pad_masking_bias">
+<code class="descclassname">parts.common.</code><code class="descname">get_pad_masking_bias</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>PAD_ID</em>, <em>heads</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#get_pad_masking_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.get_pad_masking_bias" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>src</strong> &#8211; a tensor of shape [batch_size, x_len]</li>
+<li><strong>src</strong> &#8211; a tensor of shape [batch_size, y_len]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a tensor of shape [batch, heads, x_len, y_len]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.common.normalize">
+<code class="descclassname">parts.common.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes input (currently just layer_norm)
+:param input: tensor of shape [batch, Time, dim]
+:return: tensor of shape [batch, Time, dim]</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.t2t_timing_signal">
+<span id="t2t-timing-signal"></span><h2>t2t_timing_signal<a class="headerlink" href="#module-parts.t2t_timing_signal" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="parts.t2t_timing_signal.add_timing_signal">
+<code class="descclassname">parts.t2t_timing_signal.</code><code class="descname">add_timing_signal</code><span class="sig-paren">(</span><em>x</em>, <em>min_timescale=1</em>, <em>max_timescale=10000.0</em>, <em>num_timescales=2</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/t2t_timing_signal.html#add_timing_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.t2t_timing_signal.add_timing_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds a bunch of sinusoids of different frequencies to a Tensor.</p>
+<p>This allows attention to learn to use absolute and relative positions.
+The timing signal should be added to some precursor of both the source
+and the target of the attention.</p>
+<p>The use of relative position is possible because sin(x+y) and cos(x+y) can be
+experessed in terms of y, sin(x) and cos(x).</p>
+<p>In particular, we use a geometric sequence of timescales starting with
+min_timescale and ending with max_timescale.  For each timescale, we
+generate the two sinusoidal signals sin(timestep/timescale) and
+cos(timestep/timescale).  All of these sinusoids are concatenated in
+the depth dimension, padded with zeros to be the same depth as the input,
+and added into input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> &#8211; a Tensor with shape [?, length, depth]</li>
+<li><strong>min_timescale</strong> &#8211; a float</li>
+<li><strong>max_timescale</strong> &#8211; a float</li>
+<li><strong>num_timescales</strong> &#8211; an int &lt;= depth/2</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">a Tensor the same shape as x.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.t2t_timing_signal.get_timing_signal">
+<code class="descclassname">parts.t2t_timing_signal.</code><code class="descname">get_timing_signal</code><span class="sig-paren">(</span><em>length</em>, <em>min_timescale=1</em>, <em>max_timescale=10000.0</em>, <em>num_timescales=16</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/t2t_timing_signal.html#get_timing_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.t2t_timing_signal.get_timing_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create Tensor of sinusoids of different frequencies.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>length</strong> &#8211; Length of the Tensor to create, i.e. Number of steps.</li>
+<li><strong>min_timescale</strong> &#8211; a float</li>
+<li><strong>max_timescale</strong> &#8211; a float</li>
+<li><strong>num_timescales</strong> &#8211; an int</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tensor of shape (length, 2*num_timescales)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.t2t_timing_signal.shape_list">
+<code class="descclassname">parts.t2t_timing_signal.</code><code class="descname">shape_list</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/t2t_timing_signal.html#shape_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.t2t_timing_signal.shape_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return list of dims, statically where possible.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.utils">
+<span id="utils"></span><h2>utils<a class="headerlink" href="#module-parts.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="parts.utils.create_rnn_cell">
+<code class="descclassname">parts.utils.</code><code class="descname">create_rnn_cell</code><span class="sig-paren">(</span><em>cell_type</em>, <em>cell_params</em>, <em>num_layers=1</em>, <em>dp_input_keep_prob=1.0</em>, <em>dp_output_keep_prob=1.0</em>, <em>residual_connections=False</em>, <em>wrap_to_multi_rnn=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/utils.html#create_rnn_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.utils.create_rnn_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>TODO: MOVE THIS properly to utils. Write doc
+:param cell_type:
+:param cell_params:
+:param num_layers:
+:param dp_input_keep_prob:
+:param dp_output_keep_prob:
+:param residual_connections:
+:return:</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="parts.experimental_rnn_cells.html" class="btn btn-neutral float-right" title="experimental_rnn_cells" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="optimizers.html" class="btn btn-neutral" title="optimizers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>parts.experimental_rnn_cells.glstm &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>parts.experimental_rnn_cells.glstm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for parts.experimental_rnn_cells.glstm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for constructing RNN Cells.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.rnn.python.ops</span> <span class="k">import</span> <span class="n">core_rnn_cell</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">init_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">nn_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">rnn_cell_impl</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">variable_scope</span> <span class="k">as</span> <span class="n">vs</span>
+
+<span class="c1"># pylint: disable=protected-access</span>
+<span class="n">_Linear</span> <span class="o">=</span> <span class="n">core_rnn_cell</span><span class="o">.</span><span class="n">_Linear</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="c1"># pylint: enable=protected-access</span>
+
+
+<span class="c1"># TODO: must implement all abstract methods</span>
+<div class="viewcode-block" id="GLSTMCell"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.glstm.GLSTMCell">[docs]</a><span class="k">class</span> <span class="nc">GLSTMCell</span><span class="p">(</span><span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">RNNCell</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Group LSTM cell (G-LSTM).</span>
+<span class="sd">  The implementation is based on:</span>
+<span class="sd">    https://arxiv.org/abs/1703.10722</span>
+<span class="sd">  O. Kuchaiev and B. Ginsburg</span>
+<span class="sd">  &quot;Factorization Tricks for LSTM Networks&quot;, ICLR 2017 workshop.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="GLSTMCell.__init__"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.glstm.GLSTMCell.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_proj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">number_of_groups</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">,</span>
+               <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the parameters of G-LSTM cell.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: int, The number of units in the G-LSTM cell</span>
+<span class="sd">      initializer: (optional) The initializer to use for the weight and</span>
+<span class="sd">        projection matrices.</span>
+<span class="sd">      num_proj: (optional) int, The output dimensionality for the projection</span>
+<span class="sd">        matrices.  If None, no projection is performed.</span>
+<span class="sd">      number_of_groups: (optional) int, number of groups to use.</span>
+<span class="sd">        If `number_of_groups` is 1, then it should be equivalent to LSTM cell</span>
+<span class="sd">      forget_bias: Biases of the forget gate are initialized by default to 1</span>
+<span class="sd">        in order to reduce the scale of forgetting at the beginning of</span>
+<span class="sd">        the training.</span>
+<span class="sd">      activation: Activation function of the inner states.</span>
+<span class="sd">      reuse: (optional) Python boolean describing whether to reuse variables</span>
+<span class="sd">        in an existing scope.  If not `True`, and the existing scope already</span>
+<span class="sd">        has the given variables, an error is raised.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: If `num_units` or `num_proj` is not divisible by</span>
+<span class="sd">        `number_of_groups`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">GLSTMCell</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_initializer</span> <span class="o">=</span> <span class="n">initializer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="o">=</span> <span class="n">num_proj</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_forget_bias</span> <span class="o">=</span> <span class="n">forget_bias</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_activation</span> <span class="o">=</span> <span class="n">activation</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span> <span class="o">=</span> <span class="n">number_of_groups</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;num_units must be divisible by number_of_groups&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;num_proj must be divisible by number_of_groups&quot;</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_group_shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">),</span>
+                           <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">)]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_group_shape</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">),</span>
+                           <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">)]</span>
+
+    <span class="k">if</span> <span class="n">num_proj</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">num_units</span><span class="p">,</span> <span class="n">num_proj</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">num_proj</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">num_units</span><span class="p">,</span> <span class="n">num_units</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">state_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
+
+<div class="viewcode-block" id="GLSTMCell._get_input_for_group"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.glstm.GLSTMCell._get_input_for_group">[docs]</a>  <span class="k">def</span> <span class="nf">_get_input_for_group</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">group_id</span><span class="p">,</span> <span class="n">group_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Slices inputs into groups to prepare for processing by cell&#39;s groups</span>
+<span class="sd">    Args:</span>
+<span class="sd">      inputs: cell input or it&#39;s previous state,</span>
+<span class="sd">              a Tensor, 2D, [batch x num_units]</span>
+<span class="sd">      group_id: group id, a Scalar, for which to prepare input</span>
+<span class="sd">      group_size: size of the group</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      subset of inputs corresponding to group &quot;group_id&quot;,</span>
+<span class="sd">      a Tensor, 2D, [batch x num_units/number_of_groups]</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">input_</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                           <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">group_id</span> <span class="o">*</span> <span class="n">group_size</span><span class="p">],</span>
+                           <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">,</span> <span class="n">group_size</span><span class="p">],</span>
+                           <span class="n">name</span><span class="o">=</span><span class="p">(</span><span class="s2">&quot;GLSTM_group</span><span class="si">%d</span><span class="s2">_input_generation&quot;</span> <span class="o">%</span> <span class="n">group_id</span><span class="p">))</span></div>
+
+  <span class="c1"># TODO: does not match signature of the base method</span>
+<div class="viewcode-block" id="GLSTMCell.call"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.glstm.GLSTMCell.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Run one step of G-LSTM.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      inputs: input Tensor, 2D, [batch x num_units].</span>
+<span class="sd">      state: this must be a tuple of state Tensors, both `2-D`,</span>
+<span class="sd">      with column sizes `c_state` and `m_state`.</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      A tuple containing:</span>
+<span class="sd">      - A `2-D, [batch x output_dim]`, Tensor representing the output of the</span>
+<span class="sd">        G-LSTM after reading `inputs` when previous state was `state`.</span>
+<span class="sd">        Here output_dim is:</span>
+<span class="sd">           num_proj if num_proj was set,</span>
+<span class="sd">           num_units otherwise.</span>
+<span class="sd">      - LSTMStateTuple representing the new state of G-LSTM cell</span>
+<span class="sd">        after reading `inputs` when the previous state was `state`.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: If input size cannot be inferred from inputs via</span>
+<span class="sd">        static shape inference.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">c_prev</span><span class="p">,</span> <span class="n">m_prev</span><span class="p">)</span> <span class="o">=</span> <span class="n">state</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">input_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">dtype</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable_scope</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_initializer</span><span class="p">):</span>
+      <span class="n">i_parts</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">j_parts</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">f_parts</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">o_parts</span> <span class="o">=</span> <span class="p">[]</span>
+
+      <span class="k">for</span> <span class="n">group_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;group</span><span class="si">%d</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">group_id</span><span class="p">):</span>
+          <span class="n">x_g_id</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_input_for_group</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">group_id</span><span class="p">,</span>
+                                       <span class="nb">int</span><span class="p">(</span><span class="n">input_size</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">)),</span>
+                                       <span class="c1"># self._group_shape[0]), # this is only correct if inputs dim = num_units!!!</span>
+             <span class="bp">self</span><span class="o">.</span><span class="n">_get_input_for_group</span><span class="p">(</span><span class="n">m_prev</span><span class="p">,</span> <span class="n">group_id</span><span class="p">,</span>
+                                       <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_number_of_groups</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+                                       <span class="c1"># self._group_shape[0])], axis=1)</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span><span class="p">[</span><span class="n">group_id</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span><span class="p">[</span><span class="n">group_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">_Linear</span><span class="p">(</span>
+              <span class="n">x_g_id</span><span class="p">,</span> <span class="mi">4</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+              <span class="kc">False</span><span class="p">,</span>
+            <span class="p">)</span>
+          <span class="n">R_k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span><span class="p">[</span><span class="n">group_id</span><span class="p">](</span><span class="n">x_g_id</span><span class="p">)</span>  <span class="c1"># pylint: disable=invalid-name</span>
+          <span class="n">i_k</span><span class="p">,</span> <span class="n">j_k</span><span class="p">,</span> <span class="n">f_k</span><span class="p">,</span> <span class="n">o_k</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">R_k</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">i_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">i_k</span><span class="p">)</span>
+        <span class="n">j_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">j_k</span><span class="p">)</span>
+        <span class="n">f_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f_k</span><span class="p">)</span>
+        <span class="n">o_parts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">o_k</span><span class="p">)</span>
+
+      <span class="n">bi</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bias_i&quot;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+      <span class="p">)</span>
+      <span class="n">bj</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bias_j&quot;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+      <span class="p">)</span>
+      <span class="n">bf</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bias_f&quot;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+      <span class="p">)</span>
+      <span class="n">bo</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bias_o&quot;</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+      <span class="p">)</span>
+
+      <span class="n">i</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">i_parts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">bi</span><span class="p">)</span>
+      <span class="n">j</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">j_parts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">bj</span><span class="p">)</span>
+      <span class="n">f</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">f_parts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">bf</span><span class="p">)</span>
+      <span class="n">o</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">o_parts</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">bo</span><span class="p">)</span>
+
+    <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">f</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forget_bias</span><span class="p">)</span> <span class="o">*</span> <span class="n">c_prev</span> <span class="o">+</span>
+         <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activation</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;projection&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="o">=</span> <span class="n">_Linear</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+    <span class="n">new_state</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">new_state</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>
