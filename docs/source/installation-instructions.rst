@@ -14,16 +14,16 @@ the instructions below to have everything set up::
 
    git clone https://github.com/NVIDIA/OpenSeq2Seq
    cd OpenSeq2Seq
+   pip install -r requirements.txt
 
 Now, if you are not going to use speech-to-text models, you can just install
 TensorFlow using pip::
 
    pip install tensorflow-gpu
-   pip install -r requirements.txt
 
 and skip the next section that describes speech-specific installation process.
-If you need speech models, then just install all other requirements
-(``pip install -r requirements.txt``) and proceed to the next section.
+If you need speech models, then you have to build TensorFlow from sources as described 
+in the next section.
 
 .. _installation_speech:
 OpenSeq2Seq for speech
@@ -53,7 +53,7 @@ How to add CTC decoder with language model to TensorFlow
        mkdir -p build
        cd build
        cmake ..
-       make -j 4
+       make -j 
 
    If you prefer to build kenlm in different location, you will need to set
    the corresponding symlink::
@@ -121,3 +121,4 @@ run unittests (you need to have at least two GPUs in order to do that)::
 
 It might take up to 10 minutes. You should see a lot of output, but no errors
 in the end.
+

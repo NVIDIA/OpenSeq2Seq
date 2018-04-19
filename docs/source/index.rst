@@ -17,24 +17,23 @@
 OpenSeq2Seq
 ===========
 
-Welcome to OpenSeq2Seq toolkit! The goal of this project is to greatly simplify
-workflow with sequence-to-sequence models in TensorFlow.
+Welcome to OpenSeq2Seq toolkit! 
 
-OpenSeq2Seq v0.2 has the following features:
+The goal of this project is to greatly simplify working with sequence-to-sequence models in TensorFlow.
+OpenSeq2Seq has the following features:
 
-* Enables multi-GPU and multi-node training with just 1 line change in the config
+* Supports multi-GPU and multi-node training with just 1 line change in the config
 
-* Has a built-in support for mixed-precision (which makes the models
-  run faster and use less memory)
+* A built-in support for GPU mixed-precision training makes the models
+  run faster and use less memory
 
-* Allows researchers to easily experiment with different encoder-decoder
+* Modular design and flexible configuration makes it easy to build new models and 
+  experiment with different encoder-decoder
   combinations, e.g. you can combine CNN-based encoder with RNN-based decoder
-  or experiment with Transformers architecture with just a few lines change in
-  the config
 
-* Supports different input-output modalities, i.e.
-  speech-to-text or text-to-text and different execution modes, i.e. training,
-  evaluation and inference
+* Supports different input-output modalities, i.e. speech-to-text, text-to-text
+
+* Supports training, evaluation and inference execution modes
 
 * When training the model the toolkit will automatically:
 
@@ -45,8 +44,6 @@ OpenSeq2Seq v0.2 has the following features:
    * saves all outputs, configs and git statistics to make it possible to
      completely reproduce all experiments
 
-* Has modular design and flexible configuration which makes it easy to extend
-  OpenSeq2Seq with your custom models
 
 To start using this toolkit, look at the
 :ref:`installation instructions <installation-instructions>` and then

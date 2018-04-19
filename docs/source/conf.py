@@ -34,7 +34,9 @@ sys.path.insert(0, os.path.abspath('../../open_seq2seq'))
 extensions = [
   'sphinx.ext.autodoc',
   'sphinx.ext.viewcode',
-  'sphinx.ext.napoleon'
+  'sphinx.ext.napoleon',
+  'sphinx.ext.mathjax',
+  'sphinxcontrib.bibtex',
 ]
 
 # Napoleon settings
