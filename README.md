@@ -1,6 +1,6 @@
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 <div align="center">
-  <img src="./docs/logo.png" alt="OpenSeq2Seq" style="width: 200px">
+  <img src="./docs/logo.png" alt="OpenSeq2Seq" width="200px">
   <br><br>
 </div>
 
