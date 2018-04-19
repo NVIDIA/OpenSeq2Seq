@@ -15,11 +15,11 @@ base_params = {
 
   "num_epochs": 100,
 
-  "summary_frequency": 100,
-  "print_loss_frequency": 10,
-  "print_samples_frequency": 5000,
-  "eval_frequency": 5000,
-  "checkpoint_frequency": 1000,
+  "save_summaries_steps": 100,
+  "print_loss_steps": 10,
+  "print_samples_steps": 5000,
+  "eval_steps": 5000,
+  "save_checkpoint_steps": 1000,
   "logdir": "experiments/librispeech",
 
   "base_model": Speech2Text,

@@ -32,10 +32,10 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
     required_dict={
       'use_horovod': bool,
       'num_gpus': int,
-      'summary_frequency': None,  # could be int or None
-      'print_loss_frequency': None,  # could be int or None
-      'print_samples_frequency': None,  # could be int or None
-      'checkpoint_frequency': None,  # could be int or None
+      'save_summaries_steps': None,  # could be int or None
+      'print_loss_steps': None,  # could be int or None
+      'print_samples_steps': None,  # could be int or None
+      'save_checkpoint_steps': None,  # could be int or None
       'base_model': None,  # could be any user defined class
       'model_params': dict,
       'encoder': None,  # could be any user defined class
@@ -53,7 +53,7 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
       'random_seed': int,
       'num_epochs': int,
       'max_steps': int,
-      'eval_frequency': int,
+      'eval_steps': int,
       'bench_start': int,
     },
   )

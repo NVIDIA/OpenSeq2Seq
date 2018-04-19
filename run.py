@@ -147,10 +147,10 @@ def main():
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")
-    train_config['print_samples_frequency'] = None
-    train_config['print_loss_frequency'] = 1
-    train_config['summary_frequency'] = None
-    train_config['checkpoint_frequency'] = None
+    train_config['print_samples_steps'] = None
+    train_config['print_loss_steps'] = 1
+    train_config['summary_steps'] = None
+    train_config['save_checkpoint_steps'] = None
     train_config['logdir'] = str("")
     if 'num_epochs' in train_config:
       del train_config['num_epochs']
@@ -166,11 +166,11 @@ def main():
     checkpoint = None
 
   # checking that frequencies of samples and loss are aligned
-  s_fr = base_config['print_samples_frequency']
-  l_fr = base_config['print_loss_frequency']
+  s_fr = base_config['print_samples_steps']
+  l_fr = base_config['print_loss_steps']
   if s_fr is not None and l_fr is not None and s_fr % l_fr != 0:
-    raise ValueError("print_samples_frequency has to be a multiple of "
-                     "print_loss_frequency.")
+    raise ValueError("print_samples_steps has to be a multiple of "
+                     "print_loss_steps.")
 
   with tf.Graph().as_default():
     # setting random seed
