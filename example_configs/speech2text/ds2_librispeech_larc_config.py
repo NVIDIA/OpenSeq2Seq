@@ -61,7 +61,6 @@ base_params = {
         "kernel_size": [11, 21], "stride": [1, 2],
         "num_channels": 96, "padding": "SAME"
       },
-
     ],
     "num_rnn_layers": 2,
     "rnn_cell_dim": 1024,

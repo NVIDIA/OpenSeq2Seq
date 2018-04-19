@@ -8,9 +8,7 @@
    models-and-recipes
    distr-training
    mixed-precision
-   using-existing-models
-   internal-structure
-   extending
+   in-depth-tutorials
    api-docs/modules
 
 
