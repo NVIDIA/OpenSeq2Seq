@@ -37,5 +37,5 @@ OpenSeq2Seq is built using TensorFlow. To start using this toolkit, look at the
 :ref:`installation instructions <installation-instructions>` and then
 see the :ref:`getting started <getting-started>` page.
 If you are already familiar with the basics and have
-everything set up, you can find some useful information in the
-:ref:`adding new models <extending>` section or in the :ref:`API documentation <api-docs>`.
+everything set up, you can find some useful information in the :ref:`mixed precision training <mixed_precision>`,
+:ref:`distributed training <distributed_training>`, :ref:`adding new models <extending>` or :ref:`API documentation <api-docs>` sections.

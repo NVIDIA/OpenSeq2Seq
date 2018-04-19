@@ -1,3 +1,5 @@
+.. _in_depth:
+
 In-depth tutorials
 ==================
 
