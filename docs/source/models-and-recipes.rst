@@ -1,3 +1,5 @@
+.. _models_and_recipes:
+
 Models and recipes
 ==================
 

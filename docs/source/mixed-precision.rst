@@ -1,3 +1,5 @@
+.. _mixed_precision:
+
 Mixed precision training
 ========================
 

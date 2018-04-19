@@ -15,37 +15,27 @@
 OpenSeq2Seq
 ===========
 
-Welcome to OpenSeq2Seq toolkit! 
+*this is a research project, not an official product by NVIDIA*
 
-The goal of this project is to greatly simplify working with sequence-to-sequence models in TensorFlow.
-OpenSeq2Seq has the following features:
+OpenSeq2Seq is a toolkit for efficient experimentation with various sequence-to-sequence models.
 
-* Supports multi-GPU and multi-node training with just 1 line change in the config
 
-* A built-in support for GPU mixed-precision training makes the models
-  run faster and use less memory
+**Main features**:
+
+* Distributed training: multi-GPU and multi-node support.
+
+* A built-in support for efficient mixed-precision training on GPUs.
 
 * Modular design and flexible configuration makes it easy to build new models and 
   experiment with different encoder-decoder
-  combinations, e.g. you can combine CNN-based encoder with RNN-based decoder
+  combinations - you can combine CNN-based encoder with RNN-based decoder, etc.
 
-* Supports different input-output modalities, i.e. speech-to-text, text-to-text
-
-* Supports training, evaluation and inference execution modes
-
-* When training the model the toolkit will automatically:
-
-   * print different training and validation metrics
-   * log gradient summaries to make it easier to debug if something goes wrong
-   * saves the best models based on the validation loss, so you will never lose
-     a good checkpoint
-   * saves all outputs, configs and git statistics to make it possible to
-     completely reproduce all experiments
+* Supports different input-output modalities: speech-to-text, text-to-text and designed to be extended with new ones.
 
 
-To start using this toolkit, look at the
+OpenSeq2Seq is built using TensorFlow. To start using this toolkit, look at the
 :ref:`installation instructions <installation-instructions>` and then
 see the :ref:`getting started <getting-started>` page.
 If you are already familiar with the basics and have
-everything set up, you can find some useful information in the
-:ref:`adding new models <extending>` section or in the :ref:`API documentation <api-docs>`.
+everything set up, you can find some useful information in the :ref:`mixed precision training <mixed_precision>`,
+:ref:`distributed training <distributed_training>`, :ref:`adding new models <extending>` or :ref:`API documentation <api-docs>` sections.
