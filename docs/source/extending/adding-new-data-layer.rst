@@ -1,5 +1,5 @@
-Adding new DataLayer
-====================
+Adding new data layer
+=====================
 
 All data layers have to inherit from
 :class:`DataLayer <data.data_layer.DataLayer>`
