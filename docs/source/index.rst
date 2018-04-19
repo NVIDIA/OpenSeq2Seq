@@ -31,7 +31,9 @@ OpenSeq2Seq has the following features:
   experiment with different encoder-decoder
   combinations, e.g. you can combine CNN-based encoder with RNN-based decoder
 
-* Supports different input-output modalities, i.e. speech-to-text, text-to-text etc
+* Supports different input-output modalities, i.e. speech-to-text, text-to-text
+
+* Supports training, evaluation and inference execution modes
 
 * When training the model the toolkit will automatically:
 
