@@ -1,0 +1,633 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>decoders &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="losses" href="losses.html" />
+    <link rel="prev" title="encoders" href="encoders.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">decoders</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.decoder">decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.fc_decoder">fc_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.rnn_decoders">rnn_decoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.transformer_decoders">transformer_decoders</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.html">parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+      <li>decoders</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/decoders.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-decoders">
+<span id="decoders"></span><h1>decoders<a class="headerlink" href="#module-decoders" title="Permalink to this headline">¶</a></h1>
+<p>This package contains various decoder.
+A Decoder typically takes representation and produces data.</p>
+<div class="section" id="module-decoders.decoder">
+<span id="decoder"></span><h2>decoder<a class="headerlink" href="#module-decoders.decoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="decoders.decoder.Decoder">
+<em class="property">class </em><code class="descclassname">decoders.decoder.</code><code class="descname">Decoder</code><span class="sig-paren">(</span><em>params</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract class from which all decoders must inherit.</p>
+<dl class="method">
+<dt id="decoders.decoder.Decoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes Decoder. Decoder constructors should not modify TF graph
+:param params: dictionary of decoder parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.decoder.Decoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes decoder input sequence. This will add to TF graph
+Typically, decoder will take representation as an input
+and produce data as output
+:param input_dict: dictionary of decoder inputs
+For example (but may differ):
+input_dict = { &#8220;src_inputs&#8221; : decoder source sequence,</p>
+<blockquote>
+<div>&#8220;src_lengths&#8221; : decoder source length,
+&#8220;tgt_inputs&#8221; :  (during training),
+&#8220;tgt_lengths&#8221; : (during training)}</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of decoder outputs</td>
+</tr>
+</tbody>
+</table>
+<p>For example (but may differ):
+decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
+<blockquote>
+<div>&#8220;decoder_lengths&#8221; : decoder_lengths}</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.decoder.Decoder.decode">
+<code class="descname">decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.decode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="decoders.decoder.Decoder.dtype">
+<code class="descname">dtype</code><a class="headerlink" href="#decoders.decoder.Decoder.dtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.decoder.Decoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.decoder.Decoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="decoders.decoder.Decoder.params">
+<code class="descname">params</code><a class="headerlink" href="#decoders.decoder.Decoder.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters used to construct the encoder</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-decoders.fc_decoder">
+<span id="fc-decoder"></span><h2>fc_decoder<a class="headerlink" href="#module-decoders.fc_decoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedCTCDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
+<dl class="staticmethod">
+<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedTimeDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dl class="staticmethod">
+<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-decoders.rnn_decoders">
+<span id="rnn-decoders"></span><h2>rnn_decoders<a class="headerlink" href="#module-decoders.rnn_decoders" title="Permalink to this headline">¶</a></h2>
+<p>RNN-based decoders</p>
+<dl class="class">
+<dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention">
+<em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">BeamSearchRNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
+<p>Beam search version of RNN-based decoder with attention.
+Can be used only during Inference (mode=infer)</p>
+<dl class="method">
+<dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes beam search decoder
+:param params: decoder_params: dictionary with decoder parameters
+Must define:</p>
+<blockquote>
+<div><ul class="simple">
+<li>batch_size - batch size</li>
+<li>GO_SYMBOL - GO symbol id, must be the same as used in data layer</li>
+<li>END_SYMBOL - END symbol id, must be the same as used in data layer</li>
+<li>tgt_vocab_size - vocabulary size of target</li>
+<li>tgt_emb_size - embedding to use</li>
+<li>decoder_cell_units - number of units in RNN</li>
+<li>decoder_cell_type - RNN type: lstm, gru, glstm, etc.</li>
+<li>decoder_dp_input_keep_prob -</li>
+<li>decoder_dp_output_keep_prob -</li>
+<li>decoder_use_skip_connections - use residual connections or not</li>
+<li>attention_type - bahdanau, luong, gnmt, gnmt_v2</li>
+<li>bahdanau_normalize - (optional)</li>
+<li>luong_scale - (optional)</li>
+<li>mode - train or infer</li>
+</ul>
+<p>... add any cell-specific parameters here as well</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes representation into data
+:param input_dict: Python dictionary with inputs to decoder
+Must define:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="first docutils">
+<dt>src_inputs - decoder input Tensor of shape [batch_size, time, dim]</dt>
+<dd>or [time, batch_size, dim]</dd>
+</dl>
+</li>
+<li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
+</ul>
+</div></blockquote>
+<p>Does not need tgt_inputs and tgt_lengths
+:return: a Python dictionary with:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="first docutils">
+<dt>final_outputs - tensor of shape [batch_size, time, dim] or</dt>
+<dd>[time, batch_size, dim]</dd>
+</dl>
+</li>
+<li>final_state - tensor with decoder final state</li>
+<li><dl class="first docutils">
+<dt>final_sequence_lengths - tensor of shape [batch_size, time] or</dt>
+<dd>[time, batch_size]</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention">
+<em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">RNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Typical RNN decoder with attention mechanism</p>
+<dl class="method">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes RNN decoder with embedding
+:param params: dictionary with decoder parameters
+Must define:</p>
+<blockquote>
+<div><ul class="simple">
+<li>batch_size - batch size</li>
+<li>GO_SYMBOL - GO symbol id, must be the same as used in data layer</li>
+<li>END_SYMBOL - END symbol id, must be the same as used in data layer</li>
+<li>tgt_vocab_size - vocabulary size of target</li>
+<li>tgt_emb_size - embedding to use</li>
+<li>decoder_cell_units - number of units in RNN</li>
+<li>decoder_cell_type - RNN type: lstm, gru, glstm, etc.</li>
+<li>decoder_dp_input_keep_prob -</li>
+<li>decoder_dp_output_keep_prob -</li>
+<li>decoder_use_skip_connections - use residual connections or not</li>
+<li>attention_type - bahdanau, luong, gnmt, gnmt_v2</li>
+<li>bahdanau_normalize - (optional)</li>
+<li>luong_scale - (optional)</li>
+<li>mode - train or infer</li>
+</ul>
+<p>... add any cell-specific parameters here as well</p>
+</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">
+<code class="descname">_build_attention</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_sequence_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._build_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds Attention part of the graph.
+Currently supports &#8220;bahdanau&#8221; and &#8220;luong&#8221;
+:param encoder_outputs:
+:param encoder_sequence_length:
+:return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes representation into data
+:param input_dict: Python dictionary with inputs to decoder
+Must define:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="first docutils">
+<dt>src_inputs - decoder input Tensor of shape [batch_size, time, dim]</dt>
+<dd>or [time, batch_size, dim]</dd>
+</dl>
+</li>
+<li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
+<li><dl class="first docutils">
+<dt>tgt_inputs - Only during training. labels Tensor of the</dt>
+<dd>shape [batch_size, time] or [time, batch_size]</dd>
+</dl>
+</li>
+<li><dl class="first docutils">
+<dt>tgt_lengths - Only during training. labels lengths</dt>
+<dd>Tensor of the shape [batch_size]</dd>
+</dl>
+</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Python dictionary with:
+* final_outputs - tensor of shape [batch_size, time, dim]<blockquote>
+<div>or [time, batch_size, dim]</div></blockquote>
+<ul class="simple">
+<li>final_state - tensor with decoder final state</li>
+<li><dl class="first docutils">
+<dt>final_sequence_lengths - tensor of shape [batch_size, time]</dt>
+<dd>or [time, batch_size]</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-decoders.transformer_decoders">
+<span id="transformer-decoders"></span><h2>transformer_decoders<a class="headerlink" href="#module-decoders.transformer_decoders" title="Permalink to this headline">¶</a></h2>
+<p>Encoders based on Transformers arch from <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a></p>
+<dl class="class">
+<dt id="decoders.transformer_decoders.TransformerDecoder">
+<em class="property">class </em><code class="descclassname">decoders.transformer_decoders.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Greedy Transformer Decoder</p>
+<dl class="method">
+<dt id="decoders.transformer_decoders.TransformerDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializes Decoder
+:param params: dictionary of decoder parameters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.transformer_decoders.TransformerDecoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes decoder input sequence.
+:param input_dict: dictionary of decoder inputs
+For example (but may differ):
+decoder_input= { &#8220;src_inputs&#8221; : decoder source sequence,</p>
+<blockquote>
+<div>&#8220;src_lengths&#8221; : decoder srouce length,
+&#8220;tgt_inputs&#8221; :  (during training),
+&#8220;tgt_lengths&#8221; : (during training)}</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of decoder outputs</td>
+</tr>
+</tbody>
+</table>
+<p>For example (but may differ):
+decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
+<blockquote>
+<div>&#8220;decoder_lengths&#8221; : decoder_lengths}</div></blockquote>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoders.TransformerDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoders.TransformerDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="decoders.transformer_decoders.TransformerDecoder.params">
+<code class="descname">params</code><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters used to construct the encoder</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="decoders.transformer_decoders.transformer_decoder_fn">
+<code class="descclassname">decoders.transformer_decoders.</code><code class="descname">transformer_decoder_fn</code><span class="sig-paren">(</span><em>decoder_input_seq</em>, <em>encoder_input_seq</em>, <em>encoder_outputs</em>, <em>dec_emb_w</em>, <em>output_projector</em>, <em>num_decoder_blocks</em>, <em>d_model</em>, <em>ffn_inner_dim</em>, <em>attention_heads</em>, <em>dropout_drop_prob=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#transformer_decoder_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.transformer_decoder_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformer decoder function. It will train all steps in parallel,
+but for inference should be used in auto-regressive manner.
+:param decoder_input_seq: input sequence to the decoder before the embedding
+of shape [batch_size, T]
+For iteration 0 during inference, this should contain GO symbols and be of
+shape [batch_size, 1]
+:param encoder_input_seq: input sequence to the encoder before the embedding
+of shape [batch_size, T]. Necessary for pad masking biases
+:param encoder_outputs: representation computed by encoder,
+tensor of shape [batch, T, dim]
+:param dec_emb_w: embedding matrix for decoder inputs
+:param output_projector: output projection layer for decoder
+:param num_decoder_blocks: number of decoder layers/blocks
+:param d_model: Int
+:param ffn_inner_dim: Int - dimensionality for the middle for ffn transorm
+:param attention_heads: Int - number of attention heads
+:param dropout_drop_prob: (default: 0.0) dropout drop probability
+:return: Logits tensor of shape [batch, time, d_model]</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="losses.html" class="btn btn-neutral float-right" title="losses" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="encoders.html" class="btn btn-neutral" title="encoders" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

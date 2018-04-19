@@ -1,0 +1,722 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.models package &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="open_seq2seq.optimizers package" href="open_seq2seq.optimizers.html" />
+    <link rel="prev" title="open_seq2seq.losses package" href="open_seq2seq.losses.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending.html">Adding new models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">open_seq2seq</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="open_seq2seq.html">open_seq2seq package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="open_seq2seq.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.data.html">open_seq2seq.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.decoders.html">open_seq2seq.decoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.encoders.html">open_seq2seq.encoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.losses.html">open_seq2seq.losses package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">open_seq2seq.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.optimizers.html">open_seq2seq.optimizers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.html">open_seq2seq.parts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.test_utils.html">open_seq2seq.test_utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.training.html">open_seq2seq.training package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq.utils">open_seq2seq.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">open_seq2seq</a> &raquo;</li>
+        
+          <li><a href="open_seq2seq.html">open_seq2seq package</a> &raquo;</li>
+        
+      <li>open_seq2seq.models package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/open_seq2seq.models.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="open-seq2seq-models-package">
+<h1>open_seq2seq.models package<a class="headerlink" href="#open-seq2seq-models-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-open_seq2seq.models.model">
+<span id="open-seq2seq-models-model-module"></span><h2>open_seq2seq.models.model module<a class="headerlink" href="#module-open_seq2seq.models.model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.model.Model">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode='train'</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Abstract class that any model should inherit from.</p>
+<p>It automatically enables multi-GPU (or Horovod) computation,
+has mixed precision support, logs training summaries, etc.</p>
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode='train'</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model constructor. The TensorFlow graph is created here.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the model.
+All supported parameters are listed in <a class="reference internal" href="#open_seq2seq.models.model.Model.get_required_params" title="open_seq2seq.models.model.Model.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#open_seq2seq.models.model.Model.get_optional_params" title="open_seq2seq.models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>data_layer</strong> (<a class="reference internal" href="open_seq2seq.data.html#open_seq2seq.data.data_layer.DataLayer" title="open_seq2seq.data.data_layer.DataLayer"><em>DataLayer</em></a>) &#8211; The <code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code> instance to take data from.</li>
+<li><strong>global_step</strong> (<em>optional</em>) &#8211; TensorFlow global step or None</li>
+<li><strong>force_var_reuse</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; if true, all variables will be re-used.
+Useful for creating evaluation model alongside the training model or
+for multi-GPU training.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.
+If mode is &#8220;train&#8221; all parts of the graph will be built
+(model, loss, optimizer).
+If mode is &#8220;eval&#8221;, only model and loss will be built.
+If mode is &#8220;infer&#8221;, only model will be built.</li>
+<li><strong>gpu_ids</strong> (<em>list</em><em>, </em><em>optional</em>) &#8211; a list of gpu ids to run the model on.
+For distributed training using Horovod this parameter is ignored.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model._build_forward_pass_graph">
+<code class="descname">_build_forward_pass_graph</code><span class="sig-paren">(</span><em>input_tensors</em>, <em>gpu_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model._build_forward_pass_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model._build_forward_pass_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Abstract method. Should create the graph of the forward pass of the model.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_tensors</strong> (<em>list</em>) &#8211; list of all input tensors
+required to build the model.</li>
+<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) &#8211; id of the GPU where the current copy of the model
+is constructed. For Horovod this is always zero.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>tuple containing loss tensor and samples tensor.</p>
+<p>Loss tensor will be automatically provided to the optimizer and
+corresponding <code class="xref py py-attr docutils literal"><span class="pre">train_op</span></code> will be created.</p>
+<p>Samples tensors are stored in the <code class="xref py py-attr docutils literal"><span class="pre">_outputs</span></code> attribute and can be
+accessed by calling <a class="reference internal" href="#open_seq2seq.models.model.Model.get_output_tensors" title="open_seq2seq.models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal"><span class="pre">get_output_tensors()</span></code></a> function. For example,
+this happens inside <a class="reference internal" href="open_seq2seq.training.html#open_seq2seq.training.utils.RunEvaluationHook" title="open_seq2seq.training.utils.RunEvaluationHook"><code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.training.utils.RunEvaluationHook</span></code></a>
+to fetch output values for evaluation.</p>
+<p>Both loss and samples can be None when corresponding part of the graph
+is not built.</p>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.data_layer">
+<code class="descname">data_layer</code><a class="headerlink" href="#open_seq2seq.models.model.Model.data_layer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.get_dtype">
+<code class="descname">get_dtype</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.get_dtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.get_dtype" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="open_seq2seq.models.model.Model.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#open_seq2seq.models.model.Model.__init__" title="open_seq2seq.models.model.Model.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.get_output_tensors">
+<code class="descname">get_output_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.get_output_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.get_output_tensors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="open_seq2seq.models.model.Model.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#open_seq2seq.models.model.Model.__init__" title="open_seq2seq.models.model.Model.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.infer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function which performs inference</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.last_step">
+<code class="descname">last_step</code><a class="headerlink" href="#open_seq2seq.models.model.Model.last_step" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.lr">
+<code class="descname">lr</code><a class="headerlink" href="#open_seq2seq.models.model.Model.lr" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.maybe_evaluate">
+<code class="descname">maybe_evaluate</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.maybe_evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.maybe_evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>...
+:param inputs_per_batch: list with evaluation of</p>
+<blockquote>
+<div>data_layer.get_input_tensors() for each batch</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>outputs_per_batch</strong> &#8211; list with evaluation of
+model.get_output_tensors() for each batch</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with values that need to be logged</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.model.Model.maybe_print_logs">
+<code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/model.html#Model.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.model.Model.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function can be used to print logs that help to visualize training.
+E.g. you can print sample input sequences and their corresponding
+predictions.
+:param input_values: evaluation of data_layer.get_input_tensors()
+:param output_values: evaluation of model.get_output_tensors()
+:return: dictionary with values that need to be logged</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.mode">
+<code class="descname">mode</code><a class="headerlink" href="#open_seq2seq.models.model.Model.mode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.num_gpus">
+<code class="descname">num_gpus</code><a class="headerlink" href="#open_seq2seq.models.model.Model.num_gpus" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.on_horovod">
+<code class="descname">on_horovod</code><a class="headerlink" href="#open_seq2seq.models.model.Model.on_horovod" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.params">
+<code class="descname">params</code><a class="headerlink" href="#open_seq2seq.models.model.Model.params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parameters used to construct the model</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.model.Model.step_size">
+<code class="descname">step_size</code><a class="headerlink" href="#open_seq2seq.models.model.Model.step_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models.seq2seq">
+<span id="open-seq2seq-models-seq2seq-module"></span><h2>open_seq2seq.models.seq2seq module<a class="headerlink" href="#module-open_seq2seq.models.seq2seq" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.seq2seq.</code><code class="descname">Seq2Seq</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/seq2seq.html#Seq2Seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#open_seq2seq.models.model.Model" title="open_seq2seq.models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.models.model.Model</span></code></a></p>
+<p>Standard Sequence-to-Sequence class with one encoder and one decoder.
+&#8220;encoder-decoder-loss&#8221; models should inherit from this</p>
+<dl class="method">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/seq2seq.html#Seq2Seq.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor
+:param params: Python dictionary - parameters describing seq2seq model
+:param data_layer: Instance of DataLayer
+:param encoder: Instance of Encoder
+:param decoder: Instance of Decoder
+:param loss: Instance of Loss
+:param global_step: TF variable - global step
+:param force_var_reuse: Boolean - if true, all vars will be re-used
+:param mode: string, currently &#8220;train&#8221; or &#8220;infer&#8221;
+:param gpu_ids: a list of gpu ids, None, or &#8220;horovod&#8221; string</p>
+<blockquote>
+<div>for distributed training using Horovod</div></blockquote>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq._build_forward_pass_graph">
+<code class="descname">_build_forward_pass_graph</code><span class="sig-paren">(</span><em>input_tensors</em>, <em>gpu_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/seq2seq.html#Seq2Seq._build_forward_pass_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq._build_forward_pass_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds forward pass
+:param input_tensors: List of Tensors, currently assumes the following:
+[source_sequence, src_length, target_sequence, tgt_length]
+:param gpu_id: gpu_id where this pass is being built
+:return: loss or nothing</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq.decoder">
+<code class="descname">decoder</code><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq.decoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq.encoder">
+<code class="descname">encoder</code><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq.encoder" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.models.seq2seq.Seq2Seq.loss_computator">
+<code class="descname">loss_computator</code><a class="headerlink" href="#open_seq2seq.models.seq2seq.Seq2Seq.loss_computator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models.speech2text">
+<span id="open-seq2seq-models-speech2text-module"></span><h2>open_seq2seq.models.speech2text module<a class="headerlink" href="#module-open_seq2seq.models.speech2text" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.speech2text.Speech2Text">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.speech2text.</code><code class="descname">Speech2Text</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#Speech2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.Speech2Text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#open_seq2seq.models.seq2seq.Seq2Seq" title="open_seq2seq.models.seq2seq.Seq2Seq"><code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.models.seq2seq.Seq2Seq</span></code></a></p>
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text.Speech2Text.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#Speech2Text.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.Speech2Text.infer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text.Speech2Text.maybe_evaluate">
+<code class="descname">maybe_evaluate</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#Speech2Text.maybe_evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.Speech2Text.maybe_evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text.Speech2Text.maybe_print_logs">
+<code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#Speech2Text.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.Speech2Text.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.models.speech2text.levenshtein">
+<code class="descclassname">open_seq2seq.models.speech2text.</code><code class="descname">levenshtein</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.levenshtein" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculates the Levenshtein distance between a and b.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.models.speech2text.sparse_tensor_value_to_texts">
+<code class="descclassname">open_seq2seq.models.speech2text.</code><code class="descname">sparse_tensor_value_to_texts</code><span class="sig-paren">(</span><em>value</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#sparse_tensor_value_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.sparse_tensor_value_to_texts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Given a <code class="xref py py-class docutils literal"><span class="pre">tf.SparseTensor</span></code> <code class="docutils literal"><span class="pre">value</span></code>, return an array of
+Python strings representing its values.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.models.speech2text.sparse_tuple_to_texts">
+<code class="descclassname">open_seq2seq.models.speech2text.</code><code class="descname">sparse_tuple_to_texts</code><span class="sig-paren">(</span><em>tup</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text.html#sparse_tuple_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text.sparse_tuple_to_texts" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models.speech2text_test">
+<span id="open-seq2seq-models-speech2text-test-module"></span><h2>open_seq2seq.models.speech2text_test module<a class="headerlink" href="#module-open_seq2seq.models.speech2text_test" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.speech2text_test.</code><code class="descname">Speech2TextModelTests</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.framework.test_util.TensorFlowTestCase</span></code></p>
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.prepare_config">
+<code class="descname">prepare_config</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.prepare_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.prepare_config" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.run_model">
+<code class="descname">run_model</code><span class="sig-paren">(</span><em>train_config</em>, <em>eval_config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.run_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.run_model" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.tearDown">
+<code class="descname">tearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.tearDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.tearDown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_convergence">
+<code class="descname">test_convergence</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_convergence"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_convergence" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_infer">
+<code class="descname">test_infer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_infer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_levenshtein">
+<code class="descname">test_levenshtein</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_levenshtein" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_maybe_functions">
+<code class="descname">test_maybe_functions</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_maybe_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_maybe_functions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_mp_collection">
+<code class="descname">test_mp_collection</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_mp_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_mp_collection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_regularizer">
+<code class="descname">test_regularizer</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/speech2text_test.html#Speech2TextModelTests.test_regularizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.speech2text_test.Speech2TextModelTests.test_regularizer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models.text2text">
+<span id="open-seq2seq-models-text2text-module"></span><h2>open_seq2seq.models.text2text module<a class="headerlink" href="#module-open_seq2seq.models.text2text" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.text2text.BasicText2TextWithAttention">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.text2text.</code><code class="descname">BasicText2TextWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#BasicText2TextWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.BasicText2TextWithAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#open_seq2seq.models.seq2seq.Seq2Seq" title="open_seq2seq.models.seq2seq.Seq2Seq"><code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.models.seq2seq.Seq2Seq</span></code></a></p>
+<p>An example class implementing classical text-to-text model.</p>
+<dl class="method">
+<dt id="open_seq2seq.models.text2text.BasicText2TextWithAttention.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#BasicText2TextWithAttention.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.BasicText2TextWithAttention.infer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text.BasicText2TextWithAttention.maybe_evaluate">
+<code class="descname">maybe_evaluate</code><span class="sig-paren">(</span><em>inputs_per_batch</em>, <em>outputs_per_batch</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#BasicText2TextWithAttention.maybe_evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.BasicText2TextWithAttention.maybe_evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text.BasicText2TextWithAttention.maybe_print_logs">
+<code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#BasicText2TextWithAttention.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.BasicText2TextWithAttention.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.models.text2text.calculate_bleu">
+<code class="descclassname">open_seq2seq.models.text2text.</code><code class="descname">calculate_bleu</code><span class="sig-paren">(</span><em>preds</em>, <em>targets</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#calculate_bleu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.calculate_bleu" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>preds</strong> &#8211; list of lists</li>
+<li><strong>targets</strong> &#8211; list of lists</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">bleu score - float32</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.models.text2text.transform_for_bleu">
+<code class="descclassname">open_seq2seq.models.text2text.</code><code class="descname">transform_for_bleu</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>ignore_special=False</em>, <em>delim=' '</em>, <em>bpe_used=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text.html#transform_for_bleu"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text.transform_for_bleu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models.text2text_test">
+<span id="open-seq2seq-models-text2text-test-module"></span><h2>open_seq2seq.models.text2text_test module<a class="headerlink" href="#module-open_seq2seq.models.text2text_test" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.text2text_test.</code><code class="descname">BasicText2TextWithAttentionTest</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTest"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.framework.test_util.TensorFlowTestCase</span></code></p>
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTest.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.tearDown">
+<code class="descname">tearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTest.tearDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.tearDown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.test_train">
+<code class="descname">test_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTest.test_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTest.test_train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod">
+<em class="property">class </em><code class="descclassname">open_seq2seq.models.text2text_test.</code><code class="descname">BasicText2TextWithAttentionTestOnHorovod</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTestOnHorovod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.framework.test_util.TensorFlowTestCase</span></code></p>
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.setUp">
+<code class="descname">setUp</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTestOnHorovod.setUp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.setUp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.tearDown">
+<code class="descname">tearDown</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTestOnHorovod.tearDown"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.tearDown" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.test_train">
+<code class="descname">test_train</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/models/text2text_test.html#BasicText2TextWithAttentionTestOnHorovod.test_train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.models.text2text_test.BasicText2TextWithAttentionTestOnHorovod.test_train" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.models">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-open_seq2seq.models" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="open_seq2seq.optimizers.html" class="btn btn-neutral float-right" title="open_seq2seq.optimizers package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="open_seq2seq.losses.html" class="btn btn-neutral" title="open_seq2seq.losses package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

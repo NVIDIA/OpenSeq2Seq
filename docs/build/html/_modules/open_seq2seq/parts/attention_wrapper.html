@@ -1,0 +1,1657 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.parts.attention_wrapper &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extending.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">open_seq2seq</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>open_seq2seq.parts.attention_wrapper</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for open_seq2seq.parts.attention_wrapper</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2017 The TensorFlow Authors. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+<span class="sd">&quot;&quot;&quot;A powerful dynamic attention wrapper object.&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.framework.python.framework</span> <span class="k">import</span> <span class="n">tensor_util</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">dtypes</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">tensor_shape</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.layers</span> <span class="k">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">layers_base</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.layers</span> <span class="k">import</span> <span class="n">core</span> <span class="k">as</span> <span class="n">layers_core</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">check_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">clip_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">functional_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">init_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">nn_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">random_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">rnn_cell_impl</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">tensor_array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">variable_scope</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.util</span> <span class="k">import</span> <span class="n">nest</span>
+
+
+<span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;AttentionMechanism&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AttentionWrapper&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;AttentionWrapperState&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LuongAttention&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BahdanauAttention&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;hardmax&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;safe_cumprod&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;monotonic_attention&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;BahdanauMonotonicAttention&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;LuongMonotonicAttention&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<span class="n">_zero_state_tensors</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">_zero_state_tensors</span>  <span class="c1"># pylint: disable=protected-access</span>
+
+
+<div class="viewcode-block" id="AttentionMechanism"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionMechanism">[docs]</a><span class="k">class</span> <span class="nc">AttentionMechanism</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">alignments_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">state_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<span class="k">def</span> <span class="nf">_prepare_memory</span><span class="p">(</span><span class="n">memory</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">check_inner_dims_defined</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Convert to tensor and possibly mask `memory`.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    memory: `Tensor`, shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">    memory_sequence_length: `int32` `Tensor`, shaped `[batch_size]`.</span>
+<span class="sd">    check_inner_dims_defined: Python boolean.  If `True`, the `memory`</span>
+<span class="sd">      argument&#39;s shape is checked to ensure all but the two outermost</span>
+<span class="sd">      dimensions are fully defined.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A (possibly masked), checked, new `memory`.</span>
+
+<span class="sd">  Raises:</span>
+<span class="sd">    ValueError: If `check_inner_dims_defined` is `True` and not</span>
+<span class="sd">      `memory.shape[2:].is_fully_defined()`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">memory</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+      <span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory&quot;</span><span class="p">),</span> <span class="n">memory</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">memory_sequence_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">memory_sequence_length</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span>
+        <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_sequence_length&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">check_inner_dims_defined</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">_check_dims</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">m</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="mi">2</span><span class="p">:]</span><span class="o">.</span><span class="n">is_fully_defined</span><span class="p">():</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Expected memory </span><span class="si">%s</span><span class="s2"> to have fully defined inner dims, &quot;</span>
+                         <span class="s2">&quot;but saw shape: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()))</span>
+    <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="n">_check_dims</span><span class="p">,</span> <span class="n">memory</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">memory_sequence_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">seq_len_mask</span> <span class="o">=</span> <span class="kc">None</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">seq_len_mask</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">sequence_mask</span><span class="p">(</span>
+        <span class="n">memory_sequence_length</span><span class="p">,</span>
+        <span class="n">maxlen</span><span class="o">=</span><span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">nest</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">memory</span><span class="p">)[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">nest</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">memory</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="n">seq_len_batch_size</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">memory_sequence_length</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+        <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">memory_sequence_length</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+  <span class="k">def</span> <span class="nf">_maybe_mask</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seq_len_mask</span><span class="p">):</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">ndims</span>
+    <span class="n">rank</span> <span class="o">=</span> <span class="n">rank</span> <span class="k">if</span> <span class="n">rank</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">rank</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+    <span class="n">extra_ones</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">rank</span> <span class="o">-</span> <span class="mi">2</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">m_batch_size</span> <span class="o">=</span> <span class="n">m</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">m</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">memory_sequence_length</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;memory_sequence_length and memory tensor batch sizes do not &quot;</span>
+                 <span class="s2">&quot;match.&quot;</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span>
+          <span class="n">check_ops</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span>
+              <span class="n">seq_len_batch_size</span><span class="p">,</span> <span class="n">m_batch_size</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)]):</span>
+        <span class="n">seq_len_mask</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+            <span class="n">seq_len_mask</span><span class="p">,</span>
+            <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">((</span><span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">seq_len_mask</span><span class="p">),</span> <span class="n">extra_ones</span><span class="p">),</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">m</span> <span class="o">*</span> <span class="n">seq_len_mask</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">m</span>
+  <span class="k">return</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">m</span><span class="p">:</span> <span class="n">_maybe_mask</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">seq_len_mask</span><span class="p">),</span> <span class="n">memory</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_maybe_mask_score</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">score_mask_value</span><span class="p">):</span>
+  <span class="k">if</span> <span class="n">memory_sequence_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">score</span>
+  <span class="n">message</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;All values in memory_sequence_length must greater than zero.&quot;</span><span class="p">)</span>
+  <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">(</span>
+      <span class="p">[</span><span class="n">check_ops</span><span class="o">.</span><span class="n">assert_positive</span><span class="p">(</span><span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="n">message</span><span class="p">)]):</span>
+    <span class="n">score_mask</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">sequence_mask</span><span class="p">(</span>
+        <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">maxlen</span><span class="o">=</span><span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">score</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">score_mask_values</span> <span class="o">=</span> <span class="n">score_mask_value</span> <span class="o">*</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">score_mask</span><span class="p">,</span> <span class="n">score</span><span class="p">,</span> <span class="n">score_mask_values</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_BaseAttentionMechanism</span><span class="p">(</span><span class="n">AttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;A base AttentionMechanism class providing common functionality.</span>
+
+<span class="sd">  Common functionality includes:</span>
+<span class="sd">    1. Storing the query and memory layers.</span>
+<span class="sd">    2. Preprocessing and storing the memory.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">query_layer</span><span class="p">,</span>
+               <span class="n">memory</span><span class="p">,</span>
+               <span class="n">probability_fn</span><span class="p">,</span>
+               <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">memory_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">check_inner_dims_defined</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+               <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct base AttentionMechanism class.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      query_layer: Callable.  Instance of `tf.layers.Layer`.  The layer&#39;s depth</span>
+<span class="sd">        must match the depth of `memory_layer`.  If `query_layer` is not</span>
+<span class="sd">        provided, the shape of `query` must match that of `memory_layer`.</span>
+<span class="sd">      memory: The memory to query; usually the output of an RNN encoder.  This</span>
+<span class="sd">        tensor should be shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">      probability_fn: A `callable`.  Converts the score and previous alignments</span>
+<span class="sd">        to probabilities. Its signature should be:</span>
+<span class="sd">        `probabilities = probability_fn(score, state)`.</span>
+<span class="sd">      memory_sequence_length (optional): Sequence lengths for the batch entries</span>
+<span class="sd">        in memory.  If provided, the memory tensor rows are masked with zeros</span>
+<span class="sd">        for values past the respective sequence lengths.</span>
+<span class="sd">      memory_layer: Instance of `tf.layers.Layer` (may be None).  The layer&#39;s</span>
+<span class="sd">        depth must match the depth of `query_layer`.</span>
+<span class="sd">        If `memory_layer` is not provided, the shape of `memory` must match</span>
+<span class="sd">        that of `query_layer`.</span>
+<span class="sd">      check_inner_dims_defined: Python boolean.  If `True`, the `memory`</span>
+<span class="sd">        argument&#39;s shape is checked to ensure all but the two outermost</span>
+<span class="sd">        dimensions are fully defined.</span>
+<span class="sd">      score_mask_value: (optional): The mask value for score before passing into</span>
+<span class="sd">        `probability_fn`. The default is -inf. Only used if</span>
+<span class="sd">        `memory_sequence_length` is not None.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">query_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">query_layer</span><span class="p">,</span> <span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">)):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+          <span class="s2">&quot;query_layer is not a Layer: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">query_layer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">memory_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">memory_layer</span><span class="p">,</span> <span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">)):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+          <span class="s2">&quot;memory_layer is not a Layer: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">memory_layer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_query_layer</span> <span class="o">=</span> <span class="n">query_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_memory_layer</span> <span class="o">=</span> <span class="n">memory_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">dtype</span> <span class="o">=</span> <span class="n">memory_layer</span><span class="o">.</span><span class="n">dtype</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">probability_fn</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;probability_fn must be callable, saw type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                      <span class="nb">type</span><span class="p">(</span><span class="n">probability_fn</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">score_mask_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">score_mask_value</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">as_dtype</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_memory_layer</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">score</span><span class="p">,</span> <span class="n">prev</span><span class="p">:</span> <span class="p">(</span>  <span class="c1"># pylint:disable=g-long-lambda</span>
+        <span class="n">probability_fn</span><span class="p">(</span>
+            <span class="n">_maybe_mask_score</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">score_mask_value</span><span class="p">),</span>
+            <span class="n">prev</span><span class="p">))</span>
+    <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span>
+        <span class="n">name</span><span class="p">,</span> <span class="s2">&quot;BaseAttentionMechanismInit&quot;</span><span class="p">,</span> <span class="n">nest</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">memory</span><span class="p">)):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_values</span> <span class="o">=</span> <span class="n">_prepare_memory</span><span class="p">(</span>
+          <span class="n">memory</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="p">,</span>
+          <span class="n">check_inner_dims_defined</span><span class="o">=</span><span class="n">check_inner_dims_defined</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span> <span class="o">=</span> <span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">memory_layer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">memory_layer</span>  <span class="c1"># pylint: disable=not-callable</span>
+          <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_alignments_size</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span>
+                               <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">)[</span><span class="mi">1</span><span class="p">])</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">memory_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_memory_layer</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">query_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_query_layer</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">values</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_values</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">alignments_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignments_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">state_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignments_size</span>
+
+  <span class="k">def</span> <span class="nf">initial_alignments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates the initial alignment values for the `AttentionWrapper` class.</span>
+
+<span class="sd">    This is important for AttentionMechanisms that use the previous alignment</span>
+<span class="sd">    to calculate the alignment at the next time step (e.g. monotonic attention).</span>
+
+<span class="sd">    The default behavior is to return a tensor of all zeros.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      batch_size: `int32` scalar, the batch_size.</span>
+<span class="sd">      dtype: The `dtype`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A `dtype` tensor shaped `[batch_size, alignments_size]`</span>
+<span class="sd">      (`alignments_size` is the values&#39; `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignments_size</span>
+    <span class="k">return</span> <span class="n">_zero_state_tensors</span><span class="p">(</span><span class="n">max_time</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">initial_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates the initial state values for the `AttentionWrapper` class.</span>
+
+<span class="sd">    This is important for AttentionMechanisms that use the previous alignment</span>
+<span class="sd">    to calculate the alignment at the next time step (e.g. monotonic attention).</span>
+
+<span class="sd">    The default behavior is to return the same output as initial_alignments.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      batch_size: `int32` scalar, the batch_size.</span>
+<span class="sd">      dtype: The `dtype`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A structure of all-zero tensors with shapes as described by `state_size`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">initial_alignments</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">_luong_score</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">scale</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Implements Luong-style (multiplicative) scoring function.</span>
+
+<span class="sd">  This attention has two forms.  The first is standard Luong attention,</span>
+<span class="sd">  as described in:</span>
+
+<span class="sd">  Minh-Thang Luong, Hieu Pham, Christopher D. Manning.</span>
+<span class="sd">  &quot;Effective Approaches to Attention-based Neural Machine Translation.&quot;</span>
+<span class="sd">  EMNLP 2015.  https://arxiv.org/abs/1508.04025</span>
+
+<span class="sd">  The second is the scaled form inspired partly by the normalized form of</span>
+<span class="sd">  Bahdanau attention.</span>
+
+<span class="sd">  To enable the second form, call this function with `scale=True`.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    query: Tensor, shape `[batch_size, num_units]` to compare to keys.</span>
+<span class="sd">    keys: Processed memory, shape `[batch_size, max_time, num_units]`.</span>
+<span class="sd">    scale: Whether to apply a scale to the score function.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A `[batch_size, max_time]` tensor of unnormalized score values.</span>
+
+<span class="sd">  Raises:</span>
+<span class="sd">    ValueError: If `key` and `query` depths do not match.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">depth</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+  <span class="n">key_units</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">depth</span> <span class="o">!=</span> <span class="n">key_units</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="s2">&quot;Incompatible or unknown inner dimensions between query and keys.  &quot;</span>
+        <span class="s2">&quot;Query (</span><span class="si">%s</span><span class="s2">) has units: </span><span class="si">%s</span><span class="s2">.  Keys (</span><span class="si">%s</span><span class="s2">) have units: </span><span class="si">%s</span><span class="s2">.  &quot;</span>
+        <span class="s2">&quot;Perhaps you need to set num_units to the keys&#39; dimension (</span><span class="si">%s</span><span class="s2">)?&quot;</span>
+        <span class="o">%</span> <span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">depth</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">key_units</span><span class="p">,</span> <span class="n">key_units</span><span class="p">))</span>
+  <span class="n">dtype</span> <span class="o">=</span> <span class="n">query</span><span class="o">.</span><span class="n">dtype</span>
+
+  <span class="c1"># Reshape from [batch_size, depth] to [batch_size, 1, depth]</span>
+  <span class="c1"># for matmul.</span>
+  <span class="n">query</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+  <span class="c1"># Inner product along the query units dimension.</span>
+  <span class="c1"># matmul shapes: query is [batch_size, 1, depth] and</span>
+  <span class="c1">#                keys is [batch_size, max_time, depth].</span>
+  <span class="c1"># the inner product is asked to **transpose keys&#39; inner shape** to get a</span>
+  <span class="c1"># batched matmul on:</span>
+  <span class="c1">#   [batch_size, 1, depth] . [batch_size, depth, max_time]</span>
+  <span class="c1"># resulting in an output shape of:</span>
+  <span class="c1">#   [batch_size, 1, max_time].</span>
+  <span class="c1"># we then squeeze out the center singleton dimension.</span>
+  <span class="n">score</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">transpose_b</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="n">score</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+  <span class="k">if</span> <span class="n">scale</span><span class="p">:</span>
+    <span class="c1"># Scalar used in weight scaling</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;attention_g&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="mf">1.</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">score</span>
+  <span class="k">return</span> <span class="n">score</span>
+
+
+<div class="viewcode-block" id="LuongAttention"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.LuongAttention">[docs]</a><span class="k">class</span> <span class="nc">LuongAttention</span><span class="p">(</span><span class="n">_BaseAttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Implements Luong-style (multiplicative) attention scoring.</span>
+
+<span class="sd">  This attention has two forms.  The first is standard Luong attention,</span>
+<span class="sd">  as described in:</span>
+
+<span class="sd">  Minh-Thang Luong, Hieu Pham, Christopher D. Manning.</span>
+<span class="sd">  &quot;Effective Approaches to Attention-based Neural Machine Translation.&quot;</span>
+<span class="sd">  EMNLP 2015.  https://arxiv.org/abs/1508.04025</span>
+
+<span class="sd">  The second is the scaled form inspired partly by the normalized form of</span>
+<span class="sd">  Bahdanau attention.</span>
+
+<span class="sd">  To enable the second form, construct the object with parameter</span>
+<span class="sd">  `scale=True`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LuongAttention.__init__"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.LuongAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">num_units</span><span class="p">,</span>
+               <span class="n">memory</span><span class="p">,</span>
+               <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">probability_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LuongAttention&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the AttentionMechanism mechanism.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: The depth of the attention mechanism.</span>
+<span class="sd">      memory: The memory to query; usually the output of an RNN encoder.  This</span>
+<span class="sd">        tensor should be shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">      memory_sequence_length: (optional) Sequence lengths for the batch entries</span>
+<span class="sd">        in memory.  If provided, the memory tensor rows are masked with zeros</span>
+<span class="sd">        for values past the respective sequence lengths.</span>
+<span class="sd">      scale: Python boolean.  Whether to scale the energy term.</span>
+<span class="sd">      probability_fn: (optional) A `callable`.  Converts the score to</span>
+<span class="sd">        probabilities.  The default is @{tf.nn.softmax}. Other options include</span>
+<span class="sd">        @{tf.contrib.seq2seq.hardmax} and @{tf.contrib.sparsemax.sparsemax}.</span>
+<span class="sd">        Its signature should be: `probabilities = probability_fn(score)`.</span>
+<span class="sd">      score_mask_value: (optional) The mask value for score before passing into</span>
+<span class="sd">        `probability_fn`. The default is -inf. Only used if</span>
+<span class="sd">        `memory_sequence_length` is not None.</span>
+<span class="sd">      dtype: The data type for the memory layer of the attention mechanism.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># For LuongAttention, we only transform the memory layer; thus</span>
+    <span class="c1"># num_units **must** match expected the query depth.</span>
+    <span class="k">if</span> <span class="n">probability_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">probability_fn</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">softmax</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">wrapped_probability_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">score</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">LuongAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">query_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">memory_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
+        <span class="n">probability_fn</span><span class="o">=</span><span class="n">wrapped_probability_fn</span><span class="p">,</span>
+        <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
+        <span class="n">score_mask_value</span><span class="o">=</span><span class="n">score_mask_value</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">scale</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span></div>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Score the query based on the keys and values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      query: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, query_depth]`.</span>
+<span class="sd">      state: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]`</span>
+<span class="sd">        (`alignments_size` is memory&#39;s `max_time`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      alignments: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]` (`alignments_size` is memory&#39;s</span>
+<span class="sd">        `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;luong_attention&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">query</span><span class="p">]):</span>
+      <span class="n">score</span> <span class="o">=</span> <span class="n">_luong_score</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span><span class="p">)</span>
+    <span class="n">alignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span>
+    <span class="k">return</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_state</span></div>
+
+
+<span class="k">def</span> <span class="nf">_bahdanau_score</span><span class="p">(</span><span class="n">processed_query</span><span class="p">,</span> <span class="n">keys</span><span class="p">,</span> <span class="n">normalize</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Implements Bahdanau-style (additive) scoring function.</span>
+
+<span class="sd">  This attention has two forms.  The first is Bhandanau attention,</span>
+<span class="sd">  as described in:</span>
+
+<span class="sd">  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.</span>
+<span class="sd">  &quot;Neural Machine Translation by Jointly Learning to Align and Translate.&quot;</span>
+<span class="sd">  ICLR 2015. https://arxiv.org/abs/1409.0473</span>
+
+<span class="sd">  The second is the normalized form.  This form is inspired by the</span>
+<span class="sd">  weight normalization article:</span>
+
+<span class="sd">  Tim Salimans, Diederik P. Kingma.</span>
+<span class="sd">  &quot;Weight Normalization: A Simple Reparameterization to Accelerate</span>
+<span class="sd">   Training of Deep Neural Networks.&quot;</span>
+<span class="sd">  https://arxiv.org/abs/1602.07868</span>
+
+<span class="sd">  To enable the second form, set `normalize=True`.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    processed_query: Tensor, shape `[batch_size, num_units]` to compare to keys.</span>
+<span class="sd">    keys: Processed memory, shape `[batch_size, max_time, num_units]`.</span>
+<span class="sd">    normalize: Whether to normalize the score function.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A `[batch_size, max_time]` tensor of unnormalized score values.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">dtype</span> <span class="o">=</span> <span class="n">processed_query</span><span class="o">.</span><span class="n">dtype</span>
+  <span class="c1"># Get the number of hidden units from the trailing dimension of keys</span>
+  <span class="n">num_units</span> <span class="o">=</span> <span class="n">keys</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">keys</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+  <span class="c1"># Reshape from [batch_size, ...] to [batch_size, 1, ...] for broadcasting.</span>
+  <span class="n">processed_query</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">processed_query</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="n">v</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+      <span class="s2">&quot;attention_v&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">num_units</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">normalize</span><span class="p">:</span>
+    <span class="c1"># Scalar used in weight normalization</span>
+    <span class="n">g</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;attention_g&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="c1">#initializer=math.sqrt((1. / num_units)))</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">num_units</span><span class="p">),</span>
+                                                  <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">))</span>
+    <span class="c1"># Bias added prior to the nonlinearity</span>
+    <span class="n">b</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;attention_b&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">num_units</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
+        <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">())</span>
+    <span class="c1"># normed_v = g * v / ||v||</span>
+    <span class="n">normed_v</span> <span class="o">=</span> <span class="n">g</span> <span class="o">*</span> <span class="n">v</span> <span class="o">*</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">rsqrt</span><span class="p">(</span>
+        <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">v</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+        <span class="n">normed_v</span> <span class="o">*</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">keys</span> <span class="o">+</span> <span class="n">processed_query</span> <span class="o">+</span> <span class="n">b</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">v</span> <span class="o">*</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">keys</span> <span class="o">+</span> <span class="n">processed_query</span><span class="p">),</span> <span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="BahdanauAttention"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.BahdanauAttention">[docs]</a><span class="k">class</span> <span class="nc">BahdanauAttention</span><span class="p">(</span><span class="n">_BaseAttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Implements Bahdanau-style (additive) attention.</span>
+
+<span class="sd">  This attention has two forms.  The first is Bahdanau attention,</span>
+<span class="sd">  as described in:</span>
+
+<span class="sd">  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.</span>
+<span class="sd">  &quot;Neural Machine Translation by Jointly Learning to Align and Translate.&quot;</span>
+<span class="sd">  ICLR 2015. https://arxiv.org/abs/1409.0473</span>
+
+<span class="sd">  The second is the normalized form.  This form is inspired by the</span>
+<span class="sd">  weight normalization article:</span>
+
+<span class="sd">  Tim Salimans, Diederik P. Kingma.</span>
+<span class="sd">  &quot;Weight Normalization: A Simple Reparameterization to Accelerate</span>
+<span class="sd">   Training of Deep Neural Networks.&quot;</span>
+<span class="sd">  https://arxiv.org/abs/1602.07868</span>
+
+<span class="sd">  To enable the second form, construct the object with parameter</span>
+<span class="sd">  `normalize=True`.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BahdanauAttention.__init__"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.BahdanauAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">num_units</span><span class="p">,</span>
+               <span class="n">memory</span><span class="p">,</span>
+               <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">probability_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;BahdanauAttention&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the Attention mechanism.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: The depth of the query mechanism.</span>
+<span class="sd">      memory: The memory to query; usually the output of an RNN encoder.  This</span>
+<span class="sd">        tensor should be shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">      memory_sequence_length (optional): Sequence lengths for the batch entries</span>
+<span class="sd">        in memory.  If provided, the memory tensor rows are masked with zeros</span>
+<span class="sd">        for values past the respective sequence lengths.</span>
+<span class="sd">      normalize: Python boolean.  Whether to normalize the energy term.</span>
+<span class="sd">      probability_fn: (optional) A `callable`.  Converts the score to</span>
+<span class="sd">        probabilities.  The default is @{tf.nn.softmax}. Other options include</span>
+<span class="sd">        @{tf.contrib.seq2seq.hardmax} and @{tf.contrib.sparsemax.sparsemax}.</span>
+<span class="sd">        Its signature should be: `probabilities = probability_fn(score)`.</span>
+<span class="sd">      score_mask_value: (optional): The mask value for score before passing into</span>
+<span class="sd">        `probability_fn`. The default is -inf. Only used if</span>
+<span class="sd">        `memory_sequence_length` is not None.</span>
+<span class="sd">      dtype: The data type for the query and memory layers of the attention</span>
+<span class="sd">        mechanism.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">probability_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">probability_fn</span> <span class="o">=</span> <span class="n">nn_ops</span><span class="o">.</span><span class="n">softmax</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">wrapped_probability_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">score</span><span class="p">,</span> <span class="n">_</span><span class="p">:</span> <span class="n">probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">BahdanauAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">query_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;query_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
+        <span class="n">probability_fn</span><span class="o">=</span><span class="n">wrapped_probability_fn</span><span class="p">,</span>
+        <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
+        <span class="n">score_mask_value</span><span class="o">=</span><span class="n">score_mask_value</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span> <span class="o">=</span> <span class="n">normalize</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span></div>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Score the query based on the keys and values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      query: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, query_depth]`.</span>
+<span class="sd">      state: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]`</span>
+<span class="sd">        (`alignments_size` is memory&#39;s `max_time`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      alignments: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]` (`alignments_size` is memory&#39;s</span>
+<span class="sd">        `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;bahdanau_attention&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">query</span><span class="p">]):</span>
+      <span class="n">processed_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span> <span class="k">else</span> <span class="n">query</span>
+      <span class="n">score</span> <span class="o">=</span> <span class="n">_bahdanau_score</span><span class="p">(</span><span class="n">processed_query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span><span class="p">)</span>
+    <span class="n">alignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span>
+    <span class="k">return</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_state</span></div>
+
+
+<div class="viewcode-block" id="safe_cumprod"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.safe_cumprod">[docs]</a><span class="k">def</span> <span class="nf">safe_cumprod</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Computes cumprod of x in logspace using cumsum to avoid underflow.</span>
+
+<span class="sd">  The cumprod function and its gradient can result in numerical instabilities</span>
+<span class="sd">  when its argument has very small and/or zero values.  As long as the argument</span>
+<span class="sd">  is all positive, we can instead compute the cumulative product as</span>
+<span class="sd">  exp(cumsum(log(x))).  This function can be called identically to tf.cumprod.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    x: Tensor to take the cumulative product of.</span>
+<span class="sd">    *args: Passed on to cumsum; these are identical to those in cumprod.</span>
+<span class="sd">    **kwargs: Passed on to cumsum; these are identical to those in cumprod.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    Cumulative product of x.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;SafeCumprod&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="p">]):</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;x&quot;</span><span class="p">)</span>
+    <span class="n">tiny</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">finfo</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">)</span><span class="o">.</span><span class="n">tiny</span>
+    <span class="k">return</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span>
+        <span class="n">math_ops</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">clip_ops</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tiny</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="monotonic_attention"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.monotonic_attention">[docs]</a><span class="k">def</span> <span class="nf">monotonic_attention</span><span class="p">(</span><span class="n">p_choose_i</span><span class="p">,</span> <span class="n">previous_attention</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Compute monotonic attention distribution from choosing probabilities.</span>
+
+<span class="sd">  Monotonic attention implies that the input sequence is processed in an</span>
+<span class="sd">  explicitly left-to-right manner when generating the output sequence.  In</span>
+<span class="sd">  addition, once an input sequence element is attended to at a given output</span>
+<span class="sd">  timestep, elements occurring before it cannot be attended to at subsequent</span>
+<span class="sd">  output timesteps.  This function generates attention distributions according</span>
+<span class="sd">  to these assumptions.  For more information, see ``Online and Linear-Time</span>
+<span class="sd">  Attention by Enforcing Monotonic Alignments&#39;&#39;.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    p_choose_i: Probability of choosing input sequence/memory element i.  Should</span>
+<span class="sd">      be of shape (batch_size, input_sequence_length), and should all be in the</span>
+<span class="sd">      range [0, 1].</span>
+<span class="sd">    previous_attention: The attention distribution from the previous output</span>
+<span class="sd">      timestep.  Should be of shape (batch_size, input_sequence_length).  For</span>
+<span class="sd">      the first output timestep, preevious_attention[n] should be [1, 0, 0, ...,</span>
+<span class="sd">      0] for all n in [0, ... batch_size - 1].</span>
+<span class="sd">    mode: How to compute the attention distribution.  Must be one of</span>
+<span class="sd">      &#39;recursive&#39;, &#39;parallel&#39;, or &#39;hard&#39;.</span>
+<span class="sd">        * &#39;recursive&#39; uses tf.scan to recursively compute the distribution.</span>
+<span class="sd">          This is slowest but is exact, general, and does not suffer from</span>
+<span class="sd">          numerical instabilities.</span>
+<span class="sd">        * &#39;parallel&#39; uses parallelized cumulative-sum and cumulative-product</span>
+<span class="sd">          operations to compute a closed-form solution to the recurrence</span>
+<span class="sd">          relation defining the attention distribution.  This makes it more</span>
+<span class="sd">          efficient than &#39;recursive&#39;, but it requires numerical checks which</span>
+<span class="sd">          make the distribution non-exact.  This can be a problem in particular</span>
+<span class="sd">          when input_sequence_length is long and/or p_choose_i has entries very</span>
+<span class="sd">          close to 0 or 1.</span>
+<span class="sd">        * &#39;hard&#39; requires that the probabilities in p_choose_i are all either 0</span>
+<span class="sd">          or 1, and subsequently uses a more efficient and exact solution.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A tensor of shape (batch_size, input_sequence_length) representing the</span>
+<span class="sd">    attention distributions for each sequence in the batch.</span>
+
+<span class="sd">  Raises:</span>
+<span class="sd">    ValueError: mode is not one of &#39;recursive&#39;, &#39;parallel&#39;, &#39;hard&#39;.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Force things to be tensors</span>
+  <span class="n">p_choose_i</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">p_choose_i</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;p_choose_i&quot;</span><span class="p">)</span>
+  <span class="n">previous_attention</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span>
+      <span class="n">previous_attention</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;previous_attention&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;recursive&quot;</span><span class="p">:</span>
+    <span class="c1"># Use .shape[0].value when it&#39;s not None, or fall back on symbolic shape</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">p_choose_i</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">p_choose_i</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># Compute [1, 1 - p_choose_i[0], 1 - p_choose_i[1], ..., 1 - p_choose_i[-2]]</span>
+    <span class="n">shifted_1mp_choose_i</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">array_ops</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">p_choose_i</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]],</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Compute attention distribution recursively as</span>
+    <span class="c1"># q[i] = (1 - p_choose_i[i])*q[i - 1] + previous_attention[i]</span>
+    <span class="c1"># attention[i] = p_choose_i[i]*q[i]</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">p_choose_i</span><span class="o">*</span><span class="n">array_ops</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">functional_ops</span><span class="o">.</span><span class="n">scan</span><span class="p">(</span>
+        <span class="c1"># Need to use reshape to remind TF of the shape between loop iterations</span>
+        <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">yz</span><span class="p">:</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">yz</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">x</span> <span class="o">+</span> <span class="n">yz</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="p">(</span><span class="n">batch_size</span><span class="p">,)),</span>
+        <span class="c1"># Loop variables yz[0] and yz[1]</span>
+        <span class="p">[</span><span class="n">array_ops</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">shifted_1mp_choose_i</span><span class="p">),</span>
+         <span class="n">array_ops</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">previous_attention</span><span class="p">)],</span>
+        <span class="c1"># Initial value of x is just zeros</span>
+        <span class="n">array_ops</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,))))</span>
+  <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;parallel&quot;</span><span class="p">:</span>
+    <span class="c1"># safe_cumprod computes cumprod in logspace with numeric checks</span>
+    <span class="n">cumprod_1mp_choose_i</span> <span class="o">=</span> <span class="n">safe_cumprod</span><span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">p_choose_i</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">exclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Compute recurrence relation solution</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">p_choose_i</span><span class="o">*</span><span class="n">cumprod_1mp_choose_i</span><span class="o">*</span><span class="n">math_ops</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span>
+        <span class="n">previous_attention</span> <span class="o">/</span>
+        <span class="c1"># Clip cumprod_1mp to avoid divide-by-zero</span>
+        <span class="n">clip_ops</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">cumprod_1mp_choose_i</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;hard&quot;</span><span class="p">:</span>
+    <span class="c1"># Remove any probabilities before the index chosen last time step</span>
+    <span class="n">p_choose_i</span> <span class="o">*=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">previous_attention</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># Now, use exclusive cumprod to remove probabilities after the first</span>
+    <span class="c1"># chosen index, like so:</span>
+    <span class="c1"># p_choose_i = [0, 0, 0, 1, 1, 0, 1, 1]</span>
+    <span class="c1"># cumprod(1 - p_choose_i, exclusive=True) = [1, 1, 1, 1, 0, 0, 0, 0]</span>
+    <span class="c1"># Product of above: [0, 0, 0, 1, 0, 0, 0, 0]</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">p_choose_i</span><span class="o">*</span><span class="n">math_ops</span><span class="o">.</span><span class="n">cumprod</span><span class="p">(</span>
+        <span class="mi">1</span> <span class="o">-</span> <span class="n">p_choose_i</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">exclusive</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;mode must be &#39;recursive&#39;, &#39;parallel&#39;, or &#39;hard&#39;.&quot;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">attention</span></div>
+
+
+<span class="k">def</span> <span class="nf">_monotonic_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">previous_alignments</span><span class="p">,</span> <span class="n">sigmoid_noise</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+                              <span class="n">seed</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Attention probability function for monotonic attention.</span>
+
+<span class="sd">  Takes in unnormalized attention scores, adds pre-sigmoid noise to encourage</span>
+<span class="sd">  the model to make discrete attention decisions, passes them through a sigmoid</span>
+<span class="sd">  to obtain &quot;choosing&quot; probabilities, and then calls monotonic_attention to</span>
+<span class="sd">  obtain the attention distribution.  For more information, see</span>
+
+<span class="sd">  Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,</span>
+<span class="sd">  &quot;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&quot;</span>
+<span class="sd">  ICML 2017.  https://arxiv.org/abs/1704.00784</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    score: Unnormalized attention scores, shape `[batch_size, alignments_size]`</span>
+<span class="sd">    previous_alignments: Previous attention distribution, shape</span>
+<span class="sd">      `[batch_size, alignments_size]`</span>
+<span class="sd">    sigmoid_noise: Standard deviation of pre-sigmoid noise.  Setting this larger</span>
+<span class="sd">      than 0 will encourage the model to produce large attention scores,</span>
+<span class="sd">      effectively making the choosing probabilities discrete and the resulting</span>
+<span class="sd">      attention distribution one-hot.  It should be set to 0 at test-time, and</span>
+<span class="sd">      when hard attention is not desired.</span>
+<span class="sd">    mode: How to compute the attention distribution.  Must be one of</span>
+<span class="sd">      &#39;recursive&#39;, &#39;parallel&#39;, or &#39;hard&#39;.  See the docstring for</span>
+<span class="sd">      `tf.contrib.seq2seq.monotonic_attention` for more information.</span>
+<span class="sd">    seed: (optional) Random seed for pre-sigmoid noise.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    A `[batch_size, alignments_size]`-shape tensor corresponding to the</span>
+<span class="sd">    resulting attention distribution.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Optionally add pre-sigmoid noise to the scores</span>
+  <span class="k">if</span> <span class="n">sigmoid_noise</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">noise</span> <span class="o">=</span> <span class="n">random_ops</span><span class="o">.</span><span class="n">random_normal</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">score</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">score</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+                                     <span class="n">seed</span><span class="o">=</span><span class="n">seed</span><span class="p">)</span>
+    <span class="n">score</span> <span class="o">+=</span> <span class="n">sigmoid_noise</span><span class="o">*</span><span class="n">noise</span>
+  <span class="c1"># Compute &quot;choosing&quot; probabilities from the attention scores</span>
+  <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;hard&quot;</span><span class="p">:</span>
+    <span class="c1"># When mode is hard, use a hard sigmoid</span>
+    <span class="n">p_choose_i</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">score</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <span class="n">score</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">p_choose_i</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">score</span><span class="p">)</span>
+  <span class="c1"># Convert from choosing probabilities to attention distribution</span>
+  <span class="k">return</span> <span class="n">monotonic_attention</span><span class="p">(</span><span class="n">p_choose_i</span><span class="p">,</span> <span class="n">previous_alignments</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">_BaseMonotonicAttentionMechanism</span><span class="p">(</span><span class="n">_BaseAttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Base attention mechanism for monotonic attention.</span>
+
+<span class="sd">  Simply overrides the initial_alignments function to provide a dirac</span>
+<span class="sd">  distribution,which is needed in order for the monotonic attention</span>
+<span class="sd">  distributions to have the correct behavior.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">initial_alignments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates the initial alignment values for the monotonic attentions.</span>
+
+<span class="sd">    Initializes to dirac distributions, i.e. [1, 0, 0, ...memory length..., 0]</span>
+<span class="sd">    for all entries in the batch.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      batch_size: `int32` scalar, the batch_size.</span>
+<span class="sd">      dtype: The `dtype`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A `dtype` tensor shaped `[batch_size, alignments_size]`</span>
+<span class="sd">      (`alignments_size` is the values&#39; `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">max_time</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignments_size</span>
+    <span class="k">return</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span>
+        <span class="n">array_ops</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">batch_size</span><span class="p">,),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span> <span class="n">max_time</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="BahdanauMonotonicAttention"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.BahdanauMonotonicAttention">[docs]</a><span class="k">class</span> <span class="nc">BahdanauMonotonicAttention</span><span class="p">(</span><span class="n">_BaseMonotonicAttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Monotonic attention mechanism with Bahadanau-style energy function.</span>
+
+<span class="sd">  This type of attention encorces a monotonic constraint on the attention</span>
+<span class="sd">  distributions; that is once the model attends to a given point in the memory</span>
+<span class="sd">  it can&#39;t attend to any prior points at subsequence output timesteps.  It</span>
+<span class="sd">  achieves this by using the _monotonic_probability_fn instead of softmax to</span>
+<span class="sd">  construct its attention distributions.  Since the attention scores are passed</span>
+<span class="sd">  through a sigmoid, a learnable scalar bias parameter is applied after the</span>
+<span class="sd">  score function and before the sigmoid.  Otherwise, it is equivalent to</span>
+<span class="sd">  BahdanauAttention.  This approach is proposed in</span>
+
+<span class="sd">  Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,</span>
+<span class="sd">  &quot;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&quot;</span>
+<span class="sd">  ICML 2017.  https://arxiv.org/abs/1704.00784</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BahdanauMonotonicAttention.__init__"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.BahdanauMonotonicAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">num_units</span><span class="p">,</span>
+               <span class="n">memory</span><span class="p">,</span>
+               <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">sigmoid_noise</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+               <span class="n">sigmoid_noise_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">score_bias_init</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span>
+               <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;BahdanauMonotonicAttention&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the Attention mechanism.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: The depth of the query mechanism.</span>
+<span class="sd">      memory: The memory to query; usually the output of an RNN encoder.  This</span>
+<span class="sd">        tensor should be shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">      memory_sequence_length (optional): Sequence lengths for the batch entries</span>
+<span class="sd">        in memory.  If provided, the memory tensor rows are masked with zeros</span>
+<span class="sd">        for values past the respective sequence lengths.</span>
+<span class="sd">      normalize: Python boolean.  Whether to normalize the energy term.</span>
+<span class="sd">      score_mask_value: (optional): The mask value for score before passing into</span>
+<span class="sd">        `probability_fn`. The default is -inf. Only used if</span>
+<span class="sd">        `memory_sequence_length` is not None.</span>
+<span class="sd">      sigmoid_noise: Standard deviation of pre-sigmoid noise.  See the docstring</span>
+<span class="sd">        for `_monotonic_probability_fn` for more information.</span>
+<span class="sd">      sigmoid_noise_seed: (optional) Random seed for pre-sigmoid noise.</span>
+<span class="sd">      score_bias_init: Initial value for score bias scalar.  It&#39;s recommended to</span>
+<span class="sd">        initialize this to a negative value when the length of the memory is</span>
+<span class="sd">        large.</span>
+<span class="sd">      mode: How to compute the attention distribution.  Must be one of</span>
+<span class="sd">        &#39;recursive&#39;, &#39;parallel&#39;, or &#39;hard&#39;.  See the docstring for</span>
+<span class="sd">        `tf.contrib.seq2seq.monotonic_attention` for more information.</span>
+<span class="sd">      dtype: The data type for the query and memory layers of the attention</span>
+<span class="sd">        mechanism.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set up the monotonic probability fn with supplied parameters</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">wrapped_probability_fn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">_monotonic_probability_fn</span><span class="p">,</span> <span class="n">sigmoid_noise</span><span class="o">=</span><span class="n">sigmoid_noise</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">sigmoid_noise_seed</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">BahdanauMonotonicAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">query_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;query_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
+        <span class="n">probability_fn</span><span class="o">=</span><span class="n">wrapped_probability_fn</span><span class="p">,</span>
+        <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
+        <span class="n">score_mask_value</span><span class="o">=</span><span class="n">score_mask_value</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span> <span class="o">=</span> <span class="n">normalize</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_score_bias_init</span> <span class="o">=</span> <span class="n">score_bias_init</span></div>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Score the query based on the keys and values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      query: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, query_depth]`.</span>
+<span class="sd">      state: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]`</span>
+<span class="sd">        (`alignments_size` is memory&#39;s `max_time`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      alignments: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]` (`alignments_size` is memory&#39;s</span>
+<span class="sd">        `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span>
+        <span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;bahdanau_monotonic_attention&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">query</span><span class="p">]):</span>
+      <span class="n">processed_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span> <span class="k">else</span> <span class="n">query</span>
+      <span class="n">score</span> <span class="o">=</span> <span class="n">_bahdanau_score</span><span class="p">(</span><span class="n">processed_query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span><span class="p">)</span>
+      <span class="n">score_bias</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+          <span class="s2">&quot;attention_score_bias&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">processed_query</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+          <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_score_bias_init</span><span class="p">)</span>
+      <span class="n">score</span> <span class="o">+=</span> <span class="n">score_bias</span>
+    <span class="n">alignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span>
+    <span class="k">return</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_state</span></div>
+
+
+<div class="viewcode-block" id="LuongMonotonicAttention"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.LuongMonotonicAttention">[docs]</a><span class="k">class</span> <span class="nc">LuongMonotonicAttention</span><span class="p">(</span><span class="n">_BaseMonotonicAttentionMechanism</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Monotonic attention mechanism with Luong-style energy function.</span>
+
+<span class="sd">  This type of attention encorces a monotonic constraint on the attention</span>
+<span class="sd">  distributions; that is once the model attends to a given point in the memory</span>
+<span class="sd">  it can&#39;t attend to any prior points at subsequence output timesteps.  It</span>
+<span class="sd">  achieves this by using the _monotonic_probability_fn instead of softmax to</span>
+<span class="sd">  construct its attention distributions.  Otherwise, it is equivalent to</span>
+<span class="sd">  LuongAttention.  This approach is proposed in</span>
+
+<span class="sd">  Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,</span>
+<span class="sd">  &quot;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&quot;</span>
+<span class="sd">  ICML 2017.  https://arxiv.org/abs/1704.00784</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="LuongMonotonicAttention.__init__"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.LuongMonotonicAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">num_units</span><span class="p">,</span>
+               <span class="n">memory</span><span class="p">,</span>
+               <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">sigmoid_noise</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+               <span class="n">sigmoid_noise_seed</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">score_bias_init</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;parallel&quot;</span><span class="p">,</span>
+               <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LuongMonotonicAttention&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the Attention mechanism.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: The depth of the query mechanism.</span>
+<span class="sd">      memory: The memory to query; usually the output of an RNN encoder.  This</span>
+<span class="sd">        tensor should be shaped `[batch_size, max_time, ...]`.</span>
+<span class="sd">      memory_sequence_length (optional): Sequence lengths for the batch entries</span>
+<span class="sd">        in memory.  If provided, the memory tensor rows are masked with zeros</span>
+<span class="sd">        for values past the respective sequence lengths.</span>
+<span class="sd">      scale: Python boolean.  Whether to scale the energy term.</span>
+<span class="sd">      score_mask_value: (optional): The mask value for score before passing into</span>
+<span class="sd">        `probability_fn`. The default is -inf. Only used if</span>
+<span class="sd">        `memory_sequence_length` is not None.</span>
+<span class="sd">      sigmoid_noise: Standard deviation of pre-sigmoid noise.  See the docstring</span>
+<span class="sd">        for `_monotonic_probability_fn` for more information.</span>
+<span class="sd">      sigmoid_noise_seed: (optional) Random seed for pre-sigmoid noise.</span>
+<span class="sd">      score_bias_init: Initial value for score bias scalar.  It&#39;s recommended to</span>
+<span class="sd">        initialize this to a negative value when the length of the memory is</span>
+<span class="sd">        large.</span>
+<span class="sd">      mode: How to compute the attention distribution.  Must be one of</span>
+<span class="sd">        &#39;recursive&#39;, &#39;parallel&#39;, or &#39;hard&#39;.  See the docstring for</span>
+<span class="sd">        `tf.contrib.seq2seq.monotonic_attention` for more information.</span>
+<span class="sd">      dtype: The data type for the query and memory layers of the attention</span>
+<span class="sd">        mechanism.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Set up the monotonic probability fn with supplied parameters</span>
+    <span class="k">if</span> <span class="n">dtype</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">dtype</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span>
+    <span class="n">wrapped_probability_fn</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">partial</span><span class="p">(</span>
+        <span class="n">_monotonic_probability_fn</span><span class="p">,</span> <span class="n">sigmoid_noise</span><span class="o">=</span><span class="n">sigmoid_noise</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+        <span class="n">seed</span><span class="o">=</span><span class="n">sigmoid_noise_seed</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">LuongMonotonicAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">query_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">memory_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">),</span>
+        <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
+        <span class="n">probability_fn</span><span class="o">=</span><span class="n">wrapped_probability_fn</span><span class="p">,</span>
+        <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">memory_sequence_length</span><span class="p">,</span>
+        <span class="n">score_mask_value</span><span class="o">=</span><span class="n">score_mask_value</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">scale</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_score_bias_init</span> <span class="o">=</span> <span class="n">score_bias_init</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span></div>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Score the query based on the keys and values.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      query: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, query_depth]`.</span>
+<span class="sd">      state: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]`</span>
+<span class="sd">        (`alignments_size` is memory&#39;s `max_time`).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      alignments: Tensor of dtype matching `self.values` and shape</span>
+<span class="sd">        `[batch_size, alignments_size]` (`alignments_size` is memory&#39;s</span>
+<span class="sd">        `max_time`).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;luong_monotonic_attention&quot;</span><span class="p">,</span>
+                                       <span class="p">[</span><span class="n">query</span><span class="p">]):</span>
+      <span class="n">score</span> <span class="o">=</span> <span class="n">_luong_score</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span><span class="p">)</span>
+      <span class="n">score_bias</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+          <span class="s2">&quot;attention_score_bias&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">query</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+          <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_score_bias_init</span><span class="p">)</span>
+      <span class="n">score</span> <span class="o">+=</span> <span class="n">score_bias</span>
+    <span class="n">alignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+    <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span>
+    <span class="k">return</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_state</span></div>
+
+
+<div class="viewcode-block" id="AttentionWrapperState"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapperState">[docs]</a><span class="k">class</span> <span class="nc">AttentionWrapperState</span><span class="p">(</span>
+    <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;AttentionWrapperState&quot;</span><span class="p">,</span>
+                           <span class="p">(</span><span class="s2">&quot;cell_state&quot;</span><span class="p">,</span> <span class="s2">&quot;attention&quot;</span><span class="p">,</span> <span class="s2">&quot;time&quot;</span><span class="p">,</span> <span class="s2">&quot;alignments&quot;</span><span class="p">,</span>
+                            <span class="s2">&quot;alignment_history&quot;</span><span class="p">,</span> <span class="s2">&quot;attention_state&quot;</span><span class="p">))):</span>
+  <span class="sd">&quot;&quot;&quot;`namedtuple` storing the state of a `AttentionWrapper`.</span>
+
+<span class="sd">  Contains:</span>
+
+<span class="sd">    - `cell_state`: The state of the wrapped `RNNCell` at the previous time</span>
+<span class="sd">      step.</span>
+<span class="sd">    - `attention`: The attention emitted at the previous time step.</span>
+<span class="sd">    - `time`: int32 scalar containing the current time step.</span>
+<span class="sd">    - `alignments`: A single or tuple of `Tensor`(s) containing the alignments</span>
+<span class="sd">       emitted at the previous time step for each attention mechanism.</span>
+<span class="sd">    - `alignment_history`: (if enabled) a single or tuple of `TensorArray`(s)</span>
+<span class="sd">       containing alignment matrices from all time steps for each attention</span>
+<span class="sd">       mechanism. Call `stack()` on each to convert to a `Tensor`.</span>
+<span class="sd">    - `attention_state`: A single or tuple of nested objects</span>
+<span class="sd">       containing attention mechanism state for each attention mechanism.</span>
+<span class="sd">       The objects may contain Tensors or TensorArrays.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AttentionWrapperState.clone"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapperState.clone">[docs]</a>  <span class="k">def</span> <span class="nf">clone</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Clone this object, overriding components provided by kwargs.</span>
+
+<span class="sd">    The new state fields&#39; shape must match original state fields&#39; shape. This</span>
+<span class="sd">    will be validated, and original fields&#39; shape will be propagated to new</span>
+<span class="sd">    fields.</span>
+
+<span class="sd">    Example:</span>
+
+<span class="sd">    ```python</span>
+<span class="sd">    initial_state = attention_wrapper.zero_state(dtype=..., batch_size=...)</span>
+<span class="sd">    initial_state = initial_state.clone(cell_state=encoder_state)</span>
+<span class="sd">    ```</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      **kwargs: Any properties of the state object to replace in the returned</span>
+<span class="sd">        `AttentionWrapperState`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A new `AttentionWrapperState` whose properties are the same as</span>
+<span class="sd">      this one, except any overridden properties as provided in `kwargs`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">with_same_shape</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Check and set new tensor&#39;s shape.&quot;&quot;&quot;</span>
+      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">ops</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">new</span><span class="p">,</span> <span class="n">ops</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">tensor_util</span><span class="o">.</span><span class="n">with_same_shape</span><span class="p">(</span><span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">new</span>
+
+    <span class="k">return</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+        <span class="n">with_same_shape</span><span class="p">,</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">AttentionWrapperState</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_replace</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div></div>
+
+
+<div class="viewcode-block" id="hardmax"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.hardmax">[docs]</a><span class="k">def</span> <span class="nf">hardmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Returns batched one-hot vectors.</span>
+
+<span class="sd">  The depth index containing the `1` is that of the maximum logit value.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    logits: A batch tensor of logit values.</span>
+<span class="sd">    name: Name to use when creating ops.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    A batched one-hot tensor.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;Hardmax&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">logits</span><span class="p">]):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;logits&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">depth</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">depth</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">logits</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span>
+        <span class="n">math_ops</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">depth</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_compute_attention</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,</span> <span class="n">cell_output</span><span class="p">,</span> <span class="n">attention_state</span><span class="p">,</span>
+                       <span class="n">attention_layer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Computes the attention and alignments for a given attention_mechanism.&quot;&quot;&quot;</span>
+  <span class="n">alignments</span><span class="p">,</span> <span class="n">next_attention_state</span> <span class="o">=</span> <span class="n">attention_mechanism</span><span class="p">(</span>
+      <span class="n">cell_output</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">attention_state</span><span class="p">)</span>
+
+  <span class="c1"># Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]</span>
+  <span class="n">expanded_alignments</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">alignments</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="c1"># Context is the inner product of alignments and values along the</span>
+  <span class="c1"># memory time dimension.</span>
+  <span class="c1"># alignments shape is</span>
+  <span class="c1">#   [batch_size, 1, memory_time]</span>
+  <span class="c1"># attention_mechanism.values shape is</span>
+  <span class="c1">#   [batch_size, memory_time, memory_size]</span>
+  <span class="c1"># the batched matmul is over memory_time, so the output shape is</span>
+  <span class="c1">#   [batch_size, 1, memory_size].</span>
+  <span class="c1"># we then squeeze out the singleton dim.</span>
+  <span class="n">context</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">expanded_alignments</span><span class="p">,</span> <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+  <span class="n">context</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+  <span class="k">if</span> <span class="n">attention_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">attention_layer</span><span class="p">(</span><span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">cell_output</span><span class="p">,</span> <span class="n">context</span><span class="p">],</span> <span class="mi">1</span><span class="p">))</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">context</span>
+
+  <span class="k">return</span> <span class="n">attention</span><span class="p">,</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_attention_state</span>
+
+
+<div class="viewcode-block" id="AttentionWrapper"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapper">[docs]</a><span class="k">class</span> <span class="nc">AttentionWrapper</span><span class="p">(</span><span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">RNNCell</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Wraps another `RNNCell` with attention.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="AttentionWrapper.__init__"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapper.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">cell</span><span class="p">,</span>
+               <span class="n">attention_mechanism</span><span class="p">,</span>
+               <span class="n">attention_layer_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">alignment_history</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+               <span class="n">cell_input_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">output_attention</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+               <span class="n">initial_cell_state</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct the `AttentionWrapper`.</span>
+
+<span class="sd">    **NOTE** If you are using the `BeamSearchDecoder` with a cell wrapped in</span>
+<span class="sd">    `AttentionWrapper`, then you must ensure that:</span>
+
+<span class="sd">    - The encoder output has been tiled to `beam_width` via</span>
+<span class="sd">      @{tf.contrib.seq2seq.tile_batch} (NOT `tf.tile`).</span>
+<span class="sd">    - The `batch_size` argument passed to the `zero_state` method of this</span>
+<span class="sd">      wrapper is equal to `true_batch_size * beam_width`.</span>
+<span class="sd">    - The initial state created with `zero_state` above contains a</span>
+<span class="sd">      `cell_state` value containing properly tiled final state from the</span>
+<span class="sd">      encoder.</span>
+
+<span class="sd">    An example:</span>
+
+<span class="sd">    ```</span>
+<span class="sd">    tiled_encoder_outputs = tf.contrib.seq2seq.tile_batch(</span>
+<span class="sd">        encoder_outputs, multiplier=beam_width)</span>
+<span class="sd">    tiled_encoder_final_state = tf.conrib.seq2seq.tile_batch(</span>
+<span class="sd">        encoder_final_state, multiplier=beam_width)</span>
+<span class="sd">    tiled_sequence_length = tf.contrib.seq2seq.tile_batch(</span>
+<span class="sd">        sequence_length, multiplier=beam_width)</span>
+<span class="sd">    attention_mechanism = MyFavoriteAttentionMechanism(</span>
+<span class="sd">        num_units=attention_depth,</span>
+<span class="sd">        memory=tiled_inputs,</span>
+<span class="sd">        memory_sequence_length=tiled_sequence_length)</span>
+<span class="sd">    attention_cell = AttentionWrapper(cell, attention_mechanism, ...)</span>
+<span class="sd">    decoder_initial_state = attention_cell.zero_state(</span>
+<span class="sd">        dtype, batch_size=true_batch_size * beam_width)</span>
+<span class="sd">    decoder_initial_state = decoder_initial_state.clone(</span>
+<span class="sd">        cell_state=tiled_encoder_final_state)</span>
+<span class="sd">    ```</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      cell: An instance of `RNNCell`.</span>
+<span class="sd">      attention_mechanism: A list of `AttentionMechanism` instances or a single</span>
+<span class="sd">        instance.</span>
+<span class="sd">      attention_layer_size: A list of Python integers or a single Python</span>
+<span class="sd">        integer, the depth of the attention (output) layer(s). If None</span>
+<span class="sd">        (default), use the context as attention at each time step. Otherwise,</span>
+<span class="sd">        feed the context and cell output into the attention layer to generate</span>
+<span class="sd">        attention at each time step. If attention_mechanism is a list,</span>
+<span class="sd">        attention_layer_size must be a list of the same length.</span>
+<span class="sd">      alignment_history: Python boolean, whether to store alignment history</span>
+<span class="sd">        from all time steps in the final output state (currently stored as a</span>
+<span class="sd">        time major `TensorArray` on which you must call `stack()`).</span>
+<span class="sd">      cell_input_fn: (optional) A `callable`.  The default is:</span>
+<span class="sd">        `lambda inputs, attention: array_ops.concat([inputs, attention], -1)`.</span>
+<span class="sd">      output_attention: Python bool.  If `True` (default), the output at each</span>
+<span class="sd">        time step is the attention value.  This is the behavior of Luong-style</span>
+<span class="sd">        attention mechanisms.  If `False`, the output at each time step is</span>
+<span class="sd">        the output of `cell`.  This is the beahvior of Bhadanau-style</span>
+<span class="sd">        attention mechanisms.  In both cases, the `attention` tensor is</span>
+<span class="sd">        propagated to the next time step via the state and is used there.</span>
+<span class="sd">        This flag only controls whether the attention mechanism is propagated</span>
+<span class="sd">        up to the next cell in an RNN stack or to the top RNN output.</span>
+<span class="sd">      initial_cell_state: The initial state value to use for the cell when</span>
+<span class="sd">        the user calls `zero_state()`.  Note that if this value is provided</span>
+<span class="sd">        now, and the user uses a `batch_size` argument of `zero_state` which</span>
+<span class="sd">        does not match the batch size of `initial_cell_state`, proper</span>
+<span class="sd">        behavior is not guaranteed.</span>
+<span class="sd">      name: Name to use when creating ops.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      TypeError: `attention_layer_size` is not None and (`attention_mechanism`</span>
+<span class="sd">        is a list but `attention_layer_size` is not; or vice versa).</span>
+<span class="sd">      ValueError: if `attention_layer_size` is not None, `attention_mechanism`</span>
+<span class="sd">        is a list, and its length does not match that of `attention_layer_size`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">AttentionWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">_like_rnncell</span><span class="p">(</span><span class="n">cell</span><span class="p">):</span>  <span class="c1"># pylint: disable=protected-access</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+          <span class="s2">&quot;cell must be an RNNCell, saw type: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">attention_mechanisms</span> <span class="o">=</span> <span class="n">attention_mechanism</span>
+      <span class="k">for</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="n">attention_mechanisms</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,</span> <span class="n">AttentionMechanism</span><span class="p">):</span>
+          <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+              <span class="s2">&quot;attention_mechanism must contain only instances of &quot;</span>
+              <span class="s2">&quot;AttentionMechanism, saw type: </span><span class="si">%s</span><span class="s2">&quot;</span>
+              <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,</span> <span class="n">AttentionMechanism</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;attention_mechanism must be an AttentionMechanism or list of &quot;</span>
+            <span class="s2">&quot;multiple AttentionMechanism instances, saw type: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+      <span class="n">attention_mechanisms</span> <span class="o">=</span> <span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,)</span>
+
+    <span class="k">if</span> <span class="n">cell_input_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">cell_input_fn</span> <span class="o">=</span> <span class="p">(</span>
+          <span class="k">lambda</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">attention</span><span class="p">:</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">inputs</span><span class="p">,</span> <span class="n">attention</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="n">callable</span><span class="p">(</span><span class="n">cell_input_fn</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+            <span class="s2">&quot;cell_input_fn must be callable, saw type: </span><span class="si">%s</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">cell_input_fn</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">attention_layer_size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">attention_layer_sizes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+          <span class="n">attention_layer_size</span>
+          <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_layer_size</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">))</span>
+          <span class="k">else</span> <span class="p">(</span><span class="n">attention_layer_size</span><span class="p">,))</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_layer_sizes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_mechanisms</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;If provided, attention_layer_size must contain exactly one &quot;</span>
+            <span class="s2">&quot;integer per attention_mechanism, saw: </span><span class="si">%d</span><span class="s2"> vs </span><span class="si">%d</span><span class="s2">&quot;</span>
+            <span class="o">%</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">attention_layer_sizes</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_mechanisms</span><span class="p">)))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layers</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
+          <span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+              <span class="n">attention_layer_size</span><span class="p">,</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;attention_layer&quot;</span><span class="p">,</span>
+              <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">attention_mechanisms</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">attention_layer_size</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">attention_layer_sizes</span><span class="p">))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layer_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">attention_layer_sizes</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layers</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layer_size</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span>
+          <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+          <span class="k">for</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="n">attention_mechanisms</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span> <span class="o">=</span> <span class="n">cell</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span> <span class="o">=</span> <span class="n">attention_mechanisms</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_cell_input_fn</span> <span class="o">=</span> <span class="n">cell_input_fn</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_output_attention</span> <span class="o">=</span> <span class="n">output_attention</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_history</span> <span class="o">=</span> <span class="n">alignment_history</span>
+    <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;AttentionWrapperInit&quot;</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">initial_cell_state</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_initial_cell_state</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">final_state_tensor</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">flatten</span><span class="p">(</span><span class="n">initial_cell_state</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">state_batch_size</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">final_state_tensor</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span>
+            <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">final_state_tensor</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;When constructing AttentionWrapper </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_name</span> <span class="o">+</span>
+            <span class="s2">&quot;Non-matching batch sizes between the memory &quot;</span>
+            <span class="s2">&quot;(encoder output) and initial_cell_state.  Are you using &quot;</span>
+            <span class="s2">&quot;the BeamSearchDecoder?  You may need to tile your initial state &quot;</span>
+            <span class="s2">&quot;via the tf.contrib.seq2seq.tile_batch function with argument &quot;</span>
+            <span class="s2">&quot;multiple=beam_width.&quot;</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size_checks</span><span class="p">(</span><span class="n">state_batch_size</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_initial_cell_state</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+              <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;check_initial_cell_state&quot;</span><span class="p">),</span>
+              <span class="n">initial_cell_state</span><span class="p">)</span></div>
+
+  <span class="k">def</span> <span class="nf">_batch_size_checks</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">error_message</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">check_ops</span><span class="o">.</span><span class="n">assert_equal</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span>
+                                   <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span>
+                                   <span class="n">message</span><span class="o">=</span><span class="n">error_message</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">]</span>
+
+<div class="viewcode-block" id="AttentionWrapper._item_or_tuple"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapper._item_or_tuple">[docs]</a>  <span class="k">def</span> <span class="nf">_item_or_tuple</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns `seq` as tuple or the singular element.</span>
+
+<span class="sd">    Which is returned is determined by how the AttentionMechanism(s) were passed</span>
+<span class="sd">    to the constructor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      seq: A non-empty sequence of items or generator.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">       Either the values in the sequence as a tuple if AttentionMechanism(s)</span>
+<span class="sd">       were passed to the constructor as a sequence or the singular element.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">t</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">seq</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">t</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attention</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layer_size</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">output_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">state_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The `state_size` property of `AttentionWrapper`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      An `AttentionWrapperState` tuple containing shapes used by this object.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">AttentionWrapperState</span><span class="p">(</span>
+        <span class="n">cell_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">state_size</span><span class="p">,</span>
+        <span class="n">time</span><span class="o">=</span><span class="n">tensor_shape</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([]),</span>
+        <span class="n">attention</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_attention_layer_size</span><span class="p">,</span>
+        <span class="n">alignments</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">alignments_size</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">),</span>
+        <span class="n">attention_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+            <span class="n">a</span><span class="o">.</span><span class="n">state_size</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">),</span>
+        <span class="n">alignment_history</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+            <span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">))</span>  <span class="c1"># sometimes a TensorArray</span>
+
+<div class="viewcode-block" id="AttentionWrapper.zero_state"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapper.zero_state">[docs]</a>  <span class="k">def</span> <span class="nf">zero_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return an initial (zero) state tuple for this `AttentionWrapper`.</span>
+
+<span class="sd">    **NOTE** Please see the initializer documentation for details of how</span>
+<span class="sd">    to call `zero_state` if using an `AttentionWrapper` with a</span>
+<span class="sd">    `BeamSearchDecoder`.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      batch_size: `0D` integer tensor: the batch size.</span>
+<span class="sd">      dtype: The internal state data type.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      An `AttentionWrapperState` tuple containing zeroed out tensors and,</span>
+<span class="sd">      possibly, empty `TensorArray` objects.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: (or, possibly at runtime, InvalidArgument), if</span>
+<span class="sd">        `batch_size` does not match the output size of the encoder passed</span>
+<span class="sd">        to the wrapper object at initialization time.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span> <span class="o">+</span> <span class="s2">&quot;ZeroState&quot;</span><span class="p">,</span> <span class="n">values</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">]):</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_cell_state</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">cell_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_initial_cell_state</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">cell_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+      <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
+          <span class="s2">&quot;When calling zero_state of AttentionWrapper </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">_base_name</span> <span class="o">+</span>
+          <span class="s2">&quot;Non-matching batch sizes between the memory &quot;</span>
+          <span class="s2">&quot;(encoder output) and the requested batch size.  Are you using &quot;</span>
+          <span class="s2">&quot;the BeamSearchDecoder?  If so, make sure your encoder output has &quot;</span>
+          <span class="s2">&quot;been tiled to beam_width via tf.contrib.seq2seq.tile_batch, and &quot;</span>
+          <span class="s2">&quot;the batch_size= argument passed to zero_state is &quot;</span>
+          <span class="s2">&quot;batch_size * beam_width.&quot;</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size_checks</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)):</span>
+        <span class="n">cell_state</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;checked_cell_state&quot;</span><span class="p">),</span>
+            <span class="n">cell_state</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">AttentionWrapperState</span><span class="p">(</span>
+          <span class="n">cell_state</span><span class="o">=</span><span class="n">cell_state</span><span class="p">,</span>
+          <span class="n">time</span><span class="o">=</span><span class="n">array_ops</span><span class="o">.</span><span class="n">zeros</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+          <span class="n">attention</span><span class="o">=</span><span class="n">_zero_state_tensors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attention_layer_size</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>
+                                        <span class="n">dtype</span><span class="p">),</span>
+          <span class="n">alignments</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+              <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">initial_alignments</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+              <span class="k">for</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">),</span>
+          <span class="n">attention_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+              <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">initial_state</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+              <span class="k">for</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">),</span>
+          <span class="n">alignment_history</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span>
+              <span class="n">tensor_array_ops</span><span class="o">.</span><span class="n">TensorArray</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                           <span class="n">dynamic_size</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+              <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_history</span> <span class="k">else</span> <span class="p">()</span>
+              <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="AttentionWrapper.call"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.parts.html#open_seq2seq.parts.attention_wrapper.AttentionWrapper.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a step of attention-wrapped RNN.</span>
+
+<span class="sd">    - Step 1: Mix the `inputs` and previous step&#39;s `attention` output via</span>
+<span class="sd">      `cell_input_fn`.</span>
+<span class="sd">    - Step 2: Call the wrapped `cell` with this input and its previous state.</span>
+<span class="sd">    - Step 3: Score the cell&#39;s output with `attention_mechanism`.</span>
+<span class="sd">    - Step 4: Calculate the alignments by passing the score through the</span>
+<span class="sd">      `normalizer`.</span>
+<span class="sd">    - Step 5: Calculate the context vector as the inner product between the</span>
+<span class="sd">      alignments and the attention_mechanism&#39;s values (memory).</span>
+<span class="sd">    - Step 6: Calculate the attention output by concatenating the cell output</span>
+<span class="sd">      and context through the attention layer (a linear layer with</span>
+<span class="sd">      `attention_layer_size` outputs).</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      inputs: (Possibly nested tuple of) Tensor, the input at this time step.</span>
+<span class="sd">      state: An instance of `AttentionWrapperState` containing</span>
+<span class="sd">        tensors from the previous time step.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      A tuple `(attention_or_cell_output, next_state)`, where:</span>
+
+<span class="sd">      - `attention_or_cell_output` depending on `output_attention`.</span>
+<span class="sd">      - `next_state` is an instance of `AttentionWrapperState`</span>
+<span class="sd">         containing the state calculated at this time step.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      TypeError: If `state` is not an instance of `AttentionWrapperState`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">AttentionWrapperState</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Expected state to be instance of AttentionWrapperState. &quot;</span>
+                      <span class="s2">&quot;Received type </span><span class="si">%s</span><span class="s2"> instead.&quot;</span>  <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">state</span><span class="p">))</span>
+
+    <span class="c1"># Step 1: Calculate the true inputs to the cell based on the</span>
+    <span class="c1"># previous attention value.</span>
+    <span class="n">cell_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell_input_fn</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="o">.</span><span class="n">attention</span><span class="p">)</span>
+    <span class="n">cell_state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">cell_state</span>
+    <span class="n">cell_output</span><span class="p">,</span> <span class="n">next_cell_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span><span class="p">(</span><span class="n">cell_inputs</span><span class="p">,</span> <span class="n">cell_state</span><span class="p">)</span>
+
+    <span class="n">cell_batch_size</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">cell_output</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">cell_output</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">error_message</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;When applying AttentionWrapper </span><span class="si">%s</span><span class="s2">: &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span>
+        <span class="s2">&quot;Non-matching batch sizes between the memory &quot;</span>
+        <span class="s2">&quot;(encoder output) and the query (decoder output).  Are you using &quot;</span>
+        <span class="s2">&quot;the BeamSearchDecoder?  You may need to tile your memory input via &quot;</span>
+        <span class="s2">&quot;the tf.contrib.seq2seq.tile_batch function with argument &quot;</span>
+        <span class="s2">&quot;multiple=beam_width.&quot;</span><span class="p">)</span>
+    <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size_checks</span><span class="p">(</span><span class="n">cell_batch_size</span><span class="p">,</span> <span class="n">error_message</span><span class="p">)):</span>
+      <span class="n">cell_output</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span>
+          <span class="n">cell_output</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;checked_cell_output&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi</span><span class="p">:</span>
+      <span class="n">previous_attention_state</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">attention_state</span>
+      <span class="n">previous_alignment_history</span> <span class="o">=</span> <span class="n">state</span><span class="o">.</span><span class="n">alignment_history</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">previous_attention_state</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">attention_state</span><span class="p">]</span>
+      <span class="n">previous_alignment_history</span> <span class="o">=</span> <span class="p">[</span><span class="n">state</span><span class="o">.</span><span class="n">alignment_history</span><span class="p">]</span>
+
+    <span class="n">all_alignments</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_attentions</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">all_attention_states</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">maybe_all_histories</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">attention_mechanism</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_attention_mechanisms</span><span class="p">):</span>
+      <span class="n">attention</span><span class="p">,</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_attention_state</span> <span class="o">=</span> <span class="n">_compute_attention</span><span class="p">(</span>
+          <span class="n">attention_mechanism</span><span class="p">,</span> <span class="n">cell_output</span><span class="p">,</span> <span class="n">previous_attention_state</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layers</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_attention_layers</span> <span class="k">else</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="n">alignment_history</span> <span class="o">=</span> <span class="n">previous_alignment_history</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
+          <span class="n">state</span><span class="o">.</span><span class="n">time</span><span class="p">,</span> <span class="n">alignments</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_alignment_history</span> <span class="k">else</span> <span class="p">()</span>
+
+      <span class="n">all_attention_states</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">next_attention_state</span><span class="p">)</span>
+      <span class="n">all_alignments</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alignments</span><span class="p">)</span>
+      <span class="n">all_attentions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attention</span><span class="p">)</span>
+      <span class="n">maybe_all_histories</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">alignment_history</span><span class="p">)</span>
+
+    <span class="n">attention</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">all_attentions</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">next_state</span> <span class="o">=</span> <span class="n">AttentionWrapperState</span><span class="p">(</span>
+        <span class="n">time</span><span class="o">=</span><span class="n">state</span><span class="o">.</span><span class="n">time</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">cell_state</span><span class="o">=</span><span class="n">next_cell_state</span><span class="p">,</span>
+        <span class="n">attention</span><span class="o">=</span><span class="n">attention</span><span class="p">,</span>
+        <span class="n">attention_state</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span><span class="n">all_attention_states</span><span class="p">),</span>
+        <span class="n">alignments</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span><span class="n">all_alignments</span><span class="p">),</span>
+        <span class="n">alignment_history</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_item_or_tuple</span><span class="p">(</span><span class="n">maybe_all_histories</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_attention</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">attention</span><span class="p">,</span> <span class="n">next_state</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">cell_output</span><span class="p">,</span> <span class="n">next_state</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

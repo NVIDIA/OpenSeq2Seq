@@ -1,0 +1,491 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.data.text2text_test &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../extending.html">Adding new models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">open_seq2seq</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>open_seq2seq.data.text2text_test</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for open_seq2seq.data.text2text_test</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="kn">from</span> <span class="nn">.text2text</span> <span class="k">import</span> <span class="n">ParallelDataInRamInputLayer</span><span class="p">,</span> <span class="n">ParallelTextDataLayer</span>
+<span class="kn">from</span> <span class="nn">.data_layer</span> <span class="k">import</span> <span class="n">MultiGPUWrapper</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.test_utils.create_reversed_examples</span> <span class="k">import</span> <span class="n">create_data</span><span class="p">,</span> \
+                                                             <span class="n">remove_data</span>
+
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests">[docs]</a><span class="k">class</span> <span class="nc">ParallelDataInRamInputLayerTests</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.setUp"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.setUp">[docs]</a>  <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">create_data</span><span class="p">()</span>
+    <span class="c1"># defining some general parameters for all tests</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;src_vocab_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/vocab/source.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;tgt_vocab_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/vocab/target.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;source_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/train/source.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;target_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/train/target.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+      <span class="s1">&#39;delimiter&#39;</span><span class="p">:</span> <span class="s2">&quot; &quot;</span><span class="p">,</span>
+    <span class="p">}</span></div>
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.tearDown"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.tearDown">[docs]</a>  <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">remove_data</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.test_load_toy_word_based_data"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.test_load_toy_word_based_data">[docs]</a>  <span class="k">def</span> <span class="nf">test_load_toy_word_based_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+      <span class="s1">&#39;bucket_src&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+      <span class="s1">&#39;bucket_tgt&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+    <span class="p">})</span>
+    <span class="n">num_gpus</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">dl</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span>
+      <span class="n">ParallelDataInRamInputLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">),</span>
+      <span class="n">num_gpus</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_gpus</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_seq2idx&#39;</span><span class="p">],</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_seq2idx&#39;</span><span class="p">],</span>
+      <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Toy source and target vocabs should be the same&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+      <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Error in forming idx2seq for Toy example&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="n">dl</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">():</span>
+      <span class="c1"># this is supposed to reuse the same session</span>
+      <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_session</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">len_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">(),</span> <span class="n">feed_dict</span><span class="p">)</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">num_gpus</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.test_nmt_data_layer_bucket_sizer"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.test_nmt_data_layer_bucket_sizer">[docs]</a>  <span class="k">def</span> <span class="nf">test_nmt_data_layer_bucket_sizer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">16</span><span class="p">,</span>
+      <span class="s1">&#39;bucket_src&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">20</span><span class="p">,</span> <span class="mi">50</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+      <span class="s1">&#39;bucket_tgt&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">10</span><span class="p">,</span> <span class="mi">15</span><span class="p">,</span> <span class="mi">30</span><span class="p">,</span> <span class="mi">100</span><span class="p">],</span>
+    <span class="p">})</span>
+    <span class="n">num_gpus</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">dl</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span>
+      <span class="n">ParallelDataInRamInputLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">),</span>
+      <span class="n">num_gpus</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">11</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">determine_bucket</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">determine_bucket</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]),</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">21</span><span class="p">,</span> <span class="mi">51</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">determine_bucket</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]),</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">51</span><span class="p">,</span> <span class="mi">101</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">determine_bucket</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]),</span> <span class="mi">3</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">determine_bucket</span><span class="p">(</span><span class="mi">310</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]),</span>
+      <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">OUT_OF_BUCKET</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">bucket_id</span> <span class="ow">in</span> <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_sizes</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_sizes</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">],</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_sizes</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">],</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_tgt_example</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+      <span class="p">)</span></div>
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.check_one_epoch"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.check_one_epoch">[docs]</a>  <span class="k">def</span> <span class="nf">check_one_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dl</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">):</span>
+    <span class="k">for</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="n">dl</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">():</span>
+      <span class="c1"># this is supposed to reuse the same session</span>
+      <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_session</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">len_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">(),</span> <span class="n">feed_dict</span><span class="p">)</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">num_gpus</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)):</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayerTests.test_load_toy_word_based_data_dist"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelDataInRamInputLayerTests.test_load_toy_word_based_data_dist">[docs]</a>  <span class="k">def</span> <span class="nf">test_load_toy_word_based_data_dist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="mi">4</span><span class="p">,</span>
+      <span class="s1">&#39;bucket_src&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">],</span>
+      <span class="s1">&#39;bucket_tgt&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">100</span><span class="p">],</span>
+    <span class="p">})</span>
+
+    <span class="n">num_workers</span> <span class="o">=</span> <span class="mi">13</span>
+    <span class="n">num_gpus</span> <span class="o">=</span> <span class="mi">2</span>
+
+    <span class="n">dl_reg</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span>
+      <span class="n">ParallelDataInRamInputLayer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">),</span>
+      <span class="n">num_gpus</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">dls_hvd</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">ParallelDataInRamInputLayer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+      <span class="p">)</span>
+    <span class="p">]</span>
+    <span class="k">for</span> <span class="n">ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_workers</span><span class="p">):</span>
+      <span class="n">dls_hvd</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">ParallelDataInRamInputLayer</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span>
+        <span class="n">worker_id</span><span class="o">=</span><span class="n">ind</span><span class="p">,</span>
+      <span class="p">))</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">dl_reg</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+                     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">num_gpus</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">dl_reg</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_seq2idx&#39;</span><span class="p">],</span>
+      <span class="n">dl_reg</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_seq2idx&#39;</span><span class="p">],</span>
+      <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Toy source and target vocabs should be the same&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="n">dl_reg</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+      <span class="n">dl_reg</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+      <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Error in forming idx2seq for Toy example&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+      <span class="nb">len</span><span class="p">(</span><span class="n">dl_reg</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+      <span class="nb">len</span><span class="p">(</span><span class="n">dl_reg</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_tgt_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl_reg</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">check_one_epoch</span><span class="p">(</span><span class="n">dl_reg</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">q</span><span class="p">,</span> <span class="n">dl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">dls_hvd</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+                       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_seq2idx&#39;</span><span class="p">],</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_seq2idx&#39;</span><span class="p">],</span>
+        <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Toy source and target vocabs should be the same&quot;</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">dl</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">msg</span><span class="o">=</span><span class="s2">&quot;Error in forming idx2seq for Toy example&quot;</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">_bucket_id_to_tgt_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertNotEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">check_one_epoch</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">)</span>
+
+    <span class="n">total</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dl_reg</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">total</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">dls_hvd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+    <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">dl</span> <span class="ow">in</span> <span class="n">dls_hvd</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
+      <span class="n">cnt</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">_bucket_id_to_src_example</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;total size:&#39;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">total</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">cnt</span><span class="p">,</span> <span class="n">total</span><span class="p">)</span></div></div>
+
+<div class="viewcode-block" id="ParallelTextDataLayerTests"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests">[docs]</a><span class="k">class</span> <span class="nc">ParallelTextDataLayerTests</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">TestCase</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelTextDataLayerTests.setUp"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests.setUp">[docs]</a>  <span class="k">def</span> <span class="nf">setUp</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">create_data</span><span class="p">()</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;src_vocab_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/vocab/source.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;tgt_vocab_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/vocab/target.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;source_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/train/source.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;target_file&#39;</span><span class="p">:</span> <span class="s2">&quot;./toy_data/train/target.txt&quot;</span><span class="p">,</span>
+      <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span> <span class="kc">True</span><span class="p">,</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="n">batch_size</span><span class="p">,</span>
+      <span class="s1">&#39;max_length&#39;</span><span class="p">:</span> <span class="mi">56</span><span class="p">,</span>
+      <span class="s1">&#39;repeat&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span>
+      <span class="s1">&#39;delimiter&#39;</span><span class="p">:</span> <span class="s1">&#39; &#39;</span><span class="p">,</span>
+      <span class="s1">&#39;map_parallel_calls&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="s1">&#39;prefetch_buffer_size&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="p">}</span></div>
+<div class="viewcode-block" id="ParallelTextDataLayerTests.tearDown"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests.tearDown">[docs]</a>  <span class="k">def</span> <span class="nf">tearDown</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">remove_data</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="ParallelTextDataLayerTests.test_init_test4"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests.test_init_test4">[docs]</a>  <span class="k">def</span> <span class="nf">test_init_test4</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">dl</span> <span class="o">=</span> <span class="n">ParallelTextDataLayer</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">))</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_session</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+      <span class="n">et</span><span class="o">=</span><span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">())</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">et</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ParallelTextDataLayerTests.test_init_test2"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests.test_init_test2">[docs]</a>  <span class="k">def</span> <span class="nf">test_init_test2</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span> <span class="c1"># in this case we do not yield targets</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># in this case we do not yield targets</span>
+    <span class="n">dl</span> <span class="o">=</span> <span class="n">ParallelTextDataLayer</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">))</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_session</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+      <span class="n">et</span><span class="o">=</span><span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">())</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">et</span><span class="p">),</span> <span class="mi">2</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertLessEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="ParallelTextDataLayerTests.test_pad8"><a class="viewcode-back" href="../../../api-docs/open_seq2seq.data.html#open_seq2seq.data.text2text_test.ParallelTextDataLayerTests.test_pad8">[docs]</a>  <span class="k">def</span> <span class="nf">test_pad8</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># in this case we do not yield targets</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;pad_lengths_to_eight&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">dl</span> <span class="o">=</span> <span class="n">ParallelTextDataLayer</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">))</span>
+    <span class="nb">print</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">))</span>
+    <span class="k">with</span> <span class="bp">self</span><span class="o">.</span><span class="n">test_session</span><span class="p">(</span><span class="n">use_gpu</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
+      <span class="n">et</span><span class="o">=</span><span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">dl</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">())</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">et</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertTrue</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">assertEqual</span><span class="p">(</span><span class="n">et</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span></div></div>
+
+<span class="k">if</span> <span class="vm">__name__</span> <span class="o">==</span> <span class="s1">&#39;__main__&#39;</span><span class="p">:</span>
+  <span class="n">tf</span><span class="o">.</span><span class="n">test</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

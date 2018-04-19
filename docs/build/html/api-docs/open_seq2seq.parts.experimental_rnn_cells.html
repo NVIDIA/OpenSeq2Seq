@@ -1,0 +1,617 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.parts.experimental_rnn_cells package &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="open_seq2seq.test_utils package" href="open_seq2seq.test_utils.html" />
+    <link rel="prev" title="open_seq2seq.parts package" href="open_seq2seq.parts.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending.html">Adding new models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">open_seq2seq</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="open_seq2seq.html">open_seq2seq package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="open_seq2seq.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.data.html">open_seq2seq.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.decoders.html">open_seq2seq.decoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.encoders.html">open_seq2seq.encoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.losses.html">open_seq2seq.losses package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.models.html">open_seq2seq.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.optimizers.html">open_seq2seq.optimizers package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="open_seq2seq.parts.html">open_seq2seq.parts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.test_utils.html">open_seq2seq.test_utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.training.html">open_seq2seq.training package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq.utils">open_seq2seq.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">open_seq2seq</a> &raquo;</li>
+        
+          <li><a href="open_seq2seq.html">open_seq2seq package</a> &raquo;</li>
+        
+          <li><a href="open_seq2seq.parts.html">open_seq2seq.parts package</a> &raquo;</li>
+        
+      <li>open_seq2seq.parts.experimental_rnn_cells package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/open_seq2seq.parts.experimental_rnn_cells.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="open-seq2seq-parts-experimental-rnn-cells-package">
+<h1>open_seq2seq.parts.experimental_rnn_cells package<a class="headerlink" href="#open-seq2seq-parts-experimental-rnn-cells-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-open_seq2seq.parts.experimental_rnn_cells.flstm">
+<span id="open-seq2seq-parts-experimental-rnn-cells-flstm-module"></span><h2>open_seq2seq.parts.experimental_rnn_cells.flstm module<a class="headerlink" href="#module-open_seq2seq.parts.experimental_rnn_cells.flstm" title="Permalink to this headline">¶</a></h2>
+<p>Module for constructing RNN Cells.</p>
+<dl class="class">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell">
+<em class="property">class </em><code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.flstm.</code><code class="descname">FLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>fact_size</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/flstm.html#FLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<p>Group LSTM cell (G-LSTM).
+The implementation is based on:</p>
+<blockquote>
+<div><a class="reference external" href="https://arxiv.org/abs/1703.10722">https://arxiv.org/abs/1703.10722</a></div></blockquote>
+<p>O. Kuchaiev and B. Ginsburg
+&#8220;Factorization Tricks for LSTM Networks&#8221;, ICLR 2017 workshop.</p>
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>fact_size</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/flstm.html#FLSTMCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the parameters of G-LSTM cell.
+:param num_units: int, The number of units in the G-LSTM cell
+:param initializer: (optional) The initializer to use for the weight and</p>
+<blockquote>
+<div>projection matrices.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>num_proj</strong> &#8211; (optional) int, The output dimensionality for the projection
+matrices.  If None, no projection is performed.</li>
+<li><strong>forget_bias</strong> &#8211; Biases of the forget gate are initialized by default to 1
+in order to reduce the scale of forgetting at the beginning of
+the training.</li>
+<li><strong>activation</strong> &#8211; Activation function of the inner states.</li>
+<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+in an existing scope.  If not <cite>True</cite>, and the existing scope already
+has the given variables, an error is raised.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<cite>number_of_groups</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/flstm.html#FLSTMCell.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.call" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.flstm.FLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.parts.experimental_rnn_cells.glstm">
+<span id="open-seq2seq-parts-experimental-rnn-cells-glstm-module"></span><h2>open_seq2seq.parts.experimental_rnn_cells.glstm module<a class="headerlink" href="#module-open_seq2seq.parts.experimental_rnn_cells.glstm" title="Permalink to this headline">¶</a></h2>
+<p>Module for constructing RNN Cells.</p>
+<dl class="class">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell">
+<em class="property">class </em><code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.glstm.</code><code class="descname">GLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>number_of_groups=1</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/glstm.html#GLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<p>Group LSTM cell (G-LSTM).
+The implementation is based on:</p>
+<blockquote>
+<div><a class="reference external" href="https://arxiv.org/abs/1703.10722">https://arxiv.org/abs/1703.10722</a></div></blockquote>
+<p>O. Kuchaiev and B. Ginsburg
+&#8220;Factorization Tricks for LSTM Networks&#8221;, ICLR 2017 workshop.</p>
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>number_of_groups=1</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/glstm.html#GLSTMCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the parameters of G-LSTM cell.
+:param num_units: int, The number of units in the G-LSTM cell
+:param initializer: (optional) The initializer to use for the weight and</p>
+<blockquote>
+<div>projection matrices.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>num_proj</strong> &#8211; (optional) int, The output dimensionality for the projection
+matrices.  If None, no projection is performed.</li>
+<li><strong>number_of_groups</strong> &#8211; (optional) int, number of groups to use.
+If <cite>number_of_groups</cite> is 1, then it should be equivalent to LSTM cell</li>
+<li><strong>forget_bias</strong> &#8211; Biases of the forget gate are initialized by default to 1
+in order to reduce the scale of forgetting at the beginning of
+the training.</li>
+<li><strong>activation</strong> &#8211; Activation function of the inner states.</li>
+<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+in an existing scope.  If not <cite>True</cite>, and the existing scope already
+has the given variables, an error is raised.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<cite>number_of_groups</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell._get_input_for_group">
+<code class="descname">_get_input_for_group</code><span class="sig-paren">(</span><em>inputs</em>, <em>group_id</em>, <em>group_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/glstm.html#GLSTMCell._get_input_for_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell._get_input_for_group" title="Permalink to this definition">¶</a></dt>
+<dd><p>Slices inputs into groups to prepare for processing by cell&#8217;s groups
+:param inputs: cell input or it&#8217;s previous state,</p>
+<blockquote>
+<div>a Tensor, 2D, [batch x num_units]</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>group_id</strong> &#8211; group id, a Scalar, for which to prepare input</li>
+<li><strong>group_size</strong> &#8211; size of the group</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">subset of inputs corresponding to group &#8220;group_id&#8221;,
+a Tensor, 2D, [batch x num_units/number_of_groups]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/glstm.html#GLSTMCell.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run one step of G-LSTM.
+:param inputs: input Tensor, 2D, [batch x num_units].
+:param state: this must be a tuple of state Tensors, both <cite>2-D</cite>,
+:param with column sizes <cite>c_state</cite> and <cite>m_state</cite>.:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body"><ul>
+<li>A <cite>2-D, [batch x output_dim]</cite>, Tensor representing the output of the
+G-LSTM after reading <cite>inputs</cite> when previous state was <cite>state</cite>.
+Here output_dim is:<blockquote>
+<div>num_proj if num_proj was set,
+num_units otherwise.</div></blockquote>
+</li>
+<li>LSTMStateTuple representing the new state of G-LSTM cell
+after reading <cite>inputs</cite> when the previous state was <cite>state</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">A tuple containing</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If input size cannot be inferred from inputs via
+static shape inference.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.glstm.GLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.parts.experimental_rnn_cells.gnmt">
+<span id="open-seq2seq-parts-experimental-rnn-cells-gnmt-module"></span><h2>open_seq2seq.parts.experimental_rnn_cells.gnmt module<a class="headerlink" href="#module-open_seq2seq.parts.experimental_rnn_cells.gnmt" title="Permalink to this headline">¶</a></h2>
+<p>GNMT attention sequence-to-sequence model with dynamic RNN support.</p>
+<dl class="class">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell">
+<em class="property">class </em><code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.gnmt.</code><code class="descname">GNMTAttentionMultiCell</code><span class="sig-paren">(</span><em>attention_cell</em>, <em>cells</em>, <em>use_new_attention=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/gnmt.html#GNMTAttentionMultiCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.MultiRNNCell</span></code></p>
+<p>A MultiCell with GNMT attention style.</p>
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>attention_cell</em>, <em>cells</em>, <em>use_new_attention=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/gnmt.html#GNMTAttentionMultiCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a GNMTAttentionMultiCell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>attention_cell</strong> &#8211; An instance of AttentionWrapper.</li>
+<li><strong>cells</strong> &#8211; A list of RNNCell wrapped with AttentionInputWrapper.</li>
+<li><strong>use_new_attention</strong> &#8211; Whether to use the attention generated from current
+step bottom layer&#8217;s output. Default is False.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.gnmt.gnmt_residual_fn">
+<code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.gnmt.</code><code class="descname">gnmt_residual_fn</code><span class="sig-paren">(</span><em>inputs</em>, <em>outputs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/gnmt.html#gnmt_residual_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.gnmt.gnmt_residual_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Residual function that handles different inputs and outputs inner dims.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> &#8211; cell inputs, this is actual inputs concatenated with the attention
+vector.</li>
+<li><strong>outputs</strong> &#8211; cell outputs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">outputs + actual inputs</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.parts.experimental_rnn_cells.slstm">
+<span id="open-seq2seq-parts-experimental-rnn-cells-slstm-module"></span><h2>open_seq2seq.parts.experimental_rnn_cells.slstm module<a class="headerlink" href="#module-open_seq2seq.parts.experimental_rnn_cells.slstm" title="Permalink to this headline">¶</a></h2>
+<p>Implement <a class="reference external" href="https://arxiv.org/abs/1709.02755">https://arxiv.org/abs/1709.02755</a></p>
+<p>Copy from LSTM, and make it functionally correct with minimum code change</p>
+<dl class="class">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell">
+<em class="property">class </em><code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.slstm.</code><code class="descname">BasicSLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>forget_bias=1.0</em>, <em>state_is_tuple=True</em>, <em>activation=None</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/slstm.html#BasicSLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<p>Basic SLSTM recurrent network cell.</p>
+<p>The implementation is based on: <a class="reference external" href="https://arxiv.org/abs/1709.02755">https://arxiv.org/abs/1709.02755</a>.</p>
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>forget_bias=1.0</em>, <em>state_is_tuple=True</em>, <em>activation=None</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/slstm.html#BasicSLSTMCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the basic SLSTM cell.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> &#8211; int, The number of units in the SLSTM cell.</li>
+<li><strong>forget_bias</strong> &#8211; float, The bias added to forget gates (see above).
+Must set to <cite>0.0</cite> manually when restoring from CudnnLSTM-trained
+checkpoints.</li>
+<li><strong>state_is_tuple</strong> &#8211; If True, accepted and returned states are 2-tuples of
+the <cite>c_state</cite> and <cite>m_state</cite>.  If False, they are concatenated
+along the column axis.  The latter behavior will soon be deprecated.</li>
+<li><strong>activation</strong> &#8211; Activation function of the inner states.  Default: <cite>tanh</cite>.</li>
+<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+in an existing scope.  If not <cite>True</cite>, and the existing scope already has
+the given variables, an error is raised.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/slstm.html#BasicSLSTMCell.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>Long short-term memory cell (LSTM).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> &#8211; <cite>2-D</cite> tensor with shape <cite>[batch_size x input_size]</cite>.</li>
+<li><strong>state</strong> &#8211; An <cite>LSTMStateTuple</cite> of state tensors, each shaped
+<cite>[batch_size x self.state_size]</cite>, if <cite>state_is_tuple</cite> has been set to
+<cite>True</cite>.  Otherwise, a <cite>Tensor</cite> shaped
+<cite>[batch_size x 2 * self.state_size]</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
+<dt>A pair containing the new hidden state, and the new state (either a</dt>
+<dd><p class="first last"><cite>LSTMStateTuple</cite> or a concatenated state, depending on
+<cite>state_is_tuple</cite>).</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.parts.experimental_rnn_cells.slstm._linear">
+<code class="descclassname">open_seq2seq.parts.experimental_rnn_cells.slstm.</code><code class="descname">_linear</code><span class="sig-paren">(</span><em>args</em>, <em>output_size</em>, <em>bias</em>, <em>bias_initializer=None</em>, <em>kernel_initializer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/parts/experimental_rnn_cells/slstm.html#_linear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.parts.experimental_rnn_cells.slstm._linear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Linear map: sum_i(args[i] * W[i]), where W[i] is a variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> &#8211; a 2D Tensor or a list of 2D, batch x n, Tensors.</li>
+<li><strong>output_size</strong> &#8211; int, second dimension of W[i].</li>
+<li><strong>bias</strong> &#8211; boolean, whether to add a bias term or not.</li>
+<li><strong>bias_initializer</strong> &#8211; starting value to initialize the bias
+(default is all zeros).</li>
+<li><strong>kernel_initializer</strong> &#8211; starting value to initialize the weight.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A 2D Tensor with shape [batch x output_size] equal to
+sum_i(args[i] * W[i]), where W[i]s are newly created matrices.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if some of the arguments has unspecified or wrong shape.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.parts.experimental_rnn_cells">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-open_seq2seq.parts.experimental_rnn_cells" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="open_seq2seq.test_utils.html" class="btn btn-neutral float-right" title="open_seq2seq.test_utils package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="open_seq2seq.parts.html" class="btn btn-neutral" title="open_seq2seq.parts package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

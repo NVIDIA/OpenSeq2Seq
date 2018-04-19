@@ -1,0 +1,392 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq.training package &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="prev" title="open_seq2seq.test_utils package" href="open_seq2seq.test_utils.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending.html">Adding new models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">open_seq2seq</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="open_seq2seq.html">open_seq2seq package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="open_seq2seq.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.data.html">open_seq2seq.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.decoders.html">open_seq2seq.decoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.encoders.html">open_seq2seq.encoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.losses.html">open_seq2seq.losses package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.models.html">open_seq2seq.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.optimizers.html">open_seq2seq.optimizers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.html">open_seq2seq.parts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.test_utils.html">open_seq2seq.test_utils package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">open_seq2seq.training package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq.utils">open_seq2seq.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.html#module-open_seq2seq">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">open_seq2seq</a> &raquo;</li>
+        
+          <li><a href="open_seq2seq.html">open_seq2seq package</a> &raquo;</li>
+        
+      <li>open_seq2seq.training package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/open_seq2seq.training.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="open-seq2seq-training-package">
+<h1>open_seq2seq.training package<a class="headerlink" href="#open-seq2seq-training-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-open_seq2seq.training.funcs">
+<span id="open-seq2seq-training-funcs-module"></span><h2>open_seq2seq.training.funcs module<a class="headerlink" href="#module-open_seq2seq.training.funcs" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="open_seq2seq.training.funcs.evaluate">
+<code class="descclassname">open_seq2seq.training.funcs.</code><code class="descname">evaluate</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/funcs.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.funcs.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.training.funcs.get_batches_for_epoch">
+<code class="descclassname">open_seq2seq.training.funcs.</code><code class="descname">get_batches_for_epoch</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/funcs.html#get_batches_for_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.funcs.get_batches_for_epoch" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.training.funcs.infer">
+<code class="descclassname">open_seq2seq.training.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.funcs.infer" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.training.funcs.train">
+<code class="descclassname">open_seq2seq.training.funcs.</code><code class="descname">train</code><span class="sig-paren">(</span><em>config</em>, <em>train_model</em>, <em>eval_model=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/funcs.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.funcs.train" title="Permalink to this definition">¶</a></dt>
+<dd><p>Training Loop function
+:param config:
+:param train_model:
+:param eval_model:
+:param hvd:
+:return:</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.training.model_builders">
+<span id="open-seq2seq-training-model-builders-module"></span><h2>open_seq2seq.training.model_builders module<a class="headerlink" href="#module-open_seq2seq.training.model_builders" title="Permalink to this headline">¶</a></h2>
+<p>Helper functions to create models with various topologies</p>
+<dl class="function">
+<dt id="open_seq2seq.training.model_builders.create_encoder_decoder_loss_model">
+<code class="descclassname">open_seq2seq.training.model_builders.</code><code class="descname">create_encoder_decoder_loss_model</code><span class="sig-paren">(</span><em>config</em>, <em>mode</em>, <em>hvd</em>, <em>reuse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/model_builders.html#create_encoder_decoder_loss_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.model_builders.create_encoder_decoder_loss_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates Model Graph for Sequence to Sequence model with one Encoder,
+one Decoder and one Loss
+:param config: Model configuration
+:param mode: &#8220;train&#8221;, &#8220;train_eval&#8221; or &#8220;infer&#8221;
+:param hvd: Horovod instance
+:param reuse: Whether to reuse the variables
+:return: An instance of Seq2Seq class</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.training.model_builders.safe_fill_params">
+<code class="descclassname">open_seq2seq.training.model_builders.</code><code class="descname">safe_fill_params</code><span class="sig-paren">(</span><em>cfg_from</em>, <em>cfgs_to</em>, <em>pm_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/model_builders.html#safe_fill_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.model_builders.safe_fill_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.training.utils">
+<span id="open-seq2seq-training-utils-module"></span><h2>open_seq2seq.training.utils module<a class="headerlink" href="#module-open_seq2seq.training.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="open_seq2seq.training.utils.PrintLossAndTimeHook">
+<em class="property">class </em><code class="descclassname">open_seq2seq.training.utils.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>frequency</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that prints training samples and prediction from time to time</p>
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintLossAndTimeHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintLossAndTimeHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintLossAndTimeHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintLossAndTimeHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintLossAndTimeHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintLossAndTimeHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintLossAndTimeHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintLossAndTimeHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintLossAndTimeHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_seq2seq.training.utils.PrintSamplesHook">
+<em class="property">class </em><code class="descclassname">open_seq2seq.training.utils.</code><code class="descname">PrintSamplesHook</code><span class="sig-paren">(</span><em>frequency</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintSamplesHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintSamplesHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that prints training samples and prediction from time to time</p>
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintSamplesHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintSamplesHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintSamplesHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintSamplesHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintSamplesHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintSamplesHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.PrintSamplesHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#PrintSamplesHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.PrintSamplesHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="open_seq2seq.training.utils.RunEvaluationHook">
+<em class="property">class </em><code class="descclassname">open_seq2seq.training.utils.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>frequency</em>, <em>model</em>, <em>last_step=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<p>Session hook that runs evaluation on a validation set</p>
+<dl class="method">
+<dt id="open_seq2seq.training.utils.RunEvaluationHook.after_run">
+<code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#RunEvaluationHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.RunEvaluationHook.after_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.RunEvaluationHook.before_run">
+<code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#RunEvaluationHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.RunEvaluationHook.before_run" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="open_seq2seq.training.utils.RunEvaluationHook.begin">
+<code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#RunEvaluationHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.RunEvaluationHook.begin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.training.utils.log_summaries_from_dict">
+<code class="descclassname">open_seq2seq.training.utils.</code><code class="descname">log_summaries_from_dict</code><span class="sig-paren">(</span><em>dict_to_log</em>, <em>output_dir</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/training/utils.html#log_summaries_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.training.utils.log_summaries_from_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq.training">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-open_seq2seq.training" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="open_seq2seq.test_utils.html" class="btn btn-neutral" title="open_seq2seq.test_utils package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>

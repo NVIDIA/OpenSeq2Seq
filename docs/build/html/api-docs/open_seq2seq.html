@@ -1,0 +1,407 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>open_seq2seq package &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="open_seq2seq.data package" href="open_seq2seq.data.html" />
+    <link rel="prev" title="open_seq2seq" href="modules.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">OpenSeq2Seq</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../extending.html">Adding new models</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">open_seq2seq</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">open_seq2seq package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.data.html">open_seq2seq.data package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.decoders.html">open_seq2seq.decoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.encoders.html">open_seq2seq.encoders package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.losses.html">open_seq2seq.losses package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.models.html">open_seq2seq.models package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.optimizers.html">open_seq2seq.optimizers package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.html">open_seq2seq.parts package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.test_utils.html">open_seq2seq.test_utils package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.training.html">open_seq2seq.training package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-open_seq2seq.utils">open_seq2seq.utils module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-open_seq2seq">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">open_seq2seq</a> &raquo;</li>
+        
+      <li>open_seq2seq package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/open_seq2seq.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="open-seq2seq-package">
+<h1>open_seq2seq package<a class="headerlink" href="#open-seq2seq-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.data.html">open_seq2seq.data package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.data_layer">open_seq2seq.data.data_layer module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.speech2text">open_seq2seq.data.speech2text module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.speech2text_test">open_seq2seq.data.speech2text_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.speech_utils">open_seq2seq.data.speech_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.speech_utils_test">open_seq2seq.data.speech_utils_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.text2text">open_seq2seq.data.text2text module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data.text2text_test">open_seq2seq.data.text2text_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.data.html#module-open_seq2seq.data">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.decoders.html">open_seq2seq.decoders package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders.decoder">open_seq2seq.decoders.decoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders.fc_decoder">open_seq2seq.decoders.fc_decoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders.rnn_decoders">open_seq2seq.decoders.rnn_decoders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders.transformer_decoders">open_seq2seq.decoders.transformer_decoders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders.transformer_decoders_test">open_seq2seq.decoders.transformer_decoders_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.decoders.html#module-open_seq2seq.decoders">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.encoders.html">open_seq2seq.encoders package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#module-open_seq2seq.encoders.ds2_encoder">open_seq2seq.encoders.ds2_encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#module-open_seq2seq.encoders.encoder">open_seq2seq.encoders.encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#module-open_seq2seq.encoders.rnn_encoders">open_seq2seq.encoders.rnn_encoders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#module-open_seq2seq.encoders.transformer_encoders">open_seq2seq.encoders.transformer_encoders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.encoders.html#module-open_seq2seq.encoders">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.losses.html">open_seq2seq.losses package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#module-open_seq2seq.losses.ctc_loss">open_seq2seq.losses.ctc_loss module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#module-open_seq2seq.losses.loss">open_seq2seq.losses.loss module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#module-open_seq2seq.losses.sequence_loss">open_seq2seq.losses.sequence_loss module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#module-open_seq2seq.losses.sequence_loss_test">open_seq2seq.losses.sequence_loss_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.losses.html#module-open_seq2seq.losses">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.models.html">open_seq2seq.models package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.model">open_seq2seq.models.model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.seq2seq">open_seq2seq.models.seq2seq module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.speech2text">open_seq2seq.models.speech2text module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.speech2text_test">open_seq2seq.models.speech2text_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.text2text">open_seq2seq.models.text2text module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models.text2text_test">open_seq2seq.models.text2text_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.models.html#module-open_seq2seq.models">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.optimizers.html">open_seq2seq.optimizers package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers.automatic_loss_scaler">open_seq2seq.optimizers.automatic_loss_scaler module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers.lr_policies">open_seq2seq.optimizers.lr_policies module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers.mp_wrapper">open_seq2seq.optimizers.mp_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers.mp_wrapper_test">open_seq2seq.optimizers.mp_wrapper_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers.optimizers">open_seq2seq.optimizers.optimizers module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.optimizers.html#module-open_seq2seq.optimizers">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.parts.html">open_seq2seq.parts package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html">open_seq2seq.parts.experimental_rnn_cells package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#module-open_seq2seq.parts.experimental_rnn_cells.flstm">open_seq2seq.parts.experimental_rnn_cells.flstm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#module-open_seq2seq.parts.experimental_rnn_cells.glstm">open_seq2seq.parts.experimental_rnn_cells.glstm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#module-open_seq2seq.parts.experimental_rnn_cells.gnmt">open_seq2seq.parts.experimental_rnn_cells.gnmt module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#module-open_seq2seq.parts.experimental_rnn_cells.slstm">open_seq2seq.parts.experimental_rnn_cells.slstm module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="open_seq2seq.parts.experimental_rnn_cells.html#module-open_seq2seq.parts.experimental_rnn_cells">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.attention">open_seq2seq.parts.attention module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.attention_test">open_seq2seq.parts.attention_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.attention_wrapper">open_seq2seq.parts.attention_wrapper module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.common">open_seq2seq.parts.common module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.common_test">open_seq2seq.parts.common_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.t2t_timing_signal">open_seq2seq.parts.t2t_timing_signal module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts.utils">open_seq2seq.parts.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.parts.html#module-open_seq2seq.parts">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.test_utils.html">open_seq2seq.test_utils package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.test_utils.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.test_utils.html#module-open_seq2seq.test_utils.create_reversed_examples">open_seq2seq.test_utils.create_reversed_examples module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.test_utils.html#module-open_seq2seq.test_utils.test_speech_config">open_seq2seq.test_utils.test_speech_config module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.test_utils.html#module-open_seq2seq.test_utils">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="open_seq2seq.training.html">open_seq2seq.training package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.training.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.training.html#module-open_seq2seq.training.funcs">open_seq2seq.training.funcs module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.training.html#module-open_seq2seq.training.model_builders">open_seq2seq.training.model_builders module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.training.html#module-open_seq2seq.training.utils">open_seq2seq.training.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="open_seq2seq.training.html#module-open_seq2seq.training">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-open_seq2seq.utils">
+<span id="open-seq2seq-utils-module"></span><h2>open_seq2seq.utils module<a class="headerlink" href="#module-open_seq2seq.utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="open_seq2seq.utils.array_to_string">
+<code class="descclassname">open_seq2seq.utils.</code><code class="descname">array_to_string</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>delim=' '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/utils.html#array_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.utils.array_to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.utils.check_params">
+<code class="descclassname">open_seq2seq.utils.</code><code class="descname">check_params</code><span class="sig-paren">(</span><em>config</em>, <em>required_dict</em>, <em>optional_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/utils.html#check_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.utils.check_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.utils.deco_print">
+<code class="descclassname">open_seq2seq.utils.</code><code class="descname">deco_print</code><span class="sig-paren">(</span><em>line</em>, <em>offset=0</em>, <em>start='*** '</em>, <em>end='\n'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/utils.html#deco_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.utils.deco_print" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.utils.mask_nans">
+<code class="descclassname">open_seq2seq.utils.</code><code class="descname">mask_nans</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/utils.html#mask_nans"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.utils.mask_nans" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="open_seq2seq.utils.text_ids_to_string">
+<code class="descclassname">open_seq2seq.utils.</code><code class="descname">text_ids_to_string</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>S_ID</em>, <em>EOS_ID</em>, <em>PAD_ID</em>, <em>ignore_special=False</em>, <em>delim=' '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/open_seq2seq/utils.html#text_ids_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#open_seq2seq.utils.text_ids_to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>For _-to-text outputs this function takes a row with ids,
+target vocabulary and prints it as a human-readable string</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-open_seq2seq">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-open_seq2seq" title="Permalink to this headline">¶</a></h2>
+<p>This package provides multi-node, multi-GPU sequence to sequence learning</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="open_seq2seq.data.html" class="btn btn-neutral float-right" title="open_seq2seq.data package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="open_seq2seq" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #2ac13e;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+  </style>
+
+
+</body>
+</html>
