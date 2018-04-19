@@ -22,9 +22,9 @@ def log_summaries_from_dict(dict_to_log, output_dir, step):
 class PrintSamplesHook(tf.train.SessionRunHook):
   """Session hook that prints training samples and prediction from time to time
   """
-  def __init__(self, frequency, model):
+  def __init__(self, every_steps, model):
     super(PrintSamplesHook, self).__init__()
-    self._timer = tf.train.SecondOrStepTimer(every_steps=frequency)
+    self._timer = tf.train.SecondOrStepTimer(every_steps=every_steps)
     self._iter_count = 0
     self._global_step = None
     self._model = model
@@ -65,10 +65,10 @@ class PrintSamplesHook(tf.train.SessionRunHook):
 class PrintLossAndTimeHook(tf.train.SessionRunHook):
   """Session hook that prints training samples and prediction from time to time
   """
-  def __init__(self, frequency, model):
+  def __init__(self, every_steps, model):
     super(PrintLossAndTimeHook, self).__init__()
-    self._timer = tf.train.SecondOrStepTimer(every_steps=frequency)
-    self._frequency = frequency
+    self._timer = tf.train.SecondOrStepTimer(every_steps=every_steps)
+    self._every_steps = every_steps
     self._iter_count = 0
     self._global_step = None
     self._model = model
@@ -104,7 +104,7 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
     loss = results[0]
     deco_print("loss = {:.4f}".format(loss), start="", end=", ")
 
-    tm = (time.time() - self._last_time) / self._frequency
+    tm = (time.time() - self._last_time) / self._every_steps
     m, s = divmod(tm, 60)
     h, m = divmod(m, 60)
 
@@ -118,9 +118,9 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
 class RunEvaluationHook(tf.train.SessionRunHook):
   """Session hook that runs evaluation on a validation set
   """
-  def __init__(self, frequency, model, last_step=-1):
+  def __init__(self, every_steps, model, last_step=-1):
     super(RunEvaluationHook, self).__init__()
-    self._timer = tf.train.SecondOrStepTimer(every_steps=frequency)
+    self._timer = tf.train.SecondOrStepTimer(every_steps=every_steps)
     self._iter_count = 0
     self._global_step = None
     self._model = model

@@ -15,11 +15,11 @@ base_params = {
 
   "num_gpus": 1,
   "batch_size_per_gpu": 10,
-  "summary_frequency": 10,
-  "print_loss_frequency": 10,
-  "print_samples_frequency": 20,
-  "eval_frequency": 50,
-  "checkpoint_frequency": 50,
+  "save_summaries_steps": 10,
+  "print_loss_steps": 10,
+  "print_samples_steps": 20,
+  "eval_steps": 50,
+  "save_checkpoint_steps": 50,
   "logdir": "tmp_log_folder",
 
   "base_model": Speech2Text,

@@ -257,7 +257,7 @@ class Model:
   def maybe_print_logs(self, input_values, output_values):
     """This function can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
-    predictions. This function will be called every ``print_samples_frequency``
+    predictions. This function will be called every ``print_samples_steps``
     (config parameter) iterations and input/output values will be populated
     automatically by calling ``sess.run`` on corresponding tensors. Note that
     this function is not abstract and does not have to be implemented in
@@ -282,7 +282,7 @@ class Model:
     word-error-rate on the validation data. For text-to-text models, this
     function can compute BLEU score. Look at the corresponding derived classes
     for examples of this. This function will be called every
-    ``eval_frequency`` (config parameter) iterations and
+    ``eval_steps`` (config parameter) iterations and
     input/output values will be populated automatically by calling ``sess.run``
     on corresponding tensors for each batch (using evaluation model). Note that
     this function is not abstract and does not have to be implemented in

@@ -17,8 +17,8 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
   :param hvd:
   :return:
   """
-  if eval_model is not None and 'eval_frequency' not in config:
-    raise ValueError("eval_frequency parameter has to be specified "
+  if eval_model is not None and 'eval_steps' not in config:
+    raise ValueError("eval_steps parameter has to be specified "
                      "if eval_model is provided")
   if hvd:
     master_worker = hvd.rank() == 0
@@ -42,21 +42,21 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
     checkpoint_dir = None
 
   if master_worker:
-    if config['checkpoint_frequency'] is not None:
+    if config['save_checkpoint_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(tf.train.CheckpointSaverHook(
-        checkpoint_dir, save_steps=config['checkpoint_frequency'])
+        checkpoint_dir, save_steps=config['save_checkpoint_steps'])
       )
-    if config['print_loss_frequency'] is not None:
+    if config['print_loss_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(PrintLossAndTimeHook(
-        frequency=config['print_loss_frequency'],
+        every_steps=config['print_loss_steps'],
         model=train_model,
       ))
-    if config['print_samples_frequency'] is not None:
+    if config['print_samples_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(PrintSamplesHook(
-        frequency=config['print_samples_frequency'],
+        every_steps=config['print_samples_steps'],
         model=train_model,
       ))
 
@@ -64,7 +64,7 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
     # noinspection PyTypeChecker
     hooks.append(
       RunEvaluationHook(
-        frequency=config['eval_frequency'],
+        every_steps=config['eval_steps'],
         model=eval_model,
         last_step=train_model.last_step,
       ),
@@ -80,10 +80,10 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
   # starting training
   with tf.train.MonitoredTrainingSession(
     checkpoint_dir=checkpoint_dir,
-    save_summaries_steps=config['summary_frequency'],
+    save_summaries_steps=config['save_summaries_steps'],
     config=sess_config,
     save_checkpoint_secs=None,
-    log_step_count_steps=config['summary_frequency'],
+    log_step_count_steps=config['save_summaries_steps'],
     stop_grace_period_secs=300,
     hooks=hooks,
   ) as sess:
