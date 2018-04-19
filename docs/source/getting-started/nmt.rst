@@ -57,19 +57,19 @@ Execute the following script to get WMT data::
 This will take a while as a lot of data needs to be downloaded and pre-processed.
 After, this is is finished you can try training a "real" model very much like you did above for the toy task::
 
- python run.py --config_file=example_configs/text2text/en-de-gnmt-like-4GPUs.py --mode=train_eval
+ python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=train_eval
 
-Before you exectute this script, make sure that you've changed ``data_root`` inside ``en-de-gnmt-like-4GPUs.py`` to point to the correct WMT data location.
-This configuration will take a while to train on a 4-GPU system. If your GPUs have 16GB memory or more you should be OK. If not,
+Before you execute this script, make sure that you've changed ``data_root`` inside ``en-de-nmt-small.py`` to point to the correct WMT data location.
+This configuration will take a while to train on a single system. If your GPU does not have enough memory
 try reducing the ``batch_size_per_gpu`` parameter. Also, you might want to disable parallel evaluation by using ``--mode=train``.
-Make sure you've adjusted ``num_gpus`` parameter to the correct number of GPUs on your system.
+You can adjusted ``num_gpus`` parameter to train on more than one GPU if available.
 
 *************
 Run inference
 *************
 Once training is done, you can run inference::
 
-    python run.py --config_file=example_configs/text2text/en-de-gnmt-like-4GPUs.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt
+    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt
 Note that because BPE-based vocabularies were used during training, the results will contain BPE segmentation.
 
 *************************
@@ -77,12 +77,13 @@ Cleaning BPE segmentation
 *************************
 Before computing BLEU scores you need to remove BPE segmentation::
 
-  cat {file_with_BPE_segmentation.txt} | sed -r 's/(@@ )|(@@ ?$)//g' > {cleaned_file.txt}
+  cat file_with_BPE_segmentation.txt | sed -r 's/(@@ )|(@@ ?$)//g' > cleaned_file.txt
 
 *********************
 Computing BLEU scores
 *********************
 Run ```multi-blue.perl``` script on cleaned data::
 
-  ./multi-bleu.perl cleaned_newstest2015.tok.bpe.32000.en < cleaned_file.txt
+  ./multi-bleu.perl newstest2014.tok.de < cleaned_file.txt
 
+You should get a BLEU score above 20 for this model on newstest2014.tok.de.
