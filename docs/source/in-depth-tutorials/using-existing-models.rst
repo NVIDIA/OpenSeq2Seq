@@ -59,6 +59,11 @@ evaluation). The other parameters of the ``run.py`` script are the following:
   parameter works in all modes whether or not ``--benchmark`` parameter was
   specified.
 
+* ``--debug`` --- this enables TensorFlow debugging. To use it first run
+  ``tensorboard --logdir=. --debugger_port=6067`` and while tensorboard is
+  running execute ``run.py`` with ``--debug`` attribute. After that tensorboard
+  should have debugging tab.
+
 In order to make it more convenient to run multiple experiments we provide
 ``start_experiment.sh`` script that is a wrapper around ``run.py`` script which
 does the following things. First, it will make sure that the complete output of
@@ -85,35 +90,31 @@ The experiment parameters are completely defined in one Python configuration
 file. This file must define ``base_params`` dictionary and can define additional
 ``train_params``, ``eval_params`` and ``infer_params`` dictionaries that will
 overwrite corresponding parts of ``base_params`` when the corresponding mode
-is used. Here is an example of configuration file for the speech-to-text model:
+is used. For example of configuration file look in the ``example_configs``
+directory. The complete list of all possible configuration parameters is
+located in the documentation of
+:func:`create_encoder_decoder_loss_model
+<utils.model_builders.create_encoder_decoder_loss_model>` function (config
+parameters section):
 
-.. literalinclude:: ../../../example_configs/speech2text/ds2_librispeech_adam_config.py
-   :linenos:
+.. autofunction:: utils.model_builders.create_encoder_decoder_loss_model
 
-That's a big file with a lot of parameters, but you will rarely need to write it
-yourself from scratch. Most of the time you can just copy one of the example
-configs and make a few lines modification to customize it for your specific
-problems. So let's walk-through this file to make sure you understand all the
-possible configuration parameters.
+Note that some of the parameters are also config dictionaries for corresponding
+classes. To see list of their configuration options, you should proceed to the
+corresponding class docs. For example, to see all supported model parameters,
+look into the docs for :class:`models.model.Model`. Sometimes, derived classes
+might define their additional parameters, in that case you should be looking
+into both, parent class and its child. As an example, see
+:class:`encoders.encoder.Encoder` (which defines some parameters shared across
+all encoders) and :class:`encoders.ds2_encoder.DeepSpeech2Encoder` (which
+additionally defines a set of DeepSpeech-2 specific parameters).
 
-Since the configuration file is just a regular Python file, it starts with a
-series of imports (lines 1--7). Then the main configuration dictionary
-``base_params`` is defined which has several groups of parameters. The first
-group (lines 11--23) is the general experiment configuration parameters, such as
-random seed, number of GPUs to use, batch size per GPU, etc. Most of these
-parameters are self-explanatory, ...
-
-Text-to-text specifics
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-...
-
-Speech-to-text specifics
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-...
+.. note::
+    For convenience all *first level* parameters can be overwritten by
+    command line arguments. For example, try to add ``--logdir`` argument
+    to your ``run.py`` execution.
 
 What is being logged
 --------------------
 
-...
+This section is going to be completed soon.

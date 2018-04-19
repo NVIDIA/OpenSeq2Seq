@@ -23,4 +23,4 @@ With Horovod you can also enable multi-node execution.
    In that case the number of GPUs to use is specified in the command line with
    ``mpirun`` arguments.
 
-In general we find it useful to use Horovod mode when ... TODO .
+.. In general we find it useful to use Horovod mode when ... TODO .
