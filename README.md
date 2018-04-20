@@ -1,10 +1,10 @@
-<div align="center">
-  <img src="./docs/html/logo.png" alt="OpenSeq2Seq" width="250px" style="
+<div align="center" style="
     -webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
     -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
     box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);
   ">
-  <br><br>
+  <img src="./docs/html/logo.png" alt="OpenSeq2Seq" width="250px">
+  <br>
 </div>
 
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
@@ -16,7 +16,7 @@ explore various
 sequence-to-sequence models. The
 efficiency is achieved by fully supporting
 distributed and mixed-precision training.
-OpenSeq2Seq is built using Tensorflow and provides all the necessary
+OpenSeq2Seq is built using TensorFlow and provides all the necessary
 building blocks for training encoder-decoder
 models for neural machine translation
 and automatic speech recognition.
