@@ -1,5 +1,11 @@
 set -e
-wget -O lm.binary https://github.com/mozilla/DeepSpeech/blob/master/data/lm/lm.binary?raw=true
-wget https://github.com/mozilla/DeepSpeech/raw/master/data/lm/trie
-mkdir language_model
-mv lm.binary trie language_model
+if [ ! -d "language_model" ]; then
+  mkdir language_model
+fi
+cd language_model
+if [ ! -f "lm.binary" ]; then
+  wget https://github.com/mozilla/DeepSpeech/raw/master/data/lm/lm.binary
+fi
+if [ ! -f "trie" ]; then
+  wget https://github.com/mozilla/DeepSpeech/raw/master/data/lm/trie
+fi
