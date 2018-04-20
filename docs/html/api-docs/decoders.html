@@ -179,7 +179,7 @@ A Decoder typically takes representation and produces data.</p>
 <dl class="class">
 <dt id="decoders.decoder.Decoder">
 <em class="property">class </em><code class="descclassname">decoders.decoder.</code><code class="descname">Decoder</code><span class="sig-paren">(</span><em>params</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Abstract class from which all decoders must inherit.</p>
 <dl class="method">
 <dt id="decoders.decoder.Decoder.__init__">
@@ -249,7 +249,7 @@ decoder_output = {“decoder_outputs” : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.fc_decoder.FullyConnectedCTCDecoder">
 <em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedCTCDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
 <dl class="staticmethod">
 <dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -265,7 +265,7 @@ decoder_output = {“decoder_outputs” : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.fc_decoder.FullyConnectedTimeDecoder">
 <em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedTimeDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <dl class="staticmethod">
 <dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -285,7 +285,7 @@ decoder_output = {“decoder_outputs” : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">BeamSearchRNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
 <p>Beam search version of RNN-based decoder with attention.
 Can be used only during Inference (mode=infer)</p>
 <dl class="method">
@@ -360,7 +360,7 @@ Must define:</p>
 <dl class="class">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">RNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <p>Typical RNN decoder with attention mechanism</p>
 <dl class="method">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention.__init__">
@@ -465,7 +465,7 @@ Must define:</p>
 <dl class="class">
 <dt id="decoders.transformer_decoders.TransformerDecoder">
 <em class="property">class </em><code class="descclassname">decoders.transformer_decoders.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <p>Greedy Transformer Decoder</p>
 <dl class="method">
 <dt id="decoders.transformer_decoders.TransformerDecoder.__init__">

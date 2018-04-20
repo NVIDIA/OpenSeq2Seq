@@ -244,7 +244,7 @@ Contains no trainable parameters
 <dl class="class">
 <dt id="parts.attention_wrapper.AttentionMechanism">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionMechanism</code><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionMechanism"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionMechanism" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="parts.attention_wrapper.AttentionMechanism.alignments_size">
 <code class="descname">alignments_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionMechanism.alignments_size" title="Permalink to this definition">¶</a></dt>
@@ -260,7 +260,7 @@ Contains no trainable parameters
 <dl class="class">
 <dt id="parts.attention_wrapper.AttentionWrapper">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionWrapper</code><span class="sig-paren">(</span><em>cell</em>, <em>attention_mechanism</em>, <em>attention_layer_size=None</em>, <em>alignment_history=False</em>, <em>cell_input_fn=None</em>, <em>output_attention=True</em>, <em>initial_cell_state=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Wraps another <cite>RNNCell</cite> with attention.</p>
 <dl class="method">
 <dt id="parts.attention_wrapper.AttentionWrapper.__init__">
@@ -338,9 +338,9 @@ behavior is not guaranteed.</li>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – <cite>attention_layer_size</cite> is not None and (<cite>attention_mechanism</cite>
+<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> – <cite>attention_layer_size</cite> is not None and (<cite>attention_mechanism</cite>
 is a list but <cite>attention_layer_size</cite> is not; or vice versa).</li>
-<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if <cite>attention_layer_size</cite> is not None, <cite>attention_mechanism</cite>
+<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if <cite>attention_layer_size</cite> is not None, <cite>attention_mechanism</cite>
 is a list, and its length does not match that of <cite>attention_layer_size</cite>.</li>
 </ul>
 </td>
@@ -410,7 +410,7 @@ tensors from the previous time step.</li>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">A tuple <cite>(attention_or_cell_output, next_state)</cite>, where</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>state</cite> is not an instance of <cite>AttentionWrapperState</cite>.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> – If <cite>state</cite> is not an instance of <cite>AttentionWrapperState</cite>.</p>
 </td>
 </tr>
 </tbody>
@@ -420,8 +420,7 @@ tensors from the previous time step.</li>
 <dl class="attribute">
 <dt id="parts.attention_wrapper.AttentionWrapper.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapper.output_size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="parts.attention_wrapper.AttentionWrapper.state_size">
@@ -458,7 +457,7 @@ to call <cite>zero_state</cite> if using an <cite>AttentionWrapper</cite> with a
 possibly, empty <cite>TensorArray</cite> objects.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – (or, possibly at runtime, InvalidArgument), if
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – (or, possibly at runtime, InvalidArgument), if
 <cite>batch_size</cite> does not match the output size of the encoder passed
 to the wrapper object at initialization time.</p>
 </td>
@@ -472,7 +471,7 @@ to the wrapper object at initialization time.</p>
 <dl class="class">
 <dt id="parts.attention_wrapper.AttentionWrapperState">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">AttentionWrapperState</code><a class="reference internal" href="../_modules/parts/attention_wrapper.html#AttentionWrapperState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.AttentionWrapperState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.attention_wrapper.AttentionWrapperState" title="parts.attention_wrapper.AttentionWrapperState"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.attention_wrapper.AttentionWrapperState</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.attention_wrapper.AttentionWrapperState" title="parts.attention_wrapper.AttentionWrapperState"><code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper.AttentionWrapperState</span></code></a></p>
 <p><cite>namedtuple</cite> storing the state of a <cite>AttentionWrapper</cite>.</p>
 <p>Contains:</p>
 <blockquote>
@@ -508,7 +507,7 @@ The objects may contain Tensors or TensorArrays.</dd>
 will be validated, and original fields’ shape will be propagated to new
 fields.</p>
 <p>Example:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`python</span>
+<p><code class="docutils literal"><span class="pre">`python</span>
 <span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">attention_wrapper.zero_state(dtype=...,</span> <span class="pre">batch_size=...)</span>
 <span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">initial_state.clone(cell_state=encoder_state)</span>
 <span class="pre">`</span></code></p>
@@ -531,7 +530,7 @@ this one, except any overridden properties as provided in <cite>kwargs</cite>.</
 <dl class="class">
 <dt id="parts.attention_wrapper.LuongAttention">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">LuongAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='LuongAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Luong-style (multiplicative) attention scoring.</p>
 <p>This attention has two forms.  The first is standard Luong attention,
 as described in:</p>
@@ -579,7 +578,7 @@ Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li
 <dl class="class">
 <dt id="parts.attention_wrapper.BahdanauAttention">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">BahdanauAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='BahdanauAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Bahdanau-style (additive) attention.</p>
 <p>This attention has two forms.  The first is Bahdanau attention,
 as described in:</p>
@@ -727,7 +726,7 @@ or 1, and subsequently uses a more efficient and exact solution.</li>
 attention distributions for each sequence in the batch.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – mode is not one of ‘recursive’, ‘parallel’, ‘hard’.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – mode is not one of ‘recursive’, ‘parallel’, ‘hard’.</p>
 </td>
 </tr>
 </tbody>
@@ -737,7 +736,7 @@ attention distributions for each sequence in the batch.</p>
 <dl class="class">
 <dt id="parts.attention_wrapper.BahdanauMonotonicAttention">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">BahdanauMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='BahdanauMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#BahdanauMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.BahdanauMonotonicAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
 <p>Monotonic attention mechanism with Bahadanau-style energy function.</p>
 <p>This type of attention encorces a monotonic constraint on the attention
 distributions; that is once the model attends to a given point in the memory
@@ -793,7 +792,7 @@ mechanism.</li>
 <dl class="class">
 <dt id="parts.attention_wrapper.LuongMonotonicAttention">
 <em class="property">class </em><code class="descclassname">parts.attention_wrapper.</code><code class="descname">LuongMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='LuongMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/attention_wrapper.html#LuongMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.attention_wrapper.LuongMonotonicAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
 <p>Monotonic attention mechanism with Luong-style energy function.</p>
 <p>This type of attention encorces a monotonic constraint on the attention
 distributions; that is once the model attends to a given point in the memory
