@@ -1,5 +1,5 @@
-<div align="center" style="-webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75); -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75); box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);">
-  <img src="./docs/html/logo.png" alt="OpenSeq2Seq" width="250px">
+<div align="center">
+  <img src="./docs/html/logo.png" alt="OpenSeq2Seq" width="250px" style="-webkit-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75); -moz-box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75); box-shadow: 0px 0px 5px 0px rgba(0,0,0,0.75);">
   <br>
 </div>
 
