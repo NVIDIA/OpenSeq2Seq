@@ -13,7 +13,6 @@ from open_seq2seq.utils.utils import check_params
 @six.add_metaclass(abc.ABCMeta)
 class Model:
   """Abstract class that any model should inherit from.
-
   It automatically enables multi-GPU (or Horovod) computation,
   has mixed precision support, logs training summaries, etc.
   """
@@ -89,6 +88,45 @@ class Model:
           If mode is "infer", only model will be built.
       gpu_ids (list, optional): a list of gpu ids to run the model on.
           For distributed training using Horovod this parameter is ignored.
+
+    Config parameters:
+
+    * **learning_rate** (float) --- initial learning rate for training.
+    * **optimizer** (string or TensorFlow optimizer class) --- optimizer to
+      use for training. Could be either "Adam", "Adagrad", "Ftrl", "Momentum",
+      "RMSProp", "SGD" or any valid TensorFlow optimizer class.
+    * **optimizer_params** (dict) --- dictionary that will be passed to
+      optimizer ``__init__`` method.
+    * **initializer** --- any valid TensorFlow initializer.
+    * **initializer_params** (dict) --- dictionary that will be passed to
+      initializer ``__init__`` method.
+    * **regularizer** --- and valid TensorFlow regularizer.
+    * **regularizer_params** (dict) --- dictionary that will be passed to
+      regularizer ``__init__`` method.
+    * **dtype** --- model dtype. Could be either ``tf.float16``, ``tf.float32``
+      or "mixed". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **lr_policy** --- any valid learning rate policy function. For examples,
+      see :any:`optimizers.lr_policies` module.
+    * **lr_policy_params** (dict) --- dictionary containing lr_policy
+      parameters.
+    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
+      will be performed if some gradients exceed this value (this is checked
+      for each variable independently).
+    * **larc_mode** --- specify this to use LARC or LARS optimization
+      algorithms. Could be either "scale" (LARS) or "clip" (LARC).
+      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that
+      it works in addition to any other optimization algorithm since we treat
+      it as adaptive gradient clipping and learning rate adjustment.
+    * **larc_nu** (float) --- LARC or LARS scaling parameter.
+    * **loss_scale** (float) --- static loss scale to use. For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **autimatic_loss_scaling** --- automatic loss scaling mode. Could be
+      either None, "Backoff" or "Logmax". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **summaries** (list) --- which summaries to log. Could contain
+      "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
+      "variables", "variable_norm".
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
 
