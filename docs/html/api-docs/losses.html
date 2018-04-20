@@ -177,7 +177,7 @@
 <dl class="class">
 <dt id="losses.loss.Loss">
 <em class="property">class </em><code class="descclassname">losses.loss.</code><code class="descname">Loss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class from which all losses must inherit.</p>
 <dl class="method">
 <dt id="losses.loss.Loss.__init__">
@@ -219,7 +219,7 @@ over the number of GPUs (or Horovod workers)
 <dl class="class">
 <dt id="losses.ctc_loss.CTCLoss">
 <em class="property">class </em><code class="descclassname">losses.ctc_loss.</code><code class="descname">CTCLoss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Implementation of the CTC loss.</p>
 <dl class="method">
 <dt id="losses.ctc_loss.CTCLoss.compute_loss">
@@ -228,10 +228,10 @@ over the number of GPUs (or Horovod workers)
 :param input_dict: inputs to compute loss
 {</p>
 <blockquote>
-<div>&#8220;logits&#8221;: logits tensor of shape [batch_size, T, dim]
-&#8220;target_sequence&#8221;: tensor of shape [batch_size, T]
-&#8220;src_lengths&#8221;: tensor of shape [batch_size]
-&#8220;tgt_lengths&#8221;: tensor of shape [batch_size]</div></blockquote>
+<div>“logits”: logits tensor of shape [batch_size, T, dim]
+“target_sequence”: tensor of shape [batch_size, T]
+“src_lengths”: tensor of shape [batch_size]
+“tgt_lengths”: tensor of shape [batch_size]</div></blockquote>
 <p>}
 :return: Singleton loss tensor</p>
 </dd></dl>
@@ -259,7 +259,7 @@ over the number of GPUs (or Horovod workers)
 <dl class="class">
 <dt id="losses.sequence_loss.BasicSequenceLoss">
 <em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">BasicSequenceLoss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Basic sequence-to-sequence loss. This one does not use one-hot encodings</p>
 <dl class="method">
 <dt id="losses.sequence_loss.BasicSequenceLoss.__init__">
@@ -285,9 +285,9 @@ not None then)</p>
 :param input_dict: inputs to compute loss
 {</p>
 <blockquote>
-<div>&#8220;logits&#8221;: logits tensor of shape [batch_size, T, dim]
-&#8220;target_sequence&#8221;: tensor of shape [batch_size, T]
-&#8220;tgt_lengths&#8221;: tensor of shape [batch_size] or None</div></blockquote>
+<div>“logits”: logits tensor of shape [batch_size, T, dim]
+“target_sequence”: tensor of shape [batch_size, T]
+“tgt_lengths”: tensor of shape [batch_size] or None</div></blockquote>
 <p>}
 :return: Singleton loss tensor</p>
 </dd></dl>
@@ -307,7 +307,7 @@ not None then)</p>
 <dl class="class">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing">
 <em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">CrossEntropyWithSmoothing</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Softmax cross entropy loss with label smoothing. This one uses one-hot encodings
 for labels</p>
 <dl class="method">
@@ -332,9 +332,9 @@ not None then)</p>
 :param input_dict: inputs to compute loss
 {</p>
 <blockquote>
-<div>&#8220;logits&#8221;: logits tensor of shape [batch_size, T, dim]
-&#8220;target_sequence&#8221;: tensor of shape [batch_size, T]
-&#8220;tgt_lengths&#8221;: tensor of shape [batch_size] or None</div></blockquote>
+<div>“logits”: logits tensor of shape [batch_size, T, dim]
+“target_sequence”: tensor of shape [batch_size, T]
+“tgt_lengths”: tensor of shape [batch_size] or None</div></blockquote>
 <p>}
 :return: Singleton loss tensor</p>
 </dd></dl>
@@ -407,7 +407,7 @@ not None then)</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

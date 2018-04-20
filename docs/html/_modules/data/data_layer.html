@@ -159,26 +159,26 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="DataLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer">[docs]</a><span class="k">class</span> <span class="nc">DataLayer</span><span class="p">:</span>
+<div class="viewcode-block" id="DataLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">DataLayer</span><span class="p">:</span>
   <span class="sd">&quot;&quot;&quot;Abstract class that specifies data access operations</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="DataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="DataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">}</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="DataLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="DataLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="s2">&quot;mixed&quot;</span><span class="p">],</span>
       <span class="s1">&#39;use_targets&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">}</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="DataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="DataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.__init__">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initialize data layer</span>
 <span class="sd">    :param params: Python dictionary with options,</span>
@@ -214,8 +214,8 @@
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="DataLayer.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataLayer.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Creates and returns input tensors that should be connected to the</span>
 <span class="sd">    model computational graph.</span>
@@ -225,20 +225,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="DataLayer.next_batch_feed_dict"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.next_batch_feed_dict">[docs]</a>  <span class="k">def</span> <span class="nf">next_batch_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataLayer.next_batch_feed_dict"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.next_batch_feed_dict">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">next_batch_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Should return one batch: something that can be fed into feed_dict&quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="DataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.shuffle">[docs]</a>  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.shuffle">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Shuffles the data.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="DataLayer.get_size_in_samples"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="DataLayer.get_size_in_samples"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    :return: dataset size in samples, i.e. number of training objects in dataset</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -298,14 +298,14 @@
 
 
 <div class="viewcode-block" id="MultiGPUWrapper"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper">[docs]</a><span class="k">class</span> <span class="nc">MultiGPUWrapper</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="MultiGPUWrapper.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="MultiGPUWrapper.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="c1"># this disables the check since it was already done</span>
     <span class="c1"># inside the inner data_layer</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="MultiGPUWrapper.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="MultiGPUWrapper.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="c1"># this disables the check since it was already done</span>
     <span class="c1"># inside the inner data_layer</span>
     <span class="k">return</span> <span class="kc">None</span></div>
@@ -390,7 +390,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

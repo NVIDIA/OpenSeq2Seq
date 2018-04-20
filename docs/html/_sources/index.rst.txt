@@ -1,3 +1,5 @@
+:github_url: https://github.com/NVIDIA/OpenSeq2Seq
+
 .. toctree::
    :hidden:
    :maxdepth: 2
@@ -15,7 +17,7 @@
 OpenSeq2Seq
 ===========
 
-*this is a research project, not an official product by NVIDIA*
+*This is a research project, not an official product by NVIDIA*
 
 OpenSeq2Seq is a toolkit for efficient experimentation with various sequence-to-sequence models.
 

@@ -179,7 +179,7 @@ A Decoder typically takes representation and produces data.</p>
 <dl class="class">
 <dt id="decoders.decoder.Decoder">
 <em class="property">class </em><code class="descclassname">decoders.decoder.</code><code class="descname">Decoder</code><span class="sig-paren">(</span><em>params</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class from which all decoders must inherit.</p>
 <dl class="method">
 <dt id="decoders.decoder.Decoder.__init__">
@@ -196,11 +196,11 @@ Typically, decoder will take representation as an input
 and produce data as output
 :param input_dict: dictionary of decoder inputs
 For example (but may differ):
-input_dict = { &#8220;src_inputs&#8221; : decoder source sequence,</p>
+input_dict = { “src_inputs” : decoder source sequence,</p>
 <blockquote>
-<div>&#8220;src_lengths&#8221; : decoder source length,
-&#8220;tgt_inputs&#8221; :  (during training),
-&#8220;tgt_lengths&#8221; : (during training)}</div></blockquote>
+<div>“src_lengths” : decoder source length,
+“tgt_inputs” :  (during training),
+“tgt_lengths” : (during training)}</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -210,9 +210,9 @@ input_dict = { &#8220;src_inputs&#8221; : decoder source sequence,</p>
 </tbody>
 </table>
 <p>For example (but may differ):
-decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
+decoder_output = {“decoder_outputs” : decoder_outputs,</p>
 <blockquote>
-<div>&#8220;decoder_lengths&#8221; : decoder_lengths}</div></blockquote>
+<div>“decoder_lengths” : decoder_lengths}</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -249,7 +249,7 @@ decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.fc_decoder.FullyConnectedCTCDecoder">
 <em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedCTCDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
 <dl class="staticmethod">
 <dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -265,7 +265,7 @@ decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.fc_decoder.FullyConnectedTimeDecoder">
 <em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedTimeDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <dl class="staticmethod">
 <dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -285,7 +285,7 @@ decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
 <dl class="class">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">BeamSearchRNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
 <p>Beam search version of RNN-based decoder with attention.
 Can be used only during Inference (mode=infer)</p>
 <dl class="method">
@@ -311,7 +311,7 @@ Must define:</p>
 <li>luong_scale - (optional)</li>
 <li>mode - train or infer</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
+<p>… add any cell-specific parameters here as well</p>
 </div></blockquote>
 </dd></dl>
 
@@ -360,7 +360,7 @@ Must define:</p>
 <dl class="class">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">RNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <p>Typical RNN decoder with attention mechanism</p>
 <dl class="method">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention.__init__">
@@ -385,7 +385,7 @@ Must define:</p>
 <li>luong_scale - (optional)</li>
 <li>mode - train or infer</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
+<p>… add any cell-specific parameters here as well</p>
 </div></blockquote>
 </dd></dl>
 
@@ -393,7 +393,7 @@ Must define:</p>
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">
 <code class="descname">_build_attention</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_sequence_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._build_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds Attention part of the graph.
-Currently supports &#8220;bahdanau&#8221; and &#8220;luong&#8221;
+Currently supports “bahdanau” and “luong”
 :param encoder_outputs:
 :param encoder_sequence_length:
 :return:</p>
@@ -465,7 +465,7 @@ Must define:</p>
 <dl class="class">
 <dt id="decoders.transformer_decoders.TransformerDecoder">
 <em class="property">class </em><code class="descclassname">decoders.transformer_decoders.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
 <p>Greedy Transformer Decoder</p>
 <dl class="method">
 <dt id="decoders.transformer_decoders.TransformerDecoder.__init__">
@@ -480,11 +480,11 @@ Must define:</p>
 <dd><p>Decodes decoder input sequence.
 :param input_dict: dictionary of decoder inputs
 For example (but may differ):
-decoder_input= { &#8220;src_inputs&#8221; : decoder source sequence,</p>
+decoder_input= { “src_inputs” : decoder source sequence,</p>
 <blockquote>
-<div>&#8220;src_lengths&#8221; : decoder srouce length,
-&#8220;tgt_inputs&#8221; :  (during training),
-&#8220;tgt_lengths&#8221; : (during training)}</div></blockquote>
+<div>“src_lengths” : decoder srouce length,
+“tgt_inputs” :  (during training),
+“tgt_lengths” : (during training)}</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -494,9 +494,9 @@ decoder_input= { &#8220;src_inputs&#8221; : decoder source sequence,</p>
 </tbody>
 </table>
 <p>For example (but may differ):
-decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
+decoder_output = {“decoder_outputs” : decoder_outputs,</p>
 <blockquote>
-<div>&#8220;decoder_lengths&#8221; : decoder_lengths}</div></blockquote>
+<div>“decoder_lengths” : decoder_lengths}</div></blockquote>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -596,7 +596,7 @@ tensor of shape [batch, T, dim]
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

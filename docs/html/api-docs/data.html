@@ -178,7 +178,7 @@
 <dl class="class">
 <dt id="data.data_layer.DataLayer">
 <em class="property">class </em><code class="descclassname">data.data_layer.</code><code class="descname">DataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class that specifies data access operations</p>
 <dl class="method">
 <dt id="data.data_layer.DataLayer.__init__">
@@ -307,11 +307,22 @@ tensors returned by get_input_tensors function</td>
 <dl class="class">
 <dt id="data.data_layer.MultiGPUWrapper">
 <em class="property">class </em><code class="descclassname">data.data_layer.</code><code class="descname">MultiGPUWrapper</code><span class="sig-paren">(</span><em>data_layer</em>, <em>num_gpus</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.data_layer.MultiGPUWrapper.get_optional_params">
@@ -326,17 +337,27 @@ tensors returned by get_input_tensors function</td>
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -346,7 +367,7 @@ tensors returned by get_input_tensors function</td>
 <dl class="class">
 <dt id="data.speech2text.Alphabet">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Alphabet</code><span class="sig-paren">(</span><em>config_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Alphabet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Alphabet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="data.speech2text.Alphabet.label_from_string">
 <code class="descname">label_from_string</code><span class="sig-paren">(</span><em>string</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Alphabet.label_from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Alphabet.label_from_string" title="Permalink to this definition">¶</a></dt>
@@ -367,7 +388,7 @@ tensors returned by get_input_tensors function</td>
 <dl class="class">
 <dt id="data.speech2text.Speech2TextDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextDataLayer</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
@@ -382,11 +403,11 @@ input_type</dd>
 <p class="rubric">Example</p>
 <dl class="docutils">
 <dt>params = {</dt>
-<dd>&#8216;batch_size&#8217;: 16,
-&#8216;alphabet_config_path&#8217;: &#8216;data/alphabet.txt&#8217;,
-&#8216;dataset_path&#8217;: [&#8216;/raid/data/speech/WSJ/wsj-train-128.csv&#8217;],
-&#8216;num_audio_features&#8217;: 161,
-&#8216;input_type&#8217;: &#8216;spectrogram&#8217;,</dd>
+<dd>‘batch_size’: 16,
+‘alphabet_config_path’: ‘data/alphabet.txt’,
+‘dataset_path’: [‘/raid/data/speech/WSJ/wsj-train-128.csv’],
+‘num_audio_features’: 161,
+‘input_type’: ‘spectrogram’,</dd>
 </dl>
 <p>}</p>
 </dd></dl>
@@ -394,7 +415,18 @@ input_type</dd>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.get_one_sample">
@@ -414,7 +446,15 @@ input_type</dd>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.next_batch">
@@ -424,19 +464,21 @@ input_type</dd>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.speech2text.Speech2TextRandomDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextRandomDataLayer</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <p>This class should be used for performance profiling only.</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.__init__">
@@ -447,7 +489,18 @@ input_type</dd>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.get_optional_params">
@@ -462,24 +515,34 @@ input_type</dd>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.speech2text.Speech2TextTFDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextTFDataLayer</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextTFDataLayer.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
@@ -494,11 +557,11 @@ input_type</dd>
 <p class="rubric">Example</p>
 <dl class="docutils">
 <dt>params = {</dt>
-<dd>&#8216;batch_size&#8217;: 16,
-&#8216;alphabet_config_path&#8217;: &#8216;data/alphabet.txt&#8217;,
-&#8216;dataset_path&#8217;: [&#8216;/raid/data/speech/WSJ/wsj-train-128.csv&#8217;],
-&#8216;num_audio_features&#8217;: 161,
-&#8216;input_type&#8217;: &#8216;spectrogram&#8217;,</dd>
+<dd>‘batch_size’: 16,
+‘alphabet_config_path’: ‘data/alphabet.txt’,
+‘dataset_path’: [‘/raid/data/speech/WSJ/wsj-train-128.csv’],
+‘num_audio_features’: 161,
+‘input_type’: ‘spectrogram’,</dd>
 </dl>
 <p>}</p>
 </dd></dl>
@@ -520,7 +583,18 @@ returns source audio and target text NumPy arrays</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextTFDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextTFDataLayer.get_optional_params">
@@ -535,24 +609,34 @@ returns source audio and target text NumPy arrays</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextTFDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextTFDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextTFDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextTFDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextTFDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="data.speech2text.text_to_char_array">
 <code class="descclassname">data.speech2text.</code><code class="descname">text_to_char_array</code><span class="sig-paren">(</span><em>original</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#text_to_char_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.text_to_char_array" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a Python string <code class="docutils literal"><span class="pre">original</span></code>, remove unsupported characters,
+<dd><p>Given a Python string <code class="docutils literal notranslate"><span class="pre">original</span></code>, remove unsupported characters,
 map characters to integers and return a numpy array representing
 the processed string.</p>
 </dd></dl>
@@ -568,15 +652,15 @@ the processed string.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> &#8211; np.array containing raw audio signal</li>
-<li><strong>fs</strong> &#8211; float, frames per second</li>
-<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
-If not None, has to have &#8216;time_stretch_ratio&#8217;,
-&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
-augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
+<li><strong>signal</strong> – np.array containing raw audio signal</li>
+<li><strong>fs</strong> – float, frames per second</li>
+<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
+If not None, has to have ‘time_stretch_ratio’,
+‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
+augmentation={‘time_stretch_ratio’: 0.2,</p>
 <blockquote>
-<div>&#8216;noise_level_min&#8217;: -90,
-&#8216;noise_level_max&#8217;: -46}</div></blockquote>
+<div>’noise_level_min’: -90,
+‘noise_level_max’: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -596,19 +680,19 @@ augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> &#8211; np.array containing raw audio signal</li>
-<li><strong>fs</strong> &#8211; float, frames per second</li>
-<li><strong>num_features</strong> &#8211; number of speech features in frequency domain</li>
-<li><strong>features_type</strong> &#8211; &#8216;mfcc&#8217; or &#8216;spectrogram&#8217;</li>
-<li><strong>window_size</strong> &#8211; size of analysis window, ms</li>
-<li><strong>window_stride</strong> &#8211; stride of analysis window, ms</li>
-<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
-If not None, has to have &#8216;time_stretch_ratio&#8217;,
-&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
-augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
+<li><strong>signal</strong> – np.array containing raw audio signal</li>
+<li><strong>fs</strong> – float, frames per second</li>
+<li><strong>num_features</strong> – number of speech features in frequency domain</li>
+<li><strong>features_type</strong> – ‘mfcc’ or ‘spectrogram’</li>
+<li><strong>window_size</strong> – size of analysis window, ms</li>
+<li><strong>window_stride</strong> – stride of analysis window, ms</li>
+<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
+If not None, has to have ‘time_stretch_ratio’,
+‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
+augmentation={‘time_stretch_ratio’: 0.2,</p>
 <blockquote>
-<div>&#8216;noise_level_min&#8217;: -90,
-&#8216;noise_level_max&#8217;: -46}</div></blockquote>
+<div>’noise_level_min’: -90,
+‘noise_level_max’: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -628,18 +712,18 @@ augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> &#8211; WAVE filename</li>
-<li><strong>num_features</strong> &#8211; number of speech features in frequency domain</li>
-<li><strong>features_type</strong> &#8211; &#8216;mfcc&#8217; or &#8216;spectrogram&#8217;</li>
-<li><strong>window_size</strong> &#8211; size of analysis window, ms</li>
-<li><strong>window_stride</strong> &#8211; stride of analysis window, ms</li>
-<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
-If not None, has to have &#8216;time_stretch_ratio&#8217;,
-&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
-augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
+<li><strong>filename</strong> – WAVE filename</li>
+<li><strong>num_features</strong> – number of speech features in frequency domain</li>
+<li><strong>features_type</strong> – ‘mfcc’ or ‘spectrogram’</li>
+<li><strong>window_size</strong> – size of analysis window, ms</li>
+<li><strong>window_stride</strong> – stride of analysis window, ms</li>
+<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
+If not None, has to have ‘time_stretch_ratio’,
+‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
+augmentation={‘time_stretch_ratio’: 0.2,</p>
 <blockquote>
-<div>&#8216;noise_level_min&#8217;: -90,
-&#8216;noise_level_max&#8217;: -46}</div></blockquote>
+<div>’noise_level_min’: -90,
+‘noise_level_max’: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -657,7 +741,7 @@ augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <dl class="class">
 <dt id="data.text2text.ParallelDataInRamInputLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">ParallelDataInRamInputLayer</code><span class="sig-paren">(</span><em>params</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <p>Parallel data layer class. It should be provided with:
 a) source vocabulary file b) target vocabulary file
 c) tokenized source file d) tokenized target file
@@ -671,7 +755,7 @@ This class performs:</p>
 <li>Mini-batch construction</li>
 </ol>
 </div></blockquote>
-<p>All parameters for above actions should come through &#8220;params&#8221; dictionary
+<p>All parameters for above actions should come through “params” dictionary
 passed to constructor.
 This class loads all data and serves it from RAM</p>
 <dl class="attribute">
@@ -742,7 +826,18 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelDataInRamInputLayer.get_optional_params">
@@ -757,7 +852,15 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.load_corpus">
@@ -788,11 +891,12 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelDataInRamInputLayer.pad_sequences">
-<em class="property">static </em><code class="descname">pad_sequences</code><span class="sig-paren">(</span><em>input_seq</em>, <em>bucket_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.pad_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.pad_sequences" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">pad_sequences</code><span class="sig-paren">(</span><em>bucket_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.pad_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.pad_sequences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pads sequence
 :param input_seq: sequenc to pad
 :param bucket_size: size of the bucket
@@ -802,18 +906,30 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.ParallelTextDataLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">ParallelTextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Creates and returns input tensors that should be connected to the
+model computational graph.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors: that could be placeholders or if using
+tf.data API, whatever is returned with Iterator.get_next()</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelTextDataLayer.get_optional_params">
@@ -828,24 +944,34 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples, i.e. number of training objects in dataset</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return one batch: something that can be fed into feed_dict</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shuffles the data.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.SpecialTextTokens">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">SpecialTextTokens</code><a class="reference internal" href="../_modules/data/text2text.html#SpecialTextTokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.SpecialTextTokens" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="attribute">
 <dt id="data.text2text.SpecialTextTokens.END_OF_CHOICE">
@@ -875,11 +1001,6 @@ This class loads all data and serves it from RAM</p>
 <dl class="attribute">
 <dt id="data.text2text.SpecialTextTokens.UNK_ID">
 <code class="descname">UNK_ID</code><em class="property"> = 0</em><a class="headerlink" href="#data.text2text.SpecialTextTokens.UNK_ID" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="staticmethod">
-<dt id="data.text2text.SpecialTextTokens.to_string">
-<em class="property">static </em><code class="descname">to_string</code><span class="sig-paren">(</span><em>s_token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#SpecialTextTokens.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.SpecialTextTokens.to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -954,7 +1075,7 @@ This class loads all data and serves it from RAM</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

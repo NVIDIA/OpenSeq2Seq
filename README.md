@@ -1,8 +1,9 @@
-# OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 <div align="center">
-  <img src="./docs/logo.png" alt="OpenSeq2Seq" width="200px">
-  <br><br>
+  <img src="./docs/logo-shadow.png" alt="OpenSeq2Seq" width="250px">
+  <br>
 </div>
+
+# OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 
 This is a research project, not an official NVIDIA product.
 
@@ -11,7 +12,7 @@ explore various
 sequence-to-sequence models. The
 efficiency is achieved by fully supporting
 distributed and mixed-precision training.
-OpenSeq2Seq is built using Tensorflow and provides all the necessary
+OpenSeq2Seq is built using TensorFlow and provides all the necessary
 building blocks for training encoder-decoder
 models for neural machine translation
 and automatic speech recognition.

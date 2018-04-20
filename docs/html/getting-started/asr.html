@@ -167,14 +167,14 @@
 <p>First, make sure you followed the <a class="reference internal" href="../installation-instructions.html#installation-speech"><span class="std std-ref">installation instructions</span></a>
 for the speech-to-text part of OpenSeq2Seq.</p>
 <p>After that you should be able to run toy speech example with no errors:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <div class="section" id="how-to-train-the-model-on-librispeech-dataset">
 <h2>How to train the model on <a class="reference external" href="http://www.openslr.org/12">LibriSpeech</a> dataset<a class="headerlink" href="#how-to-train-the-model-on-librispeech-dataset" title="Permalink to this headline">¶</a></h2>
 <p>First, you need to download and preprocess the dataset.
 Assuming you are in the base folder, run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="o">-</span><span class="n">y</span> <span class="n">install</span> <span class="n">sox</span> <span class="n">libsox</span><span class="o">-</span><span class="n">dev</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="o">-</span><span class="n">y</span> <span class="n">install</span> <span class="n">sox</span> <span class="n">libsox</span><span class="o">-</span><span class="n">dev</span>
 <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="n">data</span>
 <span class="n">python</span> <span class="n">import_librivox</span><span class="o">.</span><span class="n">py</span> <span class="n">data</span><span class="o">/</span><span class="n">librispeech</span>
 </pre></div>
@@ -183,25 +183,25 @@ Assuming you are in the base folder, run:</p>
 it needs to download, extract and convert around 55Gb of audio files. The final
 dataset size will be around 224Gb.</p>
 <p>Now, everything should be setup to train the model:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_larc_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_larc_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>If you want to run evaluation/inference with the trained model, replace
-<code class="docutils literal"><span class="pre">--mode=train_eval</span></code> with <code class="docutils literal"><span class="pre">--mode=eval</span></code> or <code class="docutils literal"><span class="pre">--mode=infer</span></code>.
+<code class="docutils literal notranslate"><span class="pre">--mode=train_eval</span></code> with <code class="docutils literal notranslate"><span class="pre">--mode=eval</span></code> or <code class="docutils literal notranslate"><span class="pre">--mode=infer</span></code>.
 For inference you will need to provide additional
-<code class="docutils literal"><span class="pre">--infer_output_file=&lt;output</span> <span class="pre">file&gt;</span></code> argument.</p>
+<code class="docutils literal notranslate"><span class="pre">--infer_output_file=&lt;output</span> <span class="pre">file&gt;</span></code> argument.</p>
 </div>
 <div class="section" id="how-to-build-your-own-language-model">
 <h2>How to build your own language model<a class="headerlink" href="#how-to-build-your-own-language-model" title="Permalink to this headline">¶</a></h2>
 <p>Language models usually help speech2text decoder to correct misspellings in recognized utterances.
-<code class="xref py py-class docutils literal"><span class="pre">FullyConnectedCTCDecoder</span></code> uses N-gram <a class="reference external" href="https://github.com/kpu/kenlm">KenLM</a> based models.
-In order to build a language model, please use <code class="docutils literal"><span class="pre">build_lm.py</span></code> script.
+<code class="xref py py-class docutils literal notranslate"><span class="pre">FullyConnectedCTCDecoder</span></code> uses N-gram <a class="reference external" href="https://github.com/kpu/kenlm">KenLM</a> based models.
+In order to build a language model, please use <code class="docutils literal notranslate"><span class="pre">build_lm.py</span></code> script.
 For example, run the following commands for LibriSpeech:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span>export LS_DIR=/data/speech/LibriSpeech/
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export LS_DIR=/data/speech/LibriSpeech/
 python build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-train-clean-360.csv librivox-train-other-500.csv
 </pre></div>
 </div>
-<p>You will get as a result two files: the binary language model <code class="docutils literal"><span class="pre">librivox-train-clean-100.binary</span></code> and its trie <code class="docutils literal"><span class="pre">librivox-train-clean-100.trie</span></code>.</p>
+<p>You will get as a result two files: the binary language model <code class="docutils literal notranslate"><span class="pre">librivox-train-clean-100.binary</span></code> and its trie <code class="docutils literal notranslate"><span class="pre">librivox-train-clean-100.trie</span></code>.</p>
 </div>
 </div>
 
@@ -258,7 +258,7 @@ python build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-t
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
