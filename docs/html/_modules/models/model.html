@@ -164,7 +164,6 @@
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
   <span class="sd">&quot;&quot;&quot;Abstract class that any model should inherit from.</span>
-
 <span class="sd">  It automatically enables multi-GPU (or Horovod) computation,</span>
 <span class="sd">  has mixed precision support, logs training summaries, etc.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -240,6 +239,45 @@
 <span class="sd">          If mode is &quot;infer&quot;, only model will be built.</span>
 <span class="sd">      gpu_ids (list, optional): a list of gpu ids to run the model on.</span>
 <span class="sd">          For distributed training using Horovod this parameter is ignored.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **learning_rate** (float) --- initial learning rate for training.</span>
+<span class="sd">    * **optimizer** (string or TensorFlow optimizer class) --- optimizer to</span>
+<span class="sd">      use for training. Could be either &quot;Adam&quot;, &quot;Adagrad&quot;, &quot;Ftrl&quot;, &quot;Momentum&quot;,</span>
+<span class="sd">      &quot;RMSProp&quot;, &quot;SGD&quot; or any valid TensorFlow optimizer class.</span>
+<span class="sd">    * **optimizer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      optimizer ``__init__`` method.</span>
+<span class="sd">    * **initializer** --- any valid TensorFlow initializer.</span>
+<span class="sd">    * **initializer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      initializer ``__init__`` method.</span>
+<span class="sd">    * **regularizer** --- and valid TensorFlow regularizer.</span>
+<span class="sd">    * **regularizer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      regularizer ``__init__`` method.</span>
+<span class="sd">    * **dtype** --- model dtype. Could be either ``tf.float16``, ``tf.float32``</span>
+<span class="sd">      or &quot;mixed&quot;. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **lr_policy** --- any valid learning rate policy function. For examples,</span>
+<span class="sd">      see :any:`optimizers.lr_policies` module.</span>
+<span class="sd">    * **lr_policy_params** (dict) --- dictionary containing lr_policy</span>
+<span class="sd">      parameters.</span>
+<span class="sd">    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping</span>
+<span class="sd">      will be performed if some gradients exceed this value (this is checked</span>
+<span class="sd">      for each variable independently).</span>
+<span class="sd">    * **larc_mode** --- specify this to use LARC or LARS optimization</span>
+<span class="sd">      algorithms. Could be either &quot;scale&quot; (LARS) or &quot;clip&quot; (LARC).</span>
+<span class="sd">      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that</span>
+<span class="sd">      it works in addition to any other optimization algorithm since we treat</span>
+<span class="sd">      it as adaptive gradient clipping and learning rate adjustment.</span>
+<span class="sd">    * **larc_nu** (float) --- LARC or LARS scaling parameter.</span>
+<span class="sd">    * **loss_scale** (float) --- static loss scale to use. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **autimatic_loss_scaling** --- automatic loss scaling mode. Could be</span>
+<span class="sd">      either None, &quot;Backoff&quot; or &quot;Logmax&quot;. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **summaries** (list) --- which summaries to log. Could contain</span>
+<span class="sd">      &quot;learning_rate&quot;, &quot;gradients&quot;, &quot;gradient_norm&quot;, &quot;global_gradient_norm&quot;,</span>
+<span class="sd">      &quot;variables&quot;, &quot;variable_norm&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
 
