@@ -18,6 +18,16 @@ mode):
 Machine translation
 -------------------
 
+Small NMT Model
+~~~~~~~~~~~~~~~
+
+Command to train on 1 GPU::
+
+    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=train_eval
+
+Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using ``multi-bleu.perl`` script from Mosses.
+Model checkpoint: `link <https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing>`_  .
+
 GNMT
 ~~~~
 
@@ -29,12 +39,7 @@ Command to train on 4 GPUs::
 
 Final metrics: test BLEU score = xx.xx. Model checkpoint: link.
 
-Command to train on 1 GPU::
 
-    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=train_eval
-
-Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using ``multi-bleu.perl`` script from Mosses.
-Model checkpoint: `link <https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing>`_  .
 
 Transformers
 ~~~~~~~~~~~~
