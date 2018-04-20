@@ -165,10 +165,26 @@
 <span class="sd">  &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">        dict:</span>
+<span class="sd">            Dictionary containing all the parameters that **have to** be</span>
+<span class="sd">            included into the ``params`` parameter of the</span>
+<span class="sd">            class :meth:`__init__` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{}</span></div>
 
 <div class="viewcode-block" id="Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">        dict:</span>
+<span class="sd">            Dictionary containing all the parameters that **can** be</span>
+<span class="sd">            included into the ``params`` parameter of the</span>
+<span class="sd">            class :meth:`__init__` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;regularizer&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid TensorFlow regularizer</span>
       <span class="s1">&#39;regularizer_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -179,9 +195,33 @@
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Encoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initializes Encoder. Encoder constructors should not modify TF graph</span>
-<span class="sd">    :param params: dictionary of encoder parameters</span>
+    <span class="sd">&quot;&quot;&quot;Encoder constructor.</span>
+<span class="sd">    Note that encoder constructors should not modify TensorFlow graph, all</span>
+<span class="sd">    graph construction should happen in the :meth:`self._encode() &lt;_encode&gt;`</span>
+<span class="sd">    method.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      params (dict): parameters describing the encoder.</span>
+<span class="sd">          All supported parameters are listed in :meth:`get_required_params`,</span>
+<span class="sd">          :meth:`get_optional_params` functions.</span>
+<span class="sd">      name (str): name for encoder variable scope.</span>
+<span class="sd">      mode (str): mode encoder is going to be run in.</span>
+<span class="sd">          Could be &quot;train&quot;, &quot;eval&quot; or &quot;infer&quot;.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **initializer** --- any valid TensorFlow initializer. If no initializer</span>
+<span class="sd">      is provided, model initializer will be used.</span>
+<span class="sd">    * **initializer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      initializer ``__init__`` method.</span>
+<span class="sd">    * **regularizer** --- and valid TensorFlow regularizer. If no regularizer</span>
+<span class="sd">      is provided, model regularizer will be used.</span>
+<span class="sd">    * **regularizer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      regularizer ``__init__`` method.</span>
+<span class="sd">    * **dtype** --- model dtype. Could be either ``tf.float16``, ``tf.float32``</span>
+<span class="sd">      or &quot;mixed&quot;. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs. If no</span>
+<span class="sd">      dtype is provided, model dtype will be used.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -203,6 +243,16 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span></div>
 
 <div class="viewcode-block" id="Encoder.encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.encode">[docs]</a>  <span class="k">def</span> <span class="nf">encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper around :meth:`self._encode() &lt;_encode&gt;` method.</span>
+<span class="sd">    Here initializer and dtype are set in the variable scope and then</span>
+<span class="sd">    :meth:`_encode` function is called.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): see :meth:`self._encode() &lt;_encode&gt;` docs.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      see :meth:`self._encode() &lt;_encode&gt;` docs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;initializer&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
       <span class="n">init_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;initializer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
       <span class="n">initializer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;initializer&#39;</span><span class="p">](</span><span class="o">**</span><span class="n">init_dict</span><span class="p">)</span>
@@ -212,7 +262,16 @@
                            <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]):</span>
       <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encode</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_cast_types</span><span class="p">(</span><span class="n">input_dict</span><span class="p">))</span></div>
 
-  <span class="k">def</span> <span class="nf">_cast_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="Encoder._cast_types"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder._cast_types">[docs]</a>  <span class="k">def</span> <span class="nf">_cast_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function performs automatic cast of all inputs to encoder dtype.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): dictionary passed to :meth:`self._encode() &lt;_encode&gt;`</span>
+<span class="sd">          method.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: same as input_dict, but with all Tensors cast to encoder dtype.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">cast_input_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
       <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
@@ -221,30 +280,36 @@
             <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
             <span class="k">continue</span>
       <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
-    <span class="k">return</span> <span class="n">cast_input_dict</span>
+    <span class="k">return</span> <span class="n">cast_input_dict</span></div>
 
 <div class="viewcode-block" id="Encoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder._encode">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Encodes encoder input sequence. This will add to TF graph</span>
-<span class="sd">    Typically, encoder will take raw data as an input and will</span>
-<span class="sd">    produce representation</span>
-<span class="sd">    :param input_dict: dictionary of encoder inputs</span>
-<span class="sd">    For example (but may differ):</span>
-<span class="sd">    encoder_input= { &quot;src_inputs&quot; : source_sequence,</span>
-<span class="sd">                     &quot;src_lengths&quot; : src_length }</span>
+    <span class="sd">&quot;&quot;&quot;This is the main function which should construct encoder graph.</span>
+<span class="sd">    Typically, encoder will take raw input sequence as an input and</span>
+<span class="sd">    produce some hidden representation as an output.</span>
 
-<span class="sd">    :return: dictionary of encoder outputs</span>
-<span class="sd">    For example (but may differ):</span>
-<span class="sd">    input_dict = {&quot;encoder_outputs&quot; : encoder_outputs,</span>
-<span class="sd">                      &quot;encoder_state&quot; : encoder_state,</span>
-<span class="sd">                      &quot;src_lengths&quot; : src_lengths}</span>
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): dictionary containing encoder inputs. This dict will</span>
+<span class="sd">          typically have the following content::</span>
+<span class="sd">            {</span>
+<span class="sd">              &quot;src_inputs&quot;: source_sequence,</span>
+<span class="sd">              &quot;src_lengths&quot;: src_length,</span>
+<span class="sd">            }</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict:</span>
+<span class="sd">        dictionary of encoder outputs. Return all necessary outputs.</span>
+<span class="sd">        Typically this will be just::</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;encoder_output&quot;: encoder_output,</span>
+<span class="sd">            &quot;encoder_state&quot;: encoder_state,</span>
+<span class="sd">          }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parameters used to construct the encoder&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Parameters used to construct the encoder (dictionary)&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span></div>
 </pre></div>
 

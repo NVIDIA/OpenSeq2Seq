@@ -363,7 +363,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Training op.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if:
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if:
 * <cite>loss</cite> is an invalid type or shape.
 * <cite>global_step</cite> is an invalid type or shape.
 * <cite>learning_rate</cite> is an invalid type or value.
@@ -388,16 +388,91 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <dl class="class">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">
 <em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>automatic_loss_scaler=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">
 <code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>global_step=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper.apply_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Apply gradients to variables.</p>
+<p>This is the second part of <cite>minimize()</cite>. It returns an <cite>Operation</cite> that
+applies gradients.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>grads_and_vars</strong> – List of (gradient, variable) pairs as returned by
+<cite>compute_gradients()</cite>.</li>
+<li><strong>global_step</strong> – Optional <cite>Variable</cite> to increment by one after the
+variables have been updated.</li>
+<li><strong>name</strong> – Optional name for the returned operation.  Default to the
+name passed to the <cite>Optimizer</cite> constructor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An <cite>Operation</cite> that applies the specified gradients. If <cite>global_step</cite>
+was not None, that operation also increments <cite>global_step</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>grads_and_vars</cite> is malformed.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If none of the variables have gradients.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If you should use <cite>_distributed_apply()</cite> instead.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">
 <code class="descname">compute_gradients</code><span class="sig-paren">(</span><em>loss</em>, <em>var_list=None</em>, <em>gate_gradients=1</em>, <em>aggregation_method=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>grad_loss=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper.compute_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Compute gradients of <cite>loss</cite> for the variables in <cite>var_list</cite>.</p>
+<p>This is the first part of <cite>minimize()</cite>.  It returns a list
+of (gradient, variable) pairs where “gradient” is the gradient
+for “variable”.  Note that “gradient” can be a <cite>Tensor</cite>, an
+<cite>IndexedSlices</cite>, or <cite>None</cite> if there is no gradient for the
+given variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>loss</strong> – A Tensor containing the value to minimize or a callable taking
+no arguments which returns the value to minimize. When eager execution
+is enabled it must be a callable.</li>
+<li><strong>var_list</strong> – Optional list or tuple of <cite>tf.Variable</cite> to update to minimize
+<cite>loss</cite>.  Defaults to the list of variables collected in the graph
+under the key <cite>GraphKeys.TRAINABLE_VARIABLES</cite>.</li>
+<li><strong>gate_gradients</strong> – How to gate the computation of gradients.  Can be
+<cite>GATE_NONE</cite>, <cite>GATE_OP</cite>, or <cite>GATE_GRAPH</cite>.</li>
+<li><strong>aggregation_method</strong> – Specifies the method used to combine gradient terms.
+Valid values are defined in the class <cite>AggregationMethod</cite>.</li>
+<li><strong>colocate_gradients_with_ops</strong> – If True, try colocating gradients with
+the corresponding op.</li>
+<li><strong>grad_loss</strong> – Optional. A <cite>Tensor</cite> holding the gradient computed for <cite>loss</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of (gradient, variable) pairs. Variable is always present, but
+gradient can be <cite>None</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>var_list</cite> contains anything else than <cite>Variable</cite> objects.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If some arguments are invalid.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If called with eager execution enabled and <cite>loss</cite> is
+not callable.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&#64;compatibility(eager)
+When eager execution is enabled, <cite>gate_gradients</cite>, <cite>aggregation_method</cite>,
+and <cite>colocate_gradients_with_ops</cite> are ignored.
+&#64;end_compatibility</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -412,7 +487,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">AutomaticLossScaler</code><span class="sig-paren">(</span><em>algorithm='Backoff'</em>, <em>scale_min=1.0</em>, <em>scale_max=16777216.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS">
 <code class="descname">SUPPORTED_ALGOS</code><em class="property"> = ['Backoff', 'LogMax']</em><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS" title="Permalink to this definition">¶</a></dt>
@@ -420,7 +495,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 
 <dl class="staticmethod">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">
-<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><em>grads_and_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -438,7 +513,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">BackoffScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>step_factor</em>, <em>step_window</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#BackoffScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler.loss_scale">
 <code class="descname">loss_scale</code><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler.loss_scale" title="Permalink to this definition">¶</a></dt>
@@ -454,7 +529,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">LogMaxScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>log_max</em>, <em>beta1</em>, <em>beta2</em>, <em>overflow_std_dev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#LogMaxScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler.loss_scale">
 <code class="descname">loss_scale</code><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler.loss_scale" title="Permalink to this definition">¶</a></dt>

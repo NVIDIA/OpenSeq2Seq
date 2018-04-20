@@ -14,10 +14,26 @@ class Encoder:
   """
   @staticmethod
   def get_required_params():
+    """Static method with description of required parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **have to** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
     return {}
 
   @staticmethod
   def get_optional_params():
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
     return {
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
@@ -28,9 +44,33 @@ class Encoder:
     }
 
   def __init__(self, params, name="encoder", mode='train'):
-    """
-    Initializes Encoder. Encoder constructors should not modify TF graph
-    :param params: dictionary of encoder parameters
+    """Encoder constructor.
+    Note that encoder constructors should not modify TensorFlow graph, all
+    graph construction should happen in the :meth:`self._encode() <_encode>`
+    method.
+
+    Args:
+      params (dict): parameters describing the encoder.
+          All supported parameters are listed in :meth:`get_required_params`,
+          :meth:`get_optional_params` functions.
+      name (str): name for encoder variable scope.
+      mode (str): mode encoder is going to be run in.
+          Could be "train", "eval" or "infer".
+
+    Config parameters:
+
+    * **initializer** --- any valid TensorFlow initializer. If no initializer
+      is provided, model initializer will be used.
+    * **initializer_params** (dict) --- dictionary that will be passed to
+      initializer ``__init__`` method.
+    * **regularizer** --- and valid TensorFlow regularizer. If no regularizer
+      is provided, model regularizer will be used.
+    * **regularizer_params** (dict) --- dictionary that will be passed to
+      regularizer ``__init__`` method.
+    * **dtype** --- model dtype. Could be either ``tf.float16``, ``tf.float32``
+      or "mixed". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs. If no
+      dtype is provided, model dtype will be used.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
@@ -52,6 +92,16 @@ class Encoder:
     self._mode = mode
 
   def encode(self, input_dict):
+    """Wrapper around :meth:`self._encode() <_encode>` method.
+    Here initializer and dtype are set in the variable scope and then
+    :meth:`_encode` function is called.
+
+    Args:
+      input_dict (dict): see :meth:`self._encode() <_encode>` docs.
+
+    Returns:
+      see :meth:`self._encode() <_encode>` docs.
+    """
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
@@ -62,6 +112,15 @@ class Encoder:
       return self._encode(self._cast_types(input_dict))
 
   def _cast_types(self, input_dict):
+    """This function performs automatic cast of all inputs to encoder dtype.
+
+    Args:
+      input_dict (dict): dictionary passed to :meth:`self._encode() <_encode>`
+          method.
+
+    Returns:
+      dict: same as input_dict, but with all Tensors cast to encoder dtype.
+    """
     cast_input_dict = {}
     for key, value in input_dict.items():
       if isinstance(value, tf.Tensor):
@@ -74,24 +133,30 @@ class Encoder:
 
   @abc.abstractmethod
   def _encode(self, input_dict):
-    """
-    Encodes encoder input sequence. This will add to TF graph
-    Typically, encoder will take raw data as an input and will
-    produce representation
-    :param input_dict: dictionary of encoder inputs
-    For example (but may differ):
-    encoder_input= { "src_inputs" : source_sequence,
-                     "src_lengths" : src_length }
+    """This is the main function which should construct encoder graph.
+    Typically, encoder will take raw input sequence as an input and
+    produce some hidden representation as an output.
 
-    :return: dictionary of encoder outputs
-    For example (but may differ):
-    input_dict = {"encoder_outputs" : encoder_outputs,
-                      "encoder_state" : encoder_state,
-                      "src_lengths" : src_lengths}
+    Args:
+      input_dict (dict): dictionary containing encoder inputs. This dict will
+          typically have the following content::
+            {
+              "src_inputs": source_sequence,
+              "src_lengths": src_length,
+            }
+
+    Returns:
+      dict:
+        dictionary of encoder outputs. Return all necessary outputs.
+        Typically this will be just::
+          {
+            "encoder_output": encoder_output,
+            "encoder_state": encoder_state,
+          }
     """
     pass
 
   @property
   def params(self):
-    """Parameters used to construct the encoder"""
+    """Parameters used to construct the encoder (dictionary)"""
     return self._params

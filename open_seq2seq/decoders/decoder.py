@@ -14,10 +14,26 @@ class Decoder:
   """
   @staticmethod
   def get_required_params():
+    """Static method with description of required parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **have to** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
     return {}
 
   @staticmethod
   def get_optional_params():
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
     return {
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
@@ -28,9 +44,33 @@ class Decoder:
     }
 
   def __init__(self, params, name="decoder", mode='train'):
-    """
-    Initializes Decoder. Decoder constructors should not modify TF graph
-    :param params: dictionary of decoder parameters
+    """Decoder constructor.
+    Note that decoder constructors should not modify TensorFlow graph, all
+    graph construction should happen in the :meth:`self._decode() <_decode>`
+    method.
+
+    Args:
+      params (dict): parameters describing the decoder.
+          All supported parameters are listed in :meth:`get_required_params`,
+          :meth:`get_optional_params` functions.
+      name (str): name for decoder variable scope.
+      mode (str): mode decoder is going to be run in.
+          Could be "train", "eval" or "infer".
+
+    Config parameters:
+
+    * **initializer** --- any valid TensorFlow initializer. If no initializer
+      is provided, model initializer will be used.
+    * **initializer_params** (dict) --- dictionary that will be passed to
+      initializer ``__init__`` method.
+    * **regularizer** --- and valid TensorFlow regularizer. If no regularizer
+      is provided, model regularizer will be used.
+    * **regularizer_params** (dict) --- dictionary that will be passed to
+      regularizer ``__init__`` method.
+    * **dtype** --- model dtype. Could be either ``tf.float16``, ``tf.float32``
+      or "mixed". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs. If no
+      dtype is provided, model dtype will be used.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
@@ -52,6 +92,16 @@ class Decoder:
     self._mode = mode
 
   def decode(self, input_dict):
+    """Wrapper around :meth:`self._decode() <_decode>` method.
+    Here initializer and dtype are set in the variable scope and then
+    :meth:`_decode` function is called.
+
+    Args:
+      input_dict (dict): see :meth:`self._decode() <_decode>` docs.
+
+    Returns:
+      see :meth:`self._decode() <_decode>` docs.
+    """
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
@@ -63,6 +113,15 @@ class Decoder:
       return self._decode(self._cast_types(input_dict))
 
   def _cast_types(self, input_dict):
+    """This function performs automatic cast of all inputs to decoder dtype.
+
+    Args:
+      input_dict (dict): dictionary passed to :meth:`self._decode() <_decode>`
+          method.
+
+    Returns:
+      dict: same as input_dict, but with all Tensors cast to decoder dtype.
+    """
     def _cast_dict(dict_to_cast):
       cast_dict = {}
       for key, value in dict_to_cast.items():
@@ -81,29 +140,31 @@ class Decoder:
 
   @abc.abstractmethod
   def _decode(self, input_dict):
-    """
-    Decodes decoder input sequence. This will add to TF graph
-    Typically, decoder will take representation as an input
-    and produce data as output
-    :param input_dict: dictionary of decoder inputs
-    For example (but may differ):
-    input_dict = { "src_inputs" : decoder source sequence,
-                     "src_lengths" : decoder source length,
-                     "tgt_inputs" :  (during training),
-                     "tgt_lengths" : (during training)}
+    """This is the main function which should construct decoder graph.
+    Typically, decoder will take hidden representation from encoder as an input
+    and produce some output sequence as an output.
 
-    :return: dictionary of decoder outputs
-    For example (but may differ):
-    decoder_output = {"decoder_outputs" : decoder_outputs,
-                      "decoder_lengths" : decoder_lengths}
+    Args:
+      input_dict (dict): dictionary containing decoder inputs. This dict will
+          typically have the following content::
+            {
+              "encoder_output": encoder_output,
+              "tgt_inputs": target_sequence,
+              "tgt_lengths": target_lengths,
+            }
+
+    Returns:
+      dict:
+        dictionary of decoder outputs. Typically this will be just::
+          {
+            "decoder_output": decoder_logits,  # what will be passed to Loss
+            "decoder_samples": decoder_samples,  # actual decoded sequence, e.g.
+                                                 # characters instead of logits
+          }
     """
     pass
 
   @property
   def params(self):
-    """Parameters used to construct the encoder"""
+    """Parameters used to construct the decoder (dictionary)"""
     return self._params
-
-  @property
-  def dtype(self):
-    return self._dtype
