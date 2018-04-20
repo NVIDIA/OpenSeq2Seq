@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./docs/html/logo-shadow.png" alt="OpenSeq2Seq" width="250px">
+  <img src="./docs/logo-shadow.png" alt="OpenSeq2Seq" width="250px">
   <br>
 </div>
 
