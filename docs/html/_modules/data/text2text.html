@@ -169,7 +169,7 @@
   <span class="n">END_OF_CHOICE</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span>
 
   <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="SpecialTextTokens.to_string"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.SpecialTextTokens.to_string">[docs]</a>  <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="n">s_token</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="n">s_token</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">s_token</span> <span class="o">==</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">UNK_ID</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
       <span class="k">return</span> <span class="s1">&#39;&lt;UNK&gt;&#39;</span>
     <span class="k">elif</span> <span class="n">s_token</span> <span class="o">==</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">S_ID</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
@@ -179,7 +179,7 @@
     <span class="k">elif</span> <span class="n">s_token</span> <span class="o">==</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
       <span class="k">return</span> <span class="s1">&#39;&lt;PAD&gt;&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown Value in SpecialTokens&quot;</span><span class="p">)</span></div></div>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown Value in SpecialTokens&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="weighted_choice"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.weighted_choice">[docs]</a><span class="k">def</span> <span class="nf">weighted_choice</span><span class="p">(</span><span class="n">choices</span><span class="p">):</span>
@@ -234,8 +234,8 @@
   <span class="n">END_OF_CHOICE</span> <span class="o">=</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">END_OF_CHOICE</span><span class="o">.</span><span class="n">value</span>
   <span class="n">bucket_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="mi">60</span><span class="p">,</span> <span class="mi">120</span><span class="p">,</span> <span class="mi">180</span><span class="p">,</span> <span class="mi">240</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">360</span><span class="p">]</span>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ParallelDataInRamInputLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="ParallelDataInRamInputLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;source_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
       <span class="s1">&#39;target_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -246,8 +246,8 @@
       <span class="s1">&#39;delimiter&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ParallelDataInRamInputLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="ParallelDataInRamInputLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;time_major&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
@@ -379,8 +379,8 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">src_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tgt_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ParallelDataInRamInputLayer.pad_sequences"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.pad_sequences">[docs]</a>  <span class="k">def</span> <span class="nf">pad_sequences</span><span class="p">(</span><span class="n">input_seq</span><span class="p">,</span> <span class="n">bucket_size</span><span class="p">):</span>
+<div class="viewcode-block" id="ParallelDataInRamInputLayer.pad_sequences"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.pad_sequences">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">pad_sequences</span><span class="p">(</span><span class="n">input_seq</span><span class="p">,</span> <span class="n">bucket_size</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Pads sequence</span>
 <span class="sd">    :param input_seq: sequenc to pad</span>
@@ -567,8 +567,8 @@
 
 
 <div class="viewcode-block" id="ParallelTextDataLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer">[docs]</a><span class="k">class</span> <span class="nc">ParallelTextDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ParallelTextDataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="ParallelTextDataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;source_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
       <span class="s1">&#39;src_vocab_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -578,8 +578,8 @@
       <span class="s1">&#39;repeat&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="ParallelTextDataLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="ParallelTextDataLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;use_targets&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;delimiter&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
@@ -795,7 +795,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
