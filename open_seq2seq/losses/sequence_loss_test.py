@@ -9,6 +9,7 @@ from open_seq2seq.losses.sequence_loss import CrossEntropyWithSmoothing, \
 class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
   def setUp(self):
     print("Setting Up  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
+
   def tearDown(self):
     print("Tear down  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
     

@@ -48,9 +48,9 @@ class FullyConnectedTimeDecoder(Decoder):
     logits = tf.transpose(logits, [1, 0, 2])
 
     if 'logits_to_outputs_func' in self.params:
-      outputs = self.params['logits_to_outputs_func'](logits, input_dict)
+      samples = self.params['logits_to_outputs_func'](logits)
       return {
-        'decoder_samples': outputs,
+        'decoder_samples': samples,
         'decoder_output': logits,
       }
     return {'decoder_output': logits}
@@ -91,10 +91,10 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
 
       custom_op_module = tf.load_op_library(lib_path)
 
-      def decode_with_lm(logits, decoder_input,
+      def decode_with_lm(logits,
                          beam_width=params['beam_width'],
                          top_paths=1, merge_repeated=False):
-        sequence_length = decoder_input['encoder_output']['src_lengths']
+        sequence_length = self._model.encoder.src_lengths
         if logits.dtype.base_dtype != tf.float32:
           logits = tf.cast(logits, tf.float32)
         decoded_ixs, decoded_vals, decoded_shapes, log_probabilities = (
@@ -114,11 +114,11 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
 
       self.params['logits_to_outputs_func'] = decode_with_lm
     else:
-      def decode_without_lm(logits, decoder_input, merge_repeated=True):
+      def decode_without_lm(logits, merge_repeated=True):
         if logits.dtype.base_dtype != tf.float32:
           logits = tf.cast(logits, tf.float32)
         decoded, neg_sum_logits = tf.nn.ctc_greedy_decoder(
-          logits, decoder_input['encoder_output']['src_lengths'],
+          logits, self._model.encoder.src_lengths,
           merge_repeated,
         )
         return decoded[0]

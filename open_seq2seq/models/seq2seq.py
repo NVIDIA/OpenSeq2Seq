@@ -36,6 +36,10 @@ class Seq2Seq(Model):
     """
     # this has to happen before super call since this quantities are used in
     # _build_forward_pass_graph function which is called in the super init
+    encoder.set_model(self)
+    decoder.set_model(self)
+    loss.set_model(self)
+
     self._encoder = encoder
     self._decoder = decoder
     self._loss_computator = loss
@@ -90,8 +94,6 @@ class Seq2Seq(Model):
             "logits": decoder_logits,
             "target_sequence": target_sequence,
             "tgt_lengths": tgt_length,
-            # TODO: this is bad and should be changed to something more logical
-            "src_lengths": encoder_output["src_lengths"],
           }
           loss = self.loss_computator.compute_loss(loss_input_dict)
         else:

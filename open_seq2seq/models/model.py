@@ -369,7 +369,7 @@ class Model:
     return self._outputs
 
   def get_tf_dtype(self):
-    """Returns actual TesnorFlow dtype that will be used as variables dtype."""
+    """Returns actual TensorFlow dtype that will be used as variables dtype."""
     if self._dtype == "mixed":
       return tf.float16
     else:

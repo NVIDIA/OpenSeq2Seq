@@ -90,11 +90,19 @@ class Encoder:
 
     self._name = name
     self._mode = mode
+    self._model = None  # will be populated in self.set_model() method
+
+  def set_model(self, model):
+    """Sets parent model to self._model attribute.
+    Useful for intra-class communication, for example when decoder needs to
+    access data layer property (e.g. vocabulary size).
+    """
+    self._model = model
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
-    Here initializer and dtype are set in the variable scope and then
-    :meth:`_encode` function is called.
+    Here name, initializer and dtype are set in the variable scope and then
+    :meth:`self._encode() <_encode>` method is called.
 
     Args:
       input_dict (dict): see :meth:`self._encode() <_encode>` docs.
@@ -102,6 +110,10 @@ class Encoder:
     Returns:
       see :meth:`self._encode() <_encode>` docs.
     """
+    if self._model is None:
+      raise RuntimeError("Model attribute is not set. Make sure set_model() "
+                         "method was called")
+
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
@@ -158,5 +170,15 @@ class Encoder:
 
   @property
   def params(self):
-    """Parameters used to construct the encoder (dictionary)"""
+    """Parameters used to construct the encoder (dictionary)."""
     return self._params
+
+  @property
+  def mode(self):
+    """Mode encoder is run in."""
+    return self._mode
+
+  @property
+  def name(self):
+    """Encoder name."""
+    return self._name

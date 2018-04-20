@@ -124,6 +124,7 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
       config['data_layer_params'],
       config['encoder_params'],
       config['decoder_params'],
+      config['loss_params'],
     ],
     pm_list=['dtype'],
   )

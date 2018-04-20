@@ -290,7 +290,9 @@ class DeepSpeech2Encoder(Encoder):
       [batch_size, -1, self.params['n_hidden']],
     )
 
+    # remembering the new length for decoder and loss to use
+    self.src_lengths = seq_length
+
     return {
       'encoder_outputs': outputs,
-      'src_lengths': seq_length,
     }

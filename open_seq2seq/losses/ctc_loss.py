@@ -10,7 +10,7 @@ import tensorflow as tf
 from functools import reduce
 
 from .loss import Loss
-from open_seq2seq.utils.utils import mask_nans
+from open_seq2seq.utils.utils import mask_nans, deco_print
 
 
 def gather_nd(params, indices, shape):
@@ -71,20 +71,22 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
 
 
 class CTCLoss(Loss):
-  """
-  Implementation of the CTC loss.
-  """
+  """Implementation of the CTC loss."""
   @staticmethod
   def get_optional_params():
     return dict(Loss.get_optional_params(), **{
       'mask_nan': bool,
     })
 
-  def __init__(self, params):
-    super(CTCLoss, self).__init__(params)
+  def __init__(self, params, name="ctc_loss"):
+    super(CTCLoss, self).__init__(params, name)
     self._mask_nan = self.params.get("mask_nan", True)
+    # this loss can only operate in full precision
+    if self.params['dtype'] != tf.float32:
+      deco_print("Warning: defaulting ctc loss to work in float32")
+    self.params['dtype'] = tf.float32
 
-  def compute_loss(self, input_dict):
+  def _compute_loss(self, input_dict):
     """
     Computes CTC loss
     :param input_dict: inputs to compute loss
@@ -99,7 +101,13 @@ class CTCLoss(Loss):
     logits = input_dict['logits']
     target_sequence = input_dict['target_sequence']
     tgt_lengths = input_dict['tgt_lengths']
-    src_lengths = input_dict['src_lengths']
+
+    # this loss needs an access to src_length since they
+    # might get changed in the encoder
+    if not hasattr(self._model.encoder, 'src_lengths'):
+      raise AttributeError("For CTC loss encoder has to define an "
+                           "src_lengths attribute.")
+    src_lengths = self._model.encoder.src_lengths
 
     batch_size = tgt_lengths.shape.as_list()[0]
 
@@ -109,8 +117,6 @@ class CTCLoss(Loss):
     )
 
     # Compute the CTC loss
-    if logits.dtype.base_dtype != tf.float32:
-      logits = tf.cast(logits, tf.float32)
     total_loss = tf.nn.ctc_loss(
       labels=target_sequence,
       inputs=logits,
