@@ -1,4 +1,9 @@
-FROM gitlab-dl.nvidia.com:5005/dgx/tensorflow:18.04-py2-devel
+#FROM gitlab-dl.nvidia.com:5005/dgx/tensorflow:18.04-py2-devel
+FROM tensorflow/tensorflow:1.7.0-devel-gpu
+
+RUN cd /tensorflow; 
+RUN ln -s /tensorflow /opt/tensorflow
+RUN ls -al /opt/tensorflow 
 
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:/usr/local/cuda/lib64/stubs:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}
 
@@ -59,13 +64,13 @@ RUN cd OpenSeq2Seq/ && pip install -r requirements.txt
 
 RUN ln -s /opt/kenlm /opt/OpenSeq2Seq/ctc_decoder_with_lm/kenlm
 
-
 WORKDIR /opt/tensorflow
 
 RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1
 
-RUN ln -s ../OpenSeq2Seq/ctc_decoder_with_lm ./
-RUN bazel build -c opt --copt=-msse4.2 --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --config=cuda  //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so  //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
+RUN ln -s /opt/OpenSeq2Seq/ctc_decoder_with_lm /opt/tensorflow/ctc_decoder_with_lm
+
+RUN bazel build -c opt --copt="-D_GLIBCXX_USE_CXX11_ABI=0"  --copt=-msse4.2 --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --config=cuda  //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so  //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
 
 RUN cp /opt/tensorflow/bazel-bin/ctc_decoder_with_lm/*.so /opt/OpenSeq2Seq/ctc_decoder_with_lm/
 
@@ -78,6 +83,5 @@ ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/opt/OpenSeq2Seq/ctc_decoder_with_
 #================================================================================
 
 WORKDIR /opt/OpenSeq2Seq
-
 
 
