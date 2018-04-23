@@ -39,11 +39,11 @@ class Encoder:
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      'batch_size_per_gpu': int,
+      'batch_size': int,
       'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
-  def __init__(self, params, name="encoder", mode='train'):
+  def __init__(self, params, model, name="encoder", mode='train'):
     """Encoder constructor.
     Note that encoder constructors should not modify TensorFlow graph, all
     graph construction should happen in the :meth:`self._encode() <_encode>`
@@ -74,30 +74,29 @@ class Encoder:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
-    if 'dtype' not in params:
-      self.params['dtype'] = tf.float32
+    self._model = model
 
-    if 'regularizer' in self.params:
-      init_dict = self.params.get('regularizer_params', {})
-      self.params['regularizer'] = self.params['regularizer'](**init_dict)
-      if self.params['dtype'] == 'mixed':
-        self.params['regularizer'] = mp_regularizer_wrapper(
-          self.params['regularizer'],
+    if 'dtype' not in self._params:
+      self._params['dtype'] = self._model.params['dtype']
+
+    if 'regularizer' not in self._params:
+      if 'regularizer' in self._model.params:
+        self._params['regularizer'] = self._model.params['regularizer']
+        self._params['regularizer_params'] = self._model.params['regularizer_params']
+
+    if 'regularizer' in self._params:
+      init_dict = self._params.get('regularizer_params', {})
+      self._params['regularizer'] = self._params['regularizer'](**init_dict)
+      if self._params['dtype'] == 'mixed':
+        self._params['regularizer'] = mp_regularizer_wrapper(
+          self._params['regularizer'],
         )
 
-    if self.params['dtype'] == 'mixed':
-      self.params['dtype'] = tf.float16
+    if self._params['dtype'] == 'mixed':
+      self._params['dtype'] = tf.float16
 
     self._name = name
     self._mode = mode
-    self._model = None  # will be populated in self.set_model() method
-
-  def set_model(self, model):
-    """Sets parent model to self._model attribute.
-    Useful for intra-class communication, for example when decoder needs to
-    access data layer property (e.g. vocabulary size).
-    """
-    self._model = model
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
@@ -110,10 +109,6 @@ class Encoder:
     Returns:
       see :meth:`self._encode() <_encode>` docs.
     """
-    if self._model is None:
-      raise RuntimeError("Model attribute is not set. Make sure set_model() "
-                         "method was called")
-
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)

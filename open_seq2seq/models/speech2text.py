@@ -103,7 +103,7 @@ class Speech2Text(Seq2Seq):
     total_char_count = 0.0
 
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
-      for gpu_id in range(self._num_gpus):
+      for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
         decoded_texts = sparse_tensor_value_to_texts(
           decoded_sequence,
@@ -139,7 +139,7 @@ class Speech2Text(Seq2Seq):
     preds = []
     for input_values, output_values in zip(inputs_per_batch,
                                            outputs_per_batch):
-      for gpu_id in range(self._num_gpus):
+      for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
         decoded_texts = sparse_tensor_value_to_texts(
           decoded_sequence,

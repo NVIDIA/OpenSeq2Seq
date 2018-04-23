@@ -22,12 +22,12 @@ class DataLayer:
   def get_optional_params():
     return {
       'shuffle': bool,
-      'dtype': [tf.float32, tf.float16, "mixed"],
+      'dtype': [tf.float32, tf.float16],
       'use_targets': bool,
     }
 
   @abc.abstractmethod
-  def __init__(self, params, num_workers=None, worker_id=None):
+  def __init__(self, params, model):
     """
     Initialize data layer
     :param params: Python dictionary with options,
@@ -35,15 +35,13 @@ class DataLayer:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
+    self._model = model
 
-    if 'dtype' not in params:
-      self._params['dtype'] = tf.float32
+    if 'dtype' not in self._params:
+      self._params['dtype'] = self._model.get_tf_dtype()
 
     if 'use_targets' not in params:
       self._params['use_targets'] = True
-
-    if self._params['dtype'] == 'mixed':
-      self._params['dtype'] = tf.float16
 
     if 'shuffle' not in params:
       if self._params['use_targets']:
@@ -55,9 +53,6 @@ class DataLayer:
       raise ValueError("Shuffle should not be performed in inference mode")
 
     self._input_tensors = None
-
-    self._num_workers = num_workers
-    self._worker_id = worker_id
 
   @property
   def params(self):
@@ -163,7 +158,7 @@ class MultiGPUWrapper(DataLayer):
     if not issubclass(type(data_layer), DataLayer):
       raise ValueError("data_layer has to be an instance "
                        "of a subclass of DataLayer class")
-    super(MultiGPUWrapper, self).__init__(data_layer.params)
+    super(MultiGPUWrapper, self).__init__(data_layer.params, data_layer._model)
 
     self._num_gpus = num_gpus
     self.params['batch_size'] *= self._num_gpus

@@ -3,11 +3,14 @@ from __future__ import absolute_import, division, print_function
 import abc
 import six
 import tensorflow as tf
+import numpy as np
 import copy
+import time
 
 from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
+from open_seq2seq.data import MultiGPUWrapper
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -27,10 +30,9 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'learning_rate': float,
-      'optimizer': None,  # could be class or string
-      'logdir': str,
+      'use_horovod': bool,
       'batch_size_per_gpu': int,
+      'data_layer': None,  # could be any user defined class
     }
 
   @staticmethod
@@ -44,6 +46,24 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
+      'learning_rate': float,
+      'logdir': str,
+      'num_gpus': int,  # cannot be used when gpu_ids is specified
+      'gpu_ids': list,  # cannot be used when num_gpus is specified
+
+      'save_summaries_steps': None,  # could be int or None
+      'print_loss_steps': None,  # could be int or None
+      'print_samples_steps': None,  # could be int or None
+      'save_checkpoint_steps': None,  # could be int or None
+      'eval_steps': int,
+
+      'random_seed': int,
+      'num_epochs': int,
+      'max_steps': int,
+      'bench_start': int,
+
+      'data_layer_params': dict,
+      'optimizer': None,  # could be class or string
       'optimizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
@@ -58,26 +78,15 @@ class Model:
       'loss_scale': float,
       'automatic_loss_scaling': [None, 'Backoff', 'LogMax'],
       'summaries': list,
-      'max_steps': int,
-      'num_epochs': int,
     }
 
-  def __init__(self,
-               params,
-               data_layer,
-               global_step=None,
-               force_var_reuse=False,
-               mode="train",
-               gpu_ids=None,
-               hvd=None):
+  def __init__(self, params, mode="train", hvd=None):
     """Model constructor. The TensorFlow graph is created here.
 
     Args:
       params (dict): parameters describing the model.
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
-      data_layer (DataLayer): The :class:`DataLayer` instance to take data from.
-      global_step (optional): TensorFlow global step or None
       force_var_reuse (bool, optional): if true, all variables will be re-used.
           Useful for creating evaluation model alongside the training model or
           for multi-GPU training.
@@ -121,7 +130,7 @@ class Model:
     * **larc_nu** (float) --- LARC or LARS scaling parameter.
     * **loss_scale** (float) --- static loss scale to use. For details see
       :ref:`mixed precision training <mixed_precision>` section in docs.
-    * **autimatic_loss_scaling** --- automatic loss scaling mode. Could be
+    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
       either None, "Backoff" or "Logmax". For details see
       :ref:`mixed precision training <mixed_precision>` section in docs.
     * **summaries** (list) --- which summaries to log. Could contain
@@ -130,51 +139,110 @@ class Model:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
 
-    self._on_horovod = hvd is not None
     self._params = copy.deepcopy(params)
-    self._dtype = self._params.get("dtype", tf.float32)
 
-    if self._on_horovod:
-        self._num_gpus = 1
-    else:
-      self._num_gpus = len(gpu_ids)
-
-    self._outputs = [None] * self.num_gpus
-    self._data_layer = data_layer
-    input_tensors = data_layer.get_input_tensors()
-
+    # parameter checks
     self._mode = mode
     if self._mode not in ["train", "infer", "eval"]:
-      raise ValueError("Unknown mode")
+      raise ValueError("Mode has to be one of ['train', 'infer', 'eval']")
 
-    if global_step is not None:
-      self.global_step = global_step
+    if "max_steps" in params and "num_epochs" in params:
+      raise ValueError("You can't provide both max_steps and num_epochs. "
+                       "Please, remove one of them from the config.")
+    if mode == "train":
+      if "max_steps" not in params and "num_epochs" not in params:
+        raise ValueError("For training mode either max_steps or "
+                         "num_epochs has to be provided")
+
+    if 'print_samples_steps' not in self._params:
+      self._params['print_samples_steps'] = None
+    if 'print_loss_steps' not in self._params:
+      self._params['print_loss_steps'] = None
+    if 'save_checkpoint_steps' not in self._params:
+      self._params['save_checkpoint_steps'] = None
+    if 'save_summaries_steps' not in self._params:
+      self._params['save_summaries_steps'] = None
+
+    # checking that frequencies of samples and loss are aligned
+    s_fr = self._params['print_samples_steps']
+    l_fr = self._params['print_loss_steps']
+    if s_fr is not None and l_fr is not None and s_fr % l_fr != 0:
+      raise ValueError("print_samples_steps has to be a multiple of "
+                       "print_loss_steps.")
+
+    self._hvd = hvd
+    if self._hvd:
+        self._gpu_ids = range(1)
     else:
-      self.global_step = tf.train.get_or_create_global_step()
+      if 'gpu_ids' in self._params:
+        self._gpu_ids = self._params['gpu_ids']
+      elif 'num_gpus' in self._params:
+        self._gpu_ids = range(self._params['num_gpus'])
+      else:
+        raise ValueError('Either "gpu_ids" or "num_gpus" has to '
+                         'be specified in the config')
 
+    # setting random seed
+    rs = self._params.get('random_seed', int(time.time()))
+    if self.on_horovod:
+      rs += hvd.rank()
+    tf.set_random_seed(rs)
+    np.random.seed(rs)
+
+    if 'dtype' not in self._params:
+      self._params['dtype'] = tf.float32
+
+    dl_params = self._params.get('data_layer_params', {})
+    dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    self._data_layer = self._params['data_layer'](params=dl_params, model=self)
+
+    if not self.on_horovod:
+      self._data_layer = MultiGPUWrapper(
+        self._data_layer, num_gpus=self.num_gpus
+      )
+
+    if self._mode == "train":
+      if "max_steps" in self._params:
+        self._last_step = self._params["max_steps"]
+        self._step_size = None
+      else:
+        ds_sample_size = self._data_layer.get_size_in_samples()
+        total_bs = self._data_layer.params['batch_size']
+        if self.on_horovod:
+          total_bs *= self._hvd.size()
+        # doing a few less steps if data size is not divisible by the batch size
+        self._step_size = ds_sample_size // total_bs
+        self._last_step = self._params['num_epochs'] * self._step_size
+
+    self._outputs = [None] * self.num_gpus
+    self.loss = None
+    self.train_op = None
+
+  def compile(self, force_var_reuse=False):
     if 'initializer' not in self.params:
       initializer = None
     else:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
 
-    if not self._on_horovod:  # not using Horovod
+    input_tensors = self.data_layer.get_input_tensors()
+
+    if not self.on_horovod:  # not using Horovod
       # below we follow data parallelism for multi-GPU training
-      # actual per GPU data feeds
       losses = []
-      for gpu_ind, gpu_id in enumerate(gpu_ids):
+      for gpu_cnt, gpu_id in enumerate(self._gpu_ids):
         with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
           name_or_scope=tf.get_variable_scope(),
           # re-using variables across GPUs.
-          reuse=force_var_reuse or (gpu_ind > 0),
+          reuse=force_var_reuse or (gpu_cnt > 0),
           initializer=initializer,
           dtype=self.get_tf_dtype(),
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
-          loss, self._outputs[gpu_ind] = self._build_forward_pass_graph(
-            [input_tensor[gpu_ind] for input_tensor in input_tensors],
-            gpu_id=gpu_ind,
+          loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
+            [input_tensor[gpu_cnt] for input_tensor in input_tensors],
+            gpu_id=gpu_cnt,
           )
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
@@ -190,25 +258,15 @@ class Model:
           initializer=initializer,
           dtype=self.get_tf_dtype(),
       ):
-        deco_print("Building graph in Horovod rank: {}".format(hvd.rank()))
+        deco_print(
+          "Building graph in Horovod rank: {}".format(self._hvd.rank())
+        )
         loss, self._outputs[0] = self._build_forward_pass_graph(input_tensors,
                                                                 gpu_id=0)
         if self._mode == "train" or self._mode == "eval":
           self.loss = loss
 
     if self._mode == "train":
-      if "max_steps" in self.params:
-        self._last_step = self.params["max_steps"]
-        self._step_size = None
-      else:
-        ds_sample_size = self.data_layer.get_size_in_samples()
-        total_bs = self.data_layer.params['batch_size']
-        if hvd:
-          total_bs *= hvd.size()
-        # doing a few less steps if data size is not divisible by the batch size
-        self._step_size = ds_sample_size // total_bs
-        self._last_step = self.params['num_epochs'] * self._step_size
-
       if 'lr_policy' not in self.params:
         lr_policy = None
       else:
@@ -223,7 +281,6 @@ class Model:
       self.train_op = optimize_loss(
         loss=self.loss + get_regularization_loss(),
         dtype=self.params['dtype'],
-        global_step=self.global_step,
         learning_rate=self.params['learning_rate'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
@@ -241,11 +298,11 @@ class Model:
         LARC_mode=self.params.get('larc_mode', 'clip'),
         loss_scale=self.params.get('loss_scale', 1.0),
         automatic_loss_scaling=self.params.get('automatic_loss_scaling', None),
-        on_horovod=self._on_horovod
+        on_horovod=self.on_horovod,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
 
-      if not self._on_horovod or hvd.rank() == 0:
+      if not self.on_horovod or self._hvd.rank() == 0:
         deco_print("Trainable variables:")
         total_params = 0
         unknown_shape = False
@@ -271,8 +328,6 @@ class Model:
     """Abstract method. Should create the graph of the forward pass of the model.
 
     Args:
-      input_tensors (list): list of all input tensors
-          required to build the model.
       gpu_id (int, optional): id of the GPU where the current copy of the model
           is constructed. For Horovod this is always zero.
 
@@ -370,10 +425,10 @@ class Model:
 
   def get_tf_dtype(self):
     """Returns actual TensorFlow dtype that will be used as variables dtype."""
-    if self._dtype == "mixed":
+    if self.params['dtype'] == "mixed":
       return tf.float16
     else:
-      return self._dtype
+      return self.params['dtype']
 
   @property
   def params(self):
@@ -402,16 +457,16 @@ class Model:
   def num_gpus(self):
     """Number of GPUs the model will be run on.
     For Horovod this is always 1 and actual number of GPUs is controlled by
-    mpi parameters.
+    MPI parameters.
     """
-    return self._num_gpus
-
-  @property
-  def on_horovod(self):
-    """Whether the model is run on Horovod or not."""
-    return self._on_horovod
+    return len(self._gpu_ids)
 
   @property
   def mode(self):
     """Mode the model is executed in ("train", "eval" or "infer")."""
     return self._mode
+
+  @property
+  def on_horovod(self):
+    """Whether the model is run on Horovod or not."""
+    return self._hvd is not None

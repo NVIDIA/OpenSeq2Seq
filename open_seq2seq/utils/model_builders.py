@@ -6,7 +6,6 @@ from __future__ import unicode_literals
 import copy
 
 from open_seq2seq.models import BasicText2TextWithAttention, Speech2Text
-from open_seq2seq.data import MultiGPUWrapper
 from open_seq2seq.utils.utils import check_params
 
 
@@ -90,31 +89,8 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
   check_params(
     config,
     required_dict={
-      'use_horovod': bool,
-      'num_gpus': int,
-      'save_summaries_steps': None,  # could be int or None
-      'print_loss_steps': None,  # could be int or None
-      'print_samples_steps': None,  # could be int or None
-      'save_checkpoint_steps': None,  # could be int or None
-      'base_model': None,  # could be any user defined class
-      'model_params': dict,
-      'encoder': None,  # could be any user defined class
-      'encoder_params': dict,
-      'decoder': None,  # could be any user defined class
-      'decoder_params': dict,
-      'loss': None,  # could be any user defined class
-      'loss_params': dict,
-      'data_layer': None,  # could be any user defined class
-      'data_layer_params': dict,
-      'logdir': str,
-      'batch_size_per_gpu': int,
     },
     optional_dict={
-      'random_seed': int,
-      'num_epochs': int,
-      'max_steps': int,
-      'eval_steps': int,
-      'bench_start': int,
     },
   )
 
@@ -148,14 +124,6 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
     pm_list=['regularizer', 'regularizer_params'],
   )
 
-  if "max_steps" in config and "num_epochs" in config:
-    raise ValueError("You can't provide both max_steps and num_epochs. "
-                     "Please, remove one of them from the config.")
-  if mode == "train":
-    if "max_steps" not in config and "num_epochs" not in config:
-      raise ValueError("For training mode either max_steps or "
-                       "num_epochs has to be provided")
-
   if "max_steps" in config:
     config['model_params']['max_steps'] = config['max_steps']
 
@@ -165,13 +133,7 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
   config['data_layer_params']['use_targets'] = (mode == "train" or
                                                 mode == "eval")
 
-  if hvd:
-    data_layer = config['data_layer'](params=config['data_layer_params'])
-  else:
-    data_layer = MultiGPUWrapper(
-      config['data_layer'](params=config['data_layer_params']),
-      num_gpus=config['num_gpus'],
-    )
+
 
   config['model_params']['logdir'] = config['logdir']
 
@@ -182,9 +144,6 @@ def create_encoder_decoder_loss_model(config, mode, hvd, reuse=False):
   elif config['base_model'] == Speech2Text:
     config['decoder_params']['n_output'] = data_layer.params['alphabet'].size() + 1
 
-  encoder = config['encoder'](params=config['encoder_params'], mode=mode)
-  decoder = config['decoder'](params=config['decoder_params'], mode=mode)
-  loss = config['loss'](params=config["loss_params"])
 
   model = config['base_model'](
     params=config['model_params'],

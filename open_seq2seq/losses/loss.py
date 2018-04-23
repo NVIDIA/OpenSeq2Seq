@@ -35,11 +35,11 @@ class Loss:
             class :meth:`__init__` method.
     """
     return {
-      'batch_size_per_gpu': int,
+      'batch_size': int,
       'dtype': [tf.float16, tf.float32, "mixed"],
     }
 
-  def __init__(self, params, name="loss"):
+  def __init__(self, params, model, name="loss"):
     """Loss constructor.
     Note that loss constructors should not modify TensorFlow graph, all
     graph construction should happen in the
@@ -53,20 +53,12 @@ class Loss:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
-    if 'dtype' not in params:
-      self.params['dtype'] = tf.float32
-    if self.params['dtype'] == 'mixed':
-      self.params['dtype'] = tf.float16
+    self._model = model
+
+    if 'dtype' not in self._params:
+      self._params['dtype'] = self._model.get_tf_dtype()
 
     self._name = name
-    self._model = None  # will be populated in self.set_model() method
-
-  def set_model(self, model):
-    """Sets parent model to self._model attribute.
-    Useful for intra-class communication, for example when decoder needs to
-    access data layer property (e.g. vocabulary size).
-    """
-    self._model = model
 
   def compute_loss(self, input_dict):
     """Wrapper around :meth:`self._compute_loss() <_compute_loss>` method.
@@ -79,10 +71,6 @@ class Loss:
     Returns:
       see :meth:`self._compute_loss() <_compute_loss>` docs.
     """
-    if self._model is None:
-      raise RuntimeError("Model attribute is not set. Make sure set_model() "
-                         "method was called")
-
     with tf.variable_scope(self._name, dtype=self.params['dtype']):
       return self._compute_loss(self._cast_types(input_dict))
 

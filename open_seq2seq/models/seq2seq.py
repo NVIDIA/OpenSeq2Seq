@@ -10,95 +10,98 @@ class Seq2Seq(Model):
   Standard Sequence-to-Sequence class with one encoder and one decoder.
   "encoder-decoder-loss" models should inherit from this
   """
-  def __init__(self,
-               params,
-               data_layer,
-               encoder,
-               decoder,
-               loss,
-               global_step=None,
-               force_var_reuse=False,
-               mode=None,
-               gpu_ids=None,
-               hvd=None):
-    """
-    Constructor
-    :param params: Python dictionary - parameters describing seq2seq model
-    :param data_layer: Instance of DataLayer
-    :param encoder: Instance of Encoder
-    :param decoder: Instance of Decoder
-    :param loss: Instance of Loss
-    :param global_step: TF variable - global step
-    :param force_var_reuse: Boolean - if true, all vars will be re-used
-    :param mode: string, currently "train" or "infer"
-    :param gpu_ids: a list of gpu ids, None, or "horovod" string
-                    for distributed training using Horovod
-    """
-    # this has to happen before super call since this quantities are used in
-    # _build_forward_pass_graph function which is called in the super init
-    encoder.set_model(self)
-    decoder.set_model(self)
-    loss.set_model(self)
 
-    self._encoder = encoder
-    self._decoder = decoder
-    self._loss_computator = loss
+  @staticmethod
+  def get_required_params():
+    """Static method with description of required parameters.
 
-    super(Seq2Seq, self).__init__(params=params,
-                                  data_layer=data_layer,
-                                  global_step=global_step,
-                                  force_var_reuse=force_var_reuse,
-                                  mode=mode,
-                                  gpu_ids=gpu_ids,
-                                  hvd=hvd)
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **have to** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return dict(Model.get_required_params(), **{
+      'encoder': None,  # could be any user defined class
+      'decoder': None,  # could be any user defined class
+    })
 
-  def _build_forward_pass_graph(self,
-                                input_tensors,
-                                gpu_id=0):
+  @staticmethod
+  def get_optional_params():
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
     """
-    Builds forward pass
-    :param input_tensors: List of Tensors, currently assumes the following:
-    [source_sequence, src_length, target_sequence, tgt_length]
-    :param gpu_id: gpu_id where this pass is being built
-    :return: loss or nothing
-    """
-    if self.mode == "infer":
-      source_sequence, src_length = input_tensors
-      target_sequence, tgt_length = None, None
+    return dict(Model.get_optional_params(), **{
+      'encoder_params': dict,
+      'decoder_params': dict,
+      'loss': None,  # could be any user defined class
+      'loss_params': dict,
+    })
+
+  def __init__(self, params, mode="train", hvd=None):
+    super(Seq2Seq, self).__init__(params=params, mode=mode, hvd=hvd)
+
+    encoder_params = self.params.get('encoder_params', {})
+    encoder_params['batch_size'] = self.params['batch_size_per_gpu']
+    self._encoder = self.params['encoder'](
+      params=encoder_params, mode=mode, model=self,
+    )
+    decoder_params = self.params.get('decoder_params', {})
+    decoder_params['batch_size'] = self.params['batch_size_per_gpu']
+    self._decoder = self.params['decoder'](
+      params=decoder_params, mode=mode, model=self,
+    )
+    if self.mode == 'train' or self.mode == 'eval':
+      loss_params = self.params.get('loss_params', {})
+      loss_params['batch_size'] = self.params['batch_size_per_gpu']
+      self._loss_computator = self.params['loss'](
+        params=loss_params, model=self,
+      )
     else:
-      source_sequence, src_length, target_sequence, tgt_length = input_tensors
+      self._loss_computator = None
+
+  def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
+    if self.mode == "infer":
+      src_sequence, src_length = input_tensors
+      tgt_sequence, tgt_length = None, None
+    else:
+      src_sequence, src_length, tgt_sequence, tgt_length = input_tensors
 
     with tf.variable_scope("ForwardPass"):
       encoder_input = {
-        "src_inputs": source_sequence,
-        "src_lengths": src_length,
+        "src_sequence": src_sequence,
+        "src_length": src_length,
       }
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
-      # TODO: target length else part needs some comment
+
       decoder_input = {
         "encoder_output": encoder_output,
-        "tgt_inputs": target_sequence,
-        "tgt_lengths": tgt_length if self.mode == "train"
-                                  else tf.cast(1.2 * tf.cast(src_length,tf.float32),
+        "tgt_sequence": tgt_sequence,
+        # TODO: why????
+        "tgt_length": tgt_length if self.mode == "train"
+                                 else tf.cast(1.2 * tf.cast(src_length,tf.float32),
                                                tf.int32),
       }
       decoder_output = self.decoder.decode(input_dict=decoder_input)
-      # TODO: better name?
-      decoder_samples = decoder_output.get("decoder_samples", None)
+      decoder_samples = decoder_output.get("samples", None)
 
-      with tf.variable_scope("Loss"):
-        if self.mode == "train" or self.mode == "eval":
-          decoder_logits = decoder_output["decoder_output"]
+      if self.mode == "train" or self.mode == "eval":
+        with tf.variable_scope("Loss"):
           loss_input_dict = {
-            "logits": decoder_logits,
-            "target_sequence": target_sequence,
-            "tgt_lengths": tgt_length,
+            "decoder_output": decoder_output,
+            "tgt_sequence": tgt_sequence,
+            "tgt_length": tgt_length,
           }
           loss = self.loss_computator.compute_loss(loss_input_dict)
-        else:
-          loss = None
-          deco_print("Inference Mode. Loss part of graph isn't built.")
+      else:
+        deco_print("Inference Mode. Loss part of graph isn't built.")
+        loss = None
       return loss, decoder_samples
 
   @property
