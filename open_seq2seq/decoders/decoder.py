@@ -4,7 +4,7 @@ import abc
 import six
 import tensorflow as tf
 import copy
-from open_seq2seq.utils.utils import check_params
+from open_seq2seq.utils.utils import check_params, cast_types
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 
 
@@ -77,10 +77,13 @@ class Decoder:
     self._model = model
 
     if 'dtype' not in self._params:
-      self._params['dtype'] = self._model.params['dtype']
+      if self._model:
+        self._params['dtype'] = self._model.params['dtype']
+      else:
+        self._params['dtype'] = tf.float32
 
     if 'regularizer' not in self._params:
-      if 'regularizer' in self._model.params:
+      if self._model and 'regularizer' in self._model.params:
         self._params['regularizer'] = self._model.params['regularizer']
         self._params['regularizer_params'] = self._model.params['regularizer_params']
 
@@ -129,21 +132,7 @@ class Decoder:
     Returns:
       dict: same as input_dict, but with all Tensors cast to decoder dtype.
     """
-    def _cast_dict(dict_to_cast):
-      cast_dict = {}
-      for key, value in dict_to_cast.items():
-        if isinstance(value, tf.Tensor):
-          if value.dtype == tf.float16 or value.dtype == tf.float32:
-            if value.dtype != self.params['dtype']:
-              cast_dict[key] = tf.cast(value, self.params['dtype'])
-              continue
-        cast_dict[key] = value
-      return cast_dict
-
-    # TODO: do we need to add some recursion to parse all nested dicts?
-    cast_input_dict = _cast_dict(input_dict)
-    cast_input_dict['encoder_output'] = _cast_dict(input_dict['encoder_output'])
-    return cast_input_dict
+    return cast_types(input_dict, self.params['dtype'])
 
   @abc.abstractmethod
   def _decode(self, input_dict):

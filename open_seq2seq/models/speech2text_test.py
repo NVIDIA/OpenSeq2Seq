@@ -10,10 +10,10 @@ import os
 import pandas as pd
 
 from .speech2text import levenshtein
-from open_seq2seq.utils.model_builders import create_encoder_decoder_loss_model
 from open_seq2seq.test_utils.test_speech_config import base_params, \
                                                        train_params, \
-                                                       eval_params
+                                                       eval_params, \
+                                                       base_model
 from open_seq2seq.utils import train, evaluate, infer
 
 
@@ -26,15 +26,12 @@ class Speech2TextModelTests(tf.test.TestCase):
 
   def run_model(self, train_config, eval_config):
     with tf.Graph().as_default() as g:
-      train_model = create_encoder_decoder_loss_model(config=train_config,
-                                                      mode="train",
-                                                      hvd=None)
+      train_model = base_model(params=train_config, mode="train", hvd=None)
+      train_model.compile()
+      eval_model = base_model(params=eval_config, mode="eval", hvd=None)
+      eval_model.compile(force_var_reuse=True)
 
-      eval_model = create_encoder_decoder_loss_model(config=eval_config,
-                                                     mode="eval",
-                                                     hvd=None,
-                                                     reuse=True)
-      train(train_config, train_model, eval_model, hvd=None)
+      train(train_model, eval_model, hvd=None)
       saver = tf.train.Saver()
       checkpoint = tf.train.latest_checkpoint(train_model.params['logdir'])
       with self.test_session(g, use_gpu=True) as sess:
@@ -54,7 +51,7 @@ class Speech2TextModelTests(tf.test.TestCase):
         # checking that the weights has not changed from just computing the loss
         for w, w_new in zip(weights, weights_new):
           npt.assert_allclose(w, w_new)
-      eval_dict = evaluate(eval_config, eval_model, checkpoint)
+      eval_dict = evaluate(eval_model, checkpoint)
     return loss, eval_loss, eval_dict
 
   def prepare_config(self):
@@ -69,14 +66,14 @@ class Speech2TextModelTests(tf.test.TestCase):
     for dtype in [tf.float16, tf.float32, 'mixed']:
       train_config, eval_config = self.prepare_config()
       train_config['num_epochs'] = 60
-      train_config['model_params'].update({
+      train_config.update({
         "dtype": dtype,
         "regularizer": tf.contrib.layers.l2_regularizer,
         "regularizer_params": {
           'scale': 1e4,
         },
       })
-      eval_config['model_params'].update({
+      eval_config.update({
         "dtype": dtype,
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
@@ -89,10 +86,10 @@ class Speech2TextModelTests(tf.test.TestCase):
   def test_convergence(self):
     for dtype in [tf.float32, "mixed"]:
       train_config, eval_config = self.prepare_config()
-      train_config['model_params'].update({
+      train_config.update({
         "dtype": dtype,
       })
-      eval_config['model_params'].update({
+      eval_config.update({
         "dtype": dtype,
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
@@ -109,19 +106,17 @@ class Speech2TextModelTests(tf.test.TestCase):
     infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():
-      train_model = create_encoder_decoder_loss_model(config=train_config,
-                                                      mode="train",
-                                                      hvd=None)
-      train(train_config, train_model, None, hvd=None)
+      train_model = base_model(params=train_config, mode="train", hvd=None)
+      train_model.compile()
+      train(train_model, None, hvd=None)
 
     with tf.Graph().as_default():
-      infer_model = create_encoder_decoder_loss_model(config=infer_config,
-                                                      mode="infer",
-                                                      hvd=None)
+      infer_model = base_model(params=infer_config, mode="infer", hvd=None)
+      infer_model.compile()
+
       print(train_model.params['logdir'])
       output_file = os.path.join(train_model.params['logdir'], 'infer_out.csv')
       infer(
-        infer_config,
         infer_model,
         tf.train.latest_checkpoint(train_model.params['logdir']),
         output_file,
@@ -138,12 +133,11 @@ class Speech2TextModelTests(tf.test.TestCase):
 
   def test_mp_collection(self):
     train_config, eval_config = self.prepare_config()
-    train_config['model_params']['dtype'] = 'mixed'
+    train_config['dtype'] = 'mixed'
 
     with tf.Graph().as_default():
-      model = create_encoder_decoder_loss_model(config=train_config,
-                                                mode="train",
-                                                hvd=None)
+      model = base_model(params=train_config, mode="train", hvd=None)
+      model.compile()
       self.assertEqual(len(tf.trainable_variables()), 14)
       self.assertEqual(
         len(tf.get_collection('FP32_MASTER_COPIES')),
@@ -183,10 +177,9 @@ class Speech2TextModelTests(tf.test.TestCase):
     train_config, eval_config = self.prepare_config()
 
     with tf.Graph().as_default():
-      model = create_encoder_decoder_loss_model(config=train_config,
-                                                mode="train",
-                                                hvd=None)
-    model._num_gpus = 5
+      model = base_model(params=train_config, mode="train", hvd=None)
+      model.compile()
+    model._gpu_ids = range(5)
     model.params['batch_size_per_gpu'] = 2
     alphabet = model.data_layer.params['alphabet']
     inputs = [

@@ -5,7 +5,7 @@ import six
 import copy
 import tensorflow as tf
 
-from open_seq2seq.utils.utils import check_params
+from open_seq2seq.utils.utils import check_params, cast_types
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -35,7 +35,6 @@ class Loss:
             class :meth:`__init__` method.
     """
     return {
-      'batch_size': int,
       'dtype': [tf.float16, tf.float32, "mixed"],
     }
 
@@ -56,7 +55,10 @@ class Loss:
     self._model = model
 
     if 'dtype' not in self._params:
-      self._params['dtype'] = self._model.get_tf_dtype()
+      if self._model:
+        self._params['dtype'] = self._model.get_tf_dtype()
+      else:
+        self._params['dtype'] = tf.float32
 
     self._name = name
 
@@ -84,15 +86,7 @@ class Loss:
     Returns:
       dict: same as input_dict, but with all Tensors cast to the loss dtype.
     """
-    cast_input_dict = {}
-    for key, value in input_dict.items():
-      if isinstance(value, tf.Tensor):
-        if value.dtype == tf.float16 or value.dtype == tf.float32:
-          if value.dtype != self.params['dtype']:
-            cast_input_dict[key] = tf.cast(value, self.params['dtype'])
-            continue
-      cast_input_dict[key] = value
-    return cast_input_dict
+    return cast_types(input_dict, self.params['dtype'])
 
   @abc.abstractmethod
   def _compute_loss(self, input_dict):

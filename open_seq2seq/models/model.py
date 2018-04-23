@@ -194,6 +194,7 @@ class Model:
 
     dl_params = self._params.get('data_layer_params', {})
     dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    dl_params['use_targets'] = (self._mode == "train" or self._mode == "eval")
     self._data_layer = self._params['data_layer'](params=dl_params, model=self)
 
     if not self.on_horovod:

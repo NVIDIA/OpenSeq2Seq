@@ -101,9 +101,11 @@ class ParallelDataInRamInputLayer(DataLayer):
       'time_major': bool,
     })
 
-  def __init__(self, params, model):
+  def __init__(self, params, model, num_workers=None, worker_id=None):
     super(ParallelDataInRamInputLayer, self).__init__(params, model)
     self._batch_size = self.params['batch_size']
+    self._num_workers = num_workers
+    self._worker_id = worker_id
 
     self.source_file = self.params['source_file']
     self.target_file = self.params['target_file']

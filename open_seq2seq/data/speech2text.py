@@ -90,6 +90,7 @@ class Speech2TextDataLayer(DataLayer):
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
     
     self._index = -1
     self._files = None
@@ -236,6 +237,7 @@ class Speech2TextRandomDataLayer(DataLayer):
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
   def shuffle(self):
     pass
@@ -325,6 +327,7 @@ class Speech2TextTFDataLayer(DataLayer):
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
     self._files = None
     for csv in params['dataset_path']:

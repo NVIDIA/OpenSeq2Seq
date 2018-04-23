@@ -38,7 +38,10 @@ class DataLayer:
     self._model = model
 
     if 'dtype' not in self._params:
-      self._params['dtype'] = self._model.get_tf_dtype()
+      if self._model:
+        self._params['dtype'] = self._model.get_tf_dtype()
+      else:
+        self._params['dtype'] = tf.float32
 
     if 'use_targets' not in params:
       self._params['use_targets'] = True

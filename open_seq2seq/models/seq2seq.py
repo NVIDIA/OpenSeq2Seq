@@ -45,25 +45,31 @@ class Seq2Seq(Model):
 
   def __init__(self, params, mode="train", hvd=None):
     super(Seq2Seq, self).__init__(params=params, mode=mode, hvd=hvd)
+    if 'encoder_params' not in self.params:
+      self.params['encoder_params'] = {}
+    if 'decoder_params' not in self.params:
+      self.params['decoder_params'] = {}
+    if 'loss_params' not in self.params:
+      self.params['loss_params'] = {}
 
-    encoder_params = self.params.get('encoder_params', {})
-    encoder_params['batch_size'] = self.params['batch_size_per_gpu']
-    self._encoder = self.params['encoder'](
-      params=encoder_params, mode=mode, model=self,
-    )
-    decoder_params = self.params.get('decoder_params', {})
-    decoder_params['batch_size'] = self.params['batch_size_per_gpu']
-    self._decoder = self.params['decoder'](
-      params=decoder_params, mode=mode, model=self,
-    )
+    self._encoder = self._create_encoder()
+    self._decoder = self._create_decoder()
     if self.mode == 'train' or self.mode == 'eval':
-      loss_params = self.params.get('loss_params', {})
-      loss_params['batch_size'] = self.params['batch_size_per_gpu']
-      self._loss_computator = self.params['loss'](
-        params=loss_params, model=self,
-      )
+      self._loss_computator = self._create_loss()
     else:
       self._loss_computator = None
+
+  def _create_encoder(self):
+    params = self.params['encoder_params']
+    return self.params['encoder'](params=params, mode=self.mode, model=self)
+
+  def _create_decoder(self):
+    params = self.params['decoder_params']
+    params['tgt_vocab_size'] = self.data_layer.params['tgt_vocab_size']
+    return self.params['decoder'](params=params, mode=self.mode, model=self)
+
+  def _create_loss(self):
+    return self.params['loss'](params=self.params['loss_params'], model=self)
 
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
     if self.mode == "infer":

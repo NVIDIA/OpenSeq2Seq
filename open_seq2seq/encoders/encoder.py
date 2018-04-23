@@ -4,7 +4,7 @@ import abc
 import six
 import tensorflow as tf
 import copy
-from open_seq2seq.utils.utils import check_params
+from open_seq2seq.utils.utils import check_params, cast_types
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 
 
@@ -39,7 +39,6 @@ class Encoder:
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      'batch_size': int,
       'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
@@ -77,10 +76,13 @@ class Encoder:
     self._model = model
 
     if 'dtype' not in self._params:
-      self._params['dtype'] = self._model.params['dtype']
+      if self._model:
+        self._params['dtype'] = self._model.params['dtype']
+      else:
+        self._params['dtype'] = tf.float32
 
     if 'regularizer' not in self._params:
-      if 'regularizer' in self._model.params:
+      if self._model and 'regularizer' in self._model.params:
         self._params['regularizer'] = self._model.params['regularizer']
         self._params['regularizer_params'] = self._model.params['regularizer_params']
 
@@ -128,15 +130,7 @@ class Encoder:
     Returns:
       dict: same as input_dict, but with all Tensors cast to encoder dtype.
     """
-    cast_input_dict = {}
-    for key, value in input_dict.items():
-      if isinstance(value, tf.Tensor):
-        if value.dtype == tf.float16 or value.dtype == tf.float32:
-          if value.dtype != self.params['dtype']:
-            cast_input_dict[key] = tf.cast(value, self.params['dtype'])
-            continue
-      cast_input_dict[key] = value
-    return cast_input_dict
+    return cast_types(input_dict, self.params['dtype'])
 
   @abc.abstractmethod
   def _encode(self, input_dict):

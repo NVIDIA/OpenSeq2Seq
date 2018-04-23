@@ -10,7 +10,7 @@ class FullyConnectedTimeDecoder(Decoder):
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
-      'output_dim': int,
+      'tgt_vocab_size': int,
     })
 
   @staticmethod
@@ -35,13 +35,13 @@ class FullyConnectedTimeDecoder(Decoder):
     # activation is linear by default
     logits = tf.layers.dense(
       inputs=inputs,
-      units=self.params['output_dim'],
+      units=self.params['tgt_vocab_size'],
       kernel_regularizer=regularizer,
       name='fully_connected',
     )
     logits = tf.reshape(
       logits,
-      [batch_size, -1, self.params['output_dim']],
+      [batch_size, -1, self.params['tgt_vocab_size']],
       name="logits",
     )
     # converting to time_major=True shape
@@ -80,12 +80,6 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
 
   def __init__(self, params, model,
                name="fully_connected_ctc_decoder", mode='train'):
-    if 'output_dim' not in params:
-      if not 'alphabet' in model.data_layer.params:
-        raise AttributeError("For 'fully_connected_ctc_decoder' the data_layer "
-                             "params must contain 'alphabet' key.")
-      params['output_dim'] = model.data_layer.params['alphabet'].size() + 1
-
     super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
 
     if self.params['use_language_model']:

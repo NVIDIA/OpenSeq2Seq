@@ -13,10 +13,6 @@ def train(train_model, eval_model=None, hvd=None, debug_port=None):
     raise ValueError("eval_steps parameter has to be specified "
                      "if eval_model is provided")
 
-  train_model.compile()
-  if eval_model:
-    eval_model.compile(force_var_reuse=True)
-
   if hvd:
     master_worker = hvd.rank() == 0
   else:
@@ -139,7 +135,6 @@ def get_batches_for_epoch(model, checkpoint):
 
 
 def infer(model, checkpoint, output_file):
-  model.compile()
   inputs_per_batch, outputs_per_batch = get_batches_for_epoch(model,
                                                               checkpoint)
   model.infer(inputs_per_batch, outputs_per_batch, output_file)
@@ -147,7 +142,6 @@ def infer(model, checkpoint, output_file):
 
 
 def evaluate(model, checkpoint):
-  model.compile()
   # TODO: last batch might be cut!
   inputs_per_batch, outputs_per_batch = get_batches_for_epoch(model,
                                                               checkpoint)

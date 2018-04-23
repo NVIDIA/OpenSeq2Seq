@@ -5,18 +5,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
-import numpy as np
 import argparse
 import pprint
 import runpy
-import time
 import copy
 import os
 
 from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.utils import train, infer, evaluate
-from open_seq2seq.utils.model_builders import \
-  create_encoder_decoder_loss_model
 
 
 def main():
@@ -186,16 +182,21 @@ def main():
   with tf.Graph().as_default():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
+      train_model.compile()
       train(train_model, None, hvd=hvd, debug_port=args.debug_port)
     elif args.mode == 'train_eval':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
+      train_model.compile()
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+      eval_model.compile(force_var_reuse=True)
       train(train_model, eval_model, hvd=hvd, debug_port=args.debug_port)
     elif args.mode == "eval":
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+      eval_model.compile()
       evaluate(eval_model, checkpoint)
     elif args.mode == "infer":
       infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
+      infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
 
 
