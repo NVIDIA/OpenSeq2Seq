@@ -83,24 +83,19 @@ class Speech2Text(Seq2Seq):
     pred_text = "".join(sparse_tensor_value_to_texts(
       decoded_sequence_one_batch, self.data_layer.params['alphabet'])[0]
     )
-    sample_med = levenshtein(true_text, pred_text) / len(true_text)
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
                  len(true_text.split())
 
-    # deco_print("Sample mean edit distance: {}".format(sample_med), offset=4)
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
     return {
-      'Sample MED': sample_med,
       'Sample WER': sample_wer,
     }
 
   def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
-    total_char_lev = 0.0
     total_word_lev = 0.0
     total_word_count = 0.0
-    total_char_count = 0.0
 
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
       for gpu_id in range(self.num_gpus):
@@ -120,18 +115,13 @@ class Speech2Text(Seq2Seq):
           ))
           pred_text = "".join(decoded_texts[sample_id])
 
-          total_char_lev += levenshtein(true_text, pred_text)
           total_word_lev += levenshtein(true_text.split(), pred_text.split())
           total_word_count += len(true_text.split())
-          total_char_count += len(true_text)
 
     total_wer = 1.0 * total_word_lev / total_word_count
-    total_med = 1.0 * total_char_lev / total_char_count
 
-    # deco_print("Validation mean edit distance: {}".format(total_med), offset=4)
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
     return {
-      "Eval MED": total_med,
       "Eval WER": total_wer,
     }
 

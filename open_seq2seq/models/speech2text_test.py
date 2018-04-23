@@ -80,7 +80,6 @@ class Speech2TextModelTests(tf.test.TestCase):
 
       self.assertGreaterEqual(loss, 500.0)
       self.assertGreaterEqual(eval_loss, 500.0)
-      self.assertGreaterEqual(eval_dict['Eval MED'], 0.8)
       self.assertGreaterEqual(eval_dict['Eval WER'], 0.95)
 
   def test_convergence(self):
@@ -96,7 +95,6 @@ class Speech2TextModelTests(tf.test.TestCase):
 
       self.assertLess(loss, 5.0)
       self.assertLess(eval_loss, 200.0)
-      self.assertLess(eval_dict['Eval MED'], 0.1)
       self.assertLess(eval_dict['Eval WER'], 0.1)
 
   def test_infer(self):
@@ -240,20 +238,15 @@ class Speech2TextModelTests(tf.test.TestCase):
                                        [output_values, output_values])
 
     w_lev = 0.0
-    c_lev = 0.0
     w_len = 0.0
-    c_len = 0.0
     for batch_id in range(len(inputs)):
       for sample_id in range(len(inputs[batch_id])):
         input_sample = inputs[batch_id][sample_id]
         output_sample = outputs[batch_id][sample_id]
         w_lev += levenshtein(input_sample.split(), output_sample.split())
-        c_lev += levenshtein(input_sample, output_sample)
         w_len += len(input_sample.split())
-        c_len += len(input_sample)
 
     self.assertEqual(output_dict['Eval WER'], w_lev / w_len)
-    self.assertEqual(output_dict['Eval MED'], c_lev / c_len)
     self.assertEqual(output_dict['Eval WER'], 37 / 40.0)
 
     output_dict = model.maybe_print_logs(input_values, output_values)
