@@ -1,0 +1,334 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>parts.experimental_rnn_cells.flstm &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>parts.experimental_rnn_cells.flstm</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for parts.experimental_rnn_cells.flstm</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Module for constructing RNN Cells.&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.rnn.python.ops</span> <span class="k">import</span> <span class="n">core_rnn_cell</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">rnn_cell_impl</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">variable_scope</span> <span class="k">as</span> <span class="n">vs</span>
+
+<span class="c1"># pylint: disable=protected-access</span>
+<span class="n">_Linear</span> <span class="o">=</span> <span class="n">core_rnn_cell</span><span class="o">.</span><span class="n">_Linear</span>  <span class="c1"># pylint: disable=invalid-name</span>
+<span class="c1"># pylint: enable=protected-access</span>
+
+
+<span class="c1"># TODO: must implement all abstract methods</span>
+<div class="viewcode-block" id="FLSTMCell"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.flstm.FLSTMCell">[docs]</a><span class="k">class</span> <span class="nc">FLSTMCell</span><span class="p">(</span><span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">RNNCell</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Group LSTM cell (G-LSTM).</span>
+<span class="sd">  The implementation is based on:</span>
+<span class="sd">    https://arxiv.org/abs/1703.10722</span>
+<span class="sd">  O. Kuchaiev and B. Ginsburg</span>
+<span class="sd">  &quot;Factorization Tricks for LSTM Networks&quot;, ICLR 2017 workshop.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="FLSTMCell.__init__"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.flstm.FLSTMCell.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_units</span><span class="p">,</span> <span class="n">fact_size</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_proj</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the parameters of G-LSTM cell.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      num_units: int, The number of units in the G-LSTM cell</span>
+<span class="sd">      initializer: (optional) The initializer to use for the weight and</span>
+<span class="sd">        projection matrices.</span>
+<span class="sd">      num_proj: (optional) int, The output dimensionality for the projection</span>
+<span class="sd">        matrices.  If None, no projection is performed.</span>
+<span class="sd">      forget_bias: Biases of the forget gate are initialized by default to 1</span>
+<span class="sd">        in order to reduce the scale of forgetting at the beginning of</span>
+<span class="sd">        the training.</span>
+<span class="sd">      activation: Activation function of the inner states.</span>
+<span class="sd">      reuse: (optional) Python boolean describing whether to reuse variables</span>
+<span class="sd">        in an existing scope.  If not `True`, and the existing scope already</span>
+<span class="sd">        has the given variables, an error is raised.</span>
+<span class="sd">    Raises:</span>
+<span class="sd">      ValueError: If `num_units` or `num_proj` is not divisible by</span>
+<span class="sd">        `number_of_groups`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">FLSTMCell</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">_reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_initializer</span> <span class="o">=</span> <span class="n">initializer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_fact_size</span> <span class="o">=</span> <span class="n">fact_size</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_forget_bias</span> <span class="o">=</span> <span class="n">forget_bias</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_activation</span> <span class="o">=</span> <span class="n">activation</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="o">=</span> <span class="n">num_proj</span>
+
+    <span class="k">if</span> <span class="n">num_proj</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">num_units</span><span class="p">,</span> <span class="n">num_proj</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">num_proj</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">num_units</span><span class="p">,</span> <span class="n">num_units</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">num_units</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_linear3</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">state_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_state_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
+
+  <span class="c1"># TODO: does not match signature of the base method</span>
+<div class="viewcode-block" id="FLSTMCell.call"><a class="viewcode-back" href="../../../api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.flstm.FLSTMCell.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="p">(</span><span class="n">c_prev</span><span class="p">,</span> <span class="n">m_prev</span><span class="p">)</span> <span class="o">=</span> <span class="n">state</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">scope</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable_scope</span><span class="p">()</span>
+    <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_initializer</span><span class="p">):</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">inputs</span><span class="p">,</span> <span class="n">m_prev</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;first_gemm&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="c1"># no bias for bottleneck</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span> <span class="o">=</span> <span class="n">_Linear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fact_size</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">R_fact</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear1</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+      <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;second_gemm&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span> <span class="o">=</span> <span class="n">_Linear</span><span class="p">(</span><span class="n">R_fact</span><span class="p">,</span> <span class="mi">4</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+        <span class="n">R</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear2</span><span class="p">(</span><span class="n">R_fact</span><span class="p">)</span>
+      <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">o</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">R</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+      <span class="n">c</span> <span class="o">=</span> <span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">f</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_forget_bias</span><span class="p">)</span> <span class="o">*</span> <span class="n">c_prev</span> <span class="o">+</span>
+           <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="o">*</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">j</span><span class="p">))</span>
+      <span class="n">m</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">o</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_activation</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">with</span> <span class="n">vs</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;projection&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear3</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_linear3</span> <span class="o">=</span> <span class="n">_Linear</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_proj</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_linear3</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+
+    <span class="n">new_state</span> <span class="o">=</span> <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">LSTMStateTuple</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">m</span><span class="p">,</span> <span class="n">new_state</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

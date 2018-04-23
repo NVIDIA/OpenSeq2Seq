@@ -18,9 +18,21 @@ Mixed precision training
 
    -- "Mixed Precision Training", Micikevicius et al, ICLR, 2018 :cite:`mp-2018`
 
+Prerequisites
+-------------
+Mixed precision training utilizes Tensor Cores introduced in `NVIDIA Volta GPUs <https://www.nvidia.com/en-us/data-center/volta-gpu-architecture/>`_
+such as `Titan V <https://www.nvidia.com/en-us/titan/titan-v/>`_ and `Tesla V100 <https://www.nvidia.com/en-us/data-center/tesla/tesla-qualified-servers-catalog/>`_.
+NVIDIA Volta GPUs are also available from `AWS on p3.2xlarge, p3.8xlarge, p3.16xlarge instances <https://aws.amazon.com/blogs/aws/new-amazon-ec2-instances-with-up-to-8-nvidia-tesla-v100-gpus-p3/>`_ .
+
+
+For an optimal mixed precision performance we recommend using NVIDIA's TensorFlow docker containers (version 18.03 and above)
+which can be obtained here: `NVIDIA GPU cloud <http://ngc.nvidia.com/>`_ .
+Alternatively, you can build TensorFlow yourself with CUDA 9.1 and this `PR <https://github.com/tensorflow/tensorflow/pull/18436>`_ included:
+
+
 How to enable mixed precision
 -----------------------------
-Enabling mixed precision with existing models in OpenSeq2Seq is easy:
+Enabling mixed precision with existing models in OpenSeq2Seq is simple:
 change ``dtype`` parameter of ``model_params`` to "mixed". 
 You might need to enable loss scaling: either statically, by setting
 ``loss_scale`` parameter inside ``model_params`` to the desired number, or

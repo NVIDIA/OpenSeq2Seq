@@ -1,4 +1,4 @@
-FROM nvdl.githost.io:4678/dgx/tensorflow:18.04-py2-devel
+FROM gitlab-dl.nvidia.com:5005/dgx/tensorflow:18.04-py2-devel
 
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:/usr/local/cuda/lib64/stubs:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}
 
