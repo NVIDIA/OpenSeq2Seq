@@ -95,14 +95,14 @@ def transformer_decoder_fn(decoder_input_seq,
 class TransformerDecoder(Decoder):
   """Greedy Transformer Decoder
   """
-  def __init__(self, params=None, name="transformer_decoder",
-               mode='train'):
+  def __init__(self, params, model,
+               name="transformer_decoder", mode='train'):
     """
     Initializes Decoder
     :param params: dictionary of decoder parameters
     """
-    super(TransformerDecoder, self).__init__(params, name, mode)
-    self._batch_size = self.params['batch_size_per_gpu']
+    super(TransformerDecoder, self).__init__(params, model, name, mode)
+    self._batch_size = self.params['batch_size']
     self.GO_SYMBOL = self.params['GO_SYMBOL']
     self.END_SYMBOL = self.params['END_SYMBOL']
     self._tgt_vocab_size = self.params['tgt_vocab_size']
@@ -125,6 +125,7 @@ class TransformerDecoder(Decoder):
       "END_SYMBOL": int,
       "PAD_SYMBOL": int,
       "tgt_vocab_size": int,
+      'batch_size': int,
     })
 
   @staticmethod
@@ -140,7 +141,7 @@ class TransformerDecoder(Decoder):
     :param input_dict: dictionary of decoder inputs
     For example (but may differ):
     decoder_input= { "src_inputs" : decoder source sequence,
-                     "src_lengths" : decoder srouce length,
+                     "src_lengths" : decoder source length,
                      "tgt_inputs" :  (during training),
                      "tgt_lengths" : (during training)}
 
@@ -149,7 +150,7 @@ class TransformerDecoder(Decoder):
     decoder_output = {"decoder_outputs" : decoder_outputs,
                       "decoder_lengths" : decoder_lengths}
     """
-    encoder_outputs = input_dict['encoder_output']['encoder_outputs']
+    encoder_outputs = input_dict['encoder_output']['outputs']
     encoder_input = input_dict['encoder_output']['encoder_input']
     ffn_inner_dim = self.params["ffn_inner_dim"]
     d_model = self.params['d_model']
@@ -174,7 +175,7 @@ class TransformerDecoder(Decoder):
           use_bias=False,
           name="DecoderOutProjection")
 
-      tgt_inputs = input_dict['tgt_inputs']
+      tgt_inputs = input_dict['tgt_sequence']
 
       if self._mode == 'train':
         output = transformer_decoder_fn(
@@ -190,8 +191,8 @@ class TransformerDecoder(Decoder):
           dropout_drop_prob=self._drop_prob)
 
         return {
-          "decoder_output": output,
-          "decoder_samples": tf.argmax(output, axis=-1),
+          "logits": output,
+          "samples": tf.argmax(output, axis=-1),
           "final_state": None,
           "final_sequence_lengths": None}
 
@@ -244,10 +245,11 @@ class TransformerDecoder(Decoder):
                                                                            tf.TensorShape([self._batch_size, None]),
                                                                            tf.TensorShape([None, None, None])])
         
-        return {"decoder_output": output,
-                "decoder_samples": decoder_ids_so_far[:, 1:],
+        return {"logits": output,
+                "samples": decoder_ids_so_far[:, 1:],
                 "final_state": None,
                 "final_sequence_lengths": None}
+
   @property
   def params(self):
     """Parameters used to construct the encoder"""

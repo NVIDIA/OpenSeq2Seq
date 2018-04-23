@@ -7,6 +7,8 @@ from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
 
+base_model = Speech2Text
+
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
@@ -22,23 +24,20 @@ base_params = {
   "save_checkpoint_steps": 50,
   "logdir": "tmp_log_folder",
 
-  "base_model": Speech2Text,
-  "model_params": {
-    "optimizer": "Momentum",
-    "optimizer_params": {
-      "momentum": 0.90,
-    },
-    "lr_policy": poly_decay,
-    "lr_policy_params": {
-      "power": 2,
-    },
-    "learning_rate": 0.001,
-    "larc_nu": 0.001,
-    "larc_mode": 'clip',
-    "dtype": tf.float32,
-    "summaries": ['learning_rate', 'variables', 'gradients',
-                  'variable_norm', 'gradient_norm', 'global_gradient_norm']
+  "optimizer": "Momentum",
+  "optimizer_params": {
+    "momentum": 0.90,
   },
+  "lr_policy": poly_decay,
+  "lr_policy_params": {
+    "power": 2,
+  },
+  "learning_rate": 0.001,
+  "larc_nu": 0.001,
+  "larc_mode": 'clip',
+  "dtype": tf.float32,
+  "summaries": ['learning_rate', 'variables', 'gradients',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,
   "encoder_params": {

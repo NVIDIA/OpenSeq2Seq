@@ -34,7 +34,7 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
     num_gpus = 2
 
     dl = MultiGPUWrapper(
-      ParallelDataInRamInputLayer(self.params),
+      ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
     self.assertEqual(dl.params['batch_size'],
@@ -75,7 +75,7 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
     num_gpus = 2
 
     dl = MultiGPUWrapper(
-      ParallelDataInRamInputLayer(self.params),
+      ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
     for i in range(0, 11):
@@ -135,17 +135,17 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
     num_gpus = 2
 
     dl_reg = MultiGPUWrapper(
-      ParallelDataInRamInputLayer(self.params),
+      ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
     dls_hvd = [
       ParallelDataInRamInputLayer(
-        self.params, num_workers=1, worker_id=0,
+        self.params, None, num_workers=1, worker_id=0,
       )
     ]
     for ind in range(num_workers):
       dls_hvd.append(ParallelDataInRamInputLayer(
-        self.params,
+        self.params, None,
         num_workers=num_workers,
         worker_id=ind,
       ))
@@ -198,6 +198,7 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
     print(total)
     self.assertEqual(cnt, total)
 
+
 class ParallelTextDataLayerTests(tf.test.TestCase):
   def setUp(self):
     create_data()
@@ -215,11 +216,12 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       'map_parallel_calls': 1,
       'prefetch_buffer_size': 1,
     }
+
   def tearDown(self):
     remove_data()
 
   def test_init_test4(self):
-    dl = ParallelTextDataLayer(params=self.params)
+    dl = ParallelTextDataLayer(params=self.params, model=None)
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
@@ -235,7 +237,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
   def test_init_test2(self):
     self.params['use_targets'] = False # in this case we do not yield targets
     self.params['shuffle'] = False  # in this case we do not yield targets
-    dl = ParallelTextDataLayer(params=self.params)
+    dl = ParallelTextDataLayer(params=self.params, model=None)
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
@@ -248,7 +250,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
   def test_pad8(self):
     self.params['shuffle'] = False  # in this case we do not yield targets
     self.params['pad_lengths_to_eight'] = True
-    dl = ParallelTextDataLayer(params=self.params)
+    dl = ParallelTextDataLayer(params=self.params, model=None)
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
@@ -260,6 +262,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       self.assertEqual(et[2].shape[0], self.params['batch_size'])
       self.assertTrue(et[2].shape[1] % 8 == 0)
       self.assertEqual(et[3].shape[0], self.params['batch_size'])
+
 
 if __name__ == '__main__':
   tf.test.main()

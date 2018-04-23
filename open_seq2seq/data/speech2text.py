@@ -68,7 +68,7 @@ class Speech2TextDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params):
+  def __init__(self, params, model):
     """
     Required params:
       batch_size_per_gpu
@@ -85,11 +85,12 @@ class Speech2TextDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextDataLayer, self).__init__(params)
+    super(Speech2TextDataLayer, self).__init__(params, model)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
     
     self._index = -1
     self._files = None
@@ -227,15 +228,16 @@ class Speech2TextRandomDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params):
+  def __init__(self, params, model):
     """
     Random data for speech check
     """
-    super(Speech2TextRandomDataLayer, self).__init__(params)
+    super(Speech2TextRandomDataLayer, self).__init__(params, model)
     self.random_data = None
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
   def shuffle(self):
     pass
@@ -287,7 +289,6 @@ class Speech2TextRandomDataLayer(DataLayer):
     return {self.get_input_tensors(): self.random_data}
 
 
-
 class Speech2TextTFDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
@@ -304,7 +305,7 @@ class Speech2TextTFDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params):
+  def __init__(self, params, model):
     """
     Required params:
       batch_size
@@ -321,11 +322,12 @@ class Speech2TextTFDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextTFDataLayer, self).__init__(params)
+    super(Speech2TextTFDataLayer, self).__init__(params, model)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
+    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
     self._files = None
     for csv in params['dataset_path']:
