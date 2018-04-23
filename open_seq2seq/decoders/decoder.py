@@ -39,7 +39,6 @@ class Decoder:
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      'batch_size': int,
       'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
