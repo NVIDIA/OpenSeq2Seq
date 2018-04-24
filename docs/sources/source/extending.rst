@@ -1,7 +1,7 @@
 .. _extending:
 
 Adding new models
-========
+=================
 
 .. toctree::
    :maxdepth: 2
