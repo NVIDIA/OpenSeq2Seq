@@ -5,18 +5,14 @@ from __future__ import print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
-import numpy as np
 import argparse
 import pprint
 import runpy
-import time
 import copy
 import os
 
 from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.utils import train, infer, evaluate
-from open_seq2seq.utils.model_builders import \
-  create_encoder_decoder_loss_model
 
 
 def main():
@@ -48,7 +44,14 @@ def main():
     raise ValueError("Mode has to be one of "
                      "['train', 'eval', 'train_eval', 'infer']")
   config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
-  base_config = config_module['base_params']
+
+  base_config = config_module.get('base_params', None)
+  if base_config is None:
+    raise ValueError('base_config dictionary has to be '
+                     'defined in the config file')
+  base_model = config_module.get('base_model', None)
+  if base_model is None:
+    raise ValueError('base_config class has to be defined in the config file')
 
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
@@ -165,61 +168,36 @@ def main():
     args.mode = "train"
     checkpoint = None
 
-  # checking that frequencies of samples and loss are aligned
-  s_fr = base_config['print_samples_steps']
-  l_fr = base_config['print_loss_steps']
-  if s_fr is not None and l_fr is not None and s_fr % l_fr != 0:
-    raise ValueError("print_samples_steps has to be a multiple of "
-                     "print_loss_steps.")
+  if args.mode == 'train' or args.mode == 'train_eval':
+    if hvd is None or hvd.rank() == 0:
+      if checkpoint is None:
+        deco_print("Starting training from scratch")
+      else:
+        deco_print(
+          "Restored checkpoint from {}. Resuming training".format(checkpoint),
+        )
+  elif args.mode == 'eval' or args.mode == 'infer':
+    deco_print("Loading model from {}".format(checkpoint))
 
   with tf.Graph().as_default():
-    # setting random seed
-    rs = base_config.get('random_seed', int(time.time()))
-    if hvd is not None:
-      rs += hvd.rank()
-    tf.set_random_seed(rs)
-    np.random.seed(rs)
-
-    if args.mode == 'train' or args.mode == 'train_eval':
-      if hvd is None or hvd.rank() == 0:
-        if checkpoint is None:
-          deco_print("Starting training from scratch")
-        else:
-          deco_print(
-            "Restored checkpoint from {}. Resuming training".format(checkpoint),
-          )
-    elif args.mode == 'eval' or args.mode == 'infer':
-      deco_print("Loading model from {}".format(checkpoint))
-
     if args.mode == 'train':
-      train_model = create_encoder_decoder_loss_model(config=train_config,
-                                                      mode="train",
-                                                      hvd=hvd)
-      train(train_config, train_model, None, hvd=hvd,
-            debug_port=args.debug_port)
+      train_model = base_model(params=train_config, mode="train", hvd=hvd)
+      train_model.compile()
+      train(train_model, None, hvd=hvd, debug_port=args.debug_port)
     elif args.mode == 'train_eval':
-      train_model = create_encoder_decoder_loss_model(config=train_config,
-                                                      mode="train",
-                                                      hvd=hvd)
-      eval_model = create_encoder_decoder_loss_model(config=eval_config,
-                                                     mode="eval",
-                                                     hvd=hvd,
-                                                     reuse=True)
-      train(train_config, train_model, eval_model,
-            hvd=hvd, debug_port=args.debug_port)
+      train_model = base_model(params=train_config, mode="train", hvd=hvd)
+      train_model.compile()
+      eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+      eval_model.compile(force_var_reuse=True)
+      train(train_model, eval_model, hvd=hvd, debug_port=args.debug_port)
     elif args.mode == "eval":
-      eval_model = create_encoder_decoder_loss_model(
-        config=eval_config,
-        mode="eval",
-        hvd=hvd,
-      )
-      evaluate(eval_config, eval_model, checkpoint)
-    elif args.mode == "infer":    
-      infer_model = create_encoder_decoder_loss_model(config=infer_config,
-                                                      mode="infer",
-                                                      hvd=hvd)
-      infer(infer_config, infer_model, checkpoint,
-            output_file=args.infer_output_file)
+      eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+      eval_model.compile()
+      evaluate(eval_model, checkpoint)
+    elif args.mode == "infer":
+      infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
+      infer_model.compile()
+      infer(infer_model, checkpoint, args.infer_output_file)
 
 
 if __name__ == '__main__':

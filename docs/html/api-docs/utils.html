@@ -96,7 +96,6 @@
 <li class="toctree-l2"><a class="reference internal" href="parts.html">parts</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">utils</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils.funcs">funcs</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-utils.model_builders">model_builders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-utils.hooks">hooks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#id1">utils</a></li>
 </ul>
@@ -175,117 +174,22 @@
 <span id="funcs"></span><h2>funcs<a class="headerlink" href="#module-utils.funcs" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="utils.funcs.evaluate">
-<code class="descclassname">utils.funcs.</code><code class="descname">evaluate</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.evaluate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">evaluate</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="utils.funcs.get_batches_for_epoch">
-<code class="descclassname">utils.funcs.</code><code class="descname">get_batches_for_epoch</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#get_batches_for_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.get_batches_for_epoch" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">get_batches_for_epoch</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#get_batches_for_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.get_batches_for_epoch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="utils.funcs.infer">
-<code class="descclassname">utils.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>config</em>, <em>model</em>, <em>checkpoint</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.infer" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.infer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="utils.funcs.train">
-<code class="descclassname">utils.funcs.</code><code class="descname">train</code><span class="sig-paren">(</span><em>config</em>, <em>train_model</em>, <em>eval_model=None</em>, <em>hvd=None</em>, <em>debug_port=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.train" title="Permalink to this definition">¶</a></dt>
-<dd><p>Training Loop function
-:param config:
-:param train_model:
-:param eval_model:
-:param hvd:
-:return:</p>
-</dd></dl>
-
-</div>
-<div class="section" id="module-utils.model_builders">
-<span id="model-builders"></span><h2>model_builders<a class="headerlink" href="#module-utils.model_builders" title="Permalink to this headline">¶</a></h2>
-<p>Helper functions to create models with various topologies</p>
-<dl class="function">
-<dt id="utils.model_builders.create_encoder_decoder_loss_model">
-<code class="descclassname">utils.model_builders.</code><code class="descname">create_encoder_decoder_loss_model</code><span class="sig-paren">(</span><em>config</em>, <em>mode</em>, <em>hvd</em>, <em>reuse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/model_builders.html#create_encoder_decoder_loss_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.model_builders.create_encoder_decoder_loss_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates a model specified in the configuration file.
-This function takes in Python config and creates all parts of the model:
-data layer, encoder, decoder and loss. They are all then combined in one
-model instance which is returned.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>config</strong> (<em>dict</em>) – dictionary containing run parameters. For complete list of
-possible values see “Config parameters” section.</li>
-<li><strong>mode</strong> (<em>str</em>) – mode to create the model in. Could be “train”, “eval” or “infer”.</li>
-<li><strong>hvd</strong> – if Horovod is used, this should be <code class="docutils literal"><span class="pre">horovod.tensorflow</span></code> module.
-If Horovod is not used it should be None.</li>
-<li><strong>reuse</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to reuse variables in the model. Useful
-for creating evaluation model during training.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">instance of <code class="docutils literal"><span class="pre">base_model</span></code> class specified in the config.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p>Config parameters:</p>
-<ul class="simple">
-<li><strong>random_seed</strong> (int) — random seed to use.</li>
-<li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed execution.</li>
-<li><strong>num_gpus</strong> (int) — number of GPUs to use. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
-this parameter is ignored.</li>
-<li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
-<li><strong>num_epochs</strong> (int) — number of epochs to run training for.
-This parameter cannot be used if <code class="docutils literal"><span class="pre">max_steps</span></code> is specified.</li>
-<li><strong>max_steps</strong> (int) — number of steps to run training for.
-This parameter cannot be used if <code class="docutils literal"><span class="pre">num_epochs</span></code> is specified.</li>
-<li><strong>save_summaries_steps</strong> (int or None) — how often to save summaries.
-Setting it to None disables summaries saving.</li>
-<li><strong>print_loss_steps</strong> (int or None) — how often to print loss during
-training. Setting it to None disables loss printing.</li>
-<li><strong>print_sample_steps</strong> (int or None) — how often to print training samples
-(input sequences, correct answers and model predictions).
-Setting it to None disables samples printing.</li>
-<li><strong>save_checkpoint_steps</strong> (int or None) — how often to save model
-checkpoints. Setting it to None disables checkpoint saving.</li>
-<li><strong>eval_steps</strong> (int) — how often to run evaluation during training.
-This parameter is only checked if <code class="docutils literal"><span class="pre">--mode</span></code> argument of <code class="docutils literal"><span class="pre">run.py</span></code> is
-“train_eval”. If no evaluation is needed you should use “train” mode.</li>
-<li><strong>logdir</strong> (string) — path to the log directory where all checkpoints and
-summaries will be saved.</li>
-<li><strong>base_model</strong> (any class derived from
-<a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) — base model class to use.
-Currently can only be <a class="reference internal" href="models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal"><span class="pre">Speech2Text</span></code></a>
-or
-<a class="reference internal" href="models.html#models.text2text.BasicText2TextWithAttention" title="models.text2text.BasicText2TextWithAttention"><code class="xref py py-class docutils literal"><span class="pre">BasicText2TextWithAttention</span></code></a>.
-Note that this parameter is not a string, but an actual Python class, so you
-will need to add corresponding imports in the configuration file.</li>
-<li><strong>model_params</strong> (dict) — dictionary with model configuration. For
-complete list of possible parameters see the corresponding class docs.</li>
-<li><strong>data_layer</strong> (any class derived from
-<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>) — data layer class to use.</li>
-<li><strong>data_layer_params</strong> (dict) — dictionary with data layer configuration.
-For complete list of possible parameters see the corresponding class docs.</li>
-<li><strong>encoder</strong> (any class derived from
-<a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">Encoder</span></code></a>) — encoder class to use.</li>
-<li><strong>encoder_params</strong> (dict) — dictionary with encoder configuration. For
-complete list of possible parameters see the corresponding class docs.</li>
-<li><strong>decoder</strong> (any class derived from
-<a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">Decoder</span></code></a>) — decoder class to use.</li>
-<li><strong>decoder_params</strong> (dict) — dictionary with decoder configuration. For
-complete list of possible parameters see the corresponding class docs.</li>
-<li><strong>loss</strong> (any class derived from
-<a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">Loss</span></code></a>) — loss class to use.</li>
-<li><strong>loss_params</strong> (dict) — dictionary with loss configuration. For
-complete list of possible parameters see the corresponding class docs.</li>
-</ul>
-</dd></dl>
-
-<dl class="function">
-<dt id="utils.model_builders.safe_fill_params">
-<code class="descclassname">utils.model_builders.</code><code class="descname">safe_fill_params</code><span class="sig-paren">(</span><em>cfg_from</em>, <em>cfgs_to</em>, <em>pm_list</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/model_builders.html#safe_fill_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.model_builders.safe_fill_params" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">train</code><span class="sig-paren">(</span><em>train_model</em>, <em>eval_model=None</em>, <em>hvd=None</em>, <em>debug_port=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#train"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.train" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -294,66 +198,198 @@ complete list of possible parameters see the corresponding class docs.</li>
 <dl class="class">
 <dt id="utils.hooks.PrintLossAndTimeHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that prints training samples and prediction from time to time</p>
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called after each call to run().</p>
+<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
+<cite>before_run()</cite>.</p>
+<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
+<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
+<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
+<li><strong>run_values</strong> – A SessionRunValues object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called before each call to run().</p>
+<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
+tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
+together with the ops/tensors originally passed to the original run() call.
+The run args you return can also contain feeds to be added to the run()
+call.</p>
+<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
+information about the upcoming <cite>run()</cite> call: the originally requested
+op/tensors, the TensorFlow Session.</p>
+<p>At this point graph is finalized and you can not add ops.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called once before using the session.</p>
+<p>When called, the default graph is the one that will be launched in the
+session.  The hook can modify the graph by adding new operations to it.
+After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
+can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
+graph, should not change the graph.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="utils.hooks.PrintSamplesHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintSamplesHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that prints training samples and prediction from time to time</p>
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called after each call to run().</p>
+<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
+<cite>before_run()</cite>.</p>
+<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
+<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
+<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
+<li><strong>run_values</strong> – A SessionRunValues object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called before each call to run().</p>
+<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
+tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
+together with the ops/tensors originally passed to the original run() call.
+The run args you return can also contain feeds to be added to the run()
+call.</p>
+<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
+information about the upcoming <cite>run()</cite> call: the originally requested
+op/tensors, the TensorFlow Session.</p>
+<p>At this point graph is finalized and you can not add ops.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called once before using the session.</p>
+<p>When called, the default graph is the one that will be launched in the
+session.  The hook can modify the graph by adding new operations to it.
+After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
+can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
+graph, should not change the graph.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="utils.hooks.RunEvaluationHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>last_step=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that runs evaluation on a validation set</p>
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called after each call to run().</p>
+<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
+<cite>before_run()</cite>.</p>
+<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
+<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
+<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
+<li><strong>run_values</strong> – A SessionRunValues object.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called before each call to run().</p>
+<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
+tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
+together with the ops/tensors originally passed to the original run() call.
+The run args you return can also contain feeds to be added to the run()
+call.</p>
+<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
+information about the upcoming <cite>run()</cite> call: the originally requested
+op/tensors, the TensorFlow Session.</p>
+<p>At this point graph is finalized and you can not add ops.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called once before using the session.</p>
+<p>When called, the default graph is the one that will be launched in the
+session.  The hook can modify the graph by adding new operations to it.
+After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
+can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
+graph, should not change the graph.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -368,6 +404,11 @@ complete list of possible parameters see the corresponding class docs.</li>
 <span class="target" id="module-utils.utils"></span><dl class="function">
 <dt id="utils.utils.array_to_string">
 <code class="descclassname">utils.utils.</code><code class="descname">array_to_string</code><span class="sig-paren">(</span><em>row</em>, <em>vocab</em>, <em>delim=' '</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#array_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.array_to_string" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.cast_types">
+<code class="descclassname">utils.utils.</code><code class="descname">cast_types</code><span class="sig-paren">(</span><em>input_dict</em>, <em>dtype</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#cast_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.cast_types" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">

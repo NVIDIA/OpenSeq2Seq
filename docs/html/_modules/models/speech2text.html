@@ -234,27 +234,22 @@
     <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sparse_tensor_value_to_texts</span><span class="p">(</span>
       <span class="n">decoded_sequence_one_batch</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="n">sample_med</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">)</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="p">)</span>
     <span class="n">sample_wer</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">pred_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="o">/</span> \
                  <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
 
-    <span class="c1"># deco_print(&quot;Sample mean edit distance: {}&quot;.format(sample_med), offset=4)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Sample WER: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sample_wer</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Sample target:     &quot;</span> <span class="o">+</span> <span class="n">true_text</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Sample prediction: &quot;</span> <span class="o">+</span> <span class="n">pred_text</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s1">&#39;Sample MED&#39;</span><span class="p">:</span> <span class="n">sample_med</span><span class="p">,</span>
       <span class="s1">&#39;Sample WER&#39;</span><span class="p">:</span> <span class="n">sample_wer</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Speech2Text.maybe_evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.maybe_evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">):</span>
-    <span class="n">total_char_lev</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">total_word_lev</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">total_word_count</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">total_char_count</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="k">for</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">):</span>
-      <span class="k">for</span> <span class="n">gpu_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">gpu_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
         <span class="n">decoded_sequence</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span>
         <span class="n">decoded_texts</span> <span class="o">=</span> <span class="n">sparse_tensor_value_to_texts</span><span class="p">(</span>
           <span class="n">decoded_sequence</span><span class="p">,</span>
@@ -271,18 +266,13 @@
           <span class="p">))</span>
           <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">[</span><span class="n">sample_id</span><span class="p">])</span>
 
-          <span class="n">total_char_lev</span> <span class="o">+=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="p">,</span> <span class="n">pred_text</span><span class="p">)</span>
           <span class="n">total_word_lev</span> <span class="o">+=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">pred_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
           <span class="n">total_word_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
-          <span class="n">total_char_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="p">)</span>
 
     <span class="n">total_wer</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_word_lev</span> <span class="o">/</span> <span class="n">total_word_count</span>
-    <span class="n">total_med</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_char_lev</span> <span class="o">/</span> <span class="n">total_char_count</span>
 
-    <span class="c1"># deco_print(&quot;Validation mean edit distance: {}&quot;.format(total_med), offset=4)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation WER:  </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_wer</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s2">&quot;Eval MED&quot;</span><span class="p">:</span> <span class="n">total_med</span><span class="p">,</span>
       <span class="s2">&quot;Eval WER&quot;</span><span class="p">:</span> <span class="n">total_wer</span><span class="p">,</span>
     <span class="p">}</span></div>
 
@@ -290,7 +280,7 @@
     <span class="n">preds</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">,</span>
                                            <span class="n">outputs_per_batch</span><span class="p">):</span>
-      <span class="k">for</span> <span class="n">gpu_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">gpu_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
         <span class="n">decoded_sequence</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span>
         <span class="n">decoded_texts</span> <span class="o">=</span> <span class="n">sparse_tensor_value_to_texts</span><span class="p">(</span>
           <span class="n">decoded_sequence</span><span class="p">,</span>
