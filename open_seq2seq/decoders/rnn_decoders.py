@@ -10,6 +10,7 @@ from open_seq2seq.parts.experimental_rnn_cells.gnmt import GNMTAttentionMultiCel
 from open_seq2seq.parts.utils import create_rnn_cell
 from open_seq2seq.parts.attention_wrapper import BahdanauAttention, LuongAttention, AttentionWrapper
 from .decoder import Decoder
+from open_seq2seq.parts.rnn_beam_search_decoder import BeamSearchDecoder
 
 class RNNDecoderWithAttention(Decoder):
   """
@@ -404,7 +405,6 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
 
     if self.params['attention_type'].startswith('gnmt'):
       attention_cell = self._decoder_cells.pop(0)
-      #attention_cell = tf.contrib.seq2seq.AttentionWrapper(
       attention_cell = AttentionWrapper(
         attention_cell,
         attention_mechanism=attention_mechanism,
@@ -415,7 +415,6 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
         attention_cell, self._add_residual_wrapper(self._decoder_cells),
         use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
     else:
-      #attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
       attentive_decoder_cell = AttentionWrapper(
         cell=self._decoder_cells,
         attention_mechanism=attention_mechanism,
@@ -424,9 +423,10 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
     embedding_fn = lambda ids: tf.cast(
       tf.nn.embedding_lookup(self._dec_emb_w, ids),
       dtype=self.params['dtype'])
-    decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+    #decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+    decoder = BeamSearchDecoder(
       cell=attentive_decoder_cell,
-      embedding=embedding_fn,#self._dec_emb_w,
+      embedding=embedding_fn,
       start_tokens=tf.tile([self.GO_SYMBOL], [self._batch_size]),
       end_token=self.END_SYMBOL,
       initial_state=attentive_decoder_cell.zero_state(
@@ -435,21 +435,20 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       ),
       beam_width=self._beam_width,
       output_layer=self._output_projection_layer,
-      length_penalty_weight=self._length_penalty_weight,
+      length_penalty_weight=self._length_penalty_weight
     )
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
-    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+    final_outputs, final_state, final_sequence_lengths = \
+      tf.contrib.seq2seq.dynamic_decode(
       decoder=decoder,
-      # impute_finished=False if self._decoder_type == "beam_search" else True,
-      # impute_finished=True,
       maximum_iterations=tf.reduce_max(enc_src_lengths) * 2,
       swap_memory=use_swap_memory,
       output_time_major=time_major,
     )
 
-    return {'decoder_output': final_outputs.predicted_ids[:,:,0],      
-            'decoder_samples': final_outputs.predicted_ids[:,:,0],
+    return {'decoder_output': final_outputs.predicted_ids[:, :, 0],
+            'decoder_samples': final_outputs.predicted_ids[:, :, 0],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
