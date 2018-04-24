@@ -219,7 +219,7 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Required params:</span>
 <span class="sd">      batch_size_per_gpu</span>
@@ -236,12 +236,11 @@
 <span class="sd">        &#39;input_type&#39;: &#39;spectrogram&#39;,</span>
 <span class="sd">      }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
     <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
     
     <span class="bp">self</span><span class="o">.</span><span class="n">_index</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="kc">None</span>
@@ -379,16 +378,15 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextRandomDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextRandomDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Random data for speech check</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextRandomDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextRandomDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
-    <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span></div>
+    <span class="p">)</span></div>
 
 <div class="viewcode-block" id="Speech2TextRandomDataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.shuffle">[docs]</a>  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">pass</span></div>
@@ -440,6 +438,7 @@
     <span class="k">return</span> <span class="p">{</span><span class="bp">self</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">():</span> <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span><span class="p">}</span></div></div>
 
 
+
 <div class="viewcode-block" id="Speech2TextTFDataLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextTFDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
 <div class="viewcode-block" id="Speech2TextTFDataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
@@ -456,7 +455,7 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextTFDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextTFDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Required params:</span>
 <span class="sd">      batch_size</span>
@@ -473,12 +472,11 @@
 <span class="sd">        &#39;input_type&#39;: &#39;spectrogram&#39;,</span>
 <span class="sd">      }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextTFDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextTFDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
     <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">for</span> <span class="n">csv</span> <span class="ow">in</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;dataset_path&#39;</span><span class="p">]:</span>

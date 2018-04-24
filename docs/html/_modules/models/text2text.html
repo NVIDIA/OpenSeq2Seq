@@ -201,25 +201,6 @@
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  An example class implementing classical text-to-text model.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">def</span> <span class="nf">_create_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_encoder</span><span class="p">()</span>
-
-  <span class="k">def</span> <span class="nf">_create_decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
-
-  <span class="k">def</span> <span class="nf">_create_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_loss</span><span class="p">()</span>
-
 <div class="viewcode-block" id="BasicText2TextWithAttention.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.BasicText2TextWithAttention.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
     <span class="c1"># this function assumes it is run on 1 gpu with batch size of 1</span>
     <span class="k">with</span> <span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
@@ -256,7 +237,7 @@
     <span class="n">x</span><span class="p">,</span> <span class="n">len_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_horovod</span><span class="p">:</span>
       <span class="n">x_sample</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
       <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">len_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
       <span class="n">y_sample</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -299,7 +280,7 @@
       <span class="n">ex</span><span class="p">,</span> <span class="n">elen_x</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">elen_y</span> <span class="o">=</span> <span class="n">input_values</span>     
 
       <span class="c1">##################</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_on_horovod</span><span class="p">:</span>
         <span class="n">x_sample</span> <span class="o">=</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">elen_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">y_sample</span> <span class="o">=</span> <span class="n">ey</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
@@ -337,6 +318,7 @@
       <span class="p">)</span>
       <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span>
       <span class="c1">##################</span>
+
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eval_using_bleu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
         <span class="n">preds</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">transform_for_bleu</span><span class="p">(</span>

@@ -161,7 +161,7 @@
 <div class="viewcode-block" id="FullyConnectedTimeDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;n_output&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="FullyConnectedTimeDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
@@ -170,12 +170,12 @@
       <span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># user defined function</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fully_connected_time_decoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fully_connected_time_decoder&quot;</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
   <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
-    <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">]</span>
     <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
     <span class="n">batch_size</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">n_hidden</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
@@ -186,27 +186,25 @@
     <span class="c1"># activation is linear by default</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
-      <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">],</span>
+      <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_output&#39;</span><span class="p">],</span>
       <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fully_connected&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
       <span class="n">logits</span><span class="p">,</span>
-      <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]],</span>
+      <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_output&#39;</span><span class="p">]],</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;logits&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="c1"># converting to time_major=True shape</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="s1">&#39;logits_to_outputs_func&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
-      <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">](</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">](</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
       <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">samples</span><span class="p">,</span>
-        <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span>
-        <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+        <span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span>
       <span class="p">}</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span>
-            <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">]}</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">}</span></div>
 
 
 <div class="viewcode-block" id="FullyConnectedCTCDecoder"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder">[docs]</a><span class="k">class</span> <span class="nc">FullyConnectedCTCDecoder</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="p">):</span>
@@ -229,13 +227,13 @@
       <span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fully_connected_ctc_decoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedCTCDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;fully_connected_ctc_decoder&quot;</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedCTCDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;use_language_model&#39;</span><span class="p">]:</span>
       <span class="c1"># creating decode_with_lm function if it is compiled</span>
-      <span class="n">lib_path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_library_path&#39;</span><span class="p">]</span>
+      <span class="n">lib_path</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_library_path&#39;</span><span class="p">]</span>
       <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">lib_path</span><span class="p">)):</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s1">&#39;Can</span><span class="se">\&#39;</span><span class="s1">t find the decoder with language model library. &#39;</span>
                       <span class="s1">&#39;Make sure you have built it and &#39;</span>
@@ -245,20 +243,20 @@
       <span class="n">custom_op_module</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">load_op_library</span><span class="p">(</span><span class="n">lib_path</span><span class="p">)</span>
 
       <span class="k">def</span> <span class="nf">decode_with_lm</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">decoder_input</span><span class="p">,</span>
-                         <span class="n">beam_width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;beam_width&#39;</span><span class="p">],</span>
+                         <span class="n">beam_width</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;beam_width&#39;</span><span class="p">],</span>
                          <span class="n">top_paths</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">merge_repeated</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-        <span class="n">sequence_length</span> <span class="o">=</span> <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
+        <span class="n">sequence_length</span> <span class="o">=</span> <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">]</span>
         <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
           <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">decoded_ixs</span><span class="p">,</span> <span class="n">decoded_vals</span><span class="p">,</span> <span class="n">decoded_shapes</span><span class="p">,</span> <span class="n">log_probabilities</span> <span class="o">=</span> <span class="p">(</span>
           <span class="n">custom_op_module</span><span class="o">.</span><span class="n">ctc_beam_search_decoder_with_lm</span><span class="p">(</span>
             <span class="n">logits</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">,</span> <span class="n">beam_width</span><span class="o">=</span><span class="n">beam_width</span><span class="p">,</span>
-            <span class="n">model_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_binary_path&#39;</span><span class="p">],</span>
-            <span class="n">trie_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_trie_path&#39;</span><span class="p">],</span>
-            <span class="n">alphabet_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">],</span>
-            <span class="n">lm_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_weight&#39;</span><span class="p">],</span>
-            <span class="n">word_count_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;word_count_weight&#39;</span><span class="p">],</span>
-            <span class="n">valid_word_count_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;valid_word_count_weight&#39;</span><span class="p">],</span>
+            <span class="n">model_path</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_binary_path&#39;</span><span class="p">],</span>
+            <span class="n">trie_path</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_trie_path&#39;</span><span class="p">],</span>
+            <span class="n">alphabet_path</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">],</span>
+            <span class="n">lm_weight</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_weight&#39;</span><span class="p">],</span>
+            <span class="n">word_count_weight</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;word_count_weight&#39;</span><span class="p">],</span>
+            <span class="n">valid_word_count_weight</span><span class="o">=</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;valid_word_count_weight&#39;</span><span class="p">],</span>
             <span class="n">top_paths</span><span class="o">=</span><span class="n">top_paths</span><span class="p">,</span> <span class="n">merge_repeated</span><span class="o">=</span><span class="n">merge_repeated</span><span class="p">,</span>
           <span class="p">)</span>
         <span class="p">)</span>
@@ -271,7 +269,7 @@
         <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
           <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
         <span class="n">decoded</span><span class="p">,</span> <span class="n">neg_sum_logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_greedy_decoder</span><span class="p">(</span>
-          <span class="n">logits</span><span class="p">,</span> <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+          <span class="n">logits</span><span class="p">,</span> <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
           <span class="n">merge_repeated</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="k">return</span> <span class="n">decoded</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>

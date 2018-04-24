@@ -159,11 +159,18 @@
 <span class="kn">from</span> <span class="nn">tensorflow.python</span> <span class="k">import</span> <span class="n">debug</span> <span class="k">as</span> <span class="n">tf_debug</span>
 
 
-<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug_port</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-  <span class="k">if</span> <span class="n">eval_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;eval_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">eval_model</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug_port</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Training Loop function</span>
+<span class="sd">  :param config:</span>
+<span class="sd">  :param train_model:</span>
+<span class="sd">  :param eval_model:</span>
+<span class="sd">  :param hvd:</span>
+<span class="sd">  :return:</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">eval_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;eval_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;eval_steps parameter has to be specified &quot;</span>
                      <span class="s2">&quot;if eval_model is provided&quot;</span><span class="p">)</span>
-
   <span class="k">if</span> <span class="n">hvd</span><span class="p">:</span>
     <span class="n">master_worker</span> <span class="o">=</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span>
   <span class="k">else</span><span class="p">:</span>
@@ -186,21 +193,21 @@
     <span class="n">checkpoint_dir</span> <span class="o">=</span> <span class="kc">None</span>
 
   <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">CheckpointSaverHook</span><span class="p">(</span>
-        <span class="n">checkpoint_dir</span><span class="p">,</span> <span class="n">save_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">])</span>
+        <span class="n">checkpoint_dir</span><span class="p">,</span> <span class="n">save_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">])</span>
       <span class="p">)</span>
-    <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PrintLossAndTimeHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">],</span>
+        <span class="n">every_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">],</span>
         <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
       <span class="p">))</span>
-    <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PrintSamplesHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">],</span>
+        <span class="n">every_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">],</span>
         <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
       <span class="p">))</span>
 
@@ -208,13 +215,13 @@
     <span class="c1"># noinspection PyTypeChecker</span>
     <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
       <span class="n">RunEvaluationHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">eval_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;eval_steps&#39;</span><span class="p">],</span>
+        <span class="n">every_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;eval_steps&#39;</span><span class="p">],</span>
         <span class="n">model</span><span class="o">=</span><span class="n">eval_model</span><span class="p">,</span>
         <span class="n">last_step</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">last_step</span><span class="p">,</span>
       <span class="p">),</span>
     <span class="p">)</span>
   <span class="n">total_time</span> <span class="o">=</span> <span class="mf">0.0</span>
-  <span class="n">bench_start</span> <span class="o">=</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+  <span class="n">bench_start</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 
   <span class="k">if</span> <span class="n">debug_port</span><span class="p">:</span>
     <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -224,10 +231,10 @@
   <span class="c1"># starting training</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MonitoredTrainingSession</span><span class="p">(</span>
     <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
-    <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+    <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
     <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
     <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+    <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
     <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
     <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
   <span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
@@ -253,9 +260,9 @@
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_batches_for_epoch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.get_batches_for_epoch">[docs]</a><span class="k">def</span> <span class="nf">get_batches_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
+<div class="viewcode-block" id="get_batches_for_epoch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.get_batches_for_epoch">[docs]</a><span class="k">def</span> <span class="nf">get_batches_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">config</span><span class="p">):</span>
   <span class="n">total_time</span> <span class="o">=</span> <span class="mf">0.0</span>
-  <span class="n">bench_start</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
+  <span class="n">bench_start</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
 
   <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
   <span class="n">sess_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span><span class="n">allow_soft_placement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -285,17 +292,19 @@
   <span class="k">return</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span></div>
 
 
-<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
+<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
   <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span> <span class="o">=</span> <span class="n">get_batches_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
-                                                              <span class="n">checkpoint</span><span class="p">)</span>
+                                                              <span class="n">checkpoint</span><span class="p">,</span>
+                                                              <span class="n">config</span><span class="p">)</span>
   <span class="n">model</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
   <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished inference&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="evaluate"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.evaluate">[docs]</a><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
+<div class="viewcode-block" id="evaluate"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.evaluate">[docs]</a><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
   <span class="c1"># TODO: last batch might be cut!</span>
   <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span> <span class="o">=</span> <span class="n">get_batches_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span>
-                                                              <span class="n">checkpoint</span><span class="p">)</span>
+                                                              <span class="n">checkpoint</span><span class="p">,</span>
+                                                              <span class="n">config</span><span class="p">)</span>
   <span class="n">eval_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">maybe_evaluate</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">)</span>
   <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished evaluation&quot;</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">eval_dict</span></div>

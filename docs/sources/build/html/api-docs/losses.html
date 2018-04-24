@@ -176,145 +176,40 @@
 <span id="loss"></span><h2>loss<a class="headerlink" href="#module-losses.loss" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="losses.loss.Loss">
-<em class="property">class </em><code class="descclassname">losses.loss.</code><code class="descname">Loss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="descclassname">losses.loss.</code><code class="descname">Loss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Abstract class from which all losses must inherit.</p>
 <dl class="method">
 <dt id="losses.loss.Loss.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loss constructor.
-Note that loss constructors should not modify TensorFlow graph, all
-graph construction should happen in the
-<a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> method.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) – parameters describing the loss.
-All supported parameters are listed in <a class="reference internal" href="#losses.loss.Loss.get_required_params" title="losses.loss.Loss.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#losses.loss.Loss.get_optional_params" title="losses.loss.Loss.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>name</strong> (<em>str</em>) – name for loss variable scope.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="losses.loss.Loss._cast_types">
-<code class="descname">_cast_types</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss._cast_types"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss._cast_types" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function performs automatic cast of all inputs to the loss dtype.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – dictionary passed to
-<a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">same as input_dict, but with all Tensors cast to the loss dtype.</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="losses.loss.Loss._compute_loss">
-<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss._compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is the main function which should construct loss graph.
-Typically, loss will take decoder-produced logits as an input and
-return a singleton loss tensor.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary containing loss inputs. This dict will
-typically have the following content:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">decoder_logits</span><span class="p">,</span>
-  <span class="s2">&quot;tgt_sequence&quot;</span><span class="p">:</span> <span class="n">target_sequence</span><span class="p">,</span>
-  <span class="s2">&quot;tgt_length&quot;</span><span class="p">:</span> <span class="n">target_length</span><span class="p">,</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">singleton loss tensor. This tensor will be computed independently
-for each GPU batch and then averaged
-(<code class="docutils literal notranslate"><span class="pre">reduce_mean</span></code>) over the number of GPUs (or Horovod workers).</td>
-</tr>
-</tbody>
-</table>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Constructor
+:param params: Python dictionary with parameters to initialize loss class</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="losses.loss.Loss.compute_loss">
 <code class="descname">compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss.compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss.compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> method.
-Here name and dtype are set in the variable scope and then
-<a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> method is called.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – see <a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> docs.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">see <a class="reference internal" href="#losses.loss.Loss._compute_loss" title="losses.loss.Loss._compute_loss"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._compute_loss()</span></code></a> docs.</td>
-</tr>
-</tbody>
-</table>
+<dd><p>Computes loss.
+WARNING: The expectation is that this loss will be averaged (reduce_mean)
+over the number of GPUs (or Horovod workers)
+:param input_dict: dictionary with inputs to the loss function
+:return: singleton loss tensor</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="losses.loss.Loss.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.loss.Loss.__init__" title="losses.loss.Loss.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="losses.loss.Loss.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/loss.html#Loss.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.loss.Loss.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.loss.Loss.__init__" title="losses.loss.Loss.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="losses.loss.Loss.name">
-<code class="descname">name</code><a class="headerlink" href="#losses.loss.Loss.name" title="Permalink to this definition">¶</a></dt>
-<dd><p>Loss name.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="losses.loss.Loss.params">
 <code class="descname">params</code><a class="headerlink" href="#losses.loss.Loss.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parameters used to construct the loss (dictionary).</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -323,12 +218,12 @@ class <a class="reference internal" href="#losses.loss.Loss.__init__" title="los
 <span id="ctc-loss"></span><h2>ctc_loss<a class="headerlink" href="#module-losses.ctc_loss" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="losses.ctc_loss.CTCLoss">
-<em class="property">class </em><code class="descclassname">losses.ctc_loss.</code><code class="descname">CTCLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='ctc_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<em class="property">class </em><code class="descclassname">losses.ctc_loss.</code><code class="descname">CTCLoss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Implementation of the CTC loss.</p>
 <dl class="method">
-<dt id="losses.ctc_loss.CTCLoss._compute_loss">
-<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="losses.ctc_loss.CTCLoss.compute_loss">
+<code class="descname">compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss.compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes CTC loss
 :param input_dict: inputs to compute loss
 {</p>
@@ -344,20 +239,7 @@ class <a class="reference internal" href="#losses.loss.Loss.__init__" title="los
 <dl class="staticmethod">
 <dt id="losses.ctc_loss.CTCLoss.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -376,12 +258,12 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <span id="sequence-loss"></span><h2>sequence_loss<a class="headerlink" href="#module-losses.sequence_loss" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="losses.sequence_loss.BasicSequenceLoss">
-<em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">BasicSequenceLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='basic_sequence_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">BasicSequenceLoss</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Basic sequence-to-sequence loss. This one does not use one-hot encodings</p>
 <dl class="method">
 <dt id="losses.sequence_loss.BasicSequenceLoss.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='basic_sequence_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor
 :param params - dictionary with loss parameters.
 Should contain the following:
@@ -397,8 +279,8 @@ not None then)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="losses.sequence_loss.BasicSequenceLoss._compute_loss">
-<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="losses.sequence_loss.BasicSequenceLoss.compute_loss">
+<code class="descname">compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes cross entropy based sequence-to-sequence loss
 :param input_dict: inputs to compute loss
 {</p>
@@ -413,50 +295,24 @@ not None then)</p>
 <dl class="staticmethod">
 <dt id="losses.sequence_loss.BasicSequenceLoss.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.sequence_loss.BasicSequenceLoss.__init__" title="losses.sequence_loss.BasicSequenceLoss.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="losses.sequence_loss.BasicSequenceLoss.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.sequence_loss.BasicSequenceLoss.__init__" title="losses.sequence_loss.BasicSequenceLoss.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing">
-<em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">CrossEntropyWithSmoothing</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cross_entropy_with_smoothing'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">CrossEntropyWithSmoothing</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Softmax cross entropy loss with label smoothing. This one uses one-hot encodings
 for labels</p>
 <dl class="method">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cross_entropy_with_smoothing'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Constructor
 :param params - dictionary with loss parameters.
 Should contain the following:
@@ -470,8 +326,8 @@ not None then)</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">
-<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dt id="losses.sequence_loss.CrossEntropyWithSmoothing.compute_loss">
+<code class="descname">compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.compute_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Computes cross entropy based sequence-to-sequence loss with label smoothing
 :param input_dict: inputs to compute loss
 {</p>
@@ -486,38 +342,12 @@ not None then)</p>
 <dl class="staticmethod">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.sequence_loss.CrossEntropyWithSmoothing.__init__" title="losses.sequence_loss.CrossEntropyWithSmoothing.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#losses.sequence_loss.CrossEntropyWithSmoothing.__init__" title="losses.sequence_loss.CrossEntropyWithSmoothing.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 

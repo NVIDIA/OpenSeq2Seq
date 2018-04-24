@@ -4,7 +4,7 @@ import abc
 import six
 import tensorflow as tf
 import copy
-from open_seq2seq.utils.utils import check_params, cast_types
+from open_seq2seq.utils.utils import check_params
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 
 
@@ -39,10 +39,11 @@ class Decoder:
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
+      'batch_size_per_gpu': int,
       'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
-  def __init__(self, params, model, name="decoder", mode='train'):
+  def __init__(self, params, name="decoder", mode='train'):
     """Decoder constructor.
     Note that decoder constructors should not modify TensorFlow graph, all
     graph construction should happen in the :meth:`self._decode() <_decode>`
@@ -73,37 +74,27 @@ class Decoder:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
-    self._model = model
+    if 'dtype' not in params:
+      self.params['dtype'] = tf.float32
 
-    if 'dtype' not in self._params:
-      if self._model:
-        self._params['dtype'] = self._model.params['dtype']
-      else:
-        self._params['dtype'] = tf.float32
-
-    if 'regularizer' not in self._params:
-      if self._model and 'regularizer' in self._model.params:
-        self._params['regularizer'] = self._model.params['regularizer']
-        self._params['regularizer_params'] = self._model.params['regularizer_params']
-
-    if 'regularizer' in self._params:
-      init_dict = self._params.get('regularizer_params', {})
-      self._params['regularizer'] = self._params['regularizer'](**init_dict)
-      if self._params['dtype'] == 'mixed':
-        self._params['regularizer'] = mp_regularizer_wrapper(
-          self._params['regularizer'],
+    if 'regularizer' in self.params:
+      init_dict = self.params.get('regularizer_params', {})
+      self.params['regularizer'] = self.params['regularizer'](**init_dict)
+      if self.params['dtype'] == 'mixed':
+        self.params['regularizer'] = mp_regularizer_wrapper(
+          self.params['regularizer'],
         )
 
-    if self._params['dtype'] == 'mixed':
-      self._params['dtype'] = tf.float16
+    if self.params['dtype'] == 'mixed':
+      self.params['dtype'] = tf.float16
 
     self._name = name
     self._mode = mode
 
   def decode(self, input_dict):
     """Wrapper around :meth:`self._decode() <_decode>` method.
-    Here name, initializer and dtype are set in the variable scope and then
-    :meth:`self._decode() <_decode>` method is called.
+    Here initializer and dtype are set in the variable scope and then
+    :meth:`_decode` function is called.
 
     Args:
       input_dict (dict): see :meth:`self._decode() <_decode>` docs.
@@ -131,7 +122,21 @@ class Decoder:
     Returns:
       dict: same as input_dict, but with all Tensors cast to decoder dtype.
     """
-    return cast_types(input_dict, self.params['dtype'])
+    def _cast_dict(dict_to_cast):
+      cast_dict = {}
+      for key, value in dict_to_cast.items():
+        if isinstance(value, tf.Tensor):
+          if value.dtype == tf.float16 or value.dtype == tf.float32:
+            if value.dtype != self.params['dtype']:
+              cast_dict[key] = tf.cast(value, self.params['dtype'])
+              continue
+        cast_dict[key] = value
+      return cast_dict
+
+    # TODO: do we need to add some recursion to parse all nested dicts?
+    cast_input_dict = _cast_dict(input_dict)
+    cast_input_dict['encoder_output'] = _cast_dict(input_dict['encoder_output'])
+    return cast_input_dict
 
   @abc.abstractmethod
   def _decode(self, input_dict):
@@ -163,13 +168,3 @@ class Decoder:
   def params(self):
     """Parameters used to construct the decoder (dictionary)"""
     return self._params
-
-  @property
-  def mode(self):
-    """Mode decoder is run in."""
-    return self._mode
-
-  @property
-  def name(self):
-    """Decoder name."""
-    return self._name

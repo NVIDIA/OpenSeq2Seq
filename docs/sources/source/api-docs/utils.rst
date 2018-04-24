@@ -14,6 +14,14 @@ funcs
     :undoc-members:
     :show-inheritance:
 
+model\_builders
+-------------------------------
+
+.. automodule:: utils.model_builders
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 hooks
 ---------------------
 

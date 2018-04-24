@@ -157,14 +157,10 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">open_seq2seq.parts.experimental_rnn_cells.gnmt</span> <span class="k">import</span> <span class="n">GNMTAttentionMultiCell</span><span class="p">,</span> \
-                                                           <span class="n">gnmt_residual_fn</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.experimental_rnn_cells.gnmt</span> <span class="k">import</span> <span class="n">GNMTAttentionMultiCell</span><span class="p">,</span> <span class="n">gnmt_residual_fn</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.utils</span> <span class="k">import</span> <span class="n">create_rnn_cell</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.parts.attention_wrapper</span> <span class="k">import</span> <span class="n">BahdanauAttention</span><span class="p">,</span> \
-                                                 <span class="n">LuongAttention</span><span class="p">,</span> \
-                                                 <span class="n">AttentionWrapper</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.attention_wrapper</span> <span class="k">import</span> <span class="n">BahdanauAttention</span><span class="p">,</span> <span class="n">LuongAttention</span><span class="p">,</span> <span class="n">AttentionWrapper</span>
 <span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
-
 
 <div class="viewcode-block" id="RNNDecoderWithAttention"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention">[docs]</a><span class="k">class</span> <span class="nc">RNNDecoderWithAttention</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
@@ -183,7 +179,6 @@
       <span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span> <span class="s1">&#39;glstm&#39;</span><span class="p">,</span> <span class="s1">&#39;slstm&#39;</span><span class="p">],</span>
       <span class="s1">&#39;decoder_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="RNNDecoderWithAttention.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
@@ -200,8 +195,8 @@
       <span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="c1"># symbol id</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="RNNDecoderWithAttention.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rnn_decoder_with_attention&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="RNNDecoderWithAttention.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;rnn_decoder_with_attention&#39;</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes RNN decoder with embedding</span>
 <span class="sd">    :param params: dictionary with decoder parameters</span>
@@ -222,8 +217,10 @@
 <span class="sd">      * mode - train or infer</span>
 <span class="sd">      ... add any cell-specific parameters here as well</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">RNNDecoderWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">RNNDecoderWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+      <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">GO_SYMBOL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">END_SYMBOL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
@@ -246,7 +243,7 @@
           <span class="n">bah_normalize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bahdanau_normalize&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="n">bah_normalize</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="c1"># attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(</span>
+        <span class="c1">#attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(</span>
         <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="n">BahdanauAttention</span><span class="p">(</span>
           <span class="n">num_units</span><span class="o">=</span><span class="n">attention_depth</span><span class="p">,</span>
           <span class="n">memory</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
@@ -260,7 +257,7 @@
           <span class="n">luong_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;luong_scale&#39;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="n">luong_scale</span> <span class="o">=</span> <span class="kc">False</span>
-        <span class="c1"># attention_mechanism = tf.contrib.seq2seq.LuongAttention(</span>
+        <span class="c1">#attention_mechanism = tf.contrib.seq2seq.LuongAttention(</span>
         <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="n">LuongAttention</span><span class="p">(</span>
           <span class="n">num_units</span><span class="o">=</span><span class="n">attention_depth</span><span class="p">,</span>
           <span class="n">memory</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
@@ -271,7 +268,7 @@
         <span class="p">)</span>
       <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt&#39;</span> <span class="ow">or</span> \
            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">:</span>
-        <span class="c1"># attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(</span>
+        <span class="c1">#attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(</span>
         <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="n">BahdanauAttention</span><span class="p">(</span>
           <span class="n">num_units</span><span class="o">=</span><span class="n">attention_depth</span><span class="p">,</span>
           <span class="n">memory</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
@@ -313,10 +310,10 @@
 <span class="sd">      * final_sequence_lengths - tensor of shape [batch_size, time]</span>
 <span class="sd">                                 or [time, batch_size]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">]</span>
     <span class="n">enc_src_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">]</span>
-    <span class="n">tgt_inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_sequence&#39;</span><span class="p">]</span>
-    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_length&#39;</span><span class="p">]</span>
+    <span class="n">tgt_inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_inputs&#39;</span><span class="p">]</span>
+    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_lengths&#39;</span><span class="p">]</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_dec_emb_w</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;DecoderEmbeddingMatrix&#39;</span><span class="p">,</span>
@@ -361,7 +358,7 @@
     <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-      <span class="c1"># attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
+      <span class="c1">#attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">attention_cell</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -372,7 +369,7 @@
         <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
         <span class="n">use_new_attention</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="c1"># attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
+      <span class="c1">#attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -427,8 +424,8 @@
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span>
-            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span>
+            <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 
@@ -445,8 +442,9 @@
       <span class="s1">&#39;beam_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="BeamSearchRNNDecoderWithAttention.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;rnn_decoder_with_attention&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="BeamSearchRNNDecoderWithAttention.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;rnn_decoder_with_attention&quot;</span><span class="p">,</span>
+               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes beam search decoder</span>
 <span class="sd">    :param params: decoder_params: dictionary with decoder parameters</span>
@@ -468,7 +466,7 @@
 <span class="sd">      ... add any cell-specific parameters here as well</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">BeamSearchRNNDecoderWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-      <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
+      <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -502,7 +500,7 @@
 <span class="sd">      * final_sequence_lengths - tensor of shape [batch_size, time] or</span>
 <span class="sd">                                 [time, batch_size]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">]</span>
     <span class="n">enc_src_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">]</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_dec_emb_w</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
@@ -557,7 +555,7 @@
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-      <span class="c1"># attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
+      <span class="c1">#attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">attention_cell</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -568,7 +566,7 @@
         <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
         <span class="n">use_new_attention</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="c1"># attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
+      <span class="c1">#attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -602,8 +600,8 @@
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
-            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span>      
+            <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 </pre></div>

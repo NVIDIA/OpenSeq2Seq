@@ -126,13 +126,13 @@ class DeepSpeech2Encoder(Encoder):
       'bn_epsilon': float,
     })
 
-  def __init__(self, params, model, name="ds2_encoder", mode='train'):
-    super(DeepSpeech2Encoder, self).__init__(params, model, name, mode)
+  def __init__(self, params=None, name="ds2_encoder", mode='train'):
+    super(DeepSpeech2Encoder, self).__init__(params, name, mode)
 
   def _encode(self, input_dict):
-    source_sequence = input_dict['src_sequence']
+    source_sequence = input_dict['src_inputs']
 
-    src_length = input_dict['src_length']
+    seq_length = input_dict['src_lengths']
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
@@ -140,7 +140,7 @@ class DeepSpeech2Encoder(Encoder):
     bn_momentum = self.params.get('bn_momentum', 0.99)
     bn_epsilon = self.params.get('bn_epsilon', 1e-3)
 
-    input_layer = tf.expand_dims(source_sequence, axis=-1)
+    input_layer = tf.expand_dims(source_sequence, dim=-1)
     batch_size = input_layer.get_shape().as_list()[0]
     if data_format == 'channels_last':
       top_layer = input_layer
@@ -157,9 +157,9 @@ class DeepSpeech2Encoder(Encoder):
       padding = conv_layers[idx_conv]['padding']
 
       if padding == "VALID":
-        src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
+        seq_length = (seq_length - kernel_size[0] + strides[0]) // strides[0]
       else:
-        src_length = (src_length + strides[0] - 1) // strides[0]
+        seq_length = (seq_length + strides[0] - 1) // strides[0]
 
       top_layer = conv2d_bn_actv(
         name="conv{}".format(idx_conv + 1),
@@ -232,7 +232,7 @@ class DeepSpeech2Encoder(Encoder):
           top_layer, state = tf.nn.dynamic_rnn(
             cell=multirnn_cell_fw,
             inputs=rnn_input,
-            sequence_length=src_length,
+            sequence_length=seq_length,
             dtype=rnn_input.dtype,
             time_major=False,
           )
@@ -245,7 +245,7 @@ class DeepSpeech2Encoder(Encoder):
           top_layer, state = tf.nn.bidirectional_dynamic_rnn(
             cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
             inputs=rnn_input,
-            sequence_length=src_length,
+            sequence_length=seq_length,
             dtype=rnn_input.dtype,
             time_major=False
           )
@@ -291,6 +291,6 @@ class DeepSpeech2Encoder(Encoder):
     )
 
     return {
-      'outputs': outputs,
-      'src_length': src_length,
+      'encoder_outputs': outputs,
+      'src_lengths': seq_length,
     }

@@ -22,12 +22,12 @@ class DataLayer:
   def get_optional_params():
     return {
       'shuffle': bool,
-      'dtype': [tf.float32, tf.float16],
+      'dtype': [tf.float32, tf.float16, "mixed"],
       'use_targets': bool,
     }
 
   @abc.abstractmethod
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params, num_workers=None, worker_id=None):
     """
     Initialize data layer
     :param params: Python dictionary with options,
@@ -35,16 +35,15 @@ class DataLayer:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
-    self._model = model
 
-    if 'dtype' not in self._params:
-      if self._model:
-        self._params['dtype'] = self._model.get_tf_dtype()
-      else:
-        self._params['dtype'] = tf.float32
+    if 'dtype' not in params:
+      self._params['dtype'] = tf.float32
 
     if 'use_targets' not in params:
       self._params['use_targets'] = True
+
+    if self._params['dtype'] == 'mixed':
+      self._params['dtype'] = tf.float16
 
     if 'shuffle' not in params:
       if self._params['use_targets']:
@@ -57,18 +56,12 @@ class DataLayer:
 
     self._input_tensors = None
 
-    # could be used for correct Horovod processing
     self._num_workers = num_workers
     self._worker_id = worker_id
 
   @property
   def params(self):
     return self._params
-
-  @abc.abstractmethod
-  def build_graph(self):
-    """Here all TensorFlow graph construction should happen."""
-    pass
 
   @abc.abstractmethod
   def gen_input_tensors(self):
@@ -170,14 +163,12 @@ class MultiGPUWrapper(DataLayer):
     if not issubclass(type(data_layer), DataLayer):
       raise ValueError("data_layer has to be an instance "
                        "of a subclass of DataLayer class")
-    super(MultiGPUWrapper, self).__init__(data_layer.params, data_layer._model)
+    super(MultiGPUWrapper, self).__init__(data_layer.params)
 
     self._num_gpus = num_gpus
     self.params['batch_size'] *= self._num_gpus
     self._data_layer = data_layer
 
-  def build_graph(self):
-    self._data_layer.build_graph()
     # making num_gpus copies of input tensors
     self._input_tensors = [
       self._data_layer.gen_input_tensors() for _ in range(self._num_gpus)
