@@ -92,12 +92,12 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       return
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
-    if self._model.step_size is None:
+    if self._model.steps_in_epoch is None:
       deco_print("Global step {}:".format(step), end=" ")
     else:
       deco_print(
         "Epoch {}, global step {}:".format(
-          step // self._model.step_size, step),
+          step // self._model.steps_in_epoch, step),
         end=" ",
       )
 

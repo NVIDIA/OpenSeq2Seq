@@ -243,12 +243,12 @@
       <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">update_last_triggered_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">step_size</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">steps_in_epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Global step </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span>
         <span class="s2">&quot;Epoch </span><span class="si">{}</span><span class="s2">, global step </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="n">step</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">step_size</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span>
+          <span class="n">step</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span>
         <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
       <span class="p">)</span>
 

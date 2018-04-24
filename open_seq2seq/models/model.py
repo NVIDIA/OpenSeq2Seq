@@ -243,15 +243,15 @@ class Model:
     if self._mode == "train":
       if "max_steps" in self._params:
         self._last_step = self._params["max_steps"]
-        self._step_size = None
+        self._steps_in_epoch = None
       else:
-        ds_sample_size = self._data_layer.get_size_in_samples()
-        total_bs = self._data_layer.params['batch_size']
-        if self.on_horovod:
-          total_bs *= self._hvd.size()
         # doing a few less steps if data size is not divisible by the batch size
-        self._step_size = ds_sample_size // total_bs
-        self._last_step = self._params['num_epochs'] * self._step_size
+        self._steps_in_epoch = self._data_layer.get_size_in_batches()
+        # if on Horovod, there will be hvd.size() independent data_layer copies
+        # and thus the total size is hvd.size() times smaller.
+        if self.on_horovod:
+          self._steps_in_epoch /= self._hvd.size()
+        self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     self._outputs = [None] * self.num_gpus
     self.loss = None
@@ -484,12 +484,13 @@ class Model:
     return self._data_layer
 
   @property
-  def step_size(self):
-    """Number of samples the model processes per step.
+  def steps_in_epoch(self):
+    """Number of steps in epoch.
     This parameter is only populated if ``num_epochs`` was specified in the
-    config. It is used in training hooks to correctly print epoch number.
+    config (otherwise it is None).
+    It is used in training hooks to correctly print epoch number.
     """
-    return self._step_size
+    return self._steps_in_epoch
 
   @property
   def last_step(self):

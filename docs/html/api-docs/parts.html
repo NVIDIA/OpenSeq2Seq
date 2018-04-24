@@ -849,7 +849,7 @@ mechanism.</li>
 <span id="common"></span><h2>common<a class="headerlink" href="#module-parts.common" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="parts.common.dropout_normalize_add_NTC">
-<code class="descclassname">parts.common.</code><code class="descname">dropout_normalize_add_NTC</code><span class="sig-paren">(</span><em>x</em>, <em>residual_x=None</em>, <em>drop_prob=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#dropout_normalize_add_NTC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.dropout_normalize_add_NTC" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.common.</code><code class="descname">dropout_normalize_add_NTC</code><span class="sig-paren">(</span><em>x</em>, <em>residual_x=None</em>, <em>norm_type='layer_norm'</em>, <em>drop_prob=0.0</em>, <em>training=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#dropout_normalize_add_NTC"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.dropout_normalize_add_NTC" title="Permalink to this definition">¶</a></dt>
 <dd><p>Performs dropout on output,
 :param x: output of the block. A tensor of shape [batch, Time, dim]
 :param residual_x: (default: None) input to the block.
@@ -871,7 +871,7 @@ If None, will be ignored
 
 <dl class="function">
 <dt id="parts.common.ffn_and_layer_norm">
-<code class="descclassname">parts.common.</code><code class="descname">ffn_and_layer_norm</code><span class="sig-paren">(</span><em>inpt</em>, <em>inner_dim</em>, <em>resulting_dim</em>, <em>drop_prob=0.0</em>, <em>inner_activation=&lt;function relu&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#ffn_and_layer_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.ffn_and_layer_norm" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.common.</code><code class="descname">ffn_and_layer_norm</code><span class="sig-paren">(</span><em>inputs</em>, <em>inner_dim</em>, <em>resulting_dim</em>, <em>norm_type</em>, <em>drop_prob=0.0</em>, <em>training=True</em>, <em>inner_activation=&lt;function relu&gt;</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#ffn_and_layer_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.ffn_and_layer_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Position-wise fully connected feed-forward network with layer norm
 and residual connection
 :param inpt: input tensor
@@ -904,7 +904,7 @@ and residual connection
 
 <dl class="function">
 <dt id="parts.common.normalize">
-<code class="descclassname">parts.common.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>input</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.normalize" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.common.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>inputs</em>, <em>training</em>, <em>norm_type</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/common.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.common.normalize" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalizes input (currently just layer_norm)
 :param input: tensor of shape [batch, Time, dim]
 :return: tensor of shape [batch, Time, dim]</p>

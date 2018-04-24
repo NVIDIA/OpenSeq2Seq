@@ -215,10 +215,10 @@ thus only works in the training benchmarking.</li>
 <li><code class="docutils literal notranslate"><span class="pre">--bench_start</span></code> — first step to start counting time for benchmarking. This
 parameter works in all modes whether or not <code class="docutils literal notranslate"><span class="pre">--benchmark</span></code> parameter was
 specified.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--debug</span></code> — this enables TensorFlow debugging. To use it first run
+<li><code class="docutils literal notranslate"><span class="pre">--debug_port</span></code> — this enables TensorFlow debugging. To use it first run, e.g.
 <code class="docutils literal notranslate"><span class="pre">tensorboard</span> <span class="pre">--logdir=.</span> <span class="pre">--debugger_port=6067</span></code> and while tensorboard is
-running execute <code class="docutils literal notranslate"><span class="pre">run.py</span></code> with <code class="docutils literal notranslate"><span class="pre">--debug</span></code> attribute. After that tensorboard
-should have debugging tab.</li>
+running execute <code class="docutils literal notranslate"><span class="pre">run.py</span></code> with <code class="docutils literal notranslate"><span class="pre">--debug_port=6067</span></code> attribute.
+After that tensorboard should have debugging tab.</li>
 </ul>
 <p>In order to make it more convenient to run multiple experiments we provide
 <code class="docutils literal notranslate"><span class="pre">start_experiment.sh</span></code> script that is a wrapper around <code class="docutils literal notranslate"><span class="pre">run.py</span></code> script which

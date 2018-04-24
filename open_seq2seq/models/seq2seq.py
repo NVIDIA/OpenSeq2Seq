@@ -7,20 +7,12 @@ from open_seq2seq.models.model import Model
 
 class Seq2Seq(Model):
   """
-  Standard Sequence-to-Sequence class with one encoder and one decoder.
-  "encoder-decoder-loss" models should inherit from this
+  Standard sequence-to-sequence class with one encoder and one decoder.
+  "encoder-decoder-loss" models should inherit from this class.
   """
 
   @staticmethod
   def get_required_params():
-    """Static method with description of required parameters.
-
-      Returns:
-        dict:
-            Dictionary containing all the parameters that **have to** be
-            included into the ``params`` parameter of the
-            class :meth:`__init__` method.
-    """
     return dict(Model.get_required_params(), **{
       'encoder': None,  # could be any user defined class
       'decoder': None,  # could be any user defined class
@@ -28,14 +20,6 @@ class Seq2Seq(Model):
 
   @staticmethod
   def get_optional_params():
-    """Static method with description of optional parameters.
-
-      Returns:
-        dict:
-            Dictionary containing all the parameters that **can** be
-            included into the ``params`` parameter of the
-            class :meth:`__init__` method.
-    """
     return dict(Model.get_optional_params(), **{
       'encoder_params': dict,
       'decoder_params': dict,
@@ -93,18 +77,50 @@ class Seq2Seq(Model):
       self._loss_computator = None
 
   def _create_encoder(self):
+    """This function should return encoder class.
+    Overwrite this function if additional parameters need to be specified for
+    encoder, besides provided in the config.
+
+    Returns:
+      instance of a class derived from :class:`encoders.encoder.Encoder`.
+    """
     params = self.params['encoder_params']
     return self.params['encoder'](params=params, mode=self.mode, model=self)
 
   def _create_decoder(self):
+    """This function should return decoder class.
+    Overwrite this function if additional parameters need to be specified for
+    decoder, besides provided in the config.
+
+    Returns:
+      instance of a class derived from :class:`decoders.decoder.Decoder`.
+    """
     params = self.params['decoder_params']
     params['tgt_vocab_size'] = self.data_layer.params['tgt_vocab_size']
     return self.params['decoder'](params=params, mode=self.mode, model=self)
 
   def _create_loss(self):
+    """This function should return loss class.
+    Overwrite this function if additional parameters need to be specified for
+    loss, besides provided in the config.
+
+    Returns:
+      instance of a class derived from :class:`losses.loss.Loss`.
+    """
     return self.params['loss'](params=self.params['loss_params'], model=self)
 
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
+    """TensorFlow graph for sequence-to-sequence model is created here.
+    This function connects encoder, decoder and loss together. As an input for
+    encoder it will specify source sequence and source length (as returned from
+    the data layer). As an input for decoder it will specify target sequence
+    and target length as well as all output returned from encoder. For loss it
+    will also specify target sequence and length and all output returned from
+    decoder. Note that loss will only be built for mode == "train" or "eval".
+
+    See :meth:`models.model.Model._build_forward_pass_graph` for description of
+    arguments and return values.
+    """
     if self.mode == "infer":
       src_sequence, src_length = input_tensors
       tgt_sequence, tgt_length = None, None
@@ -144,12 +160,15 @@ class Seq2Seq(Model):
 
   @property
   def encoder(self):
+    """Model encoder."""
     return self._encoder
 
   @property
   def decoder(self):
+    """Model decoder."""
     return self._decoder
 
   @property
   def loss_computator(self):
+    """Model loss computator."""
     return self._loss_computator

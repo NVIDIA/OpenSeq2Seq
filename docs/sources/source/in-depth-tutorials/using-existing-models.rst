@@ -59,10 +59,10 @@ evaluation). The other parameters of the ``run.py`` script are the following:
   parameter works in all modes whether or not ``--benchmark`` parameter was
   specified.
 
-* ``--debug`` --- this enables TensorFlow debugging. To use it first run
+* ``--debug_port`` --- this enables TensorFlow debugging. To use it first run, e.g.
   ``tensorboard --logdir=. --debugger_port=6067`` and while tensorboard is
-  running execute ``run.py`` with ``--debug`` attribute. After that tensorboard
-  should have debugging tab.
+  running execute ``run.py`` with ``--debug_port=6067`` attribute.
+  After that tensorboard should have debugging tab.
 
 In order to make it more convenient to run multiple experiments we provide
 ``start_experiment.sh`` script that is a wrapper around ``run.py`` script which

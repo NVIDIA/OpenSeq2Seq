@@ -161,16 +161,32 @@
 
 <div class="viewcode-block" id="DataLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
 <span class="k">class</span> <span class="nc">DataLayer</span><span class="p">:</span>
-  <span class="sd">&quot;&quot;&quot;Abstract class that specifies data access operations</span>
+  <span class="sd">&quot;&quot;&quot;Abstract class from which all data layers must inherit.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="DataLayer.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">        dict:</span>
+<span class="sd">            Dictionary containing all the parameters that **have to** be</span>
+<span class="sd">            included into the ``params`` parameter of the</span>
+<span class="sd">            class :meth:`__init__` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="DataLayer.get_optional_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
+
+<span class="sd">      Returns:</span>
+<span class="sd">        dict:</span>
+<span class="sd">            Dictionary containing all the parameters that **can** be</span>
+<span class="sd">            included into the ``params`` parameter of the</span>
+<span class="sd">            class :meth:`__init__` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">],</span>
@@ -178,11 +194,27 @@
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="DataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.__init__">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Initialize data layer</span>
-<span class="sd">    :param params: Python dictionary with options,</span>
-<span class="sd">    specifying mini-batch shapes, padding, etc.</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Data layer constructor.</span>
+<span class="sd">    The TensorFlow graph should not be created here, but rather in the</span>
+<span class="sd">    :meth:`self.build_graph() &lt;build_graph&gt;` method.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      params (dict): parameters describing the data layer.</span>
+<span class="sd">          All supported parameters are listed in :meth:`get_required_params`,</span>
+<span class="sd">          :meth:`get_optional_params` functions.</span>
+<span class="sd">      model (instance of a class derived from :class:`Model&lt;models.model.Model&gt;`):</span>
+<span class="sd">          parent model that created this</span>
+<span class="sd">          data layer. Could be None if no model access is required for the</span>
+<span class="sd">          use case.</span>
+<span class="sd">      num_workers (int): number of Horovod processes or None if Horovod is not used.</span>
+<span class="sd">      worker_id (int): Horovod process id or None if Horovod is not used.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">      * **shuffle** (bool) --- whether to shuffle dataset after an epoch.</span>
+<span class="sd">        Typically will be True for train and False for inference and evaluation.</span>
+<span class="sd">      * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -206,68 +238,100 @@
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Shuffle should not be performed in inference mode&quot;</span><span class="p">)</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># could be used for correct Horovod processing</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">=</span> <span class="n">worker_id</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parameters used to construct the data layer (dictionary).&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
+
+<div class="viewcode-block" id="DataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.build_graph">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Here all TensorFlow graph construction should happen.&quot;&quot;&quot;</span>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="DataLayer.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Creates and returns input tensors that should be connected to the</span>
-<span class="sd">    model computational graph.</span>
+    <span class="sd">&quot;&quot;&quot;This method should create and return input tensors that will be</span>
+<span class="sd">    connected to the model computational graph. Note, that it is important to</span>
+<span class="sd">    create *new* tensors here, since this method will be called multiple times</span>
+<span class="sd">    for multi-GPU execution. For ``tf.data`` API you can usually call</span>
+<span class="sd">    ``Iterator.get_next()`` multiple times.</span>
 
-<span class="sd">    :return: list of input tensors: that could be placeholders or if using</span>
-<span class="sd">             tf.data API, whatever is returned with Iterator.get_next()</span>
+<span class="sd">    Returns:</span>
+<span class="sd">       list: list of input tensors that could be placeholders or if using</span>
+<span class="sd">       ``tf.data`` API, whatever is returned with ``Iterator.get_next()``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="DataLayer.next_batch_feed_dict"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.next_batch_feed_dict">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">next_batch_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Should return one batch: something that can be fed into feed_dict&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;This method should return one data batch feed_dict.</span>
+<span class="sd">    Basically, the output of this method will be included in the ``sess.run``</span>
+<span class="sd">    call as the ``feed_dict`` parameter. If no ``feed_dict`` is required (as is</span>
+<span class="sd">    the typical case with ``tf.data`` API), just return an empty dictionary.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: feed_dict to be included in ``sess.run`` call.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="DataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.shuffle">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Shuffles the data.</span>
+    <span class="sd">&quot;&quot;&quot;This method should implement data shuffle.</span>
+<span class="sd">    It will be called after the end of each epoch. Note, that if shuffling is</span>
+<span class="sd">    performed automatically (as is the typical case with ``tf.data`` API), this</span>
+<span class="sd">    method can be empty.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="DataLayer.get_size_in_samples"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    :return: dataset size in samples, i.e. number of training objects in dataset</span>
+    <span class="sd">&quot;&quot;&quot;Should return the dataset size in samples.</span>
+<span class="sd">    That is, the number of objects in the dataset. This method is used to</span>
+<span class="sd">    calculate a valid epoch size.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      int: dataset size in samples.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="DataLayer.get_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_input_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">get_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Returns input tensors that should be connected to the</span>
-<span class="sd">    model computational graph.</span>
+    <span class="sd">&quot;&quot;&quot;Returns input tensors that will be connected to the model graph.</span>
+<span class="sd">    Note: it is important **not to** overwrite this function for correct</span>
+<span class="sd">    multi-GPU processing!</span>
 
-<span class="sd">    :return: list of input tensors: that could be placeholders or if using</span>
-<span class="sd">             tf.data API, whatever is returned with Iterator.get_next()</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      list: input tensors generated with</span>
+<span class="sd">      :meth:`self.gen_input_tensors()&lt;gen_input_tensors&gt;`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">gen_input_tensors</span><span class="p">()</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="DataLayer.get_size_in_batches"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.get_size_in_batches">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_batches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    :return: dataset size in batches</span>
+    <span class="sd">&quot;&quot;&quot;Returns dataset size in batches.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      int: dataset size in batches.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="DataLayer.iterate_one_epoch"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.iterate_one_epoch">[docs]</a>  <span class="k">def</span> <span class="nf">iterate_one_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cross_over</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Goes through the data one time.</span>
-<span class="sd">    :param cross_over: whether last batch should take few elements from the next</span>
-<span class="sd">                       epoch if the size of dataset is not divisible by</span>
-<span class="sd">                       the batch size</span>
-<span class="sd">    :return: yields feed_dict that should populate the data into</span>
-<span class="sd">             tensors returned by get_input_tensors function</span>
+    <span class="sd">&quot;&quot;&quot;Generator that iterates through one epoch.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      cross_over: whether last batch should take few elements from the next</span>
+<span class="sd">          epoch if the size of dataset is not divisible by the batch size. If</span>
+<span class="sd">          set to False, epoch will end ignoring few last elements.</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">       dict: feed_dict returned from</span>
+<span class="sd">       :meth:`self.next_batch_feed_dict()&lt;next_batch_feed_dict&gt;` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_batches</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
@@ -282,11 +346,13 @@
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">next_batch_feed_dict</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="DataLayer.iterate_forever"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.iterate_forever">[docs]</a>  <span class="k">def</span> <span class="nf">iterate_forever</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Goes through data set indefinitely</span>
-<span class="sd">    :return: yields feed_dict that should populate the data into </span>
-<span class="sd">             tensors returned by get_input_tensors function.</span>
-<span class="sd">             For tf.data API feed_dict will usually be empty</span>
+    <span class="sd">&quot;&quot;&quot;Generator that goes through data set indefinitely.</span>
+<span class="sd">    Will automatically perform shuffle after the end of each epoch by calling</span>
+<span class="sd">    :meth:`self.shuffle()&lt;shuffle&gt;` method.</span>
+
+<span class="sd">    Yields:</span>
+<span class="sd">        dict: feed_dict returned from</span>
+<span class="sd">       :meth:`self.next_batch_feed_dict()&lt;next_batch_feed_dict&gt;` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
       <span class="k">for</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">():</span>
@@ -296,6 +362,8 @@
 
 
 <div class="viewcode-block" id="MultiGPUWrapper"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper">[docs]</a><span class="k">class</span> <span class="nc">MultiGPUWrapper</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Wrapper around :class:`DataLayer` class that enables multi-GPU execution.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="MultiGPUWrapper.get_required_params"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="c1"># this disables the check since it was already done</span>
@@ -308,7 +376,14 @@
     <span class="c1"># inside the inner data_layer</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_layer</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">):</span>
+<div class="viewcode-block" id="MultiGPUWrapper.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data_layer</span><span class="p">,</span> <span class="n">num_gpus</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper constructor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      data_layer (instance of a class derived from :class:`DataLayer`): inner</span>
+<span class="sd">          data_layer that will be &quot;copied&quot; to each GPU.</span>
+<span class="sd">      num_gpus (int): number of GPUs used.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data_layer</span><span class="p">),</span> <span class="n">DataLayer</span><span class="p">):</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data_layer has to be an instance &quot;</span>
                        <span class="s2">&quot;of a subclass of DataLayer class&quot;</span><span class="p">)</span>
@@ -316,23 +391,53 @@
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span> <span class="o">=</span> <span class="n">num_gpus</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="n">data_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="n">data_layer</span></div>
 
+<div class="viewcode-block" id="MultiGPUWrapper.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function creates input tensors for all GPUs.</span>
+<span class="sd">    It will first build graph for the inner data layer. Then, it will call</span>
+<span class="sd">    :meth:`self._data_layer.gen_input_tensors()&lt;gen_input_tensors&gt;` num_gpus</span>
+<span class="sd">    times and save the corresponding list as new ``self._input_tensors``</span>
+<span class="sd">    parameter. This parameter will then be accessed by</span>
+<span class="sd">    :meth:`self.get_input_tensors()&lt;get_input_tensors&gt;` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
     <span class="c1"># making num_gpus copies of input tensors</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">[</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">gen_input_tensors</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span><span class="p">)</span>
     <span class="p">]</span>
     <span class="c1"># transposing, so that same type variables are in the same position</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">))</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="MultiGPUWrapper.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.gen_input_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="c1"># this function is unnecessary since we directly fill self._input_tensors</span>
+    <span class="sd">&quot;&quot;&quot;This function is empty since we directly fill ``self._input_tensors``</span>
+<span class="sd">    which is used in :meth:`self.get_input_tensors()&lt;get_input_tensors&gt;` method.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="MultiGPUWrapper.get_size_in_samples"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Redirects call to inner data layer :meth:`get_size_in_samples` method.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="MultiGPUWrapper.next_batch_feed_dict"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.next_batch_feed_dict">[docs]</a>  <span class="k">def</span> <span class="nf">next_batch_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Correctly populates next batch feed_dict for multiple GPUs.</span>
+<span class="sd">    This function will do the following things: for each GPU in a loop it will</span>
+<span class="sd">    replace the inner data layer ``_input_tensors`` parameter with part of</span>
+<span class="sd">    ``self._input_tensors`` corresponding to the current GPU. It will then</span>
+<span class="sd">    call inner data layer :meth:`next_batch_feed_dict` method which should</span>
+<span class="sd">    connect inner data layer ``_input_tensors`` with correct feed data. After</span>
+<span class="sd">    all GPUs are covered it will return the complete feed dictionary.</span>
+
+<span class="sd">    Note that this function will likely be rewritten in the future since it</span>
+<span class="sd">    relies on the user using ``self._input_tensors`` to store the placeholders</span>
+<span class="sd">    (which will be the case if they are accessed through</span>
+<span class="sd">    :meth:`self.get_input_tensors()&lt;get_input_tensors&gt;` method),</span>
+<span class="sd">    but this is not enforced in the API.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: feed_dict to be included in ``sess.run`` call which has data for</span>
+<span class="sd">      all GPUs.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">feed_dict</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span><span class="p">):</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
@@ -342,6 +447,7 @@
     <span class="k">return</span> <span class="n">feed_dict</span></div>
 
 <div class="viewcode-block" id="MultiGPUWrapper.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.MultiGPUWrapper.shuffle">[docs]</a>  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Redirects call to inner data layer :meth:`shuffle` method.&quot;&quot;&quot;</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span></div></div>
 </pre></div>
 
