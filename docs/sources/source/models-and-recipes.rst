@@ -85,4 +85,4 @@ Command to train on 4 GPUs::
     python run.py --config_file=example_configs/speech2text/ds2_librispeech_adam_config.py --mode=train_eval
 
 Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
-Model checkpoint: `link https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing>`_.
+Model checkpoint: `link <https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing>`_.
