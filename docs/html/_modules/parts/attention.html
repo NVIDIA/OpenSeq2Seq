@@ -274,7 +274,8 @@
     <span class="k">if</span> <span class="n">mask_future</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
       <span class="n">bias</span> <span class="o">=</span> <span class="n">additional_bias</span> <span class="c1"># can be None</span>
     <span class="k">else</span><span class="p">:</span> <span class="c1"># mask future</span>
-      <span class="n">future_masking_bias</span> <span class="o">=</span> <span class="n">get_future_masking_bias</span><span class="p">(</span><span class="n">Q_multi_head</span><span class="p">,</span> <span class="n">K_multi_head</span><span class="p">)</span>
+      <span class="c1"># future_masking_bias = get_future_masking_bias(Q_multi_head, K_multi_head)</span>
+      <span class="n">future_masking_bias</span> <span class="o">=</span> <span class="n">get_future_masking_bias</span><span class="p">(</span><span class="n">K_multi_head</span><span class="p">,</span> <span class="n">V_multi_head</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">additional_bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">bias</span> <span class="o">=</span> <span class="n">additional_bias</span> <span class="o">+</span> <span class="n">future_masking_bias</span>
       <span class="k">else</span><span class="p">:</span>
