@@ -52,6 +52,9 @@ class Decoder:
       params (dict): parameters describing the decoder.
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
+      model (instance of a class derived from :class:`Model<models.model.Model>`):
+          parent model that created this decoder.
+          Could be None if no model access is required for the use case.
       name (str): name for decoder variable scope.
       mode (str): mode decoder is going to be run in.
           Could be "train", "eval" or "infer".
@@ -144,17 +147,17 @@ class Decoder:
           typically have the following content::
             {
               "encoder_output": encoder_output,
-              "tgt_inputs": target_sequence,
-              "tgt_lengths": target_lengths,
+              "tgt_sequence": target_sequence,
+              "tgt_length": target_length,
             }
 
     Returns:
       dict:
         dictionary of decoder outputs. Typically this will be just::
           {
-            "decoder_output": decoder_logits,  # what will be passed to Loss
-            "decoder_samples": decoder_samples,  # actual decoded sequence, e.g.
-                                                 # characters instead of logits
+            "logits": logits,  # what will be passed to Loss
+            "samples": samples,  # actual decoded sequence,
+                                 # e.g. characters instead of logits
           }
     """
     pass

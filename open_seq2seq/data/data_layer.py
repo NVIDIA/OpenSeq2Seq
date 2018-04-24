@@ -53,9 +53,8 @@ class DataLayer:
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
       model (instance of a class derived from :class:`Model<models.model.Model>`):
-          parent model that created this
-          data layer. Could be None if no model access is required for the
-          use case.
+          parent model that created this data layer.
+          Could be None if no model access is required for the use case.
       num_workers (int): number of Horovod processes or None if Horovod is not used.
       worker_id (int): Horovod process id or None if Horovod is not used.
 
