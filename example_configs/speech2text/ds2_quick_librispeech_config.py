@@ -7,6 +7,8 @@ from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
 
+base_model = Speech2Text
+
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
@@ -22,30 +24,27 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "experiments/librispeech-quick",
 
-  "base_model": Speech2Text,
-  "model_params": {
-    "optimizer": "Adam",
-    "optimizer_params": {},
-    "learning_rate": 0.0001,
-    "lr_policy": exp_decay,
-    "lr_policy_params": {
-      "begin_decay_at": 0,
-      "decay_steps": 5000,
-      "decay_rate": 0.9,
-      "use_staircase_decay": True,
-      "min_lr": 0.0,
-    },
-    "dtype": tf.float32,
-    # weight decay
-    "regularizer": tf.contrib.layers.l2_regularizer,
-    "regularizer_params": {
-      'scale': 0.0005
-    },
-    "initializer": tf.contrib.layers.xavier_initializer,
-
-    "summaries": ['learning_rate', 'variables', 'gradients',
-                  'variable_norm', 'gradient_norm', 'global_gradient_norm']
+  "optimizer": "Adam",
+  "optimizer_params": {},
+  "learning_rate": 0.0001,
+  "lr_policy": exp_decay,
+  "lr_policy_params": {
+    "begin_decay_at": 0,
+    "decay_steps": 5000,
+    "decay_rate": 0.9,
+    "use_staircase_decay": True,
+    "min_lr": 0.0,
   },
+  "dtype": tf.float32,
+  # weight decay
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    'scale': 0.0005
+  },
+  "initializer": tf.contrib.layers.xavier_initializer,
+
+  "summaries": ['learning_rate', 'variables', 'gradients',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,
   "encoder_params": {
