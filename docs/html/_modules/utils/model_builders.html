@@ -1,0 +1,430 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>utils.model_builders &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>utils.model_builders</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for utils.model_builders</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
+<span class="sd">&quot;&quot;&quot;Helper functions to create models with various topologies&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="kn">from</span> <span class="nn">open_seq2seq.models</span> <span class="k">import</span> <span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="n">Speech2Text</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.data</span> <span class="k">import</span> <span class="n">MultiGPUWrapper</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span>
+
+
+<div class="viewcode-block" id="safe_fill_params"><a class="viewcode-back" href="../../api-docs/utils.html#utils.model_builders.safe_fill_params">[docs]</a><span class="k">def</span> <span class="nf">safe_fill_params</span><span class="p">(</span><span class="n">cfg_from</span><span class="p">,</span> <span class="n">cfgs_to</span><span class="p">,</span> <span class="n">pm_list</span><span class="p">):</span>
+  <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">pm_list</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">cfg_to</span> <span class="ow">in</span> <span class="n">cfgs_to</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">pm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cfg_to</span> <span class="ow">and</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">cfg_from</span><span class="p">:</span>
+        <span class="n">cfg_to</span><span class="p">[</span><span class="n">pm</span><span class="p">]</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">cfg_from</span><span class="p">[</span><span class="n">pm</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="create_encoder_decoder_loss_model"><a class="viewcode-back" href="../../in-depth-tutorials/using-existing-models.html#utils.model_builders.create_encoder_decoder_loss_model">[docs]</a><span class="k">def</span> <span class="nf">create_encoder_decoder_loss_model</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="p">,</span> <span class="n">reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Creates a model specified in the configuration file.</span>
+<span class="sd">  This function takes in Python config and creates all parts of the model:</span>
+<span class="sd">  data layer, encoder, decoder and loss. They are all then combined in one</span>
+<span class="sd">  model instance which is returned.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    config (dict): dictionary containing run parameters. For complete list of</span>
+<span class="sd">        possible values see &quot;Config parameters&quot; section.</span>
+<span class="sd">    mode (str): mode to create the model in. Could be &quot;train&quot;, &quot;eval&quot; or &quot;infer&quot;.</span>
+<span class="sd">    hvd: if Horovod is used, this should be ``horovod.tensorflow`` module.</span>
+<span class="sd">        If Horovod is not used it should be None.</span>
+<span class="sd">    reuse (bool, optional): whether to reuse variables in the model. Useful</span>
+<span class="sd">        for creating evaluation model during training.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    instance of ``base_model`` class specified in the config.</span>
+
+<span class="sd">  Config parameters:</span>
+
+<span class="sd">  * **random_seed** (int) --- random seed to use.</span>
+<span class="sd">  * **use_horovod** (bool) --- whether to use Horovod for distributed execution.</span>
+<span class="sd">  * **num_gpus** (int) --- number of GPUs to use. When ``use_horovod`` is True</span>
+<span class="sd">    this parameter is ignored.</span>
+<span class="sd">  * **batch_size_per_gpu** (int) --- batch size to use for each GPU.</span>
+<span class="sd">  * **num_epochs** (int) --- number of epochs to run training for.</span>
+<span class="sd">    This parameter cannot be used if ``max_steps`` is specified.</span>
+<span class="sd">  * **max_steps** (int) --- number of steps to run training for.</span>
+<span class="sd">    This parameter cannot be used if ``num_epochs`` is specified.</span>
+<span class="sd">  * **save_summaries_steps** (int or None) --- how often to save summaries.</span>
+<span class="sd">    Setting it to None disables summaries saving.</span>
+<span class="sd">  * **print_loss_steps** (int or None) --- how often to print loss during</span>
+<span class="sd">    training. Setting it to None disables loss printing.</span>
+<span class="sd">  * **print_sample_steps** (int or None) --- how often to print training samples</span>
+<span class="sd">    (input sequences, correct answers and model predictions).</span>
+<span class="sd">    Setting it to None disables samples printing.</span>
+<span class="sd">  * **save_checkpoint_steps** (int or None) --- how often to save model</span>
+<span class="sd">    checkpoints. Setting it to None disables checkpoint saving.</span>
+<span class="sd">  * **eval_steps** (int) --- how often to run evaluation during training.</span>
+<span class="sd">    This parameter is only checked if ``--mode`` argument of ``run.py`` is</span>
+<span class="sd">    &quot;train\_eval&quot;. If no evaluation is needed you should use &quot;train&quot; mode.</span>
+<span class="sd">  * **logdir** (string) --- path to the log directory where all checkpoints and</span>
+<span class="sd">    summaries will be saved.</span>
+<span class="sd">  * **base_model** (any class derived from</span>
+<span class="sd">    :class:`Model &lt;models.model.Model&gt;`) --- base model class to use.</span>
+<span class="sd">    Currently can only be :class:`Speech2Text &lt;models.speech2text.Speech2Text&gt;`</span>
+<span class="sd">    or</span>
+<span class="sd">    :class:`BasicText2TextWithAttention</span>
+<span class="sd">    &lt;models.text2text.BasicText2TextWithAttention&gt;`.</span>
+<span class="sd">    Note that this parameter is not a string, but an actual Python class, so you</span>
+<span class="sd">    will need to add corresponding imports in the configuration file.</span>
+<span class="sd">  * **model_params** (dict) --- dictionary with model configuration. For</span>
+<span class="sd">    complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">  * **data_layer** (any class derived from</span>
+<span class="sd">    :class:`DataLayer &lt;data.data_layer.DataLayer&gt;`) --- data layer class to use.</span>
+<span class="sd">  * **data_layer_params** (dict) --- dictionary with data layer configuration.</span>
+<span class="sd">    For complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">  * **encoder** (any class derived from</span>
+<span class="sd">    :class:`Encoder &lt;encoders.encoder.Encoder&gt;`) --- encoder class to use.</span>
+<span class="sd">  * **encoder_params** (dict) --- dictionary with encoder configuration. For</span>
+<span class="sd">    complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">  * **decoder** (any class derived from</span>
+<span class="sd">    :class:`Decoder &lt;decoders.decoder.Decoder&gt;`) --- decoder class to use.</span>
+<span class="sd">  * **decoder_params** (dict) --- dictionary with decoder configuration. For</span>
+<span class="sd">    complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">  * **loss** (any class derived from</span>
+<span class="sd">    :class:`Loss &lt;losses.loss.Loss&gt;`) --- loss class to use.</span>
+<span class="sd">  * **loss_params** (dict) --- dictionary with loss configuration. For</span>
+<span class="sd">    complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">check_params</span><span class="p">(</span>
+    <span class="n">config</span><span class="p">,</span>
+    <span class="n">required_dict</span><span class="o">=</span><span class="p">{</span>
+      <span class="s1">&#39;use_horovod&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+      <span class="s1">&#39;num_gpus&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+      <span class="s1">&#39;print_loss_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+      <span class="s1">&#39;print_samples_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+      <span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+      <span class="s1">&#39;base_model&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
+      <span class="s1">&#39;model_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+      <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
+      <span class="s1">&#39;encoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+      <span class="s1">&#39;decoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
+      <span class="s1">&#39;decoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+      <span class="s1">&#39;loss&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
+      <span class="s1">&#39;loss_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+      <span class="s1">&#39;data_layer&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
+      <span class="s1">&#39;data_layer_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+      <span class="s1">&#39;logdir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+      <span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">},</span>
+    <span class="n">optional_dict</span><span class="o">=</span><span class="p">{</span>
+      <span class="s1">&#39;random_seed&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;num_epochs&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;max_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;eval_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;bench_start&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">},</span>
+  <span class="p">)</span>
+
+  <span class="n">safe_fill_params</span><span class="p">(</span>
+    <span class="n">cfg_from</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">],</span>
+    <span class="n">cfgs_to</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="n">pm_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>
+  <span class="p">)</span>
+  <span class="n">safe_fill_params</span><span class="p">(</span>
+    <span class="n">cfg_from</span><span class="o">=</span><span class="n">config</span><span class="p">,</span>
+    <span class="n">cfgs_to</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="n">pm_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">],</span>
+  <span class="p">)</span>
+  <span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">][</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
+  <span class="n">safe_fill_params</span><span class="p">(</span>
+    <span class="n">cfg_from</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">],</span>
+    <span class="n">cfgs_to</span><span class="o">=</span><span class="p">[</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">],</span>
+    <span class="p">],</span>
+    <span class="n">pm_list</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="s1">&#39;regularizer_params&#39;</span><span class="p">],</span>
+  <span class="p">)</span>
+
+  <span class="k">if</span> <span class="s2">&quot;max_steps&quot;</span> <span class="ow">in</span> <span class="n">config</span> <span class="ow">and</span> <span class="s2">&quot;num_epochs&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;You can&#39;t provide both max_steps and num_epochs. &quot;</span>
+                     <span class="s2">&quot;Please, remove one of them from the config.&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;max_steps&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span> <span class="ow">and</span> <span class="s2">&quot;num_epochs&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For training mode either max_steps or &quot;</span>
+                       <span class="s2">&quot;num_epochs has to be provided&quot;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="s2">&quot;max_steps&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">][</span><span class="s1">&#39;max_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;max_steps&#39;</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="s2">&quot;num_epochs&quot;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">][</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span>
+
+  <span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">][</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span>
+                                                <span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">hvd</span><span class="p">:</span>
+    <span class="n">data_layer</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">])</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">data_layer</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span>
+      <span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">]),</span>
+      <span class="n">num_gpus</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;num_gpus&#39;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+  <span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">][</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_model&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">BasicText2TextWithAttention</span><span class="p">:</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
+  <span class="k">elif</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_model&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">Speech2Text</span><span class="p">:</span>
+    <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;n_output&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span>
+
+  <span class="n">encoder</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+  <span class="n">decoder</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">],</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+  <span class="n">loss</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s2">&quot;loss_params&quot;</span><span class="p">])</span>
+
+  <span class="n">model</span> <span class="o">=</span> <span class="n">config</span><span class="p">[</span><span class="s1">&#39;base_model&#39;</span><span class="p">](</span>
+    <span class="n">params</span><span class="o">=</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;model_params&#39;</span><span class="p">],</span>
+    <span class="n">data_layer</span><span class="o">=</span><span class="n">data_layer</span><span class="p">,</span>
+    <span class="n">encoder</span><span class="o">=</span><span class="n">encoder</span><span class="p">,</span>
+    <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
+    <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+    <span class="n">force_var_reuse</span><span class="o">=</span><span class="n">reuse</span><span class="p">,</span>
+    <span class="n">gpu_ids</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;num_gpus&#39;</span><span class="p">]),</span>
+    <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">,</span>
+  <span class="p">)</span>
+  <span class="k">return</span> <span class="n">model</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

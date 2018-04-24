@@ -68,7 +68,7 @@ class Speech2TextDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params):
     """
     Required params:
       batch_size_per_gpu
@@ -85,13 +85,11 @@ class Speech2TextDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextDataLayer, self).__init__(params, model,
-                                               num_workers, worker_id)
+    super(Speech2TextDataLayer, self).__init__(params)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
     
     self._index = -1
     self._files = None
@@ -112,9 +110,6 @@ class Speech2TextDataLayer(DataLayer):
       self.shuffle()
 
     self._size = self.get_size_in_samples()
-
-  def build_graph(self):
-    pass
 
   def shuffle(self):
     self._files = np.random.permutation(self._files)
@@ -232,20 +227,15 @@ class Speech2TextRandomDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params):
     """
     Random data for speech check
     """
-    super(Speech2TextRandomDataLayer, self).__init__(params, model,
-                                                     num_workers, worker_id)
+    super(Speech2TextRandomDataLayer, self).__init__(params)
     self.random_data = None
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
-
-  def build_graph(self):
-    pass
 
   def shuffle(self):
     pass
@@ -297,6 +287,7 @@ class Speech2TextRandomDataLayer(DataLayer):
     return {self.get_input_tensors(): self.random_data}
 
 
+
 class Speech2TextTFDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
@@ -313,7 +304,7 @@ class Speech2TextTFDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params):
     """
     Required params:
       batch_size
@@ -330,13 +321,11 @@ class Speech2TextTFDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextTFDataLayer, self).__init__(params, model,
-                                                 num_workers, worker_id)
+    super(Speech2TextTFDataLayer, self).__init__(params)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
     self._files = None
     for csv in params['dataset_path']:
@@ -355,7 +344,6 @@ class Speech2TextTFDataLayer(DataLayer):
 
     self._size = self.get_size_in_samples()
 
-  def build_graph(self):
     self.tfdataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle'] and self.params['use_targets']:
       self.tfdataset = self.tfdataset.shuffle(self._size)

@@ -12,7 +12,6 @@ class BasicSequenceLoss(Loss):
   def get_required_params():
     return dict(Loss.get_required_params(), **{
       'tgt_vocab_size': int,
-      'batch_size': int,
     })
 
   @staticmethod
@@ -23,7 +22,8 @@ class BasicSequenceLoss(Loss):
       'do_mask': bool,
     })
 
-  def __init__(self, params, model, name="basic_sequence_loss"):
+  def __init__(self,
+               params):
     """
     Constructor
     :param params - dictionary with loss parameters.
@@ -38,16 +38,16 @@ class BasicSequenceLoss(Loss):
     (which is passed as part of loss_input_dict to compute_loss and has to be
     not None then)
     """
-    super(BasicSequenceLoss, self).__init__(params, model, name)
+    super(BasicSequenceLoss, self).__init__(params)
     self._tgt_vocab_size = self.params["tgt_vocab_size"]
-    self._batch_size = self.params["batch_size"]
+    self._batch_size_per_gpu = self.params["batch_size_per_gpu"]
     self._offset_target_by_one = self.params.get(
       "offset_target_by_one", True)
     self._average_across_timestep = self.params.get(
       "average_across_timestep", False)
     self._do_mask = self.params.get("do_mask", True)
 
-  def _compute_loss(self, input_dict):
+  def compute_loss(self, input_dict):
     """
     Computes cross entropy based sequence-to-sequence loss
     :param input_dict: inputs to compute loss
@@ -58,9 +58,9 @@ class BasicSequenceLoss(Loss):
     }
     :return: Singleton loss tensor
     """
-    logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    logits = input_dict["logits"]
+    target_sequence = input_dict["target_sequence"]
+    tgt_lengths = input_dict["tgt_lengths"]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
@@ -122,7 +122,7 @@ class BasicSequenceLoss(Loss):
       loss = tf.reduce_mean(crossent * tf.reshape(mask, shape=[-1]))
     else:
       loss = tf.reduce_sum(crossent * tf.reshape(mask, shape=[-1]))
-      loss /= self._batch_size
+      loss /= self._batch_size_per_gpu
     return loss
 
 
@@ -135,7 +135,6 @@ class CrossEntropyWithSmoothing(Loss):
   def get_required_params():
     return dict(Loss.get_required_params(), **{
       'tgt_vocab_size': int,
-      'batch_size': int,
     })
 
   @staticmethod
@@ -147,7 +146,8 @@ class CrossEntropyWithSmoothing(Loss):
       'label_smoothing': float,
     })
 
-  def __init__(self, params, model, name="cross_entropy_with_smoothing"):
+  def __init__(self,
+               params):
     """
     Constructor
     :param params - dictionary with loss parameters.
@@ -160,9 +160,9 @@ class CrossEntropyWithSmoothing(Loss):
     (which is passed as part of loss_input_dict to compute_loss and has to be
     not None then)
     """
-    super(CrossEntropyWithSmoothing, self).__init__(params, model, name)
+    super(CrossEntropyWithSmoothing, self).__init__(params)
     self._tgt_vocab_size = self.params["tgt_vocab_size"]
-    self._batch_size = self.params["batch_size"]
+    self._batch_size_per_gpu = self.params["batch_size_per_gpu"]
     self._offset_target_by_one = self.params.get(
       "offset_target_by_one", True)
     self._do_mask = self.params.get("do_mask", True)
@@ -170,7 +170,7 @@ class CrossEntropyWithSmoothing(Loss):
     self._average_across_timestep = self.params.get(
       "average_across_timestep", False)
 
-  def _compute_loss(self, input_dict):
+  def compute_loss(self, input_dict):
     """
     Computes cross entropy based sequence-to-sequence loss with label smoothing
     :param input_dict: inputs to compute loss
@@ -181,9 +181,9 @@ class CrossEntropyWithSmoothing(Loss):
     }
     :return: Singleton loss tensor
     """
-    logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    logits = input_dict["logits"]
+    target_sequence = input_dict["target_sequence"]
+    tgt_lengths = input_dict["tgt_lengths"]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models      
@@ -234,5 +234,5 @@ class CrossEntropyWithSmoothing(Loss):
     if self._average_across_timestep:
       loss /= tf.reduce_sum(mask)
     else:
-      loss /= self._batch_size
+      loss /= self._batch_size_per_gpu
     return loss

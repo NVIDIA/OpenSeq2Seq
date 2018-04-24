@@ -10,7 +10,7 @@ class FullyConnectedTimeDecoder(Decoder):
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
-      'tgt_vocab_size': int,
+      'n_output': int,
     })
 
   @staticmethod
@@ -19,12 +19,12 @@ class FullyConnectedTimeDecoder(Decoder):
       'logits_to_outputs_func': None,  # user defined function
     })
 
-  def __init__(self, params, model,
-               name="fully_connected_time_decoder", mode='train'):
-    super(FullyConnectedTimeDecoder, self).__init__(params, model, name, mode)
+  def __init__(self, params=None, name="fully_connected_time_decoder",
+               mode='train'):
+    super(FullyConnectedTimeDecoder, self).__init__(params, name, mode)
 
   def _decode(self, input_dict):
-    inputs = input_dict['encoder_output']['outputs']
+    inputs = input_dict['encoder_output']['encoder_outputs']
     regularizer = self.params.get('regularizer', None)
 
     batch_size, _, n_hidden = inputs.get_shape().as_list()
@@ -35,27 +35,25 @@ class FullyConnectedTimeDecoder(Decoder):
     # activation is linear by default
     logits = tf.layers.dense(
       inputs=inputs,
-      units=self.params['tgt_vocab_size'],
+      units=self.params['n_output'],
       kernel_regularizer=regularizer,
       name='fully_connected',
     )
     logits = tf.reshape(
       logits,
-      [batch_size, -1, self.params['tgt_vocab_size']],
+      [batch_size, -1, self.params['n_output']],
       name="logits",
     )
     # converting to time_major=True shape
     logits = tf.transpose(logits, [1, 0, 2])
 
     if 'logits_to_outputs_func' in self.params:
-      samples = self.params['logits_to_outputs_func'](logits, input_dict)
+      outputs = self.params['logits_to_outputs_func'](logits, input_dict)
       return {
-        'samples': samples,
-        'logits': logits,
-        'src_length': input_dict['encoder_output']['src_length'],
+        'decoder_samples': outputs,
+        'decoder_output': logits,
       }
-    return {'logits': logits,
-            'src_length': input_dict['encoder_output']['src_length']}
+    return {'decoder_output': logits}
 
 
 class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
@@ -78,13 +76,13 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
       'alphabet_config_path': str,
     })
 
-  def __init__(self, params, model,
-               name="fully_connected_ctc_decoder", mode='train'):
-    super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
+  def __init__(self, params=None, name="fully_connected_ctc_decoder",
+               mode='train'):
+    super(FullyConnectedCTCDecoder, self).__init__(params, name, mode)
 
     if self.params['use_language_model']:
       # creating decode_with_lm function if it is compiled
-      lib_path = self.params['decoder_library_path']
+      lib_path = params['decoder_library_path']
       if not os.path.exists(os.path.abspath(lib_path)):
         raise IOError('Can\'t find the decoder with language model library. '
                       'Make sure you have built it and '
@@ -94,20 +92,20 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
       custom_op_module = tf.load_op_library(lib_path)
 
       def decode_with_lm(logits, decoder_input,
-                         beam_width=self.params['beam_width'],
+                         beam_width=params['beam_width'],
                          top_paths=1, merge_repeated=False):
-        sequence_length = decoder_input['encoder_output']['src_length']
+        sequence_length = decoder_input['encoder_output']['src_lengths']
         if logits.dtype.base_dtype != tf.float32:
           logits = tf.cast(logits, tf.float32)
         decoded_ixs, decoded_vals, decoded_shapes, log_probabilities = (
           custom_op_module.ctc_beam_search_decoder_with_lm(
             logits, sequence_length, beam_width=beam_width,
-            model_path=self.params['lm_binary_path'],
-            trie_path=self.params['lm_trie_path'],
-            alphabet_path=self.params['alphabet_config_path'],
-            lm_weight=self.params['lm_weight'],
-            word_count_weight=self.params['word_count_weight'],
-            valid_word_count_weight=self.params['valid_word_count_weight'],
+            model_path=params['lm_binary_path'],
+            trie_path=params['lm_trie_path'],
+            alphabet_path=params['alphabet_config_path'],
+            lm_weight=params['lm_weight'],
+            word_count_weight=params['word_count_weight'],
+            valid_word_count_weight=params['valid_word_count_weight'],
             top_paths=top_paths, merge_repeated=merge_repeated,
           )
         )
@@ -120,7 +118,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         if logits.dtype.base_dtype != tf.float32:
           logits = tf.cast(logits, tf.float32)
         decoded, neg_sum_logits = tf.nn.ctc_greedy_decoder(
-          logits, decoder_input['encoder_output']['src_length'],
+          logits, decoder_input['encoder_output']['src_lengths'],
           merge_repeated,
         )
         return decoded[0]

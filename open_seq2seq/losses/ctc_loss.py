@@ -10,7 +10,7 @@ import tensorflow as tf
 from functools import reduce
 
 from .loss import Loss
-from open_seq2seq.utils.utils import mask_nans, deco_print
+from open_seq2seq.utils.utils import mask_nans
 
 
 def gather_nd(params, indices, shape):
@@ -71,22 +71,20 @@ def ctc_label_dense_to_sparse(labels, label_lengths, batch_size):
 
 
 class CTCLoss(Loss):
-  """Implementation of the CTC loss."""
+  """
+  Implementation of the CTC loss.
+  """
   @staticmethod
   def get_optional_params():
     return dict(Loss.get_optional_params(), **{
       'mask_nan': bool,
     })
 
-  def __init__(self, params, model, name="ctc_loss"):
-    super(CTCLoss, self).__init__(params, model, name)
+  def __init__(self, params):
+    super(CTCLoss, self).__init__(params)
     self._mask_nan = self.params.get("mask_nan", True)
-    # this loss can only operate in full precision
-    if self.params['dtype'] != tf.float32:
-      deco_print("Warning: defaulting CTC loss to work in float32")
-    self.params['dtype'] = tf.float32
 
-  def _compute_loss(self, input_dict):
+  def compute_loss(self, input_dict):
     """
     Computes CTC loss
     :param input_dict: inputs to compute loss
@@ -98,25 +96,25 @@ class CTCLoss(Loss):
     }
     :return: Singleton loss tensor
     """
-    logits = input_dict['decoder_output']['logits']
-    tgt_sequence = input_dict['tgt_sequence']
-    tgt_length = input_dict['tgt_length']
-    # this loss needs an access to src_length since they
-    # might get changed in the encoder
-    src_length = input_dict['decoder_output']['src_length']
+    logits = input_dict['logits']
+    target_sequence = input_dict['target_sequence']
+    tgt_lengths = input_dict['tgt_lengths']
+    src_lengths = input_dict['src_lengths']
 
-    batch_size = tgt_length.shape.as_list()[0]
+    batch_size = tgt_lengths.shape.as_list()[0]
 
     # Converting targets to sparse tensor
-    tgt_sequence = ctc_label_dense_to_sparse(
-      tgt_sequence, tgt_length, batch_size,
+    target_sequence = ctc_label_dense_to_sparse(
+      target_sequence, tgt_lengths, batch_size,
     )
 
     # Compute the CTC loss
+    if logits.dtype.base_dtype != tf.float32:
+      logits = tf.cast(logits, tf.float32)
     total_loss = tf.nn.ctc_loss(
-      labels=tgt_sequence,
+      labels=target_sequence,
       inputs=logits,
-      sequence_length=src_length,
+      sequence_length=src_lengths,
       ignore_longer_outputs_than_inputs=True,
     )
 

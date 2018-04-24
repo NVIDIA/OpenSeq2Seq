@@ -23,10 +23,7 @@ def transformer_decoder_fn(decoder_input_seq,
                            d_model,
                            ffn_inner_dim,
                            attention_heads,
-                           norm_type,
-                           drop_prob=0.0,
-                           training=True,
-                           ):
+                           dropout_drop_prob=0.0):
   """
   Transformer decoder function. It will train all steps in parallel,
   but for inference should be used in auto-regressive manner.
@@ -62,10 +59,7 @@ def transformer_decoder_fn(decoder_input_seq,
                                                 heads=attention_heads,
                                                 dtype=dec_emb_w.dtype)
 
-    x = dropout_normalize_add_NTC(x=x,
-                                  drop_prob=drop_prob,
-                                  training=training,
-                                  norm_type=norm_type)
+    x = dropout_normalize_add_NTC(x=x, drop_prob=dropout_drop_prob)
 
     for block_ind in range(num_decoder_blocks):
       with tf.variable_scope("DecoderBlock_{}".format(block_ind)):
@@ -78,9 +72,7 @@ def transformer_decoder_fn(decoder_input_seq,
                                             additional_bias=decoder_self_bias)
 
           x = dropout_normalize_add_NTC(x=att_out, residual_x=x,
-                                        drop_prob=drop_prob,
-                                        training=training,
-                                        norm_type=norm_type)
+                                        drop_prob=dropout_drop_prob)
         with tf.variable_scope("Attend2Encoder"):
           att_out = multi_head_attention_fn(Q=x,
                                             K=encoder_outputs,
@@ -89,17 +81,12 @@ def transformer_decoder_fn(decoder_input_seq,
                                             h=attention_heads,
                                             additional_bias=encoder_decoder_bias)
           x = dropout_normalize_add_NTC(x=att_out, residual_x=x,
-                                        drop_prob=drop_prob,
-                                        training=training,
-                                        norm_type=norm_type)
+                                        drop_prob=dropout_drop_prob)
 
         x = ffn_and_layer_norm(x,
                                inner_dim=ffn_inner_dim,
                                resulting_dim=d_model,
-                               drop_prob=drop_prob,
-                               training=training,
-                               norm_type=norm_type,
-                               )
+                               drop_prob=dropout_drop_prob)
     
     result = output_projector(x)    
     return result
@@ -108,19 +95,18 @@ def transformer_decoder_fn(decoder_input_seq,
 class TransformerDecoder(Decoder):
   """Greedy Transformer Decoder
   """
-  def __init__(self, params, model,
-               name="transformer_decoder", mode='train'):
+  def __init__(self, params=None, name="transformer_decoder",
+               mode='train'):
     """
     Initializes Decoder
     :param params: dictionary of decoder parameters
     """
-    super(TransformerDecoder, self).__init__(params, model, name, mode)
-    self._batch_size = self.params['batch_size']
+    super(TransformerDecoder, self).__init__(params, name, mode)
+    self._batch_size = self.params['batch_size_per_gpu']
     self.GO_SYMBOL = self.params['GO_SYMBOL']
     self.END_SYMBOL = self.params['END_SYMBOL']
     self._tgt_vocab_size = self.params['tgt_vocab_size']
     self._tgt_emb_size = self.params['d_model']
-    self._norm_type = self.params.get("decoder_norm_type", 'layer_norm')
     self._drop_prob = self.params.get("decoder_drop_prob", 0.0)
     if self._mode != 'train':
       self._drop_prob = 0.0
@@ -134,11 +120,11 @@ class TransformerDecoder(Decoder):
       "ffn_inner_dim": int,
       "decoder_layers": int,
       "attention_heads": int,
+      "decoder_drop_prob": float,
       "GO_SYMBOL": int,
       "END_SYMBOL": int,
       "PAD_SYMBOL": int,
       "tgt_vocab_size": int,
-      'batch_size': int,
     })
 
   @staticmethod
@@ -146,8 +132,6 @@ class TransformerDecoder(Decoder):
     return dict(Decoder.get_optional_params(), **{
       "use_encoder_emb": bool,
       "tie_emb_and_proj": bool,
-      "decoder_drop_prob": float,
-      "decoder_norm_type": str,
     })
 
   def _decode(self, input_dict):
@@ -156,7 +140,7 @@ class TransformerDecoder(Decoder):
     :param input_dict: dictionary of decoder inputs
     For example (but may differ):
     decoder_input= { "src_inputs" : decoder source sequence,
-                     "src_lengths" : decoder source length,
+                     "src_lengths" : decoder srouce length,
                      "tgt_inputs" :  (during training),
                      "tgt_lengths" : (during training)}
 
@@ -165,7 +149,7 @@ class TransformerDecoder(Decoder):
     decoder_output = {"decoder_outputs" : decoder_outputs,
                       "decoder_lengths" : decoder_lengths}
     """
-    encoder_outputs = input_dict['encoder_output']['outputs']
+    encoder_outputs = input_dict['encoder_output']['encoder_outputs']
     encoder_input = input_dict['encoder_output']['encoder_input']
     ffn_inner_dim = self.params["ffn_inner_dim"]
     d_model = self.params['d_model']
@@ -190,12 +174,9 @@ class TransformerDecoder(Decoder):
           use_bias=False,
           name="DecoderOutProjection")
 
-      tgt_inputs = input_dict['tgt_sequence']
+      tgt_inputs = input_dict['tgt_inputs']
 
       if self._mode == 'train':
-        training = True
-        drop_prob = self._drop_prob
-
         output = transformer_decoder_fn(
           decoder_input_seq=tgt_inputs,
           encoder_input_seq=encoder_input,
@@ -206,20 +187,15 @@ class TransformerDecoder(Decoder):
           d_model=d_model,
           ffn_inner_dim=ffn_inner_dim,
           attention_heads=attention_heads,
-          drop_prob=drop_prob,
-          training=training,
-          norm_type=self._norm_type,
-        )
+          dropout_drop_prob=self._drop_prob)
 
         return {
-          "logits": output,
-          "samples": tf.argmax(output, axis=-1),
+          "decoder_output": output,
+          "decoder_samples": tf.argmax(output, axis=-1),
           "final_state": None,
           "final_sequence_lengths": None}
 
       else:# Decoder must be used in auto-regressive manner
-        training = False
-        drop_prob = 0.0
         decoding_length = encoder_outputs.shape[1].value or \
                           tf.shape(encoder_outputs)[1]
 
@@ -244,10 +220,7 @@ class TransformerDecoder(Decoder):
             d_model=d_model,
             ffn_inner_dim=ffn_inner_dim,
             attention_heads=attention_heads,
-            drop_prob=drop_prob,
-            training=training,
-            norm_type=self._norm_type,
-          )
+            dropout_drop_prob=self._drop_prob)
 
           decoder_argmx = tf.argmax(step_logits, axis=-1, output_type=tf.int32)
           step_out = decoder_argmx[:, -1] # this is of shape [batch, T]
@@ -271,11 +244,10 @@ class TransformerDecoder(Decoder):
                                                                            tf.TensorShape([self._batch_size, None]),
                                                                            tf.TensorShape([None, None, None])])
         
-        return {"logits": output,
-                "samples": decoder_ids_so_far[:, 1:],
+        return {"decoder_output": output,
+                "decoder_samples": decoder_ids_so_far[:, 1:],
                 "final_state": None,
                 "final_sequence_lengths": None}
-
   @property
   def params(self):
     """Parameters used to construct the encoder"""

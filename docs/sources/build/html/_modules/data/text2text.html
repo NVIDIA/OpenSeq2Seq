@@ -168,7 +168,7 @@
   <span class="n">OUT_OF_BUCKET</span> <span class="o">=</span> <span class="mi">1234567890</span>
   <span class="n">END_OF_CHOICE</span> <span class="o">=</span> <span class="o">-</span><span class="mi">100</span>
 
-  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="SpecialTextTokens.to_string"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.SpecialTextTokens.to_string">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">to_string</span><span class="p">(</span><span class="n">s_token</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">s_token</span> <span class="o">==</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">UNK_ID</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
       <span class="k">return</span> <span class="s1">&#39;&lt;UNK&gt;&#39;</span>
@@ -179,7 +179,7 @@
     <span class="k">elif</span> <span class="n">s_token</span> <span class="o">==</span> <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span><span class="p">:</span>
       <span class="k">return</span> <span class="s1">&#39;&lt;PAD&gt;&#39;</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown Value in SpecialTokens&quot;</span><span class="p">)</span></div>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown Value in SpecialTokens&quot;</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="weighted_choice"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.weighted_choice">[docs]</a><span class="k">def</span> <span class="nf">weighted_choice</span><span class="p">(</span><span class="n">choices</span><span class="p">):</span>
@@ -252,11 +252,13 @@
       <span class="s1">&#39;time_major&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelDataInRamInputLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
+               <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelDataInRamInputLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span>
+                                                      <span class="n">num_workers</span><span class="p">,</span>
+                                                      <span class="n">worker_id</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">=</span> <span class="n">worker_id</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_file&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">target_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_file&#39;</span><span class="p">]</span>
@@ -267,6 +269,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">bucket_src</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_src&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">bucket_tgt</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bucket_tgt&#39;</span><span class="p">]</span>
 
+    <span class="c1"># TODO: we should not have this parameter</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_use_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_bucket_order</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># used in inference</span>
 
@@ -277,7 +280,7 @@
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">)</span>
-
+    <span class="c1"># TODO: do we need all that to be visible outside the class?</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_seq2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_seq2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_idx2seq</span>
@@ -586,16 +589,17 @@
       <span class="s1">&#39;pad_lengths_to_eight&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelTextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelTextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span>
+                                                <span class="n">num_workers</span><span class="p">,</span>
+                                                <span class="n">worker_id</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_file&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_use_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_targets&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_targets</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">target_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span>
       <span class="k">if</span> <span class="s1">&#39;target_file&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: target file was specified but was &quot;</span>
-              <span class="s2">&quot;ignored by data layer because &#39;use_targets&#39;=False&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: target file was specified but was ignored by datalayer because &#39;use_targets&#39;=False&quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">target_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_file&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">src_vocab_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_file&#39;</span><span class="p">]</span>
@@ -606,8 +610,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_pad_lengths_to_eight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_lengths_to_eight&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_buffer_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prefetch_buffer_size&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pad_lengths_to_eight</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_length&#39;</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If padding to 8 in data layer, then &quot;</span>
-                       <span class="s2">&quot;max_length should be multiple of 8&quot;</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If padding to 8 in datalayer, then max_length should be multiple of 8&quot;</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">file_len</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
       <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
@@ -616,6 +619,7 @@
       <span class="k">return</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">dataset_size</span> <span class="o">=</span> <span class="n">file_len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">source_file</span><span class="p">)</span>
+
 
     <span class="c1"># load source and target vocabularies to RAM</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span> <span class="o">=</span> <span class="n">load_pre_existing_vocabulary</span><span class="p">(</span>
@@ -672,6 +676,7 @@
         <span class="k">return</span> <span class="n">lst</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">lst</span> <span class="o">+</span> <span class="p">[</span><span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="mi">8</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span>
+
 
     <span class="k">def</span> <span class="nf">src_token_to_id</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
       <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s2">&quot;utf-8&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_delimiter</span><span class="p">)</span>

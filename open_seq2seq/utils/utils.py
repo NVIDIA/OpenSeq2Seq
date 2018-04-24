@@ -1,7 +1,6 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
-import copy
 
 
 def mask_nans(x):
@@ -62,18 +61,3 @@ def check_params(config, required_dict, optional_dict):
   for pm in config:
     if pm not in required_dict and pm not in optional_dict:
       raise ValueError("Unknown parameter: {}".format(pm))
-
-
-def cast_types(input_dict, dtype):
-  cast_input_dict = {}
-  for key, value in input_dict.items():
-    if isinstance(value, tf.Tensor):
-      if value.dtype == tf.float16 or value.dtype == tf.float32:
-        if value.dtype.base_dtype != dtype.base_dtype:
-          cast_input_dict[key] = tf.cast(value, dtype)
-          continue
-    if type(value) == dict:
-      cast_input_dict[key] = cast_types(input_dict[key], dtype)
-      continue
-    cast_input_dict[key] = input_dict[key]
-  return cast_input_dict

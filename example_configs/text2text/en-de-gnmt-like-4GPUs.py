@@ -10,10 +10,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
-
-base_model = BasicText2TextWithAttention
 
 base_params = {
   "use_horovod": False,
@@ -26,22 +23,24 @@ base_params = {
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
   "logdir": "GNMT-SGD-4xGPUs-FP32",
-
-  "optimizer": "SGD",
-  "optimizer_params": {},
-  "learning_rate": 1.0,
-  "lr_policy": exp_decay,
-  "lr_policy_params": {
-    "begin_decay_at": 42500,
-    "decay_steps": 4550,
-    "decay_rate": 0.5,
-    "use_staircase_decay": True,
-    "min_lr": 0.00005,
+  "base_model": BasicText2TextWithAttention,
+  "model_params": {
+    "optimizer": "SGD",
+    "optimizer_params": {},
+    "learning_rate": 1.0,
+    "lr_policy": exp_decay,
+    "lr_policy_params": {
+      "begin_decay_at": 42500,
+      "decay_steps": 4550,
+      "decay_rate": 0.5,
+      "use_staircase_decay": True,
+      "min_lr": 0.00005,
+    },
+    "max_grad_norm": 5.0,
+    "dtype": tf.float32,
+    #"dtype": "mixed",
+    #"automatic_loss_scaling": "Backoff",
   },
-  "max_grad_norm": 5.0,
-  "dtype": tf.float32,
-  # "dtype": "mixed",
-  # "automatic_loss_scaling": "Backoff",
 
   "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {

@@ -11,7 +11,6 @@ import tensorflow as tf
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 # This model is work in progress
-base_model = BasicText2TextWithAttention
 
 base_params = {
   "use_horovod": False,
@@ -24,21 +23,22 @@ base_params = {
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
   "logdir": "TransformerSmall-En-De",
-
-  "optimizer": "Adam",
-  "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.997,
-    "epsilon": 0.000000001,
+  "base_model": BasicText2TextWithAttention,
+  "model_params": {
+    "optimizer": "Adam",
+    "optimizer_params": {
+      "beta1": 0.9,
+      "beta2": 0.997,
+      "epsilon": 0.000000001,
+    },
+    "learning_rate": 1.0,
+    "lr_policy": transformer_policy,
+    "lr_policy_params": {
+      "warmup_steps": 8000,
+      "d_model": 256,
+    },
+    "dtype": tf.float32,
   },
-  "learning_rate": 1.0,
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "warmup_steps": 8000,
-    "d_model": 256,
-  },
-  "dtype": tf.float32,
-
   "encoder": TransformerEncoder,
   "encoder_params": {
     "initializer": tf.glorot_uniform_initializer,

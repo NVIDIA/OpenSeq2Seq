@@ -7,31 +7,17 @@ from open_seq2seq.data.text2text import SpecialTextTokens
 inf = -1e4
 
 
-def normalize(inputs, training, norm_type):
+def normalize(input):
   """Normalizes input (currently just layer_norm)
   :param input: tensor of shape [batch, Time, dim]
   :return: tensor of shape [batch, Time, dim]
   """
-  #print(norm_type)
-  if norm_type == "layer_norm":
-    outputs=tf.contrib.layers.layer_norm(inputs=inputs,
-                                         begin_norm_axis=1,
-                                         begin_params_axis=-1)
-  else:
-    outputs = tf.layers.batch_normalization(
-      inputs=inputs,
-      training=training,
-    )
-  return outputs
+  return tf.contrib.layers.layer_norm(input,
+                                      begin_norm_axis=-1,
+                                      begin_params_axis=-1)
 
 
-
-def dropout_normalize_add_NTC(x,
-                              residual_x=None,
-                              norm_type='layer_norm',
-                              drop_prob=0.0,
-                              training=True,
-                               ):
+def dropout_normalize_add_NTC(x, residual_x=None, drop_prob=0.0):
   """Performs dropout on output,
   :param x: output of the block. A tensor of shape [batch, Time, dim]
   :param residual_x: (default: None) input to the block.
@@ -39,13 +25,14 @@ def dropout_normalize_add_NTC(x,
   :param drop_prob: dropout drop probability
   :return: A tensor of shape [batch, Time, dim]
   """
-  x = tf.nn.dropout(x=x, keep_prob=1.0 - drop_prob,
+  if drop_prob != 0.0:
+    x = tf.nn.dropout(x=x, keep_prob=1 - drop_prob,
                       noise_shape=[tf.shape(x)[0], 1, tf.shape(x)[2]])
   # residual connection
   if residual_x is not None:
     x += residual_x
 
-  return normalize(x, training, norm_type)
+  return normalize(x)
 
 
 def get_pad_masking_bias(x, y, PAD_ID, heads, dtype=tf.float32):
@@ -64,12 +51,10 @@ def get_pad_masking_bias(x, y, PAD_ID, heads, dtype=tf.float32):
   return tf.cast(attention_bias, dtype=dtype)
 
 
-def ffn_and_layer_norm(inputs,
+def ffn_and_layer_norm(inpt,
                        inner_dim,
                        resulting_dim,
-                       norm_type,
                        drop_prob=0.0,
-                       training=True,
                        inner_activation=tf.nn.relu):
   """Position-wise fully connected feed-forward network with layer norm
   and residual connection
@@ -81,7 +66,7 @@ def ffn_and_layer_norm(inputs,
   :return:
   """
   with tf.variable_scope("FFN_and_layer_norm"):
-    inner_act = tf.layers.dense(inputs=inputs,
+    inner_act = tf.layers.dense(inputs=inpt,
                                 units=inner_dim,
                                 activation=inner_activation,
                                 name="first_dense")
@@ -90,10 +75,8 @@ def ffn_and_layer_norm(inputs,
                               activation=None,
                               name="second_dense")
 
-    res = dropout_normalize_add_NTC(x=ffn_out, residual_x=inputs,
-                                    drop_prob=drop_prob,
-                                    training=training,
-                                    norm_type=norm_type)
+    res = dropout_normalize_add_NTC(x=ffn_out, residual_x=inpt,
+                                    drop_prob=drop_prob)
     return res
 
 

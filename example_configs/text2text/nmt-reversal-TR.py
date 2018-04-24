@@ -13,8 +13,6 @@ This configuration file describes classic RNN-based encoder-decoder model
 with attention on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
-
 base_params = {
   "use_horovod": False,
   # set this to number of available GPUs
@@ -27,13 +25,14 @@ base_params = {
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
   "logdir": "ReversalTask-Transformer-RNN",
-
-  "optimizer": "Adam",
-  "optimizer_params": {"epsilon": 1e-4},
-  "learning_rate": 0.001,
-  "max_grad_norm": 3.0,
-  "dtype": tf.float32,
-
+  "base_model": BasicText2TextWithAttention,
+  "model_params": {
+    "optimizer": "Adam",
+    "optimizer_params": {"epsilon": 1e-4},
+    "learning_rate": 0.001,
+    "max_grad_norm": 3.0,
+    "dtype": tf.float32,
+  },
 
   "encoder": TransformerEncoder,
   "encoder_params": {

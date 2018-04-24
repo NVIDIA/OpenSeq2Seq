@@ -173,12 +173,12 @@
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="p">{</span>
       <span class="s1">&#39;shuffle&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">],</span>
+      <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="s2">&quot;mixed&quot;</span><span class="p">],</span>
       <span class="s1">&#39;use_targets&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="DataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.data_layer.DataLayer.__init__">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initialize data layer</span>
 <span class="sd">    :param params: Python dictionary with options,</span>
@@ -186,16 +186,15 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
 
-    <span class="k">if</span> <span class="s1">&#39;dtype&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_tf_dtype</span><span class="p">()</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
+    <span class="k">if</span> <span class="s1">&#39;dtype&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
 
     <span class="k">if</span> <span class="s1">&#39;use_targets&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;mixed&#39;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span>
 
     <span class="k">if</span> <span class="s1">&#39;shuffle&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]:</span>
@@ -206,7 +205,10 @@
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Shuffle should not be performed in inference mode&quot;</span><span class="p">)</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">=</span> <span class="n">worker_id</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -312,7 +314,7 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">issubclass</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">data_layer</span><span class="p">),</span> <span class="n">DataLayer</span><span class="p">):</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data_layer has to be an instance &quot;</span>
                        <span class="s2">&quot;of a subclass of DataLayer class&quot;</span><span class="p">)</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">MultiGPUWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">,</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">_model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">MultiGPUWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span> <span class="o">=</span> <span class="n">num_gpus</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_gpus</span>

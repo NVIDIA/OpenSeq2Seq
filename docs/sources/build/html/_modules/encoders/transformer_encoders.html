@@ -199,7 +199,8 @@
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;encoder_drop_prob&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">!=</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span> <span class="o">=</span> <span class="mf">0.0</span></div>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span></div>
 
   <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="n">ffn_inner_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ffn_inner_dim&quot;</span><span class="p">]</span>
@@ -212,7 +213,7 @@
                                 <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
 
     <span class="n">embedded_inputs_with_pos</span><span class="p">,</span> <span class="n">bias</span> <span class="o">=</span> <span class="n">embed_and_maybe_add_position_signal</span><span class="p">(</span>
-      <span class="n">inpt</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">],</span>
+      <span class="n">inpt</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">],</span>
       <span class="n">emb_W</span><span class="o">=</span><span class="n">enc_emb_w</span><span class="p">,</span>
       <span class="n">num_timescales</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">d_model</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
       <span class="n">heads</span><span class="o">=</span><span class="n">attention_heads</span><span class="p">)</span>
@@ -235,11 +236,11 @@
                                <span class="n">inner_dim</span><span class="o">=</span><span class="n">ffn_inner_dim</span><span class="p">,</span>
                                <span class="n">resulting_dim</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
                                <span class="n">drop_prob</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
-            <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">,</span>
+            <span class="s1">&#39;encoder_state&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
             <span class="s1">&#39;enc_emb_w&#39;</span><span class="p">:</span> <span class="n">enc_emb_w</span><span class="p">,</span>
-            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]}</span></div>
+            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">]}</span></div>
 </pre></div>
 
            </div>

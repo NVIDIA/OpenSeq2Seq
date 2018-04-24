@@ -13,8 +13,6 @@ This configuration file describes a model which uses RNN-based encoder
 and Transformer-based decoder on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
-
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
@@ -25,22 +23,24 @@ base_params = {
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-
+  "base_model": BasicText2TextWithAttention,
   "logdir": "ReversalTask-RNN-Transformer",
 
-  "optimizer": "Adam",
-  "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.98,
-    "epsilon": 0.000000001,
+  "model_params": {
+    "optimizer": "Adam",
+    "optimizer_params": {
+      "beta1": 0.9,
+      "beta2": 0.98,
+      "epsilon": 0.000000001,
+    },
+    "learning_rate": 1.0,
+    "lr_policy": transformer_policy,
+    "lr_policy_params": {
+      "warmup_steps": 600,
+      "d_model": 64,
+    },
+    "dtype": tf.float32,
   },
-  "learning_rate": 1.0,
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "warmup_steps": 600,
-    "d_model": 64,
-  },
-  "dtype": tf.float32,
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {

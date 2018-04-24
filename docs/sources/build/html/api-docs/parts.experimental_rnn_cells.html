@@ -188,7 +188,7 @@
 <dl class="class">
 <dt id="parts.experimental_rnn_cells.flstm.FLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.experimental_rnn_cells.flstm.</code><code class="descname">FLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>fact_size</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/experimental_rnn_cells/flstm.html#FLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.experimental_rnn_cells.flstm.FLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Group LSTM cell (G-LSTM).
 The implementation is based on:</p>
 <blockquote>
@@ -220,7 +220,7 @@ has the given variables, an error is raised.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
 <cite>number_of_groups</cite>.</p>
 </td>
 </tr>
@@ -236,16 +236,12 @@ has the given variables, an error is raised.</li>
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.flstm.FLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.flstm.FLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.flstm.FLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.flstm.FLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>size(s) of state(s) used by this cell.</p>
-<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
-or TensorShapes.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -256,7 +252,7 @@ or TensorShapes.</p>
 <dl class="class">
 <dt id="parts.experimental_rnn_cells.glstm.GLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.experimental_rnn_cells.glstm.</code><code class="descname">GLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>number_of_groups=1</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/experimental_rnn_cells/glstm.html#GLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.experimental_rnn_cells.glstm.GLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Group LSTM cell (G-LSTM).
 The implementation is based on:</p>
 <blockquote>
@@ -290,7 +286,7 @@ has the given variables, an error is raised.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
 <cite>number_of_groups</cite>.</p>
 </td>
 </tr>
@@ -348,7 +344,7 @@ after reading <cite>inputs</cite> when the previous state was <cite>state</cite>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">A tuple containing</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If input size cannot be inferred from inputs via
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – If input size cannot be inferred from inputs via
 static shape inference.</td>
 </tr>
 </tbody>
@@ -358,16 +354,12 @@ static shape inference.</td>
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.glstm.GLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.glstm.GLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.glstm.GLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.glstm.GLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>size(s) of state(s) used by this cell.</p>
-<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
-or TensorShapes.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -378,7 +370,7 @@ or TensorShapes.</p>
 <dl class="class">
 <dt id="parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell">
 <em class="property">class </em><code class="descclassname">parts.experimental_rnn_cells.gnmt.</code><code class="descname">GNMTAttentionMultiCell</code><span class="sig-paren">(</span><em>attention_cell</em>, <em>cells</em>, <em>use_new_attention=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/experimental_rnn_cells/gnmt.html#GNMTAttentionMultiCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.MultiRNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.MultiRNNCell</span></code></p>
 <p>A MultiCell with GNMT attention style.</p>
 <dl class="method">
 <dt id="parts.experimental_rnn_cells.gnmt.GNMTAttentionMultiCell.__init__">
@@ -432,7 +424,7 @@ vector.</li>
 <dl class="class">
 <dt id="parts.experimental_rnn_cells.slstm.BasicSLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.experimental_rnn_cells.slstm.</code><code class="descname">BasicSLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>forget_bias=1.0</em>, <em>state_is_tuple=True</em>, <em>activation=None</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/experimental_rnn_cells/slstm.html#BasicSLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.experimental_rnn_cells.slstm.BasicSLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Basic SLSTM recurrent network cell.</p>
 <p>The implementation is based on: <a class="reference external" href="https://arxiv.org/abs/1709.02755">https://arxiv.org/abs/1709.02755</a>.</p>
 <dl class="method">
@@ -495,16 +487,12 @@ the given variables, an error is raised.</li>
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.slstm.BasicSLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>size(s) of state(s) used by this cell.</p>
-<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
-or TensorShapes.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -530,7 +518,7 @@ or TensorShapes.</p>
 sum_i(args[i] * W[i]), where W[i]s are newly created matrices.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if some of the arguments has unspecified or wrong shape.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> – if some of the arguments has unspecified or wrong shape.</p>
 </td>
 </tr>
 </tbody>
