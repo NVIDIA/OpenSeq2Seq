@@ -3,7 +3,6 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 import runpy
 
-from open_seq2seq.utils.model_builders import create_encoder_decoder_loss_model
 from open_seq2seq.test_utils.create_reversed_examples import create_data, \
                                                              remove_data
 
@@ -31,7 +30,8 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
     train_config['data_layer_params']['target_file'] = "./toy_data/train/target.txt"
 
     with tf.Graph().as_default():
-      model = create_encoder_decoder_loss_model(train_config, "train", None)
+      model = config_module['base_model'](train_config, "train", None)
+      model.compile()
       with self.test_session(use_gpu=True) as sess:
         tf.global_variables_initializer().run()
         for num in range(0, 2):
@@ -74,7 +74,8 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
     train_config["use_horovod"] = True
 
     with tf.Graph().as_default():
-      model = create_encoder_decoder_loss_model(train_config, "train", None)
+      model = config_module['base_model'](train_config, "train", None)
+      model.compile()
       with self.test_session(use_gpu=True) as sess:
         tf.global_variables_initializer().run()
         for num in range(0, 2):
