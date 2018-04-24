@@ -161,6 +161,7 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.utils</span> <span class="k">import</span> <span class="n">create_rnn_cell</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.attention_wrapper</span> <span class="k">import</span> <span class="n">BahdanauAttention</span><span class="p">,</span> <span class="n">LuongAttention</span><span class="p">,</span> <span class="n">AttentionWrapper</span>
 <span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnn_beam_search_decoder</span> <span class="k">import</span> <span class="n">BeamSearchDecoder</span>
 
 <div class="viewcode-block" id="RNNDecoderWithAttention"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention">[docs]</a><span class="k">class</span> <span class="nc">RNNDecoderWithAttention</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
@@ -555,7 +556,6 @@
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-      <span class="c1">#attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">attention_cell</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -566,7 +566,6 @@
         <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
         <span class="n">use_new_attention</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="c1">#attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -575,9 +574,10 @@
     <span class="n">embedding_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ids</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
       <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dec_emb_w</span><span class="p">,</span> <span class="n">ids</span><span class="p">),</span>
       <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
-    <span class="n">decoder</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">BeamSearchDecoder</span><span class="p">(</span>
+    <span class="c1">#decoder = tf.contrib.seq2seq.BeamSearchDecoder(</span>
+    <span class="n">decoder</span> <span class="o">=</span> <span class="n">BeamSearchDecoder</span><span class="p">(</span>
       <span class="n">cell</span><span class="o">=</span><span class="n">attentive_decoder_cell</span><span class="p">,</span>
-      <span class="n">embedding</span><span class="o">=</span><span class="n">embedding_fn</span><span class="p">,</span><span class="c1">#self._dec_emb_w,</span>
+      <span class="n">embedding</span><span class="o">=</span><span class="n">embedding_fn</span><span class="p">,</span>
       <span class="n">start_tokens</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">GO_SYMBOL</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">]),</span>
       <span class="n">end_token</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">END_SYMBOL</span><span class="p">,</span>
       <span class="n">initial_state</span><span class="o">=</span><span class="n">attentive_decoder_cell</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span>
@@ -586,22 +586,21 @@
       <span class="p">),</span>
       <span class="n">beam_width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_beam_width</span><span class="p">,</span>
       <span class="n">output_layer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_output_projection_layer</span><span class="p">,</span>
-      <span class="n">length_penalty_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_length_penalty_weight</span><span class="p">,</span>
+      <span class="n">length_penalty_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_length_penalty_weight</span>
     <span class="p">)</span>
 
     <span class="n">time_major</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time_major&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">use_swap_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_swap_memory&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="n">final_outputs</span><span class="p">,</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">final_sequence_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">dynamic_decode</span><span class="p">(</span>
+    <span class="n">final_outputs</span><span class="p">,</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">final_sequence_lengths</span> <span class="o">=</span> \
+      <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">dynamic_decode</span><span class="p">(</span>
       <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
-      <span class="c1"># impute_finished=False if self._decoder_type == &quot;beam_search&quot; else True,</span>
-      <span class="c1"># impute_finished=True,</span>
       <span class="n">maximum_iterations</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">enc_src_lengths</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="p">,</span>
       <span class="n">swap_memory</span><span class="o">=</span><span class="n">use_swap_memory</span><span class="p">,</span>
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span>      
-            <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,:,</span><span class="mi">0</span><span class="p">],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 </pre></div>
