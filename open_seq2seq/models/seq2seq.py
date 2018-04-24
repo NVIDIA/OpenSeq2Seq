@@ -44,6 +44,39 @@ class Seq2Seq(Model):
     })
 
   def __init__(self, params, mode="train", hvd=None):
+    """Sequence-to-sequence model constructor.
+    Note that TensorFlow graph should not be created here. All graph creation
+    logic is happening inside
+    :meth:`self._build_forward_pass_graph() <_build_forward_pass_graph>` method.
+
+    Args:
+      params (dict): parameters describing the model.
+          All supported parameters are listed in :meth:`get_required_params`,
+          :meth:`get_optional_params` functions.
+      mode (string, optional): "train", "eval" or "infer".
+          If mode is "train" all parts of the graph will be built
+          (model, loss, optimizer).
+          If mode is "eval", only model and loss will be built.
+          If mode is "infer", only model will be built.
+      hvd (optional): if Horovod is used, this should be
+          ``horovod.tensorflow`` module.
+          If Horovod is not used, it should be None.
+
+    Config parameters:
+
+      * **encoder** (any class derived from
+        :class:`Encoder <encoders.encoder.Encoder>`) --- encoder class to use.
+      * **encoder_params** (dict) --- dictionary with encoder configuration. For
+        complete list of possible parameters see the corresponding class docs.
+      * **decoder** (any class derived from
+        :class:`Decoder <decoders.decoder.Decoder>`) --- decoder class to use.
+      * **decoder_params** (dict) --- dictionary with decoder configuration. For
+        complete list of possible parameters see the corresponding class docs.
+      * **loss** (any class derived from
+        :class:`Loss <losses.loss.Loss>`) --- loss class to use.
+      * **loss_params** (dict) --- dictionary with loss configuration. For
+        complete list of possible parameters see the corresponding class docs.
+    """
     super(Seq2Seq, self).__init__(params=params, mode=mode, hvd=hvd)
     if 'encoder_params' not in self.params:
       self.params['encoder_params'] = {}
@@ -85,14 +118,13 @@ class Seq2Seq(Model):
       }
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
-
+      tgt_length_eval = tf.cast(1.2 * tf.cast(src_length, tf.float32), tf.int32)
       decoder_input = {
         "encoder_output": encoder_output,
         "tgt_sequence": tgt_sequence,
-        # TODO: why????
-        "tgt_length": tgt_length if self.mode == "train"
-                                 else tf.cast(1.2 * tf.cast(src_length,tf.float32),
-                                               tf.int32),
+        # when the mode is not "train", replacing correct tgt_length with
+        # somewhat increased src_length
+        "tgt_length": tgt_length if self.mode == "train" else tgt_length_eval
       }
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       decoder_samples = decoder_output.get("samples", None)

@@ -170,43 +170,43 @@
   <div class="section" id="adding-new-data-layer">
 <h1>Adding new data layer<a class="headerlink" href="#adding-new-data-layer" title="Permalink to this headline">¶</a></h1>
 <p>All data layers have to inherit from
-<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>
+<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>
 class. We recommend that you use
 <a class="reference external" href="https://www.tensorflow.org/programmers_guide/datasets">tf.data</a>
 while implementing your data layer.</p>
 <p>You need to implement the following methods:</p>
 <ol class="arabic simple" start="0">
 <li>Static methods:
-<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-func docutils literal"><span class="pre">get_required_params()</span></code></a> and
-<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-func docutils literal"><span class="pre">get_optional_params()</span></code></a>
+<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_required_params()</span></code></a> and
+<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a>
 to specify required and optional parameters correspondingly</li>
-<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__(self,</span> <span class="pre">params,</span> <span class="pre">num_workers=None,</span> <span class="pre">worker_id=None)</span></code></a>:<ul>
-<li>The <code class="docutils literal"><span class="pre">params</span></code> parameter should be a Python dictionary with options.
+<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__(self,</span> <span class="pre">params,</span> <span class="pre">num_workers=None,</span> <span class="pre">worker_id=None)</span></code></a>:<ul>
+<li>The <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter should be a Python dictionary with options.
 Such as mini-batch shapes, padding, where to get the data from, etc.</li>
-<li>If you are using <code class="docutils literal"><span class="pre">tf.data</span></code>, most of the ETL (extract-transform-load)
+<li>If you are using <code class="docutils literal notranslate"><span class="pre">tf.data</span></code>, most of the ETL (extract-transform-load)
 logic should happen here.</li>
 </ul>
 </li>
-<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">gen_input_tensors(self)</span></code></a>:<ul>
+<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">gen_input_tensors(self)</span></code></a>:<ul>
 <li>This method should return a list of Tensors or Placeholders in which
 new data will be fed. With each call it should return new objects
-(for multi-GPU support). In case of <code class="docutils literal"><span class="pre">tf.data</span></code>, you can use output
-of <code class="docutils literal"><span class="pre">tf.data.Iterator.get_next()</span></code>.</li>
+(for multi-GPU support). In case of <code class="docutils literal notranslate"><span class="pre">tf.data</span></code>, you can use output
+of <code class="docutils literal notranslate"><span class="pre">tf.data.Iterator.get_next()</span></code>.</li>
 <li>For example: TODO.</li>
 </ul>
 </li>
-<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal"><span class="pre">next_batch_feed_dict(self)</span></code></a>:<ul>
+<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">next_batch_feed_dict(self)</span></code></a>:<ul>
 <li>Most likely should return empty Python dictionary if you are using
-<code class="docutils literal"><span class="pre">tf.data</span></code>.</li>
-<li>If you are using Placeholders in <a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">gen_input_tensors(self)</span></code></a>,
+<code class="docutils literal notranslate"><span class="pre">tf.data</span></code>.</li>
+<li>If you are using Placeholders in <a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">gen_input_tensors(self)</span></code></a>,
 this method should return corresponding feed_dictionary.</li>
 </ul>
 </li>
-<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.shuffle" title="data.data_layer.DataLayer.shuffle"><code class="xref py py-meth docutils literal"><span class="pre">shuffle(self)</span></code></a>:<ul>
-<li>If you are not using <code class="docutils literal"><span class="pre">tf.data</span></code> this method should shuffle your dataset.</li>
+<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.shuffle" title="data.data_layer.DataLayer.shuffle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shuffle(self)</span></code></a>:<ul>
+<li>If you are not using <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> this method should shuffle your dataset.</li>
 </ul>
 </li>
-<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples" title="data.data_layer.DataLayer.get_size_in_samples"><code class="xref py py-meth docutils literal"><span class="pre">get_size_in_samples(self)</span></code></a>:<ul>
+<li><a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples" title="data.data_layer.DataLayer.get_size_in_samples"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_size_in_samples(self)</span></code></a>:<ul>
 <li>Should return the size of your dataset in samples.</li>
 </ul>
 </li>
