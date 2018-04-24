@@ -52,6 +52,9 @@ class Encoder:
       params (dict): parameters describing the encoder.
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
+      model (instance of a class derived from :class:`Model<models.model.Model>`):
+          parent model that created this encoder.
+          Could be None if no model access is required for the use case.
       name (str): name for encoder variable scope.
       mode (str): mode encoder is going to be run in.
           Could be "train", "eval" or "infer".
@@ -142,8 +145,8 @@ class Encoder:
       input_dict (dict): dictionary containing encoder inputs. This dict will
           typically have the following content::
             {
-              "src_inputs": source_sequence,
-              "src_lengths": src_length,
+              "src_sequence": source_sequence,
+              "src_length": source_length,
             }
 
     Returns:
@@ -151,8 +154,8 @@ class Encoder:
         dictionary of encoder outputs. Return all necessary outputs.
         Typically this will be just::
           {
-            "encoder_output": encoder_output,
-            "encoder_state": encoder_state,
+            "outputs": outputs,
+            "state": state,
           }
     """
     pass

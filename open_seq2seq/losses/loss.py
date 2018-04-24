@@ -48,6 +48,9 @@ class Loss:
       params (dict): parameters describing the loss.
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
+      model (instance of a class derived from :class:`Model<models.model.Model>`):
+          parent model that created this loss.
+          Could be None if no model access is required for the use case.
       name (str): name for loss variable scope.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
@@ -98,7 +101,7 @@ class Loss:
       input_dict (dict): dictionary containing loss inputs. This dict will
           typically have the following content::
             {
-              "logits": decoder_logits,
+              "decoder_output": decoder_output,
               "tgt_sequence": target_sequence,
               "tgt_length": target_length,
             }

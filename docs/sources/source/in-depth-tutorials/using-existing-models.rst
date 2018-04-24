@@ -83,6 +83,7 @@ train DeepSpeech2-like model on the toy speech data you can run::
    LOGDIR=experiments/librispeech CONFIG_FILE=example_configs/speech2text/ds2_toy_data_config.py MODE=train_eval CONTINUE_LEARNING=0 ./start_experiment.sh
 
 .. _config-params:
+
 Config parameters
 -----------------
 
@@ -104,6 +105,7 @@ the :meth:`Model.__init__()<models.model.Model.__init__>` method
 (config parameters section), which defines most of the *first level* parameters:
 
 .. automethod:: models.model.Model.__init__
+   :noindex:
 
 Note that some of the parameters are also config dictionaries for corresponding
 classes. To see list of their configuration options, you should proceed to the

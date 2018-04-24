@@ -26,6 +26,7 @@ If you need speech models, then you have to build TensorFlow from sources as des
 in the next section.
 
 .. _installation_speech:
+
 OpenSeq2Seq for speech
 ----------------------
 
