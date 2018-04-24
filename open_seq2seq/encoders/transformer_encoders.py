@@ -27,9 +27,11 @@ class TransformerEncoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
       'encoder_drop_prob': float,
+      "encoder_norm_type": str,
     })
 
   def __init__(self, params,
+               model,
                name="transformer_encoder",
                mode='train'):
     """
@@ -43,10 +45,11 @@ class TransformerEncoder(Encoder):
       ... add any cell-specific parameters here as well
     """
     super(TransformerEncoder, self).__init__(
-      params, name=name, mode=mode,
+      params, model, name=name, mode=mode,
     )
 
     self._drop_prob = self.params.get("encoder_drop_prob", 0.0)
+    self._norm_type = self.params.get("encoder_norm_type", 'layer_norm')
     if self._mode != 'train':
       self._drop_prob = 0.0
 
@@ -59,6 +62,12 @@ class TransformerEncoder(Encoder):
                                   self.params['src_vocab_size'],
                                   self.params['d_model']],
                                 dtype=self.params['dtype'])
+    if self._mode == 'train':
+      training= True
+      drop_prob = self._drop_prob
+    else:
+      training = False
+      drop_prob = 0.0
 
     embedded_inputs_with_pos, bias = embed_and_maybe_add_position_signal(
       inpt=input_dict['src_sequence'],
@@ -67,7 +76,9 @@ class TransformerEncoder(Encoder):
       heads=attention_heads)
 
     x = dropout_normalize_add_NTC(x=embedded_inputs_with_pos,
-                                  drop_prob=self._drop_prob)
+                                  drop_prob=drop_prob,
+                                  training=training,
+                                  norm_type=self._norm_type)
 
     for block_ind in range(self.params['encoder_layers']):
       with tf.variable_scope("EncoderBlock_{}".format(block_ind)):
@@ -78,12 +89,16 @@ class TransformerEncoder(Encoder):
                                             additional_bias=bias)
 
           ff_input = dropout_normalize_add_NTC(x=att_out, residual_x=x,
-                                               drop_prob=self._drop_prob)
+                                               drop_prob=drop_prob,
+                                               training=training,
+                                               norm_type=self._norm_type)
 
-        x = ffn_and_layer_norm(inpt=ff_input,
+        x = ffn_and_layer_norm(inputs=ff_input,
                                inner_dim=ffn_inner_dim,
                                resulting_dim=d_model,
-                               drop_prob=self._drop_prob)
+                               drop_prob=drop_prob,
+                               training=training,
+                               norm_type=self._norm_type)
     return {'outputs': x,
             'state': None,
             'src_lengths': input_dict['src_length'],

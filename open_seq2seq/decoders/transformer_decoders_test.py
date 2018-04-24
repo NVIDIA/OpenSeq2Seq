@@ -37,12 +37,20 @@ class TransformerDecoderTest(tf.test.TestCase):
       "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
       "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
       "dtype": tf.float32,
+      "decoder_norm_type": 'layer_norm',
     }
 
     for r in range(2):
       print("*** R: {}".format(r))
-      enc_out = tf.placeholder(dtype=tf.float32, shape=[batch_size, T, dim])
-      enc_emb_w = tf.placeholder(dtype=tf.float32, shape=[tgt_voc_size, dim])
+
+      if (r==0):
+        decoder_params["dtype"]= tf.float32
+      else:
+        decoder_params["dtype"]= tf.float16
+      dtype=decoder_params["dtype"]
+
+      enc_out = tf.placeholder(dtype=dtype, shape=[batch_size, T, dim])
+      enc_emb_w = tf.placeholder(dtype=dtype, shape=[tgt_voc_size, dim])
       input_sequence = tf.placeholder(dtype=tf.int32, shape=[batch_size, T])
       target_sequence = tf.placeholder(dtype=tf.int32, shape=[batch_size, T])
       tgt_length = tf.constant(value=T, shape=[batch_size])
