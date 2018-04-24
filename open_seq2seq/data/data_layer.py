@@ -27,7 +27,7 @@ class DataLayer:
     }
 
   @abc.abstractmethod
-  def __init__(self, params, model):
+  def __init__(self, params, model, num_workers=None, worker_id=None):
     """
     Initialize data layer
     :param params: Python dictionary with options,
@@ -56,6 +56,10 @@ class DataLayer:
       raise ValueError("Shuffle should not be performed in inference mode")
 
     self._input_tensors = None
+
+    # could be used for correct Horovod processing
+    self._num_workers = num_workers
+    self._worker_id = worker_id
 
   @property
   def params(self):

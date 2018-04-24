@@ -68,7 +68,7 @@ class Speech2TextDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model):
+  def __init__(self, params, model, num_workers=None, worker_id=None):
     """
     Required params:
       batch_size_per_gpu
@@ -85,7 +85,8 @@ class Speech2TextDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextDataLayer, self).__init__(params, model)
+    super(Speech2TextDataLayer, self).__init__(params, model,
+                                               num_workers, worker_id)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
@@ -228,11 +229,12 @@ class Speech2TextRandomDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model):
+  def __init__(self, params, model, num_workers=None, worker_id=None):
     """
     Random data for speech check
     """
-    super(Speech2TextRandomDataLayer, self).__init__(params, model)
+    super(Speech2TextRandomDataLayer, self).__init__(params, model,
+                                                     num_workers, worker_id)
     self.random_data = None
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])
@@ -305,7 +307,7 @@ class Speech2TextTFDataLayer(DataLayer):
       'augmentation': dict,
     })
 
-  def __init__(self, params, model):
+  def __init__(self, params, model, num_workers=None, worker_id=None):
     """
     Required params:
       batch_size
@@ -322,7 +324,8 @@ class Speech2TextTFDataLayer(DataLayer):
         'input_type': 'spectrogram',
       }
     """
-    super(Speech2TextTFDataLayer, self).__init__(params, model)
+    super(Speech2TextTFDataLayer, self).__init__(params, model,
+                                                 num_workers, worker_id)
 
     self.params['alphabet'] = Alphabet(
       os.path.abspath(params['alphabet_config_path'])

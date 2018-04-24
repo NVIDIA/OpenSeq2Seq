@@ -102,7 +102,8 @@ class ParallelDataInRamInputLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    super(ParallelDataInRamInputLayer, self).__init__(params, model)
+    super(ParallelDataInRamInputLayer, self).__init__(params, model,
+                                                      num_workers, worker_id)
     self._batch_size = self.params['batch_size']
     self._num_workers = num_workers
     self._worker_id = worker_id
@@ -435,8 +436,9 @@ class ParallelTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
     })
 
-  def __init__(self, params, model):
-    super(ParallelTextDataLayer, self).__init__(params, model)
+  def __init__(self, params, model, num_workers=None, worker_id=None):
+    super(ParallelTextDataLayer, self).__init__(params, model,
+                                                num_workers, worker_id)
     self._batch_size = self.params['batch_size']
     self.source_file = self.params['source_file']
     self._use_targets = self.params.get('use_targets', True)

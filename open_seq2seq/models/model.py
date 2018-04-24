@@ -230,12 +230,15 @@ class Model:
     dl_params = self._params.get('data_layer_params', {})
     dl_params['batch_size'] = self._params['batch_size_per_gpu']
     dl_params['use_targets'] = (self._mode == "train" or self._mode == "eval")
-    self._data_layer = self._params['data_layer'](params=dl_params, model=self)
 
-    if not self.on_horovod:
-      self._data_layer = MultiGPUWrapper(
-        self._data_layer, num_gpus=self.num_gpus
+    if self.on_horovod:
+      self._data_layer = self._params['data_layer'](
+        params=dl_params, model=self,
+        num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
       )
+    else:
+      dl = self._params['data_layer'](params=dl_params, model=self)
+      self._data_layer = MultiGPUWrapper(dl, num_gpus=self.num_gpus)
 
     if self._mode == "train":
       if "max_steps" in self._params:
