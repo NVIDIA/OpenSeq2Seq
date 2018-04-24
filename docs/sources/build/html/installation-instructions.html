@@ -170,14 +170,14 @@
 using our docker container: TODO: add link.</p>
 <p>If you are using docker, you can skip the rest of this page. Otherwise, follow
 the instructions below to have everything set up:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">NVIDIA</span><span class="o">/</span><span class="n">OpenSeq2Seq</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">NVIDIA</span><span class="o">/</span><span class="n">OpenSeq2Seq</span>
 <span class="n">cd</span> <span class="n">OpenSeq2Seq</span>
 <span class="n">pip</span> <span class="n">install</span> <span class="o">-</span><span class="n">r</span> <span class="n">requirements</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>Now, if you are not going to use speech-to-text models, you can just install
 TensorFlow using pip:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">tensorflow</span><span class="o">-</span><span class="n">gpu</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">tensorflow</span><span class="o">-</span><span class="n">gpu</span>
 </pre></div>
 </div>
 <p>and skip the next section that describes speech-specific installation process.
@@ -197,13 +197,13 @@ worse model accuracy.</p>
 <h3>How to add CTC decoder with language model to TensorFlow<a class="headerlink" href="#how-to-add-ctc-decoder-with-language-model-to-tensorflow" title="Permalink to this headline">¶</a></h3>
 <ol class="arabic">
 <li><p class="first">Install <a class="reference external" href="http://www.boost.org">boost</a>:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libboost</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">dev</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">libboost</span><span class="o">-</span><span class="nb">all</span><span class="o">-</span><span class="n">dev</span>
 </pre></div>
 </div>
 </li>
 <li><p class="first">Build <a class="reference external" href="https://github.com/kpu/kenlm">kenlm</a> (assuming you are in the
 OpenSeq2Seq folder):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">ctc_decoder_with_lm</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">ctc_decoder_with_lm</span>
 <span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">kpu</span><span class="o">/</span><span class="n">kenlm</span>
 <span class="n">cd</span> <span class="n">kenlm</span>
 <span class="n">mkdir</span> <span class="o">-</span><span class="n">p</span> <span class="n">build</span>
@@ -214,7 +214,7 @@ OpenSeq2Seq folder):</p>
 </div>
 <p>If you prefer to build kenlm in different location, you will need to set
 the corresponding symlink:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OpenSeq2Seq</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">OpenSeq2Seq</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span>
 <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">kenlm</span> <span class="n">location</span><span class="o">&gt;</span> <span class="n">kenlm</span>
 </pre></div>
 </div>
@@ -222,7 +222,7 @@ the corresponding symlink:</p>
 <li><p class="first">Download and build TensorFlow with custom decoder operation:</p>
 <p>On Ubuntu 16.04 the following sequence of commands should work.
 At the location that you want to install TensorFlow to, run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
 <span class="n">cd</span> <span class="n">tensorflow</span>
 <span class="o">./</span><span class="n">configure</span>
 <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>
@@ -238,7 +238,7 @@ the usual TensorFlow
 <a class="reference external" href="https://www.tensorflow.org/install/install_sources">installation instructions</a>,
 except when running bazel build use the following commands instead
 (assuming you are in tensorflow directory):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>
 <span class="n">bazel</span> <span class="n">build</span> <span class="o">-</span><span class="n">c</span> <span class="n">opt</span> <span class="o">--</span><span class="n">copt</span><span class="o">=-</span><span class="n">O3</span>  <span class="o">--</span><span class="n">config</span><span class="o">=</span><span class="n">cuda</span> <span class="o">//</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tools</span><span class="o">/</span><span class="n">pip_package</span><span class="p">:</span><span class="n">build_pip_package</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_cc</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">tensorflow</span><span class="p">:</span><span class="n">libtensorflow_framework</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">libctc_decoder_with_kenlm</span><span class="o">.</span><span class="n">so</span> <span class="o">//</span><span class="n">ctc_decoder_with_lm</span><span class="p">:</span><span class="n">generate_trie</span>
 <span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/*.</span><span class="n">so</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
 <span class="n">cp</span> <span class="n">bazel</span><span class="o">-</span><span class="nb">bin</span><span class="o">/</span><span class="n">ctc_decoder_with_lm</span><span class="o">/</span><span class="n">generate_trie</span> <span class="n">ctc_decoder_with_lm</span><span class="o">/</span>
@@ -251,16 +251,16 @@ except when running bazel build use the following commands instead
 <h3>How to download language model<a class="headerlink" href="#how-to-download-language-model" title="Permalink to this headline">¶</a></h3>
 <p>In order to achieve the best accuracy, you should download the big language
 model from <a class="reference external" href="https://github.com/mozilla/DeepSpeech/tree/master/data/lm">Mozilla’s DeepSpeech repository</a>.
-This can be done by running <code class="docutils literal"><span class="pre">download_lm.sh</span></code> script
+This can be done by running <code class="docutils literal notranslate"><span class="pre">download_lm.sh</span></code> script
 (might take some time, since the size of the model is around 1.5Gb):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">download_lm</span><span class="o">.</span><span class="n">sh</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">download_lm</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 <p>If the script fails with 503 Error, try running at again or download “lm.binary”
 and “trie” files manually from Mozilla’s GitHub and put them in language_model
 folder.</p>
 <p>After that you should be able to run toy speech example with no errors:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 </div>
@@ -275,7 +275,7 @@ Horovod-based distributed training.</p>
 <h2>Running tests<a class="headerlink" href="#running-tests" title="Permalink to this headline">¶</a></h2>
 <p>In order to check that everything is installed correctly it is recommended to
 run unittests (you need to have at least two GPUs in order to do that):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">open_seq2seq</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;*_test.py&#39;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">-</span><span class="n">m</span> <span class="n">unittest</span> <span class="n">discover</span> <span class="o">-</span><span class="n">s</span> <span class="n">open_seq2seq</span> <span class="o">-</span><span class="n">p</span> <span class="s1">&#39;*_test.py&#39;</span>
 </pre></div>
 </div>
 <p>It might take up to 10 minutes. You should see a lot of output, but no errors

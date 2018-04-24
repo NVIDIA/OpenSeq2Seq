@@ -161,7 +161,7 @@
 <span class="kn">from</span> <span class="nn">functools</span> <span class="k">import</span> <span class="n">reduce</span>
 
 <span class="kn">from</span> <span class="nn">.loss</span> <span class="k">import</span> <span class="n">Loss</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">mask_nans</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">mask_nans</span><span class="p">,</span> <span class="n">deco_print</span>
 
 
 <div class="viewcode-block" id="gather_nd"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.gather_nd">[docs]</a><span class="k">def</span> <span class="nf">gather_nd</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">indices</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
@@ -222,20 +222,22 @@
 
 
 <div class="viewcode-block" id="CTCLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss">[docs]</a><span class="k">class</span> <span class="nc">CTCLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  Implementation of the CTC loss.</span>
-<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="sd">&quot;&quot;&quot;Implementation of the CTC loss.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="CTCLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;mask_nan&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">CTCLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ctc_loss&quot;</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">CTCLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_mask_nan</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_nan&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># this loss can only operate in full precision</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Warning: defaulting CTC loss to work in float32&quot;</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
 
-<div class="viewcode-block" id="CTCLoss.compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="CTCLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Computes CTC loss</span>
 <span class="sd">    :param input_dict: inputs to compute loss</span>
@@ -247,25 +249,25 @@
 <span class="sd">    }</span>
 <span class="sd">    :return: Singleton loss tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span>
-    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_sequence&#39;</span><span class="p">]</span>
-    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_lengths&#39;</span><span class="p">]</span>
-    <span class="n">src_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">]</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span>
+    <span class="n">tgt_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_sequence&#39;</span><span class="p">]</span>
+    <span class="n">tgt_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_length&#39;</span><span class="p">]</span>
+    <span class="c1"># this loss needs an access to src_length since they</span>
+    <span class="c1"># might get changed in the encoder</span>
+    <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
 
-    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tgt_lengths</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">tgt_length</span><span class="o">.</span><span class="n">shape</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="c1"># Converting targets to sparse tensor</span>
-    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">ctc_label_dense_to_sparse</span><span class="p">(</span>
-      <span class="n">target_sequence</span><span class="p">,</span> <span class="n">tgt_lengths</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>
+    <span class="n">tgt_sequence</span> <span class="o">=</span> <span class="n">ctc_label_dense_to_sparse</span><span class="p">(</span>
+      <span class="n">tgt_sequence</span><span class="p">,</span> <span class="n">tgt_length</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="c1"># Compute the CTC loss</span>
-    <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
-      <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">total_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_loss</span><span class="p">(</span>
-      <span class="n">labels</span><span class="o">=</span><span class="n">target_sequence</span><span class="p">,</span>
+      <span class="n">labels</span><span class="o">=</span><span class="n">tgt_sequence</span><span class="p">,</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_lengths</span><span class="p">,</span>
+      <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
       <span class="n">ignore_longer_outputs_than_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 

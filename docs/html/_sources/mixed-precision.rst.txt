@@ -40,16 +40,13 @@ you can use dynamic loss scaling by setting ``automatic_loss_scaling`` parameter
 to "Backoff" or "LogMax"::
 
    base_params = {
-      ...
-      "model_params": {
-         ...
-         "dtype": "mixed",
-         # enabling static or dynamic loss scaling might improve model convergence
+     ...
+     "dtype": "mixed",
+     # enabling static or dynamic loss scaling might improve model convergence
 
-         # "loss_scale": 10.0,
-         # "automatic_loss_scaling": "Backoff",
-      }
-      ...
+     # "loss_scale": 10.0,
+     # "automatic_loss_scaling": "Backoff",
+     ...
   }
 
 .. One can also experiment with more fine precision granularity.

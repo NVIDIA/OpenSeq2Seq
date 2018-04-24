@@ -6,10 +6,14 @@ from __future__ import absolute_import, division, print_function
 import copy
 import tensorflow as tf
 
-from open_seq2seq.parts.experimental_rnn_cells.gnmt import GNMTAttentionMultiCell, gnmt_residual_fn
+from open_seq2seq.parts.experimental_rnn_cells.gnmt import GNMTAttentionMultiCell, \
+                                                           gnmt_residual_fn
 from open_seq2seq.parts.utils import create_rnn_cell
-from open_seq2seq.parts.attention_wrapper import BahdanauAttention, LuongAttention, AttentionWrapper
+from open_seq2seq.parts.attention_wrapper import BahdanauAttention, \
+                                                 LuongAttention, \
+                                                 AttentionWrapper
 from .decoder import Decoder
+
 
 class RNNDecoderWithAttention(Decoder):
   """
@@ -28,6 +32,7 @@ class RNNDecoderWithAttention(Decoder):
       'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
       'decoder_layers': int,
       'decoder_use_skip_connections': bool,
+      'batch_size': int,
     })
 
   @staticmethod
@@ -44,8 +49,8 @@ class RNNDecoderWithAttention(Decoder):
       'PAD_SYMBOL': int,  # symbol id
     })
 
-  def __init__(self, params, name='rnn_decoder_with_attention',
-               mode='train'):
+  def __init__(self, params, model,
+               name='rnn_decoder_with_attention', mode='train'):
     """
     Initializes RNN decoder with embedding
     :param params: dictionary with decoder parameters
@@ -66,10 +71,8 @@ class RNNDecoderWithAttention(Decoder):
       * mode - train or infer
       ... add any cell-specific parameters here as well
     """
-    super(RNNDecoderWithAttention, self).__init__(
-      params, name, mode,
-    )
-    self._batch_size = self.params['batch_size_per_gpu']
+    super(RNNDecoderWithAttention, self).__init__(params, model, name, mode)
+    self._batch_size = self.params['batch_size']
     self.GO_SYMBOL = self.params['GO_SYMBOL']
     self.END_SYMBOL = self.params['END_SYMBOL']
     self._tgt_vocab_size = self.params['tgt_vocab_size']
@@ -92,7 +95,7 @@ class RNNDecoderWithAttention(Decoder):
           bah_normalize = self.params['bahdanau_normalize']
         else:
           bah_normalize = False
-        #attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+        # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
         attention_mechanism = BahdanauAttention(
           num_units=attention_depth,
           memory=encoder_outputs,
@@ -106,7 +109,7 @@ class RNNDecoderWithAttention(Decoder):
           luong_scale = self.params['luong_scale']
         else:
           luong_scale = False
-        #attention_mechanism = tf.contrib.seq2seq.LuongAttention(
+        # attention_mechanism = tf.contrib.seq2seq.LuongAttention(
         attention_mechanism = LuongAttention(
           num_units=attention_depth,
           memory=encoder_outputs,
@@ -117,7 +120,7 @@ class RNNDecoderWithAttention(Decoder):
         )
       elif self.params['attention_type'] == 'gnmt' or \
            self.params['attention_type'] == 'gnmt_v2':
-        #attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+        # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
         attention_mechanism = BahdanauAttention(
           num_units=attention_depth,
           memory=encoder_outputs,
@@ -159,10 +162,10 @@ class RNNDecoderWithAttention(Decoder):
       * final_sequence_lengths - tensor of shape [batch_size, time]
                                  or [time, batch_size]
     """
-    encoder_outputs = input_dict['encoder_output']['encoder_outputs']
+    encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_lengths']
-    tgt_inputs = input_dict['tgt_inputs']
-    tgt_lengths = input_dict['tgt_lengths']
+    tgt_inputs = input_dict['tgt_sequence']
+    tgt_lengths = input_dict['tgt_length']
 
     self._dec_emb_w = tf.get_variable(
       name='DecoderEmbeddingMatrix',
@@ -207,7 +210,7 @@ class RNNDecoderWithAttention(Decoder):
     )
     if self.params['attention_type'].startswith('gnmt'):
       attention_cell = self._decoder_cells.pop(0)
-      #attention_cell = tf.contrib.seq2seq.AttentionWrapper(
+      # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
       attention_cell = AttentionWrapper(
         attention_cell,
         attention_mechanism=attention_mechanism,
@@ -218,7 +221,7 @@ class RNNDecoderWithAttention(Decoder):
         attention_cell, self._add_residual_wrapper(self._decoder_cells),
         use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
     else:
-      #attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+      # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
       attentive_decoder_cell = AttentionWrapper(
         cell=self._decoder_cells,
         attention_mechanism=attention_mechanism,
@@ -273,8 +276,8 @@ class RNNDecoderWithAttention(Decoder):
       output_time_major=time_major,
     )
 
-    return {'decoder_output': final_outputs.rnn_output,
-            'decoder_samples': tf.argmax(final_outputs.rnn_output, axis=-1),
+    return {'logits': final_outputs.rnn_output,
+            'samples': tf.argmax(final_outputs.rnn_output, axis=-1),
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
 
@@ -291,9 +294,8 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       'beam_width': int,
     })
 
-  def __init__(self, params,
-               name="rnn_decoder_with_attention",
-               mode='train'):
+  def __init__(self, params, model,
+               name="rnn_decoder_with_attention", mode='train'):
     """
     Initializes beam search decoder
     :param params: decoder_params: dictionary with decoder parameters
@@ -315,7 +317,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       ... add any cell-specific parameters here as well
     """
     super(BeamSearchRNNDecoderWithAttention, self).__init__(
-      params, name, mode,
+      params, model, name, mode,
     )
     if self._mode != 'infer':
       raise ValueError(
@@ -349,7 +351,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       * final_sequence_lengths - tensor of shape [batch_size, time] or
                                  [time, batch_size]
     """
-    encoder_outputs = input_dict['encoder_output']['encoder_outputs']
+    encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_lengths']
 
     self._dec_emb_w = tf.get_variable(
@@ -404,7 +406,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
 
     if self.params['attention_type'].startswith('gnmt'):
       attention_cell = self._decoder_cells.pop(0)
-      #attention_cell = tf.contrib.seq2seq.AttentionWrapper(
+      # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
       attention_cell = AttentionWrapper(
         attention_cell,
         attention_mechanism=attention_mechanism,
@@ -415,7 +417,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
         attention_cell, self._add_residual_wrapper(self._decoder_cells),
         use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
     else:
-      #attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+      # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
       attentive_decoder_cell = AttentionWrapper(
         cell=self._decoder_cells,
         attention_mechanism=attention_mechanism,
@@ -449,7 +451,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       output_time_major=time_major,
     )
 
-    return {'decoder_output': final_outputs.predicted_ids[:,:,0],      
-            'decoder_samples': final_outputs.predicted_ids[:,:,0],
+    return {'logits': final_outputs.predicted_ids[:, :, 0],
+            'samples': final_outputs.predicted_ids[:, :, 0],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
