@@ -13,14 +13,6 @@ class Seq2Seq(Model):
 
   @staticmethod
   def get_required_params():
-    """Static method with description of required parameters.
-
-      Returns:
-        dict:
-            Dictionary containing all the parameters that **have to** be
-            included into the ``params`` parameter of the
-            class :meth:`__init__` method.
-    """
     return dict(Model.get_required_params(), **{
       'encoder': None,  # could be any user defined class
       'decoder': None,  # could be any user defined class
@@ -28,14 +20,6 @@ class Seq2Seq(Model):
 
   @staticmethod
   def get_optional_params():
-    """Static method with description of optional parameters.
-
-      Returns:
-        dict:
-            Dictionary containing all the parameters that **can** be
-            included into the ``params`` parameter of the
-            class :meth:`__init__` method.
-    """
     return dict(Model.get_optional_params(), **{
       'encoder_params': dict,
       'decoder_params': dict,
@@ -134,7 +118,7 @@ class Seq2Seq(Model):
     will also specify target sequence and length and all output returned from
     decoder. Note that loss will only be built for mode == "train" or "eval".
 
-    See :meth:`models.model.Model_build_forward_pass_graph` for description of
+    See :meth:`models.model.Model._build_forward_pass_graph` for description of
     arguments and return values.
     """
     if self.mode == "infer":

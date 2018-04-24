@@ -182,6 +182,8 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.__init__">__init__() (data.data_layer.DataLayer method)</a>
 
       <ul>
+        <li><a href="api-docs/data.html#data.data_layer.MultiGPUWrapper.__init__">(data.data_layer.MultiGPUWrapper method)</a>
+</li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">(data.speech2text.Speech2TextRandomDataLayer method)</a>
@@ -235,16 +237,20 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.__init__">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._adaptive_max_norm">_adaptive_max_norm() (in module optimizers.optimizers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._add_scaled_noise_to_gradients">_add_scaled_noise_to_gradients() (in module optimizers.optimizers)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">_build_attention() (decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model._build_forward_pass_graph">_build_forward_pass_graph() (models.model.Model method)</a>
+
+      <ul>
+        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._build_forward_pass_graph">(models.seq2seq.Seq2Seq method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder._cast_types">_cast_types() (decoders.decoder.Decoder method)</a>
 
       <ul>
@@ -265,6 +271,12 @@
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_decoder">_create_decoder() (models.seq2seq.Seq2Seq method)</a>
+</li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_encoder">_create_encoder() (models.seq2seq.Seq2Seq method)</a>
+</li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_loss">_create_loss() (models.seq2seq.Seq2Seq method)</a>
+</li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder._decode">_decode() (decoders.decoder.Decoder method)</a>
 
       <ul>
@@ -365,8 +377,6 @@
         <li><a href="api-docs/utils.html#utils.hooks.RunEvaluationHook.before_run">(utils.hooks.RunEvaluationHook method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.hooks.PrintLossAndTimeHook.begin">begin() (utils.hooks.PrintLossAndTimeHook method)</a>
 
       <ul>
@@ -375,12 +385,30 @@
         <li><a href="api-docs/utils.html#utils.hooks.RunEvaluationHook.begin">(utils.hooks.RunEvaluationHook method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding">BidirectionalRNNEncoderWithEmbedding (class in encoders.rnn_encoders)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.bucket_sizes">bucket_sizes (data.text2text.ParallelDataInRamInputLayer attribute)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.bucketize">bucketize() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
+      <li><a href="api-docs/data.html#data.data_layer.DataLayer.build_graph">build_graph() (data.data_layer.DataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.html#data.data_layer.MultiGPUWrapper.build_graph">(data.data_layer.MultiGPUWrapper method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.build_graph">(data.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.build_graph">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.build_graph">(data.speech2text.Speech2TextTFDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.build_graph">(data.text2text.ParallelDataInRamInputLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.text2text.ParallelTextDataLayer.build_graph">(data.text2text.ParallelTextDataLayer method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -1089,7 +1117,7 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/models.html#models.model.Model.step_size">step_size (models.model.Model attribute)</a>
+      <li><a href="api-docs/models.html#models.model.Model.steps_in_epoch">steps_in_epoch (models.model.Model attribute)</a>
 </li>
       <li><a href="api-docs/data.html#data.speech2text.Alphabet.string_from_label">string_from_label() (data.speech2text.Alphabet method)</a>
 </li>

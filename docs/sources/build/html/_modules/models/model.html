@@ -381,25 +381,28 @@
     <span class="n">dl_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">dl_params</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="p">,</span> <span class="n">num_gpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span>
+        <span class="n">params</span><span class="o">=</span><span class="n">dl_params</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">worker_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">(),</span>
       <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">dl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">dl_params</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">num_gpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="k">if</span> <span class="s2">&quot;max_steps&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s2">&quot;max_steps&quot;</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_step_size</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">=</span> <span class="kc">None</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="n">ds_sample_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span>
-        <span class="n">total_bs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-          <span class="n">total_bs</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
         <span class="c1"># doing a few less steps if data size is not divisible by the batch size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_step_size</span> <span class="o">=</span> <span class="n">ds_sample_size</span> <span class="o">//</span> <span class="n">total_bs</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_size</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">get_size_in_batches</span><span class="p">()</span>
+        <span class="c1"># if on Horovod, there will be hvd.size() independent data_layer copies</span>
+        <span class="c1"># and thus the total size is hvd.size() times smaller.</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
@@ -413,6 +416,7 @@
       <span class="n">init_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;initializer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
       <span class="n">initializer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;initializer&#39;</span><span class="p">](</span><span class="o">**</span><span class="n">init_dict</span><span class="p">)</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
     <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>  <span class="c1"># not using Horovod</span>
@@ -631,12 +635,13 @@
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span>
 
   <span class="nd">@property</span>
-  <span class="k">def</span> <span class="nf">step_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Number of samples the model processes per step.</span>
+  <span class="k">def</span> <span class="nf">steps_in_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Number of steps in epoch.</span>
 <span class="sd">    This parameter is only populated if ``num_epochs`` was specified in the</span>
-<span class="sd">    config. It is used in training hooks to correctly print epoch number.</span>
+<span class="sd">    config (otherwise it is None).</span>
+<span class="sd">    It is used in training hooks to correctly print epoch number.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_step_size</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">last_step</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

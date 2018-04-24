@@ -158,20 +158,12 @@
 
 <div class="viewcode-block" id="Seq2Seq"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq">[docs]</a><span class="k">class</span> <span class="nc">Seq2Seq</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  Standard Sequence-to-Sequence class with one encoder and one decoder.</span>
-<span class="sd">  &quot;encoder-decoder-loss&quot; models should inherit from this</span>
+<span class="sd">  Standard sequence-to-sequence class with one encoder and one decoder.</span>
+<span class="sd">  &quot;encoder-decoder-loss&quot; models should inherit from this class.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="Seq2Seq.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
-
-<span class="sd">      Returns:</span>
-<span class="sd">        dict:</span>
-<span class="sd">            Dictionary containing all the parameters that **have to** be</span>
-<span class="sd">            included into the ``params`` parameter of the</span>
-<span class="sd">            class :meth:`__init__` method.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Model</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
       <span class="s1">&#39;decoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
@@ -179,14 +171,6 @@
 
 <div class="viewcode-block" id="Seq2Seq.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
-    <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
-
-<span class="sd">      Returns:</span>
-<span class="sd">        dict:</span>
-<span class="sd">            Dictionary containing all the parameters that **can** be</span>
-<span class="sd">            included into the ``params`` parameter of the</span>
-<span class="sd">            class :meth:`__init__` method.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Model</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;encoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
       <span class="s1">&#39;decoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -243,19 +227,51 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_loss_computator</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-  <span class="k">def</span> <span class="nf">_create_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+<div class="viewcode-block" id="Seq2Seq._create_encoder"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq._create_encoder">[docs]</a>  <span class="k">def</span> <span class="nf">_create_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function should return encoder class.</span>
+<span class="sd">    Overwrite this function if additional parameters need to be specified for</span>
+<span class="sd">    encoder, besides provided in the config.</span>
 
-  <span class="k">def</span> <span class="nf">_create_decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      instance of a class derived from :class:`encoders.encoder.Encoder`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Seq2Seq._create_decoder"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq._create_decoder">[docs]</a>  <span class="k">def</span> <span class="nf">_create_decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function should return decoder class.</span>
+<span class="sd">    Overwrite this function if additional parameters need to be specified for</span>
+<span class="sd">    decoder, besides provided in the config.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      instance of a class derived from :class:`decoders.decoder.Decoder`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">]</span>
     <span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
 
-  <span class="k">def</span> <span class="nf">_create_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
+<div class="viewcode-block" id="Seq2Seq._create_loss"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq._create_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_create_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This function should return loss class.</span>
+<span class="sd">    Overwrite this function if additional parameters need to be specified for</span>
+<span class="sd">    loss, besides provided in the config.</span>
 
-  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      instance of a class derived from :class:`losses.loss.Loss`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">],</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Seq2Seq._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.seq2seq.Seq2Seq._build_forward_pass_graph">[docs]</a>  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;TensorFlow graph for sequence-to-sequence model is created here.</span>
+<span class="sd">    This function connects encoder, decoder and loss together. As an input for</span>
+<span class="sd">    encoder it will specify source sequence and source length (as returned from</span>
+<span class="sd">    the data layer). As an input for decoder it will specify target sequence</span>
+<span class="sd">    and target length as well as all output returned from encoder. For loss it</span>
+<span class="sd">    will also specify target sequence and length and all output returned from</span>
+<span class="sd">    decoder. Note that loss will only be built for mode == &quot;train&quot; or &quot;eval&quot;.</span>
+
+<span class="sd">    See :meth:`models.model.Model._build_forward_pass_graph` for description of</span>
+<span class="sd">    arguments and return values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;infer&quot;</span><span class="p">:</span>
       <span class="n">src_sequence</span><span class="p">,</span> <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_tensors</span>
       <span class="n">tgt_sequence</span><span class="p">,</span> <span class="n">tgt_length</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
@@ -291,18 +307,21 @@
       <span class="k">else</span><span class="p">:</span>
         <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Inference Mode. Loss part of graph isn&#39;t built.&quot;</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
-      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">decoder_samples</span>
+      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">decoder_samples</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model encoder.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_encoder</span>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model decoder.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder</span>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">loss_computator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Model loss computator.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_computator</span></div>
 </pre></div>
 

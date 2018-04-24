@@ -91,6 +91,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#speech-recognition">Speech recognition</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#quick-deep-speech-2-model">Quick Deep Speech 2 Model</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#deep-speech-2">Deep Speech 2</a></li>
 </ul>
 </li>
@@ -211,19 +212,26 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 </div>
 <div class="section" id="speech-recognition">
 <h2>Speech recognition<a class="headerlink" href="#speech-recognition" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="quick-deep-speech-2-model">
+<h3>Quick Deep Speech 2 Model<a class="headerlink" href="#quick-deep-speech-2-model" title="Permalink to this headline">¶</a></h3>
+<p>This small Deep Speech 2 like model can be trained on a ‘clean’ subset of
+LibriSpeech in less than a day using a single GPU.</p>
+<p>Command to train on 1 GPU:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_quick_librispeech_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+<p>Final metrics: WER = 9.29% on LibriSpeech dev clean with a beam width = 2048 after 12 epochs.
+Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1O3OHwPdPikI812pkF2vRcxlUSQNMLMLN/view?usp=sharing">link</a>.</p>
+</div>
 <div class="section" id="deep-speech-2">
 <h3>Deep Speech 2<a class="headerlink" href="#deep-speech-2" title="Permalink to this headline">¶</a></h3>
 <p>Model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.</p>
 <p>Command to train on 4 GPUs:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_adam_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>Final metrics: test WER = xx.xx. Model checkpoint: link.</p>
-<p>Command to train on 1 GPU:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">1</span><span class="n">GPU</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
-</pre></div>
-</div>
-<p>Final metrics: test WER = xx.xx. Model checkpoint: link.</p>
+<p>Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
+Model checkpoint: <a href="#id3"><span class="problematic" id="id4">`link https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing&gt;`_</span></a>.</p>
 </div>
 </div>
 </div>

@@ -61,6 +61,20 @@ Final metrics: test BLEU score = xx.xx. Model checkpoint: link.
 Speech recognition
 ------------------
 
+Quick Deep Speech 2 Model
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+This small Deep Speech 2 like model can be trained on a 'clean' subset of
+LibriSpeech in less than a day using a single GPU.
+
+Command to train on 1 GPU::
+
+    python run.py --config_file=example_configs/speech2text/ds2_quick_librispeech_config.py --mode=train_eval
+
+Final metrics: WER = 9.29% on LibriSpeech dev clean with a beam width = 2048 after 12 epochs.
+Model checkpoint: `link <https://drive.google.com/file/d/1O3OHwPdPikI812pkF2vRcxlUSQNMLMLN/view?usp=sharing>`_.
+
+
 Deep Speech 2
 ~~~~~~~~~~~~~
 
@@ -68,12 +82,7 @@ Model description: https://arxiv.org/abs/1512.02595.
 
 Command to train on 4 GPUs::
 
-    python run.py --config_file=example_configs/speech2text/xxx-4GPUs.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_librispeech_adam_config.py --mode=train_eval
 
-Final metrics: test WER = xx.xx. Model checkpoint: link.
-
-Command to train on 1 GPU::
-
-    python run.py --config_file=example_configs/speech2text/xxx-1GPU.py --mode=train_eval
-
-Final metrics: test WER = xx.xx. Model checkpoint: link.
+Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
+Model checkpoint: `link https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing>`_.

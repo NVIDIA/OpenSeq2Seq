@@ -219,7 +219,7 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Required params:</span>
 <span class="sd">      batch_size_per_gpu</span>
@@ -236,7 +236,8 @@
 <span class="sd">        &#39;input_type&#39;: &#39;spectrogram&#39;,</span>
 <span class="sd">      }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                               <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
@@ -262,6 +263,9 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">shuffle</span><span class="p">()</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Speech2TextDataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextDataLayer.shuffle">[docs]</a>  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">permutation</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span></div>
@@ -379,16 +383,20 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextRandomDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextRandomDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Random data for speech check</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextRandomDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextRandomDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                                     <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">random_data</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
     <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">()</span> <span class="o">+</span> <span class="mi">1</span></div>
+
+<div class="viewcode-block" id="Speech2TextRandomDataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Speech2TextRandomDataLayer.shuffle"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.shuffle">[docs]</a>  <span class="k">def</span> <span class="nf">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">pass</span></div>
@@ -456,7 +464,7 @@
       <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="Speech2TextTFDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2TextTFDataLayer.__init__"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Required params:</span>
 <span class="sd">      batch_size</span>
@@ -473,7 +481,8 @@
 <span class="sd">        &#39;input_type&#39;: &#39;spectrogram&#39;,</span>
 <span class="sd">      }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextTFDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextTFDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                                 <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Alphabet</span><span class="p">(</span>
       <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">])</span>
@@ -495,8 +504,9 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;files&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span></div>
 
+<div class="viewcode-block" id="Speech2TextTFDataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tfdataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">tfdataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tfdataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>

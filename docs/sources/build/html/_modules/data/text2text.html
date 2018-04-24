@@ -253,7 +253,8 @@
     <span class="p">})</span></div>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelDataInRamInputLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelDataInRamInputLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                                      <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">=</span> <span class="n">num_workers</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">=</span> <span class="n">worker_id</span>
@@ -285,8 +286,11 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_corpus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_corpus</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_corpus&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_corpus</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="ParallelDataInRamInputLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">bucketize</span><span class="p">()</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterate_one_epoch</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterate_one_epoch</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ParallelDataInRamInputLayer.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.gen_input_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="c1"># placeholders for feeding data</span>
@@ -586,8 +590,9 @@
       <span class="s1">&#39;pad_lengths_to_eight&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelTextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ParallelTextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                                <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">source_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_file&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_use_targets</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;use_targets&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
@@ -667,6 +672,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">)</span>
 
+<div class="viewcode-block" id="ParallelTextDataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">pad2eight</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">do_pad_eight</span><span class="p">):</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lst</span><span class="p">)</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">do_pad_eight</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">lst</span>
@@ -725,7 +731,7 @@
       <span class="p">(</span><span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span><span class="p">,</span>
        <span class="mi">0</span><span class="p">)))</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefetch_buffer_size</span><span class="p">)</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batched_dataset</span><span class="o">.</span><span class="n">make_one_shot_iterator</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">batched_dataset</span><span class="o">.</span><span class="n">make_one_shot_iterator</span><span class="p">()</span></div>
 
 <div class="viewcode-block" id="ParallelTextDataLayer.gen_input_tensors"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.gen_input_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">gen_input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_targets</span><span class="p">:</span>

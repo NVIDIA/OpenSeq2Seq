@@ -519,11 +519,12 @@ MPI parameters.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="models.model.Model.step_size">
-<code class="descname">step_size</code><a class="headerlink" href="#models.model.Model.step_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of samples the model processes per step.
+<dt id="models.model.Model.steps_in_epoch">
+<code class="descname">steps_in_epoch</code><a class="headerlink" href="#models.model.Model.steps_in_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of steps in epoch.
 This parameter is only populated if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> was specified in the
-config. It is used in training hooks to correctly print epoch number.</p>
+config (otherwise it is None).
+It is used in training hooks to correctly print epoch number.</p>
 </dd></dl>
 
 </dd></dl>
@@ -535,15 +536,15 @@ config. It is used in training hooks to correctly print epoch number.</p>
 <dt id="models.seq2seq.Seq2Seq">
 <em class="property">class </em><code class="descclassname">models.seq2seq.</code><code class="descname">Seq2Seq</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.models.model.Model</span></code></p>
-<p>Standard Sequence-to-Sequence class with one encoder and one decoder.
-“encoder-decoder-loss” models should inherit from this</p>
+<p>Standard sequence-to-sequence class with one encoder and one decoder.
+“encoder-decoder-loss” models should inherit from this class.</p>
 <dl class="method">
 <dt id="models.seq2seq.Seq2Seq.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sequence-to-sequence model constructor.
 Note that TensorFlow graph should not be created here. All graph creation
 logic is happening inside
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">self._build_forward_pass_graph()</span></code> method.</p>
+<a class="reference internal" href="#models.seq2seq.Seq2Seq._build_forward_pass_graph" title="models.seq2seq.Seq2Seq._build_forward_pass_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._build_forward_pass_graph()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -584,15 +585,79 @@ complete list of possible parameters see the corresponding class docs.</li>
 </div></blockquote>
 </dd></dl>
 
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._build_forward_pass_graph">
+<code class="descname">_build_forward_pass_graph</code><span class="sig-paren">(</span><em>input_tensors</em>, <em>gpu_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._build_forward_pass_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._build_forward_pass_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>TensorFlow graph for sequence-to-sequence model is created here.
+This function connects encoder, decoder and loss together. As an input for
+encoder it will specify source sequence and source length (as returned from
+the data layer). As an input for decoder it will specify target sequence
+and target length as well as all output returned from encoder. For loss it
+will also specify target sequence and length and all output returned from
+decoder. Note that loss will only be built for mode == “train” or “eval”.</p>
+<p>See <a class="reference internal" href="#models.model.Model._build_forward_pass_graph" title="models.model.Model._build_forward_pass_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">models.model.Model._build_forward_pass_graph()</span></code></a> for description of
+arguments and return values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_decoder">
+<code class="descname">_create_decoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return decoder class.
+Overwrite this function if additional parameters need to be specified for
+decoder, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_encoder">
+<code class="descname">_create_encoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return encoder class.
+Overwrite this function if additional parameters need to be specified for
+encoder, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_loss">
+<code class="descname">_create_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return loss class.
+Overwrite this function if additional parameters need to be specified for
+loss, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.decoder">
 <code class="descname">decoder</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.decoder" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model decoder.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.encoder">
 <code class="descname">encoder</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.encoder" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model encoder.</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="models.seq2seq.Seq2Seq.get_optional_params">
@@ -633,7 +698,8 @@ class <a class="reference internal" href="#models.seq2seq.Seq2Seq.__init__" titl
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.loss_computator">
 <code class="descname">loss_computator</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.loss_computator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model loss computator.</p>
+</dd></dl>
 
 </dd></dl>
 
