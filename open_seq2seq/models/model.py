@@ -265,6 +265,7 @@ class Model:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
 
+    self.data_layer.build_graph()
     input_tensors = self.data_layer.get_input_tensors()
 
     if not self.on_horovod:  # not using Horovod

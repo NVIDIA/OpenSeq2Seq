@@ -135,6 +135,9 @@ class ParallelDataInRamInputLayer(DataLayer):
     self.params['target_corpus'] = self.tgt_corpus
     self.params['source_corpus'] = self.src_corpus
 
+    self.iterator = None
+
+  def build_graph(self):
     self.bucketize()
     self.iterator = self._iterate_one_epoch()
 
@@ -518,6 +521,7 @@ class ParallelTextDataLayer(DataLayer):
     self.params['src_vocab_size'] = len(self.src_seq2idx)
     self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
 
+  def build_graph(self):
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
         return lst

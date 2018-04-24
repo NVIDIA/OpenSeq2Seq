@@ -113,6 +113,9 @@ class Speech2TextDataLayer(DataLayer):
 
     self._size = self.get_size_in_samples()
 
+  def build_graph(self):
+    pass
+
   def shuffle(self):
     self._files = np.random.permutation(self._files)
 
@@ -241,6 +244,9 @@ class Speech2TextRandomDataLayer(DataLayer):
     )
     self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
 
+  def build_graph(self):
+    pass
+
   def shuffle(self):
     pass
 
@@ -349,6 +355,7 @@ class Speech2TextTFDataLayer(DataLayer):
 
     self._size = self.get_size_in_samples()
 
+  def build_graph(self):
     self.tfdataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle'] and self.params['use_targets']:
       self.tfdataset = self.tfdataset.shuffle(self._size)

@@ -113,6 +113,7 @@ class Speech2TextDataLayerTests(tf.test.TestCase):
       Speech2TextDataLayer(self.params, None),
       self.num_gpus,
     )
+    self.data_layer.build_graph()
     self.check_input_tensors()
 
   def test_get_input_tensors_2gpus(self):
@@ -121,6 +122,7 @@ class Speech2TextDataLayerTests(tf.test.TestCase):
       Speech2TextDataLayer(self.params, None),
       self.num_gpus,
     )
+    self.data_layer.build_graph()
     self.check_input_tensors()
 
   def test_get_input_tensors_4gpus(self):
@@ -129,6 +131,7 @@ class Speech2TextDataLayerTests(tf.test.TestCase):
       Speech2TextDataLayer(self.params, None),
       self.num_gpus,
     )
+    self.data_layer.build_graph()
     self.check_input_tensors()
 
   def test_get_one_sample(self):

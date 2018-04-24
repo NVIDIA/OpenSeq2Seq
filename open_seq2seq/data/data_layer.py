@@ -66,6 +66,11 @@ class DataLayer:
     return self._params
 
   @abc.abstractmethod
+  def build_graph(self):
+    """Here all TensorFlow graph construction should happen."""
+    pass
+
+  @abc.abstractmethod
   def gen_input_tensors(self):
     """
     Creates and returns input tensors that should be connected to the
@@ -171,6 +176,8 @@ class MultiGPUWrapper(DataLayer):
     self.params['batch_size'] *= self._num_gpus
     self._data_layer = data_layer
 
+  def build_graph(self):
+    self._data_layer.build_graph()
     # making num_gpus copies of input tensors
     self._input_tensors = [
       self._data_layer.gen_input_tensors() for _ in range(self._num_gpus)

@@ -37,6 +37,8 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
       ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
+    dl.build_graph()
+
     self.assertEqual(dl.params['batch_size'],
                      self.params['batch_size'] * num_gpus)
     self.assertEqual(
@@ -78,6 +80,8 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
       ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
+    dl.build_graph()
+
     for i in range(0, 11):
       self.assertEqual(
         dl._data_layer.determine_bucket(i, self.params['bucket_src']), 0)
@@ -138,17 +142,20 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
       ParallelDataInRamInputLayer(self.params, None),
       num_gpus,
     )
+    dl_reg.build_graph()
     dls_hvd = [
       ParallelDataInRamInputLayer(
         self.params, None, num_workers=1, worker_id=0,
       )
     ]
+    dls_hvd[-1].build_graph()
     for ind in range(num_workers):
       dls_hvd.append(ParallelDataInRamInputLayer(
         self.params, None,
         num_workers=num_workers,
         worker_id=ind,
       ))
+      dls_hvd[-1].build_graph()
 
     self.assertEqual(dl_reg.params['batch_size'],
                      self.params['batch_size'] * num_gpus)
@@ -222,10 +229,11 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
 
   def test_init_test4(self):
     dl = ParallelTextDataLayer(params=self.params, model=None)
+    dl.build_graph()
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et=sess.run(dl.get_input_tensors())
+      et = sess.run(dl.get_input_tensors())
       self.assertEqual(len(et), 4)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertLessEqual(et[0].shape[1], self.params['max_length'])
@@ -238,10 +246,11 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     self.params['use_targets'] = False # in this case we do not yield targets
     self.params['shuffle'] = False  # in this case we do not yield targets
     dl = ParallelTextDataLayer(params=self.params, model=None)
+    dl.build_graph()
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et=sess.run(dl.get_input_tensors())
+      et = sess.run(dl.get_input_tensors())
       self.assertEqual(len(et), 2)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertLessEqual(et[0].shape[1], self.params['max_length'])
@@ -251,10 +260,11 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     self.params['shuffle'] = False  # in this case we do not yield targets
     self.params['pad_lengths_to_eight'] = True
     dl = ParallelTextDataLayer(params=self.params, model=None)
+    dl.build_graph()
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et=sess.run(dl.get_input_tensors())
+      et = sess.run(dl.get_input_tensors())
       self.assertEqual(len(et), 4)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertTrue(et[0].shape[1] % 8 == 0)
