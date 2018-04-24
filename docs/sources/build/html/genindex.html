@@ -212,7 +212,7 @@
 </li>
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.__init__">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
 </li>
-        <li><a href="api-docs/models.html#models.model.Model.__init__">(models.model.Model method)</a>
+        <li><a href="api-docs/models.html#models.model.Model.__init__">(models.model.Model method)</a>, <a href="in-depth-tutorials/using-existing-models.html#models.model.Model.__init__">[1]</a>
 </li>
         <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.__init__">(models.seq2seq.Seq2Seq method)</a>
 </li>
@@ -244,19 +244,27 @@
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">_build_attention() (decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model._build_forward_pass_graph">_build_forward_pass_graph() (models.model.Model method)</a>
-
-      <ul>
-        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._build_forward_pass_graph">(models.seq2seq.Seq2Seq method)</a>
 </li>
-      </ul></li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder._cast_types">_cast_types() (decoders.decoder.Decoder method)</a>
 
       <ul>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder._cast_types">(encoders.encoder.Encoder method)</a>
 </li>
+        <li><a href="api-docs/losses.html#losses.loss.Loss._cast_types">(losses.loss.Loss method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._clip_gradients_by_norm">_clip_gradients_by_norm() (in module optimizers.optimizers)</a>
 </li>
+      <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss._compute_loss">_compute_loss() (losses.ctc_loss.CTCLoss method)</a>
+
+      <ul>
+        <li><a href="api-docs/losses.html#losses.loss.Loss._compute_loss">(losses.loss.Loss method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss._compute_loss">(losses.sequence_loss.BasicSequenceLoss method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
+</li>
+      </ul></li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder._decode">_decode() (decoders.decoder.Decoder method)</a>
 
       <ul>
@@ -391,29 +399,23 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.call">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/utils.html#utils.utils.cast_types">cast_types() (in module utils.utils)</a>
+</li>
       <li><a href="api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">check_grads() (optimizers.automatic_loss_scaler.AutomaticLossScaler static method)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.check_params">check_params() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.html#parts.attention_wrapper.AttentionWrapperState.clone">clone() (parts.attention_wrapper.AttentionWrapperState method)</a>
 </li>
-      <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">compute_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
-</li>
-      <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.compute_loss">compute_loss() (losses.ctc_loss.CTCLoss method)</a>
-
-      <ul>
-        <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">(losses.loss.Loss method)</a>
-</li>
-        <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.compute_loss">(losses.sequence_loss.BasicSequenceLoss method)</a>
-</li>
-        <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
-</li>
-      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">conv2d_bn_actv() (in module encoders.ds2_encoder)</a>
+      <li><a href="api-docs/models.html#models.model.Model.compile">compile() (models.model.Model method)</a>
 </li>
-      <li><a href="api-docs/utils.html#utils.model_builders.create_encoder_decoder_loss_model">create_encoder_decoder_loss_model() (in module utils.model_builders)</a>, <a href="in-depth-tutorials/using-existing-models.html#utils.model_builders.create_encoder_decoder_loss_model">[1]</a>
+      <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">compute_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
+</li>
+      <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">compute_loss() (losses.loss.Loss method)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">conv2d_bn_actv() (in module encoders.ds2_encoder)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.create_idx_seq_associations">create_idx_seq_associations() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -618,6 +620,8 @@
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_optional_params">(models.model.Model static method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.get_optional_params">(models.seq2seq.Seq2Seq static method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/models.html#models.model.Model.get_output_tensors">get_output_tensors() (models.model.Model method)</a>
 </li>
@@ -671,6 +675,8 @@
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params">(losses.sequence_loss.CrossEntropyWithSmoothing static method)</a>
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_required_params">(models.model.Model static method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.get_required_params">(models.seq2seq.Seq2Seq static method)</a>
 </li>
       </ul></li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_size_in_batches">get_size_in_batches() (data.data_layer.DataLayer method)</a>
@@ -813,8 +819,14 @@
       </ul></li>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">MixedPrecisionOptimizerWrapper (class in optimizers.mp_wrapper)</a>
 </li>
-      <li><a href="api-docs/models.html#models.model.Model.mode">mode (models.model.Model attribute)</a>
+      <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.mode">mode (decoders.decoder.Decoder attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.mode">(encoders.encoder.Encoder attribute)</a>
 </li>
+        <li><a href="api-docs/models.html#models.model.Model.mode">(models.model.Model attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.model.Model">Model (class in models.model)</a>
@@ -843,6 +855,14 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.name">name (decoders.decoder.Decoder attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.name">(encoders.encoder.Encoder attribute)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.loss.Loss.name">(losses.loss.Loss attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.next_batch">next_batch() (data.speech2text.Speech2TextDataLayer method)</a>
 
       <ul>
@@ -1001,8 +1021,6 @@
       </ul></li>
       <li><a href="api-docs/parts.html#parts.attention_wrapper.safe_cumprod">safe_cumprod() (in module parts.attention_wrapper)</a>
 </li>
-      <li><a href="api-docs/utils.html#utils.model_builders.safe_fill_params">safe_fill_params() (in module utils.model_builders)</a>
-</li>
       <li><a href="api-docs/parts.html#parts.attention.scaled_dot_attention_fn">scaled_dot_attention_fn() (in module parts.attention)</a>
 </li>
       <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq">Seq2Seq (class in models.seq2seq)</a>
@@ -1087,14 +1105,12 @@
 </li>
       <li><a href="api-docs/data.html#data.speech2text.text_to_char_array">text_to_char_array() (in module data.speech2text)</a>
 </li>
-      <li><a href="api-docs/data.html#data.text2text.SpecialTextTokens.to_string">to_string() (data.text2text.SpecialTextTokens static method)</a>
-</li>
       <li><a href="api-docs/utils.html#utils.funcs.train">train() (in module utils.funcs)</a>
+</li>
+      <li><a href="api-docs/models.html#models.text2text.transform_for_bleu">transform_for_bleu() (in module models.text2text)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/models.html#models.text2text.transform_for_bleu">transform_for_bleu() (in module models.text2text)</a>
-</li>
       <li><a href="api-docs/decoders.html#decoders.transformer_decoders.transformer_decoder_fn">transformer_decoder_fn() (in module decoders.transformer_decoders)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.lr_policies.transformer_policy">transformer_policy() (in module optimizers.lr_policies)</a>
@@ -1132,8 +1148,6 @@
       <li><a href="api-docs/utils.html#module-utils.funcs">utils.funcs (module)</a>
 </li>
       <li><a href="api-docs/utils.html#module-utils.hooks">utils.hooks (module)</a>
-</li>
-      <li><a href="api-docs/utils.html#module-utils.model_builders">utils.model_builders (module)</a>
 </li>
       <li><a href="api-docs/utils.html#module-utils.utils">utils.utils (module)</a>
 </li>

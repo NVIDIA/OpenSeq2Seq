@@ -13,6 +13,8 @@ This configuration file describes a tiny variant of Transformer model from
 https://arxiv.org/abs/1706.03762 on the toy task of reversing sequences
 """
 
+base_model = BasicText2TextWithAttention
+
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
@@ -23,25 +25,21 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "base_model": BasicText2TextWithAttention,
   "logdir": "ReversalTask-TransformerFP32",
 
-  "model_params": {
-    "optimizer": "Adam",
-    "optimizer_params": {
-      "beta1": 0.9,
-      "beta2": 0.98,
-      "epsilon": 0.001,
-    },
-    "learning_rate": 1.0,
-    "lr_policy": transformer_policy,
-    "lr_policy_params": {
-      "warmup_steps": 600,
-      "d_model": 64,
-    },
-    "dtype": tf.float32,
-    #"dtype": "mixed",
+  "optimizer": "Adam",
+  "optimizer_params": {
+    "beta1": 0.9,
+    "beta2": 0.98,
+    "epsilon": 0.001,
   },
+  "learning_rate": 1.0,
+  "lr_policy": transformer_policy,
+  "lr_policy_params": {
+    "warmup_steps": 600,
+    "d_model": 64,
+  },
+  "dtype": tf.float32,
 
   "encoder": TransformerEncoder,
   "encoder_params": {

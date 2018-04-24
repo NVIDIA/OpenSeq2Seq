@@ -9,6 +9,7 @@ from open_seq2seq.losses.sequence_loss import CrossEntropyWithSmoothing, \
 class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
   def setUp(self):
     print("Setting Up  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
+
   def tearDown(self):
     print("Tear down  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
     
@@ -23,7 +24,7 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
             loss_params = {
                 "do_mask": _m,
                 "tgt_vocab_size": tgt_vocab_size,
-                "batch_size_per_gpu": batch_size,
+                "batch_size": batch_size,
                 "offset_target_by_one": _o,
             }
 
@@ -33,12 +34,12 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
                                                              seq_length,
                                                              tgt_vocab_size])
             tgt_lengths = tf.placeholder(dtype=tf.int32, shape=[batch_size])
-            xentropy = CrossEntropyWithSmoothing(params=loss_params)
-            sparse_xentropy = BasicSequenceLoss(params=loss_params)
+            xentropy = CrossEntropyWithSmoothing(params=loss_params, model=None)
+            sparse_xentropy = BasicSequenceLoss(params=loss_params, model=None)
             loss_input_dict = {
-                "logits": logits,
-                "target_sequence": targets,
-                "tgt_lengths": tgt_lengths,
+                "decoder_output": {"logits": logits},
+                "tgt_sequence": targets,
+                "tgt_length": tgt_lengths,
                 }
             l1 = sparse_xentropy.compute_loss(input_dict=loss_input_dict)
             l2 = xentropy.compute_loss(input_dict=loss_input_dict)
@@ -54,3 +55,6 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
               self.assertEqual(loss1, loss2)
               print("Loss: {}".format(loss1))
 
+
+if __name__ == '__main__':
+  tf.test.main()

@@ -152,6 +152,7 @@
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">copy</span>
 
 
 <div class="viewcode-block" id="mask_nans"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.mask_nans">[docs]</a><span class="k">def</span> <span class="nf">mask_nans</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
@@ -212,6 +213,21 @@
   <span class="k">for</span> <span class="n">pm</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">pm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">required_dict</span> <span class="ow">and</span> <span class="n">pm</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">optional_dict</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown parameter: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">pm</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="cast_types"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.cast_types">[docs]</a><span class="k">def</span> <span class="nf">cast_types</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+  <span class="n">cast_input_dict</span> <span class="o">=</span> <span class="p">{}</span>
+  <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Tensor</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span> <span class="ow">or</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">value</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span><span class="p">:</span>
+          <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+          <span class="k">continue</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">dict</span><span class="p">:</span>
+      <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">cast_types</span><span class="p">(</span><span class="n">input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">dtype</span><span class="p">)</span>
+      <span class="k">continue</span>
+    <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">cast_input_dict</span></div>
 </pre></div>
 
            </div>

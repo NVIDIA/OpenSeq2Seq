@@ -12,6 +12,7 @@ from open_seq2seq.data.text2text import SpecialTextTokens
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 # This model should run fine on single GPU such as 1080ti or better
+base_model = BasicText2TextWithAttention
 
 base_params = {
   "use_horovod": False,
@@ -24,17 +25,14 @@ base_params = {
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
   "logdir": "nmt-small-en-de",
-  "base_model": BasicText2TextWithAttention,
-  "model_params": {
-    "optimizer": "Adam",
-    "optimizer_params": {},
-    "learning_rate": 0.001,
-    "larc_mode": "clip",
-    "larc_nu": 0.001,
-    "dtype": tf.float32,
-    #"dtype": "mixed",
-    #"automatic_loss_scaling": "Backoff",
-  },
+  "optimizer": "Adam",
+  "optimizer_params": {},
+  "learning_rate": 0.001,
+  "larc_mode": "clip",
+  "larc_nu": 0.001,
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {

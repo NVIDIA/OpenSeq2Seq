@@ -4,46 +4,48 @@ from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextTFDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.lr_policies import exp_decay
 
-
-base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_gpus": 8,
-  "batch_size_per_gpu": 16,
+  "num_epochs": 12,
 
-  "num_epochs": 100,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 32,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
   "print_samples_steps": 5000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 1000,
-  "logdir": "experiments/librispeech",
+  "logdir": "experiments/librispeech-quick",
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
-  "learning_rate": 0.001,
-  "lr_policy": poly_decay,
-  "lr_policy_params": {
-    "power": 2,
-  },
-  "larc_nu": 0.001,
-  "dtype": tf.float32,
-  # weight decay
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    'scale': 0.0005
-  },
-  "initializer": tf.contrib.layers.xavier_initializer,
+  "base_model": Speech2Text,
+  "model_params": {
+    "optimizer": "Adam",
+    "optimizer_params": {},
+    "learning_rate": 0.0001,
+    "lr_policy": exp_decay,
+    "lr_policy_params": {
+      "begin_decay_at": 0,
+      "decay_steps": 5000,
+      "decay_rate": 0.9,
+      "use_staircase_decay": True,
+      "min_lr": 0.0,
+    },
+    "dtype": tf.float32,
+    # weight decay
+    "regularizer": tf.contrib.layers.l2_regularizer,
+    "regularizer_params": {
+      'scale': 0.0005
+    },
+    "initializer": tf.contrib.layers.xavier_initializer,
 
-  "summaries": ['learning_rate', 'variables', 'gradients',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+    "summaries": ['learning_rate', 'variables', 'gradients',
+                  'variable_norm', 'gradient_norm', 'global_gradient_norm']
+  },
 
   "encoder": DeepSpeech2Encoder,
   "encoder_params": {
@@ -54,24 +56,19 @@ base_params = {
       },
       {
         "kernel_size": [11, 21], "stride": [1, 2],
-        "num_channels": 64, "padding": "SAME"
-      },
-      {
-        "kernel_size": [11, 21], "stride": [1, 2],
-        "num_channels": 96, "padding": "SAME"
-      },
+        "num_channels": 32, "padding": "SAME"
+      }
     ],
     "num_rnn_layers": 2,
-    "rnn_cell_dim": 1024,
+    "rnn_cell_dim": 512,
 
     "use_cudnn_rnn": True,
     "rnn_type": "cudnn_gru",
-    "rnn_unidirectional": True,
+    "rnn_unidirectional": False,
 
-    "row_conv": True,
-    "row_conv_width": 8,
+    "row_conv": False,
 
-    "n_hidden": 2048,
+    "n_hidden": 1024,
 
     "dropout_keep_prob": 0.5,
     "activation_fn": tf.nn.relu,
@@ -100,7 +97,7 @@ base_params = {
 train_params = {
   "data_layer": Speech2TextTFDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
+    "num_audio_features": 96,
     "input_type": "spectrogram",
     "augmentation": {'time_stretch_ratio': 0.05,
                      'noise_level_min': -90,
@@ -108,19 +105,16 @@ train_params = {
     "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
     "dataset_path": [
       "data/librispeech/librivox-train-clean-100.csv",
-      "data/librispeech/librivox-train-clean-360.csv",
-      "data/librispeech/librivox-train-other-500.csv"
+      "data/librispeech/librivox-train-clean-360.csv"
     ],
     "shuffle": True,
   },
 }
 
 eval_params = {
-  "batch_size_per_gpu": 32,
-
   "data_layer": Speech2TextTFDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
+    "num_audio_features": 96,
     "input_type": "spectrogram",
     "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
     "dataset_path": [
@@ -129,4 +123,3 @@ eval_params = {
     "shuffle": False,
   },
 }
-

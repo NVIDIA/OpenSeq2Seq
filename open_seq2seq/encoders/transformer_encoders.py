@@ -31,6 +31,7 @@ class TransformerEncoder(Encoder):
     })
 
   def __init__(self, params,
+               model,
                name="transformer_encoder",
                mode='train'):
     """
@@ -44,14 +45,13 @@ class TransformerEncoder(Encoder):
       ... add any cell-specific parameters here as well
     """
     super(TransformerEncoder, self).__init__(
-      params, name=name, mode=mode,
+      params, model, name=name, mode=mode,
     )
 
     self._drop_prob = self.params.get("encoder_drop_prob", 0.0)
     self._norm_type = self.params.get("encoder_norm_type", 'layer_norm')
     if self._mode != 'train':
       self._drop_prob = 0.0
-    self._batch_size = self.params['batch_size_per_gpu']
 
   def _encode(self, input_dict):
     ffn_inner_dim = self.params["ffn_inner_dim"]
@@ -68,10 +68,9 @@ class TransformerEncoder(Encoder):
     else:
       training = False
       drop_prob = 0.0
-    print(training)
 
     embedded_inputs_with_pos, bias = embed_and_maybe_add_position_signal(
-      inpt=input_dict['src_inputs'],
+      inpt=input_dict['src_sequence'],
       emb_W=enc_emb_w,
       num_timescales=int(d_model/2),
       heads=attention_heads)
@@ -100,8 +99,8 @@ class TransformerEncoder(Encoder):
                                drop_prob=drop_prob,
                                training=training,
                                norm_type=self._norm_type)
-    return {'encoder_outputs': x,
-            'encoder_state': None,
-            'src_lengths': input_dict['src_lengths'],
+    return {'outputs': x,
+            'state': None,
+            'src_lengths': input_dict['src_length'],
             'enc_emb_w': enc_emb_w,
-            'encoder_input': input_dict['src_inputs']}
+            'encoder_input': input_dict['src_sequence']}
