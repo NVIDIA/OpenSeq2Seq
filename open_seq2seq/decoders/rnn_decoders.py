@@ -15,7 +15,6 @@ from open_seq2seq.parts.attention_wrapper import BahdanauAttention, \
 from .decoder import Decoder
 from open_seq2seq.parts.rnn_beam_search_decoder import BeamSearchDecoder
 
-
 class RNNDecoderWithAttention(Decoder):
   """
   Typical RNN decoder with attention mechanism
