@@ -38,7 +38,7 @@ class Speech2TextPlaceholdersDataLayer(DataLayer):
   def __init__(self, params, model, num_workers=None, worker_id=None):
     """Speech-to-text placeholders-based data layer constructor.
 
-    See parent class for argument description.
+    See parent class for arguments description.
 
     Config parameters:
 
@@ -305,7 +305,7 @@ class Speech2TextDataLayer(DataLayer):
   def __init__(self, params, model, num_workers=None, worker_id=None):
     """Speech-to-text ``tf.data`` based data layer constructor.
 
-    See parent class for argument description.
+    See parent class for arguments description.
 
     Config parameters:
 
