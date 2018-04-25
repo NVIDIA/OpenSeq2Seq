@@ -453,7 +453,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       output_time_major=time_major,
     )
 
-    return {'decoder_output': final_outputs.predicted_ids[:, :, 0],
-            'decoder_samples': final_outputs.predicted_ids[:, :, 0],
+    return {'logits': final_outputs.predicted_ids[:, :, 0],
+            'samples': final_outputs.predicted_ids[:, :, 0],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
