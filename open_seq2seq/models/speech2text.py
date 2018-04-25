@@ -6,6 +6,7 @@
 # Modified work Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
 from six.moves import range
 import pandas as pd
 

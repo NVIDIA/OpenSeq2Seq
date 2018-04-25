@@ -2,6 +2,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from six.moves import range
 
 from tensorflow.contrib.rnn.python.ops import core_rnn_cell
 from tensorflow.python.ops import array_ops

@@ -6,11 +6,13 @@
 # Modified work Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import six
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-from six.moves import range
 
 from .data_layer import DataLayer
 from .speech_utils import get_speech_features_from_file
