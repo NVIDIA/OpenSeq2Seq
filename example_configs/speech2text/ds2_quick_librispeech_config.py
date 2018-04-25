@@ -80,9 +80,9 @@ base_params = {
 
     # params for decoding the sequence with language model
     "beam_width": 512,
-    "lm_weight": 2.6,
-    "word_count_weight": 2.8,
-    "valid_word_count_weight": 0.0,
+    "lm_weight": 2.0,
+    "word_count_weight": 1.0,
+    "valid_word_count_weight": 2.5,
 
     "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
     "lm_binary_path": "language_model/lm.binary",

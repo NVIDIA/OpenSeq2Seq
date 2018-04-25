@@ -27,7 +27,7 @@ class FullyConnectedTimeDecoder(Decoder):
 
   def __init__(self, params, model,
                name="fully_connected_time_decoder", mode='train'):
-    """Decoder constructor.
+    """Fully connected time decoder constructor.
 
     See parent class for arguments description.
 
@@ -41,6 +41,17 @@ class FullyConnectedTimeDecoder(Decoder):
     super(FullyConnectedTimeDecoder, self).__init__(params, model, name, mode)
 
   def _decode(self, input_dict):
+    """Creates TensorFlow graph for fully connected time decoder.
+
+    Expects the following inputs::
+
+      input_dict = {
+        "encoder_output": {
+          "outputs": tensor of shape [batch_size, time length, hidden dim]
+          "src_length": tensor of shape [batch_size]
+        }
+      }
+    """
     inputs = input_dict['encoder_output']['outputs']
     regularizer = self.params.get('regularizer', None)
 
@@ -101,7 +112,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
 
   def __init__(self, params, model,
                name="fully_connected_ctc_decoder", mode='train'):
-    """Decoder constructor.
+    """Fully connected CTC decoder constructor.
 
     See parent class for arguments description.
 
