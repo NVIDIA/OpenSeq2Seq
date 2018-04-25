@@ -116,7 +116,9 @@ def get_batches_for_epoch(model, checkpoint):
     inputs_per_batch, outputs_per_batch = [], []
     fetches = [model.data_layer.get_input_tensors(), model.get_output_tensors()]
     total_batches = model.data_layer.get_size_in_batches()
-    for step, feed_dict in enumerate(model.data_layer.iterate_one_epoch()):
+    for step, feed_dict in enumerate(
+      model.data_layer.iterate_one_epoch(cross_over=True)
+    ):
       tm = time.time()
       inputs, outputs = sess.run(fetches, feed_dict)
       if step >= bench_start:
@@ -145,7 +147,6 @@ def infer(model, checkpoint, output_file):
 
 
 def evaluate(model, checkpoint):
-  # TODO: last batch might be cut!
   inputs_per_batch, outputs_per_batch = get_batches_for_epoch(model,
                                                               checkpoint)
   eval_dict = model.maybe_evaluate(inputs_per_batch, outputs_per_batch)

@@ -73,6 +73,8 @@ class Speech2Text(Seq2Seq):
   def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
     total_word_lev = 0.0
     total_word_count = 0.0
+    samples_count = 0
+    dataset_size = self.data_layer.get_size_in_samples()
 
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
       for gpu_id in range(self.num_gpus):
@@ -82,6 +84,11 @@ class Speech2Text(Seq2Seq):
           self.data_layer.params['idx2char'],
         )
         for sample_id in range(self.params['batch_size_per_gpu']):
+          # this is necessary for correct processing of the last batch
+          if samples_count >= dataset_size:
+            break
+          samples_count += 1
+
           # y is the third returned input value, thus input_values[2]
           # len_y is the fourth returned input value
           y = input_values[2][gpu_id][sample_id]
@@ -94,7 +101,6 @@ class Speech2Text(Seq2Seq):
           total_word_count += len(true_text.split())
 
     total_wer = 1.0 * total_word_lev / total_word_count
-
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
     return {
       "Eval WER": total_wer,
@@ -102,6 +108,9 @@ class Speech2Text(Seq2Seq):
 
   def infer(self, inputs_per_batch, outputs_per_batch, output_file):
     preds = []
+    samples_count = 0
+    dataset_size = self.data_layer.get_size_in_samples()
+
     for input_values, output_values in zip(inputs_per_batch,
                                            outputs_per_batch):
       for gpu_id in range(self.num_gpus):
@@ -111,6 +120,10 @@ class Speech2Text(Seq2Seq):
           self.data_layer.params['idx2char'],
         )
         for sample_id in range(self.params['batch_size_per_gpu']):
+          # this is necessary for correct processing of the last batch
+          if samples_count >= dataset_size:
+            break
+          samples_count += 1
           preds.append("".join(decoded_texts[sample_id]))
     pd.DataFrame(
       {
