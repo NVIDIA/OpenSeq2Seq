@@ -1,5 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 import numpy as np
 from open_seq2seq.decoders import TransformerDecoder

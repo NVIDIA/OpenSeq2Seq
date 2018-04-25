@@ -1,5 +1,8 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 import os
 
@@ -111,8 +114,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
             top_paths=top_paths, merge_repeated=merge_repeated,
           )
         )
-        return tf.SparseTensor(decoded_ixs[0], decoded_vals[0],
-                               decoded_shapes[0])
+        return tf.SparseTensor(decoded_ixs[0], decoded_vals[0], decoded_shapes[0])
 
       self.params['logits_to_outputs_func'] = decode_with_lm
     else:

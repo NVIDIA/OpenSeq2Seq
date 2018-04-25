@@ -3,6 +3,9 @@
 Encoders based on Transformers arch from https://arxiv.org/abs/1706.03762
 """
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 from .decoder import Decoder
 

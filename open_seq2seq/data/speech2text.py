@@ -1,16 +1,13 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-# Original work Copyright (c) 2018 Mozilla Corporation
-# Modified work Copyright (c) 2018 NVIDIA Corporation
+# Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import six
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-from six.moves import range
 
 from .data_layer import DataLayer
 from .speech_utils import get_speech_features_from_file
@@ -41,7 +38,7 @@ class Speech2TextDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._index = -1
@@ -192,7 +189,7 @@ class Speech2TextRandomDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
   def build_graph(self):
@@ -272,7 +269,7 @@ class Speech2TextTFDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None

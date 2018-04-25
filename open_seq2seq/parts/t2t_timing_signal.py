@@ -18,6 +18,10 @@
 # THIS CODE WAS TAKEN from: https://github.com/tensorflow/tensor2tensor/blob/master/tensor2tensor/layers/common_layers.py
 # The original license is in the top of this file
 
+from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 import math
 

@@ -1,6 +1,9 @@
 # Copyright (c) 2017 NVIDIA Corporation
 """Data Layer Classes"""
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import abc
 import six
 import tensorflow as tf

@@ -1,5 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import six
 import nltk
 import re
@@ -7,7 +10,8 @@ import codecs
 
 from .seq2seq import Seq2Seq
 from open_seq2seq.data.text2text import SpecialTextTokens
-from open_seq2seq.utils.utils import deco_print, array_to_string, text_ids_to_string
+from open_seq2seq.utils.utils import deco_print, array_to_string, \
+                                     text_ids_to_string
 
 
 def transform_for_bleu(row, vocab, ignore_special=False,

@@ -1,5 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
                                            MultiRNNCell
 from open_seq2seq.parts.experimental_rnn_cells.slstm import BasicSLSTMCell

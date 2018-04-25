@@ -3,6 +3,9 @@
 File containing various learning rate policies
 """
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 
 

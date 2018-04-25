@@ -1,47 +1,25 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-# Original work Copyright (c) 2018 Mozilla Corporation
-# Modified work Copyright (c) 2018 NVIDIA Corporation
+# Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
-from .seq2seq import Seq2Seq
-from open_seq2seq.utils.utils import deco_print
+from __future__ import unicode_literals
+from six.moves import range
 import pandas as pd
 
-
-def sparse_tuple_to_texts(tup, string_from_label):
-  indices = tup[0]
-  values = tup[1]
-  results = [''] * tup[2][0]
-  for i in range(len(indices)):
-    index = indices[i][0]
-    results[index] += string_from_label[values[i]]
-  # List of strings
-  return results
+from .seq2seq import Seq2Seq
+from open_seq2seq.utils.utils import deco_print
 
 
-def sparse_tensor_value_to_texts(value, string_from_label):
-  """
-  Given a :class:`tf.SparseTensor` ``value``, return an array of
-  Python strings representing its values.
-  """
-  return sparse_tuple_to_texts((value.indices, value.values,
-                                value.dense_shape), string_from_label)
+def sparse_tensor_to_chars(tensor, idx2char):
+  text = [''] * tensor.dense_shape[0]
+  for idx_tuple, value in zip(tensor.indices, tensor.values):
+    text[idx_tuple[0]] += idx2char[value]
+  return text
 
 
-# The following code is from: http://hetland.org/coding/python/levenshtein.py
-
-# This is a straightforward implementation of a well-known algorithm, and thus
-# probably shouldn't be covered by copyright to begin with. But in case it is,
-# the author (Magnus Lie Hetland) has, to the extent possible under law,
-# dedicated all copyright and related and neighboring rights to this software
-# to the public domain worldwide, by distributing it under the CC0 license,
-# version 1.0. This software is distributed without any warranty. For more
-# information, see <http://creativecommons.org/publicdomain/zero/1.0>
 def levenshtein(a, b):
-    """Calculates the Levenshtein distance between a and b."""
+    """Calculates the Levenshtein distance between a and b.
+    The code was copied from: http://hetland.org/coding/python/levenshtein.py
+    """
     n, m = len(a), len(b)
     if n > m:
         # Make sure n <= m, to use O(min(n,m)) space
@@ -74,13 +52,12 @@ class Speech2Text(Seq2Seq):
       y_one_sample = y[0][0]
       len_y_one_sample = len_y[0][0]
       decoded_sequence_one_batch = decoded_sequence[0]
-
     # we also clip the sample by the correct length
     true_text = "".join(map(
       self.data_layer.params['idx2char'].get,
       y_one_sample[:len_y_one_sample],
     ))
-    pred_text = "".join(sparse_tensor_value_to_texts(
+    pred_text = "".join(sparse_tensor_to_chars(
       decoded_sequence_one_batch, self.data_layer.params['idx2char'])[0]
     )
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
@@ -100,7 +77,7 @@ class Speech2Text(Seq2Seq):
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
       for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_value_to_texts(
+        decoded_texts = sparse_tensor_to_chars(
           decoded_sequence,
           self.data_layer.params['idx2char'],
         )
@@ -129,7 +106,7 @@ class Speech2Text(Seq2Seq):
                                            outputs_per_batch):
       for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_value_to_texts(
+        decoded_texts = sparse_tensor_to_chars(
           decoded_sequence,
           self.data_layer.params['idx2char'],
         )
