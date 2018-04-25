@@ -179,7 +179,7 @@ class Speech2TextModelTests(tf.test.TestCase):
       model.compile()
     model._gpu_ids = range(5)
     model.params['batch_size_per_gpu'] = 2
-    alphabet = model.data_layer.params['alphabet']
+    char2idx = model.data_layer.params['char2idx']
     inputs = [
       ['this is a great day', 'london is the capital of great britain'],
       ['ooo', 'lll'],
@@ -208,9 +208,9 @@ class Speech2TextModelTests(tf.test.TestCase):
         num_letters = len(inputs[gpu_id][sample_id])
         len_y[gpu_id][sample_id] = num_letters
         for letter_id in range(num_letters):
-          y[gpu_id][sample_id, letter_id] = alphabet.label_from_string(
+          y[gpu_id][sample_id, letter_id] = char2idx[
             inputs[gpu_id][sample_id][letter_id]
-          )
+          ]
 
     num_gpus = len(outputs)
     for gpu_id in range(num_gpus):
@@ -223,7 +223,7 @@ class Speech2TextModelTests(tf.test.TestCase):
         num_letters = len(outputs[gpu_id][sample_id])
         for letter_id in range(num_letters):
           values[gpu_id].append(
-            alphabet.label_from_string(outputs[gpu_id][sample_id][letter_id])
+            char2idx[outputs[gpu_id][sample_id][letter_id]]
           )
           indices[gpu_id].append(np.array([sample_id, letter_id]))
       values[gpu_id] = np.array(values[gpu_id], dtype=np.int)

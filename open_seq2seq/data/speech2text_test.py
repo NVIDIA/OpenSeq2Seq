@@ -12,8 +12,8 @@ class Speech2TextDataLayerTests(tf.test.TestCase):
   def setUp(self):
     self.params = {
       'batch_size': 2,
-      'alphabet_config_path': 'open_seq2seq/test_utils/toy_speech_data/alphabet.txt',
-      'dataset_path': [
+      'vocab_file': 'open_seq2seq/test_utils/toy_speech_data/vocab.txt',
+      'dataset_files': [
         'open_seq2seq/test_utils/toy_speech_data/toy_data.csv',
       ],
       'num_audio_features': 161,

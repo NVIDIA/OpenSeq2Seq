@@ -11,24 +11,24 @@ from open_seq2seq.utils.utils import deco_print
 import pandas as pd
 
 
-def sparse_tuple_to_texts(tup, alphabet):
+def sparse_tuple_to_texts(tup, string_from_label):
   indices = tup[0]
   values = tup[1]
   results = [''] * tup[2][0]
   for i in range(len(indices)):
     index = indices[i][0]
-    results[index] += alphabet.string_from_label(values[i])
+    results[index] += string_from_label[values[i]]
   # List of strings
   return results
 
 
-def sparse_tensor_value_to_texts(value, alphabet):
-  r"""
+def sparse_tensor_value_to_texts(value, string_from_label):
+  """
   Given a :class:`tf.SparseTensor` ``value``, return an array of
   Python strings representing its values.
   """
   return sparse_tuple_to_texts((value.indices, value.values,
-                                value.dense_shape), alphabet)
+                                value.dense_shape), string_from_label)
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
@@ -77,11 +77,11 @@ class Speech2Text(Seq2Seq):
 
     # we also clip the sample by the correct length
     true_text = "".join(map(
-      self.data_layer.params['alphabet'].string_from_label,
+      self.data_layer.params['idx2char'].get,
       y_one_sample[:len_y_one_sample],
     ))
     pred_text = "".join(sparse_tensor_value_to_texts(
-      decoded_sequence_one_batch, self.data_layer.params['alphabet'])[0]
+      decoded_sequence_one_batch, self.data_layer.params['idx2char'])[0]
     )
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
                  len(true_text.split())
@@ -102,17 +102,15 @@ class Speech2Text(Seq2Seq):
         decoded_sequence = output_values[gpu_id]
         decoded_texts = sparse_tensor_value_to_texts(
           decoded_sequence,
-          self.data_layer.params['alphabet'],
+          self.data_layer.params['idx2char'],
         )
         for sample_id in range(self.params['batch_size_per_gpu']):
           # y is the third returned input value, thus input_values[2]
           # len_y is the fourth returned input value
           y = input_values[2][gpu_id][sample_id]
           len_y = input_values[3][gpu_id][sample_id]
-          true_text = "".join(map(
-            self.data_layer.params['alphabet'].string_from_label,
-            y[:len_y],
-          ))
+          true_text = "".join(map(self.data_layer.params['idx2char'].get,
+                                  y[:len_y]))
           pred_text = "".join(decoded_texts[sample_id])
 
           total_word_lev += levenshtein(true_text.split(), pred_text.split())
@@ -133,7 +131,7 @@ class Speech2Text(Seq2Seq):
         decoded_sequence = output_values[gpu_id]
         decoded_texts = sparse_tensor_value_to_texts(
           decoded_sequence,
-          self.data_layer.params['alphabet'],
+          self.data_layer.params['idx2char'],
         )
         for sample_id in range(self.params['batch_size_per_gpu']):
           preds.append("".join(decoded_texts[sample_id]))
