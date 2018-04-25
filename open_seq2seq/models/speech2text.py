@@ -1,9 +1,4 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-# Original work Copyright (c) 2018 Mozilla Corporation
-# Modified work Copyright (c) 2018 NVIDIA Corporation
+# Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
@@ -21,17 +16,10 @@ def sparse_tensor_to_chars(tensor, idx2char):
   return text
 
 
-# The following code is from: http://hetland.org/coding/python/levenshtein.py
-
-# This is a straightforward implementation of a well-known algorithm, and thus
-# probably shouldn't be covered by copyright to begin with. But in case it is,
-# the author (Magnus Lie Hetland) has, to the extent possible under law,
-# dedicated all copyright and related and neighboring rights to this software
-# to the public domain worldwide, by distributing it under the CC0 license,
-# version 1.0. This software is distributed without any warranty. For more
-# information, see <http://creativecommons.org/publicdomain/zero/1.0>
 def levenshtein(a, b):
-    """Calculates the Levenshtein distance between a and b."""
+    """Calculates the Levenshtein distance between a and b.
+    The code was copied from: http://hetland.org/coding/python/levenshtein.py
+    """
     n, m = len(a), len(b)
     if n > m:
         # Make sure n <= m, to use O(min(n,m)) space

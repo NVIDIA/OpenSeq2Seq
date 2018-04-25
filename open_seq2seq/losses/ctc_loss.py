@@ -1,9 +1,4 @@
-# This Source Code Form is subject to the terms of the Mozilla Public
-# License, v. 2.0. If a copy of the MPL was not distributed with this
-# file, You can obtain one at http://mozilla.org/MPL/2.0/.
-#
-# Original work Copyright (c) 2018 Mozilla Corporation
-# Modified work Copyright (c) 2018 NVIDIA Corporation
+# Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
