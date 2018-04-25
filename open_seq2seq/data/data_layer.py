@@ -63,9 +63,9 @@ class DataLayer:
 
     Config parameters:
 
-      * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
-        Typically will be True for train and False for inference and evaluation.
-      * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
+    * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
+      Typically will be True for train and False for inference and evaluation.
+    * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)

@@ -2,7 +2,7 @@ import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
-from open_seq2seq.data import Speech2TextTFDataLayer
+from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
@@ -80,9 +80,9 @@ base_params = {
 
     # params for decoding the sequence with language model
     "beam_width": 512,
-    "lm_weight": 2.0,
-    "word_count_weight": 1.0,
-    "valid_word_count_weight": 2.5,
+    "lm_weight": 2.6,
+    "word_count_weight": 2.8,
+    "valid_word_count_weight": 0.0,
 
     "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
     "lm_binary_path": "language_model/lm.binary",
@@ -94,7 +94,7 @@ base_params = {
 }
 
 train_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 96,
     "input_type": "spectrogram",
@@ -111,7 +111,7 @@ train_params = {
 }
 
 eval_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 96,
     "input_type": "spectrogram",

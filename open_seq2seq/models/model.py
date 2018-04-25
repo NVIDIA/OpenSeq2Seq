@@ -103,77 +103,77 @@ class Model:
 
     Config parameters:
 
-      * **random_seed** (int) --- random seed to use.
-      * **use_horovod** (bool) --- whether to use Horovod for distributed
-        execution.
-      * **num_gpus** (int) --- number of GPUs to use. This parameter cannot be
-        used if ``gpu_ids`` is specified. When ``use_horovod`` is True
-        this parameter is ignored.
-      * **gpu_ids** (list of ints) --- GPU ids to use. This parameter cannot be
-        used if ``num_gpus`` is specified. When ``use_horovod`` is True
-        this parameter is ignored.
-      * **batch_size_per_gpu** (int) --- batch size to use for each GPU.
-      * **num_epochs** (int) --- number of epochs to run training for.
-        This parameter cannot be used if ``max_steps`` is specified.
-      * **max_steps** (int) --- number of steps to run training for.
-        This parameter cannot be used if ``num_epochs`` is specified.
-      * **save_summaries_steps** (int or None) --- how often to save summaries.
-        Setting it to None disables summaries saving.
-      * **print_loss_steps** (int or None) --- how often to print loss during
-        training. Setting it to None disables loss printing.
-      * **print_samples_steps** (int or None) --- how often to print training
-        samples (input sequences, correct answers and model predictions).
-        Setting it to None disables samples printing.
-      * **save_checkpoint_steps** (int or None) --- how often to save model
-        checkpoints. Setting it to None disables checkpoint saving.
-      * **eval_steps** (int) --- how often to run evaluation during training.
-        This parameter is only checked if ``--mode`` argument of ``run.py`` is
-        "train\_eval". If no evaluation is needed you should use "train" mode.
-      * **logdir** (string) --- path to the log directory where all checkpoints
-        and summaries will be saved.
-      * **data_layer** (any class derived from
-        :class:`DataLayer <data.data_layer.DataLayer>`) --- data layer class
-        to use.
-      * **data_layer_params** (dict) --- dictionary with data layer
-        configuration.
-        For complete list of possible parameters see the corresponding
-        class docs.
-      * **learning_rate** (float) --- initial learning rate for training.
-      * **optimizer** (string or TensorFlow optimizer class) --- optimizer to
-        use for training. Could be either "Adam", "Adagrad", "Ftrl", "Momentum",
-        "RMSProp", "SGD" or any valid TensorFlow optimizer class.
-      * **optimizer_params** (dict) --- dictionary that will be passed to
-        optimizer ``__init__`` method.
-      * **initializer** --- any valid TensorFlow initializer.
-      * **initializer_params** (dict) --- dictionary that will be passed to
-        initializer ``__init__`` method.
-      * **regularizer** --- and valid TensorFlow regularizer.
-      * **regularizer_params** (dict) --- dictionary that will be passed to
-        regularizer ``__init__`` method.
-      * **dtype** --- model dtype. Could be either ``tf.float16``,
-        ``tf.float32`` or "mixed". For details see
-        :ref:`mixed precision training <mixed_precision>` section in docs.
-      * **lr_policy** --- any valid learning rate policy function. For examples,
-        see :any:`optimizers.lr_policies` module.
-      * **lr_policy_params** (dict) --- dictionary containing lr_policy
-        parameters.
-      * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
-        will be performed if some gradients exceed this value (this is checked
-        for each variable independently).
-      * **larc_mode** --- specify this to use LARC or LARS optimization
-        algorithms. Could be either "scale" (LARS) or "clip" (LARC).
-        You also need to specify ``larc_nu`` to enable LARC or LARS. Note that
-        it works in addition to any other optimization algorithm since we treat
-        it as adaptive gradient clipping and learning rate adjustment.
-      * **larc_nu** (float) --- LARC or LARS scaling parameter.
-      * **loss_scale** (float) --- static loss scale to use. For details see
-        :ref:`mixed precision training <mixed_precision>` section in docs.
-      * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
-        either None, "Backoff" or "Logmax". For details see
-        :ref:`mixed precision training <mixed_precision>` section in docs.
-      * **summaries** (list) --- which summaries to log. Could contain
-        "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
-        "variables", "variable_norm".
+    * **random_seed** (int) --- random seed to use.
+    * **use_horovod** (bool) --- whether to use Horovod for distributed
+      execution.
+    * **num_gpus** (int) --- number of GPUs to use. This parameter cannot be
+      used if ``gpu_ids`` is specified. When ``use_horovod`` is True
+      this parameter is ignored.
+    * **gpu_ids** (list of ints) --- GPU ids to use. This parameter cannot be
+      used if ``num_gpus`` is specified. When ``use_horovod`` is True
+      this parameter is ignored.
+    * **batch_size_per_gpu** (int) --- batch size to use for each GPU.
+    * **num_epochs** (int) --- number of epochs to run training for.
+      This parameter cannot be used if ``max_steps`` is specified.
+    * **max_steps** (int) --- number of steps to run training for.
+      This parameter cannot be used if ``num_epochs`` is specified.
+    * **save_summaries_steps** (int or None) --- how often to save summaries.
+      Setting it to None disables summaries saving.
+    * **print_loss_steps** (int or None) --- how often to print loss during
+      training. Setting it to None disables loss printing.
+    * **print_samples_steps** (int or None) --- how often to print training
+      samples (input sequences, correct answers and model predictions).
+      Setting it to None disables samples printing.
+    * **save_checkpoint_steps** (int or None) --- how often to save model
+      checkpoints. Setting it to None disables checkpoint saving.
+    * **eval_steps** (int) --- how often to run evaluation during training.
+      This parameter is only checked if ``--mode`` argument of ``run.py`` is
+      "train\_eval". If no evaluation is needed you should use "train" mode.
+    * **logdir** (string) --- path to the log directory where all checkpoints
+      and summaries will be saved.
+    * **data_layer** (any class derived from
+      :class:`DataLayer <data.data_layer.DataLayer>`) --- data layer class
+      to use.
+    * **data_layer_params** (dict) --- dictionary with data layer
+      configuration.
+      For complete list of possible parameters see the corresponding
+      class docs.
+    * **learning_rate** (float) --- initial learning rate for training.
+    * **optimizer** (string or TensorFlow optimizer class) --- optimizer to
+      use for training. Could be either "Adam", "Adagrad", "Ftrl", "Momentum",
+      "RMSProp", "SGD" or any valid TensorFlow optimizer class.
+    * **optimizer_params** (dict) --- dictionary that will be passed to
+      optimizer ``__init__`` method.
+    * **initializer** --- any valid TensorFlow initializer.
+    * **initializer_params** (dict) --- dictionary that will be passed to
+      initializer ``__init__`` method.
+    * **regularizer** --- and valid TensorFlow regularizer.
+    * **regularizer_params** (dict) --- dictionary that will be passed to
+      regularizer ``__init__`` method.
+    * **dtype** --- model dtype. Could be either ``tf.float16``,
+      ``tf.float32`` or "mixed". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **lr_policy** --- any valid learning rate policy function. For examples,
+      see :any:`optimizers.lr_policies` module.
+    * **lr_policy_params** (dict) --- dictionary containing lr_policy
+      parameters.
+    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
+      will be performed if some gradients exceed this value (this is checked
+      for each variable independently).
+    * **larc_mode** --- specify this to use LARC or LARS optimization
+      algorithms. Could be either "scale" (LARS) or "clip" (LARC).
+      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that
+      it works in addition to any other optimization algorithm since we treat
+      it as adaptive gradient clipping and learning rate adjustment.
+    * **larc_nu** (float) --- LARC or LARS scaling parameter.
+    * **loss_scale** (float) --- static loss scale to use. For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
+      either None, "Backoff" or "Logmax". For details see
+      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **summaries** (list) --- which summaries to log. Could contain
+      "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
+      "variables", "variable_norm".
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
 
