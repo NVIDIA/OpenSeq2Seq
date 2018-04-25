@@ -6,29 +6,18 @@
 # Modified work Copyright (c) 2018 NVIDIA Corporation
 
 from __future__ import absolute_import, division, print_function
-from .seq2seq import Seq2Seq
-from open_seq2seq.utils.utils import deco_print
+from six.moves import range
 import pandas as pd
 
-
-def sparse_tuple_to_texts(tup, string_from_label):
-  indices = tup[0]
-  values = tup[1]
-  results = [''] * tup[2][0]
-  for i in range(len(indices)):
-    index = indices[i][0]
-    results[index] += string_from_label[values[i]]
-  # List of strings
-  return results
+from .seq2seq import Seq2Seq
+from open_seq2seq.utils.utils import deco_print
 
 
-def sparse_tensor_value_to_texts(value, string_from_label):
-  """
-  Given a :class:`tf.SparseTensor` ``value``, return an array of
-  Python strings representing its values.
-  """
-  return sparse_tuple_to_texts((value.indices, value.values,
-                                value.dense_shape), string_from_label)
+def sparse_tensor_to_chars(tensor, idx2char):
+  text = [''] * tensor.dense_shape[0]
+  for idx_tuple, value in zip(tensor.indices, tensor.values):
+    text[idx_tuple[0]] += idx2char[value]
+  return text
 
 
 # The following code is from: http://hetland.org/coding/python/levenshtein.py
@@ -74,13 +63,12 @@ class Speech2Text(Seq2Seq):
       y_one_sample = y[0][0]
       len_y_one_sample = len_y[0][0]
       decoded_sequence_one_batch = decoded_sequence[0]
-
     # we also clip the sample by the correct length
     true_text = "".join(map(
       self.data_layer.params['idx2char'].get,
       y_one_sample[:len_y_one_sample],
     ))
-    pred_text = "".join(sparse_tensor_value_to_texts(
+    pred_text = "".join(sparse_tensor_to_chars(
       decoded_sequence_one_batch, self.data_layer.params['idx2char'])[0]
     )
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
@@ -100,7 +88,7 @@ class Speech2Text(Seq2Seq):
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
       for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_value_to_texts(
+        decoded_texts = sparse_tensor_to_chars(
           decoded_sequence,
           self.data_layer.params['idx2char'],
         )
@@ -129,7 +117,7 @@ class Speech2Text(Seq2Seq):
                                            outputs_per_batch):
       for gpu_id in range(self.num_gpus):
         decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_value_to_texts(
+        decoded_texts = sparse_tensor_to_chars(
           decoded_sequence,
           self.data_layer.params['idx2char'],
         )

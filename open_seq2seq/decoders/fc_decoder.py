@@ -111,8 +111,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
             top_paths=top_paths, merge_repeated=merge_repeated,
           )
         )
-        return tf.SparseTensor(decoded_ixs[0], decoded_vals[0],
-                               decoded_shapes[0])
+        return tf.SparseTensor(decoded_ixs[0], decoded_vals[0], decoded_shapes[0])
 
       self.params['logits_to_outputs_func'] = decode_with_lm
     else:

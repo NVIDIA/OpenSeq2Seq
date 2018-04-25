@@ -41,7 +41,7 @@ class Speech2TextDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._index = -1
@@ -192,7 +192,7 @@ class Speech2TextRandomDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
   def build_graph(self):
@@ -272,7 +272,7 @@ class Speech2TextTFDataLayer(DataLayer):
       self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
-    # add one for implied word separation token
+    # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None
