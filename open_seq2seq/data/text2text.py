@@ -7,6 +7,7 @@ import copy
 import io
 from enum import Enum
 from .data_layer import DataLayer
+from .utils import load_pre_existing_vocabulary
 
 
 class SpecialTextTokens(Enum):
@@ -42,23 +43,6 @@ def weighted_choice(choices):
       return i
     mx += w
   raise AssertionError("weighted choice got to the wrong place")
-
-
-def load_pre_existing_vocabulary(path, min_idx):
-  """
-  Loads pre-existing vocabulary into memory
-  :param path: path to vocabulary
-  :param min_idx: minimum id to assign for a token
-  :return: vocabulary
-  """
-  idx = min_idx
-  vocab = {}
-  with io.open(path, newline='', encoding='utf-8') as f:
-    for line in f:
-      word = line.rstrip().split('\t')[0]
-      vocab[word] = idx
-      idx += 1
-  return vocab
 
 
 class ParallelDataInRamInputLayer(DataLayer):
@@ -509,8 +493,8 @@ class ParallelTextDataLayer(DataLayer):
       SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
       SpecialTextTokens.PAD_ID.value
 
-    self.src_idx2seq = {id: w for w, id in self.src_seq2idx.items()}
-    self.tgt_idx2seq = {id: w for w, id in self.tgt_seq2idx.items()}
+    self.src_idx2seq = {idx: w for w, idx in self.src_seq2idx.items()}
+    self.tgt_idx2seq = {idx: w for w, idx in self.tgt_seq2idx.items()}
 
     self.params['src_vocab_size'] = len(self.src_seq2idx)
     self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
@@ -518,8 +502,6 @@ class ParallelTextDataLayer(DataLayer):
     self.params['source_seq2idx'] = self.src_seq2idx
     self.params['target_idx2seq'] = self.tgt_idx2seq
     self.params['source_idx2seq'] = self.src_idx2seq
-    self.params['src_vocab_size'] = len(self.src_seq2idx)
-    self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
 
   def build_graph(self):
     def pad2eight(lst, do_pad_eight):

@@ -10,46 +10,11 @@ import six
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-import codecs
-import os
 from six.moves import range
 
 from .data_layer import DataLayer
 from .speech_utils import get_speech_features_from_file
-
-
-class Alphabet(object):
-  def __init__(self, config_file):
-    self._label_to_str = []
-    self._str_to_label = {}
-    self._size = 0
-    with codecs.open(config_file, 'r', 'utf-8') as fin:
-      for line in fin:
-        if line[0:2] == '\\#':
-          line = '#\n'
-        elif line[0] == '#':
-          continue
-        self._label_to_str += line[:-1]  # remove the line ending
-        self._str_to_label[line[:-1]] = self._size
-        self._size += 1
-
-  def string_from_label(self, label):
-    return self._label_to_str[label]
-
-  def label_from_string(self, string):
-    return self._str_to_label[string]
-
-  def size(self):
-    return self._size
-
-
-def text_to_char_array(original, alphabet):
-  """
-  Given a Python string ``original``, remove unsupported characters,
-  map characters to integers and return a numpy array representing
-  the processed string.
-  """
-  return np.asarray([alphabet.label_from_string(c) for c in original])
+from .utils import load_pre_existing_vocabulary
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -58,8 +23,8 @@ class Speech2TextDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       'input_type': ['spectrogram', 'mfcc'],
-      'alphabet_config_path': str,
-      'dataset_path': list,
+      'vocab_file': str,
+      'dataset_files': list,
     })
 
   @staticmethod
@@ -69,33 +34,19 @@ class Speech2TextDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """
-    Required params:
-      batch_size_per_gpu
-      alphabet_config_path
-      dataset_path
-      num_audio_features
-      input_type
-    Example:
-      params = {
-        'batch_size': 16,
-        'alphabet_config_path': 'data/alphabet.txt',
-        'dataset_path': ['/raid/data/speech/WSJ/wsj-train-128.csv'],
-        'num_audio_features': 161,
-        'input_type': 'spectrogram',
-      }
-    """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
 
-    self.params['alphabet'] = Alphabet(
-      os.path.abspath(params['alphabet_config_path'])
+    self.params['char2idx'] = load_pre_existing_vocabulary(
+      self.params['vocab_file'], read_chars=True,
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
-    
+    self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
+    # add one for implied word separation token
+    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
+
     self._index = -1
     self._files = None
-    for csv in params['dataset_path']:
+    for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
         self._files = files
@@ -156,7 +107,7 @@ class Speech2TextDataLayer(DataLayer):
 
     if self.params['use_targets']:
       wav_file, transcript = self._files[self._index]
-      target = text_to_char_array(transcript, self.params['alphabet'])
+      target = np.array([self.params['char2idx'][c] for c in transcript])
     else:
       wav_file = self._files[self._index]
 
@@ -222,8 +173,8 @@ class Speech2TextRandomDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       'input_type': ['spectrogram', 'mfcc'],
-      'alphabet_config_path': str,
-      'dataset_path': list,
+      'vocab_file': str,
+      'dataset_files': list,
     })
 
   @staticmethod
@@ -233,16 +184,16 @@ class Speech2TextRandomDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """
-    Random data for speech check
-    """
+    """Random data for speech check"""
     super(Speech2TextRandomDataLayer, self).__init__(params, model,
                                                      num_workers, worker_id)
     self.random_data = None
-    self.params['alphabet'] = Alphabet(
-      os.path.abspath(params['alphabet_config_path'])
+    self.params['char2idx'] = load_pre_existing_vocabulary(
+      self.params['vocab_file'], read_chars=True,
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
+    self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
+    # add one for implied word separation token
+    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
   def build_graph(self):
     pass
@@ -303,8 +254,8 @@ class Speech2TextTFDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       'input_type': ['spectrogram', 'mfcc'],
-      'alphabet_config_path': str,
-      'dataset_path': list,
+      'vocab_file': str,
+      'dataset_files': list,
     })
 
   @staticmethod
@@ -314,32 +265,18 @@ class Speech2TextTFDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """
-    Required params:
-      batch_size
-      alphabet_config_path
-      dataset_path
-      num_audio_features
-      input_type
-    Example:
-      params = {
-        'batch_size': 16,
-        'alphabet_config_path': 'data/alphabet.txt',
-        'dataset_path': ['/raid/data/speech/WSJ/wsj-train-128.csv'],
-        'num_audio_features': 161,
-        'input_type': 'spectrogram',
-      }
-    """
     super(Speech2TextTFDataLayer, self).__init__(params, model,
                                                  num_workers, worker_id)
 
-    self.params['alphabet'] = Alphabet(
-      os.path.abspath(params['alphabet_config_path'])
+    self.params['char2idx'] = load_pre_existing_vocabulary(
+      self.params['vocab_file'], read_chars=True,
     )
-    self.params['tgt_vocab_size'] = self.params['alphabet'].size() + 1
+    self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
+    # add one for implied word separation token
+    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None
-    for csv in params['dataset_path']:
+    for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
         self._files = files
@@ -396,7 +333,7 @@ class Speech2TextTFDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
-    target = text_to_char_array(transcript, self.params['alphabet'])
+    target = np.array([self.params['char2idx'][c] for c in transcript])
     source = get_speech_features_from_file(
       audio_filename, self.params['num_audio_features'],
       features_type=self.params['input_type'],
@@ -423,7 +360,8 @@ class Speech2TextTFDataLayer(DataLayer):
   def gen_input_tensors(self):
     if self.params['use_targets']:
       x, x_length, y, y_length = self.iterator.get_next()
-      # need to explicitly set batch size dimension (it is employed in the model)
+      # need to explicitly set batch size dimension
+      # (it is employed in the model)
       y.set_shape([self.params['batch_size'], None])
       y_length = tf.reshape(y_length, [self.params['batch_size']])
     else:
