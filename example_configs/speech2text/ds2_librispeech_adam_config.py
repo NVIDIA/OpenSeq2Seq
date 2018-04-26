@@ -2,7 +2,7 @@ import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
-from open_seq2seq.data import Speech2TextTFDataLayer
+from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
@@ -100,7 +100,7 @@ base_params = {
 }
 
 train_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
@@ -118,7 +118,7 @@ train_params = {
 }
 
 eval_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",

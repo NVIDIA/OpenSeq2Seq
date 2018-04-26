@@ -12,6 +12,7 @@ from .encoder import Encoder
 def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
                    padding, regularizer, training, data_format, bn_momentum,
                    bn_epsilon):
+  """Helper function that applied convolution, batch norm and activation."""
   conv = tf.layers.conv2d(
     name="{}".format(name),
     inputs=inputs,
@@ -37,6 +38,7 @@ def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
 
 
 def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
+  """Helper function that creates RNN cell."""
   if layer_type == "layernorm_lstm":
     cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
       num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
@@ -59,6 +61,7 @@ def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
 
 def row_conv(name, input_layer, batch, channels, width, activation_fn,
              regularizer, training, data_format, bn_momentum, bn_epsilon):
+  """Helper function that applies "row" or "in plane" convolution."""
   if width < 2:
     return input_layer
 
@@ -105,6 +108,7 @@ def row_conv(name, input_layer, batch, channels, width, activation_fn,
 
 
 class DeepSpeech2Encoder(Encoder):
+  """DeepSpeech-2 like encoder."""
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
@@ -130,12 +134,63 @@ class DeepSpeech2Encoder(Encoder):
     })
 
   def __init__(self, params, model, name="ds2_encoder", mode='train'):
+    """DeepSpeech-2 like encoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **conv_layers** (list) --- list with the description of convolutional
+      layers. For example::
+        "conv_layers": [
+          {
+            "kernel_size": [11, 41], "stride": [2, 2],
+            "num_channels": 32, "padding": "SAME",
+          },
+          {
+            "kernel_size": [11, 21], "stride": [1, 2],
+            "num_channels": 64, "padding": "SAME",
+          },
+          {
+            "kernel_size": [11, 21], "stride": [1, 2],
+            "num_channels": 96, "padding": "SAME",
+          },
+        ]
+    * **activation_fn** --- activation function to use.
+    * **num_rnn_layers** --- number of RNN layers to use.
+    * **rnn_type** (string) --- could be "lstm", "gru", "cudnn_gru",
+      "cudnn_lstm" or "layernorm_lstm".
+    * **rnn_unidirectional** (bool) --- whether to use uni-directional or
+      bi-directional RNNs.
+    * **rnn_cell_dim** (int) --- dimension of RNN cells.
+    * **row_conv** (bool) --- whether to use a "row" ("in plane") convolutional
+      layer after RNNs.
+    * **row_conv_width** (int) --- width parameter for "row"
+      convolutional layer.
+    * **n_hidden** (int) --- number of hidden units for the last fully connected
+      layer.
+    * **data_format** (string) --- could be either "channels_first" or
+      "channels_last". Defaults to "channels_last".
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
+    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
+    """
     super(DeepSpeech2Encoder, self).__init__(params, model, name, mode)
 
   def _encode(self, input_dict):
-    source_sequence = input_dict['src_sequence']
+    """Creates TensorFlow graph for DeepSpeech-2 like encoder.
 
+    Expects the following inputs::
+
+      input_dict = {
+        "src_sequence": tensor of shape [batch_size, sequence length, num features]
+        "src_length": tensor of shape [batch_size]
+      }
+    """
+
+    source_sequence = input_dict['src_sequence']
     src_length = input_dict['src_length']
+
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)

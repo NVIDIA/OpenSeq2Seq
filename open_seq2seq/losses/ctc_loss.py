@@ -26,6 +26,15 @@ class CTCLoss(Loss):
     })
 
   def __init__(self, params, model, name="ctc_loss"):
+    """CTC loss constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **mask_nan** (bool) --- whether to mask nans in the loss output. Defaults
+      to True.
+    """
     super(CTCLoss, self).__init__(params, model, name)
     self._mask_nan = self.params.get("mask_nan", True)
     # this loss can only operate in full precision
@@ -34,16 +43,18 @@ class CTCLoss(Loss):
     self.params['dtype'] = tf.float32
 
   def _compute_loss(self, input_dict):
-    """
-    Computes CTC loss
-    :param input_dict: inputs to compute loss
-    {
-          "logits": logits tensor of shape [batch_size, T, dim]
-          "target_sequence": tensor of shape [batch_size, T]
-          "src_lengths": tensor of shape [batch_size]
-          "tgt_lengths": tensor of shape [batch_size]
-    }
-    :return: Singleton loss tensor
+    """CTC loss graph construction.
+
+    Expects the following inputs::
+
+      input_dict = {
+        "decoder_output": {
+          "logits": tensor of shape [batch_size, time length, num features]
+          "src_length": tensor of shape [batch_size]
+        }
+        "tgt_sequence": tensor of shape [batch_size, time length]
+        "tgt_length": tensor of shape [batch_size]
+      }
     """
     logits = input_dict['decoder_output']['logits']
     tgt_sequence = input_dict['tgt_sequence']

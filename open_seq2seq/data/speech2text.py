@@ -14,7 +14,12 @@ from .speech_utils import get_speech_features_from_file
 from .utils import load_pre_existing_vocabulary
 
 
-class Speech2TextDataLayer(DataLayer):
+class Speech2TextPlaceholdersDataLayer(DataLayer):
+  """Speech-to-text data layer class, that **does not** use ``tf.data`` API.
+  This class should not be used in real experiments, since it is a lot slower
+  than fast ``tf.data`` based implementation. It can be useful in debugging
+  certain things and as an example of data layer with placeholders.
+  """
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -31,8 +36,29 @@ class Speech2TextDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    super(Speech2TextDataLayer, self).__init__(params, model,
-                                               num_workers, worker_id)
+    """Speech-to-text placeholders-based data layer constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **num_audio_features** (int) --- number of audio features to extract.
+    * **input_type** (str) --- could be either "spectrogram" or "mfcc".
+    * **vocab_file** (str) --- path to vocabulary file.
+    * **dataset_files** (list) --- list with paths to all dataset .csv files.
+    * **augmentation** (dict) --- optional dictionary with data augmentation
+      parameters. Can contain "time_stretch_ratio", "noise_level_min" and
+      "noise_level_max" parameters, e.g.::
+        {
+          'time_stretch_ratio': 0.05,
+          'noise_level_min': -90,
+          'noise_level_max': -60,
+        }
+      For additional details on these parameters see
+      :func:`data.speech_utils.augment_audio_signal` function.
+    """
+    super(Speech2TextPlaceholdersDataLayer, self).__init__(params, model,
+                                                           num_workers, worker_id)
 
     self.params['char2idx'] = load_pre_existing_vocabulary(
       self.params['vocab_file'], read_chars=True,
@@ -62,12 +88,17 @@ class Speech2TextDataLayer(DataLayer):
     self._size = self.get_size_in_samples()
 
   def build_graph(self):
+    """Empty since no graph construction is required,
+    besides creating placeholders.
+    """
     pass
 
   def shuffle(self):
+    """Shuffles list of file names."""
     self._files = np.random.permutation(self._files)
 
   def gen_input_tensors(self):
+    """Creates and returns necessary placeholders."""
     x = tf.placeholder(
       self.params['dtype'],
       [self.params['batch_size'], None,
@@ -95,9 +126,13 @@ class Speech2TextDataLayer(DataLayer):
       return [x, x_length]
 
   def get_size_in_samples(self):
+    """Returns the number of audio files."""
     return len(self._files)
 
   def get_one_sample(self):
+    """This is a helper function that processes one audio file
+    and its transcript.
+    """
     self._index += 1
     if self._index == self._size:
       self._index = 0
@@ -119,6 +154,7 @@ class Speech2TextDataLayer(DataLayer):
       return source
 
   def next_batch(self):
+    """Returns next batch data in numpy arrays."""
     sources = []
     sources_len = np.empty(self.params['batch_size'], dtype=np.int)
     max_length_sc = 0
@@ -160,11 +196,14 @@ class Speech2TextDataLayer(DataLayer):
       return np.array(sources), sources_len
 
   def next_batch_feed_dict(self):
+    """Generates next batch feed dictionary."""
     return {self.get_input_tensors(): self.next_batch()}
 
 
 class Speech2TextRandomDataLayer(DataLayer):
-  """This class should be used for performance profiling only."""
+  """This class should be used for performance profiling only.
+  It generates random sequences instead of the real audio data.
+  """
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -181,7 +220,6 @@ class Speech2TextRandomDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """Random data for speech check"""
     super(Speech2TextRandomDataLayer, self).__init__(params, model,
                                                      num_workers, worker_id)
     self.random_data = None
@@ -245,7 +283,10 @@ class Speech2TextRandomDataLayer(DataLayer):
     return {self.get_input_tensors(): self.random_data}
 
 
-class Speech2TextTFDataLayer(DataLayer):
+class Speech2TextDataLayer(DataLayer):
+  """Speech-to-text data layer class, that uses ``tf.data`` API.
+  This is a recommended class to use in real experiments.
+  """
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -262,8 +303,29 @@ class Speech2TextTFDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    super(Speech2TextTFDataLayer, self).__init__(params, model,
-                                                 num_workers, worker_id)
+    """Speech-to-text ``tf.data`` based data layer constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **num_audio_features** (int) --- number of audio features to extract.
+    * **input_type** (str) --- could be either "spectrogram" or "mfcc".
+    * **vocab_file** (str) --- path to vocabulary file.
+    * **dataset_files** (list) --- list with paths to all dataset .csv files.
+    * **augmentation** (dict) --- optional dictionary with data augmentation
+      parameters. Can contain "time_stretch_ratio", "noise_level_min" and
+      "noise_level_max" parameters, e.g.::
+        {
+          'time_stretch_ratio': 0.05,
+          'noise_level_min': -90,
+          'noise_level_max': -60,
+        }
+      For additional details on these parameters see
+      :func:`data.speech_utils.augment_audio_signal` function.
+    """
+    super(Speech2TextDataLayer, self).__init__(params, model,
+                                               num_workers, worker_id)
 
     self.params['char2idx'] = load_pre_existing_vocabulary(
       self.params['vocab_file'], read_chars=True,
@@ -288,8 +350,11 @@ class Speech2TextTFDataLayer(DataLayer):
     self.params['files'] = self._files
 
     self._size = self.get_size_in_samples()
+    self.tfdataset = None
+    self.iterator = None
 
   def build_graph(self):
+    """Builds data reading graph using ``tf.data`` API."""
     self.tfdataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle'] and self.params['use_targets']:
       self.tfdataset = self.tfdataset.shuffle(self._size)
@@ -323,9 +388,14 @@ class Speech2TextTFDataLayer(DataLayer):
     self.iterator = self.tfdataset.prefetch(8).make_one_shot_iterator()
 
   def _parse_audio_transcript_element(self, element):
-    """
-    Parses tf.data element from TextLineDataset,
-    returns source audio and target text NumPy arrays
+    """Parses tf.data element from TextLineDataset into audio and text.
+
+    Args:
+      element: tf.data element from TextLineDataset.
+
+    Returns:
+      tuple: source audio features as ``np.array``, length of source sequence,
+      target text as `np.array` of ids, target text length.
     """
     audio_filename, transcript = element
     if not six.PY2:
@@ -342,9 +412,13 @@ class Speech2TextTFDataLayer(DataLayer):
            np.int32([len(target)])
 
   def _parse_audio_element(self, audio_filename):
-    """
-    Parses tf.data element from TextLineDataset,
-    returns source audio NumPy array
+    """Parses audio from file and returns array of audio features.
+
+    Args:
+      audio_filename: audio file name.
+
+    Returns:
+      tuple: source audio features as ``np.array``, length of source sequence,
     """
     source = get_speech_features_from_file(
       audio_filename, self.params['num_audio_features'],
@@ -355,6 +429,7 @@ class Speech2TextTFDataLayer(DataLayer):
            np.int32([len(source)])
 
   def gen_input_tensors(self):
+    """Generates input tensors using ``iterator.get_next()`` method."""
     if self.params['use_targets']:
       x, x_length, y, y_length = self.iterator.get_next()
       # need to explicitly set batch size dimension
@@ -373,10 +448,13 @@ class Speech2TextTFDataLayer(DataLayer):
       return [x, x_length]
 
   def shuffle(self):
+    """This method is empty, since shuffling is performed by ``tf.data``."""
     pass
 
   def get_size_in_samples(self):
+    """Returns the number of audio files."""
     return len(self._files)
 
   def next_batch_feed_dict(self):
+    """This method is empty, since ``tf.data`` does not need feed dictionary."""
     return {}

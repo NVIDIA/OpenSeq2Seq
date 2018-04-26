@@ -102,7 +102,7 @@ class Speech2TextModelTests(tf.test.TestCase):
   def test_infer(self):
     train_config, infer_config = self.prepare_config()
     train_config['num_epochs'] = 200
-    infer_config['batch_size_per_gpu'] = 5
+    infer_config['batch_size_per_gpu'] = 4
     infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():

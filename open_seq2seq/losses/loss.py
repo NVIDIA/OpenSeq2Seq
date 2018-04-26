@@ -38,7 +38,7 @@ class Loss:
             class :meth:`__init__` method.
     """
     return {
-      'dtype': [tf.float16, tf.float32, "mixed"],
+      'dtype': [tf.float16, tf.float32],
     }
 
   def __init__(self, params, model, name="loss"):
@@ -55,6 +55,10 @@ class Loss:
           parent model that created this loss.
           Could be None if no model access is required for the use case.
       name (str): name for loss variable scope.
+
+    Config parameters:
+
+    * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)

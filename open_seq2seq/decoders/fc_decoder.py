@@ -10,6 +10,9 @@ from .decoder import Decoder
 
 
 class FullyConnectedTimeDecoder(Decoder):
+  """Fully connected decoder that operates on inputs with time dimension.
+  That is, input shape should be ``[batch size, time length, num features]``.
+  """
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
@@ -24,9 +27,31 @@ class FullyConnectedTimeDecoder(Decoder):
 
   def __init__(self, params, model,
                name="fully_connected_time_decoder", mode='train'):
+    """Fully connected time decoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **tgt_vocab_size** (int) --- target vocabulary size, i.e. number of
+      output features.
+    * **logits_to_outputs_func** --- function that maps produced logits to
+      decoder samples, i.e. actual text sequences.
+    """
     super(FullyConnectedTimeDecoder, self).__init__(params, model, name, mode)
 
   def _decode(self, input_dict):
+    """Creates TensorFlow graph for fully connected time decoder.
+
+    Expects the following inputs::
+
+      input_dict = {
+        "encoder_output": {
+          "outputs": tensor of shape [batch_size, time length, hidden dim]
+          "src_length": tensor of shape [batch_size]
+        }
+      }
+    """
     inputs = input_dict['encoder_output']['outputs']
     regularizer = self.params.get('regularizer', None)
 
@@ -62,6 +87,10 @@ class FullyConnectedTimeDecoder(Decoder):
 
 
 class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
+  """Fully connected time decoder that provides a CTC-based text
+  generation (either with or without language model). If language model is not
+  used, ``tf.nn.ctc_greedy_decoder`` will be used as text generation method.
+  """
   @staticmethod
   def get_required_params():
     return dict(FullyConnectedTimeDecoder.get_required_params(), **{
@@ -83,6 +112,27 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
 
   def __init__(self, params, model,
                name="fully_connected_ctc_decoder", mode='train'):
+    """Fully connected CTC decoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **use_language_model** (bool) --- whether to use language model for
+      output text generation. If False, other config parameters are not used.
+    * **decoder_library_path** (string) --- path to the ctc decoder with
+      language model library.
+    * **lm_binary_path** (string) --- path to the language model file.
+    * **lm_trie_path** (string) --- path to the language model trie file.
+    * **alphabet_config_path** (string) --- path to the alphabet file.
+    * **beam_width** (int) --- beam width for beam search.
+    * **lm_weight** (float) --- weight that is assigned to language model
+      probabilities.
+    * **word_count_weight** (float) --- weight that is assigned to the
+      word count.
+    * **valid_word_count_weight** (float) --- weight that is assigned to the
+      valid word count, i.e. words that exist in language model dictionary.
+    """
     super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
 
     if self.params['use_language_model']:

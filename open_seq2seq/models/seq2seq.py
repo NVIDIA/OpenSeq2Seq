@@ -51,18 +51,18 @@ class Seq2Seq(Model):
 
     Config parameters:
 
-      * **encoder** (any class derived from
-        :class:`Encoder <encoders.encoder.Encoder>`) --- encoder class to use.
-      * **encoder_params** (dict) --- dictionary with encoder configuration. For
-        complete list of possible parameters see the corresponding class docs.
-      * **decoder** (any class derived from
-        :class:`Decoder <decoders.decoder.Decoder>`) --- decoder class to use.
-      * **decoder_params** (dict) --- dictionary with decoder configuration. For
-        complete list of possible parameters see the corresponding class docs.
-      * **loss** (any class derived from
-        :class:`Loss <losses.loss.Loss>`) --- loss class to use.
-      * **loss_params** (dict) --- dictionary with loss configuration. For
-        complete list of possible parameters see the corresponding class docs.
+    * **encoder** (any class derived from
+      :class:`Encoder <encoders.encoder.Encoder>`) --- encoder class to use.
+    * **encoder_params** (dict) --- dictionary with encoder configuration. For
+      complete list of possible parameters see the corresponding class docs.
+    * **decoder** (any class derived from
+      :class:`Decoder <decoders.decoder.Decoder>`) --- decoder class to use.
+    * **decoder_params** (dict) --- dictionary with decoder configuration. For
+      complete list of possible parameters see the corresponding class docs.
+    * **loss** (any class derived from
+      :class:`Loss <losses.loss.Loss>`) --- loss class to use.
+    * **loss_params** (dict) --- dictionary with loss configuration. For
+      complete list of possible parameters see the corresponding class docs.
     """
     super(Seq2Seq, self).__init__(params=params, mode=mode, hvd=hvd)
     if 'encoder_params' not in self.params:

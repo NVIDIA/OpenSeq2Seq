@@ -157,7 +157,9 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     inputs_per_batch, outputs_per_batch = [], []
     total_loss = 0.0
 
-    for cnt, feed_dict in enumerate(self._model.data_layer.iterate_one_epoch()):
+    for cnt, feed_dict in enumerate(
+      self._model.data_layer.iterate_one_epoch(cross_over=True)
+    ):
       loss, inputs, outputs = run_context.session.run(
         self._fetches, feed_dict,
       )
