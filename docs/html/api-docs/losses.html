@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -194,12 +196,18 @@ graph construction should happen in the
 <li><strong>params</strong> (<em>dict</em>) – parameters describing the loss.
 All supported parameters are listed in <a class="reference internal" href="#losses.loss.Loss.get_required_params" title="losses.loss.Loss.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
 <a class="reference internal" href="#losses.loss.Loss.get_optional_params" title="losses.loss.Loss.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this loss.
+Could be None if no model access is required for the use case.</li>
 <li><strong>name</strong> (<em>str</em>) – name for loss variable scope.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>dtype</strong> — data dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code> or <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>.</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
@@ -234,7 +242,7 @@ return a singleton loss tensor.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary containing loss inputs. This dict will
 typically have the following content:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">decoder_logits</span><span class="p">,</span>
+  <span class="s2">&quot;decoder_output&quot;</span><span class="p">:</span> <span class="n">decoder_output</span><span class="p">,</span>
   <span class="s2">&quot;tgt_sequence&quot;</span><span class="p">:</span> <span class="n">target_sequence</span><span class="p">,</span>
   <span class="s2">&quot;tgt_length&quot;</span><span class="p">:</span> <span class="n">target_length</span><span class="p">,</span>
 <span class="p">}</span>
@@ -327,18 +335,32 @@ class <a class="reference internal" href="#losses.loss.Loss.__init__" title="los
 <dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
 <p>Implementation of the CTC loss.</p>
 <dl class="method">
+<dt id="losses.ctc_loss.CTCLoss.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='ctc_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>CTC loss constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>mask_nan</strong> (bool) — whether to mask nans in the loss output. Defaults
+to True.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
 <dt id="losses.ctc_loss.CTCLoss._compute_loss">
 <code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#CTCLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.CTCLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes CTC loss
-:param input_dict: inputs to compute loss
-{</p>
-<blockquote>
-<div>“logits”: logits tensor of shape [batch_size, T, dim]
-“target_sequence”: tensor of shape [batch_size, T]
-“src_lengths”: tensor of shape [batch_size]
-“tgt_lengths”: tensor of shape [batch_size]</div></blockquote>
-<p>}
-:return: Singleton loss tensor</p>
+<dd><p>CTC loss graph construction.</p>
+<p>Expects the following inputs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;decoder_output&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">time</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]</span>
+    <span class="s2">&quot;src_length&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+  <span class="p">}</span>
+  <span class="s2">&quot;tgt_sequence&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">time</span> <span class="n">length</span><span class="p">]</span>
+  <span class="s2">&quot;tgt_length&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -351,7 +373,7 @@ class <a class="reference internal" href="#losses.loss.Loss.__init__" title="los
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+class <a class="reference internal" href="#losses.ctc_loss.CTCLoss.__init__" title="losses.ctc_loss.CTCLoss.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -362,13 +384,8 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 </dd></dl>
 
 <dl class="function">
-<dt id="losses.ctc_loss.ctc_label_dense_to_sparse">
-<code class="descclassname">losses.ctc_loss.</code><code class="descname">ctc_label_dense_to_sparse</code><span class="sig-paren">(</span><em>labels</em>, <em>label_lengths</em>, <em>batch_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#ctc_label_dense_to_sparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.ctc_label_dense_to_sparse" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="losses.ctc_loss.gather_nd">
-<code class="descclassname">losses.ctc_loss.</code><code class="descname">gather_nd</code><span class="sig-paren">(</span><em>params</em>, <em>indices</em>, <em>shape</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#gather_nd"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.gather_nd" title="Permalink to this definition">¶</a></dt>
+<dt id="losses.ctc_loss.dense_to_sparse">
+<code class="descclassname">losses.ctc_loss.</code><code class="descname">dense_to_sparse</code><span class="sig-paren">(</span><em>dense_tensor</em>, <em>sequence_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/ctc_loss.html#dense_to_sparse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.ctc_loss.dense_to_sparse" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

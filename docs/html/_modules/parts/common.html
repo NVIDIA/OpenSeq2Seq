@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for parts.common</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.t2t_timing_signal</span> <span class="k">import</span> <span class="n">add_timing_signal</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.text2text</span> <span class="k">import</span> <span class="n">SpecialTextTokens</span>

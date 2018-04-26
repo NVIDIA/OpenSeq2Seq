@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for models.seq2seq</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.models.model</span> <span class="k">import</span> <span class="n">Model</span>
@@ -199,18 +204,18 @@
 
 <span class="sd">    Config parameters:</span>
 
-<span class="sd">      * **encoder** (any class derived from</span>
-<span class="sd">        :class:`Encoder &lt;encoders.encoder.Encoder&gt;`) --- encoder class to use.</span>
-<span class="sd">      * **encoder_params** (dict) --- dictionary with encoder configuration. For</span>
-<span class="sd">        complete list of possible parameters see the corresponding class docs.</span>
-<span class="sd">      * **decoder** (any class derived from</span>
-<span class="sd">        :class:`Decoder &lt;decoders.decoder.Decoder&gt;`) --- decoder class to use.</span>
-<span class="sd">      * **decoder_params** (dict) --- dictionary with decoder configuration. For</span>
-<span class="sd">        complete list of possible parameters see the corresponding class docs.</span>
-<span class="sd">      * **loss** (any class derived from</span>
-<span class="sd">        :class:`Loss &lt;losses.loss.Loss&gt;`) --- loss class to use.</span>
-<span class="sd">      * **loss_params** (dict) --- dictionary with loss configuration. For</span>
-<span class="sd">        complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">    * **encoder** (any class derived from</span>
+<span class="sd">      :class:`Encoder &lt;encoders.encoder.Encoder&gt;`) --- encoder class to use.</span>
+<span class="sd">    * **encoder_params** (dict) --- dictionary with encoder configuration. For</span>
+<span class="sd">      complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">    * **decoder** (any class derived from</span>
+<span class="sd">      :class:`Decoder &lt;decoders.decoder.Decoder&gt;`) --- decoder class to use.</span>
+<span class="sd">    * **decoder_params** (dict) --- dictionary with decoder configuration. For</span>
+<span class="sd">      complete list of possible parameters see the corresponding class docs.</span>
+<span class="sd">    * **loss** (any class derived from</span>
+<span class="sd">      :class:`Loss &lt;losses.loss.Loss&gt;`) --- loss class to use.</span>
+<span class="sd">    * **loss_params** (dict) --- dictionary with loss configuration. For</span>
+<span class="sd">      complete list of possible parameters see the corresponding class docs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">Seq2Seq</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
     <span class="k">if</span> <span class="s1">&#39;encoder_params&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>

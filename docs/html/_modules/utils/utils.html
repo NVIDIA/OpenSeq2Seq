@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,8 +153,10 @@
   <h1>Source code for utils.utils</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">copy</span>
 
 
 <div class="viewcode-block" id="mask_nans"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.mask_nans">[docs]</a><span class="k">def</span> <span class="nf">mask_nans</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>

@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -240,7 +242,7 @@ train DeepSpeech2-like model on the toy speech data you can run:</p>
 </div>
 </div>
 <div class="section" id="config-parameters">
-<h2>Config parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>
+<span id="config-params"></span><h2>Config parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>
 <p>The experiment parameters are completely defined in one Python configuration
 file. This file must define <code class="docutils literal notranslate"><span class="pre">base_params</span></code> dictionary and <code class="docutils literal notranslate"><span class="pre">base_model</span></code> class.
 <code class="docutils literal notranslate"><span class="pre">base_model</span></code> should be any class derived from
@@ -255,11 +257,11 @@ overwrite corresponding parts of <code class="docutils literal notranslate"><spa
 is used. For example of configuration file look in the <code class="docutils literal notranslate"><span class="pre">example_configs</span></code>
 directory. The complete list of all possible configuration parameters is
 defined in the documentation in various places. A good place to look first is
-the <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.__init__()</span></code></a> method
+the <a class="reference internal" href="../api-docs/models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.__init__()</span></code></a> method
 (config parameters section), which defines most of the <em>first level</em> parameters:</p>
 <dl class="method">
-<dt id="models.model.Model.__init__">
-<code class="descclassname">Model.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dt>
+<code class="descclassname">Model.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Model constructor.
 The TensorFlow graph should not be created here, but rather in the
 <a class="reference internal" href="../api-docs/models.html#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
@@ -285,8 +287,7 @@ If Horovod is not used, it should be None.</li>
 </tbody>
 </table>
 <p>Config parameters:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><strong>random_seed</strong> (int) — random seed to use.</li>
 <li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed
 execution.</li>
@@ -359,7 +360,6 @@ either None, “Backoff” or “Logmax”. For details see
 “learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
 “variables”, “variable_norm”.</li>
 </ul>
-</div></blockquote>
 </dd></dl>
 
 <p>Note that some of the parameters are also config dictionaries for corresponding

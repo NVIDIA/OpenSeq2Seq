@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for losses.loss</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">copy</span>
@@ -186,7 +191,7 @@
 <span class="sd">            class :meth:`__init__` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="s2">&quot;mixed&quot;</span><span class="p">],</span>
+      <span class="s1">&#39;dtype&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Loss.__init__"><a class="viewcode-back" href="../../api-docs/losses.html#losses.loss.Loss.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;loss&quot;</span><span class="p">):</span>
@@ -199,7 +204,14 @@
 <span class="sd">      params (dict): parameters describing the loss.</span>
 <span class="sd">          All supported parameters are listed in :meth:`get_required_params`,</span>
 <span class="sd">          :meth:`get_optional_params` functions.</span>
+<span class="sd">      model (instance of a class derived from :class:`Model&lt;models.model.Model&gt;`):</span>
+<span class="sd">          parent model that created this loss.</span>
+<span class="sd">          Could be None if no model access is required for the use case.</span>
 <span class="sd">      name (str): name for loss variable scope.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
@@ -249,7 +261,7 @@
 <span class="sd">      input_dict (dict): dictionary containing loss inputs. This dict will</span>
 <span class="sd">          typically have the following content::</span>
 <span class="sd">            {</span>
-<span class="sd">              &quot;logits&quot;: decoder_logits,</span>
+<span class="sd">              &quot;decoder_output&quot;: decoder_output,</span>
 <span class="sd">              &quot;tgt_sequence&quot;: target_sequence,</span>
 <span class="sd">              &quot;tgt_length&quot;: target_length,</span>
 <span class="sd">            }</span>

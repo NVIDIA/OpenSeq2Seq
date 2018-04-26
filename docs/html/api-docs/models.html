@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -209,8 +211,7 @@ If Horovod is not used, it should be None.</li>
 </tbody>
 </table>
 <p>Config parameters:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><strong>random_seed</strong> (int) — random seed to use.</li>
 <li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed
 execution.</li>
@@ -283,7 +284,6 @@ either None, “Backoff” or “Logmax”. For details see
 “learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
 “variables”, “variable_norm”.</li>
 </ul>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -343,7 +343,7 @@ is not built.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="../in-depth-tutorials/using-existing-models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -377,7 +377,7 @@ class <a class="reference internal" href="../in-depth-tutorials/using-existing-m
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="../in-depth-tutorials/using-existing-models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -567,8 +567,7 @@ If Horovod is not used, it should be None.</li>
 </tbody>
 </table>
 <p>Config parameters:</p>
-<blockquote>
-<div><ul class="simple">
+<ul class="simple">
 <li><strong>encoder</strong> (any class derived from
 <a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Encoder</span></code></a>) — encoder class to use.</li>
 <li><strong>encoder_params</strong> (dict) — dictionary with encoder configuration. For
@@ -582,7 +581,6 @@ complete list of possible parameters see the corresponding class docs.</li>
 <li><strong>loss_params</strong> (dict) — dictionary with loss configuration. For
 complete list of possible parameters see the corresponding class docs.</li>
 </ul>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
@@ -810,19 +808,13 @@ overwriting this function can be a useful way to add it.</p>
 <dl class="function">
 <dt id="models.speech2text.levenshtein">
 <code class="descclassname">models.speech2text.</code><code class="descname">levenshtein</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.levenshtein" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the Levenshtein distance between a and b.</p>
+<dd><p>Calculates the Levenshtein distance between a and b.
+The code was copied from: <a class="reference external" href="http://hetland.org/coding/python/levenshtein.py">http://hetland.org/coding/python/levenshtein.py</a></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="models.speech2text.sparse_tensor_value_to_texts">
-<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_value_to_texts</code><span class="sig-paren">(</span><em>value</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_value_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_value_to_texts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <code class="xref py py-class docutils literal notranslate"><span class="pre">tf.SparseTensor</span></code> <code class="docutils literal notranslate"><span class="pre">value</span></code>, return an array of
-Python strings representing its values.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="models.speech2text.sparse_tuple_to_texts">
-<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tuple_to_texts</code><span class="sig-paren">(</span><em>tup</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tuple_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tuple_to_texts" title="Permalink to this definition">¶</a></dt>
+<dt id="models.speech2text.sparse_tensor_to_chars">
+<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_to_chars</code><span class="sig-paren">(</span><em>tensor</em>, <em>idx2char</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_to_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_to_chars" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

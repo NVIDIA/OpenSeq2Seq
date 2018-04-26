@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -154,6 +156,9 @@
 <span class="sd">RNN-based decoders</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -601,8 +606,8 @@
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
-            <span class="s1">&#39;decoder_samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 </pre></div>

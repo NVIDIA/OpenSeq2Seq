@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for data.text2text</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">random</span>
@@ -158,6 +163,7 @@
 <span class="kn">import</span> <span class="nn">io</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="k">import</span> <span class="n">Enum</span>
 <span class="kn">from</span> <span class="nn">.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
+<span class="kn">from</span> <span class="nn">.utils</span> <span class="k">import</span> <span class="n">load_pre_existing_vocabulary</span>
 
 
 <div class="viewcode-block" id="SpecialTextTokens"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.SpecialTextTokens">[docs]</a><span class="k">class</span> <span class="nc">SpecialTextTokens</span><span class="p">(</span><span class="n">Enum</span><span class="p">):</span>
@@ -193,23 +199,6 @@
       <span class="k">return</span> <span class="n">i</span>
     <span class="n">mx</span> <span class="o">+=</span> <span class="n">w</span>
   <span class="k">raise</span> <span class="ne">AssertionError</span><span class="p">(</span><span class="s2">&quot;weighted choice got to the wrong place&quot;</span><span class="p">)</span></div>
-
-
-<div class="viewcode-block" id="load_pre_existing_vocabulary"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.load_pre_existing_vocabulary">[docs]</a><span class="k">def</span> <span class="nf">load_pre_existing_vocabulary</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">min_idx</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  Loads pre-existing vocabulary into memory</span>
-<span class="sd">  :param path: path to vocabulary</span>
-<span class="sd">  :param min_idx: minimum id to assign for a token</span>
-<span class="sd">  :return: vocabulary</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">idx</span> <span class="o">=</span> <span class="n">min_idx</span>
-  <span class="n">vocab</span> <span class="o">=</span> <span class="p">{}</span>
-  <span class="k">with</span> <span class="n">io</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">path</span><span class="p">,</span> <span class="n">newline</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">f</span><span class="p">:</span>
-      <span class="n">word</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">rstrip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">vocab</span><span class="p">[</span><span class="n">word</span><span class="p">]</span> <span class="o">=</span> <span class="n">idx</span>
-      <span class="n">idx</span> <span class="o">+=</span> <span class="mi">1</span>
-  <span class="k">return</span> <span class="n">vocab</span></div>
 
 
 <div class="viewcode-block" id="ParallelDataInRamInputLayer"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelDataInRamInputLayer">[docs]</a><span class="k">class</span> <span class="nc">ParallelDataInRamInputLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
@@ -660,8 +649,8 @@
       <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span><span class="p">)]</span> <span class="o">=</span> \
       <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="o">.</span><span class="n">value</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">src_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">tgt_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="nb">id</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="nb">id</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">src_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="n">idx</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">tgt_idx2seq</span> <span class="o">=</span> <span class="p">{</span><span class="n">idx</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">)</span>
@@ -669,8 +658,6 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_seq2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tgt_idx2seq</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">src_idx2seq</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">src_seq2idx</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tgt_seq2idx</span><span class="p">)</span>
 
 <div class="viewcode-block" id="ParallelTextDataLayer.build_graph"><a class="viewcode-back" href="../../api-docs/data.html#data.text2text.ParallelTextDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">def</span> <span class="nf">pad2eight</span><span class="p">(</span><span class="n">lst</span><span class="p">,</span> <span class="n">do_pad_eight</span><span class="p">):</span>

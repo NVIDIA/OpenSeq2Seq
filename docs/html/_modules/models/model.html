@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for models.model</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">abc</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
@@ -251,77 +256,77 @@
 
 <span class="sd">    Config parameters:</span>
 
-<span class="sd">      * **random_seed** (int) --- random seed to use.</span>
-<span class="sd">      * **use_horovod** (bool) --- whether to use Horovod for distributed</span>
-<span class="sd">        execution.</span>
-<span class="sd">      * **num_gpus** (int) --- number of GPUs to use. This parameter cannot be</span>
-<span class="sd">        used if ``gpu_ids`` is specified. When ``use_horovod`` is True</span>
-<span class="sd">        this parameter is ignored.</span>
-<span class="sd">      * **gpu_ids** (list of ints) --- GPU ids to use. This parameter cannot be</span>
-<span class="sd">        used if ``num_gpus`` is specified. When ``use_horovod`` is True</span>
-<span class="sd">        this parameter is ignored.</span>
-<span class="sd">      * **batch_size_per_gpu** (int) --- batch size to use for each GPU.</span>
-<span class="sd">      * **num_epochs** (int) --- number of epochs to run training for.</span>
-<span class="sd">        This parameter cannot be used if ``max_steps`` is specified.</span>
-<span class="sd">      * **max_steps** (int) --- number of steps to run training for.</span>
-<span class="sd">        This parameter cannot be used if ``num_epochs`` is specified.</span>
-<span class="sd">      * **save_summaries_steps** (int or None) --- how often to save summaries.</span>
-<span class="sd">        Setting it to None disables summaries saving.</span>
-<span class="sd">      * **print_loss_steps** (int or None) --- how often to print loss during</span>
-<span class="sd">        training. Setting it to None disables loss printing.</span>
-<span class="sd">      * **print_samples_steps** (int or None) --- how often to print training</span>
-<span class="sd">        samples (input sequences, correct answers and model predictions).</span>
-<span class="sd">        Setting it to None disables samples printing.</span>
-<span class="sd">      * **save_checkpoint_steps** (int or None) --- how often to save model</span>
-<span class="sd">        checkpoints. Setting it to None disables checkpoint saving.</span>
-<span class="sd">      * **eval_steps** (int) --- how often to run evaluation during training.</span>
-<span class="sd">        This parameter is only checked if ``--mode`` argument of ``run.py`` is</span>
-<span class="sd">        &quot;train\_eval&quot;. If no evaluation is needed you should use &quot;train&quot; mode.</span>
-<span class="sd">      * **logdir** (string) --- path to the log directory where all checkpoints</span>
-<span class="sd">        and summaries will be saved.</span>
-<span class="sd">      * **data_layer** (any class derived from</span>
-<span class="sd">        :class:`DataLayer &lt;data.data_layer.DataLayer&gt;`) --- data layer class</span>
-<span class="sd">        to use.</span>
-<span class="sd">      * **data_layer_params** (dict) --- dictionary with data layer</span>
-<span class="sd">        configuration.</span>
-<span class="sd">        For complete list of possible parameters see the corresponding</span>
-<span class="sd">        class docs.</span>
-<span class="sd">      * **learning_rate** (float) --- initial learning rate for training.</span>
-<span class="sd">      * **optimizer** (string or TensorFlow optimizer class) --- optimizer to</span>
-<span class="sd">        use for training. Could be either &quot;Adam&quot;, &quot;Adagrad&quot;, &quot;Ftrl&quot;, &quot;Momentum&quot;,</span>
-<span class="sd">        &quot;RMSProp&quot;, &quot;SGD&quot; or any valid TensorFlow optimizer class.</span>
-<span class="sd">      * **optimizer_params** (dict) --- dictionary that will be passed to</span>
-<span class="sd">        optimizer ``__init__`` method.</span>
-<span class="sd">      * **initializer** --- any valid TensorFlow initializer.</span>
-<span class="sd">      * **initializer_params** (dict) --- dictionary that will be passed to</span>
-<span class="sd">        initializer ``__init__`` method.</span>
-<span class="sd">      * **regularizer** --- and valid TensorFlow regularizer.</span>
-<span class="sd">      * **regularizer_params** (dict) --- dictionary that will be passed to</span>
-<span class="sd">        regularizer ``__init__`` method.</span>
-<span class="sd">      * **dtype** --- model dtype. Could be either ``tf.float16``,</span>
-<span class="sd">        ``tf.float32`` or &quot;mixed&quot;. For details see</span>
-<span class="sd">        :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
-<span class="sd">      * **lr_policy** --- any valid learning rate policy function. For examples,</span>
-<span class="sd">        see :any:`optimizers.lr_policies` module.</span>
-<span class="sd">      * **lr_policy_params** (dict) --- dictionary containing lr_policy</span>
-<span class="sd">        parameters.</span>
-<span class="sd">      * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping</span>
-<span class="sd">        will be performed if some gradients exceed this value (this is checked</span>
-<span class="sd">        for each variable independently).</span>
-<span class="sd">      * **larc_mode** --- specify this to use LARC or LARS optimization</span>
-<span class="sd">        algorithms. Could be either &quot;scale&quot; (LARS) or &quot;clip&quot; (LARC).</span>
-<span class="sd">        You also need to specify ``larc_nu`` to enable LARC or LARS. Note that</span>
-<span class="sd">        it works in addition to any other optimization algorithm since we treat</span>
-<span class="sd">        it as adaptive gradient clipping and learning rate adjustment.</span>
-<span class="sd">      * **larc_nu** (float) --- LARC or LARS scaling parameter.</span>
-<span class="sd">      * **loss_scale** (float) --- static loss scale to use. For details see</span>
-<span class="sd">        :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
-<span class="sd">      * **automatic_loss_scaling** --- automatic loss scaling mode. Could be</span>
-<span class="sd">        either None, &quot;Backoff&quot; or &quot;Logmax&quot;. For details see</span>
-<span class="sd">        :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
-<span class="sd">      * **summaries** (list) --- which summaries to log. Could contain</span>
-<span class="sd">        &quot;learning_rate&quot;, &quot;gradients&quot;, &quot;gradient_norm&quot;, &quot;global_gradient_norm&quot;,</span>
-<span class="sd">        &quot;variables&quot;, &quot;variable_norm&quot;.</span>
+<span class="sd">    * **random_seed** (int) --- random seed to use.</span>
+<span class="sd">    * **use_horovod** (bool) --- whether to use Horovod for distributed</span>
+<span class="sd">      execution.</span>
+<span class="sd">    * **num_gpus** (int) --- number of GPUs to use. This parameter cannot be</span>
+<span class="sd">      used if ``gpu_ids`` is specified. When ``use_horovod`` is True</span>
+<span class="sd">      this parameter is ignored.</span>
+<span class="sd">    * **gpu_ids** (list of ints) --- GPU ids to use. This parameter cannot be</span>
+<span class="sd">      used if ``num_gpus`` is specified. When ``use_horovod`` is True</span>
+<span class="sd">      this parameter is ignored.</span>
+<span class="sd">    * **batch_size_per_gpu** (int) --- batch size to use for each GPU.</span>
+<span class="sd">    * **num_epochs** (int) --- number of epochs to run training for.</span>
+<span class="sd">      This parameter cannot be used if ``max_steps`` is specified.</span>
+<span class="sd">    * **max_steps** (int) --- number of steps to run training for.</span>
+<span class="sd">      This parameter cannot be used if ``num_epochs`` is specified.</span>
+<span class="sd">    * **save_summaries_steps** (int or None) --- how often to save summaries.</span>
+<span class="sd">      Setting it to None disables summaries saving.</span>
+<span class="sd">    * **print_loss_steps** (int or None) --- how often to print loss during</span>
+<span class="sd">      training. Setting it to None disables loss printing.</span>
+<span class="sd">    * **print_samples_steps** (int or None) --- how often to print training</span>
+<span class="sd">      samples (input sequences, correct answers and model predictions).</span>
+<span class="sd">      Setting it to None disables samples printing.</span>
+<span class="sd">    * **save_checkpoint_steps** (int or None) --- how often to save model</span>
+<span class="sd">      checkpoints. Setting it to None disables checkpoint saving.</span>
+<span class="sd">    * **eval_steps** (int) --- how often to run evaluation during training.</span>
+<span class="sd">      This parameter is only checked if ``--mode`` argument of ``run.py`` is</span>
+<span class="sd">      &quot;train\_eval&quot;. If no evaluation is needed you should use &quot;train&quot; mode.</span>
+<span class="sd">    * **logdir** (string) --- path to the log directory where all checkpoints</span>
+<span class="sd">      and summaries will be saved.</span>
+<span class="sd">    * **data_layer** (any class derived from</span>
+<span class="sd">      :class:`DataLayer &lt;data.data_layer.DataLayer&gt;`) --- data layer class</span>
+<span class="sd">      to use.</span>
+<span class="sd">    * **data_layer_params** (dict) --- dictionary with data layer</span>
+<span class="sd">      configuration.</span>
+<span class="sd">      For complete list of possible parameters see the corresponding</span>
+<span class="sd">      class docs.</span>
+<span class="sd">    * **learning_rate** (float) --- initial learning rate for training.</span>
+<span class="sd">    * **optimizer** (string or TensorFlow optimizer class) --- optimizer to</span>
+<span class="sd">      use for training. Could be either &quot;Adam&quot;, &quot;Adagrad&quot;, &quot;Ftrl&quot;, &quot;Momentum&quot;,</span>
+<span class="sd">      &quot;RMSProp&quot;, &quot;SGD&quot; or any valid TensorFlow optimizer class.</span>
+<span class="sd">    * **optimizer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      optimizer ``__init__`` method.</span>
+<span class="sd">    * **initializer** --- any valid TensorFlow initializer.</span>
+<span class="sd">    * **initializer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      initializer ``__init__`` method.</span>
+<span class="sd">    * **regularizer** --- and valid TensorFlow regularizer.</span>
+<span class="sd">    * **regularizer_params** (dict) --- dictionary that will be passed to</span>
+<span class="sd">      regularizer ``__init__`` method.</span>
+<span class="sd">    * **dtype** --- model dtype. Could be either ``tf.float16``,</span>
+<span class="sd">      ``tf.float32`` or &quot;mixed&quot;. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **lr_policy** --- any valid learning rate policy function. For examples,</span>
+<span class="sd">      see :any:`optimizers.lr_policies` module.</span>
+<span class="sd">    * **lr_policy_params** (dict) --- dictionary containing lr_policy</span>
+<span class="sd">      parameters.</span>
+<span class="sd">    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping</span>
+<span class="sd">      will be performed if some gradients exceed this value (this is checked</span>
+<span class="sd">      for each variable independently).</span>
+<span class="sd">    * **larc_mode** --- specify this to use LARC or LARS optimization</span>
+<span class="sd">      algorithms. Could be either &quot;scale&quot; (LARS) or &quot;clip&quot; (LARC).</span>
+<span class="sd">      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that</span>
+<span class="sd">      it works in addition to any other optimization algorithm since we treat</span>
+<span class="sd">      it as adaptive gradient clipping and learning rate adjustment.</span>
+<span class="sd">    * **larc_nu** (float) --- LARC or LARS scaling parameter.</span>
+<span class="sd">    * **loss_scale** (float) --- static loss scale to use. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be</span>
+<span class="sd">      either None, &quot;Backoff&quot; or &quot;Logmax&quot;. For details see</span>
+<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **summaries** (list) --- which summaries to log. Could contain</span>
+<span class="sd">      &quot;learning_rate&quot;, &quot;gradients&quot;, &quot;gradient_norm&quot;, &quot;global_gradient_norm&quot;,</span>
+<span class="sd">      &quot;variables&quot;, &quot;variable_norm&quot;.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
 

@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for models.text2text</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">nltk</span>
 <span class="kn">import</span> <span class="nn">re</span>
@@ -158,7 +163,8 @@
 
 <span class="kn">from</span> <span class="nn">.seq2seq</span> <span class="k">import</span> <span class="n">Seq2Seq</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.text2text</span> <span class="k">import</span> <span class="n">SpecialTextTokens</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">array_to_string</span><span class="p">,</span> <span class="n">text_ids_to_string</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">array_to_string</span><span class="p">,</span> \
+                                     <span class="n">text_ids_to_string</span>
 
 
 <div class="viewcode-block" id="transform_for_bleu"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.transform_for_bleu">[docs]</a><span class="k">def</span> <span class="nf">transform_for_bleu</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">ignore_special</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>

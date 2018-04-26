@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,8 @@
   <h1>Source code for utils.hooks</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">os</span>
@@ -306,7 +310,9 @@
     <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
     <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
 
-    <span class="k">for</span> <span class="n">cnt</span><span class="p">,</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">()):</span>
+    <span class="k">for</span> <span class="n">cnt</span><span class="p">,</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">(</span><span class="n">cross_over</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="p">):</span>
       <span class="n">loss</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">,</span>
       <span class="p">)</span>
