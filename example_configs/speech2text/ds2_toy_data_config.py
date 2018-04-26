@@ -2,10 +2,12 @@ import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
-from open_seq2seq.data import Speech2TextTFDataLayer, Speech2TextDataLayer
+from open_seq2seq.data import Speech2TextDataLayer, Speech2TextPlaceholdersDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
+
+base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
@@ -22,23 +24,20 @@ base_params = {
   "save_checkpoint_steps": 50,
   "logdir": "tmp_log_folder",
 
-  "base_model": Speech2Text,
-  "model_params": {
-    "optimizer": "Momentum",
-    "optimizer_params": {
-      "momentum": 0.90,
-    },
-    "lr_policy": poly_decay,
-    "lr_policy_params": {
-      "power": 2,
-    },
-    "learning_rate": 0.001,
-    "larc_nu": 0.001,
-    "larc_mode": 'clip',
-    "dtype": tf.float32,
-    "summaries": ['learning_rate', 'variables', 'gradients',
-                  'variable_norm', 'gradient_norm', 'global_gradient_norm']
+  "optimizer": "Momentum",
+  "optimizer_params": {
+    "momentum": 0.90,
   },
+  "lr_policy": poly_decay,
+  "lr_policy_params": {
+    "power": 2,
+  },
+  "learning_rate": 0.001,
+  "larc_nu": 0.001,
+  "larc_mode": 'clip',
+  "dtype": tf.float32,
+  "summaries": ['learning_rate', 'variables', 'gradients',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,
   "encoder_params": {
@@ -90,46 +89,46 @@ base_params = {
     "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
     "lm_binary_path": "language_model/lm.binary",
     "lm_trie_path": "language_model/trie",
-    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
+    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
   },
   "loss": CTCLoss,
   "loss_params": {},
 }
 
 train_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
-    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
-    "dataset_path": [
-      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv"
+    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "dataset_files": [
+      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv",
     ],
     "shuffle": True,
   },
 }
 
 eval_params = {
-  "data_layer": Speech2TextTFDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
-    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
-    "dataset_path": [
-      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv"
+    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "dataset_files": [
+      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv",
     ],
     "shuffle": False,
   },
 }
 
 infer_params = {
-  "data_layer": Speech2TextDataLayer,
+  "data_layer": Speech2TextPlaceholdersDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
-    "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/alphabet.txt",
-    "dataset_path": [
-      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv"
+    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "dataset_files": [
+      "open_seq2seq/test_utils/toy_speech_data/toy_data.csv",
     ],
     "shuffle": False,
   },

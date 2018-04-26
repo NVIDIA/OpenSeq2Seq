@@ -1,5 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import six
 import nltk
 import re
@@ -7,7 +10,8 @@ import codecs
 
 from .seq2seq import Seq2Seq
 from open_seq2seq.data.text2text import SpecialTextTokens
-from open_seq2seq.utils.utils import deco_print, array_to_string, text_ids_to_string
+from open_seq2seq.utils.utils import deco_print, array_to_string, \
+                                     text_ids_to_string
 
 
 def transform_for_bleu(row, vocab, ignore_special=False,
@@ -50,6 +54,25 @@ class BasicText2TextWithAttention(Seq2Seq):
   """
   An example class implementing classical text-to-text model.
   """
+  def _create_encoder(self):
+    self.params['encoder_params']['src_vocab_size'] = (
+      self.data_layer.params['src_vocab_size']
+    )
+    return super(BasicText2TextWithAttention, self)._create_encoder()
+
+  def _create_decoder(self):
+    self.params['decoder_params']['batch_size'] = (
+      self.params['batch_size_per_gpu']
+    )
+    return super(BasicText2TextWithAttention, self)._create_decoder()
+
+  def _create_loss(self):
+    self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
+    self.params['loss_params']['tgt_vocab_size'] = (
+      self.data_layer.params['tgt_vocab_size']
+    )
+    return super(BasicText2TextWithAttention, self)._create_loss()
+
   def infer(self, inputs_per_batch, outputs_per_batch, output_file):
     # this function assumes it is run on 1 gpu with batch size of 1
     with codecs.open(output_file, 'w', 'utf-8') as fout:
@@ -86,7 +109,7 @@ class BasicText2TextWithAttention(Seq2Seq):
     x, len_x, y, len_y = input_values
     samples = output_values[0]
 
-    if not self._on_horovod:
+    if not self.on_horovod:
       x_sample = x[0][0]
       len_x_sample = len_x[0][0]
       y_sample = y[0][0]
@@ -129,7 +152,7 @@ class BasicText2TextWithAttention(Seq2Seq):
       ex, elen_x, ey, elen_y = input_values     
 
       ##################
-      if not self._on_horovod:
+      if not self.on_horovod:
         x_sample = ex[0][0]
         len_x_sample = elen_x[0][0]
         y_sample = ey[0][0]
@@ -167,7 +190,6 @@ class BasicText2TextWithAttention(Seq2Seq):
       )
       samples = output_values
       ##################
-
 
       if self.params.get('eval_using_bleu', True):
         preds.extend([transform_for_bleu(

@@ -1,5 +1,7 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
 
 import tensorflow as tf
 import numpy as np
@@ -107,7 +109,7 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
         y_pred = tf.layers.dense(x_ph, 1, use_bias=False)
         loss = tf.losses.mean_squared_error(y_ph, y_pred)
         loss += tf.losses.get_regularization_loss()
-        train_op = optimize_loss(loss, None, 0.05, "Adam", {}, dtype=dtype)
+        train_op = optimize_loss(loss, 0.05, "Adam", {}, dtype=dtype)
 
         with self.test_session(g, use_gpu=True) as sess:
           sess.run(tf.global_variables_initializer())

@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for parts.common</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.t2t_timing_signal</span> <span class="k">import</span> <span class="n">add_timing_signal</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.text2text</span> <span class="k">import</span> <span class="n">SpecialTextTokens</span>
@@ -158,17 +163,31 @@
 <span class="n">inf</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e4</span>
 
 
-<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="nb">input</span><span class="p">):</span>
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">norm_type</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Normalizes input (currently just layer_norm)</span>
 <span class="sd">  :param input: tensor of shape [batch, Time, dim]</span>
 <span class="sd">  :return: tensor of shape [batch, Time, dim]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="nb">input</span><span class="p">,</span>
-                                      <span class="n">begin_norm_axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-                                      <span class="n">begin_params_axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span></div>
+  <span class="c1">#print(norm_type)</span>
+  <span class="k">if</span> <span class="n">norm_type</span> <span class="o">==</span> <span class="s2">&quot;layer_norm&quot;</span><span class="p">:</span>
+    <span class="n">outputs</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                                         <span class="n">begin_norm_axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                         <span class="n">begin_params_axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
+      <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+      <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+    <span class="p">)</span>
+  <span class="k">return</span> <span class="n">outputs</span></div>
 
 
-<div class="viewcode-block" id="dropout_normalize_add_NTC"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.dropout_normalize_add_NTC">[docs]</a><span class="k">def</span> <span class="nf">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">residual_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drop_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+
+<div class="viewcode-block" id="dropout_normalize_add_NTC"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.dropout_normalize_add_NTC">[docs]</a><span class="k">def</span> <span class="nf">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
+                              <span class="n">residual_x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                              <span class="n">norm_type</span><span class="o">=</span><span class="s1">&#39;layer_norm&#39;</span><span class="p">,</span>
+                              <span class="n">drop_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                              <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                               <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Performs dropout on output,</span>
 <span class="sd">  :param x: output of the block. A tensor of shape [batch, Time, dim]</span>
 <span class="sd">  :param residual_x: (default: None) input to the block.</span>
@@ -176,14 +195,13 @@
 <span class="sd">  :param drop_prob: dropout drop probability</span>
 <span class="sd">  :return: A tensor of shape [batch, Time, dim]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="n">drop_prob</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">keep_prob</span><span class="o">=</span><span class="mi">1</span> <span class="o">-</span> <span class="n">drop_prob</span><span class="p">,</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">keep_prob</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">drop_prob</span><span class="p">,</span>
                       <span class="n">noise_shape</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">2</span><span class="p">]])</span>
   <span class="c1"># residual connection</span>
   <span class="k">if</span> <span class="n">residual_x</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">x</span> <span class="o">+=</span> <span class="n">residual_x</span>
 
-  <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span></div>
+  <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">norm_type</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_pad_masking_bias"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.get_pad_masking_bias">[docs]</a><span class="k">def</span> <span class="nf">get_pad_masking_bias</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">PAD_ID</span><span class="p">,</span> <span class="n">heads</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
@@ -202,10 +220,12 @@
   <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">attention_bias</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ffn_and_layer_norm"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.ffn_and_layer_norm">[docs]</a><span class="k">def</span> <span class="nf">ffn_and_layer_norm</span><span class="p">(</span><span class="n">inpt</span><span class="p">,</span>
+<div class="viewcode-block" id="ffn_and_layer_norm"><a class="viewcode-back" href="../../api-docs/parts.html#parts.common.ffn_and_layer_norm">[docs]</a><span class="k">def</span> <span class="nf">ffn_and_layer_norm</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span>
                        <span class="n">inner_dim</span><span class="p">,</span>
                        <span class="n">resulting_dim</span><span class="p">,</span>
+                       <span class="n">norm_type</span><span class="p">,</span>
                        <span class="n">drop_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                       <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                        <span class="n">inner_activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Position-wise fully connected feed-forward network with layer norm</span>
 <span class="sd">  and residual connection</span>
@@ -217,7 +237,7 @@
 <span class="sd">  :return:</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;FFN_and_layer_norm&quot;</span><span class="p">):</span>
-    <span class="n">inner_act</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inpt</span><span class="p">,</span>
+    <span class="n">inner_act</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span><span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
                                 <span class="n">units</span><span class="o">=</span><span class="n">inner_dim</span><span class="p">,</span>
                                 <span class="n">activation</span><span class="o">=</span><span class="n">inner_activation</span><span class="p">,</span>
                                 <span class="n">name</span><span class="o">=</span><span class="s2">&quot;first_dense&quot;</span><span class="p">)</span>
@@ -226,8 +246,10 @@
                               <span class="n">activation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;second_dense&quot;</span><span class="p">)</span>
 
-    <span class="n">res</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">ffn_out</span><span class="p">,</span> <span class="n">residual_x</span><span class="o">=</span><span class="n">inpt</span><span class="p">,</span>
-                                    <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">)</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">ffn_out</span><span class="p">,</span> <span class="n">residual_x</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+                                    <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+                                    <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                    <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">res</span></div>
 
 

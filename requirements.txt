@@ -4,4 +4,3 @@ resampy
 python_speech_features
 pandas
 six
-tqdm

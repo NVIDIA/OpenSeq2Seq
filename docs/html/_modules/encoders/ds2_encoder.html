@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for encoders.ds2_encoder</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.cudnn_rnn.python.ops</span> <span class="k">import</span> <span class="n">cudnn_rnn_ops</span>
 
@@ -160,6 +165,7 @@
 <div class="viewcode-block" id="conv2d_bn_actv"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv2d_bn_actv</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
                    <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span>
                    <span class="n">bn_epsilon</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Helper function that applied convolution, batch norm and activation.&quot;&quot;&quot;</span>
   <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
     <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
@@ -185,6 +191,7 @@
 
 
 <div class="viewcode-block" id="rnn_cell"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.rnn_cell">[docs]</a><span class="k">def</span> <span class="nf">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Helper function that creates RNN cell.&quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;layernorm_lstm&quot;</span><span class="p">:</span>
     <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">LayerNormBasicLSTMCell</span><span class="p">(</span>
       <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
@@ -207,6 +214,7 @@
 
 <div class="viewcode-block" id="row_conv"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.row_conv">[docs]</a><span class="k">def</span> <span class="nf">row_conv</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">input_layer</span><span class="p">,</span> <span class="n">batch</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">width</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span>
              <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Helper function that applies &quot;row&quot; or &quot;in plane&quot; convolution.&quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">width</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">input_layer</span>
 
@@ -253,6 +261,7 @@
 
 
 <div class="viewcode-block" id="DeepSpeech2Encoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder">[docs]</a><span class="k">class</span> <span class="nc">DeepSpeech2Encoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;DeepSpeech-2 like encoder.&quot;&quot;&quot;</span>
 <div class="viewcode-block" id="DeepSpeech2Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
@@ -277,13 +286,64 @@
       <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ds2_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">DeepSpeech2Encoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+<div class="viewcode-block" id="DeepSpeech2Encoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ds2_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;DeepSpeech-2 like encoder constructor.</span>
 
-  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
-    <span class="n">source_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">]</span>
+<span class="sd">    See parent class for arguments description.</span>
 
-    <span class="n">seq_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">]</span>
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **dropout_keep_prop** (float) --- keep probability for dropout.</span>
+<span class="sd">    * **conv_layers** (list) --- list with the description of convolutional</span>
+<span class="sd">      layers. For example::</span>
+<span class="sd">        &quot;conv_layers&quot;: [</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [11, 41], &quot;stride&quot;: [2, 2],</span>
+<span class="sd">            &quot;num_channels&quot;: 32, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [11, 21], &quot;stride&quot;: [1, 2],</span>
+<span class="sd">            &quot;num_channels&quot;: 64, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [11, 21], &quot;stride&quot;: [1, 2],</span>
+<span class="sd">            &quot;num_channels&quot;: 96, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">          },</span>
+<span class="sd">        ]</span>
+<span class="sd">    * **activation_fn** --- activation function to use.</span>
+<span class="sd">    * **num_rnn_layers** --- number of RNN layers to use.</span>
+<span class="sd">    * **rnn_type** (string) --- could be &quot;lstm&quot;, &quot;gru&quot;, &quot;cudnn_gru&quot;,</span>
+<span class="sd">      &quot;cudnn_lstm&quot; or &quot;layernorm_lstm&quot;.</span>
+<span class="sd">    * **rnn_unidirectional** (bool) --- whether to use uni-directional or</span>
+<span class="sd">      bi-directional RNNs.</span>
+<span class="sd">    * **rnn_cell_dim** (int) --- dimension of RNN cells.</span>
+<span class="sd">    * **row_conv** (bool) --- whether to use a &quot;row&quot; (&quot;in plane&quot;) convolutional</span>
+<span class="sd">      layer after RNNs.</span>
+<span class="sd">    * **row_conv_width** (int) --- width parameter for &quot;row&quot;</span>
+<span class="sd">      convolutional layer.</span>
+<span class="sd">    * **n_hidden** (int) --- number of hidden units for the last fully connected</span>
+<span class="sd">      layer.</span>
+<span class="sd">    * **data_format** (string) --- could be either &quot;channels_first&quot; or</span>
+<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_last&quot;.</span>
+<span class="sd">    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.</span>
+<span class="sd">    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">DeepSpeech2Encoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DeepSpeech2Encoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder._encode">[docs]</a>  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates TensorFlow graph for DeepSpeech-2 like encoder.</span>
+
+<span class="sd">    Expects the following inputs::</span>
+
+<span class="sd">      input_dict = {</span>
+<span class="sd">        &quot;src_sequence&quot;: tensor of shape [batch_size, sequence length, num features]</span>
+<span class="sd">        &quot;src_length&quot;: tensor of shape [batch_size]</span>
+<span class="sd">      }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]</span>
+    <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
+
     <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
     <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">training</span> <span class="k">else</span> <span class="mf">1.0</span>
     <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
@@ -291,7 +351,7 @@
     <span class="n">bn_momentum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_momentum&#39;</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
     <span class="n">bn_epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
 
-    <span class="n">input_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">source_sequence</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">input_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">source_sequence</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">input_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">:</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">input_layer</span>
@@ -308,9 +368,9 @@
       <span class="n">padding</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;padding&#39;</span><span class="p">]</span>
 
       <span class="k">if</span> <span class="n">padding</span> <span class="o">==</span> <span class="s2">&quot;VALID&quot;</span><span class="p">:</span>
-        <span class="n">seq_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">seq_length</span> <span class="o">-</span> <span class="n">kernel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">-</span> <span class="n">kernel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="n">seq_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">seq_length</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv2d_bn_actv</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx_conv</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
@@ -383,7 +443,7 @@
           <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dynamic_rnn</span><span class="p">(</span>
             <span class="n">cell</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
-            <span class="n">sequence_length</span><span class="o">=</span><span class="n">seq_length</span><span class="p">,</span>
+            <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
             <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
           <span class="p">)</span>
@@ -396,7 +456,7 @@
           <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bidirectional_dynamic_rnn</span><span class="p">(</span>
             <span class="n">cell_fw</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span> <span class="n">cell_bw</span><span class="o">=</span><span class="n">multirnn_cell_bw</span><span class="p">,</span>
             <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
-            <span class="n">sequence_length</span><span class="o">=</span><span class="n">seq_length</span><span class="p">,</span>
+            <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
             <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
             <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span>
           <span class="p">)</span>
@@ -442,9 +502,9 @@
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s1">&#39;encoder_outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
-      <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">seq_length</span><span class="p">,</span>
-    <span class="p">}</span></div>
+      <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+      <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">src_length</span><span class="p">,</span>
+    <span class="p">}</span></div></div>
 </pre></div>
 
            </div>

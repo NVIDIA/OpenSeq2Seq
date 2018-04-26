@@ -22,6 +22,8 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
+from six.moves import range
 
 import six
 import tensorflow as tf
@@ -85,10 +87,10 @@ def get_regularization_loss(scope=None, name="total_regularization_loss"):
 
 
 def optimize_loss(loss,
-                  global_step,
                   learning_rate,
                   optimizer,
                   optimizer_params,
+                  global_step=None,
                   dtype=tf.float32,
                   gradient_noise_scale=None,
                   gradient_multipliers=None,
@@ -196,7 +198,7 @@ def optimize_loss(loss,
   loss = ops.convert_to_tensor(loss)
   contrib_framework.assert_scalar(loss)
   if global_step is None:
-    global_step = contrib_framework.get_global_step()
+    global_step = tf.train.get_or_create_global_step()
   else:
     tf.train.assert_global_step(global_step)
   with vs.variable_scope(name, "OptimizeLoss", [loss, global_step]):

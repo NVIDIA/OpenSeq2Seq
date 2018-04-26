@@ -1,5 +1,8 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 
@@ -9,6 +12,7 @@ from .encoder import Encoder
 def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
                    padding, regularizer, training, data_format, bn_momentum,
                    bn_epsilon):
+  """Helper function that applied convolution, batch norm and activation."""
   conv = tf.layers.conv2d(
     name="{}".format(name),
     inputs=inputs,
@@ -34,6 +38,7 @@ def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
 
 
 def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
+  """Helper function that creates RNN cell."""
   if layer_type == "layernorm_lstm":
     cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
       num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
@@ -56,6 +61,7 @@ def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
 
 def row_conv(name, input_layer, batch, channels, width, activation_fn,
              regularizer, training, data_format, bn_momentum, bn_epsilon):
+  """Helper function that applies "row" or "in plane" convolution."""
   if width < 2:
     return input_layer
 
@@ -102,6 +108,7 @@ def row_conv(name, input_layer, batch, channels, width, activation_fn,
 
 
 class DeepSpeech2Encoder(Encoder):
+  """DeepSpeech-2 like encoder."""
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
@@ -126,13 +133,64 @@ class DeepSpeech2Encoder(Encoder):
       'bn_epsilon': float,
     })
 
-  def __init__(self, params=None, name="ds2_encoder", mode='train'):
-    super(DeepSpeech2Encoder, self).__init__(params, name, mode)
+  def __init__(self, params, model, name="ds2_encoder", mode='train'):
+    """DeepSpeech-2 like encoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **conv_layers** (list) --- list with the description of convolutional
+      layers. For example::
+        "conv_layers": [
+          {
+            "kernel_size": [11, 41], "stride": [2, 2],
+            "num_channels": 32, "padding": "SAME",
+          },
+          {
+            "kernel_size": [11, 21], "stride": [1, 2],
+            "num_channels": 64, "padding": "SAME",
+          },
+          {
+            "kernel_size": [11, 21], "stride": [1, 2],
+            "num_channels": 96, "padding": "SAME",
+          },
+        ]
+    * **activation_fn** --- activation function to use.
+    * **num_rnn_layers** --- number of RNN layers to use.
+    * **rnn_type** (string) --- could be "lstm", "gru", "cudnn_gru",
+      "cudnn_lstm" or "layernorm_lstm".
+    * **rnn_unidirectional** (bool) --- whether to use uni-directional or
+      bi-directional RNNs.
+    * **rnn_cell_dim** (int) --- dimension of RNN cells.
+    * **row_conv** (bool) --- whether to use a "row" ("in plane") convolutional
+      layer after RNNs.
+    * **row_conv_width** (int) --- width parameter for "row"
+      convolutional layer.
+    * **n_hidden** (int) --- number of hidden units for the last fully connected
+      layer.
+    * **data_format** (string) --- could be either "channels_first" or
+      "channels_last". Defaults to "channels_last".
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
+    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
+    """
+    super(DeepSpeech2Encoder, self).__init__(params, model, name, mode)
 
   def _encode(self, input_dict):
-    source_sequence = input_dict['src_inputs']
+    """Creates TensorFlow graph for DeepSpeech-2 like encoder.
 
-    seq_length = input_dict['src_lengths']
+    Expects the following inputs::
+
+      input_dict = {
+        "src_sequence": tensor of shape [batch_size, sequence length, num features]
+        "src_length": tensor of shape [batch_size]
+      }
+    """
+
+    source_sequence = input_dict['src_sequence']
+    src_length = input_dict['src_length']
+
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
@@ -140,7 +198,7 @@ class DeepSpeech2Encoder(Encoder):
     bn_momentum = self.params.get('bn_momentum', 0.99)
     bn_epsilon = self.params.get('bn_epsilon', 1e-3)
 
-    input_layer = tf.expand_dims(source_sequence, dim=-1)
+    input_layer = tf.expand_dims(source_sequence, axis=-1)
     batch_size = input_layer.get_shape().as_list()[0]
     if data_format == 'channels_last':
       top_layer = input_layer
@@ -157,9 +215,9 @@ class DeepSpeech2Encoder(Encoder):
       padding = conv_layers[idx_conv]['padding']
 
       if padding == "VALID":
-        seq_length = (seq_length - kernel_size[0] + strides[0]) // strides[0]
+        src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
       else:
-        seq_length = (seq_length + strides[0] - 1) // strides[0]
+        src_length = (src_length + strides[0] - 1) // strides[0]
 
       top_layer = conv2d_bn_actv(
         name="conv{}".format(idx_conv + 1),
@@ -232,7 +290,7 @@ class DeepSpeech2Encoder(Encoder):
           top_layer, state = tf.nn.dynamic_rnn(
             cell=multirnn_cell_fw,
             inputs=rnn_input,
-            sequence_length=seq_length,
+            sequence_length=src_length,
             dtype=rnn_input.dtype,
             time_major=False,
           )
@@ -245,7 +303,7 @@ class DeepSpeech2Encoder(Encoder):
           top_layer, state = tf.nn.bidirectional_dynamic_rnn(
             cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
             inputs=rnn_input,
-            sequence_length=seq_length,
+            sequence_length=src_length,
             dtype=rnn_input.dtype,
             time_major=False
           )
@@ -291,6 +349,6 @@ class DeepSpeech2Encoder(Encoder):
     )
 
     return {
-      'encoder_outputs': outputs,
-      'src_lengths': seq_length,
+      'outputs': outputs,
+      'src_length': src_length,
     }

@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -178,12 +180,12 @@ An encoder typically takes data and produces representation.</p>
 <span id="encoder"></span><h2>encoder<a class="headerlink" href="#module-encoders.encoder" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="encoders.encoder.Encoder">
-<em class="property">class </em><code class="descclassname">encoders.encoder.</code><code class="descname">Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.encoder.</code><code class="descname">Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class from which all encoders must inherit.</p>
 <dl class="method">
 <dt id="encoders.encoder.Encoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encoder constructor.
 Note that encoder constructors should not modify TensorFlow graph, all
 graph construction should happen in the <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a>
@@ -196,6 +198,8 @@ method.</p>
 <li><strong>params</strong> (<em>dict</em>) – parameters describing the encoder.
 All supported parameters are listed in <a class="reference internal" href="#encoders.encoder.Encoder.get_required_params" title="encoders.encoder.Encoder.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
 <a class="reference internal" href="#encoders.encoder.Encoder.get_optional_params" title="encoders.encoder.Encoder.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this encoder.
+Could be None if no model access is required for the use case.</li>
 <li><strong>name</strong> (<em>str</em>) – name for encoder variable scope.</li>
 <li><strong>mode</strong> (<em>str</em>) – mode encoder is going to be run in.
 Could be “train”, “eval” or “infer”.</li>
@@ -253,8 +257,8 @@ produce some hidden representation as an output.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary containing encoder inputs. This dict will
 typically have the following content:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;src_inputs&quot;</span><span class="p">:</span> <span class="n">source_sequence</span><span class="p">,</span>
-  <span class="s2">&quot;src_lengths&quot;</span><span class="p">:</span> <span class="n">src_length</span><span class="p">,</span>
+  <span class="s2">&quot;src_sequence&quot;</span><span class="p">:</span> <span class="n">source_sequence</span><span class="p">,</span>
+  <span class="s2">&quot;src_length&quot;</span><span class="p">:</span> <span class="n">source_length</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -262,8 +266,8 @@ typically have the following content:</p>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of encoder outputs. Return all necessary outputs.
 Typically this will be just:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;encoder_output&quot;</span><span class="p">:</span> <span class="n">encoder_output</span><span class="p">,</span>
-  <span class="s2">&quot;encoder_state&quot;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
+  <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+  <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
 <span class="p">}</span>
 </pre></div>
 </div>
@@ -279,8 +283,8 @@ Typically this will be just:<div class="highlight-default notranslate"><div clas
 <dt id="encoders.encoder.Encoder.encode">
 <code class="descname">encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder.encode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Wrapper around <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> method.
-Here initializer and dtype are set in the variable scope and then
-<a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">_encode()</span></code></a> function is called.</p>
+Here name, initializer and dtype are set in the variable scope and then
+<a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> method is called.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -330,9 +334,21 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 </dd></dl>
 
 <dl class="attribute">
+<dt id="encoders.encoder.Encoder.mode">
+<code class="descname">mode</code><a class="headerlink" href="#encoders.encoder.Encoder.mode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mode encoder is run in.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.encoder.Encoder.name">
+<code class="descname">name</code><a class="headerlink" href="#encoders.encoder.Encoder.name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encoder name.</p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="encoders.encoder.Encoder.params">
 <code class="descname">params</code><a class="headerlink" href="#encoders.encoder.Encoder.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parameters used to construct the encoder (dictionary)</p>
+<dd><p>Parameters used to construct the encoder (dictionary).</p>
 </dd></dl>
 
 </dd></dl>
@@ -342,8 +358,81 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 <span id="ds2-encoder"></span><h2>ds2_encoder<a class="headerlink" href="#module-encoders.ds2_encoder" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder">
-<em class="property">class </em><code class="descclassname">encoders.ds2_encoder.</code><code class="descname">DeepSpeech2Encoder</code><span class="sig-paren">(</span><em>params=None</em>, <em>name='ds2_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.ds2_encoder.</code><code class="descname">DeepSpeech2Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='ds2_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>DeepSpeech-2 like encoder.</p>
+<dl class="method">
+<dt id="encoders.ds2_encoder.DeepSpeech2Encoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='ds2_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>DeepSpeech-2 like encoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
+</li>
+<li><p class="first"><strong>conv_layers</strong> (list) — list with the description of convolutional
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">41</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">21</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">96</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+  <span class="p">},</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>activation_fn</strong> — activation function to use.</p>
+</li>
+<li><p class="first"><strong>num_rnn_layers</strong> — number of RNN layers to use.</p>
+</li>
+<li><p class="first"><strong>rnn_type</strong> (string) — could be “lstm”, “gru”, “cudnn_gru”,
+“cudnn_lstm” or “layernorm_lstm”.</p>
+</li>
+<li><p class="first"><strong>rnn_unidirectional</strong> (bool) — whether to use uni-directional or
+bi-directional RNNs.</p>
+</li>
+<li><p class="first"><strong>rnn_cell_dim</strong> (int) — dimension of RNN cells.</p>
+</li>
+<li><p class="first"><strong>row_conv</strong> (bool) — whether to use a “row” (“in plane”) convolutional
+layer after RNNs.</p>
+</li>
+<li><p class="first"><strong>row_conv_width</strong> (int) — width parameter for “row”
+convolutional layer.</p>
+</li>
+<li><p class="first"><strong>n_hidden</strong> (int) — number of hidden units for the last fully connected
+layer.</p>
+</li>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
+</li>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.99.</p>
+</li>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-3.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="encoders.ds2_encoder.DeepSpeech2Encoder._encode">
+<code class="descname">_encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder._encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder._encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates TensorFlow graph for DeepSpeech-2 like encoder.</p>
+<p>Expects the following inputs:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;src_sequence&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]</span>
+  <span class="s2">&quot;src_length&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -354,7 +443,7 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encoder.__init__" title="encoders.ds2_encoder.DeepSpeech2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -372,7 +461,7 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encoder.__init__" title="encoders.ds2_encoder.DeepSpeech2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -385,17 +474,20 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <dl class="function">
 <dt id="encoders.ds2_encoder.conv2d_bn_actv">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">conv2d_bn_actv</code><span class="sig-paren">(</span><em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#conv2d_bn_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.conv2d_bn_actv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Helper function that applied convolution, batch norm and activation.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="encoders.ds2_encoder.rnn_cell">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">rnn_cell</code><span class="sig-paren">(</span><em>rnn_cell_dim</em>, <em>layer_type</em>, <em>dropout_keep_prob=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#rnn_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.rnn_cell" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Helper function that creates RNN cell.</p>
+</dd></dl>
 
 <dl class="function">
 <dt id="encoders.ds2_encoder.row_conv">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">row_conv</code><span class="sig-paren">(</span><em>name</em>, <em>input_layer</em>, <em>batch</em>, <em>channels</em>, <em>width</em>, <em>activation_fn</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#row_conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.row_conv" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Helper function that applies “row” or “in plane” convolution.</p>
+</dd></dl>
 
 </div>
 <div class="section" id="module-encoders.rnn_encoders">
@@ -403,13 +495,13 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <p>RNN-based encoders</p>
 <dl class="class">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding">
-<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">BidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>name='bidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">BidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='bidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Bi-directional RNN-based encoder with embeddings.
 Can support various RNN cell types.</p>
 <dl class="method">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='bidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='bidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes bi-directional encoder with embeddings
 :param params: dictionary with encoder parameters
 Must define:</p>
@@ -526,14 +618,14 @@ class <a class="reference internal" href="#encoders.rnn_encoders.BidirectionalRN
 
 <dl class="class">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding">
-<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">GNMTLikeEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>name='gnmt_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">GNMTLikeEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Encoder similar to the one used in
 GNMT model: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.
 Must have at least 2 layers</p>
 <dl class="method">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='gnmt_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encodes data into representation
 :param params: a Python dictionary.
 Must define:</p>
@@ -618,13 +710,13 @@ class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoder
 
 <dl class="class">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding">
-<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">UnidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">UnidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Uni-directional RNN decoder with embeddings.
 Can support various RNN cell types.</p>
 <dl class="method">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes uni-directional encoder with embeddings
 :param params: dictionary with encoder parameters
 Must define:</p>
@@ -737,11 +829,11 @@ class <a class="reference internal" href="#encoders.rnn_encoders.UnidirectionalR
 <p>Encoders based on Transformers arch from <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a></p>
 <dl class="class">
 <dt id="encoders.transformer_encoders.TransformerEncoder">
-<em class="property">class </em><code class="descclassname">encoders.transformer_encoders.</code><code class="descname">TransformerEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoders.html#TransformerEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoders.TransformerEncoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">encoders.transformer_encoders.</code><code class="descname">TransformerEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoders.html#TransformerEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoders.TransformerEncoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <dl class="method">
 <dt id="encoders.transformer_encoders.TransformerEncoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoders.html#TransformerEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoders.TransformerEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoders.html#TransformerEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoders.TransformerEncoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializes uni-directional encoder with embeddings
 :param params: dictionary with encoder parameters
 Must define:</p>

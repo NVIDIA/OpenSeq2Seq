@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
   
   
 
@@ -194,16 +196,13 @@ You might need to enable loss scaling: either statically, by setting
 you can use dynamic loss scaling by setting <code class="docutils literal notranslate"><span class="pre">automatic_loss_scaling</span></code> parameter
 to “Backoff” or “LogMax”:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">base_params</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="o">...</span>
-    <span class="s2">&quot;model_params&quot;</span><span class="p">:</span> <span class="p">{</span>
-       <span class="o">...</span>
-       <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;mixed&quot;</span><span class="p">,</span>
-       <span class="c1"># enabling static or dynamic loss scaling might improve model convergence</span>
+   <span class="o">...</span>
+   <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;mixed&quot;</span><span class="p">,</span>
+   <span class="c1"># enabling static or dynamic loss scaling might improve model convergence</span>
 
-       <span class="c1"># &quot;loss_scale&quot;: 10.0,</span>
-       <span class="c1"># &quot;automatic_loss_scaling&quot;: &quot;Backoff&quot;,</span>
-    <span class="p">}</span>
-    <span class="o">...</span>
+   <span class="c1"># &quot;loss_scale&quot;: 10.0,</span>
+   <span class="c1"># &quot;automatic_loss_scaling&quot;: &quot;Backoff&quot;,</span>
+   <span class="o">...</span>
 <span class="p">}</span>
 </pre></div>
 </div>

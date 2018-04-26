@@ -1,5 +1,7 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
 import tensorflow as tf
 import time
 
@@ -8,18 +10,11 @@ from open_seq2seq.utils.utils import deco_print
 from tensorflow.python import debug as tf_debug
 
 
-def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
-  """
-  Training Loop function
-  :param config:
-  :param train_model:
-  :param eval_model:
-  :param hvd:
-  :return:
-  """
-  if eval_model is not None and 'eval_steps' not in config:
+def train(train_model, eval_model=None, hvd=None, debug_port=None):
+  if eval_model is not None and 'eval_steps' not in eval_model.params:
     raise ValueError("eval_steps parameter has to be specified "
                      "if eval_model is provided")
+
   if hvd:
     master_worker = hvd.rank() == 0
   else:
@@ -42,21 +37,21 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
     checkpoint_dir = None
 
   if master_worker:
-    if config['save_checkpoint_steps'] is not None:
+    if train_model.params['save_checkpoint_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(tf.train.CheckpointSaverHook(
-        checkpoint_dir, save_steps=config['save_checkpoint_steps'])
+        checkpoint_dir, save_steps=train_model.params['save_checkpoint_steps'])
       )
-    if config['print_loss_steps'] is not None:
+    if train_model.params['print_loss_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(PrintLossAndTimeHook(
-        every_steps=config['print_loss_steps'],
+        every_steps=train_model.params['print_loss_steps'],
         model=train_model,
       ))
-    if config['print_samples_steps'] is not None:
+    if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker
       hooks.append(PrintSamplesHook(
-        every_steps=config['print_samples_steps'],
+        every_steps=train_model.params['print_samples_steps'],
         model=train_model,
       ))
 
@@ -64,13 +59,13 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
     # noinspection PyTypeChecker
     hooks.append(
       RunEvaluationHook(
-        every_steps=config['eval_steps'],
+        every_steps=eval_model.params['eval_steps'],
         model=eval_model,
         last_step=train_model.last_step,
       ),
     )
   total_time = 0.0
-  bench_start = config.get('bench_start', 10)
+  bench_start = train_model.params.get('bench_start', 10)
 
   if debug_port:
     hooks.append(
@@ -80,10 +75,10 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
   # starting training
   with tf.train.MonitoredTrainingSession(
     checkpoint_dir=checkpoint_dir,
-    save_summaries_steps=config['save_summaries_steps'],
+    save_summaries_steps=train_model.params['save_summaries_steps'],
     config=sess_config,
     save_checkpoint_secs=None,
-    log_step_count_steps=config['save_summaries_steps'],
+    log_step_count_steps=train_model.params['save_summaries_steps'],
     stop_grace_period_secs=300,
     hooks=hooks,
   ) as sess:
@@ -109,18 +104,21 @@ def train(config, train_model, eval_model=None, hvd=None, debug_port=None):
     deco_print("Not enough steps for benchmarking")
 
 
-def get_batches_for_epoch(model, checkpoint, config):
+def get_batches_for_epoch(model, checkpoint):
   total_time = 0.0
-  bench_start = config.get('bench_start', 10)
+  bench_start = model.params.get('bench_start', 10)
 
   saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
+  sess_config.gpu_options.allow_growth = True
   with tf.Session(config=sess_config) as sess:
     saver.restore(sess, checkpoint)
     inputs_per_batch, outputs_per_batch = [], []
     fetches = [model.data_layer.get_input_tensors(), model.get_output_tensors()]
     total_batches = model.data_layer.get_size_in_batches()
-    for step, feed_dict in enumerate(model.data_layer.iterate_one_epoch()):
+    for step, feed_dict in enumerate(
+      model.data_layer.iterate_one_epoch(cross_over=True)
+    ):
       tm = time.time()
       inputs, outputs = sess.run(fetches, feed_dict)
       if step >= bench_start:
@@ -141,19 +139,16 @@ def get_batches_for_epoch(model, checkpoint, config):
   return inputs_per_batch, outputs_per_batch
 
 
-def infer(config, model, checkpoint, output_file):
+def infer(model, checkpoint, output_file):
   inputs_per_batch, outputs_per_batch = get_batches_for_epoch(model,
-                                                              checkpoint,
-                                                              config)
+                                                              checkpoint)
   model.infer(inputs_per_batch, outputs_per_batch, output_file)
   deco_print("Finished inference")
 
 
-def evaluate(config, model, checkpoint):
-  # TODO: last batch might be cut!
+def evaluate(model, checkpoint):
   inputs_per_batch, outputs_per_batch = get_batches_for_epoch(model,
-                                                              checkpoint,
-                                                              config)
+                                                              checkpoint)
   eval_dict = model.maybe_evaluate(inputs_per_batch, outputs_per_batch)
   deco_print("Finished evaluation")
   return eval_dict

@@ -40,6 +40,7 @@ configuration file.
 ********************
 Feeling adventurous?
 ********************
+
 One of the main goals of OpenSeq2Seq is to allow you easily experiment with different architectures. Try out these configurations:
 
 #. ``example_configs/nmt_reversal-TR.py`` - a model which uses Transformer's encoder and RNN decoder with attention
@@ -67,14 +68,17 @@ You can adjusted ``num_gpus`` parameter to train on more than one GPU if availab
 *************
 Run inference
 *************
+
 Once training is done, you can run inference::
 
     python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt
+
 Note that because BPE-based vocabularies were used during training, the results will contain BPE segmentation.
 
 *************************
 Cleaning BPE segmentation
 *************************
+
 Before computing BLEU scores you need to remove BPE segmentation::
 
   cat file_with_BPE_segmentation.txt | sed -r 's/(@@ )|(@@ ?$)//g' > cleaned_file.txt
@@ -82,6 +86,7 @@ Before computing BLEU scores you need to remove BPE segmentation::
 *********************
 Computing BLEU scores
 *********************
+
 Run ```multi-blue.perl``` script on cleaned data::
 
   ./multi-bleu.perl newstest2014.tok.de < cleaned_file.txt

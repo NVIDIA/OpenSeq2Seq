@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -154,6 +156,9 @@
 <span class="sd">RNN-based encoders</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -188,9 +193,8 @@
       <span class="s1">&#39;num_groups&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unidir_rnn_encoder_with_emb&quot;</span><span class="p">,</span>
-               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unidir_rnn_encoder_with_emb&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes uni-directional encoder with embeddings</span>
 <span class="sd">    :param params: dictionary with encoder parameters</span>
@@ -210,6 +214,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">UnidirectionalRNNEncoderWithEmbedding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
       <span class="n">params</span><span class="p">,</span>
+      <span class="n">model</span><span class="p">,</span>
       <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
       <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
     <span class="p">)</span>
@@ -263,21 +268,21 @@
 
     <span class="n">embedded_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">enc_emb_w</span><span class="p">,</span>
-      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">],</span>
+      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">],</span>
     <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
 
     <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">encoder_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dynamic_rnn</span><span class="p">(</span>
       <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_cell_fw</span><span class="p">,</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
+      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
       <span class="n">time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
       <span class="n">swap_memory</span><span class="o">=</span><span class="n">use_swap_memory</span><span class="p">,</span>
       <span class="n">dtype</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
-            <span class="s1">&#39;encoder_state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
-            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">]}</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
+            <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
+            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]}</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">src_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -319,9 +324,8 @@
       <span class="s1">&#39;num_groups&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bidir_rnn_encoder_with_emb&quot;</span><span class="p">,</span>
-               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;bidir_rnn_encoder_with_emb&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes bi-directional encoder with embeddings</span>
 <span class="sd">    :param params: dictionary with encoder parameters</span>
@@ -341,7 +345,7 @@
 <span class="sd">    :param encoder_params:</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">BidirectionalRNNEncoderWithEmbedding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-      <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+      <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_src_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
@@ -403,23 +407,23 @@
 
     <span class="n">embedded_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">enc_emb_w</span><span class="p">,</span>
-      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">],</span>
+      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">],</span>
     <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
 
     <span class="n">encoder_output</span><span class="p">,</span> <span class="n">encoder_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bidirectional_dynamic_rnn</span><span class="p">(</span>
       <span class="n">cell_fw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_cell_fw</span><span class="p">,</span>
       <span class="n">cell_bw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_cell_bw</span><span class="p">,</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
+      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
       <span class="n">time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
       <span class="n">swap_memory</span><span class="o">=</span><span class="n">use_swap_memory</span><span class="p">,</span>
       <span class="n">dtype</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">encoder_output</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
-            <span class="s1">&#39;encoder_state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
-            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">]}</span></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
+            <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
+            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]}</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">src_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -462,9 +466,8 @@
       <span class="s1">&#39;num_groups&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span>
-               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gnmt_encoder_with_emb&quot;</span><span class="p">,</span>
-               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gnmt_encoder_with_emb&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Encodes data into representation</span>
 <span class="sd">    :param params: a Python dictionary.</span>
@@ -480,7 +483,7 @@
 <span class="sd">      * src_lengths - (copy ref from input) a Tensor of shape [batch_size]</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">GNMTLikeEncoderWithEmbedding</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-      <span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
+      <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_src_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
@@ -545,7 +548,7 @@
     <span class="n">use_swap_memory</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_swap_memory&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="n">embedded_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">enc_emb_w</span><span class="p">,</span>
-      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">],</span>
+      <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">],</span>
     <span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
 
     <span class="c1"># first bi-directional layer</span>
@@ -553,7 +556,7 @@
       <span class="n">cell_fw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_l1_cell_fw</span><span class="p">,</span>
       <span class="n">cell_bw</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_l1_cell_bw</span><span class="p">,</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
+      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
       <span class="n">swap_memory</span><span class="o">=</span><span class="n">use_swap_memory</span><span class="p">,</span>
       <span class="n">time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
       <span class="n">dtype</span><span class="o">=</span><span class="n">embedded_inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
@@ -564,16 +567,16 @@
     <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">encoder_state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dynamic_rnn</span><span class="p">(</span>
       <span class="n">cell</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_encoder_cells</span><span class="p">),</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">encoder_l1_outputs</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
+      <span class="n">sequence_length</span><span class="o">=</span><span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
       <span class="n">swap_memory</span><span class="o">=</span><span class="n">use_swap_memory</span><span class="p">,</span>
       <span class="n">time_major</span> <span class="o">=</span> <span class="n">time_major</span><span class="p">,</span>
       <span class="n">dtype</span><span class="o">=</span><span class="n">encoder_l1_outputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
-            <span class="s1">&#39;encoder_state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
-            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_lengths&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_inputs&#39;</span><span class="p">]}</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">encoder_outputs</span><span class="p">,</span>
+            <span class="s1">&#39;state&#39;</span><span class="p">:</span> <span class="n">encoder_state</span><span class="p">,</span>
+            <span class="s1">&#39;src_lengths&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;encoder_input&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]}</span>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">src_vocab_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

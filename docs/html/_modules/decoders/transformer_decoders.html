@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -154,6 +156,9 @@
 <span class="sd">Encoders based on Transformers arch from https://arxiv.org/abs/1706.03762</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
 
@@ -174,7 +179,10 @@
                            <span class="n">d_model</span><span class="p">,</span>
                            <span class="n">ffn_inner_dim</span><span class="p">,</span>
                            <span class="n">attention_heads</span><span class="p">,</span>
-                           <span class="n">dropout_drop_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+                           <span class="n">norm_type</span><span class="p">,</span>
+                           <span class="n">drop_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                           <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                           <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Transformer decoder function. It will train all steps in parallel,</span>
 <span class="sd">  but for inference should be used in auto-regressive manner.</span>
@@ -210,7 +218,10 @@
                                                 <span class="n">heads</span><span class="o">=</span><span class="n">attention_heads</span><span class="p">,</span>
                                                 <span class="n">dtype</span><span class="o">=</span><span class="n">dec_emb_w</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
-    <span class="n">x</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">drop_prob</span><span class="o">=</span><span class="n">dropout_drop_prob</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+                                  <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+                                  <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                  <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">block_ind</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_decoder_blocks</span><span class="p">):</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;DecoderBlock_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">block_ind</span><span class="p">)):</span>
@@ -223,7 +234,9 @@
                                             <span class="n">additional_bias</span><span class="o">=</span><span class="n">decoder_self_bias</span><span class="p">)</span>
 
           <span class="n">x</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">att_out</span><span class="p">,</span> <span class="n">residual_x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
-                                        <span class="n">drop_prob</span><span class="o">=</span><span class="n">dropout_drop_prob</span><span class="p">)</span>
+                                        <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+                                        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                        <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;Attend2Encoder&quot;</span><span class="p">):</span>
           <span class="n">att_out</span> <span class="o">=</span> <span class="n">multi_head_attention_fn</span><span class="p">(</span><span class="n">Q</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
                                             <span class="n">K</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
@@ -232,12 +245,17 @@
                                             <span class="n">h</span><span class="o">=</span><span class="n">attention_heads</span><span class="p">,</span>
                                             <span class="n">additional_bias</span><span class="o">=</span><span class="n">encoder_decoder_bias</span><span class="p">)</span>
           <span class="n">x</span> <span class="o">=</span> <span class="n">dropout_normalize_add_NTC</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">att_out</span><span class="p">,</span> <span class="n">residual_x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
-                                        <span class="n">drop_prob</span><span class="o">=</span><span class="n">dropout_drop_prob</span><span class="p">)</span>
+                                        <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+                                        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                                        <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">)</span>
 
         <span class="n">x</span> <span class="o">=</span> <span class="n">ffn_and_layer_norm</span><span class="p">(</span><span class="n">x</span><span class="p">,</span>
                                <span class="n">inner_dim</span><span class="o">=</span><span class="n">ffn_inner_dim</span><span class="p">,</span>
                                <span class="n">resulting_dim</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
-                               <span class="n">drop_prob</span><span class="o">=</span><span class="n">dropout_drop_prob</span><span class="p">)</span>
+                               <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+                               <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+                               <span class="n">norm_type</span><span class="o">=</span><span class="n">norm_type</span><span class="p">,</span>
+                               <span class="p">)</span>
     
     <span class="n">result</span> <span class="o">=</span> <span class="n">output_projector</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>    
     <span class="k">return</span> <span class="n">result</span></div>
@@ -246,18 +264,19 @@
 <div class="viewcode-block" id="TransformerDecoder"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder">[docs]</a><span class="k">class</span> <span class="nc">TransformerDecoder</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Greedy Transformer Decoder</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="TransformerDecoder.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;transformer_decoder&quot;</span><span class="p">,</span>
-               <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+<div class="viewcode-block" id="TransformerDecoder.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;transformer_decoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Initializes Decoder</span>
 <span class="sd">    :param params: dictionary of decoder parameters</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">TransformerDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">TransformerDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">GO_SYMBOL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">END_SYMBOL</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;d_model&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_norm_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;decoder_norm_type&quot;</span><span class="p">,</span> <span class="s1">&#39;layer_norm&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;decoder_drop_prob&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">!=</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -271,11 +290,11 @@
       <span class="s2">&quot;ffn_inner_dim&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s2">&quot;decoder_layers&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s2">&quot;attention_heads&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s2">&quot;decoder_drop_prob&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s2">&quot;GO_SYMBOL&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s2">&quot;END_SYMBOL&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s2">&quot;PAD_SYMBOL&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="TransformerDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
@@ -283,6 +302,8 @@
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s2">&quot;use_encoder_emb&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s2">&quot;tie_emb_and_proj&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+      <span class="s2">&quot;decoder_drop_prob&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+      <span class="s2">&quot;decoder_norm_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="TransformerDecoder._decode"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder._decode">[docs]</a>  <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
@@ -291,7 +312,7 @@
 <span class="sd">    :param input_dict: dictionary of decoder inputs</span>
 <span class="sd">    For example (but may differ):</span>
 <span class="sd">    decoder_input= { &quot;src_inputs&quot; : decoder source sequence,</span>
-<span class="sd">                     &quot;src_lengths&quot; : decoder srouce length,</span>
+<span class="sd">                     &quot;src_lengths&quot; : decoder source length,</span>
 <span class="sd">                     &quot;tgt_inputs&quot; :  (during training),</span>
 <span class="sd">                     &quot;tgt_lengths&quot; : (during training)}</span>
 
@@ -300,7 +321,7 @@
 <span class="sd">    decoder_output = {&quot;decoder_outputs&quot; : decoder_outputs,</span>
 <span class="sd">                      &quot;decoder_lengths&quot; : decoder_lengths}</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;encoder_outputs&#39;</span><span class="p">]</span>
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
     <span class="n">encoder_input</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;encoder_input&#39;</span><span class="p">]</span>
     <span class="n">ffn_inner_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;ffn_inner_dim&quot;</span><span class="p">]</span>
     <span class="n">d_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;d_model&#39;</span><span class="p">]</span>
@@ -325,9 +346,12 @@
           <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
           <span class="n">name</span><span class="o">=</span><span class="s2">&quot;DecoderOutProjection&quot;</span><span class="p">)</span>
 
-      <span class="n">tgt_inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_inputs&#39;</span><span class="p">]</span>
+      <span class="n">tgt_inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_sequence&#39;</span><span class="p">]</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+        <span class="n">training</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="n">drop_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span>
+
         <span class="n">output</span> <span class="o">=</span> <span class="n">transformer_decoder_fn</span><span class="p">(</span>
           <span class="n">decoder_input_seq</span><span class="o">=</span><span class="n">tgt_inputs</span><span class="p">,</span>
           <span class="n">encoder_input_seq</span><span class="o">=</span><span class="n">encoder_input</span><span class="p">,</span>
@@ -338,15 +362,20 @@
           <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
           <span class="n">ffn_inner_dim</span><span class="o">=</span><span class="n">ffn_inner_dim</span><span class="p">,</span>
           <span class="n">attention_heads</span><span class="o">=</span><span class="n">attention_heads</span><span class="p">,</span>
-          <span class="n">dropout_drop_prob</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span><span class="p">)</span>
+          <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">norm_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_norm_type</span><span class="p">,</span>
+        <span class="p">)</span>
 
         <span class="k">return</span> <span class="p">{</span>
-          <span class="s2">&quot;decoder_output&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
-          <span class="s2">&quot;decoder_samples&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+          <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
+          <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
           <span class="s2">&quot;final_state&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
           <span class="s2">&quot;final_sequence_lengths&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
       <span class="k">else</span><span class="p">:</span><span class="c1"># Decoder must be used in auto-regressive manner</span>
+        <span class="n">training</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">drop_prob</span> <span class="o">=</span> <span class="mf">0.0</span>
         <span class="n">decoding_length</span> <span class="o">=</span> <span class="n">encoder_outputs</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">value</span> <span class="ow">or</span> \
                           <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
 
@@ -371,7 +400,10 @@
             <span class="n">d_model</span><span class="o">=</span><span class="n">d_model</span><span class="p">,</span>
             <span class="n">ffn_inner_dim</span><span class="o">=</span><span class="n">ffn_inner_dim</span><span class="p">,</span>
             <span class="n">attention_heads</span><span class="o">=</span><span class="n">attention_heads</span><span class="p">,</span>
-            <span class="n">dropout_drop_prob</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_drop_prob</span><span class="p">)</span>
+            <span class="n">drop_prob</span><span class="o">=</span><span class="n">drop_prob</span><span class="p">,</span>
+            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">norm_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_norm_type</span><span class="p">,</span>
+          <span class="p">)</span>
 
           <span class="n">decoder_argmx</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">step_logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
           <span class="n">step_out</span> <span class="o">=</span> <span class="n">decoder_argmx</span><span class="p">[:,</span> <span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># this is of shape [batch, T]</span>
@@ -395,10 +427,11 @@
                                                                            <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">,</span> <span class="kc">None</span><span class="p">]),</span>
                                                                            <span class="n">tf</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">])])</span>
         
-        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
-                <span class="s2">&quot;decoder_samples&quot;</span><span class="p">:</span> <span class="n">decoder_ids_so_far</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">output</span><span class="p">,</span>
+                <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="n">decoder_ids_so_far</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">:],</span>
                 <span class="s2">&quot;final_state&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s2">&quot;final_sequence_lengths&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span></div>
+
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Parameters used to construct the encoder&quot;&quot;&quot;</span>

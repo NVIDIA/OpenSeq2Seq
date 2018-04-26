@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -176,15 +178,17 @@
 <span id="model"></span><h2>model<a class="headerlink" href="#module-models.model" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="models.model.Model">
-<em class="property">class </em><code class="descclassname">models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode='train'</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class that any model should inherit from.
 It automatically enables multi-GPU (or Horovod) computation,
 has mixed precision support, logs training summaries, etc.</p>
 <dl class="method">
 <dt id="models.model.Model.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode='train'</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Model constructor. The TensorFlow graph is created here.</p>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model constructor.
+The TensorFlow graph should not be created here, but rather in the
+<a class="reference internal" href="#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -193,18 +197,14 @@ has mixed precision support, logs training summaries, etc.</p>
 <li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
 All supported parameters are listed in <a class="reference internal" href="#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
 <a class="reference internal" href="#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>data_layer</strong> (<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><em>DataLayer</em></a>) – The <code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code> instance to take data from.</li>
-<li><strong>global_step</strong> (<em>optional</em>) – TensorFlow global step or None</li>
-<li><strong>force_var_reuse</strong> (<em>bool</em><em>, </em><em>optional</em>) – if true, all variables will be re-used.
-Useful for creating evaluation model alongside the training model or
-for multi-GPU training.</li>
 <li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
 If mode is “train” all parts of the graph will be built
 (model, loss, optimizer).
 If mode is “eval”, only model and loss will be built.
 If mode is “infer”, only model will be built.</li>
-<li><strong>gpu_ids</strong> (<em>list</em><em>, </em><em>optional</em>) – a list of gpu ids to run the model on.
-For distributed training using Horovod this parameter is ignored.</li>
+<li><strong>hvd</strong> (<em>optional</em>) – if Horovod is used, this should be
+<code class="docutils literal notranslate"><span class="pre">horovod.tensorflow</span></code> module.
+If Horovod is not used, it should be None.</li>
 </ul>
 </td>
 </tr>
@@ -212,6 +212,41 @@ For distributed training using Horovod this parameter is ignored.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
+<li><strong>random_seed</strong> (int) — random seed to use.</li>
+<li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed
+execution.</li>
+<li><strong>num_gpus</strong> (int) — number of GPUs to use. This parameter cannot be
+used if <code class="docutils literal notranslate"><span class="pre">gpu_ids</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
+this parameter is ignored.</li>
+<li><strong>gpu_ids</strong> (list of ints) — GPU ids to use. This parameter cannot be
+used if <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
+this parameter is ignored.</li>
+<li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
+<li><strong>num_epochs</strong> (int) — number of epochs to run training for.
+This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> is specified.</li>
+<li><strong>max_steps</strong> (int) — number of steps to run training for.
+This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> is specified.</li>
+<li><strong>save_summaries_steps</strong> (int or None) — how often to save summaries.
+Setting it to None disables summaries saving.</li>
+<li><strong>print_loss_steps</strong> (int or None) — how often to print loss during
+training. Setting it to None disables loss printing.</li>
+<li><strong>print_samples_steps</strong> (int or None) — how often to print training
+samples (input sequences, correct answers and model predictions).
+Setting it to None disables samples printing.</li>
+<li><strong>save_checkpoint_steps</strong> (int or None) — how often to save model
+checkpoints. Setting it to None disables checkpoint saving.</li>
+<li><strong>eval_steps</strong> (int) — how often to run evaluation during training.
+This parameter is only checked if <code class="docutils literal notranslate"><span class="pre">--mode</span></code> argument of <code class="docutils literal notranslate"><span class="pre">run.py</span></code> is
+“train_eval”. If no evaluation is needed you should use “train” mode.</li>
+<li><strong>logdir</strong> (string) — path to the log directory where all checkpoints
+and summaries will be saved.</li>
+<li><strong>data_layer</strong> (any class derived from
+<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) — data layer class
+to use.</li>
+<li><strong>data_layer_params</strong> (dict) — dictionary with data layer
+configuration.
+For complete list of possible parameters see the corresponding
+class docs.</li>
 <li><strong>learning_rate</strong> (float) — initial learning rate for training.</li>
 <li><strong>optimizer</strong> (string or TensorFlow optimizer class) — optimizer to
 use for training. Could be either “Adam”, “Adagrad”, “Ftrl”, “Momentum”,
@@ -224,8 +259,8 @@ initializer <code class="docutils literal notranslate"><span class="pre">__init_
 <li><strong>regularizer</strong> — and valid TensorFlow regularizer.</li>
 <li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
 regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
-<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>, <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>
-or “mixed”. For details see
+<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tf.float32</span></code> or “mixed”. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
 <li><strong>lr_policy</strong> — any valid learning rate policy function. For examples,
 see <a class="reference internal" href="optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
@@ -242,7 +277,7 @@ it as adaptive gradient clipping and learning rate adjustment.</li>
 <li><strong>larc_nu</strong> (float) — LARC or LARS scaling parameter.</li>
 <li><strong>loss_scale</strong> (float) — static loss scale to use. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>autimatic_loss_scaling</strong> — automatic loss scaling mode. Could be
+<li><strong>automatic_loss_scaling</strong> — automatic loss scaling mode. Could be
 either None, “Backoff” or “Logmax”. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
 <li><strong>summaries</strong> (list) — which summaries to log. Could contain
@@ -284,6 +319,12 @@ is not built.</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.model.Model.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><em>force_var_reuse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.compile" title="Permalink to this definition">¶</a></dt>
+<dd><p>TensorFlow graph is built here.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -347,7 +388,7 @@ class <a class="reference internal" href="#models.model.Model.__init__" title="m
 <dl class="method">
 <dt id="models.model.Model.get_tf_dtype">
 <code class="descname">get_tf_dtype</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.get_tf_dtype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.get_tf_dtype" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns actual TesnorFlow dtype that will be used as variables dtype.</p>
+<dd><p>Returns actual TensorFlow dtype that will be used as variables dtype.</p>
 </dd></dl>
 
 <dl class="method">
@@ -462,7 +503,7 @@ overwriting this function can be a useful way to add it.</p>
 <code class="descname">num_gpus</code><a class="headerlink" href="#models.model.Model.num_gpus" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of GPUs the model will be run on.
 For Horovod this is always 1 and actual number of GPUs is controlled by
-mpi parameters.</p>
+MPI parameters.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -478,11 +519,12 @@ mpi parameters.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="models.model.Model.step_size">
-<code class="descname">step_size</code><a class="headerlink" href="#models.model.Model.step_size" title="Permalink to this definition">¶</a></dt>
-<dd><p>Number of samples the model processes per step.
+<dt id="models.model.Model.steps_in_epoch">
+<code class="descname">steps_in_epoch</code><a class="headerlink" href="#models.model.Model.steps_in_epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of steps in epoch.
 This parameter is only populated if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> was specified in the
-config. It is used in training hooks to correctly print epoch number.</p>
+config (otherwise it is None).
+It is used in training hooks to correctly print epoch number.</p>
 </dd></dl>
 
 </dd></dl>
@@ -492,51 +534,170 @@ config. It is used in training hooks to correctly print epoch number.</p>
 <span id="seq2seq"></span><h2>seq2seq<a class="headerlink" href="#module-models.seq2seq" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="models.seq2seq.Seq2Seq">
-<em class="property">class </em><code class="descclassname">models.seq2seq.</code><code class="descname">Seq2Seq</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">models.seq2seq.</code><code class="descname">Seq2Seq</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.models.model.Model</span></code></p>
-<p>Standard Sequence-to-Sequence class with one encoder and one decoder.
-“encoder-decoder-loss” models should inherit from this</p>
+<p>Standard sequence-to-sequence class with one encoder and one decoder.
+“encoder-decoder-loss” models should inherit from this class.</p>
 <dl class="method">
 <dt id="models.seq2seq.Seq2Seq.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructor
-:param params: Python dictionary - parameters describing seq2seq model
-:param data_layer: Instance of DataLayer
-:param encoder: Instance of Encoder
-:param decoder: Instance of Decoder
-:param loss: Instance of Loss
-:param global_step: TF variable - global step
-:param force_var_reuse: Boolean - if true, all vars will be re-used
-:param mode: string, currently “train” or “infer”
-:param gpu_ids: a list of gpu ids, None, or “horovod” string</p>
-<blockquote>
-<div>for distributed training using Horovod</div></blockquote>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sequence-to-sequence model constructor.
+Note that TensorFlow graph should not be created here. All graph creation
+logic is happening inside
+<a class="reference internal" href="#models.seq2seq.Seq2Seq._build_forward_pass_graph" title="models.seq2seq.Seq2Seq._build_forward_pass_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._build_forward_pass_graph()</span></code></a> method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
+All supported parameters are listed in <a class="reference internal" href="#models.seq2seq.Seq2Seq.get_required_params" title="models.seq2seq.Seq2Seq.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#models.seq2seq.Seq2Seq.get_optional_params" title="models.seq2seq.Seq2Seq.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
+If mode is “train” all parts of the graph will be built
+(model, loss, optimizer).
+If mode is “eval”, only model and loss will be built.
+If mode is “infer”, only model will be built.</li>
+<li><strong>hvd</strong> (<em>optional</em>) – if Horovod is used, this should be
+<code class="docutils literal notranslate"><span class="pre">horovod.tensorflow</span></code> module.
+If Horovod is not used, it should be None.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>encoder</strong> (any class derived from
+<a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Encoder</span></code></a>) — encoder class to use.</li>
+<li><strong>encoder_params</strong> (dict) — dictionary with encoder configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>decoder</strong> (any class derived from
+<a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decoder</span></code></a>) — decoder class to use.</li>
+<li><strong>decoder_params</strong> (dict) — dictionary with decoder configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+<li><strong>loss</strong> (any class derived from
+<a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">Loss</span></code></a>) — loss class to use.</li>
+<li><strong>loss_params</strong> (dict) — dictionary with loss configuration. For
+complete list of possible parameters see the corresponding class docs.</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
 <dt id="models.seq2seq.Seq2Seq._build_forward_pass_graph">
 <code class="descname">_build_forward_pass_graph</code><span class="sig-paren">(</span><em>input_tensors</em>, <em>gpu_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._build_forward_pass_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._build_forward_pass_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds forward pass
-:param input_tensors: List of Tensors, currently assumes the following:
-[source_sequence, src_length, target_sequence, tgt_length]
-:param gpu_id: gpu_id where this pass is being built
-:return: loss or nothing</p>
+<dd><p>TensorFlow graph for sequence-to-sequence model is created here.
+This function connects encoder, decoder and loss together. As an input for
+encoder it will specify source sequence and source length (as returned from
+the data layer). As an input for decoder it will specify target sequence
+and target length as well as all output returned from encoder. For loss it
+will also specify target sequence and length and all output returned from
+decoder. Note that loss will only be built for mode == “train” or “eval”.</p>
+<p>See <a class="reference internal" href="#models.model.Model._build_forward_pass_graph" title="models.model.Model._build_forward_pass_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">models.model.Model._build_forward_pass_graph()</span></code></a> for description of
+arguments and return values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_decoder">
+<code class="descname">_create_decoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return decoder class.
+Overwrite this function if additional parameters need to be specified for
+decoder, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_encoder">
+<code class="descname">_create_encoder</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_encoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return encoder class.
+Overwrite this function if additional parameters need to be specified for
+encoder, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.seq2seq.Seq2Seq._create_loss">
+<code class="descname">_create_loss</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq._create_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq._create_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function should return loss class.
+Overwrite this function if additional parameters need to be specified for
+loss, besides provided in the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a>.</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.decoder">
 <code class="descname">decoder</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.decoder" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model decoder.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.encoder">
 <code class="descname">encoder</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.encoder" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model encoder.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="models.seq2seq.Seq2Seq.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.seq2seq.Seq2Seq.__init__" title="models.seq2seq.Seq2Seq.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="models.seq2seq.Seq2Seq.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/seq2seq.html#Seq2Seq.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.seq2seq.Seq2Seq.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.seq2seq.Seq2Seq.__init__" title="models.seq2seq.Seq2Seq.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="models.seq2seq.Seq2Seq.loss_computator">
 <code class="descname">loss_computator</code><a class="headerlink" href="#models.seq2seq.Seq2Seq.loss_computator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Model loss computator.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -545,7 +706,7 @@ config. It is used in training hooks to correctly print epoch number.</p>
 <span id="speech2text"></span><h2>speech2text<a class="headerlink" href="#module-models.speech2text" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="models.speech2text.Speech2Text">
-<em class="property">class </em><code class="descclassname">models.speech2text.</code><code class="descname">Speech2Text</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">models.speech2text.</code><code class="descname">Speech2Text</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#models.seq2seq.Seq2Seq" title="models.seq2seq.Seq2Seq"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.seq2seq.Seq2Seq</span></code></a></p>
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.infer">
@@ -647,19 +808,13 @@ overwriting this function can be a useful way to add it.</p>
 <dl class="function">
 <dt id="models.speech2text.levenshtein">
 <code class="descclassname">models.speech2text.</code><code class="descname">levenshtein</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.levenshtein" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculates the Levenshtein distance between a and b.</p>
+<dd><p>Calculates the Levenshtein distance between a and b.
+The code was copied from: <a class="reference external" href="http://hetland.org/coding/python/levenshtein.py">http://hetland.org/coding/python/levenshtein.py</a></p>
 </dd></dl>
 
 <dl class="function">
-<dt id="models.speech2text.sparse_tensor_value_to_texts">
-<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_value_to_texts</code><span class="sig-paren">(</span><em>value</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_value_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_value_to_texts" title="Permalink to this definition">¶</a></dt>
-<dd><p>Given a <code class="xref py py-class docutils literal notranslate"><span class="pre">tf.SparseTensor</span></code> <code class="docutils literal notranslate"><span class="pre">value</span></code>, return an array of
-Python strings representing its values.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="models.speech2text.sparse_tuple_to_texts">
-<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tuple_to_texts</code><span class="sig-paren">(</span><em>tup</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tuple_to_texts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tuple_to_texts" title="Permalink to this definition">¶</a></dt>
+<dt id="models.speech2text.sparse_tensor_to_chars">
+<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_to_chars</code><span class="sig-paren">(</span><em>tensor</em>, <em>idx2char</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_to_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_to_chars" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -667,7 +822,7 @@ Python strings representing its values.</p>
 <span id="text2text"></span><h2>text2text<a class="headerlink" href="#module-models.text2text" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="models.text2text.BasicText2TextWithAttention">
-<em class="property">class </em><code class="descclassname">models.text2text.</code><code class="descname">BasicText2TextWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>data_layer</em>, <em>encoder</em>, <em>decoder</em>, <em>loss</em>, <em>global_step=None</em>, <em>force_var_reuse=False</em>, <em>mode=None</em>, <em>gpu_ids=None</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#BasicText2TextWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.BasicText2TextWithAttention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">models.text2text.</code><code class="descname">BasicText2TextWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#BasicText2TextWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.BasicText2TextWithAttention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#models.seq2seq.Seq2Seq" title="models.seq2seq.Seq2Seq"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.seq2seq.Seq2Seq</span></code></a></p>
 <p>An example class implementing classical text-to-text model.</p>
 <dl class="method">

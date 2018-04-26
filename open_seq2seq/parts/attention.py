@@ -4,6 +4,9 @@ This module implements attention mechanisms described in
 "Attention is All You Need" https://arxiv.org/abs/1706.03762
 """
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import tensorflow as tf
 from .common import inf
 
@@ -123,7 +126,8 @@ def multi_head_attention_fn(Q,
     if mask_future is False:
       bias = additional_bias # can be None
     else: # mask future
-      future_masking_bias = get_future_masking_bias(Q_multi_head, K_multi_head)
+      # future_masking_bias = get_future_masking_bias(Q_multi_head, K_multi_head)
+      future_masking_bias = get_future_masking_bias(K_multi_head, V_multi_head)
       if additional_bias is not None:
         bias = additional_bias + future_masking_bias
       else:

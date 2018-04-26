@@ -1,5 +1,8 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import numpy as np
 import tensorflow as tf
 import random
@@ -7,6 +10,7 @@ import copy
 import io
 from enum import Enum
 from .data_layer import DataLayer
+from .utils import load_pre_existing_vocabulary
 
 
 class SpecialTextTokens(Enum):
@@ -42,23 +46,6 @@ def weighted_choice(choices):
       return i
     mx += w
   raise AssertionError("weighted choice got to the wrong place")
-
-
-def load_pre_existing_vocabulary(path, min_idx):
-  """
-  Loads pre-existing vocabulary into memory
-  :param path: path to vocabulary
-  :param min_idx: minimum id to assign for a token
-  :return: vocabulary
-  """
-  idx = min_idx
-  vocab = {}
-  with io.open(path, newline='', encoding='utf-8') as f:
-    for line in f:
-      word = line.rstrip().split('\t')[0]
-      vocab[word] = idx
-      idx += 1
-  return vocab
 
 
 class ParallelDataInRamInputLayer(DataLayer):
@@ -101,13 +88,12 @@ class ParallelDataInRamInputLayer(DataLayer):
       'time_major': bool,
     })
 
-  def __init__(self, params,
-               num_workers=None,
-               worker_id=None):
-    super(ParallelDataInRamInputLayer, self).__init__(params,
-                                                      num_workers,
-                                                      worker_id)
+  def __init__(self, params, model, num_workers=None, worker_id=None):
+    super(ParallelDataInRamInputLayer, self).__init__(params, model,
+                                                      num_workers, worker_id)
     self._batch_size = self.params['batch_size']
+    self._num_workers = num_workers
+    self._worker_id = worker_id
 
     self.source_file = self.params['source_file']
     self.target_file = self.params['target_file']
@@ -118,7 +104,6 @@ class ParallelDataInRamInputLayer(DataLayer):
     self.bucket_src = self.params['bucket_src']
     self.bucket_tgt = self.params['bucket_tgt']
 
-    # TODO: we should not have this parameter
     self._use_targets = self.params['use_targets']
     self._bucket_order = []  # used in inference
 
@@ -129,7 +114,7 @@ class ParallelDataInRamInputLayer(DataLayer):
 
     self.params['src_vocab_size'] = len(self.src_seq2idx)
     self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
-    # TODO: do we need all that to be visible outside the class?
+
     self.params['target_seq2idx'] = self.tgt_seq2idx
     self.params['source_seq2idx'] = self.src_seq2idx
     self.params['target_idx2seq'] = self.tgt_idx2seq
@@ -137,6 +122,9 @@ class ParallelDataInRamInputLayer(DataLayer):
     self.params['target_corpus'] = self.tgt_corpus
     self.params['source_corpus'] = self.src_corpus
 
+    self.iterator = None
+
+  def build_graph(self):
     self.bucketize()
     self.iterator = self._iterate_one_epoch()
 
@@ -438,17 +426,17 @@ class ParallelTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
     })
 
-  def __init__(self, params, num_workers=None, worker_id=None):
-    super(ParallelTextDataLayer, self).__init__(params,
-                                                num_workers,
-                                                worker_id)
+  def __init__(self, params, model, num_workers=None, worker_id=None):
+    super(ParallelTextDataLayer, self).__init__(params, model,
+                                                num_workers, worker_id)
     self._batch_size = self.params['batch_size']
     self.source_file = self.params['source_file']
     self._use_targets = self.params.get('use_targets', True)
     if not self._use_targets:
       self.target_file = self.source_file
       if 'target_file' in self.params:
-        print("WARNING: target file was specified but was ignored by datalayer because 'use_targets'=False")
+        print("WARNING: target file was specified but was "
+              "ignored by data layer because 'use_targets'=False")
     else:
       self.target_file = self.params['target_file']
     self.src_vocab_file = self.params['src_vocab_file']
@@ -459,7 +447,8 @@ class ParallelTextDataLayer(DataLayer):
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
     self._prefetch_buffer_size = self.params.get('prefetch_buffer_size', 4)
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
-      raise ValueError("If padding to 8 in datalayer, then max_length should be multiple of 8")
+      raise ValueError("If padding to 8 in data layer, then "
+                       "max_length should be multiple of 8")
 
     def file_len(fname):
       with open(fname) as f:
@@ -468,7 +457,6 @@ class ParallelTextDataLayer(DataLayer):
       return i + 1
 
     self.dataset_size = file_len(self.source_file)
-
 
     # load source and target vocabularies to RAM
     self.src_seq2idx = load_pre_existing_vocabulary(
@@ -508,8 +496,8 @@ class ParallelTextDataLayer(DataLayer):
       SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
       SpecialTextTokens.PAD_ID.value
 
-    self.src_idx2seq = {id: w for w, id in self.src_seq2idx.items()}
-    self.tgt_idx2seq = {id: w for w, id in self.tgt_seq2idx.items()}
+    self.src_idx2seq = {idx: w for w, idx in self.src_seq2idx.items()}
+    self.tgt_idx2seq = {idx: w for w, idx in self.tgt_seq2idx.items()}
 
     self.params['src_vocab_size'] = len(self.src_seq2idx)
     self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
@@ -517,15 +505,13 @@ class ParallelTextDataLayer(DataLayer):
     self.params['source_seq2idx'] = self.src_seq2idx
     self.params['target_idx2seq'] = self.tgt_idx2seq
     self.params['source_idx2seq'] = self.src_idx2seq
-    self.params['src_vocab_size'] = len(self.src_seq2idx)
-    self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
 
+  def build_graph(self):
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
         return lst
       else:
         return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
-
 
     def src_token_to_id(line):
       tokens = line.decode("utf-8").split(self._delimiter)

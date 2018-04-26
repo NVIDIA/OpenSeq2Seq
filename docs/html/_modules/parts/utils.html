@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
   
   
 
@@ -151,6 +153,9 @@
   <h1>Source code for parts.utils</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">from</span> <span class="nn">tensorflow.python.ops.rnn_cell</span> <span class="k">import</span> <span class="n">ResidualWrapper</span><span class="p">,</span> <span class="n">DropoutWrapper</span><span class="p">,</span>\
                                            <span class="n">MultiRNNCell</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.experimental_rnn_cells.slstm</span> <span class="k">import</span> <span class="n">BasicSLSTMCell</span>

@@ -1,10 +1,13 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
 import abc
 import six
 import tensorflow as tf
 import copy
-from open_seq2seq.utils.utils import check_params
+from open_seq2seq.utils.utils import check_params, cast_types
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 
 
@@ -39,11 +42,10 @@ class Encoder:
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      'batch_size_per_gpu': int,
       'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
-  def __init__(self, params, name="encoder", mode='train'):
+  def __init__(self, params, model, name="encoder", mode='train'):
     """Encoder constructor.
     Note that encoder constructors should not modify TensorFlow graph, all
     graph construction should happen in the :meth:`self._encode() <_encode>`
@@ -53,6 +55,9 @@ class Encoder:
       params (dict): parameters describing the encoder.
           All supported parameters are listed in :meth:`get_required_params`,
           :meth:`get_optional_params` functions.
+      model (instance of a class derived from :class:`Model<models.model.Model>`):
+          parent model that created this encoder.
+          Could be None if no model access is required for the use case.
       name (str): name for encoder variable scope.
       mode (str): mode encoder is going to be run in.
           Could be "train", "eval" or "infer".
@@ -74,27 +79,37 @@ class Encoder:
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
-    if 'dtype' not in params:
-      self.params['dtype'] = tf.float32
+    self._model = model
 
-    if 'regularizer' in self.params:
-      init_dict = self.params.get('regularizer_params', {})
-      self.params['regularizer'] = self.params['regularizer'](**init_dict)
-      if self.params['dtype'] == 'mixed':
-        self.params['regularizer'] = mp_regularizer_wrapper(
-          self.params['regularizer'],
+    if 'dtype' not in self._params:
+      if self._model:
+        self._params['dtype'] = self._model.params['dtype']
+      else:
+        self._params['dtype'] = tf.float32
+
+    if 'regularizer' not in self._params:
+      if self._model and 'regularizer' in self._model.params:
+        self._params['regularizer'] = self._model.params['regularizer']
+        self._params['regularizer_params'] = self._model.params['regularizer_params']
+
+    if 'regularizer' in self._params:
+      init_dict = self._params.get('regularizer_params', {})
+      self._params['regularizer'] = self._params['regularizer'](**init_dict)
+      if self._params['dtype'] == 'mixed':
+        self._params['regularizer'] = mp_regularizer_wrapper(
+          self._params['regularizer'],
         )
 
-    if self.params['dtype'] == 'mixed':
-      self.params['dtype'] = tf.float16
+    if self._params['dtype'] == 'mixed':
+      self._params['dtype'] = tf.float16
 
     self._name = name
     self._mode = mode
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
-    Here initializer and dtype are set in the variable scope and then
-    :meth:`_encode` function is called.
+    Here name, initializer and dtype are set in the variable scope and then
+    :meth:`self._encode() <_encode>` method is called.
 
     Args:
       input_dict (dict): see :meth:`self._encode() <_encode>` docs.
@@ -121,15 +136,7 @@ class Encoder:
     Returns:
       dict: same as input_dict, but with all Tensors cast to encoder dtype.
     """
-    cast_input_dict = {}
-    for key, value in input_dict.items():
-      if isinstance(value, tf.Tensor):
-        if value.dtype == tf.float16 or value.dtype == tf.float32:
-          if value.dtype != self.params['dtype']:
-            cast_input_dict[key] = tf.cast(value, self.params['dtype'])
-            continue
-      cast_input_dict[key] = value
-    return cast_input_dict
+    return cast_types(input_dict, self.params['dtype'])
 
   @abc.abstractmethod
   def _encode(self, input_dict):
@@ -141,8 +148,8 @@ class Encoder:
       input_dict (dict): dictionary containing encoder inputs. This dict will
           typically have the following content::
             {
-              "src_inputs": source_sequence,
-              "src_lengths": src_length,
+              "src_sequence": source_sequence,
+              "src_length": source_length,
             }
 
     Returns:
@@ -150,13 +157,23 @@ class Encoder:
         dictionary of encoder outputs. Return all necessary outputs.
         Typically this will be just::
           {
-            "encoder_output": encoder_output,
-            "encoder_state": encoder_state,
+            "outputs": outputs,
+            "state": state,
           }
     """
     pass
 
   @property
   def params(self):
-    """Parameters used to construct the encoder (dictionary)"""
+    """Parameters used to construct the encoder (dictionary)."""
     return self._params
+
+  @property
+  def mode(self):
+    """Mode encoder is run in."""
+    return self._mode
+
+  @property
+  def name(self):
+    """Encoder name."""
+    return self._name

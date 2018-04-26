@@ -13,6 +13,8 @@
 
   
   
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
   
   
 
@@ -257,7 +259,7 @@ This provides a quicker adaptation of the mean for the first steps.</li>
 
 <dl class="function">
 <dt id="optimizers.optimizers.optimize_loss">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>global_step</em>, <em>learning_rate</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>dtype=tf.float32</em>, <em>gradient_noise_scale=None</em>, <em>gradient_multipliers=None</em>, <em>clip_gradients=None</em>, <em>learning_rate_decay_fn=None</em>, <em>update_ops=None</em>, <em>variables=None</em>, <em>name=None</em>, <em>summaries=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>increment_global_step=True</em>, <em>LARC_nu=None</em>, <em>LARC_mode='clip'</em>, <em>loss_scale=1.0</em>, <em>automatic_loss_scaling=None</em>, <em>on_horovod=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>learning_rate</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>global_step=None</em>, <em>dtype=tf.float32</em>, <em>gradient_noise_scale=None</em>, <em>gradient_multipliers=None</em>, <em>clip_gradients=None</em>, <em>learning_rate_decay_fn=None</em>, <em>update_ops=None</em>, <em>variables=None</em>, <em>name=None</em>, <em>summaries=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>increment_global_step=True</em>, <em>LARC_nu=None</em>, <em>LARC_mode='clip'</em>, <em>loss_scale=1.0</em>, <em>automatic_loss_scaling=None</em>, <em>on_horovod=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given loss and parameters for optimizer, returns a training op.</p>
 <p>Various ways of passing optimizers include:</p>
 <ul>

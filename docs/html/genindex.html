@@ -14,6 +14,8 @@
 
   
   
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
   
   
 
@@ -182,19 +184,25 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.__init__">__init__() (data.data_layer.DataLayer method)</a>
 
       <ul>
+        <li><a href="api-docs/data.html#data.data_layer.MultiGPUWrapper.__init__">(data.data_layer.MultiGPUWrapper method)</a>
+</li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.__init__">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.__init__">(data.speech2text.Speech2TextRandomDataLayer method)</a>
-</li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.__init__">(data.speech2text.Speech2TextTFDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.__init__">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.__init__">(decoders.decoder.Decoder method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder.__init__">(decoders.fc_decoder.FullyConnectedCTCDecoder method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.__init__">(decoders.fc_decoder.FullyConnectedTimeDecoder method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__">(decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.__init__">(decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder.__init__">(decoders.transformer_decoders.TransformerDecoder method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.__init__">(encoders.ds2_encoder.DeepSpeech2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.__init__">(encoders.encoder.Encoder method)</a>
 </li>
@@ -205,6 +213,8 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.transformer_encoders.TransformerEncoder.__init__">(encoders.transformer_encoders.TransformerEncoder method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.__init__">(losses.ctc_loss.CTCLoss method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.loss.Loss.__init__">(losses.loss.Loss method)</a>
 </li>
@@ -235,10 +245,10 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.__init__">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._adaptive_max_norm">_adaptive_max_norm() (in module optimizers.optimizers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._add_scaled_noise_to_gradients">_add_scaled_noise_to_gradients() (in module optimizers.optimizers)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">_build_attention() (decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
@@ -254,12 +264,32 @@
       <ul>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder._cast_types">(encoders.encoder.Encoder method)</a>
 </li>
+        <li><a href="api-docs/losses.html#losses.loss.Loss._cast_types">(losses.loss.Loss method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._clip_gradients_by_norm">_clip_gradients_by_norm() (in module optimizers.optimizers)</a>
+</li>
+      <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss._compute_loss">_compute_loss() (losses.ctc_loss.CTCLoss method)</a>
+
+      <ul>
+        <li><a href="api-docs/losses.html#losses.loss.Loss._compute_loss">(losses.loss.Loss method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss._compute_loss">(losses.sequence_loss.BasicSequenceLoss method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_decoder">_create_decoder() (models.seq2seq.Seq2Seq method)</a>
+</li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_encoder">_create_encoder() (models.seq2seq.Seq2Seq method)</a>
+</li>
+      <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq._create_loss">_create_loss() (models.seq2seq.Seq2Seq method)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder._decode">_decode() (decoders.decoder.Decoder method)</a>
 
       <ul>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder._decode">(decoders.fc_decoder.FullyConnectedTimeDecoder method)</a>
+</li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention._decode">(decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._decode">(decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
@@ -267,9 +297,11 @@
         <li><a href="api-docs/decoders.html#decoders.transformer_decoders.TransformerDecoder._decode">(decoders.transformer_decoders.TransformerDecoder method)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/encoders.html#encoders.encoder.Encoder._encode">_encode() (encoders.encoder.Encoder method)</a>
+      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder._encode">_encode() (encoders.ds2_encoder.DeepSpeech2Encoder method)</a>
 
       <ul>
+        <li><a href="api-docs/encoders.html#encoders.encoder.Encoder._encode">(encoders.encoder.Encoder method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
@@ -287,9 +319,9 @@
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._multiply_gradients_const">_multiply_gradients_const() (in module optimizers.optimizers)</a>
 </li>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer._parse_audio_element">_parse_audio_element() (data.speech2text.Speech2TextTFDataLayer method)</a>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer._parse_audio_element">_parse_audio_element() (data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer._parse_audio_transcript_element">_parse_audio_transcript_element() (data.speech2text.Speech2TextTFDataLayer method)</a>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer._parse_audio_transcript_element">_parse_audio_transcript_element() (data.speech2text.Speech2TextDataLayer method)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -310,8 +342,6 @@
 </li>
       </ul></li>
       <li><a href="api-docs/parts.html#parts.attention_wrapper.AttentionMechanism.alignments_size">alignments_size (parts.attention_wrapper.AttentionMechanism attribute)</a>
-</li>
-      <li><a href="api-docs/data.html#data.speech2text.Alphabet">Alphabet (class in data.speech2text)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -357,8 +387,6 @@
         <li><a href="api-docs/utils.html#utils.hooks.RunEvaluationHook.before_run">(utils.hooks.RunEvaluationHook method)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.hooks.PrintLossAndTimeHook.begin">begin() (utils.hooks.PrintLossAndTimeHook method)</a>
 
       <ul>
@@ -367,12 +395,30 @@
         <li><a href="api-docs/utils.html#utils.hooks.RunEvaluationHook.begin">(utils.hooks.RunEvaluationHook method)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding">BidirectionalRNNEncoderWithEmbedding (class in encoders.rnn_encoders)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.bucket_sizes">bucket_sizes (data.text2text.ParallelDataInRamInputLayer attribute)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.bucketize">bucketize() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
+      <li><a href="api-docs/data.html#data.data_layer.DataLayer.build_graph">build_graph() (data.data_layer.DataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.html#data.data_layer.MultiGPUWrapper.build_graph">(data.data_layer.MultiGPUWrapper method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.build_graph">(data.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.build_graph">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.build_graph">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.build_graph">(data.text2text.ParallelDataInRamInputLayer method)</a>
+</li>
+        <li><a href="api-docs/data.html#data.text2text.ParallelTextDataLayer.build_graph">(data.text2text.ParallelTextDataLayer method)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -391,37 +437,29 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.call">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/utils.html#utils.utils.cast_types">cast_types() (in module utils.utils)</a>
+</li>
       <li><a href="api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">check_grads() (optimizers.automatic_loss_scaler.AutomaticLossScaler static method)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.check_params">check_params() (in module utils.utils)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.html#parts.attention_wrapper.AttentionWrapperState.clone">clone() (parts.attention_wrapper.AttentionWrapperState method)</a>
+</li>
+      <li><a href="api-docs/models.html#models.model.Model.compile">compile() (models.model.Model method)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">compute_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
 </li>
-      <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.compute_loss">compute_loss() (losses.ctc_loss.CTCLoss method)</a>
-
-      <ul>
-        <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">(losses.loss.Loss method)</a>
+      <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">compute_loss() (losses.loss.Loss method)</a>
 </li>
-        <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.compute_loss">(losses.sequence_loss.BasicSequenceLoss method)</a>
-</li>
-        <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
-</li>
-      </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">conv2d_bn_actv() (in module encoders.ds2_encoder)</a>
-</li>
-      <li><a href="api-docs/utils.html#utils.model_builders.create_encoder_decoder_loss_model">create_encoder_decoder_loss_model() (in module utils.model_builders)</a>, <a href="in-depth-tutorials/using-existing-models.html#utils.model_builders.create_encoder_decoder_loss_model">[1]</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.create_idx_seq_associations">create_idx_seq_associations() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
       <li><a href="api-docs/parts.html#parts.utils.create_rnn_cell">create_rnn_cell() (in module parts.utils)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing">CrossEntropyWithSmoothing (class in losses.sequence_loss)</a>
-</li>
-      <li><a href="api-docs/losses.html#losses.ctc_loss.ctc_label_dense_to_sparse">ctc_label_dense_to_sparse() (in module losses.ctc_loss)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss">CTCLoss (class in losses.ctc_loss)</a>
 </li>
@@ -449,10 +487,10 @@
 </li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.decode">decode() (decoders.decoder.Decoder method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder">Decoder (class in decoders.decoder)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.decoder">decoder (models.seq2seq.Seq2Seq attribute)</a>
 </li>
       <li><a href="api-docs/decoders.html#module-decoders">decoders (module)</a>
@@ -466,6 +504,8 @@
       <li><a href="api-docs/decoders.html#module-decoders.transformer_decoders">decoders.transformer_decoders (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder">DeepSpeech2Encoder (class in encoders.ds2_encoder)</a>
+</li>
+      <li><a href="api-docs/losses.html#losses.ctc_loss.dense_to_sparse">dense_to_sparse() (in module losses.ctc_loss)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.determine_bucket">determine_bucket() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -543,8 +583,6 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/losses.html#losses.ctc_loss.gather_nd">gather_nd() (in module losses.ctc_loss)</a>
-</li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.gen_input_tensors">gen_input_tensors() (data.data_layer.DataLayer method)</a>
 
       <ul>
@@ -552,9 +590,9 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.gen_input_tensors">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.gen_input_tensors">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.gen_input_tensors">(data.speech2text.Speech2TextTFDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors">(data.speech2text.Speech2TextRandomDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.gen_input_tensors">(data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -567,7 +605,7 @@
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_input_tensors">get_input_tensors() (data.data_layer.DataLayer method)</a>
 </li>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.get_one_sample">get_one_sample() (data.speech2text.Speech2TextDataLayer method)</a>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.get_one_sample">get_one_sample() (data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_optional_params">get_optional_params() (data.data_layer.DataLayer static method)</a>
 
@@ -576,9 +614,9 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.get_optional_params">(data.speech2text.Speech2TextDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_optional_params">(data.speech2text.Speech2TextRandomDataLayer static method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.get_optional_params">(data.speech2text.Speech2TextPlaceholdersDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.get_optional_params">(data.speech2text.Speech2TextTFDataLayer static method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_optional_params">(data.speech2text.Speech2TextRandomDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_optional_params">(data.text2text.ParallelDataInRamInputLayer static method)</a>
 </li>
@@ -618,15 +656,17 @@
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_optional_params">(models.model.Model static method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.get_optional_params">(models.seq2seq.Seq2Seq static method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/models.html#models.model.Model.get_output_tensors">get_output_tensors() (models.model.Model method)</a>
 </li>
       <li><a href="api-docs/parts.html#parts.common.get_pad_masking_bias">get_pad_masking_bias() (in module parts.common)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers.get_regularization_loss">get_regularization_loss() (in module optimizers.optimizers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_required_params">get_required_params() (data.data_layer.DataLayer static method)</a>
 
       <ul>
@@ -634,9 +674,9 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.get_required_params">(data.speech2text.Speech2TextDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_required_params">(data.speech2text.Speech2TextRandomDataLayer static method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.get_required_params">(data.speech2text.Speech2TextPlaceholdersDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.get_required_params">(data.speech2text.Speech2TextTFDataLayer static method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_required_params">(data.speech2text.Speech2TextRandomDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_required_params">(data.text2text.ParallelDataInRamInputLayer static method)</a>
 </li>
@@ -672,6 +712,8 @@
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_required_params">(models.model.Model static method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.get_required_params">(models.seq2seq.Seq2Seq static method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_size_in_batches">get_size_in_batches() (data.data_layer.DataLayer method)</a>
 </li>
@@ -682,9 +724,9 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.get_size_in_samples">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.get_size_in_samples">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.get_size_in_samples">(data.speech2text.Speech2TextTFDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples">(data.speech2text.Speech2TextRandomDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.get_size_in_samples">(data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -743,8 +785,6 @@
 <h2 id="L">L</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/data.html#data.speech2text.Alphabet.label_from_string">label_from_string() (data.speech2text.Alphabet method)</a>
-</li>
       <li><a href="api-docs/models.html#models.model.Model.last_step">last_step (models.model.Model attribute)</a>
 </li>
       <li><a href="api-docs/models.html#models.speech2text.levenshtein">levenshtein() (in module models.speech2text)</a>
@@ -752,8 +792,6 @@
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.load_corpus">load_corpus() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.load_file_word">load_file_word() (data.text2text.ParallelDataInRamInputLayer method)</a>
-</li>
-      <li><a href="api-docs/data.html#data.text2text.load_pre_existing_vocabulary">load_pre_existing_vocabulary() (in module data.text2text)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.load_pre_src_tgt_vocabs">load_pre_src_tgt_vocabs() (data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -763,10 +801,10 @@
 </li>
       <li><a href="api-docs/losses.html#losses.loss.Loss">Loss (class in losses.loss)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq.loss_computator">loss_computator (models.seq2seq.Seq2Seq attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.loss_scale">loss_scale (optimizers.automatic_loss_scaler.AutomaticLossScaler attribute)</a>
 
       <ul>
@@ -813,8 +851,14 @@
       </ul></li>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">MixedPrecisionOptimizerWrapper (class in optimizers.mp_wrapper)</a>
 </li>
-      <li><a href="api-docs/models.html#models.model.Model.mode">mode (models.model.Model attribute)</a>
+      <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.mode">mode (decoders.decoder.Decoder attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.mode">(encoders.encoder.Encoder attribute)</a>
 </li>
+        <li><a href="api-docs/models.html#models.model.Model.mode">(models.model.Model attribute)</a>
+</li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.model.Model">Model (class in models.model)</a>
@@ -843,7 +887,15 @@
 <h2 id="N">N</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.next_batch">next_batch() (data.speech2text.Speech2TextDataLayer method)</a>
+      <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.name">name (decoders.decoder.Decoder attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.name">(encoders.encoder.Encoder attribute)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.loss.Loss.name">(losses.loss.Loss attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.next_batch">next_batch() (data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 
       <ul>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.next_batch">(data.text2text.ParallelDataInRamInputLayer method)</a>
@@ -856,9 +908,9 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.next_batch_feed_dict">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.next_batch_feed_dict">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.next_batch_feed_dict">(data.speech2text.Speech2TextTFDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict">(data.speech2text.Speech2TextRandomDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.next_batch_feed_dict">(data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
@@ -1001,8 +1053,6 @@
       </ul></li>
       <li><a href="api-docs/parts.html#parts.attention_wrapper.safe_cumprod">safe_cumprod() (in module parts.attention_wrapper)</a>
 </li>
-      <li><a href="api-docs/utils.html#utils.model_builders.safe_fill_params">safe_fill_params() (in module utils.model_builders)</a>
-</li>
       <li><a href="api-docs/parts.html#parts.attention.scaled_dot_attention_fn">scaled_dot_attention_fn() (in module parts.attention)</a>
 </li>
       <li><a href="api-docs/models.html#models.seq2seq.Seq2Seq">Seq2Seq (class in models.seq2seq)</a>
@@ -1016,32 +1066,28 @@
 </li>
         <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer.shuffle">(data.speech2text.Speech2TextDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.shuffle">(data.speech2text.Speech2TextRandomDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer.shuffle">(data.speech2text.Speech2TextPlaceholdersDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer.shuffle">(data.speech2text.Speech2TextTFDataLayer method)</a>
+        <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer.shuffle">(data.speech2text.Speech2TextRandomDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelDataInRamInputLayer.shuffle">(data.text2text.ParallelDataInRamInputLayer method)</a>
 </li>
         <li><a href="api-docs/data.html#data.text2text.ParallelTextDataLayer.shuffle">(data.text2text.ParallelTextDataLayer method)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/data.html#data.speech2text.Alphabet.size">size() (data.speech2text.Alphabet method)</a>
-</li>
-      <li><a href="api-docs/models.html#models.speech2text.sparse_tensor_value_to_texts">sparse_tensor_value_to_texts() (in module models.speech2text)</a>
-</li>
-      <li><a href="api-docs/models.html#models.speech2text.sparse_tuple_to_texts">sparse_tuple_to_texts() (in module models.speech2text)</a>
+      <li><a href="api-docs/models.html#models.speech2text.sparse_tensor_to_chars">sparse_tensor_to_chars() (in module models.speech2text)</a>
 </li>
       <li><a href="api-docs/data.html#data.text2text.SpecialTextTokens">SpecialTextTokens (class in data.text2text)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.speech2text.Speech2Text">Speech2Text (class in models.speech2text)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.speech2text.Speech2TextDataLayer">Speech2TextDataLayer (class in data.speech2text)</a>
 </li>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer">Speech2TextRandomDataLayer (class in data.speech2text)</a>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextPlaceholdersDataLayer">Speech2TextPlaceholdersDataLayer (class in data.speech2text)</a>
 </li>
-      <li><a href="api-docs/data.html#data.speech2text.Speech2TextTFDataLayer">Speech2TextTFDataLayer (class in data.speech2text)</a>
+      <li><a href="api-docs/data.html#data.speech2text.Speech2TextRandomDataLayer">Speech2TextRandomDataLayer (class in data.speech2text)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_emb_size">src_emb_size (encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding attribute)</a>
 
@@ -1071,9 +1117,7 @@
         <li><a href="api-docs/parts.experimental_rnn_cells.html#parts.experimental_rnn_cells.slstm.BasicSLSTMCell.state_size">(parts.experimental_rnn_cells.slstm.BasicSLSTMCell attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/models.html#models.model.Model.step_size">step_size (models.model.Model attribute)</a>
-</li>
-      <li><a href="api-docs/data.html#data.speech2text.Alphabet.string_from_label">string_from_label() (data.speech2text.Alphabet method)</a>
+      <li><a href="api-docs/models.html#models.model.Model.steps_in_epoch">steps_in_epoch (models.model.Model attribute)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS">SUPPORTED_ALGOS (optimizers.automatic_loss_scaler.AutomaticLossScaler attribute)</a>
 </li>
@@ -1084,8 +1128,6 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.text_ids_to_string">text_ids_to_string() (in module utils.utils)</a>
-</li>
-      <li><a href="api-docs/data.html#data.speech2text.text_to_char_array">text_to_char_array() (in module data.speech2text)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.funcs.train">train() (in module utils.funcs)</a>
 </li>
@@ -1130,8 +1172,6 @@
       <li><a href="api-docs/utils.html#module-utils.funcs">utils.funcs (module)</a>
 </li>
       <li><a href="api-docs/utils.html#module-utils.hooks">utils.hooks (module)</a>
-</li>
-      <li><a href="api-docs/utils.html#module-utils.model_builders">utils.model_builders (module)</a>
 </li>
       <li><a href="api-docs/utils.html#module-utils.utils">utils.utils (module)</a>
 </li>

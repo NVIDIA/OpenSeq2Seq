@@ -59,10 +59,10 @@ evaluation). The other parameters of the ``run.py`` script are the following:
   parameter works in all modes whether or not ``--benchmark`` parameter was
   specified.
 
-* ``--debug`` --- this enables TensorFlow debugging. To use it first run
+* ``--debug_port`` --- this enables TensorFlow debugging. To use it first run, e.g.
   ``tensorboard --logdir=. --debugger_port=6067`` and while tensorboard is
-  running execute ``run.py`` with ``--debug`` attribute. After that tensorboard
-  should have debugging tab.
+  running execute ``run.py`` with ``--debug_port=6067`` attribute.
+  After that tensorboard should have debugging tab.
 
 In order to make it more convenient to run multiple experiments we provide
 ``start_experiment.sh`` script that is a wrapper around ``run.py`` script which
@@ -83,28 +83,38 @@ train DeepSpeech2-like model on the toy speech data you can run::
    LOGDIR=experiments/librispeech CONFIG_FILE=example_configs/speech2text/ds2_toy_data_config.py MODE=train_eval CONTINUE_LEARNING=0 ./start_experiment.sh
 
 .. _config-params:
+
 Config parameters
 -----------------
 
 The experiment parameters are completely defined in one Python configuration
-file. This file must define ``base_params`` dictionary and can define additional
+file. This file must define ``base_params`` dictionary and ``base_model`` class.
+``base_model`` should be any class derived from
+:class:`Model<models.model.Model>`. Currently it can only be
+:class:`Speech2Text<models.speech2text.Speech2Text>` or
+:class:`BasicText2TextWithAttention<models.text2text.BasicText2TextWithAttention>`.
+Note that this parameter is not a string, but an actual Python class, so you
+will need to add corresponding imports in the configuration file. In addition
+to ``base_params`` and ``base_model`` you can define
 ``train_params``, ``eval_params`` and ``infer_params`` dictionaries that will
 overwrite corresponding parts of ``base_params`` when the corresponding mode
 is used. For example of configuration file look in the ``example_configs``
 directory. The complete list of all possible configuration parameters is
-located in the documentation of
-:func:`create_encoder_decoder_loss_model
-<utils.model_builders.create_encoder_decoder_loss_model>` function (config
-parameters section):
+defined in the documentation in various places. A good place to look first is
+the :meth:`Model.__init__()<models.model.Model.__init__>` method
+(config parameters section), which defines most of the *first level* parameters:
 
-.. autofunction:: utils.model_builders.create_encoder_decoder_loss_model
+.. automethod:: models.model.Model.__init__
+   :noindex:
 
 Note that some of the parameters are also config dictionaries for corresponding
 classes. To see list of their configuration options, you should proceed to the
-corresponding class docs. For example, to see all supported model parameters,
-look into the docs for :class:`models.model.Model`. Sometimes, derived classes
+corresponding class docs. For example, to see all supported data layer parameters,
+look into the docs for :class:`data.data_layer.DataLayer`. Sometimes, derived classes
 might define their additional parameters, in that case you should be looking
-into both, parent class and its child. As an example, see
+into both, parent class and its child. For example, look into
+:class:`models.seq2seq.Seq2Seq`, which defines sequence-to-sequence specific
+parameters (i.e. encoder, decoder and loss). You can also have a look at
 :class:`encoders.encoder.Encoder` (which defines some parameters shared across
 all encoders) and :class:`encoders.ds2_encoder.DeepSpeech2Encoder` (which
 additionally defines a set of DeepSpeech-2 specific parameters).
@@ -113,6 +123,7 @@ additionally defines a set of DeepSpeech-2 specific parameters).
     For convenience all *first level* parameters can be overwritten by
     command line arguments. For example, try to add ``--logdir`` argument
     to your ``run.py`` execution.
+
 
 What is being logged
 --------------------

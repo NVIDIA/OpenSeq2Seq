@@ -1,5 +1,7 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
 import tensorflow as tf
 import time
 import os
@@ -92,12 +94,12 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       return
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
-    if self._model.step_size is None:
+    if self._model.steps_in_epoch is None:
       deco_print("Global step {}:".format(step), end=" ")
     else:
       deco_print(
         "Epoch {}, global step {}:".format(
-          step // self._model.step_size, step),
+          step // self._model.steps_in_epoch, step),
         end=" ",
       )
 
@@ -155,7 +157,9 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     inputs_per_batch, outputs_per_batch = [], []
     total_loss = 0.0
 
-    for cnt, feed_dict in enumerate(self._model.data_layer.iterate_one_epoch()):
+    for cnt, feed_dict in enumerate(
+      self._model.data_layer.iterate_one_epoch(cross_over=True)
+    ):
       loss, inputs, outputs = run_context.session.run(
         self._fetches, feed_dict,
       )
