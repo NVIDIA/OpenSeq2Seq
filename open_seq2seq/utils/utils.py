@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
+from six import string_types
 
 import tensorflow as tf
 
@@ -49,16 +50,20 @@ def check_params(config, required_dict, optional_dict):
     if pm not in config:
       raise ValueError("{} parameter has to be specified".format(pm))
     else:
-      if vals and type(vals) is list and config[pm] not in vals:
+      if vals == str:
+        vals = string_types
+      if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and type(vals) is not list and type(config[pm]) is not vals:
+      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm, vals in optional_dict.items():
+    if vals == str:
+      vals = string_types
     if pm in config:
-      if vals and type(vals) is list and config[pm] not in vals:
+      if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and type(vals) is not list and type(config[pm]) is not vals:
+      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm in config:
