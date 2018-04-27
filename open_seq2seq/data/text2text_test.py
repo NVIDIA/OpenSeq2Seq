@@ -23,6 +23,7 @@ class ParallelDataInRamInputLayerTests(tf.test.TestCase):
       'target_file': "./toy_data/train/target.txt",
       'shuffle': True,
       'delimiter': " ",
+      'pad_vocab_to_eight': True,
     }
 
   def tearDown(self):
