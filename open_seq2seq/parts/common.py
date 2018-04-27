@@ -21,10 +21,13 @@ def normalize(inputs, training, norm_type):
                                          begin_norm_axis=1,
                                          begin_params_axis=-1)
   else:
+    inputs = tf.expand_dims(input=inputs, axis= 1)
+    print(inputs)
     outputs = tf.layers.batch_normalization(
       inputs=inputs,
       training=training,
     )
+    outputs=tf.squeeze(outputs, axis=1)
   return outputs
 
 
