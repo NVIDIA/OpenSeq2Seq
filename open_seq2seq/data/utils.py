@@ -6,6 +6,23 @@ from six.moves import range
 import io
 
 
+def pad_vocab_to_eight(vocab):
+  """Pads vocabulary so that it is divisible by 8
+  Args:
+    vocab (dictionary): Vocabulary in the form token->id
+  Returns:
+    Adds new tokens to vocab (if necessary) such that the total vocab size is
+    divisible by 8
+  """
+  v_len = len(vocab)
+  if v_len % 8 == 0:
+    return vocab
+  for id_add in range(0, 8 - v_len % 8):
+    vocab['<$'+str(id_add)+'$>'] = v_len+id_add
+  return vocab
+
+
+
 def load_pre_existing_vocabulary(path, min_idx=0, read_chars=False):
   """Loads pre-existing vocabulary into memory.
   The vocabulary file should contain a token on each line with optional

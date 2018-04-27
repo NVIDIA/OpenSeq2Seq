@@ -10,7 +10,7 @@ import copy
 import io
 from enum import Enum
 from .data_layer import DataLayer
-from .utils import load_pre_existing_vocabulary
+from .utils import load_pre_existing_vocabulary, pad_vocab_to_eight
 
 
 class SpecialTextTokens(Enum):
@@ -86,6 +86,7 @@ class ParallelDataInRamInputLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
       'time_major': bool,
+      'pad_vocab_to_eight': bool,
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -212,6 +213,10 @@ class ParallelDataInRamInputLayer(DataLayer):
     # padding
     self.src_seq2idx['<PAD>'] = ParallelDataInRamInputLayer.PAD_ID
     self.tgt_seq2idx['<PAD>'] = ParallelDataInRamInputLayer.PAD_ID
+
+    if self.params.get('pad_vocab_to_eight', False):
+      self.src_seq2idx = pad_vocab_to_eight(self.src_seq2idx)
+      self.tgt_seq2idx = pad_vocab_to_eight(self.tgt_seq2idx)
 
     self.src_idx2seq = {id: w for w, id in self.src_seq2idx.items()}
     self.tgt_idx2seq = {id: w for w, id in self.tgt_seq2idx.items()}
@@ -424,6 +429,7 @@ class ParallelTextDataLayer(DataLayer):
       'map_parallel_calls': int,
       'prefetch_buffer_size': int,
       'pad_lengths_to_eight': bool,
+      'pad_vocab_to_eight' : bool,
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -495,6 +501,10 @@ class ParallelTextDataLayer(DataLayer):
     self.tgt_seq2idx[
       SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
       SpecialTextTokens.PAD_ID.value
+
+    if self.params.get('pad_vocab_to_eight', False):
+      self.src_seq2idx = pad_vocab_to_eight(self.src_seq2idx)
+      self.tgt_seq2idx = pad_vocab_to_eight(self.tgt_seq2idx)
 
     self.src_idx2seq = {idx: w for w, idx in self.src_seq2idx.items()}
     self.tgt_idx2seq = {idx: w for w, idx in self.tgt_seq2idx.items()}
