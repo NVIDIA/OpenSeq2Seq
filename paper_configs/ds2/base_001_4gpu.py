@@ -4,14 +4,14 @@ from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.lr_policies import poly_decay, exp_decay
 
 base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_gpus": 8,
+  "num_gpus": 4,
   "batch_size_per_gpu": 32,
 
   "num_epochs": 50,
@@ -23,14 +23,15 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "experiments/ds2/base_000",
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
-  "learning_rate": 0.001,
-  "lr_policy": poly_decay,
+  "optimizer": "Adam",
+  "learning_rate": 0.0001,
+  "lr_policy": exp_decay,
   "lr_policy_params": {
-    "power": 1,
+    "begin_decay_at": 0,
+    "decay_steps": 5000,
+    "decay_rate": 0.9,
+    "use_staircase_decay": True,
+    "min_lr": 0.0
   },
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
