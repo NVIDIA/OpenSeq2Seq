@@ -41,8 +41,8 @@ def scaled_dot_attention_fn(Q,
     if bias is not None:
       #softmax_input += tf.cast(bias, dtype=logits.dtype)
       softmax_input += bias
-    else:
-      softmax_input = logits
+    # else:
+    #   softmax_input = logits
 
     return tf.matmul(tf.nn.softmax(softmax_input), V)
 
