@@ -97,10 +97,6 @@ class BasicText2TextWithAttention(Seq2Seq):
         )
         fout.write(output_string + "\n")
         if step % 200 == 0:
-          if six.PY2:
-            input_string = input_string.encode('utf-8')
-            output_string = output_string.encode('utf-8')
-
           deco_print("Input sequence:  {}".format(input_string))
           deco_print("Output sequence: {}".format(output_string))
           deco_print("")
