@@ -27,7 +27,7 @@ base_params = {
   "use_horovod": False,
   "num_epochs": 100,
 
-  "num_gpus": 4,
+  "num_gpus": 8,
   "batch_size_per_gpu": batch_size,
 
   "save_summaries_steps": 5000,
@@ -53,7 +53,7 @@ train_params = {
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
     "is_training": True,
-    "data_dir": "/raid/tf-imagenet/data",
+    "data_dir": "data/tf-imagenet",
   },
 }
 
@@ -61,6 +61,6 @@ eval_params = {
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
     "is_training": False,
-    "data_dir": "/raid/tf-imagenet/data",
+    "data_dir": "data/tf-imagenet",
   },
 }
