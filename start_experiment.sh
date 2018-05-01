@@ -52,13 +52,13 @@ if [ $CONTINUE_LEARNING == 1 ]; then
     python -u run.py --config_file=${CONFIG_FILE} \
                      --mode=${MODE} \
                      --continue_learning \
-                     --logdir=${LOGDIR}/logs \
+                     --logdir=${LOGDIR}/logs "$@" \
                      2>&1 | tee ${LOGFILE}
 else
     python -u run.py --config_file=${CONFIG_FILE} \
                      --mode=${MODE} \
                      --logdir=${LOGDIR}/logs \
-                     --no_dir_check \
+                     --no_dir_check "$@" \
                      2>&1 | tee ${LOGFILE}
 fi
 
