@@ -102,8 +102,7 @@ def optimize_loss(loss,
                   summaries=None,
                   colocate_gradients_with_ops=False,
                   increment_global_step=True,
-                  LARC_nu=None,
-                  LARC_mode='clip',
+                  larc_params=None,
                   loss_scale=1.0,
                   automatic_loss_scaling=None,
                   on_horovod=False):
@@ -328,7 +327,7 @@ def optimize_loss(loss,
       )
 
     # Optionally clip gradients by global norm.
-    if clip_gradients is not None and LARC_nu is not None:
+    if clip_gradients is not None and larc_params is not None:
       raise AttributeError(
         "LARC and gradient norm clipping should not be used together"
       )
@@ -376,45 +375,26 @@ def optimize_loss(loss,
       )
 
     # LARC gradient re-scaling
-    if LARC_nu is not None and isinstance(LARC_nu, float):
+    if larc_params is not None:
+      larc_nu = larc_params['larc_nu']
+      larc_mode = larc_params.get('larc_mode', 'clip')
+      min_clip = larc_params.get('min_clip', 1e-7)
+      eps = larc_params.get('epsilon', 1e-7)
+
       for idx, (g, v) in enumerate(gradients):
         var_dtype = v.dtype
         v_norm = tf.norm(tensor=tf.cast(v, tf.float32), ord=2)
         g_norm = tf.norm(tensor=tf.cast(g, tf.float32), ord=2)
 
-        zero_const = tf.constant(0.0, dtype=tf.float32)
-        # this condition is necessary for two reasons.
-        # First, g_norm can be zero. In that case we can not use the usual
-        # formula, but it does not matter what larc_local_lr is, since it will
-        # be multiplied by g = 0.
-        # Second, v_norm can be zero. In that case, we want to switch to the
-        # usual gradient descent since the usual LARC update will always be 0.
-        # Thus, we make larc_local_lr = 1e-5 so that
-        # we move a little bit away from zero and can use LARC again
-        larc_local_lr = tf.cond(
-          pred=tf.logical_and(
-            tf.greater(v_norm, zero_const),
-            tf.greater(g_norm, zero_const),
-          ),
-          true_fn=lambda: LARC_nu * v_norm / g_norm,
-          false_fn=lambda: tf.Print(
-            tf.constant(1e-5, dtype=tf.float32), [],
-            "g_norm = 0 or v_norm = 0 for {}".format(v.name)
-          ),
-        )
-        if LARC_mode == 'clip':
-          summary.scalar('switched_to_global/{}'.format(v.name),
-                         tf.cast(tf.greater(larc_local_lr, lr), tf.int32))
-          larc_local_lr = tf.cond(
-            pred=tf.less(larc_local_lr, lr),
-            true_fn=lambda: larc_local_lr / lr,
-            false_fn=lambda: tf.constant(1.0, dtype=tf.float32),
-          )
-        larc_local_lr = tf.saturate_cast(larc_local_lr, var_dtype)
-        summary.scalar('larc_local_lr/{}'.format(v.name), larc_local_lr)
-        summary.scalar('larc_effective_lr/{}'.format(v.name),
-                       larc_local_lr * tf.cast(lr, var_dtype))
-        gradients[idx] = (larc_local_lr * g, v)
+        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps), min_clip)
+
+        if larc_mode == 'clip':
+          summary.scalar('larc_clip_on/{}'.format(v.name),
+                         tf.cast(tf.less(larc_grad_update, 1.0), tf.int32))
+          larc_grad_update = tf.minimum(larc_grad_update, 1.0)
+        larc_grad_update = tf.saturate_cast(larc_grad_update, var_dtype)
+        summary.scalar('larc_grad_update/{}'.format(v.name), larc_grad_update)
+        gradients[idx] = (larc_grad_update * g, v)
 
     # Create gradient updates.
     grad_updates = opt.apply_gradients(

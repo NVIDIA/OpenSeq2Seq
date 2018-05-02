@@ -33,7 +33,9 @@ base_params = {
   "lr_policy_params": {
     "power": 2,
   },
-  "larc_nu": 0.001,
+  "larc_params": {
+    "larc_nu": 1.0,
+  },
   "dtype": tf.float32,
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,

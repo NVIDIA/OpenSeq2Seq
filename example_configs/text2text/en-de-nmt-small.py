@@ -28,8 +28,9 @@ base_params = {
   "optimizer": "Adam",
   "optimizer_params": {},
   "learning_rate": 0.001,
-  "larc_mode": "clip",
-  "larc_nu": 0.001,
+  "larc_params": {
+    "larc_nu": 1.0,
+  },
   "dtype": tf.float32,
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
