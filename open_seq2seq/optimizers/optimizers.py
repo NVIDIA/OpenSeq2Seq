@@ -66,6 +66,7 @@ OPTIMIZER_SUMMARIES = [
   "global_gradient_norm",
   "variables",
   "variable_norm",
+  "larc_summaries",
 ]
 
 
@@ -395,15 +396,22 @@ def optimize_loss(loss,
         v_norm = tf.norm(tensor=tf.cast(v, tf.float32), ord=2)
         g_norm = tf.norm(tensor=tf.cast(g, tf.float32), ord=2)
 
-        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps), min_update)
+        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps),
+                                      min_update)
 
         if larc_mode == 'clip':
-          summary.scalar('larc_clip_on/{}'.format(v.name),
-                         tf.cast(tf.less(larc_grad_update, 1.0), tf.int32))
+          if "larc_summaries" in summaries:
+            summary.scalar('larc_clip_on/{}'.format(v.name),
+                           tf.cast(tf.less(larc_grad_update, 1.0), tf.int32))
           larc_grad_update = tf.minimum(larc_grad_update, 1.0)
         larc_grad_update = tf.saturate_cast(larc_grad_update, var_dtype)
-        summary.scalar('larc_grad_update/{}'.format(v.name), larc_grad_update)
         gradients[idx] = (larc_grad_update * g, v)
+
+        # adding additional summary
+        if "larc_summaries" in summaries:
+          summary.scalar('larc_grad_update/{}'.format(v.name), larc_grad_update)
+          summary.scalar("larc_grad_norm/{}".format(v.name),
+                         tf.cast(g_norm, var_dtype) * larc_grad_update)
 
     # Create gradient updates.
     grad_updates = opt.apply_gradients(

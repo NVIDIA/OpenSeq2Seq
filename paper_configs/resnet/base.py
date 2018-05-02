@@ -45,7 +45,7 @@ base_params = {
   # this is ignored! LR is computed automatically from the batch size
   "learning_rate": 0.001,
 
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 }
 

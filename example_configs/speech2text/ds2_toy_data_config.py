@@ -37,7 +37,7 @@ base_params = {
     "larc_nu": 1.0,
   },
   "dtype": tf.float32,
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,
