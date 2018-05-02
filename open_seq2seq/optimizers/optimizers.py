@@ -47,7 +47,7 @@ from tensorflow.python.training import training as train
 
 from .automatic_loss_scaler import AutomaticLossScaler
 from .mp_wrapper import MixedPrecisionOptimizerWrapper
-from open_seq2seq.utils.utils import mask_nans
+from open_seq2seq.utils.utils import mask_nans, check_params
 
 
 OPTIMIZER_CLS_NAMES = {
@@ -376,6 +376,15 @@ def optimize_loss(loss,
 
     # LARC gradient re-scaling
     if larc_params is not None:
+      check_params(
+        config=larc_params,
+        required_dict={'larc_nu': float},
+        optional_dict={
+          'larc_mode': ['clip', 'scale'],
+          'min_update': float,
+          'epsilon': float
+        },
+      )
       larc_nu = larc_params['larc_nu']
       larc_mode = larc_params.get('larc_mode', 'clip')
       min_update = larc_params.get('min_update', 1e-7)
