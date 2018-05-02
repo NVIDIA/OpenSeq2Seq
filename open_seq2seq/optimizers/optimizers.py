@@ -378,7 +378,7 @@ def optimize_loss(loss,
     if larc_params is not None:
       larc_nu = larc_params['larc_nu']
       larc_mode = larc_params.get('larc_mode', 'clip')
-      min_clip = larc_params.get('min_clip', 1e-7)
+      min_update = larc_params.get('min_update', 1e-7)
       eps = larc_params.get('epsilon', 1e-7)
 
       for idx, (g, v) in enumerate(gradients):
@@ -386,7 +386,7 @@ def optimize_loss(loss,
         v_norm = tf.norm(tensor=tf.cast(v, tf.float32), ord=2)
         g_norm = tf.norm(tensor=tf.cast(g, tf.float32), ord=2)
 
-        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps), min_clip)
+        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps), min_update)
 
         if larc_mode == 'clip':
           summary.scalar('larc_clip_on/{}'.format(v.name),
