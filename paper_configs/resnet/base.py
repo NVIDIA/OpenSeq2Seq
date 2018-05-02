@@ -16,7 +16,7 @@ lr_policy_fn = learning_rate_with_decay(
 )
 
 
-def lr_policy(lr, gs):
+def lr_policy(lr, gs, lr_policy_fn=lr_policy_fn):
   return lr_policy_fn(gs)
 
 
