@@ -7,6 +7,39 @@ from six import string_types
 import tensorflow as tf
 
 
+def flatten_dict(dct):
+  flat_dict = {}
+  for key, value in dct.items():
+    if isinstance(value, int) or isinstance(value, float) or \
+       isinstance(value, string_types) or isinstance(value, bool):
+      flat_dict.update({key: value})
+    elif isinstance(value, dict):
+      flat_dict.update(
+        {key + '/' + k: v for k, v in flatten_dict(dct[key]).items()})
+  return flat_dict
+
+
+def nest_dict(flat_dict):
+  nst_dict = {}
+  for key, value in flat_dict.items():
+    nest_keys = key.split('/')
+    cur_dict = nst_dict
+    for i in range(len(nest_keys) - 1):
+      if nest_keys[i] not in cur_dict:
+        cur_dict[nest_keys[i]] = {}
+      cur_dict = cur_dict[nest_keys[i]]
+    cur_dict[nest_keys[-1]] = value
+  return nst_dict
+
+
+def nested_update(org_dict, upd_dict):
+  for key, value in upd_dict.items():
+    if isinstance(value, dict):
+      nested_update(org_dict[key], value)
+    else:
+      org_dict[key] = value
+
+
 def mask_nans(x):
   x_zeros = tf.zeros_like(x)
   x_mask = tf.is_finite(x)
