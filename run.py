@@ -12,8 +12,7 @@ import runpy
 import copy
 import os
 
-from open_seq2seq.utils.utils import deco_print, flatten_dict, \
-                                     nest_dict, nested_update
+from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.utils import train, infer, evaluate
 
 
@@ -58,12 +57,12 @@ def main():
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
-  for pm, value in flatten_dict(base_config).items():
+  for pm, value in base_config.items():
     if type(value) is int or type(value) is float or type(value) is str or \
        type(value) is bool:
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
   config_update = parser_unk.parse_args(unknown)
-  nested_update(base_config, nest_dict(vars(config_update)))
+  base_config.update(vars(config_update))
 
   train_config = copy.deepcopy(base_config)
   eval_config = copy.deepcopy(base_config)
