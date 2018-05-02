@@ -158,7 +158,7 @@ def main():
     deco_print("Adjusting config for benchmarking")
     train_config['print_samples_steps'] = None
     train_config['print_loss_steps'] = 1
-    train_config['summary_steps'] = None
+    train_config['save_summaries_steps'] = None
     train_config['save_checkpoint_steps'] = None
     train_config['logdir'] = str("")
     if 'num_epochs' in train_config:
