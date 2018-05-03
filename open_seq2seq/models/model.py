@@ -252,7 +252,7 @@ class Model:
         # if on Horovod, there will be hvd.size() independent data_layer copies
         # and thus the total size is hvd.size() times smaller.
         if self.on_horovod:
-          self._steps_in_epoch /= self._hvd.size()
+          self._steps_in_epoch //= self._hvd.size()
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     self._outputs = [None] * self.num_gpus
@@ -346,7 +346,8 @@ class Model:
       if self.steps_in_epoch:
         tf.summary.scalar(
           name="epoch",
-          tensor=tf.floor(tf.train.get_global_step() / self.steps_in_epoch),
+          tensor=tf.floor(tf.train.get_global_step() /
+                          tf.constant(self.steps_in_epoch, dtype=tf.int64)),
         )
 
       if not self.on_horovod or self._hvd.rank() == 0:
