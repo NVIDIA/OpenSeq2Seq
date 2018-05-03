@@ -6,14 +6,18 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
+import datetime
 import argparse
 import pprint
 import runpy
 import copy
 import os
+import sys
+import shutil
 
 from open_seq2seq.utils.utils import deco_print, flatten_dict, \
-                                     nest_dict, nested_update
+                                     nest_dict, nested_update, get_git_diff, \
+                                     get_git_hash, Logger
 from open_seq2seq.utils import train, infer, evaluate
 
 
@@ -65,9 +69,54 @@ def main():
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
 
-  train_config = copy.deepcopy(base_config)
-  eval_config = copy.deepcopy(base_config)
-  infer_config = copy.deepcopy(base_config)
+  # checking that everything is correct with log directory
+  logdir = base_config['logdir']
+  if args.benchmark:
+    args.no_dir_check = True
+  try:
+    if args.mode == 'train' or args.mode == 'train_eval':
+      if os.path.isfile(logdir):
+        raise IOError("There is a file with the same name as \"logdir\" "
+                      "parameter. You should change the log directory path "
+                      "or delete the file to continue.")
+
+      # check if "logdir" directory exists and non-empty
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        if not args.continue_learning:
+          raise IOError("Log directory is not empty. If you want to continue "
+                        "learning, you should provide "
+                        "\"--continue_learning\" flag")
+        checkpoint = tf.train.latest_checkpoint(os.path.join(logdir, 'logs'))
+        if checkpoint is None:
+          raise IOError(
+            "There is no valid TensorFlow checkpoint in the "
+            "{} directory. Can't load model".format(os.path.join(logdir, 'logs'))
+          )
+      else:
+        if args.continue_learning:
+          raise IOError("The log directory is empty or does not exist. "
+                        "You should probably not provide "
+                        "\"--continue_learning\" flag?")
+        checkpoint = None
+    elif args.mode == 'infer' or args.mode == 'eval':
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        checkpoint = tf.train.latest_checkpoint(os.path.join(logdir, 'logs'))
+        if checkpoint is None:
+          raise IOError(
+            "There is no valid TensorFlow checkpoint in the "
+            "{} directory. Can't load model".format(os.path.join(logdir, 'logs'))
+          )
+      else:
+        raise IOError(
+          "{} does not exist or is empty, can't restore model".format(
+            os.path.join(logdir, 'logs'))
+        )
+  except IOError as e:
+    if args.no_dir_check:
+      print("Warning: {}".format(e))
+      print("Resuming operation since no_dir_check argument was provided")
+    else:
+      raise
 
   if base_config['use_horovod']:
     if args.mode == "infer" or args.mode == "eval":
@@ -83,6 +132,40 @@ def main():
       deco_print("Using horovod")
   else:
     hvd = None
+
+  if hvd is None or hvd.rank() == 0:
+    if not os.path.exists(logdir):
+      os.makedirs(logdir)
+
+    tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+    shutil.copy(
+      args.config_file,
+      os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
+    )
+
+    with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)), 'w') as f:
+      f.write(" ".join(sys.argv))
+
+    with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)), 'w') as f:
+      f.write('commit hash: {}'.format(get_git_hash()))
+      f.write(get_git_diff())
+
+    old_stdout = sys.stdout
+    old_stderr = sys.stderr
+    stdout_log = open(
+      os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
+    )
+    stderr_log = open(
+      os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
+    )
+    sys.stdout = Logger(sys.stdout, stdout_log)
+    sys.stderr = Logger(sys.stderr, stderr_log)
+
+  base_config['logdir'] = os.path.join(logdir, 'logs')
+
+  train_config = copy.deepcopy(base_config)
+  eval_config = copy.deepcopy(base_config)
+  infer_config = copy.deepcopy(base_config)
 
   if args.mode == 'train' or args.mode == 'train_eval':
     if 'train_params' in config_module:
@@ -110,50 +193,6 @@ def main():
     infer_config['num_gpus'] = 1
     deco_print("Inference config:")
     pprint.pprint(infer_config)
-
-  # checking that everything is correct with log directory
-  logdir = base_config['logdir']
-  if args.benchmark:
-    args.no_dir_check = True
-  try:
-    if args.mode == 'train' or args.mode == 'train_eval':
-      if os.path.isfile(logdir):
-        raise IOError("There is a file with the same name as \"logdir\" "
-                      "parameter. You should change the log directory path "
-                      "or delete the file to continue.")
-
-      # check if "logdir" directory exists and non-empty
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(logdir)
-        if not args.continue_learning:
-          raise IOError("Log directory is not empty. If you want to continue "
-                        "learning, you should provide "
-                        "\"--continue_learning\" flag")
-        if checkpoint is None:
-          raise IOError("There is no valid TensorFlow checkpoint in the "
-                        "log directory. Can't restore variables.")
-      else:
-        if args.continue_learning:
-          raise IOError("The log directory is empty or does not exist. "
-                        "You should probably not provide "
-                        "\"--continue_learning\" flag?")
-        checkpoint = None
-    elif args.mode == 'infer' or args.mode == 'eval':
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(logdir)
-        if checkpoint is None:
-          raise IOError("There is no valid TensorFlow checkpoint in the "
-                        "{} directory. Can't load model".format(logdir))
-      else:
-        raise IOError(
-          "{} does not exist or is empty, can't restore model".format(logdir)
-        )
-  except IOError as e:
-    if args.no_dir_check:
-      print("Warning: {}".format(e))
-      print("Resuming operation since no_dir_check argument was provided")
-    else:
-      raise
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")
@@ -205,6 +244,12 @@ def main():
       infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
+
+  if hvd is None or hvd.rank() == 0:
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    stdout_log.close()
+    stderr_log.close()
 
 
 if __name__ == '__main__':
