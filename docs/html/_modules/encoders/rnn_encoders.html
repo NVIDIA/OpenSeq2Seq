@@ -171,8 +171,8 @@
 <span class="sd">  Uni-directional RNN decoder with embeddings.</span>
 <span class="sd">  Can support various RNN cell types.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;src_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;src_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -182,8 +182,8 @@
       <span class="s1">&#39;encoder_use_skip_connections&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="UnidirectionalRNNEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;encoder_dp_input_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;encoder_dp_output_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -302,8 +302,8 @@
 <span class="sd">  Bi-directional RNN-based encoder with embeddings.</span>
 <span class="sd">  Can support various RNN cell types.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;src_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;src_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -313,8 +313,8 @@
       <span class="s1">&#39;encoder_use_skip_connections&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="BidirectionalRNNEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;encoder_dp_input_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;encoder_dp_output_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -444,8 +444,8 @@
 <span class="sd">  GNMT model: https://arxiv.org/abs/1609.08144.</span>
 <span class="sd">  Must have at least 2 layers</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;src_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;src_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -455,8 +455,8 @@
       <span class="s1">&#39;encoder_use_skip_connections&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="GNMTLikeEncoderWithEmbedding.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;encoder_dp_input_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;encoder_dp_output_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -634,7 +634,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

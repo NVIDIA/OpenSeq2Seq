@@ -200,198 +200,66 @@
 <dl class="class">
 <dt id="utils.hooks.PrintLossAndTimeHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that prints training samples and prediction from time to time</p>
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after each call to run().</p>
-<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
-<cite>before_run()</cite>.</p>
-<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
-<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
-<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
-<li><strong>run_values</strong> – A SessionRunValues object.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before each call to run().</p>
-<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
-tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
-together with the ops/tensors originally passed to the original run() call.
-The run args you return can also contain feeds to be added to the run()
-call.</p>
-<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
-information about the upcoming <cite>run()</cite> call: the originally requested
-op/tensors, the TensorFlow Session.</p>
-<p>At this point graph is finalized and you can not add ops.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintLossAndTimeHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called once before using the session.</p>
-<p>When called, the default graph is the one that will be launched in the
-session.  The hook can modify the graph by adding new operations to it.
-After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
-can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
-graph, should not change the graph.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="utils.hooks.PrintSamplesHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintSamplesHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that prints training samples and prediction from time to time</p>
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after each call to run().</p>
-<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
-<cite>before_run()</cite>.</p>
-<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
-<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
-<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
-<li><strong>run_values</strong> – A SessionRunValues object.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before each call to run().</p>
-<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
-tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
-together with the ops/tensors originally passed to the original run() call.
-The run args you return can also contain feeds to be added to the run()
-call.</p>
-<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
-information about the upcoming <cite>run()</cite> call: the originally requested
-op/tensors, the TensorFlow Session.</p>
-<p>At this point graph is finalized and you can not add ops.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.PrintSamplesHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintSamplesHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintSamplesHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called once before using the session.</p>
-<p>When called, the default graph is the one that will be launched in the
-session.  The hook can modify the graph by adding new operations to it.
-After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
-can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
-graph, should not change the graph.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="utils.hooks.RunEvaluationHook">
 <em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>last_step=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that runs evaluation on a validation set</p>
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.after_run">
 <code class="descname">after_run</code><span class="sig-paren">(</span><em>run_context</em>, <em>run_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.after_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.after_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called after each call to run().</p>
-<p>The <cite>run_values</cite> argument contains results of requested ops/tensors by
-<cite>before_run()</cite>.</p>
-<p>The <cite>run_context</cite> argument is the same one send to <cite>before_run</cite> call.
-<cite>run_context.request_stop()</cite> can be called to stop the iteration.</p>
-<p>If <cite>session.run()</cite> raises any exceptions then <cite>after_run()</cite> is not called.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</li>
-<li><strong>run_values</strong> – A SessionRunValues object.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.before_run">
 <code class="descname">before_run</code><span class="sig-paren">(</span><em>run_context</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.before_run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.before_run" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called before each call to run().</p>
-<p>You can return from this call a <cite>SessionRunArgs</cite> object indicating ops or
-tensors to add to the upcoming <cite>run()</cite> call.  These ops/tensors will be run
-together with the ops/tensors originally passed to the original run() call.
-The run args you return can also contain feeds to be added to the run()
-call.</p>
-<p>The <cite>run_context</cite> argument is a <cite>SessionRunContext</cite> that provides
-information about the upcoming <cite>run()</cite> call: the originally requested
-op/tensors, the TensorFlow Session.</p>
-<p>At this point graph is finalized and you can not add ops.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>run_context</strong> – A <cite>SessionRunContext</cite> object.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">None or a <cite>SessionRunArgs</cite> object.</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="utils.hooks.RunEvaluationHook.begin">
 <code class="descname">begin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook.begin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook.begin" title="Permalink to this definition">¶</a></dt>
-<dd><p>Called once before using the session.</p>
-<p>When called, the default graph is the one that will be launched in the
-session.  The hook can modify the graph by adding new operations to it.
-After the <cite>begin()</cite> call the graph will be finalized and the other callbacks
-can not modify the graph anymore. Second call of <cite>begin()</cite> on the same
-graph, should not change the graph.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -489,7 +357,7 @@ target vocabulary and prints it as a human-readable string</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

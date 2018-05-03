@@ -20,8 +20,8 @@ Assuming you are in the base folder, run::
     python import_librivox.py data/librispeech
 
 Note, that this will take a lot of time, since
-it needs to download, extract and convert around 55Gb of audio files. The final
-dataset size will be around 224Gb.
+it needs to download, extract and convert around 55GB of audio files. The final
+dataset size will be around 224GB (including archives and original compressed audio files, feel free to delete them to get 106GB).
 
 Now, everything should be setup to train the model::
 
