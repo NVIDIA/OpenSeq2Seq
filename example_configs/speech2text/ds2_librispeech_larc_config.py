@@ -33,7 +33,9 @@ base_params = {
   "lr_policy_params": {
     "power": 2,
   },
-  "larc_nu": 0.001,
+  "larc_params": {
+    "larc_nu": 1.0,
+  },
   "dtype": tf.float32,
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
@@ -42,7 +44,7 @@ base_params = {
   },
   "initializer": tf.contrib.layers.xavier_initializer,
 
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,

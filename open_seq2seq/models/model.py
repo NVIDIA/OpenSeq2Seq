@@ -76,8 +76,7 @@ class Model:
       'lr_policy': None,  # any valid learning rate policy function
       'lr_policy_params': dict,
       'max_grad_norm': float,
-      'larc_nu': float,
-      'larc_mode': ['scale', 'clip'],
+      'larc_params': dict,
       'loss_scale': float,
       'automatic_loss_scaling': [None, 'Backoff', 'LogMax'],
       'summaries': list,
@@ -253,7 +252,7 @@ class Model:
         # if on Horovod, there will be hvd.size() independent data_layer copies
         # and thus the total size is hvd.size() times smaller.
         if self.on_horovod:
-          self._steps_in_epoch /= self._hvd.size()
+          self._steps_in_epoch //= self._hvd.size()
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     self._outputs = [None] * self.num_gpus
@@ -338,13 +337,18 @@ class Model:
         summaries=self.params.get('summaries', None),
         colocate_gradients_with_ops=True,
         increment_global_step=True,
-        LARC_nu=self.params.get('larc_nu', None),
-        LARC_mode=self.params.get('larc_mode', 'clip'),
+        larc_params=self.params.get('larc_params', None),
         loss_scale=self.params.get('loss_scale', 1.0),
         automatic_loss_scaling=self.params.get('automatic_loss_scaling', None),
         on_horovod=self.on_horovod,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
+      if self.steps_in_epoch:
+        tf.summary.scalar(
+          name="epoch",
+          tensor=tf.floor(tf.train.get_global_step() /
+                          tf.constant(self.steps_in_epoch, dtype=tf.int64)),
+        )
 
       if not self.on_horovod or self._hvd.rank() == 0:
         deco_print("Trainable variables:")

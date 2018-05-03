@@ -43,7 +43,7 @@ base_params = {
   },
   "initializer": tf.contrib.layers.xavier_initializer,
 
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,
