@@ -180,26 +180,26 @@
 <dl class="class">
 <dt id="data.data_layer.DataLayer">
 <em class="property">class </em><code class="descclassname">data.data_layer.</code><code class="descname">DataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Abstract class from which all data layers must inherit.</p>
 <dl class="method">
 <dt id="data.data_layer.DataLayer.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data layer constructor.
 The TensorFlow graph should not be created here, but rather in the
-<a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+<a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal"><span class="pre">self.build_graph()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) – parameters describing the data layer.
-All supported parameters are listed in <a class="reference internal" href="#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this data layer.
+<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the data layer.
+All supported parameters are listed in <a class="reference internal" href="#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) &#8211; parent model that created this data layer.
 Could be None if no model access is required for the use case.</li>
-<li><strong>num_workers</strong> (<em>int</em>) – number of Horovod processes or None if Horovod is not used.</li>
-<li><strong>worker_id</strong> (<em>int</em>) – Horovod process id or None if Horovod is not used.</li>
+<li><strong>num_workers</strong> (<em>int</em>) &#8211; number of Horovod processes or None if Horovod is not used.</li>
+<li><strong>worker_id</strong> (<em>int</em>) &#8211; Horovod process id or None if Horovod is not used.</li>
 </ul>
 </td>
 </tr>
@@ -207,9 +207,9 @@ Could be None if no model access is required for the use case.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>shuffle</strong> (bool) — whether to shuffle dataset after an epoch.
+<li><strong>shuffle</strong> (bool) &#8212; whether to shuffle dataset after an epoch.
 Typically will be True for train and False for inference and evaluation.</li>
-<li><strong>dtype</strong> — data dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code> or <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>.</li>
+<li><strong>dtype</strong> &#8212; data dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code> or <code class="docutils literal"><span class="pre">tf.float32</span></code>.</li>
 </ul>
 </dd></dl>
 
@@ -225,14 +225,14 @@ Typically will be True for train and False for inference and evaluation.</li>
 <dd><p>This method should create and return input tensors that will be
 connected to the model computational graph. Note, that it is important to
 create <em>new</em> tensors here, since this method will be called multiple times
-for multi-GPU execution. For <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API you can usually call
-<code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code> multiple times.</p>
+for multi-GPU execution. For <code class="docutils literal"><span class="pre">tf.data</span></code> API you can usually call
+<code class="docutils literal"><span class="pre">Iterator.get_next()</span></code> multiple times.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors that could be placeholders or if using
-<code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API, whatever is returned with <code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code>.</td>
+<code class="docutils literal"><span class="pre">tf.data</span></code> API, whatever is returned with <code class="docutils literal"><span class="pre">Iterator.get_next()</span></code>.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -251,7 +251,7 @@ multi-GPU processing!</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">input tensors generated with
-<a class="reference internal" href="#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.gen_input_tensors()</span></code></a>.</td>
+<a class="reference internal" href="#data.data_layer.DataLayer.gen_input_tensors" title="data.data_layer.DataLayer.gen_input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.gen_input_tensors()</span></code></a>.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
 </tr>
@@ -268,8 +268,8 @@ multi-GPU processing!</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -286,8 +286,8 @@ class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" t
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -334,13 +334,13 @@ calculate a valid epoch size.</p>
 <code class="descname">iterate_forever</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.iterate_forever"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.iterate_forever" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generator that goes through data set indefinitely.
 Will automatically perform shuffle after the end of each epoch by calling
-<a class="reference internal" href="#data.data_layer.DataLayer.shuffle" title="data.data_layer.DataLayer.shuffle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.shuffle()</span></code></a> method.</p>
+<a class="reference internal" href="#data.data_layer.DataLayer.shuffle" title="data.data_layer.DataLayer.shuffle"><code class="xref py py-meth docutils literal"><span class="pre">self.shuffle()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><em>dict</em> – feed_dict returned from</p>
-<p class="last"><a class="reference internal" href="#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.next_batch_feed_dict()</span></code></a> method.</p>
+<tr class="field-odd field"><th class="field-name">Yields:</th><td class="field-body"><p class="first"><em>dict</em> &#8211; feed_dict returned from</p>
+<p class="last"><a class="reference internal" href="#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal"><span class="pre">self.next_batch_feed_dict()</span></code></a> method.</p>
 </td>
 </tr>
 </tbody>
@@ -355,12 +355,12 @@ Will automatically perform shuffle after the end of each epoch by calling
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cross_over</strong> – whether last batch should take few elements from the next
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cross_over</strong> &#8211; whether last batch should take few elements from the next
 epoch if the size of dataset is not divisible by the batch size. If
 set to False, epoch will end ignoring few last elements.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><em>dict</em> – feed_dict returned from
-<a class="reference internal" href="#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.next_batch_feed_dict()</span></code></a> method.</td>
+<tr class="field-even field"><th class="field-name">Yields:</th><td class="field-body"><em>dict</em> &#8211; feed_dict returned from
+<a class="reference internal" href="#data.data_layer.DataLayer.next_batch_feed_dict" title="data.data_layer.DataLayer.next_batch_feed_dict"><code class="xref py py-meth docutils literal"><span class="pre">self.next_batch_feed_dict()</span></code></a> method.</td>
 </tr>
 </tbody>
 </table>
@@ -370,14 +370,14 @@ set to False, epoch will end ignoring few last elements.</td>
 <dt id="data.data_layer.DataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method should return one data batch feed_dict.
-Basically, the output of this method will be included in the <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
-call as the <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> parameter. If no <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> is required (as is
-the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), just return an empty dictionary.</p>
+Basically, the output of this method will be included in the <code class="docutils literal"><span class="pre">sess.run</span></code>
+call as the <code class="docutils literal"><span class="pre">feed_dict</span></code> parameter. If no <code class="docutils literal"><span class="pre">feed_dict</span></code> is required (as is
+the typical case with <code class="docutils literal"><span class="pre">tf.data</span></code> API), just return an empty dictionary.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> call.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal"><span class="pre">sess.run</span></code> call.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -396,7 +396,7 @@ the typical case with <code class="docutils literal notranslate"><span class="pr
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method should implement data shuffle.
 It will be called after the end of each epoch. Note, that if shuffling is
-performed automatically (as is the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), this
+performed automatically (as is the typical case with <code class="docutils literal"><span class="pre">tf.data</span></code> API), this
 method can be empty.</p>
 </dd></dl>
 
@@ -405,8 +405,8 @@ method can be empty.</p>
 <dl class="class">
 <dt id="data.data_layer.MultiGPUWrapper">
 <em class="property">class </em><code class="descclassname">data.data_layer.</code><code class="descname">MultiGPUWrapper</code><span class="sig-paren">(</span><em>data_layer</em>, <em>num_gpus</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
-<p>Wrapper around <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a> class that enables multi-GPU execution.</p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<p>Wrapper around <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a> class that enables multi-GPU execution.</p>
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>data_layer</em>, <em>num_gpus</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.__init__" title="Permalink to this definition">¶</a></dt>
@@ -416,9 +416,9 @@ method can be empty.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>data_layer</strong> (instance of a class derived from <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) – inner
-data_layer that will be “copied” to each GPU.</li>
-<li><strong>num_gpus</strong> (<em>int</em>) – number of GPUs used.</li>
+<li><strong>data_layer</strong> (instance of a class derived from <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>) &#8211; inner
+data_layer that will be &#8220;copied&#8221; to each GPU.</li>
+<li><strong>num_gpus</strong> (<em>int</em>) &#8211; number of GPUs used.</li>
 </ul>
 </td>
 </tr>
@@ -431,59 +431,33 @@ data_layer that will be “copied” to each GPU.</li>
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.build_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>This function creates input tensors for all GPUs.
 It will first build graph for the inner data layer. Then, it will call
-<a class="reference internal" href="#data.data_layer.MultiGPUWrapper.gen_input_tensors" title="data.data_layer.MultiGPUWrapper.gen_input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._data_layer.gen_input_tensors()</span></code></a> num_gpus
-times and save the corresponding list as new <code class="docutils literal notranslate"><span class="pre">self._input_tensors</span></code>
+<a class="reference internal" href="#data.data_layer.MultiGPUWrapper.gen_input_tensors" title="data.data_layer.MultiGPUWrapper.gen_input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self._data_layer.gen_input_tensors()</span></code></a> num_gpus
+times and save the corresponding list as new <code class="docutils literal"><span class="pre">self._input_tensors</span></code>
 parameter. This parameter will then be accessed by
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_input_tensors()</span></code> method.</p>
+<code class="xref py py-meth docutils literal"><span class="pre">self.get_input_tensors()</span></code> method.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function is empty since we directly fill <code class="docutils literal notranslate"><span class="pre">self._input_tensors</span></code>
-which is used in <code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_input_tensors()</span></code> method.</p>
+<dd><p>This function is empty since we directly fill <code class="docutils literal"><span class="pre">self._input_tensors</span></code>
+which is used in <code class="xref py py-meth docutils literal"><span class="pre">self.get_input_tensors()</span></code> method.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.data_layer.MultiGPUWrapper.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.__init__" title="data.data_layer.MultiGPUWrapper.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.data_layer.MultiGPUWrapper.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.__init__" title="data.data_layer.MultiGPUWrapper.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Redirects call to inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.get_size_in_samples" title="data.data_layer.MultiGPUWrapper.get_size_in_samples"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_size_in_samples()</span></code></a> method.</p>
+<dd><p>Redirects call to inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.get_size_in_samples" title="data.data_layer.MultiGPUWrapper.get_size_in_samples"><code class="xref py py-meth docutils literal"><span class="pre">get_size_in_samples()</span></code></a> method.</p>
 </dd></dl>
 
 <dl class="method">
@@ -491,21 +465,21 @@ class <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.__ini
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Correctly populates next batch feed_dict for multiple GPUs.
 This function will do the following things: for each GPU in a loop it will
-replace the inner data layer <code class="docutils literal notranslate"><span class="pre">_input_tensors</span></code> parameter with part of
-<code class="docutils literal notranslate"><span class="pre">self._input_tensors</span></code> corresponding to the current GPU. It will then
-call inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.next_batch_feed_dict" title="data.data_layer.MultiGPUWrapper.next_batch_feed_dict"><code class="xref py py-meth docutils literal notranslate"><span class="pre">next_batch_feed_dict()</span></code></a> method which should
-connect inner data layer <code class="docutils literal notranslate"><span class="pre">_input_tensors</span></code> with correct feed data. After
+replace the inner data layer <code class="docutils literal"><span class="pre">_input_tensors</span></code> parameter with part of
+<code class="docutils literal"><span class="pre">self._input_tensors</span></code> corresponding to the current GPU. It will then
+call inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.next_batch_feed_dict" title="data.data_layer.MultiGPUWrapper.next_batch_feed_dict"><code class="xref py py-meth docutils literal"><span class="pre">next_batch_feed_dict()</span></code></a> method which should
+connect inner data layer <code class="docutils literal"><span class="pre">_input_tensors</span></code> with correct feed data. After
 all GPUs are covered it will return the complete feed dictionary.</p>
 <p>Note that this function will likely be rewritten in the future since it
-relies on the user using <code class="docutils literal notranslate"><span class="pre">self._input_tensors</span></code> to store the placeholders
+relies on the user using <code class="docutils literal"><span class="pre">self._input_tensors</span></code> to store the placeholders
 (which will be the case if they are accessed through
-<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_input_tensors()</span></code> method),
+<code class="xref py py-meth docutils literal"><span class="pre">self.get_input_tensors()</span></code> method),
 but this is not enforced in the API.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> call which has data for
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal"><span class="pre">sess.run</span></code> call which has data for
 all GPUs.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
@@ -517,7 +491,7 @@ all GPUs.</td>
 <dl class="method">
 <dt id="data.data_layer.MultiGPUWrapper.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#MultiGPUWrapper.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.MultiGPUWrapper.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd><p>Redirects call to inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.shuffle" title="data.data_layer.MultiGPUWrapper.shuffle"><code class="xref py py-meth docutils literal notranslate"><span class="pre">shuffle()</span></code></a> method.</p>
+<dd><p>Redirects call to inner data layer <a class="reference internal" href="#data.data_layer.MultiGPUWrapper.shuffle" title="data.data_layer.MultiGPUWrapper.shuffle"><code class="xref py py-meth docutils literal"><span class="pre">shuffle()</span></code></a> method.</p>
 </dd></dl>
 
 </dd></dl>
@@ -528,28 +502,28 @@ all GPUs.</td>
 <dl class="class">
 <dt id="data.speech2text.Speech2TextDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
-<p>Speech-to-text data layer class, that uses <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API.
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<p>Speech-to-text data layer class, that uses <code class="docutils literal"><span class="pre">tf.data</span></code> API.
 This is a recommended class to use in real experiments.</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Speech-to-text <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> based data layer constructor.</p>
+<dd><p>Speech-to-text <code class="docutils literal"><span class="pre">tf.data</span></code> based data layer constructor.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>num_audio_features</strong> (int) — number of audio features to extract.</p>
+<li><p class="first"><strong>num_audio_features</strong> (int) &#8212; number of audio features to extract.</p>
 </li>
-<li><p class="first"><strong>input_type</strong> (str) — could be either “spectrogram” or “mfcc”.</p>
+<li><p class="first"><strong>input_type</strong> (str) &#8212; could be either &#8220;spectrogram&#8221; or &#8220;mfcc&#8221;.</p>
 </li>
-<li><p class="first"><strong>vocab_file</strong> (str) — path to vocabulary file.</p>
+<li><p class="first"><strong>vocab_file</strong> (str) &#8212; path to vocabulary file.</p>
 </li>
-<li><p class="first"><strong>dataset_files</strong> (list) — list with paths to all dataset .csv files.</p>
+<li><p class="first"><strong>dataset_files</strong> (list) &#8212; list with paths to all dataset .csv files.</p>
 </li>
-<li><p class="first"><strong>augmentation</strong> (dict) — optional dictionary with data augmentation
-parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
-“noise_level_max” parameters, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<li><p class="first"><strong>augmentation</strong> (dict) &#8212; optional dictionary with data augmentation
+parameters. Can contain &#8220;time_stretch_ratio&#8221;, &#8220;noise_level_min&#8221; and
+&#8220;noise_level_max&#8221; parameters, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">60</span><span class="p">,</span>
@@ -557,7 +531,7 @@ parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
 </pre></div>
 </div>
 <p>For additional details on these parameters see
-<a class="reference internal" href="#data.speech_utils.augment_audio_signal" title="data.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">data.speech_utils.augment_audio_signal()</span></code></a> function.</p>
+<a class="reference internal" href="#data.speech_utils.augment_audio_signal" title="data.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal"><span class="pre">data.speech_utils.augment_audio_signal()</span></code></a> function.</p>
 </li>
 </ul>
 </dd></dl>
@@ -570,9 +544,9 @@ parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>audio_filename</strong> – audio file name.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>audio_filename</strong> &#8211; audio file name.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, length of source sequence,</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal"><span class="pre">np.array</span></code>, length of source sequence,</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
 </tr>
@@ -588,9 +562,9 @@ parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong> – tf.data element from TextLineDataset.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong> &#8211; tf.data element from TextLineDataset.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, length of source sequence,
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal"><span class="pre">np.array</span></code>, length of source sequence,
 target text as <cite>np.array</cite> of ids, target text length.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
@@ -602,50 +576,24 @@ target text as <cite>np.array</cite> of ids, target text length.</td>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Builds data reading graph using <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API.</p>
+<dd><p>Builds data reading graph using <code class="docutils literal"><span class="pre">tf.data</span></code> API.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates input tensors using <code class="docutils literal notranslate"><span class="pre">iterator.get_next()</span></code> method.</p>
+<dd><p>Generates input tensors using <code class="docutils literal"><span class="pre">iterator.get_next()</span></code> method.</p>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.speech2text.Speech2TextDataLayer.__init__" title="data.speech2text.Speech2TextDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.speech2text.Speech2TextDataLayer.__init__" title="data.speech2text.Speech2TextDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.get_size_in_samples">
@@ -656,13 +604,13 @@ class <a class="reference internal" href="#data.speech2text.Speech2TextDataLayer
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is empty, since <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> does not need feed dictionary.</p>
+<dd><p>This method is empty, since <code class="docutils literal"><span class="pre">tf.data</span></code> does not need feed dictionary.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is empty, since shuffling is performed by <code class="docutils literal notranslate"><span class="pre">tf.data</span></code>.</p>
+<dd><p>This method is empty, since shuffling is performed by <code class="docutils literal"><span class="pre">tf.data</span></code>.</p>
 </dd></dl>
 
 </dd></dl>
@@ -670,10 +618,10 @@ class <a class="reference internal" href="#data.speech2text.Speech2TextDataLayer
 <dl class="class">
 <dt id="data.speech2text.Speech2TextPlaceholdersDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextPlaceholdersDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextPlaceholdersDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextPlaceholdersDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
-<p>Speech-to-text data layer class, that <strong>does not</strong> use <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API.
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<p>Speech-to-text data layer class, that <strong>does not</strong> use <code class="docutils literal"><span class="pre">tf.data</span></code> API.
 This class should not be used in real experiments, since it is a lot slower
-than fast <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> based implementation. It can be useful in debugging
+than fast <code class="docutils literal"><span class="pre">tf.data</span></code> based implementation. It can be useful in debugging
 certain things and as an example of data layer with placeholders.</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextPlaceholdersDataLayer.__init__">
@@ -682,18 +630,18 @@ certain things and as an example of data layer with placeholders.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>num_audio_features</strong> (int) — number of audio features to extract.</p>
+<li><p class="first"><strong>num_audio_features</strong> (int) &#8212; number of audio features to extract.</p>
 </li>
-<li><p class="first"><strong>input_type</strong> (str) — could be either “spectrogram” or “mfcc”.</p>
+<li><p class="first"><strong>input_type</strong> (str) &#8212; could be either &#8220;spectrogram&#8221; or &#8220;mfcc&#8221;.</p>
 </li>
-<li><p class="first"><strong>vocab_file</strong> (str) — path to vocabulary file.</p>
+<li><p class="first"><strong>vocab_file</strong> (str) &#8212; path to vocabulary file.</p>
 </li>
-<li><p class="first"><strong>dataset_files</strong> (list) — list with paths to all dataset .csv files.</p>
+<li><p class="first"><strong>dataset_files</strong> (list) &#8212; list with paths to all dataset .csv files.</p>
 </li>
-<li><p class="first"><strong>augmentation</strong> (dict) — optional dictionary with data augmentation
-parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
-“noise_level_max” parameters, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<li><p class="first"><strong>augmentation</strong> (dict) &#8212; optional dictionary with data augmentation
+parameters. Can contain &#8220;time_stretch_ratio&#8221;, &#8220;noise_level_min&#8221; and
+&#8220;noise_level_max&#8221; parameters, e.g.:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">60</span><span class="p">,</span>
@@ -701,7 +649,7 @@ parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
 </pre></div>
 </div>
 <p>For additional details on these parameters see
-<a class="reference internal" href="#data.speech_utils.augment_audio_signal" title="data.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">data.speech_utils.augment_audio_signal()</span></code></a> function.</p>
+<a class="reference internal" href="#data.speech_utils.augment_audio_signal" title="data.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal"><span class="pre">data.speech_utils.augment_audio_signal()</span></code></a> function.</p>
 </li>
 </ul>
 </dd></dl>
@@ -729,38 +677,12 @@ and its transcript.</p>
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextPlaceholdersDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextPlaceholdersDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextPlaceholdersDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.speech2text.Speech2TextPlaceholdersDataLayer.__init__" title="data.speech2text.Speech2TextPlaceholdersDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextPlaceholdersDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextPlaceholdersDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextPlaceholdersDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.speech2text.Speech2TextPlaceholdersDataLayer.__init__" title="data.speech2text.Speech2TextPlaceholdersDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextPlaceholdersDataLayer.get_size_in_samples">
@@ -791,117 +713,43 @@ class <a class="reference internal" href="#data.speech2text.Speech2TextPlacehold
 <dl class="class">
 <dt id="data.speech2text.Speech2TextRandomDataLayer">
 <em class="property">class </em><code class="descclassname">data.speech2text.</code><code class="descname">Speech2TextRandomDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <p>This class should be used for performance profiling only.
 It generates random sequences instead of the real audio data.</p>
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Here all TensorFlow graph construction should happen.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should create and return input tensors that will be
-connected to the model computational graph. Note, that it is important to
-create <em>new</em> tensors here, since this method will be called multiple times
-for multi-GPU execution. For <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API you can usually call
-<code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code> multiple times.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors that could be placeholders or if using
-<code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API, whatever is returned with <code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Should return the dataset size in samples.
-That is, the number of objects in the dataset. This method is used to
-calculate a valid epoch size.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should return one data batch feed_dict.
-Basically, the output of this method will be included in the <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
-call as the <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> parameter. If no <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> is required (as is
-the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), just return an empty dictionary.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> call.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.speech2text.Speech2TextRandomDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text.html#Speech2TextRandomDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.Speech2TextRandomDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should implement data shuffle.
-It will be called after the end of each epoch. Note, that if shuffling is
-performed automatically (as is the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), this
-method can be empty.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -916,15 +764,15 @@ method can be empty.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> – np.array containing raw audio signal</li>
-<li><strong>fs</strong> – float, frames per second</li>
-<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
-If not None, has to have ‘time_stretch_ratio’,
-‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
-augmentation={‘time_stretch_ratio’: 0.2,</p>
+<li><strong>signal</strong> &#8211; np.array containing raw audio signal</li>
+<li><strong>fs</strong> &#8211; float, frames per second</li>
+<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
+If not None, has to have &#8216;time_stretch_ratio&#8217;,
+&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
+augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <blockquote>
-<div>’noise_level_min’: -90,
-‘noise_level_max’: -46}</div></blockquote>
+<div>&#8216;noise_level_min&#8217;: -90,
+&#8216;noise_level_max&#8217;: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -944,19 +792,19 @@ augmentation={‘time_stretch_ratio’: 0.2,</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> – np.array containing raw audio signal</li>
-<li><strong>fs</strong> – float, frames per second</li>
-<li><strong>num_features</strong> – number of speech features in frequency domain</li>
-<li><strong>features_type</strong> – ‘mfcc’ or ‘spectrogram’</li>
-<li><strong>window_size</strong> – size of analysis window, ms</li>
-<li><strong>window_stride</strong> – stride of analysis window, ms</li>
-<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
-If not None, has to have ‘time_stretch_ratio’,
-‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
-augmentation={‘time_stretch_ratio’: 0.2,</p>
+<li><strong>signal</strong> &#8211; np.array containing raw audio signal</li>
+<li><strong>fs</strong> &#8211; float, frames per second</li>
+<li><strong>num_features</strong> &#8211; number of speech features in frequency domain</li>
+<li><strong>features_type</strong> &#8211; &#8216;mfcc&#8217; or &#8216;spectrogram&#8217;</li>
+<li><strong>window_size</strong> &#8211; size of analysis window, ms</li>
+<li><strong>window_stride</strong> &#8211; stride of analysis window, ms</li>
+<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
+If not None, has to have &#8216;time_stretch_ratio&#8217;,
+&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
+augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <blockquote>
-<div>’noise_level_min’: -90,
-‘noise_level_max’: -46}</div></blockquote>
+<div>&#8216;noise_level_min&#8217;: -90,
+&#8216;noise_level_max&#8217;: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -976,18 +824,18 @@ augmentation={‘time_stretch_ratio’: 0.2,</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> – WAVE filename</li>
-<li><strong>num_features</strong> – number of speech features in frequency domain</li>
-<li><strong>features_type</strong> – ‘mfcc’ or ‘spectrogram’</li>
-<li><strong>window_size</strong> – size of analysis window, ms</li>
-<li><strong>window_stride</strong> – stride of analysis window, ms</li>
-<li><strong>augmentation</strong> – <p>None or dictionary of augmentation parameters;
-If not None, has to have ‘time_stretch_ratio’,
-‘noise_level_min’, ‘noise_level_max’ fields, e.g.:
-augmentation={‘time_stretch_ratio’: 0.2,</p>
+<li><strong>filename</strong> &#8211; WAVE filename</li>
+<li><strong>num_features</strong> &#8211; number of speech features in frequency domain</li>
+<li><strong>features_type</strong> &#8211; &#8216;mfcc&#8217; or &#8216;spectrogram&#8217;</li>
+<li><strong>window_size</strong> &#8211; size of analysis window, ms</li>
+<li><strong>window_stride</strong> &#8211; stride of analysis window, ms</li>
+<li><strong>augmentation</strong> &#8211; <p>None or dictionary of augmentation parameters;
+If not None, has to have &#8216;time_stretch_ratio&#8217;,
+&#8216;noise_level_min&#8217;, &#8216;noise_level_max&#8217; fields, e.g.:
+augmentation={&#8216;time_stretch_ratio&#8217;: 0.2,</p>
 <blockquote>
-<div>’noise_level_min’: -90,
-‘noise_level_max’: -46}</div></blockquote>
+<div>&#8216;noise_level_min&#8217;: -90,
+&#8216;noise_level_max&#8217;: -46}</div></blockquote>
 </li>
 </ul>
 </td>
@@ -1005,7 +853,7 @@ augmentation={‘time_stretch_ratio’: 0.2,</p>
 <dl class="class">
 <dt id="data.text2text.ParallelDataInRamInputLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">ParallelDataInRamInputLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <p>Parallel data layer class. It should be provided with:
 a) source vocabulary file b) target vocabulary file
 c) tokenized source file d) tokenized target file
@@ -1019,7 +867,7 @@ This class performs:</p>
 <li>Mini-batch construction</li>
 </ol>
 </div></blockquote>
-<p>All parameters for above actions should come through “params” dictionary
+<p>All parameters for above actions should come through &#8220;params&#8221; dictionary
 passed to constructor.
 This class loads all data and serves it from RAM</p>
 <dl class="attribute">
@@ -1074,8 +922,7 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Here all TensorFlow graph construction should happen.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.create_idx_seq_associations">
@@ -1096,77 +943,22 @@ This class loads all data and serves it from RAM</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should create and return input tensors that will be
-connected to the model computational graph. Note, that it is important to
-create <em>new</em> tensors here, since this method will be called multiple times
-for multi-GPU execution. For <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API you can usually call
-<code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code> multiple times.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors that could be placeholders or if using
-<code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API, whatever is returned with <code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelDataInRamInputLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelDataInRamInputLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Should return the dataset size in samples.
-That is, the number of objects in the dataset. This method is used to
-calculate a valid epoch size.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.load_corpus">
@@ -1197,25 +989,11 @@ calculate a valid epoch size.</p>
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should return one data batch feed_dict.
-Basically, the output of this method will be included in the <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
-call as the <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> parameter. If no <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> is required (as is
-the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), just return an empty dictionary.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> call.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelDataInRamInputLayer.pad_sequences">
-<em class="property">static </em><code class="descname">pad_sequences</code><span class="sig-paren">(</span><em>bucket_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.pad_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.pad_sequences" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">pad_sequences</code><span class="sig-paren">(</span><em>input_seq</em>, <em>bucket_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.pad_sequences"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.pad_sequences" title="Permalink to this definition">¶</a></dt>
 <dd><p>Pads sequence
 :param input_seq: sequenc to pad
 :param bucket_size: size of the bucket
@@ -1225,133 +1003,55 @@ the typical case with <code class="docutils literal notranslate"><span class="pr
 <dl class="method">
 <dt id="data.text2text.ParallelDataInRamInputLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelDataInRamInputLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelDataInRamInputLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should implement data shuffle.
-It will be called after the end of each epoch. Note, that if shuffling is
-performed automatically (as is the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), this
-method can be empty.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.ParallelTextDataLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">ParallelTextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a></p>
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd><p>Here all TensorFlow graph construction should happen.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.gen_input_tensors">
 <code class="descname">gen_input_tensors</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.gen_input_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.gen_input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should create and return input tensors that will be
-connected to the model computational graph. Note, that it is important to
-create <em>new</em> tensors here, since this method will be called multiple times
-for multi-GPU execution. For <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API you can usually call
-<code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code> multiple times.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">list of input tensors that could be placeholders or if using
-<code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API, whatever is returned with <code class="docutils literal notranslate"><span class="pre">Iterator.get_next()</span></code>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelTextDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of optional parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.ParallelTextDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Static method with description of required parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd><p>Should return the dataset size in samples.
-That is, the number of objects in the dataset. This method is used to
-calculate a valid epoch size.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.next_batch_feed_dict">
 <code class="descname">next_batch_feed_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.next_batch_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.next_batch_feed_dict" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should return one data batch feed_dict.
-Basically, the output of this method will be included in the <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
-call as the <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> parameter. If no <code class="docutils literal notranslate"><span class="pre">feed_dict</span></code> is required (as is
-the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), just return an empty dictionary.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">feed_dict to be included in <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> call.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.ParallelTextDataLayer.shuffle">
 <code class="descname">shuffle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#ParallelTextDataLayer.shuffle"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.ParallelTextDataLayer.shuffle" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method should implement data shuffle.
-It will be called after the end of each epoch. Note, that if shuffling is
-performed automatically (as is the typical case with <code class="docutils literal notranslate"><span class="pre">tf.data</span></code> API), this
-method can be empty.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.SpecialTextTokens">
 <em class="property">class </em><code class="descclassname">data.text2text.</code><code class="descname">SpecialTextTokens</code><a class="reference internal" href="../_modules/data/text2text.html#SpecialTextTokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.SpecialTextTokens" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="attribute">
 <dt id="data.text2text.SpecialTextTokens.END_OF_CHOICE">
@@ -1381,6 +1081,11 @@ method can be empty.</p>
 <dl class="attribute">
 <dt id="data.text2text.SpecialTextTokens.UNK_ID">
 <code class="descname">UNK_ID</code><em class="property"> = 0</em><a class="headerlink" href="#data.text2text.SpecialTextTokens.UNK_ID" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.text2text.SpecialTextTokens.to_string">
+<em class="property">static </em><code class="descname">to_string</code><span class="sig-paren">(</span><em>s_token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text.html#SpecialTextTokens.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.SpecialTextTokens.to_string" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -1446,7 +1151,7 @@ method can be empty.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

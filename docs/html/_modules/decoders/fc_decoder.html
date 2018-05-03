@@ -166,14 +166,14 @@
   <span class="sd">&quot;&quot;&quot;Fully connected decoder that operates on inputs with time dimension.</span>
 <span class="sd">  That is, input shape should be ``[batch size, time length, num features]``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="FullyConnectedTimeDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="FullyConnectedTimeDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="FullyConnectedTimeDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="FullyConnectedTimeDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># user defined function</span>
     <span class="p">})</span></div>
@@ -244,14 +244,14 @@
 <span class="sd">  generation (either with or without language model). If language model is not</span>
 <span class="sd">  used, ``tf.nn.ctc_greedy_decoder`` will be used as text generation method.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="FullyConnectedCTCDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="FullyConnectedCTCDecoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;use_language_model&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="FullyConnectedCTCDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="FullyConnectedCTCDecoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;decoder_library_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
       <span class="s1">&#39;beam_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -376,7 +376,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

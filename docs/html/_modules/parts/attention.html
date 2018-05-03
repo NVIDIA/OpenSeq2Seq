@@ -194,8 +194,8 @@
     <span class="k">if</span> <span class="n">bias</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1">#softmax_input += tf.cast(bias, dtype=logits.dtype)</span>
       <span class="n">softmax_input</span> <span class="o">+=</span> <span class="n">bias</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">softmax_input</span> <span class="o">=</span> <span class="n">logits</span>
+    <span class="c1"># else:</span>
+    <span class="c1">#   softmax_input = logits</span>
 
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">softmax_input</span><span class="p">),</span> <span class="n">V</span><span class="p">)</span></div>
 
@@ -351,7 +351,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

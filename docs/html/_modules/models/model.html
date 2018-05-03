@@ -169,14 +169,14 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.data</span> <span class="k">import</span> <span class="n">MultiGPUWrapper</span>
 
 
-<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
   <span class="sd">&quot;&quot;&quot;Abstract class that any model should inherit from.</span>
 <span class="sd">  It automatically enables multi-GPU (or Horovod) computation,</span>
 <span class="sd">  has mixed precision support, logs training summaries, etc.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-<div class="viewcode-block" id="Model.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Model.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -191,8 +191,8 @@
       <span class="s1">&#39;data_layer&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
     <span class="p">}</span></div>
 
-<div class="viewcode-block" id="Model.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="Model.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -520,8 +520,8 @@
         <span class="k">else</span><span class="p">:</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s1">&#39;Total trainable parameters: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_params</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Model._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._build_forward_pass_graph">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+<div class="viewcode-block" id="Model._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._build_forward_pass_graph">[docs]</a>  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract method. Should create the graph of the forward pass of the model.</span>
 
 <span class="sd">    Args:</span>
@@ -715,7 +715,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
