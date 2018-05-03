@@ -344,7 +344,7 @@ class Model:
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:
-        tf.summary_scalar(
+        tf.summary.scalar(
           name="epoch",
           tensor=tf.floor(tf.train.get_global_step() / self.steps_in_epoch),
         )
