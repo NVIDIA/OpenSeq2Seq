@@ -238,8 +238,9 @@ def optimize_loss(loss,
       if global_step is None:
         raise ValueError("global_step is required for learning_rate_decay_fn.")
       lr = learning_rate_decay_fn(lr, global_step)
-      if "learning_rate" in summaries:
-        summary.scalar("learning_rate", lr)
+
+    if "learning_rate" in summaries:
+      summary.scalar("learning_rate", lr)
 
     # Create optimizer, given specified parameters.
     if isinstance(optimizer, six.string_types):
