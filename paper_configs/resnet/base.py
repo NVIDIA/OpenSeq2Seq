@@ -7,10 +7,11 @@ sys.path.insert(0, os.path.abspath("tensorflow-models"))
 from official.resnet.resnet_run_loop import learning_rate_with_decay
 
 
-batch_size = 32
+batch_size_per_gpu = 32
+num_gpus = 8
 
 lr_policy_fn = learning_rate_with_decay(
-  batch_size=batch_size, batch_denom=256,
+  batch_size=batch_size_per_gpu * num_gpus, batch_denom=256,
   num_images=1281167, boundary_epochs=[30, 60, 80, 90],
   decay_rates=[1, 0.1, 0.01, 0.001, 1e-4],
 )
@@ -27,8 +28,8 @@ base_params = {
   "use_horovod": False,
   "num_epochs": 100,
 
-  "num_gpus": 8,
-  "batch_size_per_gpu": batch_size,
+  "num_gpus": num_gpus,
+  "batch_size_per_gpu": batch_size_per_gpu,
 
   "save_summaries_steps": 5000,
   "print_loss_steps": 10,
@@ -45,7 +46,7 @@ base_params = {
   # this is ignored! LR is computed automatically from the batch size
   "learning_rate": 0.001,
 
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 }
 
@@ -64,3 +65,4 @@ eval_params = {
     "data_dir": "data/tf-imagenet",
   },
 }
+
