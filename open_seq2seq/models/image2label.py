@@ -66,7 +66,7 @@ class ResNet(Model):
   def maybe_print_logs(self, input_values, output_values):
     if self.on_horovod:
       labels = input_values[1]
-      logits = output_values
+      logits = output_values[0]
     else:
       labels = input_values[1][0]
       logits = output_values[0]
