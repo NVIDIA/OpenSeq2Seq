@@ -66,6 +66,8 @@ base_params = {
     "rnn_type": "cudnn_gru",
     "rnn_unidirectional": False,
 
+    "row_conv": False,
+
     "n_hidden": 1600,
 
     "dropout_keep_prob": 0.5,
