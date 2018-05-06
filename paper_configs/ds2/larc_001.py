@@ -35,7 +35,7 @@ base_params = {
   },
   "larc_params": {
     "larc_nu": 0.1,
-  }
+  },
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
