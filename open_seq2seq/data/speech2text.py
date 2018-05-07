@@ -342,11 +342,21 @@ class Speech2TextDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'wav_filename'
     self._files = self._files.loc[:, cols].values
+
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = self._files.shape[0]
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      self._files = self._files[start:end]
+
     self.params['files'] = self._files
 
     self._size = self.get_size_in_samples()
@@ -356,11 +366,11 @@ class Speech2TextDataLayer(DataLayer):
   def build_graph(self):
     """Builds data reading graph using ``tf.data`` API."""
     self.tfdataset = tf.data.Dataset.from_tensor_slices(self._files)
-    if self.params['shuffle'] and self.params['use_targets']:
+    if self.params['shuffle']:
       self.tfdataset = self.tfdataset.shuffle(self._size)
     self.tfdataset = self.tfdataset.repeat()
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       self.tfdataset = self.tfdataset.map(lambda line:
         tf.py_func(self._parse_audio_transcript_element,
           [line], [self.params['dtype'], tf.int32, tf.int32, tf.int32],
@@ -430,7 +440,7 @@ class Speech2TextDataLayer(DataLayer):
 
   def gen_input_tensors(self):
     """Generates input tensors using ``iterator.get_next()`` method."""
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       x, x_length, y, y_length = self.iterator.get_next()
       # need to explicitly set batch size dimension
       # (it is employed in the model)
@@ -442,7 +452,7 @@ class Speech2TextDataLayer(DataLayer):
                  self.params['num_audio_features']])
     x_length = tf.reshape(x_length, [self.params['batch_size']])
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       return [x, x_length, y, y_length]
     else:
       return [x, x_length]

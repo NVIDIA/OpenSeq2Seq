@@ -131,6 +131,10 @@ class Speech2TextModelTests(tf.test.TestCase):
         # checking prediction
         self.assertEqual(pred_row[-1], true_row[-1])
 
+  def test_evaluate(self):
+    # TODO: write me!!
+    pass
+
   def test_mp_collection(self):
     train_config, eval_config = self.prepare_config()
     train_config['dtype'] = 'mixed'

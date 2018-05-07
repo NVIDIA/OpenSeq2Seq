@@ -231,7 +231,7 @@ class Model:
 
     dl_params = self._params.get('data_layer_params', {})
     dl_params['batch_size'] = self._params['batch_size_per_gpu']
-    dl_params['use_targets'] = (self._mode == "train" or self._mode == "eval")
+    dl_params['mode'] = self._mode
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -284,9 +284,12 @@ class Model:
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
-            [input_tensor[gpu_cnt] for input_tensor in input_tensors],
+            input_tensors[gpu_cnt],
             gpu_id=gpu_cnt,
           )
+          if self._outputs[gpu_cnt] is not None and \
+             not isinstance(self._outputs[gpu_cnt], list):
+            raise ValueError('Decoder samples have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
@@ -304,8 +307,11 @@ class Model:
         deco_print(
           "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
-        loss, self._outputs[0] = self._build_forward_pass_graph(input_tensors,
-                                                                gpu_id=0)
+        loss, self._outputs = self._build_forward_pass_graph(input_tensors,
+                                                             gpu_id=0)
+        if self._outputs is not None and not isinstance(self._outputs, list):
+          raise ValueError('Decoder samples have to be either None or list')
+
         if self._mode == "train" or self._mode == "eval":
           self.loss = loss
 
@@ -521,3 +527,8 @@ class Model:
   def on_horovod(self):
     """Whether the model is run on Horovod or not."""
     return self._hvd is not None
+
+  @property
+  def hvd(self):
+    """horovod.tensorflow module"""
+    return self._hvd

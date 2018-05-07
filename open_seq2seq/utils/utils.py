@@ -5,6 +5,125 @@ from six.moves import range
 from six import string_types
 
 import tensorflow as tf
+import numpy as np
+import time
+
+
+def get_batches_for_epoch(model, sess, compute_loss, benchmark=False):
+  total_time = 0.0
+  bench_start = model.params.get('bench_start', 10)
+
+  inputs_per_batch, outputs_per_batch = [], []
+  fetches = [
+    model.data_layer.get_input_tensors(),
+    model.get_output_tensors(),
+  ]
+  if compute_loss:
+    fetches.append(model.loss)
+    total_loss = 0.0
+    total_samples = 0.0
+  data_size = model.data_layer.get_size_in_batches()
+  last_batch_size = model.data_layer.get_size_in_samples() % \
+                    model.data_layer.params['batch_size']
+
+  # TODO: add progress bar
+  for step, feed_dict in enumerate(
+      model.data_layer.iterate_one_epoch(cross_over=True)
+  ):
+    tm = time.time()
+    if compute_loss:
+      inputs, outputs, loss = sess.run(fetches, feed_dict)
+    else:
+      inputs, outputs = sess.run(fetches, feed_dict)
+    if step >= bench_start:
+      total_time += time.time() - tm
+
+    if step == data_size:
+      if model.on_horovod:
+        inputs = model.clip_last_batch(inputs, last_batch_size)
+        outputs = model.clip_last_batch(outputs, last_batch_size)
+      else:
+        inputs = list(inputs)
+        outputs = list(outputs)
+        cross_over_gpu = last_batch_size // model.params['batch_size_per_gpu']
+        if last_batch_size % model.params['batch_size_per_gpu'] == 0:
+          inputs = inputs[:cross_over_gpu]
+          outputs = outputs[:cross_over_gpu]
+        else:
+          inputs = inputs[:cross_over_gpu + 1]
+          inputs[-1] = model.clip_last_batch(
+            inputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
+          )
+          outputs = outputs[:cross_over_gpu + 1]
+          outputs[-1] = model.clip_last_batch(
+            outputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
+          )
+      if compute_loss:
+        loss *= last_batch_size
+        total_samples += last_batch_size
+    elif compute_loss:
+      loss *= model.params['batch_size_per_gpu']
+      total_samples += model.params['batch_size_per_gpu']
+
+    if model.on_horovod:
+      inputs_per_batch.append(inputs)
+      outputs_per_batch.append(outputs)
+    else:
+      inputs_per_batch.extend(inputs)
+      outputs_per_batch.extend(outputs)
+    if compute_loss:
+      total_loss += loss
+
+  if benchmark:
+    if step > bench_start:
+      deco_print(
+        "Avg time per step: {:.3}s".format(
+          1.0 * total_time / (step - bench_start))
+      )
+    else:
+      deco_print("Not enough steps for benchmarking")
+
+  if model.on_horovod:
+    import mpi4py.rc
+    mpi4py.rc.initialize = False
+    from mpi4py import MPI
+
+    if compute_loss:
+      total_samples_all = MPI.COMM_WORLD.gather(total_samples)
+      total_loss_all = MPI.COMM_WORLD.gather(total_loss)
+    inputs_per_batch_all = MPI.COMM_WORLD.gather(inputs_per_batch)
+    outputs_per_batch_all = MPI.COMM_WORLD.gather(outputs_per_batch)
+
+    if MPI.COMM_WORLD.Get_rank() != 0:
+      # returning dummy tuple of correct shape
+      if compute_loss:
+        return None, None, None
+      else:
+        return None, None
+    if compute_loss:
+      total_loss = np.sum(total_loss_all)
+      total_samples = np.sum(total_samples_all)
+    # moving GPU dimension into the batch dimension
+    inputs_per_batch = [item for sl in inputs_per_batch_all for item in sl]
+    outputs_per_batch = [item for sl in outputs_per_batch_all for item in sl]
+
+  if compute_loss:
+    total_loss /= total_samples
+    return inputs_per_batch, outputs_per_batch, total_loss
+
+  return inputs_per_batch, outputs_per_batch
+
+
+def log_summaries_from_dict(dict_to_log, output_dir, step):
+  # this returns the same writer as was created by
+  # the first call to this function
+  sm_writer = tf.summary.FileWriterCache.get(output_dir)
+  for tag, value in dict_to_log.items():
+    sm_writer.add_summary(
+      tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
+      global_step=step,
+    )
+    sm_writer.flush()
 
 
 def flatten_dict(dct):

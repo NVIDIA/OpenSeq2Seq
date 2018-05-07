@@ -2,23 +2,14 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
+
 import tensorflow as tf
 import time
 import os
 
-from open_seq2seq.utils.utils import deco_print
 
-
-def log_summaries_from_dict(dict_to_log, output_dir, step):
-  # this returns the same writer as was created by
-  # the first call to this function
-  sm_writer = tf.summary.FileWriterCache.get(output_dir)
-  for tag, value in dict_to_log.items():
-    sm_writer.add_summary(
-      tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
-      global_step=step,
-    )
-    sm_writer.flush()
+from open_seq2seq.utils.utils import deco_print, log_summaries_from_dict, \
+                                     get_batches_for_epoch
 
 
 class PrintSamplesHook(tf.train.SessionRunHook):
@@ -53,6 +44,10 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
     input_values, output_values = results
+    if not self._model.on_horovod:
+      # clipping to only first GPU
+      input_values = input_values[0]
+      output_values = output_values[0]
     dict_to_log = self._model.maybe_print_logs(input_values, output_values)
     # optionally logging to tensorboard any values
     # returned from maybe_print_logs
@@ -152,44 +147,37 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       return
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
-    deco_print("Running evaluation on a validation set:")
+    if not self._model.on_horovod or self._model.hvd.rank() == 0:
+      deco_print("Running evaluation on a validation set:")
 
-    inputs_per_batch, outputs_per_batch = [], []
-    total_loss = 0.0
-
-    for cnt, feed_dict in enumerate(
-      self._model.data_layer.iterate_one_epoch(cross_over=True)
-    ):
-      loss, inputs, outputs = run_context.session.run(
-        self._fetches, feed_dict,
-      )
-      inputs_per_batch.append(inputs)
-      outputs_per_batch.append(outputs)
-      total_loss += loss
-
-    total_loss /= (cnt + 1)
-    deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
-    dict_to_log = self._model.maybe_evaluate(
-      inputs_per_batch,
-      outputs_per_batch,
+    inputs_per_batch, outputs_per_batch, total_loss = get_batches_for_epoch(
+      self._model, run_context.session, compute_loss=True,
     )
-    dict_to_log['eval_loss'] = total_loss
 
-    # saving the best validation model
-    if total_loss < self._best_eval_loss:
-      self._best_eval_loss = total_loss
-      self._eval_saver.save(
-        run_context.session,
-        os.path.join(self._model.params['logdir'], 'best_models',
-                     'val_loss={:.4f}-step'.format(total_loss)),
-        global_step=step + 1,
-      )
+    if not self._model.on_horovod or self._model._hvd.rank() == 0:
+      deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
 
-    # optionally logging to tensorboard any values
-    # returned from maybe_print_logs
-    if dict_to_log:
-      log_summaries_from_dict(
-        dict_to_log,
-        self._model.params['logdir'],
-        step,
+      dict_to_log = self._model.maybe_evaluate(
+        inputs_per_batch,
+        outputs_per_batch,
       )
+      dict_to_log['eval_loss'] = total_loss
+
+      # saving the best validation model
+      if total_loss < self._best_eval_loss:
+        self._best_eval_loss = total_loss
+        self._eval_saver.save(
+          run_context.session,
+          os.path.join(self._model.params['logdir'], 'best_models',
+                       'val_loss={:.4f}-step'.format(total_loss)),
+          global_step=step + 1,
+        )
+
+      # optionally logging to tensorboard any values
+      # returned from maybe_print_logs
+      if dict_to_log:
+        log_summaries_from_dict(
+          dict_to_log,
+          self._model.params['logdir'],
+          step,
+        )

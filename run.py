@@ -70,13 +70,6 @@ def main():
   infer_config = copy.deepcopy(base_config)
 
   if base_config['use_horovod']:
-    if args.mode == "infer" or args.mode == "eval":
-      raise NotImplementedError("Inference or evaluation on horovod "
-                                "is not supported yet")
-    if args.mode == "train_eval":
-      deco_print("Evaluation during training is not yet supported on horovod, "
-                 "defaulting to just doing mode=\"train\"")
-      args.mode = "train"
     import horovod.tensorflow as hvd
     hvd.init()
     if hvd.rank() == 0:
@@ -93,9 +86,9 @@ def main():
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
       eval_config.update(copy.deepcopy(config_module['eval_params']))
-      eval_config['gpu_ids'] = [eval_config['num_gpus'] - 1]
-      if 'num_gpus' in eval_config:
-        del eval_config['num_gpus']
+      # eval_config['gpu_ids'] = [eval_config['num_gpus'] - 1]
+      # if 'num_gpus' in eval_config:
+      #   del eval_config['num_gpus']
     if hvd is None or hvd.rank() == 0:
       deco_print("Evaluation can only be run on one GPU. "
                  "Setting num_gpus to 1 for eval model")
