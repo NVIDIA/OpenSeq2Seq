@@ -13,7 +13,7 @@ base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 8,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 16,
 
   "num_epochs": 50,
 
