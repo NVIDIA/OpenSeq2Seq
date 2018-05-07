@@ -143,7 +143,7 @@ def main():
       if not os.path.exists(logdir):
         os.makedirs(logdir)
 
-      tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+      tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
       shutil.copy(
         args.config_file,
         os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
