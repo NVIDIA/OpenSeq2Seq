@@ -44,6 +44,8 @@ def main():
                       help='first step to start counting time for benchmarking')
   parser.add_argument('--debug_port', type=int,
                       help='run TensorFlow in debug mode on specified port')
+  parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
+                      help='whether to log output, git info, cmd args, etc.')
   args, unknown = parser.parse_known_args()
 
   if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
@@ -74,6 +76,10 @@ def main():
   if args.benchmark:
     args.no_dir_check = True
   try:
+    if args.enable_logs:
+      ckpt_dir = os.path.join(logdir, 'logs')
+    else:
+      ckpt_dir = logdir
     if args.mode == 'train' or args.mode == 'train_eval':
       if os.path.isfile(logdir):
         raise IOError("There is a file with the same name as \"logdir\" "
@@ -86,11 +92,11 @@ def main():
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
                         "\"--continue_learning\" flag")
-        checkpoint = tf.train.latest_checkpoint(os.path.join(logdir, 'logs'))
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
             "There is no valid TensorFlow checkpoint in the "
-            "{} directory. Can't load model".format(os.path.join(logdir, 'logs'))
+            "{} directory. Can't load model".format(ckpt_dir)
           )
       else:
         if args.continue_learning:
@@ -100,16 +106,15 @@ def main():
         checkpoint = None
     elif args.mode == 'infer' or args.mode == 'eval':
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(os.path.join(logdir, 'logs'))
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
             "There is no valid TensorFlow checkpoint in the "
-            "{} directory. Can't load model".format(os.path.join(logdir, 'logs'))
+            "{} directory. Can't load model".format(ckpt_dir)
           )
       else:
         raise IOError(
-          "{} does not exist or is empty, can't restore model".format(
-            os.path.join(logdir, 'logs'))
+          "{} does not exist or is empty, can't restore model".format(ckpt_dir)
         )
   except IOError as e:
     if args.no_dir_check:
@@ -133,35 +138,36 @@ def main():
   else:
     hvd = None
 
-  if hvd is None or hvd.rank() == 0:
-    if not os.path.exists(logdir):
-      os.makedirs(logdir)
+  if args.enable_logs:
+    if hvd is None or hvd.rank() == 0:
+      if not os.path.exists(logdir):
+        os.makedirs(logdir)
 
-    tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
-    shutil.copy(
-      args.config_file,
-      os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
-    )
+      tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H:%M:%S')
+      shutil.copy(
+        args.config_file,
+        os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
+      )
 
-    with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)), 'w') as f:
-      f.write(" ".join(sys.argv))
+      with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)), 'w') as f:
+        f.write(" ".join(sys.argv))
 
-    with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)), 'w') as f:
-      f.write('commit hash: {}'.format(get_git_hash()))
-      f.write(get_git_diff())
+      with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)), 'w') as f:
+        f.write('commit hash: {}'.format(get_git_hash()))
+        f.write(get_git_diff())
 
-    old_stdout = sys.stdout
-    old_stderr = sys.stderr
-    stdout_log = open(
-      os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
-    )
-    stderr_log = open(
-      os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
-    )
-    sys.stdout = Logger(sys.stdout, stdout_log)
-    sys.stderr = Logger(sys.stderr, stderr_log)
+      old_stdout = sys.stdout
+      old_stderr = sys.stderr
+      stdout_log = open(
+        os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
+      )
+      stderr_log = open(
+        os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
+      )
+      sys.stdout = Logger(sys.stdout, stdout_log)
+      sys.stderr = Logger(sys.stderr, stderr_log)
 
-  base_config['logdir'] = os.path.join(logdir, 'logs')
+    base_config['logdir'] = os.path.join(logdir, 'logs')
 
   train_config = copy.deepcopy(base_config)
   eval_config = copy.deepcopy(base_config)
@@ -245,7 +251,7 @@ def main():
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
 
-  if hvd is None or hvd.rank() == 0:
+  if args.enable_logs and (hvd is None or hvd.rank() == 0):
     sys.stdout = old_stdout
     sys.stderr = old_stderr
     stdout_log.close()
