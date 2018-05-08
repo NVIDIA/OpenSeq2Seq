@@ -300,6 +300,7 @@ class Speech2TextDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
       'augmentation': dict,
+      'pad_to': int,
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -411,8 +412,9 @@ class Speech2TextDataLayer(DataLayer):
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
     target = np.array([self.params['char2idx'][c] for c in transcript])
+    pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'],
+      audio_filename, self.params['num_audio_features'], pad_to,
       features_type=self.params['input_type'],
       augmentation=self.params.get('augmentation', None),
     )
@@ -430,8 +432,9 @@ class Speech2TextDataLayer(DataLayer):
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
     """
+    pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'],
+      audio_filename, self.params['num_audio_features'], pad_to,
       features_type=self.params['input_type'],
       augmentation=self.params.get('augmentation', None),
     )

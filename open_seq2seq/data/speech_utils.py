@@ -10,7 +10,7 @@ import numpy as np
 import math
 
 
-def get_speech_features_from_file(filename, num_features,
+def get_speech_features_from_file(filename, num_features, pad_to=8,
                                   features_type='spectrogram',
                                   window_size=20e-3,
                                   window_stride=10e-3,
@@ -32,7 +32,7 @@ def get_speech_features_from_file(filename, num_features,
   # load audio signal
   fs, signal = wave.read(filename)
   return get_speech_features(
-    signal, fs, num_features, features_type,
+    signal, fs, pad_to, num_features, features_type,
     window_size, window_stride, augmentation,
   )
 
@@ -71,7 +71,7 @@ def augment_audio_signal(signal, fs, augmentation):
   return (signal_float * 32768.0).astype(np.int16)
 
 
-def get_speech_features(signal, fs, num_features,
+def get_speech_features(signal, fs, num_features, pad_to=8,
                         features_type='spectrogram',
                         window_size=20e-3,
                         window_stride=10e-3,
@@ -110,9 +110,10 @@ def get_speech_features(signal, fs, num_features,
   length = 1 + int(math.ceil(
     (1.0 * signal.shape[0] - n_window_size) / n_window_stride)
   )
-  if length % 8 != 0:
-    pad_size = (8 - length % 8) * n_window_stride
-    signal = np.pad(signal, (0, pad_size), mode='reflect')
+  if pad_to > 0:
+    if length % pad_to != 0:
+      pad_size = (pad_to - length % pad_to) * n_window_stride
+      signal = np.pad(signal, (0, pad_size), mode='reflect')
 
   if features_type == 'spectrogram':
     frames = psf.sigproc.framesig(sig=signal,
@@ -143,7 +144,7 @@ def get_speech_features(signal, fs, num_features,
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
-  assert features.shape[0] % 8 == 0
+  assert features.shape[0] % pad_to == 0
   m = np.mean(features)
   s = np.std(features)
   features = (features - m) / s
