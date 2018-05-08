@@ -183,13 +183,13 @@ def main():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
-      train(train_model, None, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, None, debug_port=args.debug_port)
     elif args.mode == 'train_eval':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile(force_var_reuse=True)
-      train(train_model, eval_model, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, eval_model, debug_port=args.debug_port)
     elif args.mode == "eval":
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile()

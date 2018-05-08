@@ -11,11 +11,11 @@ from open_seq2seq.utils.utils import deco_print, get_batches_for_epoch
 from tensorflow.python import debug as tf_debug
 
 
-def train(train_model, eval_model=None, hvd=None, debug_port=None):
+def train(train_model, eval_model=None, debug_port=None):
   if eval_model is not None and 'eval_steps' not in eval_model.params:
     raise ValueError("eval_steps parameter has to be specified "
                      "if eval_model is provided")
-
+  hvd = train_model.hvd
   if hvd:
     master_worker = hvd.rank() == 0
   else:
@@ -110,6 +110,8 @@ def restore_and_get_batches(model, checkpoint):
   saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   sess_config.gpu_options.allow_growth = True
+  if model.hvd:
+    sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
     saver.restore(sess, checkpoint)
     inputs_per_batch, outputs_per_batch = get_batches_for_epoch(
