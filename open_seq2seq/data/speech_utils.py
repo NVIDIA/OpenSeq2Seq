@@ -32,7 +32,7 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
   # load audio signal
   fs, signal = wave.read(filename)
   return get_speech_features(
-    signal, fs, pad_to, num_features, features_type,
+    signal, fs, num_features, pad_to, features_type,
     window_size, window_stride, augmentation,
   )
 
