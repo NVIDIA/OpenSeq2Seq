@@ -9,7 +9,7 @@ import os
 
 
 from open_seq2seq.utils.utils import deco_print, log_summaries_from_dict, \
-                                     get_batches_for_epoch
+                                     get_results_for_epoch
 
 
 class PrintSamplesHook(tf.train.SessionRunHook):
@@ -150,17 +150,14 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
       deco_print("Running evaluation on a validation set:")
 
-    inputs_per_batch, outputs_per_batch, total_loss = get_batches_for_epoch(
-      self._model, run_context.session, compute_loss=True,
+    results_per_batch, total_loss = get_results_for_epoch(
+      self._model, run_context.session, mode="eval", compute_loss=True,
     )
 
-    if not self._model.on_horovod or self._model._hvd.rank() == 0:
+    if not self._model.on_horovod or self._model.hvd.rank() == 0:
       deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
 
-      dict_to_log = self._model.maybe_evaluate(
-        inputs_per_batch,
-        outputs_per_batch,
-      )
+      dict_to_log = self._model.finalize_evaluation(results_per_batch)
       dict_to_log['eval_loss'] = total_loss
 
       # saving the best validation model

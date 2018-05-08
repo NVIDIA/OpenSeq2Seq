@@ -208,6 +208,18 @@ class DataLayer:
       if self.params['shuffle']:
         self.shuffle()
 
+  def split_data(self, data):
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = len(data)
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      return data[start:end]
+    else:
+      return data
+
 
 class MultiGPUWrapper(DataLayer):
   """Wrapper around :class:`DataLayer` class that enables multi-GPU execution.

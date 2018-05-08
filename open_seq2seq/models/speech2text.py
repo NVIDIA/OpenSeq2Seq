@@ -68,49 +68,12 @@ class Speech2Text(Seq2Seq):
       'Sample WER': sample_wer,
     }
 
-  def clip_last_batch(self, last_batch, true_size):
-    def clip_sparse(value, size):
-      dense_shape_clipped = value.dense_shape
-      dense_shape_clipped[0] = size
-      indices_clipped = []
-      values_clipped = []
-      for idx_tuple, val in zip(value.indices, value.values):
-        if idx_tuple[0] < size:
-          indices_clipped.append(idx_tuple)
-          values_clipped.append(val)
-      return tf.SparseTensorValue(np.array(indices_clipped),
-                                  np.array(values_clipped),
-                                  dense_shape_clipped)
-
-    last_batch_clipped = []
-    for val in last_batch:
-      if isinstance(val, tf.SparseTensorValue):
-        last_batch_clipped.append(clip_sparse(val, true_size))
-      else:
-        last_batch_clipped.append(val[:true_size])
-    return last_batch_clipped
-
-  def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
+  def finalize_evaluation(self, results_per_batch):
     total_word_lev = 0.0
     total_word_count = 0.0
-
-    for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
-      decoded_sequence = output_values[0]
-      decoded_texts = sparse_tensor_to_chars(
-        decoded_sequence,
-        self.data_layer.params['idx2char'],
-      )
-      for sample_id in range(input_values[0].shape[0]):
-        # y is the third returned input value, thus input_values[2]
-        # len_y is the fourth returned input value
-        y = input_values[2][sample_id]
-        len_y = input_values[3][sample_id]
-        true_text = "".join(map(self.data_layer.params['idx2char'].get,
-                                y[:len_y]))
-        pred_text = "".join(decoded_texts[sample_id])
-
-        total_word_lev += levenshtein(true_text.split(), pred_text.split())
-        total_word_count += len(true_text.split())
+    for word_lev, word_count in results_per_batch:
+      total_word_lev += word_lev
+      total_word_count += word_count
 
     total_wer = 1.0 * total_word_lev / total_word_count
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
@@ -118,25 +81,45 @@ class Speech2Text(Seq2Seq):
       "Eval WER": total_wer,
     }
 
-  def infer(self, inputs_per_batch, outputs_per_batch, output_file):
-    preds = []
-    samples_count = 0
-    dataset_size = self.data_layer.get_size_in_samples()
+  def evaluate(self, input_values, output_values):
+    total_word_lev = 0.0
+    total_word_count = 0.0
 
-    for input_values, output_values in zip(inputs_per_batch,
-                                           outputs_per_batch):
-      for gpu_id in range(self.num_gpus):
-        decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_to_chars(
-          decoded_sequence,
-          self.data_layer.params['idx2char'],
-        )
-        for sample_id in range(self.params['batch_size_per_gpu']):
-          # this is necessary for correct processing of the last batch
-          if samples_count >= dataset_size:
-            break
-          samples_count += 1
-          preds.append("".join(decoded_texts[sample_id]))
+    decoded_sequence = output_values[0]
+    decoded_texts = sparse_tensor_to_chars(
+      decoded_sequence,
+      self.data_layer.params['idx2char'],
+    )
+    for sample_id in range(input_values[0].shape[0]):
+      # y is the third returned input value, thus input_values[2]
+      # len_y is the fourth returned input value
+      y = input_values[2][sample_id]
+      len_y = input_values[3][sample_id]
+      true_text = "".join(map(self.data_layer.params['idx2char'].get,
+                              y[:len_y]))
+      pred_text = "".join(decoded_texts[sample_id])
+
+      total_word_lev += levenshtein(true_text.split(), pred_text.split())
+      total_word_count += len(true_text.split())
+
+    return total_word_lev, total_word_count
+
+  def infer(self, input_values, output_values):
+    preds = []
+    decoded_sequence = output_values[0]
+    decoded_texts = sparse_tensor_to_chars(
+      decoded_sequence,
+      self.data_layer.params['idx2char'],
+    )
+    for sample_id in range(input_values[0].shape[0]):
+      preds.append("".join(decoded_texts[sample_id]))
+    return preds
+
+  def finalize_inference(self, results_per_batch, output_file):
+    preds = []
+
+    for result in results_per_batch:
+      preds.extend(result)
     pd.DataFrame(
       {
         'wav_filename': self.data_layer.params['files'],

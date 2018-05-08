@@ -349,16 +349,7 @@ class Speech2TextDataLayer(DataLayer):
       cols = 'wav_filename'
     self._files = self._files.loc[:, cols].values
 
-    if self.params['mode'] != 'train' and self._num_workers is not None:
-      size = self._files.shape[0]
-      start = size // self._num_workers * self._worker_id
-      if self._worker_id == self._num_workers - 1:
-        end = size
-      else:
-        end = size // self._num_workers * (self._worker_id + 1)
-      self._files = self._files[start:end]
-
-    self.params['files'] = self._files
+    self.params['files'] = self.split_data(self._files)
 
     self._size = self.get_size_in_samples()
     self.tfdataset = None

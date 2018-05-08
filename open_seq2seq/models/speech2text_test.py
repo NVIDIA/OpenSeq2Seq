@@ -236,8 +236,8 @@ class Speech2TextModelTests(tf.test.TestCase):
       tf.SparseTensorValue(indices[i], values[i], dense_shape[i])
       for i in range(num_gpus)
     ]
-    output_dict = model.maybe_evaluate([input_values, input_values],
-                                       [output_values, output_values])
+    output_dict = model.evaluate([input_values, input_values],
+                                 [output_values, output_values])
 
     w_lev = 0.0
     w_len = 0.0

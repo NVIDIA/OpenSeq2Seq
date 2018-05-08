@@ -86,12 +86,7 @@ def main():
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
       eval_config.update(copy.deepcopy(config_module['eval_params']))
-      # eval_config['gpu_ids'] = [eval_config['num_gpus'] - 1]
-      # if 'num_gpus' in eval_config:
-      #   del eval_config['num_gpus']
     if hvd is None or hvd.rank() == 0:
-      deco_print("Evaluation can only be run on one GPU. "
-                 "Setting num_gpus to 1 for eval model")
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
   if args.mode == "infer":
@@ -99,8 +94,6 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
-    deco_print("Inference can be run only on one GPU. Setting num_gpus to 1")
-    infer_config['num_gpus'] = 1
     deco_print("Inference config:")
     pprint.pprint(infer_config)
 

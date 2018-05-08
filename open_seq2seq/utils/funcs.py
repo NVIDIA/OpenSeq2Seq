@@ -7,7 +7,7 @@ import tensorflow as tf
 import time
 
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook
-from open_seq2seq.utils.utils import deco_print, get_batches_for_epoch
+from open_seq2seq.utils.utils import deco_print, get_results_for_epoch
 from tensorflow.python import debug as tf_debug
 
 
@@ -106,7 +106,7 @@ def train(train_model, eval_model=None, debug_port=None):
     deco_print("Not enough steps for benchmarking")
 
 
-def restore_and_get_batches(model, checkpoint):
+def restore_and_get_results(model, checkpoint, mode):
   saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   sess_config.gpu_options.allow_growth = True
@@ -114,25 +114,23 @@ def restore_and_get_batches(model, checkpoint):
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
     saver.restore(sess, checkpoint)
-    inputs_per_batch, outputs_per_batch = get_batches_for_epoch(
-      model, sess, compute_loss=False, benchmark=True,
+    results_per_batch = get_results_for_epoch(
+      model, sess, mode=mode, compute_loss=False, verbose=True,
     )
-  return inputs_per_batch, outputs_per_batch
+  return results_per_batch
 
 
 def infer(model, checkpoint, output_file):
-  inputs_per_batch, outputs_per_batch = restore_and_get_batches(model,
-                                                                checkpoint)
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer")
   if not model.on_horovod or model.hvd.rank() == 0:
-    model.infer(inputs_per_batch, outputs_per_batch, output_file)
+    model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")
 
 
 def evaluate(model, checkpoint):
-  inputs_per_batch, outputs_per_batch = restore_and_get_batches(model,
-                                                                checkpoint)
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="eval")
   if not model.on_horovod or model.hvd.rank() == 0:
-    eval_dict = model.maybe_evaluate(inputs_per_batch, outputs_per_batch)
+    eval_dict = model.finalize_evaluation(results_per_batch)
     deco_print("Finished evaluation")
     return eval_dict
   else:

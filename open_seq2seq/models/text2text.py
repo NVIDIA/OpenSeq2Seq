@@ -142,7 +142,7 @@ class BasicText2TextWithAttention(Seq2Seq):
     )
     return {}
 
-  def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
+  def evaluate(self, inputs_per_batch, outputs_per_batch):
     preds, targets = [], []
     for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
       ex, elen_x, ey, elen_y = input_values     

@@ -9,11 +9,35 @@ import numpy as np
 import time
 
 
-def get_batches_for_epoch(model, sess, compute_loss, benchmark=False):
+def clip_sparse(value, size):
+  dense_shape_clipped = value.dense_shape
+  dense_shape_clipped[0] = size
+  indices_clipped = []
+  values_clipped = []
+  for idx_tuple, val in zip(value.indices, value.values):
+    if idx_tuple[0] < size:
+      indices_clipped.append(idx_tuple)
+      values_clipped.append(val)
+  return tf.SparseTensorValue(np.array(indices_clipped),
+                              np.array(values_clipped),
+                              dense_shape_clipped)
+
+
+def clip_last_batch(last_batch, true_size):
+  last_batch_clipped = []
+  for val in last_batch:
+    if isinstance(val, tf.SparseTensorValue):
+      last_batch_clipped.append(clip_sparse(val, true_size))
+    else:
+      last_batch_clipped.append(val[:true_size])
+  return last_batch_clipped
+
+
+def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
 
-  inputs_per_batch, outputs_per_batch = [], []
+  results_per_batch = []
   fetches = [
     model.data_layer.get_input_tensors(),
     model.get_output_tensors(),
@@ -26,7 +50,8 @@ def get_batches_for_epoch(model, sess, compute_loss, benchmark=False):
   last_batch_size = model.data_layer.get_size_in_samples() % \
                     model.data_layer.params['batch_size']
 
-  # TODO: add progress bar
+  total_batches = model.data_layer.get_size_in_batches()
+
   for step, feed_dict in enumerate(
       model.data_layer.iterate_one_epoch(cross_over=True)
   ):
@@ -66,15 +91,33 @@ def get_batches_for_epoch(model, sess, compute_loss, benchmark=False):
       total_samples += model.params['batch_size_per_gpu']
 
     if model.on_horovod:
-      inputs_per_batch.append(inputs)
-      outputs_per_batch.append(outputs)
+      if step % (total_batches // 10):
+        deco_print("Processed {}/{} batches on rank {}".format(
+          step + 1, total_batches, model.hvd.rank()))
     else:
-      inputs_per_batch.extend(inputs)
-      outputs_per_batch.extend(outputs)
+      ending = '\r' if step < total_batches - 1 else '\n'
+      deco_print("Processed {}/{} batches".format(step + 1, total_batches),
+                 end=ending)
+
+    if model.on_horovod:
+      if mode == 'eval':
+        results_per_batch.append(model.evaluate(inputs, outputs))
+      elif mode == 'infer':
+        results_per_batch.append(model.infer(inputs, outputs))
+      else:
+        raise ValueError("Unknown mode: {}".format(mode))
+    else:
+      for input_batch, output_batch in zip(inputs, outputs):
+        if mode == 'eval':
+          results_per_batch.append(model.evaluate(input_batch, output_batch))
+        elif mode == 'infer':
+          results_per_batch.append(model.infer(input_batch, output_batch))
+        else:
+          raise ValueError("Unknown mode: {}".format(mode))
     if compute_loss:
       total_loss += loss
 
-  if benchmark:
+  if verbose:
     if step > bench_start:
       deco_print(
         "Avg time per step: {:.3}s".format(
@@ -91,27 +134,25 @@ def get_batches_for_epoch(model, sess, compute_loss, benchmark=False):
     if compute_loss:
       total_samples_all = MPI.COMM_WORLD.gather(total_samples)
       total_loss_all = MPI.COMM_WORLD.gather(total_loss)
-    inputs_per_batch_all = MPI.COMM_WORLD.gather(inputs_per_batch)
-    outputs_per_batch_all = MPI.COMM_WORLD.gather(outputs_per_batch)
+    results_per_batch_all = MPI.COMM_WORLD.gather(results_per_batch)
 
     if MPI.COMM_WORLD.Get_rank() != 0:
       # returning dummy tuple of correct shape
       if compute_loss:
-        return None, None, None
-      else:
         return None, None
+      else:
+        return None
     if compute_loss:
       total_loss = np.sum(total_loss_all)
       total_samples = np.sum(total_samples_all)
     # moving GPU dimension into the batch dimension
-    inputs_per_batch = [item for sl in inputs_per_batch_all for item in sl]
-    outputs_per_batch = [item for sl in outputs_per_batch_all for item in sl]
+    results_per_batch = [item for sl in results_per_batch_all for item in sl]
 
   if compute_loss:
     total_loss /= total_samples
-    return inputs_per_batch, outputs_per_batch, total_loss
+    return results_per_batch, total_loss
 
-  return inputs_per_batch, outputs_per_batch
+  return results_per_batch
 
 
 def log_summaries_from_dict(dict_to_log, output_dir, step):
