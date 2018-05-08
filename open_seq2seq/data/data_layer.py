@@ -251,9 +251,11 @@ class MultiGPUWrapper(DataLayer):
     """
     self._data_layer.build_graph()
     # making num_gpus copies of input tensors
-    self._input_tensors = [
-      self._data_layer.gen_input_tensors() for _ in range(self._num_gpus)
-    ]
+    self._input_tensors = [self._data_layer.gen_input_tensors()]
+    for _ in range(self._num_gpus - 1):
+      with tf.control_dependencies(self._input_tensors[-1]):
+        self._input_tensors.append(self._data_layer.gen_input_tensors())
+
     # transposing, so that same type variables are in the same position
     # self._input_tensors = list(zip(*self._input_tensors))
 
