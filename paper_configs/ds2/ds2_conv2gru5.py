@@ -13,7 +13,7 @@ base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 8,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 16,
 
   "num_epochs": 50,
 
@@ -65,6 +65,8 @@ base_params = {
     "use_cudnn_rnn": True,
     "rnn_type": "cudnn_gru",
     "rnn_unidirectional": False,
+
+    "row_conv": False,
 
     "n_hidden": 1600,
 
