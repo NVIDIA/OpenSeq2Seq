@@ -552,7 +552,7 @@ class ParallelTextDataLayer(DataLayer):
     _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
       lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
                                     tf.less_equal(t2[1], self.max_len))
-    )
+    ).cache()
 
     if self.params['shuffle']:
       _src_tgt_dataset = _src_tgt_dataset\
