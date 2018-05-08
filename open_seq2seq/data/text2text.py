@@ -105,7 +105,7 @@ class ParallelDataInRamInputLayer(DataLayer):
     self.bucket_src = self.params['bucket_src']
     self.bucket_tgt = self.params['bucket_tgt']
 
-    self._use_targets = self.params['use_targets']
+    self._use_targets = self.params['mode'] != 'infer'
     self._bucket_order = []  # used in inference
 
     self.load_pre_src_tgt_vocabs(self.src_vocab_file, self.tgt_vocab_file)
@@ -423,7 +423,6 @@ class ParallelTextDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-      'use_targets': bool,
       'delimiter': str,
       'target_file': str,
       'map_parallel_calls': int,
@@ -437,12 +436,12 @@ class ParallelTextDataLayer(DataLayer):
                                                 num_workers, worker_id)
     self._batch_size = self.params['batch_size']
     self.source_file = self.params['source_file']
-    self._use_targets = self.params.get('use_targets', True)
+    self._use_targets = self.params['mode'] != 'infer'
     if not self._use_targets:
       self.target_file = self.source_file
       if 'target_file' in self.params:
         print("WARNING: target file was specified but was "
-              "ignored by data layer because 'use_targets'=False")
+              "ignored by data layer because 'mode' == 'infer'")
     else:
       self.target_file = self.params['target_file']
     self.src_vocab_file = self.params['src_vocab_file']
@@ -456,13 +455,17 @@ class ParallelTextDataLayer(DataLayer):
       raise ValueError("If padding to 8 in data layer, then "
                        "max_length should be multiple of 8")
 
-    def file_len(fname):
-      with open(fname) as f:
-        for i, l in enumerate(f):
-          pass
-      return i + 1
+    def read_file(fname):
+      lines = []
+      with open(fname, 'r') as fin:
+        for line in fin:
+          lines.append(line)
+      return lines
 
-    self.dataset_size = file_len(self.source_file)
+    self.source_lines = self.split_data(read_file(self.source_file))
+    self.target_lines = self.split_data(read_file(self.target_file))
+
+    self.dataset_size = len(self.source_lines)
 
     # load source and target vocabularies to RAM
     self.src_seq2idx = load_pre_existing_vocabulary(
@@ -535,14 +538,14 @@ class ParallelTextDataLayer(DataLayer):
              [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens] + \
              [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
-    _sources = tf.data.TextLineDataset(self.source_file)\
-      .map(lambda line: tf.py_func(func=src_token_to_id,inp=[line],
+    _sources = tf.data.Dataset.from_tensor_slices(self.source_lines)\
+      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
            num_parallel_calls=self._map_parallel_calls)
 
-    _targets = tf.data.TextLineDataset(self.target_file) \
+    _targets = tf.data.Dataset.from_tensor_slices(self.target_lines) \
       .map(lambda line: tf.py_func(func=tgt_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \

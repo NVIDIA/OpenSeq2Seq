@@ -36,15 +36,16 @@ class ImagenetDataLayer(DataLayer):
     self.iterator = None
     self.valid_size = 0
 
-  def build_graph(self):
-    file_names = self.split_data(get_filenames(self.params['mode'] == 'train',
-                                               self.params['data_dir']))
+    self.file_names = self.split_data(
+      get_filenames(self.params['mode'] == 'train', self.params['data_dir'])
+    )
     if self.params['mode'] != 'train':
-      for file_name in file_names:
+      for file_name in self.file_names:
         for _ in tf.python_io.tf_record_iterator(file_name):
           self.valid_size += 1
 
-    dataset = tf.data.Dataset.from_tensor_slices(file_names)
+  def build_graph(self):
+    dataset = tf.data.Dataset.from_tensor_slices(self.file_names)
 
     if self.params['mode'] == 'train':
       # Shuffle the input files
