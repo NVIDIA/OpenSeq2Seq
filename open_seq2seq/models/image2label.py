@@ -3,6 +3,7 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
+
 import tensorflow as tf
 import numpy as np
 
@@ -61,15 +62,11 @@ class ResNet(Model):
       else:
         deco_print("Inference Mode. Loss part of graph isn't built.")
         loss = None
-      return loss, logits
+      return loss, [logits]
 
   def maybe_print_logs(self, input_values, output_values):
-    if self.on_horovod:
-      labels = input_values[1]
-      logits = output_values[0]
-    else:
-      labels = input_values[1][0]
-      logits = output_values[0]
+    labels = input_values[1]
+    logits = output_values[0]
 
     labels = np.where(labels == 1)[1]
 
@@ -86,29 +83,15 @@ class ResNet(Model):
       "Train batch top-5": top5,
     }
 
-  def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
+  def finalize_evaluation(self, results_per_batch):
     top1 = 0.0
     top5 = 0.0
     total = 0.0
 
-    last_cut = self.data_layer.get_size_in_samples() % \
-               self.data_layer.params['batch_size']
-    batch_idx = 0
-    for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
-      for gpu_id in range(self.num_gpus):
-        logits = output_values[gpu_id]
-        labels = input_values[1][gpu_id]
-        labels = np.where(labels == 1)[1]
-        # cutting last batch when dataset is not divisible by batch size
-        # this assumes that num_gpus = 1 for now
-        if batch_idx == len(inputs_per_batch) - 1:
-          logits = logits[:last_cut]
-          labels = labels[:last_cut]
-
-        total += logits.shape[0]
-        top1 += np.sum(np.argmax(logits, axis=1) == labels)
-        top5 += np.sum(labels[:, np.newaxis] == np.argpartition(logits, -5)[:, -5:])
-      batch_idx += 1
+    for cur_total, cur_top1, cur_top5 in results_per_batch:
+      top1 += cur_top1
+      top5 += cur_top5
+      total += cur_total
 
     top1 = 1.0 * top1 / total
     top5 = 1.0 * top5 / total
@@ -118,3 +101,14 @@ class ResNet(Model):
       "Eval top-1": top1,
       "Eval top-5": top5,
     }
+
+  def evaluate(self, input_values, output_values):
+    logits = output_values[0]
+    labels = input_values[1]
+    labels = np.where(labels == 1)[1]
+
+    total = logits.shape[0]
+    top1 = np.sum(np.argmax(logits, axis=1) == labels)
+    top5 = np.sum(labels[:, np.newaxis] == np.argpartition(logits, -5)[:, -5:])
+
+    return total, top1, top5

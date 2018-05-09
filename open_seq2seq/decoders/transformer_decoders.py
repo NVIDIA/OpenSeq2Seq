@@ -275,7 +275,7 @@ class TransformerDecoder(Decoder):
                                                                            tf.TensorShape([None, None, None])])
         
         return {"logits": output,
-                "samples": decoder_ids_so_far[:, 1:],
+                "samples": [decoder_ids_so_far[:, 1:]],
                 "final_state": None,
                 "final_sequence_lengths": None}
 
