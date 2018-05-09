@@ -183,8 +183,9 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
-    deco_print("Inference config:")
-    pprint.pprint(infer_config)
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")
@@ -201,8 +202,9 @@ def main():
     elif 'bench_start' not in train_config:
       train_config['bench_start'] = 10  # default value
 
-    deco_print("New benchmarking config:")
-    pprint.pprint(train_config)
+    if hvd is None or hvd.rank() == 0:
+      deco_print("New benchmarking config:")
+      pprint.pprint(train_config)
     args.mode = "train"
     checkpoint = None
 
@@ -215,7 +217,8 @@ def main():
           "Restored checkpoint from {}. Resuming training".format(checkpoint),
         )
   elif args.mode == 'eval' or args.mode == 'infer':
-    deco_print("Loading model from {}".format(checkpoint))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Loading model from {}".format(checkpoint))
 
   with tf.Graph().as_default():
     if args.mode == 'train':
