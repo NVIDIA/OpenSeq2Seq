@@ -90,14 +90,15 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       loss *= model.params['batch_size_per_gpu']
       total_samples += model.params['batch_size_per_gpu']
 
-    if model.on_horovod:
-      if step % (total_batches // 10) == 0:
-        deco_print("Processed {}/{} batches on rank {}".format(
-          step + 1, total_batches, model.hvd.rank()))
-    else:
-      ending = '\r' if step < total_batches - 1 else '\n'
-      deco_print("Processed {}/{} batches".format(step + 1, total_batches),
-                 end=ending)
+    if verbose:
+      if model.on_horovod:
+        if total_batches > 10 and step % (total_batches // 10) == 0:
+          deco_print("Processed {}/{} batches on rank {}".format(
+            step + 1, total_batches, model.hvd.rank()))
+      else:
+        ending = '\r' if step < total_batches - 1 else '\n'
+        deco_print("Processed {}/{} batches".format(step + 1, total_batches),
+                   end=ending)
 
     if model.on_horovod:
       if mode == 'eval':

@@ -62,7 +62,7 @@ class ResNet(Model):
       else:
         deco_print("Inference Mode. Loss part of graph isn't built.")
         loss = None
-      return loss, logits
+      return loss, [logits]
 
   def maybe_print_logs(self, input_values, output_values):
     labels = input_values[1]
