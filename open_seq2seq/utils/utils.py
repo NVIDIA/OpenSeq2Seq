@@ -91,7 +91,7 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       total_samples += model.params['batch_size_per_gpu']
 
     if model.on_horovod:
-      if step % (total_batches // 10):
+      if step % (total_batches // 10) == 0:
         deco_print("Processed {}/{} batches on rank {}".format(
           step + 1, total_batches, model.hvd.rank()))
     else:
@@ -119,12 +119,23 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
 
   if verbose:
     if step > bench_start:
-      deco_print(
-        "Avg time per step: {:.3}s".format(
-          1.0 * total_time / (step - bench_start))
-      )
+      if model.on_horovod:
+        deco_print(
+          "Avg time per step: {:.3}s on rank {}".format(
+            1.0 * total_time / (step - bench_start), model.hvd.rank()),
+        )
+      else:
+        deco_print(
+          "Avg time per step: {:.3}s".format(
+            1.0 * total_time / (step - bench_start)),
+        )
     else:
-      deco_print("Not enough steps for benchmarking")
+      if model.on_horovod:
+        deco_print("Not enough steps for benchmarking on rank {}".format(
+          model.hvd.rank()
+        ))
+      else:
+        deco_print("Not enough steps for benchmarking")
 
   if model.on_horovod:
     import mpi4py.rc
