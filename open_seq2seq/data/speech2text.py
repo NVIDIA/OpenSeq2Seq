@@ -300,6 +300,7 @@ class Speech2TextDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
       'augmentation': dict,
+      'pad_to': int,
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -342,11 +343,12 @@ class Speech2TextDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'wav_filename'
-    self._files = self._files.loc[:, cols].values
+    self._files = self.split_data(self._files.loc[:, cols].values)
+
     self.params['files'] = self._files
 
     self._size = self.get_size_in_samples()
@@ -356,11 +358,11 @@ class Speech2TextDataLayer(DataLayer):
   def build_graph(self):
     """Builds data reading graph using ``tf.data`` API."""
     self.tfdataset = tf.data.Dataset.from_tensor_slices(self._files)
-    if self.params['shuffle'] and self.params['use_targets']:
+    if self.params['shuffle']:
       self.tfdataset = self.tfdataset.shuffle(self._size)
     self.tfdataset = self.tfdataset.repeat()
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       self.tfdataset = self.tfdataset.map(lambda line:
         tf.py_func(self._parse_audio_transcript_element,
           [line], [self.params['dtype'], tf.int32, tf.int32, tf.int32],
@@ -401,8 +403,9 @@ class Speech2TextDataLayer(DataLayer):
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
     target = np.array([self.params['char2idx'][c] for c in transcript])
+    pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'],
+      audio_filename, self.params['num_audio_features'], pad_to,
       features_type=self.params['input_type'],
       augmentation=self.params.get('augmentation', None),
     )
@@ -420,8 +423,9 @@ class Speech2TextDataLayer(DataLayer):
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
     """
+    pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'],
+      audio_filename, self.params['num_audio_features'], pad_to,
       features_type=self.params['input_type'],
       augmentation=self.params.get('augmentation', None),
     )
@@ -430,7 +434,7 @@ class Speech2TextDataLayer(DataLayer):
 
   def gen_input_tensors(self):
     """Generates input tensors using ``iterator.get_next()`` method."""
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       x, x_length, y, y_length = self.iterator.get_next()
       # need to explicitly set batch size dimension
       # (it is employed in the model)
@@ -442,7 +446,7 @@ class Speech2TextDataLayer(DataLayer):
                  self.params['num_audio_features']])
     x_length = tf.reshape(x_length, [self.params['batch_size']])
 
-    if self.params['use_targets']:
+    if self.params['mode'] != 'infer':
       return [x, x_length, y, y_length]
     else:
       return [x, x_length]

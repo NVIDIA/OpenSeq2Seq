@@ -124,13 +124,6 @@ def main():
       raise
 
   if base_config['use_horovod']:
-    if args.mode == "infer" or args.mode == "eval":
-      raise NotImplementedError("Inference or evaluation on horovod "
-                                "is not supported yet")
-    if args.mode == "train_eval":
-      deco_print("Evaluation during training is not yet supported on horovod, "
-                 "defaulting to just doing mode=\"train\"")
-      args.mode = "train"
     import horovod.tensorflow as hvd
     hvd.init()
     if hvd.rank() == 0:
@@ -182,12 +175,7 @@ def main():
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
       eval_config.update(copy.deepcopy(config_module['eval_params']))
-      eval_config['gpu_ids'] = [eval_config['num_gpus'] - 1]
-      if 'num_gpus' in eval_config:
-        del eval_config['num_gpus']
     if hvd is None or hvd.rank() == 0:
-      deco_print("Evaluation can only be run on one GPU. "
-                 "Setting num_gpus to 1 for eval model")
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
   if args.mode == "infer":
@@ -195,10 +183,9 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
-    deco_print("Inference can be run only on one GPU. Setting num_gpus to 1")
-    infer_config['num_gpus'] = 1
-    deco_print("Inference config:")
-    pprint.pprint(infer_config)
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")
@@ -215,8 +202,9 @@ def main():
     elif 'bench_start' not in train_config:
       train_config['bench_start'] = 10  # default value
 
-    deco_print("New benchmarking config:")
-    pprint.pprint(train_config)
+    if hvd is None or hvd.rank() == 0:
+      deco_print("New benchmarking config:")
+      pprint.pprint(train_config)
     args.mode = "train"
     checkpoint = None
 
@@ -229,19 +217,20 @@ def main():
           "Restored checkpoint from {}. Resuming training".format(checkpoint),
         )
   elif args.mode == 'eval' or args.mode == 'infer':
-    deco_print("Loading model from {}".format(checkpoint))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Loading model from {}".format(checkpoint))
 
   with tf.Graph().as_default():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
-      train(train_model, None, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, None, debug_port=args.debug_port)
     elif args.mode == 'train_eval':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile(force_var_reuse=True)
-      train(train_model, eval_model, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, eval_model, debug_port=args.debug_port)
     elif args.mode == "eval":
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile()
