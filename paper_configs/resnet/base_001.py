@@ -53,7 +53,6 @@ base_params = {
 train_params = {
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "is_training": True,
     "data_dir": "data/tf-imagenet",
   },
 }
@@ -61,7 +60,6 @@ train_params = {
 eval_params = {
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "is_training": False,
     "data_dir": "data/tf-imagenet",
   },
 }
