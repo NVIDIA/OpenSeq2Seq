@@ -6,7 +6,7 @@ from six.moves import range
 import tensorflow as tf
 import numpy as np
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 
 class TransformerDecoderTest(tf.test.TestCase):

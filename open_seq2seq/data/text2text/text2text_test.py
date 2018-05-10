@@ -6,8 +6,9 @@ from six.moves import range
 import tensorflow as tf
 import numpy as np
 
-from .text2text import ParallelDataInRamInputLayer, ParallelTextDataLayer
-from .data_layer import MultiGPUWrapper
+from open_seq2seq.data.text2text.text2text import ParallelDataInRamInputLayer, \
+  ParallelTextDataLayer, TransformerDataLayer
+from open_seq2seq.data.data_layer import MultiGPUWrapper
 from open_seq2seq.test_utils.create_reversed_examples import create_data, \
                                                              remove_data
 
@@ -276,6 +277,67 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       self.assertEqual(et[2].shape[0], self.params['batch_size'])
       self.assertTrue(et[2].shape[1] % 8 == 0)
       self.assertEqual(et[3].shape[0], self.params['batch_size'])
+
+
+class TransformerDataLayerTests(tf.test.TestCase):
+  def setUp(self):
+    create_data()
+    batch_size = 512
+    self.params = {
+      'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",
+      'file_pattern': "*dev*",
+      'src_vocab_file': "/home/okuchaiev/repos/forks/reference/translation/processed_data/vocab.ende.32768",
+      'batch_size': batch_size,
+      'max_length': 256,
+      'shuffle': True,
+      'repeat': 1,
+    }
+
+  def test_TransformerDataLayer(self):
+    print("####################################################")
+    print("# --------------------------------------------------")
+    print("# -- Starting transformer data layer test ----------")
+    print("# --------------------------------------------------")
+    dl = TransformerDataLayer(params=self.params, model=None)
+    dl.build_graph()
+    print(len(dl.src_seq2idx))
+    print(len(dl.tgt_seq2idx))
+
+    #iterator = dl.get_dataset_object().make_one_shot_iterator()
+    #x, y = iterator.get_next()
+    #len_x = tf.count_nonzero(x, axis=1)
+    #len_y = tf.count_nonzero(y, axis=1)
+    iterator = dl.get_iterator()
+    inputs = dl.gen_input_tensors()
+    #inputs1 = dl.gen_input_tensors()
+
+    with self.test_session(use_gpu=True) as sess:
+      print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+      sess.run(iterator.initializer)
+      while True:
+        try:
+          ex, elen_x, ey, elen_y = sess.run(inputs)
+          print(ex.shape)
+          print(elen_x.shape)
+          print(ey.shape)
+          print(elen_y.shape)
+        except tf.errors.OutOfRangeError:
+          break
+      print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
+      #dl.redo_iterator()
+      sess.run(iterator.initializer)
+      while True:
+        try:
+          ex, elen_x, ey, elen_y = sess.run(inputs)
+          print(ex.shape)
+          print(elen_x.shape)
+          print(ey.shape)
+          print(elen_y.shape)
+        except tf.errors.OutOfRangeError:
+          break
+
+
+
 
 
 if __name__ == '__main__':

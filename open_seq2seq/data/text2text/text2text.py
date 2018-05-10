@@ -8,11 +8,12 @@ import tensorflow as tf
 import random
 import copy
 import io
+import os
 from enum import Enum
-from .data_layer import DataLayer
-from .utils import load_pre_existing_vocabulary, pad_vocab_to_eight
-
-
+from open_seq2seq.data.data_layer import DataLayer
+from open_seq2seq.data.utils import load_pre_existing_vocabulary, pad_vocab_to_eight
+from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
+from open_seq2seq.data.text2text.tokenizer import PAD_ID, PAD, EOS_ID, EOS
 class SpecialTextTokens(Enum):
   UNK_ID = 0  # out-of-vocabulary tokens will map there
   S_ID = 1  # special start of sentence token
@@ -595,3 +596,103 @@ class ParallelTextDataLayer(DataLayer):
 
   def get_size_in_samples(self):
     return self.dataset_size
+
+class TransformerDataLayer(DataLayer):
+  """Wraps Transformers data pipeline into the form for OpenSeq2Seq"""
+
+  ################################
+  # ------------------------------
+  # Get rid of these
+  # ------------------------------
+  def next_batch_feed_dict(self):
+    pass
+
+  def shuffle(self):
+    pass
+
+  def get_size_in_samples(self):
+    pass
+  ################################
+
+  @staticmethod
+  def get_required_params():
+    return dict(DataLayer.get_required_params(), **{
+      'data_dir': str,
+      'file_pattern': str,
+      'src_vocab_file': str,
+      'batch_size': int,
+      'max_length': int,
+      'shuffle': bool,
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(DataLayer.get_optional_params(), **{
+      'repeat': int,
+      'num_cpu_cores': int,
+      'tgt_vocab_file': str,
+    })
+
+  def __init__(self, params, model, num_workers=None, worker_id=None):
+    super(TransformerDataLayer, self).__init__(params, model,
+                                                      num_workers, worker_id)
+    self.src_vocab_file = self.params['src_vocab_file']
+    # if tgt vocab isn't specified - assume common vocab file
+    self.tgt_vocab_file = self.params.get('tgt_vocab_file', self.src_vocab_file)
+
+    # load source and target vocabularies to RAM
+    # pre-processed vocab starts from PAD, EOS
+    self.src_seq2idx = load_pre_existing_vocabulary(
+      self.src_vocab_file,
+      min_idx=PAD_ID)
+    self.tgt_seq2idx = load_pre_existing_vocabulary(
+      self.tgt_vocab_file,
+      min_idx=PAD_ID)
+
+    self.src_idx2seq = {idx: w for w, idx in self.src_seq2idx.items()}
+    self.tgt_idx2seq = {idx: w for w, idx in self.tgt_seq2idx.items()}
+
+    self.params['src_vocab_size'] = len(self.src_seq2idx)
+    self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
+    self.params['target_seq2idx'] = self.tgt_seq2idx
+    self.params['source_seq2idx'] = self.src_seq2idx
+    self.params['target_idx2seq'] = self.tgt_idx2seq
+    self.params['source_idx2seq'] = self.src_idx2seq
+
+  def build_graph(self):
+    file_pattern = os.path.join(self.params['data_dir'],
+                                self.params['file_pattern'])
+    self.batched_dataset = _read_and_batch_from_files(
+      file_pattern=file_pattern,
+      batch_size=self.params['batch_size'],
+      max_length=self.params['max_length'],
+      num_cpu_cores=self.params.get('num_cpu_cores', 2),
+      shuffle=self.params['shuffle'],
+      repeat=1)
+
+    #self.iterator = self.batched_dataset.make_one_shot_iterator()
+    self.iterator = self.batched_dataset.make_initializable_iterator()
+
+  def get_iterator(self):
+    return self.iterator
+
+  #def redo_iterator(self):
+  #  self.iterator = self.batched_dataset.make_one_shot_iterator()
+
+  def gen_input_tensors(self):
+    if self._input_tensors is None:
+      x, y = self.iterator.get_next()
+      len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
+      len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
+      self._input_tensors = x, len_x, y, len_y
+    else:
+      print("----->>> WARNING: Attempting to generate existing input tensors")
+    return tuple(self._input_tensors)
+
+
+
+
+
+
+
+

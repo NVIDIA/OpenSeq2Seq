@@ -80,15 +80,21 @@ def train(train_model, eval_model=None, hvd=None, debug_port=None):
     save_checkpoint_secs=None,
     log_step_count_steps=train_model.params['save_summaries_steps'],
     stop_grace_period_secs=300,
-    hooks=hooks,
+    #hooks=hooks,
   ) as sess:
-    for step, feed_dict in enumerate(train_model.data_layer.iterate_forever()):
+    #for step, feed_dict in enumerate(train_model.data_layer.iterate_forever()):
+    iterator = train_model.data_layer.get_iterator()
+    sess.run(iterator.initializer)
+    step = 0
+    while True:
       if sess.should_stop():
         break
       tm = time.time()
-      sess.run(fetches=train_model.train_op, feed_dict=feed_dict)
+      #sess.run(fetches=train_model.train_op, feed_dict=feed_dict)
+      sess.run(train_model.train_op)
       if step >= bench_start:
         total_time += time.time() - tm
+      step += 1
 
   if hvd is not None:
     deco_print("Finished training on rank {}".format(hvd.rank()))

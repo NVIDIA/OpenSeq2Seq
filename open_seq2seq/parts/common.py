@@ -5,7 +5,7 @@ from six.moves import range
 
 import tensorflow as tf
 from open_seq2seq.parts.t2t_timing_signal import add_timing_signal
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 inf = -1e4
 

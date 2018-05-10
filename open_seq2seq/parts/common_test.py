@@ -6,7 +6,7 @@ from six.moves import range
 import tensorflow as tf
 import numpy as np
 from open_seq2seq.parts.common import get_pad_masking_bias, inf
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 
 class Get_pad_masking_biasTest(tf.test.TestCase):

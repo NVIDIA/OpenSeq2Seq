@@ -4,7 +4,7 @@ from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
-from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import TransformerDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
@@ -26,7 +26,7 @@ base_params = {
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-RNN",
+  "logdir": "TEST",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-4},
@@ -52,7 +52,7 @@ base_params = {
     "decoder_layers": 1,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
-    "decoder_use_skip_connections": False,    
+    "decoder_use_skip_connections": False,
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "tgt_emb_size": 128,
@@ -62,7 +62,7 @@ base_params = {
   },
 
   "loss": BasicSequenceLoss,
-  "loss_params": {    
+  "loss_params": {
     "offset_target_by_one": True,
     "average_across_timestep": False,
     "do_mask": True
@@ -70,64 +70,27 @@ base_params = {
 }
 
 train_params = {
-  "data_layer": ParallelTextDataLayer,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/target.txt",
-    "source_file": "toy_text_data/train/source.txt",
-    "target_file": "toy_text_data/train/target.txt",
-    "shuffle": True,
-    "repeat": True,
-    "max_length": 56,
-    "delimiter": " ",
+    'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",
+    'file_pattern': "*dev*",
+    'src_vocab_file': "/home/okuchaiev/repos/forks/reference/translation/processed_data/vocab.ende.32768",
+    'batch_size': 512,
+    'max_length': 256,
+    'shuffle': True,
+    'repeat': 10,
   },
 }
 
 eval_params = {
-  "data_layer": ParallelTextDataLayer,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/target.txt",
-    "source_file": "toy_text_data/dev/source.txt",
-    "target_file": "toy_text_data/dev/target.txt",
-    "shuffle": False,
-    # because we evaluate many times
-    "repeat": True,
-    "max_length": 56,
-    "delimiter": " ",
-  },
-}
-
-infer_params = {
-  "batch_size_per_gpu": 1,
-  "decoder": BeamSearchRNNDecoderWithAttention,
-  "decoder_params": {
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": 128,
-    "decoder_layers": 1,
-    "decoder_dp_input_keep_prob": 0.8,
-    "decoder_dp_output_keep_prob": 1.0,
-    "decoder_use_skip_connections": False,
-    "GO_SYMBOL": SpecialTextTokens.S_ID.value,
-    "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
-    "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-    "tgt_emb_size": 128,
-    "attention_type": "luong",
-    "luong_scale": False,
-    "attention_layer_size": 128,
-    "beam_width": 10,
-    "length_penalty": 1.0,
-  },
-
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/source.txt",
-    "source_file": "toy_text_data/test/source.txt",
-    "target_file": "toy_text_data/test/target.txt",
-    "shuffle": False,
-    "repeat": False,
-    "max_length": 256,
-    "delimiter": " ",
+    'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",
+    'file_pattern': "*dev*",
+    'src_vocab_file': "/home/okuchaiev/repos/forks/reference/translation/processed_data/vocab.ende.32768",
+    'batch_size': 512,
+    'max_length': 256,
+    'shuffle': True,
+    'repeat': 1,
   },
 }

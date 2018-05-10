@@ -241,7 +241,10 @@ class Model:
       )
     else:
       dl = self._params['data_layer'](params=dl_params, model=self)
-      self._data_layer = MultiGPUWrapper(dl, num_gpus=self.num_gpus)
+      if self.num_gpus>1:
+        self._data_layer = MultiGPUWrapper(dl, num_gpus=self.num_gpus)
+      else:
+        self._data_layer = dl
 
     if self._mode == "train":
       if "max_steps" in self._params:
@@ -269,7 +272,8 @@ class Model:
       initializer = self.params['initializer'](**init_dict)
 
     self.data_layer.build_graph()
-    input_tensors = self.data_layer.get_input_tensors()
+    #input_tensors = self.data_layer.get_input_tensors()
+    input_tensors = self.data_layer.gen_input_tensors()
 
     if not self.on_horovod:  # not using Horovod
       # below we follow data parallelism for multi-GPU training
