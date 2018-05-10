@@ -8,6 +8,8 @@ import abc
 import six
 import tensorflow as tf
 import copy
+import deprecation
+
 from open_seq2seq.utils.utils import check_params
 
 
@@ -119,7 +121,20 @@ class DataLayer:
     """
     pass
 
+  #MAKE IT ABSTRACT
+  #@abc.abstractmethod
+  def get_iterator(self):
+    """This method return initializable TF.data iterator
+
+    Returns:
+       An initializable iterator of type tf.data.Iterator
+    """
+    pass
+
+
+  ########## ALL METHODS BELOW SHOULD GO AWAY ? ##################
   @abc.abstractmethod
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def next_batch_feed_dict(self):
     """This method should return one data batch feed_dict.
     Basically, the output of this method will be included in the ``sess.run``
@@ -132,6 +147,7 @@ class DataLayer:
     pass
 
   @abc.abstractmethod
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def shuffle(self):
     """This method should implement data shuffle.
     It will be called after the end of each epoch. Note, that if shuffling is
@@ -141,6 +157,7 @@ class DataLayer:
     pass
 
   @abc.abstractmethod
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def get_size_in_samples(self):
     """Should return the dataset size in samples.
     That is, the number of objects in the dataset. This method is used to
@@ -151,6 +168,7 @@ class DataLayer:
     """
     pass
 
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def get_input_tensors(self):
     """Returns input tensors that will be connected to the model graph.
     Note: it is important **not to** overwrite this function for correct
@@ -164,6 +182,7 @@ class DataLayer:
       self._input_tensors = self.gen_input_tensors()
     return tuple(self._input_tensors)
 
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def get_size_in_batches(self):
     """Returns dataset size in batches.
 
@@ -172,6 +191,7 @@ class DataLayer:
     """
     return self.get_size_in_samples() // self.params['batch_size']
 
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def iterate_one_epoch(self, cross_over=False):
     """Generator that iterates through one epoch.
 
@@ -196,6 +216,7 @@ class DataLayer:
       if self.get_size_in_samples() % self.params['batch_size'] != 0:
         yield self.next_batch_feed_dict()
 
+  @deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3")
   def iterate_forever(self):
     """Generator that goes through data set indefinitely.
     Will automatically perform shuffle after the end of each epoch by calling
@@ -212,6 +233,8 @@ class DataLayer:
         self.shuffle()
 
 
+#@deprecation.deprecated(deprecated_in="v0.3", removed_in="v0.3",
+#                        details="Can we get rid of this class all together?")
 class MultiGPUWrapper(DataLayer):
   """Wrapper around :class:`DataLayer` class that enables multi-GPU execution.
   """
@@ -244,6 +267,9 @@ class MultiGPUWrapper(DataLayer):
     self.params['batch_size'] *= self._num_gpus
     self._data_layer = data_layer
 
+  def get_iterator(self):
+    return self._data_layer.get_iterator()
+
   def build_graph(self):
     """This function creates input tensors for all GPUs.
     It will first build graph for the inner data layer. Then, it will call
@@ -254,17 +280,21 @@ class MultiGPUWrapper(DataLayer):
     """
     self._data_layer.build_graph()
     # making num_gpus copies of input tensors
+    print("AAAAAAAAAAAAAAAAAAAAAA")
     self._input_tensors = [
       self._data_layer.gen_input_tensors() for _ in range(self._num_gpus)
     ]
+    print(self._input_tensors)
+    print("AAAAAAAAAAAAAAAAAAAAAA")
     # transposing, so that same type variables are in the same position
     self._input_tensors = list(zip(*self._input_tensors))
 
   def gen_input_tensors(self):
-    """This function is empty since we directly fill ``self._input_tensors``
-    which is used in :meth:`self.get_input_tensors()<get_input_tensors>` method.
-    """
-    pass
+    #"""This function is empty since we directly fill ``self._input_tensors``
+    #which is used in :meth:`self.get_input_tensors()<get_input_tensors>` method.
+    #"""
+    #pass
+    return self._input_tensors
 
   def get_size_in_samples(self):
     """Redirects call to inner data layer :meth:`get_size_in_samples` method."""
@@ -289,6 +319,7 @@ class MultiGPUWrapper(DataLayer):
       dict: feed_dict to be included in ``sess.run`` call which has data for
       all GPUs.
     """
+    print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
     feed_dict = {}
     for i in range(self._num_gpus):
       self._data_layer._input_tensors = tuple(

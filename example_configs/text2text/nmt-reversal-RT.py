@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import CrossEntropyWithSmoothing
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
 

@@ -5,9 +5,9 @@ from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
-from open_seq2seq.data.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 

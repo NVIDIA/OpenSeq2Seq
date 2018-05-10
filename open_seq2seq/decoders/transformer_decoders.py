@@ -14,7 +14,7 @@ from open_seq2seq.parts.common import ffn_and_layer_norm, \
                                       embed_and_maybe_add_position_signal, \
                                       get_pad_masking_bias, \
                                       dropout_normalize_add_NTC
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 
 def transformer_decoder_fn(decoder_input_seq,
