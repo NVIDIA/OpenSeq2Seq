@@ -34,10 +34,11 @@ base_params = {
     "decay_steps": 500,
   },
   "learning_rate": 0.001,
-  "larc_nu": 0.001,
-  "larc_mode": 'clip',
+  "larc_params": {
+    "larc_nu": 1.0,
+  },
   "dtype": tf.float32,
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,

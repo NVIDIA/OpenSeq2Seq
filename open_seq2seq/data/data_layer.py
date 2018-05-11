@@ -27,6 +27,7 @@ class DataLayer:
     """
     return {
       'batch_size': int,
+      'mode': ['train', 'eval', 'infer'],
     }
 
   @staticmethod
@@ -42,7 +43,6 @@ class DataLayer:
     return {
       'shuffle': bool,
       'dtype': [tf.float32, tf.float16],
-      'use_targets': bool,
     }
 
   @abc.abstractmethod
@@ -77,17 +77,14 @@ class DataLayer:
       else:
         self._params['dtype'] = tf.float32
 
-    if 'use_targets' not in params:
-      self._params['use_targets'] = True
-
     if 'shuffle' not in params:
-      if self._params['use_targets']:
+      if self._params['mode'] == 'train':
         self._params['shuffle'] = True
       else:
         self._params['shuffle'] = False
 
-    if self._params['use_targets'] is False and self._params['shuffle']:
-      raise ValueError("Shuffle should not be performed in inference mode")
+    if self._params['mode'] != 'train' and self._params['shuffle']:
+      raise ValueError("Shuffle should not be performed in eval or infer modes")
 
     self._input_tensors = None
 
@@ -211,6 +208,18 @@ class DataLayer:
       if self.params['shuffle']:
         self.shuffle()
 
+  def split_data(self, data):
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = len(data)
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      return data[start:end]
+    else:
+      return data
+
 
 class MultiGPUWrapper(DataLayer):
   """Wrapper around :class:`DataLayer` class that enables multi-GPU execution.
@@ -254,11 +263,13 @@ class MultiGPUWrapper(DataLayer):
     """
     self._data_layer.build_graph()
     # making num_gpus copies of input tensors
-    self._input_tensors = [
-      self._data_layer.gen_input_tensors() for _ in range(self._num_gpus)
-    ]
+    self._input_tensors = [self._data_layer.gen_input_tensors()]
+    for _ in range(self._num_gpus - 1):
+      with tf.control_dependencies(self._input_tensors[-1]):
+        self._input_tensors.append(self._data_layer.gen_input_tensors())
+
     # transposing, so that same type variables are in the same position
-    self._input_tensors = list(zip(*self._input_tensors))
+    # self._input_tensors = list(zip(*self._input_tensors))
 
   def gen_input_tensors(self):
     """This function is empty since we directly fill ``self._input_tensors``
@@ -291,9 +302,7 @@ class MultiGPUWrapper(DataLayer):
     """
     feed_dict = {}
     for i in range(self._num_gpus):
-      self._data_layer._input_tensors = tuple(
-        tensors[i] for tensors in self._input_tensors
-      )
+      self._data_layer._input_tensors = self._input_tensors[i]
       feed_dict.update(self._data_layer.next_batch_feed_dict())
     return feed_dict
 
