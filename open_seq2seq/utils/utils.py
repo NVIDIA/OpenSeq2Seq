@@ -84,10 +84,7 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
           outputs[-1] = model.clip_last_batch(
             outputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
           )
-      if compute_loss:
-        loss *= last_batch_size
-        total_samples += last_batch_size
-    elif compute_loss:
+    if compute_loss:
       loss *= model.params['batch_size_per_gpu']
       total_samples += model.params['batch_size_per_gpu']
 
