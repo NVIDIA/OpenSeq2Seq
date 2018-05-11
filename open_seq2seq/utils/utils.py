@@ -84,10 +84,7 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
           outputs[-1] = model.clip_last_batch(
             outputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
           )
-      if compute_loss:
-        loss *= last_batch_size
-        total_samples += last_batch_size
-    elif compute_loss:
+    if compute_loss:
       loss *= model.params['batch_size_per_gpu']
       total_samples += model.params['batch_size_per_gpu']
 
@@ -150,6 +147,7 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
     results_per_batch_all = MPI.COMM_WORLD.gather(results_per_batch)
 
     if MPI.COMM_WORLD.Get_rank() != 0:
+      MPI.COMM_WORLD.Barrier()
       # returning dummy tuple of correct shape
       if compute_loss:
         return None, None
@@ -160,6 +158,7 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       total_samples = np.sum(total_samples_all)
     # moving GPU dimension into the batch dimension
     results_per_batch = [item for sl in results_per_batch_all for item in sl]
+    MPI.COMM_WORLD.Barrier()
 
   if compute_loss:
     total_loss /= total_samples
