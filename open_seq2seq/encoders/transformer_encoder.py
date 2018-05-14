@@ -1,0 +1,87 @@
+# This code is heavily based on the code from MLPerf
+# https://github.com/mlperf/reference/tree/master/translation/tensorflow/transformer
+from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+from six.moves import range
+
+import tensorflow as tf
+from open_seq2seq.encoders import Encoder
+from open_seq2seq.parts.transformer import attention_layer, ffn_layer, utils, embedding_layer
+from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
+  LayerNormalization
+
+class TransformerEncoder(Encoder):
+  """Transformer model encoder"""
+  def __init__(self, params, model, name="transformer_encoder", mode='train'):
+    super(TransformerEncoder, self).__init__(
+      params, model, name=name, mode=mode,
+    )
+    self.layers = []
+    self.output_normalization = None
+    self.mode = mode
+
+  def _call(self, encoder_inputs, attention_bias, inputs_padding):
+    for n, layer in enumerate(self.layers):
+      # Run inputs through the sublayers.
+      self_attention_layer = layer[0]
+      feed_forward_network = layer[1]
+
+      with tf.variable_scope("layer_%d" % n):
+        with tf.variable_scope("self_attention"):
+          encoder_inputs = self_attention_layer(encoder_inputs, attention_bias)
+        with tf.variable_scope("ffn"):
+          encoder_inputs = feed_forward_network(encoder_inputs, inputs_padding)
+
+    return self.output_normalization(encoder_inputs)
+
+  def _encode(self, input_dict):
+    if len(self.layers) == 0:
+      # prepare encoder graph
+      self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
+        self.params["vocab_size"], self.params["hidden_size"])
+
+      for _ in range(self.params['encoder_layers']):
+        # Create sublayers for each layer.
+        self_attention_layer = attention_layer.SelfAttention(
+          self.params["hidden_size"], self.params["num_heads"],
+          self.params["attention_dropout"], self.mode == "train")
+        feed_forward_network = ffn_layer.FeedFowardNetwork(
+          self.params["hidden_size"], self.params["filter_size"],
+          self.params["relu_dropout"], self.mode == "train")
+
+        self.layers.append([
+          PrePostProcessingWrapper(self_attention_layer, self.params,
+                                   self.mode == "train"),
+          PrePostProcessingWrapper(feed_forward_network, self.params,
+                                   self.mode == "train")])
+
+      # Create final layer normalization layer.
+      self.output_normalization = LayerNormalization(self.params["hidden_size"])
+
+    # actual encoder part
+    with tf.name_scope("encode"):
+      inputs = input_dict['src_sequence']
+      # Prepare inputs to the layer stack by adding positional encodings and
+      # applying dropout.
+      embedded_inputs = self.embedding_softmax_layer(inputs)
+      inputs_padding = utils.get_padding(inputs)
+      inputs_attention_bias = utils.get_padding_bias(inputs)
+
+      with tf.name_scope("add_pos_encoding"):
+        length = tf.shape(embedded_inputs)[1]
+        pos_encoding = utils.get_position_encoding(
+            length, self.params.hidden_size)
+        encoder_inputs = embedded_inputs + pos_encoding
+
+      if self.mode == "train":
+        encoder_inputs = tf.nn.dropout(
+            encoder_inputs, 1 - self.params.layer_postprocess_dropout)
+
+      encoded = self._call(encoder_inputs, inputs_attention_bias,
+                           inputs_padding)
+      return {'outputs': encoded,
+              'inputs_attention_bias': inputs_attention_bias,
+              'state': None,
+              'src_lengths': input_dict['src_length'],
+              'embedding_softmax_layer': self.embedding_softmax_layer,
+              'encoder_input': input_dict['src_sequence']}

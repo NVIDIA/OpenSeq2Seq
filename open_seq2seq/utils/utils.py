@@ -53,7 +53,7 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
   sess.run(data_layer.iterator.initializer)
 
   fetches = [
-    data_layer.get_input_tensors(),
+    data_layer.input_tensors,
     output_tensors,
   ]
 

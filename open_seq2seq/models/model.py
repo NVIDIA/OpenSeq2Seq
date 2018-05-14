@@ -292,7 +292,7 @@ class Model:
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
           self.get_data_layer(gpu_cnt).build_graph()
-          input_tensors = self.get_data_layer(gpu_cnt).get_input_tensors()
+          input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
             input_tensors,
@@ -321,7 +321,7 @@ class Model:
           "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
         self.get_data_layer().build_graph()
-        input_tensors = self.get_data_layer().get_input_tensors()
+        input_tensors = self.get_data_layer().input_tensors
 
         loss, self._outputs = self._build_forward_pass_graph(input_tensors,
                                                              gpu_id=0)
@@ -432,7 +432,7 @@ class Model:
     overwriting this function can be a useful way to add it.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.get_input_tensors()
+      input_values: evaluation of :meth:`self.data_layer.input_tensors
                                   <data.data_layer.DataLayer.get_input_tensors>`.
       output_values: evaluation of :meth:`self.get_output_tensors()
                                           <get_output_tensors>`.
@@ -458,7 +458,7 @@ class Model:
 
     Args:
       inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
+          :meth:`self.data_layer.input_tensors
           <data.data_layer.DataLayer.get_input_tensors>`
           for each batch in evaluation dataset.
       outputs_per_batch (list): list with evaluation of
@@ -484,7 +484,7 @@ class Model:
 
     Args:
       inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
+          :meth:`self.data_layer.input_tensors
           <data.data_layer.DataLayer.get_input_tensors>`
           for each batch in evaluation dataset.
       outputs_per_batch (list): list with evaluation of
