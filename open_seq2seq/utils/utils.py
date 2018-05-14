@@ -158,16 +158,16 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
     results_per_batch_all = []
     total_loss_all = []
     total_samples_all = []
-    for i in range(model.num_gpus):
+    for dl_id in range(model.num_gpus):
       if compute_loss:
         results_per_batch, total_loss, total_samples = iterate_data_layer(
-          model, 0, sess, compute_loss, mode, verbose,
+          model, dl_id, sess, compute_loss, mode, verbose,
         )
         total_loss_all.append(total_loss)
         total_samples_all.append(total_samples)
       else:
         results_per_batch = iterate_data_layer(
-          model, 0, sess, compute_loss, mode, verbose,
+          model, dl_id, sess, compute_loss, mode, verbose,
         )
       results_per_batch_all.append(results_per_batch)
 
