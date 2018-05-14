@@ -21,9 +21,13 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._iter_count = 0
     self._global_step = None
     self._model = model
+    output_tensors = model.get_output_tensors()
+    if not model.on_horovod:
+      # using only first GPU
+      output_tensors = output_tensors[0]
     self._fetches = [
-      model.data_layer.get_input_tensors(),
-      model.get_output_tensors(),
+      model.get_data_layer(0).get_input_tensors(),
+      output_tensors,
     ]
 
   def begin(self):
@@ -44,10 +48,6 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
     input_values, output_values = results
-    if not self._model.on_horovod:
-      # clipping to only first GPU
-      input_values = input_values[0]
-      output_values = output_values[0]
     dict_to_log = self._model.maybe_print_logs(input_values, output_values)
     # optionally logging to tensorboard any values
     # returned from maybe_print_logs
@@ -121,11 +121,6 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     self._iter_count = 0
     self._global_step = None
     self._model = model
-    self._fetches = [
-      model.loss,
-      model.data_layer.get_input_tensors(),
-      model.get_output_tensors(),
-    ]
     self._triggered = False
     self._last_step = last_step
     self._eval_saver = tf.train.Saver(save_relative_paths=True)

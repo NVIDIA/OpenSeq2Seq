@@ -77,8 +77,21 @@ def train(train_model, eval_model=None, debug_port=None):
       tf_debug.TensorBoardDebugHook("localhost:{}".format(debug_port))
     )
 
+  if train_model.on_horovod:
+    init_data_layer = train_model.get_data_layer().iterator.initializer
+  else:
+    init_data_layer = tf.group(
+      [train_model.get_data_layer(i).iterator.initializer
+       for i in range(train_model.num_gpus)]
+    )
+
+  scaffold = tf.train.Scaffold(
+    local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+  )
+
   # starting training
   with tf.train.MonitoredTrainingSession(
+    scaffold=scaffold,
     checkpoint_dir=checkpoint_dir,
     save_summaries_steps=train_model.params['save_summaries_steps'],
     config=sess_config,
@@ -87,13 +100,18 @@ def train(train_model, eval_model=None, debug_port=None):
     stop_grace_period_secs=300,
     hooks=hooks,
   ) as sess:
-    for step, feed_dict in enumerate(train_model.data_layer.iterate_forever()):
+    step = 0
+    while True:
       if sess.should_stop():
         break
       tm = time.time()
-      sess.run(fetches=train_model.train_op, feed_dict=feed_dict)
+      try:
+        sess.run(train_model.train_op)
+      except tf.errors.OutOfRangeError:
+        break
       if step >= bench_start:
         total_time += time.time() - tm
+      step += 1
 
   if hvd is not None:
     deco_print("Finished training on rank {}".format(hvd.rank()))

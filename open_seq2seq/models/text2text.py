@@ -55,7 +55,7 @@ class BasicText2TextWithAttention(Seq2Seq):
   """
   def _create_encoder(self):
     self.params['encoder_params']['src_vocab_size'] = (
-      self.data_layer.params['src_vocab_size']
+      self.get_data_layer().params['src_vocab_size']
     )
     return super(BasicText2TextWithAttention, self)._create_encoder()
 
@@ -68,7 +68,7 @@ class BasicText2TextWithAttention(Seq2Seq):
   def _create_loss(self):
     self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
     self.params['loss_params']['tgt_vocab_size'] = (
-      self.data_layer.params['tgt_vocab_size']
+      self.get_data_layer().params['tgt_vocab_size']
     )
     return super(BasicText2TextWithAttention, self)._create_loss()
 
@@ -77,7 +77,7 @@ class BasicText2TextWithAttention(Seq2Seq):
     for input_sample, output_sample in zip(input_values, output_values):
       output_strings.append(text_ids_to_string(
         output_sample[0],
-        self.data_layer.params['target_idx2seq'],
+        self.get_data_layer().params['target_idx2seq'],
         S_ID=self.decoder.params['GO_SYMBOL'],
         EOS_ID=self.decoder.params['END_SYMBOL'],
         PAD_ID=self.decoder.params['PAD_SYMBOL'],
@@ -85,7 +85,7 @@ class BasicText2TextWithAttention(Seq2Seq):
       ))
       input_strings.append(text_ids_to_string(
         input_sample[0],
-        self.data_layer.params['source_idx2seq'],
+        self.get_data_layer().params['source_idx2seq'],
         S_ID=self.decoder.params['GO_SYMBOL'],
         EOS_ID=self.decoder.params['END_SYMBOL'],
         PAD_ID=self.decoder.params['PAD_SYMBOL'],
@@ -117,24 +117,24 @@ class BasicText2TextWithAttention(Seq2Seq):
     deco_print(
       "Train Source[0]:     " + array_to_string(
         x_sample[:len_x_sample],
-        vocab=self.data_layer.params['source_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['source_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
     deco_print(
       "Train Target[0]:     " + array_to_string(
         y_sample[:len_y_sample],
-        vocab=self.data_layer.params['target_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['target_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
     deco_print(
       "Train Prediction[0]: " + array_to_string(
         samples[0, :],
-        vocab=self.data_layer.params['target_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['target_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
@@ -151,16 +151,16 @@ class BasicText2TextWithAttention(Seq2Seq):
     deco_print(
       "*****EVAL Source[0]:     " + array_to_string(
         x_sample[:len_x_sample],
-        vocab=self.data_layer.params['source_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['source_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
     deco_print(
       "*****EVAL Target[0]:     " + array_to_string(
         y_sample[:len_y_sample],
-        vocab=self.data_layer.params['target_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['target_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
@@ -168,8 +168,8 @@ class BasicText2TextWithAttention(Seq2Seq):
     deco_print(
       "*****EVAL Prediction[0]: " + array_to_string(
         samples[0, :],
-        vocab=self.data_layer.params['target_idx2seq'],
-        delim=self.data_layer.params["delimiter"],
+        vocab=self.get_data_layer().params['target_idx2seq'],
+        delim=self.get_data_layer().params["delimiter"],
       ),
       offset=4,
     )
@@ -178,16 +178,16 @@ class BasicText2TextWithAttention(Seq2Seq):
     if self.params.get('eval_using_bleu', True):
       preds.extend([transform_for_bleu(
         sample,
-        vocab=self.data_layer.params['target_idx2seq'],
+        vocab=self.get_data_layer().params['target_idx2seq'],
         ignore_special=True,
-        delim=self.data_layer.params["delimiter"],
+        delim=self.get_data_layer().params["delimiter"],
         bpe_used=self.params.get('bpe_used', False),
       ) for sample in samples])
       targets.extend([[transform_for_bleu(
         yi,
-        vocab=self.data_layer.params['target_idx2seq'],
+        vocab=self.get_data_layer().params['target_idx2seq'],
         ignore_special=True,
-        delim=self.data_layer.params["delimiter"],
+        delim=self.get_data_layer().params["delimiter"],
         bpe_used=self.params.get('bpe_used', False),
       )] for yi in ey])
 

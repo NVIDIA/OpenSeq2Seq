@@ -99,7 +99,7 @@ class Seq2Seq(Model):
       instance of a class derived from :class:`decoders.decoder.Decoder`.
     """
     params = self.params['decoder_params']
-    params['tgt_vocab_size'] = self.data_layer.params['tgt_vocab_size']
+    params['tgt_vocab_size'] = self.get_data_layer().params['tgt_vocab_size']
     return self.params['decoder'](params=params, mode=self.mode, model=self)
 
   def _create_loss(self):
