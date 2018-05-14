@@ -83,6 +83,25 @@ class DataLayer:
     pass
 
   @abc.abstractmethod
+  def get_input_tensors(self):
+    """This method should create and return input tensors that will be
+    connected to the model computational graph.
+
+    Returns:
+       list: of tensors.
+    """
+    pass
+
+  @abc.abstractmethod
+  def get_size_in_samples(self):
+    """This method should do the following one of the following:
+      a) return the size of the dataset in samples
+      b) return None if size of the dataset in samples is not known/used.
+        in this case, make sure "repeat" parameter is set correctly
+    """
+    pass
+
+  @property
   def get_iterator(self):
     """This method return initializable TF.data iterator
 
@@ -90,20 +109,3 @@ class DataLayer:
        An initializable iterator of type tf.data.Iterator
     """
     return self._iterator
-
-  # Oleksii: I think we should get rid of this method too
-  def gen_input_tensors(self):
-    """This method should create and return input tensors that will be
-    connected to the model computational graph.
-
-    Returns:
-       list: Whatever is returned with ``Iterator.get_next()``.
-    """
-    return self._iterator.get_next()
-
-# Oleksii: I think we are getting rid of this class at least in its current form
-# See https://stackoverflow.com/questions/46965098/how-does-one-move-data-to-multiple-gpu-towers-using-tensorflows-dataset-api
-# for approaches with multi-GPU and tf.data API
-# Personally I like their option 3 and using dataset.shard() method as it fits nicely to Horovod's num_workers and worker_id
-# scenario
-# d = d.shard(FLAGS.num_workers, FLAGS.worker_index) see https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shard
