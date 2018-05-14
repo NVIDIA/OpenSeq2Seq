@@ -7,9 +7,6 @@ import tensorflow as tf
 import numpy as np
 import numpy.testing as npt
 
-from .speech2text import Speech2TextPlaceholdersDataLayer
-from .data_layer import MultiGPUWrapper
-
 
 # class Speech2TextDataLayerTests(tf.test.TestCase):
 #   def setUp(self):
