@@ -87,6 +87,18 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
+  def split_data(self, data):
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = len(data)
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      return data[start:end]
+    else:
+      return data
+
   @property
   def iterator(self):
     return self._iterator
@@ -189,7 +201,8 @@ class Speech2TextDataLayer(DataLayer):
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
            np.int32([len(source)])
 
-  def get_input_tensors(self):
+  @property
+  def input_tensors(self):
     return self._input_tensors
 
   def get_size_in_samples(self):

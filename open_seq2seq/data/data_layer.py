@@ -120,25 +120,3 @@ class DataLayer:
       int: dataset size in samples.
     """
     return None
-
-  def get_size_in_batches(self):
-    """Returns dataset size in batches.
-    Returns:
-      int: dataset size in batches.
-    """
-    size_in_samples = self.get_size_in_samples()
-    if size_in_samples is None or 'batch_size' not in self.params:
-      return None
-    return self.get_size_in_samples() // self.params['batch_size']
-
-  def split_data(self, data):
-    if self.params['mode'] != 'train' and self._num_workers is not None:
-      size = len(data)
-      start = size // self._num_workers * self._worker_id
-      if self._worker_id == self._num_workers - 1:
-        end = size
-      else:
-        end = size // self._num_workers * (self._worker_id + 1)
-      return data[start:end]
-    else:
-      return data

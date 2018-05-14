@@ -251,7 +251,8 @@ class Model:
         self._steps_in_epoch = None
       else:
         # doing a few less steps if data size is not divisible by the batch size
-        self._steps_in_epoch = self.get_data_layer().get_size_in_batches()
+        self._steps_in_epoch = self.get_data_layer().get_size_in_samples() // \
+                               self.get_data_layer().params['batch_size']
         if self._steps_in_epoch is None:
           raise ValueError('The data_layer is not compatible with '
                            'epoch execution, since it does not provide '

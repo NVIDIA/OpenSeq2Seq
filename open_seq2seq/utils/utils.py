@@ -62,7 +62,7 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     total_loss = 0.0
     total_samples = 0.0
 
-  data_size = data_layer.get_size_in_batches()
+  data_size = data_layer.get_size_in_samples() // data_layer.params['batch_size']
   size_defined = data_size is not None
   if size_defined:
     last_batch_size = data_layer.get_size_in_samples() % \
@@ -81,7 +81,7 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
           data_layer.params['batch_size'], data_layer.get_size_in_samples()
         )
       )
-    if data_layer.get_size_in_samples() % data_layer.params['batch_size'] != 0:
+    if last_batch_size != 0:
       cross_over = 1
   else:
     # setting data_size to be infinity and assume
@@ -158,16 +158,16 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
     results_per_batch_all = []
     total_loss_all = []
     total_samples_all = []
-    for i in range(model.num_gpus):
+    for dl_id in range(model.num_gpus):
       if compute_loss:
         results_per_batch, total_loss, total_samples = iterate_data_layer(
-          model, 0, sess, compute_loss, mode, verbose,
+          model, dl_id, sess, compute_loss, mode, verbose,
         )
         total_loss_all.append(total_loss)
         total_samples_all.append(total_samples)
       else:
         results_per_batch = iterate_data_layer(
-          model, 0, sess, compute_loss, mode, verbose,
+          model, dl_id, sess, compute_loss, mode, verbose,
         )
       results_per_batch_all.append(results_per_batch)
 
