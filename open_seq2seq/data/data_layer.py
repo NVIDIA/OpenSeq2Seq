@@ -120,15 +120,3 @@ class DataLayer:
       int: dataset size in samples.
     """
     return None
-
-  @property
-  @abc.abstractmethod
-  def input_tensors(self):
-    """Returns input tensors that will be connected to the model graph.
-    Note: it is important **not to** overwrite this function for correct
-    multi-GPU processing!
-    Returns:
-      list: input tensors generated with
-      :meth:`self.gen_input_tensors()<gen_input_tensors>`.
-    """
-    pass
