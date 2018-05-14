@@ -26,7 +26,7 @@ class PrintSamplesHook(tf.train.SessionRunHook):
       # using only first GPU
       output_tensors = output_tensors[0]
     self._fetches = [
-      model.get_data_layer(0).get_input_tensors(),
+      model.get_data_layer(0).input_tensors,
       output_tensors,
     ]
 

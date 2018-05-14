@@ -202,20 +202,27 @@ class ParallelTextDataLayer(DataLayer):
       (SpecialTextTokens.PAD_ID.value,
        0))).prefetch(buffer_size=self._prefetch_buffer_size)
 
-    self.iterator = self.batched_dataset.make_one_shot_iterator()
-
-  def get_input_tensors(self):
+    self._iterator = self.batched_dataset.make_initializable_iterator()
     if self._use_targets:
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
-      return [x, x_length, y, y_length]
+      self._input_tensors = [x, x_length, y, y_length]
     else:
       t1, _ = self.iterator.get_next()
-      return [t1[0], t1[1]]
+      self._input_tensors = [t1[0], t1[1]]
+
 
   def get_size_in_samples(self):
     return self.dataset_size
+
+  @property
+  def iterator(self):
+    return self._iterator
+
+  @property
+  def input_tensors(self):
+    return self._input_tensors
 
 class TransformerDataLayer(DataLayer):
   """Wraps Transformers data pipeline into the form for OpenSeq2Seq"""
@@ -306,7 +313,7 @@ class TransformerDataLayer(DataLayer):
       print("----->>> WARNING: Attempting to generate existing input tensors")
     return tuple(self._input_tensors)
 
-  def get_iterator(self):
+  def iterator(self):
     return self.iterator
 
 

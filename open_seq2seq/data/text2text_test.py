@@ -23,6 +23,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       'delimiter': ' ',
       'map_parallel_calls': 1,
       'prefetch_buffer_size': 1,
+      'mode': 'train',
     }
 
   def tearDown(self):
@@ -87,6 +88,7 @@ class TransformerDataLayerTests(tf.test.TestCase):
       'max_length': 256,
       'shuffle': True,
       'repeat': 1,
+      'mode' : 'train',
     }
 
   def test_TransformerDataLayer(self):
@@ -103,7 +105,7 @@ class TransformerDataLayerTests(tf.test.TestCase):
     #x, y = iterator.get_next()
     #len_x = tf.count_nonzero(x, axis=1)
     #len_y = tf.count_nonzero(y, axis=1)
-    iterator = dl.get_iterator()
+    iterator = dl.iterator
     inputs = dl.get_input_tensors()
     #inputs1 = dl.gen_input_tensors()
 

@@ -433,7 +433,7 @@ class Model:
     overwriting this function can be a useful way to add it.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.get_input_tensors()
+      input_values: evaluation of :meth:`self.data_layer.input_tensors
                                   <data.data_layer.DataLayer.get_input_tensors>`.
       output_values: evaluation of :meth:`self.get_output_tensors()
                                           <get_output_tensors>`.
@@ -459,7 +459,7 @@ class Model:
 
     Args:
       inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
+          :meth:`self.data_layer.input_tensors
           <data.data_layer.DataLayer.get_input_tensors>`
           for each batch in evaluation dataset.
       outputs_per_batch (list): list with evaluation of
@@ -485,7 +485,7 @@ class Model:
 
     Args:
       inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
+          :meth:`self.data_layer.input_tensors
           <data.data_layer.DataLayer.get_input_tensors>`
           for each batch in evaluation dataset.
       outputs_per_batch (list): list with evaluation of

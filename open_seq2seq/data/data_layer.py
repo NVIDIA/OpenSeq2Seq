@@ -98,6 +98,18 @@ class DataLayer:
   @property
   @abc.abstractmethod
   def iterator(self):
+    """Dataset iterator. Should be created by :meth:`build_graph`."""
+    pass
+
+  @property
+  @abc.abstractmethod
+  def input_tensors(self):
+    """Returns input tensors that will be connected to the model graph.
+    Should be created by :meth:`build_graph`.
+    Returns:
+      list: input tensors generated with
+      :meth:`self.gen_input_tensors()<gen_input_tensors>`.
+    """
     pass
 
   def get_size_in_samples(self):
