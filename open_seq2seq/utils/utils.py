@@ -62,9 +62,11 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     total_loss = 0.0
     total_samples = 0.0
 
-  data_size = data_layer.get_size_in_samples() // data_layer.params['batch_size']
-  size_defined = data_size is not None
+  size_defined = data_layer.get_size_in_samples() is not None
+
   if size_defined:
+    data_size = data_layer.get_size_in_samples() // \
+                data_layer.params['batch_size']
     last_batch_size = data_layer.get_size_in_samples() % \
                       data_layer.params['batch_size']
 
