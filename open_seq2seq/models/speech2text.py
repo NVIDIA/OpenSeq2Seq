@@ -52,11 +52,11 @@ class Speech2Text(Seq2Seq):
 
     # we also clip the sample by the correct length
     true_text = "".join(map(
-      self.data_layer.params['idx2char'].get,
+      self.get_data_layer().params['idx2char'].get,
       y_one_sample[:len_y_one_sample],
     ))
     pred_text = "".join(sparse_tensor_to_chars(
-      decoded_sequence_one_batch, self.data_layer.params['idx2char'])[0]
+      decoded_sequence_one_batch, self.get_data_layer().params['idx2char'])[0]
     )
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
                  len(true_text.split())
@@ -88,14 +88,14 @@ class Speech2Text(Seq2Seq):
     decoded_sequence = output_values[0]
     decoded_texts = sparse_tensor_to_chars(
       decoded_sequence,
-      self.data_layer.params['idx2char'],
+      self.get_data_layer().params['idx2char'],
     )
     for sample_id in range(input_values[0].shape[0]):
       # y is the third returned input value, thus input_values[2]
       # len_y is the fourth returned input value
       y = input_values[2][sample_id]
       len_y = input_values[3][sample_id]
-      true_text = "".join(map(self.data_layer.params['idx2char'].get,
+      true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
                               y[:len_y]))
       pred_text = "".join(decoded_texts[sample_id])
 
@@ -109,7 +109,7 @@ class Speech2Text(Seq2Seq):
     decoded_sequence = output_values[0]
     decoded_texts = sparse_tensor_to_chars(
       decoded_sequence,
-      self.data_layer.params['idx2char'],
+      self.get_data_layer().params['idx2char'],
     )
     for sample_id in range(input_values[0].shape[0]):
       preds.append("".join(decoded_texts[sample_id]))
@@ -122,7 +122,7 @@ class Speech2Text(Seq2Seq):
       preds.extend(result)
     pd.DataFrame(
       {
-        'wav_filename': self.data_layer.params['files'],
+        'wav_filename': self.get_data_layer().params['files'],
         'predicted_transcript': preds,
       },
       columns=['wav_filename', 'predicted_transcript'],

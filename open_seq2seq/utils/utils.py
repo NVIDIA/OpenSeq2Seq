@@ -34,107 +34,136 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
-def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
+def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
-
   results_per_batch = []
+
+  if model.on_horovod:
+    data_layer = model.get_data_layer()
+  else:
+    data_layer = model.get_data_layer(dl_id)
+
+  sess.run(data_layer.iterator.initializer)
+
   fetches = [
-    model.data_layer.get_input_tensors(),
+    data_layer.get_input_tensors(),
     model.get_output_tensors(),
   ]
+
   if compute_loss:
     fetches.append(model.loss)
     total_loss = 0.0
     total_samples = 0.0
-  data_size = model.data_layer.get_size_in_batches()
-  last_batch_size = model.data_layer.get_size_in_samples() % \
-                    model.data_layer.params['batch_size']
 
-  total_batches = model.data_layer.get_size_in_batches()
+  data_size = data_layer.get_size_in_batches()
+  size_defined = data_size is not None
+  if size_defined:
+    last_batch_size = data_layer.get_size_in_samples() % \
+                      data_layer.params['batch_size']
 
-  for step, feed_dict in enumerate(
-      model.data_layer.iterate_one_epoch(cross_over=True)
-  ):
+  if model.on_horovod:
+    worker_id = model.hvd.rank()
+  else:
+    worker_id = dl_id
+
+  cross_over = 0
+  if size_defined:
+    if data_size == 0:
+      raise ValueError(
+        "Batch size is bigger than dataset size: {} > {}".format(
+          data_layer.params['batch_size'], data_layer.get_size_in_samples()
+        )
+      )
+    if data_layer.get_size_in_samples() % data_layer.params['batch_size'] != 0:
+      cross_over = 1
+  else:
+    # setting data_size to be infinity and assume
+    # that tf.errors.OutOfRangeError will be raised
+    data_size = 1000000000000
+
+  for step in range(data_size + cross_over):
     tm = time.time()
-    if compute_loss:
-      inputs, outputs, loss = sess.run(fetches, feed_dict)
-    else:
-      inputs, outputs = sess.run(fetches, feed_dict)
+    try:
+      if compute_loss:
+        inputs, outputs, loss = sess.run(fetches)
+      else:
+        inputs, outputs = sess.run(fetches)
+    except tf.errors.OutOfRangeError:
+      break
     if step >= bench_start:
       total_time += time.time() - tm
 
-    if step == data_size:
-      if model.on_horovod:
-        inputs = model.clip_last_batch(inputs, last_batch_size)
-        outputs = model.clip_last_batch(outputs, last_batch_size)
-      else:
-        inputs = list(inputs)
-        outputs = list(outputs)
-        cross_over_gpu = last_batch_size // model.params['batch_size_per_gpu']
-        if last_batch_size % model.params['batch_size_per_gpu'] == 0:
-          inputs = inputs[:cross_over_gpu]
-          outputs = outputs[:cross_over_gpu]
-        else:
-          inputs = inputs[:cross_over_gpu + 1]
-          inputs[-1] = model.clip_last_batch(
-            inputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
-          )
-          outputs = outputs[:cross_over_gpu + 1]
-          outputs[-1] = model.clip_last_batch(
-            outputs[-1], last_batch_size % model.params['batch_size_per_gpu'],
-          )
+    # assuming inputs[0].shape[0] is batch size
+    batch_size = inputs[0].shape[0]
+
     if compute_loss:
-      loss *= model.params['batch_size_per_gpu']
-      total_samples += model.params['batch_size_per_gpu']
+      total_loss += loss * batch_size
+      total_samples += batch_size
+
+    if size_defined and step == data_size:
+      inputs = model.clip_last_batch(inputs, last_batch_size)
+      outputs = model.clip_last_batch(outputs, last_batch_size)
+
+    if mode == 'eval':
+      results_per_batch.append(model.evaluate(inputs, outputs))
+    elif mode == 'infer':
+      results_per_batch.append(model.infer(inputs, outputs))
+    else:
+      raise ValueError("Unknown mode: {}".format(mode))
 
     if verbose:
-      if model.on_horovod:
-        if total_batches > 10 and step % (total_batches // 10) == 0:
-          deco_print("Processed {}/{} batches on rank {}".format(
-            step + 1, total_batches, model.hvd.rank()))
+      if size_defined:
+        if data_size > 10 and step % (data_size // 10) == 0:
+          deco_print("Processed {}/{} batches on worker {}".format(
+            step + 1, data_size, worker_id))
       else:
-        ending = '\r' if step < total_batches - 1 else '\n'
-        deco_print("Processed {}/{} batches".format(step + 1, total_batches),
-                   end=ending)
-
-    if model.on_horovod:
-      if mode == 'eval':
-        results_per_batch.append(model.evaluate(inputs, outputs))
-      elif mode == 'infer':
-        results_per_batch.append(model.infer(inputs, outputs))
-      else:
-        raise ValueError("Unknown mode: {}".format(mode))
-    else:
-      for input_batch, output_batch in zip(inputs, outputs):
-        if mode == 'eval':
-          results_per_batch.append(model.evaluate(input_batch, output_batch))
-        elif mode == 'infer':
-          results_per_batch.append(model.infer(input_batch, output_batch))
-        else:
-          raise ValueError("Unknown mode: {}".format(mode))
-    if compute_loss:
-      total_loss += loss
+        deco_print("Processed {} batches".format(step + 1), end='\r')
 
   if verbose:
     if step > bench_start:
-      if model.on_horovod:
-        deco_print(
-          "Avg time per step: {:.3}s on rank {}".format(
-            1.0 * total_time / (step - bench_start), model.hvd.rank()),
-        )
-      else:
-        deco_print(
-          "Avg time per step: {:.3}s".format(
-            1.0 * total_time / (step - bench_start)),
-        )
+      deco_print(
+        "Avg time per step: {:.3}s on worker {}".format(
+          1.0 * total_time / (step - bench_start), worker_id),
+      )
     else:
       if model.on_horovod:
-        deco_print("Not enough steps for benchmarking on rank {}".format(
-          model.hvd.rank()
-        ))
+        deco_print(
+          "Not enough steps for benchmarking on worker {}".format(worker_id)
+        )
+
+  if compute_loss:
+    return results_per_batch, total_loss, total_samples
+  else:
+    return results_per_batch
+
+
+def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
+  if model.on_horovod:
+    if compute_loss:
+      results_per_batch, total_loss, total_samples = iterate_data_layer(
+        model, 0, sess, compute_loss, mode, verbose,
+      )
+    else:
+      results_per_batch = iterate_data_layer(
+        model, 0, sess, compute_loss, mode, verbose,
+      )
+  else:
+    results_per_batch_all = []
+    total_loss_all = []
+    total_samples_all = []
+    for i in range(model.num_gpus):
+      if compute_loss:
+        results_per_batch, total_loss, total_samples = iterate_data_layer(
+          model, 0, sess, compute_loss, mode, verbose,
+        )
+        total_loss_all.append(total_loss)
+        total_samples_all.append(total_samples)
       else:
-        deco_print("Not enough steps for benchmarking")
+        results_per_batch = iterate_data_layer(
+          model, 0, sess, compute_loss, mode, verbose,
+        )
+      results_per_batch_all.append(results_per_batch)
 
   if model.on_horovod:
     import mpi4py.rc
@@ -146,19 +175,19 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       total_loss_all = MPI.COMM_WORLD.gather(total_loss)
     results_per_batch_all = MPI.COMM_WORLD.gather(results_per_batch)
 
+    MPI.COMM_WORLD.Barrier()
     if MPI.COMM_WORLD.Get_rank() != 0:
-      MPI.COMM_WORLD.Barrier()
       # returning dummy tuple of correct shape
       if compute_loss:
         return None, None
       else:
         return None
-    if compute_loss:
-      total_loss = np.sum(total_loss_all)
-      total_samples = np.sum(total_samples_all)
-    # moving GPU dimension into the batch dimension
-    results_per_batch = [item for sl in results_per_batch_all for item in sl]
-    MPI.COMM_WORLD.Barrier()
+
+  if compute_loss:
+    total_loss = np.sum(total_loss_all)
+    total_samples = np.sum(total_samples_all)
+  # moving GPU dimension into the batch dimension
+  results_per_batch = [item for sl in results_per_batch_all for item in sl]
 
   if compute_loss:
     total_loss /= total_samples

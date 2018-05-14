@@ -2,6 +2,7 @@
 """Data Layer Classes"""
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+from six.moves import range
 
 import abc
 import six
@@ -14,7 +15,6 @@ from open_seq2seq.utils.utils import check_params
 class DataLayer:
   """Abstract class from which all data layers must inherit.
   """
-
   @staticmethod
   def get_required_params():
     """Static method with description of required parameters.
@@ -25,6 +25,7 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
+      'mode': ['train', 'eval', 'infer'],
     }
 
   @staticmethod
@@ -37,9 +38,9 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
+      'batch_size': int,
       'shuffle': bool,
       'dtype': [tf.float32, tf.float16],
-      'batch_size': int,
     }
 
   @abc.abstractmethod
@@ -54,13 +55,16 @@ class DataLayer:
       model (instance of a class derived from :class:`Model<models.model.Model>`):
           parent model that created this data layer.
           Could be None if no model access is required for the use case.
-      num_workers (int): number of Horovod processes or shards.
-      worker_id (int): Horovod process id or shard id.
+      num_workers (int): number of Horovod processes or None if Horovod is not used.
+      worker_id (int): Horovod process id or None if Horovod is not used.
+    Config parameters:
+    * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
+      Typically will be True for train and False for inference and evaluation.
+    * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
     self._model = model
-    self._iterator = None
 
     if 'dtype' not in self._params:
       if self._model:
@@ -68,6 +72,16 @@ class DataLayer:
       else:
         self._params['dtype'] = tf.float32
 
+    if 'shuffle' not in params:
+      if self._params['mode'] == 'train':
+        self._params['shuffle'] = True
+      else:
+        self._params['shuffle'] = False
+
+    if self._params['mode'] != 'train' and self._params['shuffle']:
+      raise ValueError("Shuffle should not be performed in eval or infer modes")
+
+    # could be used for correct Horovod processing
     self._num_workers = num_workers
     self._worker_id = worker_id
 
@@ -78,32 +92,52 @@ class DataLayer:
 
   @abc.abstractmethod
   def build_graph(self):
-    """Here all TensorFlow graph construction should happen.
-    Inside this function self._iterator should be created"""
+    """Here all TensorFlow graph construction should happen."""
     pass
 
+  @property
   @abc.abstractmethod
-  def get_iterator(self):
-    """This method return initializable TF.data iterator
+  def iterator(self):
+    pass
 
+  def get_size_in_samples(self):
+    """Should return the dataset size in samples.
+    That is, the number of objects in the dataset. This method is used to
+    calculate a valid epoch size.
     Returns:
-       An initializable iterator of type tf.data.Iterator
+      int: dataset size in samples.
     """
-    return self._iterator
+    return None
 
-  # Oleksii: I think we should get rid of this method too
-  def gen_input_tensors(self):
-    """This method should create and return input tensors that will be
-    connected to the model computational graph.
-
+  @abc.abstractmethod
+  def get_input_tensors(self):
+    """Returns input tensors that will be connected to the model graph.
+    Note: it is important **not to** overwrite this function for correct
+    multi-GPU processing!
     Returns:
-       list: Whatever is returned with ``Iterator.get_next()``.
+      list: input tensors generated with
+      :meth:`self.gen_input_tensors()<gen_input_tensors>`.
     """
-    return self._iterator.get_next()
+    pass
 
-# Oleksii: I think we are getting rid of this class at least in its current form
-# See https://stackoverflow.com/questions/46965098/how-does-one-move-data-to-multiple-gpu-towers-using-tensorflows-dataset-api
-# for approaches with multi-GPU and tf.data API
-# Personally I like their option 3 and using dataset.shard() method as it fits nicely to Horovod's num_workers and worker_id
-# scenario
-# d = d.shard(FLAGS.num_workers, FLAGS.worker_index) see https://www.tensorflow.org/api_docs/python/tf/data/Dataset#shard
+  def get_size_in_batches(self):
+    """Returns dataset size in batches.
+    Returns:
+      int: dataset size in batches.
+    """
+    size_in_samples = self.get_size_in_samples()
+    if size_in_samples is None or 'batch_size' not in self.params:
+      return None
+    return self.get_size_in_samples() // self.params['batch_size']
+
+  def split_data(self, data):
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = len(data)
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      return data[start:end]
+    else:
+      return data

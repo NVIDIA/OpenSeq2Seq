@@ -13,7 +13,6 @@ import time
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
-from open_seq2seq.data import MultiGPUWrapper
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -239,8 +238,12 @@ class Model:
         num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
       )
     else:
-      dl = self._params['data_layer'](params=dl_params, model=self)
-      self._data_layer = MultiGPUWrapper(dl, num_gpus=self.num_gpus)
+      self._data_layers = []
+      for worker_id in range(self.num_gpus):
+        self._data_layers.append(self._params['data_layer'](
+          params=dl_params, model=self,
+          num_workers=self.num_gpus, worker_id=worker_id,
+        ))
 
     if self._mode == "train":
       if "max_steps" in self._params:
@@ -248,11 +251,17 @@ class Model:
         self._steps_in_epoch = None
       else:
         # doing a few less steps if data size is not divisible by the batch size
-        self._steps_in_epoch = self._data_layer.get_size_in_batches()
-        # if on Horovod, there will be hvd.size() independent data_layer copies
-        # and thus the total size is hvd.size() times smaller.
+        self._steps_in_epoch = self.get_data_layer().get_size_in_batches()
+        if self._steps_in_epoch is None:
+          raise ValueError('The data_layer is not compatible with '
+                           'epoch execution, since it does not provide '
+                           'get_size_in_samples() method. Either update the '
+                           'data layer or switch to using "max_steps" '
+                           'paremeter.')
         if self.on_horovod:
           self._steps_in_epoch //= self._hvd.size()
+        else:
+          self._steps_in_epoch //= self.num_gpus
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     self._outputs = [None] * self.num_gpus
@@ -267,8 +276,6 @@ class Model:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
 
-    self.data_layer.build_graph()
-    input_tensors = self.data_layer.get_input_tensors()
 
     if not self.on_horovod:  # not using Horovod
       # below we follow data parallelism for multi-GPU training
@@ -283,8 +290,11 @@ class Model:
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
+          self.get_data_layer(gpu_cnt).build_graph()
+          input_tensors = self.get_data_layer(gpu_cnt).get_input_tensors()
+
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
-            input_tensors[gpu_cnt],
+            input_tensors,
             gpu_id=gpu_cnt,
           )
           if self._outputs[gpu_cnt] is not None and \
@@ -307,6 +317,9 @@ class Model:
         deco_print(
           "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
+        self.get_data_layer().build_graph()
+        input_tensors = self.get_data_layer().get_input_tensors()
+
         loss, self._outputs = self._build_forward_pass_graph(input_tensors,
                                                              gpu_id=0)
         if self._outputs is not None and not isinstance(self._outputs, list):
@@ -500,10 +513,12 @@ class Model:
     """Parameters used to construct the model (dictionary)."""
     return self._params
 
-  @property
-  def data_layer(self):
+  def get_data_layer(self, worker_id=0):
     """Model data layer."""
-    return self._data_layer
+    if self.on_horovod:
+      return self._data_layer
+    else:
+      return self._data_layers[worker_id]
 
   @property
   def steps_in_epoch(self):

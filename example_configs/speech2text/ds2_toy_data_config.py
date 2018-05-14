@@ -2,7 +2,7 @@ import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
-from open_seq2seq.data import Speech2TextDataLayer, Speech2TextPlaceholdersDataLayer
+from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
@@ -123,7 +123,7 @@ eval_params = {
 }
 
 infer_params = {
-  "data_layer": Speech2TextPlaceholdersDataLayer,
+  "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
