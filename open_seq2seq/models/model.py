@@ -251,7 +251,8 @@ class Model:
         self._steps_in_epoch = None
       else:
         # doing a few less steps if data size is not divisible by the batch size
-        self._steps_in_epoch = self.get_data_layer().get_size_in_batches()
+        self._steps_in_epoch = self.get_data_layer().get_size_in_samples() // \
+                               self.get_data_layer().params['batch_size']
         if self._steps_in_epoch is None:
           raise ValueError('The data_layer is not compatible with '
                            'epoch execution, since it does not provide '
@@ -292,7 +293,7 @@ class Model:
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
           self.get_data_layer(gpu_cnt).build_graph()
-          input_tensors = self.get_data_layer(gpu_cnt).get_input_tensors()
+          input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
             input_tensors,
@@ -321,7 +322,7 @@ class Model:
           "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
         self.get_data_layer().build_graph()
-        input_tensors = self.get_data_layer().get_input_tensors()
+        input_tensors = self.get_data_layer().input_tensors
 
         loss, self._outputs = self._build_forward_pass_graph(input_tensors,
                                                              gpu_id=0)
