@@ -41,7 +41,7 @@ class PrePostProcessingWrapper(object):
     self.train = train
 
     # Create normalization layer
-    self.layer_norm = LayerNormalization(params.hidden_size)
+    self.layer_norm = LayerNormalization(params["hidden_size"])
 
   def __call__(self, x, *args, **kwargs):
     # Preprocessing: apply layer normalization

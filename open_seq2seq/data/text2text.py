@@ -250,6 +250,7 @@ class TransformerDataLayer(DataLayer):
       'batch_size': int,
       'max_length': int,
       'shuffle': bool,
+      "delimiter": str,
     })
 
   @staticmethod
@@ -287,7 +288,7 @@ class TransformerDataLayer(DataLayer):
     self.params['source_idx2seq'] = self.src_idx2seq
 
     self._input_tensors = None
-    self.iterator = None
+    self._iterator = None
     self.batched_dataset = None
 
   def build_graph(self):
@@ -299,22 +300,21 @@ class TransformerDataLayer(DataLayer):
       max_length=self.params['max_length'],
       num_cpu_cores=self.params.get('num_cpu_cores', 2),
       shuffle=self.params['shuffle'],
-      repeat=1)
+      repeat=self.params['repeat'])
 
-    self.iterator = self.batched_dataset.make_initializable_iterator()
+    self._iterator = self.batched_dataset.make_initializable_iterator()
+    x, y = self.iterator.get_next()
+    len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
+    len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
+    self._input_tensors = x, len_x, y, len_y
 
-  def get_input_tensors(self):
-    if self._input_tensors is None:
-      x, y = self.iterator.get_next()
-      len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
-      len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
-      self._input_tensors = x, len_x, y, len_y
-    else:
-      print("----->>> WARNING: Attempting to generate existing input tensors")
-    return tuple(self._input_tensors)
-
+  @property
   def iterator(self):
-    return self.iterator
+    return self._iterator
+
+  @property
+  def input_tensors(self):
+    return self._input_tensors
 
 
 

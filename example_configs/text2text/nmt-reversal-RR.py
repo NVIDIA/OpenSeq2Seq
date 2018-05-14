@@ -26,7 +26,7 @@ base_params = {
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-RNN",
+  "logdir": "ReversalTask-RNN-LAOPT",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-4},

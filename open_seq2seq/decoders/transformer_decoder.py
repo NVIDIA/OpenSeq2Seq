@@ -12,13 +12,51 @@ from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
   LayerNormalization
 
 class TransformerDecoder(Decoder):
+  @staticmethod
+  def get_required_params():
+    """Static method with description of required parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **have to** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return {}
+
+  @staticmethod
+  def get_optional_params():
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return {
+      'regularizer': None,  # any valid TensorFlow regularizer
+      'regularizer_params': dict,
+      'initializer': None,  # any valid TensorFlow initializer
+      'initializer_params': dict,
+      'dtype': [tf.float32, tf.float16, 'mixed'],
+      'layer_postprocess_dropout': float,
+      'num_hidden_layers': int,
+      'hidden_size': int,
+      'num_heads': int,
+      'attention_dropout': float,
+      'relu_dropout': float,
+      'filter_size': int,
+      'batch_size': int,
+      'tgt_vocab_size': int
+    }
 
   def __init__(self, params, model,
                name="transformer_decoder", mode='train'):
     super(TransformerDecoder, self).__init__(params, model, name, mode)
     self.embedding_softmax_layer = None
     self.output_normalization = None
-    self.mode = mode
+    self._mode = mode
     self.layers = []
 
   def _call(self, decoder_inputs, encoder_outputs, decoder_self_attention_bias,
@@ -72,7 +110,7 @@ class TransformerDecoder(Decoder):
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(decoder_inputs)[1]
         decoder_inputs += utils.get_position_encoding(
-            length, self.params.hidden_size)
+            length, self.params["hidden_size"])
       if self.mode == "train":
         decoder_inputs = tf.nn.dropout(
             decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
@@ -114,7 +152,7 @@ class TransformerDecoder(Decoder):
 
       logits = self.embedding_softmax_layer.linear(outputs)
       return {"logits": logits,
-              "samples": tf.argmax(logits, axis=-1),
+              "samples": [tf.argmax(logits, axis=-1)],
               "final_state": None,
               "final_sequence_lengths": None}
 
@@ -129,6 +167,5 @@ class TransformerDecoder(Decoder):
     if targets is None:
       return self.predict(encoder_outputs, inputs_attention_bias)
     else:
-      logits = self.train_decode(targets, encoder_outputs, inputs_attention_bias)
-      return logits
+      return self.train_decode(targets, encoder_outputs, inputs_attention_bias)
 

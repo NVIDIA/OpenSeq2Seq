@@ -11,6 +11,43 @@ from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
   LayerNormalization
 
 class TransformerEncoder(Encoder):
+  @staticmethod
+  def get_required_params():
+    """Static method with description of required parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **have to** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return {}
+
+  @staticmethod
+  def get_optional_params():
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return {
+      'regularizer': None,  # any valid TensorFlow regularizer
+      'regularizer_params': dict,
+      'initializer': None,  # any valid TensorFlow initializer
+      'initializer_params': dict,
+      "encoder_layers": int,
+      "hidden_size": int,
+      "num_heads": int,
+      "attention_dropout": float,
+      "filter_size": int,
+      "src_vocab_size": int,
+      "relu_dropout": float,
+      "layer_postprocess_dropout": float,
+      'dtype': [tf.float32, tf.float16, 'mixed'],
+    }
   """Transformer model encoder"""
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
     super(TransformerEncoder, self).__init__(
@@ -18,7 +55,7 @@ class TransformerEncoder(Encoder):
     )
     self.layers = []
     self.output_normalization = None
-    self.mode = mode
+    self._mode = mode
 
   def _call(self, encoder_inputs, attention_bias, inputs_padding):
     for n, layer in enumerate(self.layers):
@@ -38,7 +75,7 @@ class TransformerEncoder(Encoder):
     if len(self.layers) == 0:
       # prepare encoder graph
       self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
-        self.params["vocab_size"], self.params["hidden_size"])
+        self.params["src_vocab_size"], self.params["hidden_size"])
 
       for _ in range(self.params['encoder_layers']):
         # Create sublayers for each layer.
@@ -70,12 +107,12 @@ class TransformerEncoder(Encoder):
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]
         pos_encoding = utils.get_position_encoding(
-            length, self.params.hidden_size)
+            length, self.params["hidden_size"])
         encoder_inputs = embedded_inputs + pos_encoding
 
       if self.mode == "train":
         encoder_inputs = tf.nn.dropout(
-            encoder_inputs, 1 - self.params.layer_postprocess_dropout)
+            encoder_inputs, 1 - self.params["layer_postprocess_dropout"])
 
       encoded = self._call(encoder_inputs, inputs_attention_bias,
                            inputs_padding)

@@ -35,7 +35,8 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et = sess.run(dl.get_input_tensors())
+      sess.run(dl.iterator.initializer)
+      et = sess.run(dl.input_tensors)
       self.assertEqual(len(et), 4)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertLessEqual(et[0].shape[1], self.params['max_length'])
@@ -52,7 +53,8 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et = sess.run(dl.get_input_tensors())
+      sess.run(dl.iterator.initializer)
+      et = sess.run(dl.input_tensors)
       self.assertEqual(len(et), 2)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertLessEqual(et[0].shape[1], self.params['max_length'])
@@ -66,7 +68,8 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
     with self.test_session(use_gpu=True) as sess:
-      et = sess.run(dl.get_input_tensors())
+      sess.run(dl.iterator.initializer)
+      et = sess.run(dl.input_tensors)
       self.assertEqual(len(et), 4)
       self.assertEqual(et[0].shape[0], self.params['batch_size'])
       self.assertTrue(et[0].shape[1] % 8 == 0)
@@ -106,7 +109,7 @@ class TransformerDataLayerTests(tf.test.TestCase):
     #len_x = tf.count_nonzero(x, axis=1)
     #len_y = tf.count_nonzero(y, axis=1)
     iterator = dl.iterator
-    inputs = dl.get_input_tensors()
+    inputs = dl.input_tensors
     #inputs1 = dl.gen_input_tensors()
 
     with self.test_session(use_gpu=True) as sess:

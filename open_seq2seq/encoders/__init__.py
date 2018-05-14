@@ -7,5 +7,5 @@ from .encoder import Encoder
 from .rnn_encoders import UnidirectionalRNNEncoderWithEmbedding, \
                           BidirectionalRNNEncoderWithEmbedding, \
                           GNMTLikeEncoderWithEmbedding
-from .transformer_encoders import TransformerEncoder
+from .transformer_encoder import TransformerEncoder
 from .ds2_encoder import DeepSpeech2Encoder
