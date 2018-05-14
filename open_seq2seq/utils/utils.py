@@ -41,18 +41,24 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
 
   if model.on_horovod:
     data_layer = model.get_data_layer()
+    if compute_loss:
+      loss_tensor = model.eval_losses[0]
+    output_tensors = model.get_output_tensors()
   else:
     data_layer = model.get_data_layer(dl_id)
+    if compute_loss:
+      loss_tensor = model.eval_losses[dl_id]
+    output_tensors = model.get_output_tensors()[dl_id]
 
   sess.run(data_layer.iterator.initializer)
 
   fetches = [
     data_layer.get_input_tensors(),
-    model.get_output_tensors(),
+    output_tensors,
   ]
 
   if compute_loss:
-    fetches.append(model.loss)
+    fetches.append(loss_tensor)
     total_loss = 0.0
     total_samples = 0.0
 

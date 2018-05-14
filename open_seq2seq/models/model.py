@@ -267,6 +267,7 @@ class Model:
     self._outputs = [None] * self.num_gpus
     self.loss = None
     self.train_op = None
+    self.eval_losses = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -303,8 +304,10 @@ class Model:
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
-      if self._mode == "train" or self._mode == "eval":
+      if self._mode == "train":
         self.loss = tf.reduce_mean(losses)
+      if self._mode == "eval":
+        self.eval_losses = losses
     else:  # is using Horovod
       # gpu_id should always be zero, since Horovod takes care of isolating
       # different processes to 1 GPU only
@@ -325,8 +328,10 @@ class Model:
         if self._outputs is not None and not isinstance(self._outputs, list):
           raise ValueError('Decoder samples have to be either None or list')
 
-        if self._mode == "train" or self._mode == "eval":
+        if self._mode == "train":
           self.loss = loss
+        if self._mode == "eval":
+          self.eval_losses = [loss]
 
     if self._mode == "train":
       if 'lr_policy' not in self.params:
