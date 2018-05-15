@@ -7,9 +7,11 @@ from six.moves import range
 
 import tensorflow as tf
 from .decoder import Decoder
-from open_seq2seq.parts.transformer import utils, attention_layer, ffn_layer
+from open_seq2seq.parts.transformer import utils, attention_layer, \
+  ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
   LayerNormalization
+from open_seq2seq.data.tokenizer import EOS_ID
 
 class TransformerDecoder(Decoder):
   @staticmethod
@@ -48,7 +50,10 @@ class TransformerDecoder(Decoder):
       'relu_dropout': float,
       'filter_size': int,
       'batch_size': int,
-      'tgt_vocab_size': int
+      'tgt_vocab_size': int,
+      'beam_size': int,
+      'alpha': float,
+      'extra_decode_length': int,
     }
 
   def __init__(self, params, model,
@@ -58,6 +63,58 @@ class TransformerDecoder(Decoder):
     self.output_normalization = None
     self._mode = mode
     self.layers = []
+
+  def _decode(self, input_dict):
+    targets = input_dict['tgt_sequence']
+    encoder_outputs = input_dict['encoder_output']['outputs']
+    inputs_attention_bias = input_dict['encoder_output']['inputs_attention_bias']
+    self.embedding_softmax_layer = input_dict['encoder_output']['embedding_softmax_layer']
+
+    with tf.name_scope("decode"):
+      # prepare decoder layers
+      if len(self.layers) == 0:
+        for _ in range(self.params["num_hidden_layers"]):
+          self_attention_layer = attention_layer.SelfAttention(
+            self.params["hidden_size"], self.params["num_heads"],
+            self.params["attention_dropout"],
+            self.mode == "train")
+          enc_dec_attention_layer = attention_layer.Attention(
+            self.params["hidden_size"], self.params["num_heads"],
+            self.params["attention_dropout"],
+            self.mode == "train")
+          feed_forward_network = ffn_layer.FeedFowardNetwork(
+            self.params["hidden_size"], self.params["filter_size"],
+            self.params["relu_dropout"], self.mode == "train")
+
+          self.layers.append([
+            PrePostProcessingWrapper(self_attention_layer, self.params,
+                                     self.mode == "train"),
+            PrePostProcessingWrapper(enc_dec_attention_layer, self.params,
+                                     self.mode == "train"),
+            PrePostProcessingWrapper(feed_forward_network, self.params,
+                                     self.mode == "train")])
+
+        self.output_normalization = LayerNormalization(
+          self.params["hidden_size"])
+
+      if targets is None:
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+        return self.predict(encoder_outputs, inputs_attention_bias)
+      else:
+        logits = self.decode_pass(targets, encoder_outputs, inputs_attention_bias)
+        return {"logits": logits,
+                "samples": [tf.argmax(logits, axis=-1)],
+                "final_state": None,
+                "final_sequence_lengths": None}
+
 
   def _call(self, decoder_inputs, encoder_outputs, decoder_self_attention_bias,
            attention_bias, cache=None):
@@ -82,11 +139,7 @@ class TransformerDecoder(Decoder):
     return self.output_normalization(decoder_inputs)
 
 
-  def predict(self, encoder_outputs, inputs_attention_bias):
-    # TODO: Implement
-    pass
-
-  def train_decode(self, targets, encoder_outputs, inputs_attention_bias):
+  def decode_pass(self, targets, encoder_outputs, inputs_attention_bias):
     """Generate logits for each value in the target sequence.
 
     Args:
@@ -99,73 +152,122 @@ class TransformerDecoder(Decoder):
     Returns:
       float32 tensor with shape [batch_size, target_length, vocab_size]
     """
-    with tf.name_scope("decode"):
-      # Prepare inputs to decoder layers by shifting targets, adding positional
-      # encoding and applying dropout.
-      decoder_inputs = self.embedding_softmax_layer(targets)
-      with tf.name_scope("shift_targets"):
-        # Shift targets to the right, and remove the last element
-        decoder_inputs = tf.pad(
-            decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
-      with tf.name_scope("add_pos_encoding"):
-        length = tf.shape(decoder_inputs)[1]
-        decoder_inputs += utils.get_position_encoding(
-            length, self.params["hidden_size"])
-      if self.mode == "train":
-        decoder_inputs = tf.nn.dropout(
-            decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
+    # Prepare inputs to decoder layers by shifting targets, adding positional
+    # encoding and applying dropout.
+    decoder_inputs = self.embedding_softmax_layer(targets)
+    with tf.name_scope("shift_targets"):
+      # Shift targets to the right, and remove the last element
+      decoder_inputs = tf.pad(
+          decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
+    with tf.name_scope("add_pos_encoding"):
+      length = tf.shape(decoder_inputs)[1]
+      decoder_inputs += utils.get_position_encoding(
+          length, self.params["hidden_size"])
+    if self.mode == "train":
+      decoder_inputs = tf.nn.dropout(
+          decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
 
-      # Run values
-      decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
-          length)
-
-      # prepare decoder layers
-      if len(self.layers) == 0:
-        for _ in range(self.params["num_hidden_layers"]):
-          self_attention_layer = attention_layer.SelfAttention(
-            self.params["hidden_size"], self.params["num_heads"],
-            self.params["attention_dropout"],
-            self.mode == "train")
-          enc_dec_attention_layer = attention_layer.Attention(
-            self.params["hidden_size"], self.params["num_heads"],
-            self.params["attention_dropout"],
-            self.mode == "train")
-          feed_forward_network = ffn_layer.FeedFowardNetwork(
-            self.params["hidden_size"], self.params["filter_size"],
-            self.params["relu_dropout"], self.mode == "train")
-
-          self.layers.append([
-            PrePostProcessingWrapper(self_attention_layer, self.params,
-                                     self.mode == "train"),
-            PrePostProcessingWrapper(enc_dec_attention_layer, self.params,
-                                     self.mode == "train"),
-            PrePostProcessingWrapper(feed_forward_network, self.params,
-                                     self.mode == "train")])
-
-        self.output_normalization = LayerNormalization(self.params["hidden_size"])
-
-      # do decode
-      outputs = self._call(decoder_inputs=decoder_inputs,
-                           encoder_outputs=encoder_outputs,
-                           decoder_self_attention_bias=decoder_self_attention_bias,
-                           attention_bias=inputs_attention_bias)
-
-      logits = self.embedding_softmax_layer.linear(outputs)
-      return {"logits": logits,
-              "samples": [tf.argmax(logits, axis=-1)],
-              "final_state": None,
-              "final_sequence_lengths": None}
+    # Run values
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
+        length)
 
 
+    # do decode
+    outputs = self._call(decoder_inputs=decoder_inputs,
+                         encoder_outputs=encoder_outputs,
+                         decoder_self_attention_bias=decoder_self_attention_bias,
+                         attention_bias=inputs_attention_bias)
 
-  def _decode(self, input_dict):
-    targets = input_dict['tgt_sequence']
-    encoder_outputs = input_dict['encoder_output']['outputs']
-    inputs_attention_bias = input_dict['encoder_output']['inputs_attention_bias']
-    self.embedding_softmax_layer = input_dict['encoder_output']['embedding_softmax_layer']
+    logits = self.embedding_softmax_layer.linear(outputs)
+    return logits
 
-    if targets is None:
-      return self.predict(encoder_outputs, inputs_attention_bias)
-    else:
-      return self.train_decode(targets, encoder_outputs, inputs_attention_bias)
+  def _get_symbols_to_logits_fn(self, max_decode_length):
+    """Returns a decoding function that calculates logits of the next tokens."""
+
+    timing_signal = utils.get_position_encoding(
+        max_decode_length + 1, self.params["hidden_size"])
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
+        max_decode_length)
+
+    def symbols_to_logits_fn(ids, i, cache):
+      """Generate logits for next potential IDs.
+
+      Args:
+        ids: Current decoded sequences.
+          int tensor with shape [batch_size * beam_size, i + 1]
+        i: Loop index
+        cache: dictionary of values storing the encoder output, encoder-decoder
+          attention bias, and previous decoder attention values.
+
+      Returns:
+        Tuple of
+          (logits with shape [batch_size * beam_size, vocab_size],
+           updated cache values)
+      """
+      # Set decoder input to the last generated IDs
+      decoder_input = ids[:, -1:]
+
+      # Preprocess decoder input by getting embeddings and adding timing signal.
+      decoder_input = self.embedding_softmax_layer(decoder_input)
+      decoder_input += timing_signal[i:i + 1]
+
+      self_attention_bias = decoder_self_attention_bias[:, :, i:i + 1, :i + 1]
+      decoder_outputs = self._call(#self.decoder_stack(
+          decoder_input, cache.get("encoder_outputs"), self_attention_bias,
+          cache.get("encoder_decoder_attention_bias"), cache)
+      logits = self.embedding_softmax_layer.linear(decoder_outputs)
+      logits = tf.squeeze(logits, axis=[1])
+      return logits, cache
+    return symbols_to_logits_fn
+
+  def predict(self, encoder_outputs, encoder_decoder_attention_bias):
+    """Return predicted sequence."""
+    batch_size = tf.shape(encoder_outputs)[0]
+    input_length = tf.shape(encoder_outputs)[1]
+    max_decode_length = input_length + self.params["extra_decode_length"]
+
+    symbols_to_logits_fn = self._get_symbols_to_logits_fn(max_decode_length)
+
+    # Create initial set of IDs that will be passed into symbols_to_logits_fn.
+    initial_ids = tf.zeros([batch_size], dtype=tf.int32)
+
+    # Create cache storing decoder attention values for each layer.
+    cache = {
+        "layer_%d" % layer: {
+            "k": tf.zeros([batch_size, 0,
+                           self.params["hidden_size"]]),
+            "v": tf.zeros([batch_size, 0,
+                           self.params["hidden_size"]]),
+        } for layer in range(self.params["num_hidden_layers"])}
+
+    # Add encoder output and attention bias to the cache.
+    cache["encoder_outputs"] = encoder_outputs
+    cache["encoder_decoder_attention_bias"] = encoder_decoder_attention_bias
+
+    # Use beam search to find the top beam_size sequences and scores.
+    decoded_ids, scores = beam_search.sequence_beam_search(
+        symbols_to_logits_fn=symbols_to_logits_fn,
+        initial_ids=initial_ids,
+        initial_cache=cache,
+        vocab_size=self.params["tgt_vocab_size"],
+        beam_size=self.params["beam_size"],
+        alpha=self.params["alpha"],
+        max_decode_length=max_decode_length,
+        eos_id=EOS_ID)
+
+    # Get the top sequence for each batch element
+    top_decoded_ids = decoded_ids[:, 0, 1:]
+    top_scores = scores[:, 0]
+
+    # this isn't particularly efficient
+    logits = self.decode_pass(top_decoded_ids, encoder_outputs,
+                              encoder_decoder_attention_bias)
+    return {#"logits": tf.ones(shape=[tf.shape(top_decoded_ids)[0],
+            #                         tf.shape(top_decoded_ids)[1],
+            #                         self.params["tgt_vocab_size"]]),
+            "logits": logits,
+            "samples": [top_decoded_ids],
+            "final_state": None,
+            "final_sequence_lengths": None}
+
 

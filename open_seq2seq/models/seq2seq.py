@@ -124,11 +124,11 @@ class Seq2Seq(Model):
     See :meth:`models.model.Model._build_forward_pass_graph` for description of
     arguments and return values.
     """
-    if self.mode == "infer":
+    if self.mode == "train" or self.mode == "eval":
+      src_sequence, src_length, tgt_sequence, tgt_length = input_tensors
+    else:
       src_sequence, src_length = input_tensors
       tgt_sequence, tgt_length = None, None
-    else:
-      src_sequence, src_length, tgt_sequence, tgt_length = input_tensors
 
     with tf.variable_scope("ForwardPass"):
       encoder_input = {
@@ -140,7 +140,7 @@ class Seq2Seq(Model):
       tgt_length_eval = tf.cast(1.2 * tf.cast(src_length, tf.float32), tf.int32)
       decoder_input = {
         "encoder_output": encoder_output,
-        "tgt_sequence": tgt_sequence,
+        "tgt_sequence": tgt_sequence if self.mode == "train" else None,
         # when the mode is not "train", replacing correct tgt_length with
         # somewhat increased src_length
         "tgt_length": tgt_length if self.mode == "train" else tgt_length_eval

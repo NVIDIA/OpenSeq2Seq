@@ -19,11 +19,11 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 1,
   "batch_size_per_gpu": 2048,
-  "max_steps": 1100,
+  "max_steps": 5251,
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
-  "eval_steps": 50,
+  "eval_steps": 250,
   "save_checkpoint_steps": 300,
   "logdir": "TEST",
 
@@ -33,10 +33,10 @@ base_params = {
     "beta2": 0.997,
     "epsilon": 0.000000001,
   },
-  "learning_rate": 1.0,
+  "learning_rate": 2.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "warmup_steps": 600,
+    "warmup_steps": 4000,
     "d_model": d_model,
   },
   "dtype": tf.float32,
@@ -59,7 +59,10 @@ base_params = {
     "num_heads": 8,
     "attention_dropout": 0.0,
     "relu_dropout": 0.0,
-    "filter_size": 4*d_model
+    "filter_size": 4*d_model,
+    "beam_size": 1,
+    "alpha": 1.0,
+    "extra_decode_length": 50,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,
@@ -82,6 +85,21 @@ train_params = {
 }
 
 eval_params = {
+  "data_layer": TransformerDataLayer,
+  "data_layer_params": {
+    'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",
+    'file_pattern': "*dev*",
+    'src_vocab_file': "/home/okuchaiev/repos/forks/reference/translation/processed_data/vocab.ende.32768",
+    'batch_size': 2048,
+    'max_length': 256,
+    'shuffle': False,
+    'repeat': 1,
+    'mode': 'eval',
+    "delimiter": ' ',
+  },
+}
+
+infer_params = {
   "data_layer": TransformerDataLayer,
   "data_layer_params": {
     'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",

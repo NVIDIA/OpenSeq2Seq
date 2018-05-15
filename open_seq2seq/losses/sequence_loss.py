@@ -256,6 +256,8 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
 
   def _compute_loss(self, input_dict):
     logits = input_dict["decoder_output"]["logits"]
+    if logits is None:
+      return 0.0
     labels = input_dict["tgt_sequence"]
 
     def _pad_tensors_to_same_length(x, y):

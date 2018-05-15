@@ -226,21 +226,6 @@ class ParallelTextDataLayer(DataLayer):
 
 class TransformerDataLayer(DataLayer):
   """Wraps Transformers data pipeline into the form for OpenSeq2Seq"""
-
-  ################################
-  # ------------------------------
-  # Get rid of these
-  # ------------------------------
-  def next_batch_feed_dict(self):
-    pass
-
-  def shuffle(self):
-    pass
-
-  def get_size_in_samples(self):
-    pass
-  ################################
-
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -306,7 +291,10 @@ class TransformerDataLayer(DataLayer):
     x, y = self.iterator.get_next()
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
-    self._input_tensors = x, len_x, y, len_y
+    if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
+      self._input_tensors = x, len_x, y, len_y
+    else:
+      self._input_tensors = x, len_x
 
   @property
   def iterator(self):
