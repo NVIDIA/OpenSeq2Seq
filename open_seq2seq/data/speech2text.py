@@ -78,9 +78,9 @@ class Speech2TextDataLayer(DataLayer):
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'wav_filename'
-    self._files = self.split_data(self._files.loc[:, cols].values)
 
-    self.params['files'] = self._files
+    self.all_files = self._files.loc[:, cols].values
+    self._files = self.split_data(self.all_files)
 
     self._size = self.get_size_in_samples()
     self._dataset = None

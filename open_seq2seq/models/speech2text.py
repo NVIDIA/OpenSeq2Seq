@@ -122,7 +122,7 @@ class Speech2Text(Seq2Seq):
       preds.extend(result)
     pd.DataFrame(
       {
-        'wav_filename': self.get_data_layer().params['files'],
+        'wav_filename': self.get_data_layer().all_files,
         'predicted_transcript': preds,
       },
       columns=['wav_filename', 'predicted_transcript'],

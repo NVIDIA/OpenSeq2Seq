@@ -17,6 +17,7 @@ from open_seq2seq.test_utils.test_speech_config import base_params, \
                                                        eval_params, \
                                                        base_model
 from open_seq2seq.utils import train, evaluate, infer
+from open_seq2seq.utils.utils import get_available_gpus
 
 
 class Speech2TextModelTests(tf.test.TestCase):
@@ -38,16 +39,15 @@ class Speech2TextModelTests(tf.test.TestCase):
       checkpoint = tf.train.latest_checkpoint(train_model.params['logdir'])
       with self.test_session(g, use_gpu=True) as sess:
         saver.restore(sess, checkpoint)
+        sess.run([train_model.get_data_layer(i).iterator.initializer
+                  for i in range(train_model.num_gpus)])
+        sess.run([eval_model.get_data_layer(i).iterator.initializer
+                  for i in range(eval_model.num_gpus)])
 
         weights = sess.run(tf.trainable_variables())
-        loss = sess.run(
-          train_model.loss,
-          train_model.data_layer.next_batch_feed_dict(),
-        )
-        eval_loss = sess.run(
-          eval_model.loss,
-          eval_model.data_layer.next_batch_feed_dict(),
-        )
+        loss = sess.run(train_model.loss)
+        eval_losses = sess.run(eval_model.eval_losses)
+        eval_loss = np.mean(eval_losses)
         weights_new = sess.run(tf.trainable_variables())
 
         # checking that the weights has not changed from just computing the loss
@@ -103,7 +103,15 @@ class Speech2TextModelTests(tf.test.TestCase):
     train_config, infer_config = self.prepare_config()
     train_config['num_epochs'] = 200
     infer_config['batch_size_per_gpu'] = 4
-    infer_config['num_gpus'] = 1
+
+    with tf.Graph().as_default() as g:
+      with self.test_session(g, use_gpu=True) as sess:
+        gpus = get_available_gpus()
+
+    if len(gpus) > 1:
+      infer_config['num_gpus'] = 2
+    else:
+      infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():
       train_model = base_model(params=train_config, mode="train", hvd=None)
@@ -174,86 +182,92 @@ class Speech2TextModelTests(tf.test.TestCase):
     self.assertEqual(levenshtein(s2, s1), 11)
 
   def test_maybe_functions(self):
-    pass
-    # train_config, eval_config = self.prepare_config()
-    #
-    # with tf.Graph().as_default():
-    #   model = base_model(params=train_config, mode="train", hvd=None)
-    #   model.compile()
-    # model._gpu_ids = range(5)
-    # model.params['batch_size_per_gpu'] = 2
-    # char2idx = model.data_layer.params['char2idx']
-    # inputs = [
-    #   ['this is a great day', 'london is the capital of great britain'],
-    #   ['ooo', 'lll'],
-    #   ['a b c\' asdf', 'blah blah bblah'],
-    #   ['this is great day', 'london capital gret britain'],
-    #   ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah\' blah'],
-    # ]
-    # outputs = [
-    #   ['this is great a day', 'london capital gret britain'],
-    #   ['ooo', 'lll'],
-    #   ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah blah'],
-    #   ['this is a great day', 'london is the capital of great britain'],
-    #   ['a b c\' asdf', 'blah blah\' bblah'],
-    # ]
-    # y = [None] * len(inputs)
-    # len_y = [None] * len(inputs)
-    # indices, values, dense_shape = [], [], []
-    #
-    # num_gpus = len(inputs)
-    # for gpu_id in range(num_gpus):
-    #   num_samples = len(inputs[gpu_id])
-    #   max_len = np.max(list(map(len, inputs[gpu_id])))
-    #   y[gpu_id] = np.zeros((num_samples, max_len), dtype=np.int)
-    #   len_y[gpu_id] = np.zeros(num_samples, dtype=np.int)
-    #   for sample_id in range(num_samples):
-    #     num_letters = len(inputs[gpu_id][sample_id])
-    #     len_y[gpu_id][sample_id] = num_letters
-    #     for letter_id in range(num_letters):
-    #       y[gpu_id][sample_id, letter_id] = char2idx[
-    #         inputs[gpu_id][sample_id][letter_id]
-    #       ]
-    #
-    # num_gpus = len(outputs)
-    # for gpu_id in range(num_gpus):
-    #   num_samples = len(outputs[gpu_id])
-    #   max_len = np.max(list(map(len, outputs[gpu_id])))
-    #   dense_shape.append(np.array((num_samples, max_len)))
-    #   values.append([])
-    #   indices.append([])
-    #   for sample_id in range(num_samples):
-    #     num_letters = len(outputs[gpu_id][sample_id])
-    #     for letter_id in range(num_letters):
-    #       values[gpu_id].append(
-    #         char2idx[outputs[gpu_id][sample_id][letter_id]]
-    #       )
-    #       indices[gpu_id].append(np.array([sample_id, letter_id]))
-    #   values[gpu_id] = np.array(values[gpu_id], dtype=np.int)
-    #   indices[gpu_id] = np.array(indices[gpu_id], dtype=np.int)
-    #
-    # input_values = [None, None, y, len_y]
-    # output_values = [
-    #   tf.SparseTensorValue(indices[i], values[i], dense_shape[i])
-    #   for i in range(num_gpus)
-    # ]
-    # output_dict = model.evaluate([input_values, input_values],
-    #                              [output_values, output_values])
-    #
-    # w_lev = 0.0
-    # w_len = 0.0
-    # for batch_id in range(len(inputs)):
-    #   for sample_id in range(len(inputs[batch_id])):
-    #     input_sample = inputs[batch_id][sample_id]
-    #     output_sample = outputs[batch_id][sample_id]
-    #     w_lev += levenshtein(input_sample.split(), output_sample.split())
-    #     w_len += len(input_sample.split())
-    #
-    # self.assertEqual(output_dict['Eval WER'], w_lev / w_len)
-    # self.assertEqual(output_dict['Eval WER'], 37 / 40.0)
-    #
-    # output_dict = model.maybe_print_logs(input_values, output_values)
-    # self.assertEqual(output_dict['Sample WER'], 0.4)
+    train_config, eval_config = self.prepare_config()
+
+    with tf.Graph().as_default():
+      model = base_model(params=train_config, mode="train", hvd=None)
+      model.compile()
+    model._gpu_ids = range(5)
+    model.params['batch_size_per_gpu'] = 2
+    char2idx = model.get_data_layer().params['char2idx']
+    inputs = [
+      ['this is a great day', 'london is the capital of great britain'],
+      ['ooo', 'lll'],
+      ['a b c\' asdf', 'blah blah bblah'],
+      ['this is great day', 'london capital gret britain'],
+      ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah\' blah'],
+    ]
+    outputs = [
+      ['this is great a day', 'london capital gret britain'],
+      ['ooo', 'lll'],
+      ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah blah'],
+      ['this is a great day', 'london is the capital of great britain'],
+      ['a b c\' asdf', 'blah blah\' bblah'],
+    ]
+    y = [None] * len(inputs)
+    len_y = [None] * len(inputs)
+    indices, values, dense_shape = [], [], []
+
+    num_gpus = len(inputs)
+    for gpu_id in range(num_gpus):
+      num_samples = len(inputs[gpu_id])
+      max_len = np.max(list(map(len, inputs[gpu_id])))
+      y[gpu_id] = np.zeros((num_samples, max_len), dtype=np.int)
+      len_y[gpu_id] = np.zeros(num_samples, dtype=np.int)
+      for sample_id in range(num_samples):
+        num_letters = len(inputs[gpu_id][sample_id])
+        len_y[gpu_id][sample_id] = num_letters
+        for letter_id in range(num_letters):
+          y[gpu_id][sample_id, letter_id] = char2idx[
+            inputs[gpu_id][sample_id][letter_id]
+          ]
+
+    num_gpus = len(outputs)
+    for gpu_id in range(num_gpus):
+      num_samples = len(outputs[gpu_id])
+      max_len = np.max(list(map(len, outputs[gpu_id])))
+      dense_shape.append(np.array((num_samples, max_len)))
+      values.append([])
+      indices.append([])
+      for sample_id in range(num_samples):
+        num_letters = len(outputs[gpu_id][sample_id])
+        for letter_id in range(num_letters):
+          values[gpu_id].append(
+            char2idx[outputs[gpu_id][sample_id][letter_id]]
+          )
+          indices[gpu_id].append(np.array([sample_id, letter_id]))
+      values[gpu_id] = np.array(values[gpu_id], dtype=np.int)
+      indices[gpu_id] = np.array(indices[gpu_id], dtype=np.int)
+
+    x = [np.empty(2)] * len(y)
+    len_x = [None] * len(y)
+    input_values = list(zip(x, len_x, y, len_y))
+    output_values = [
+      [tf.SparseTensorValue(indices[i], values[i], dense_shape[i])]
+      for i in range(num_gpus)
+    ]
+
+    results = []
+    for inp, out in zip(input_values, output_values):
+      results.append(model.evaluate(inp, out))
+    for inp, out in zip(input_values, output_values):
+      results.append(model.evaluate(inp, out))
+    output_dict = model.finalize_evaluation(results)
+
+    w_lev = 0.0
+    w_len = 0.0
+    for batch_id in range(len(inputs)):
+      for sample_id in range(len(inputs[batch_id])):
+        input_sample = inputs[batch_id][sample_id]
+        output_sample = outputs[batch_id][sample_id]
+        w_lev += levenshtein(input_sample.split(), output_sample.split())
+        w_len += len(input_sample.split())
+
+    self.assertEqual(output_dict['Eval WER'], w_lev / w_len)
+    self.assertEqual(output_dict['Eval WER'], 37 / 40.0)
+
+    output_dict = model.maybe_print_logs(input_values[0], output_values[0])
+    self.assertEqual(output_dict['Sample WER'], 0.4)
 
 
 if __name__ == '__main__':
