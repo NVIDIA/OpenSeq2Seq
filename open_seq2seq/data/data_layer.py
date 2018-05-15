@@ -44,7 +44,7 @@ class DataLayer:
     }
 
   @abc.abstractmethod
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params, model, num_workers, worker_id):
     """Data layer constructor.
     The TensorFlow graph should not be created here, but rather in the
     :meth:`self.build_graph() <build_graph>` method.
@@ -55,9 +55,12 @@ class DataLayer:
       model (instance of a class derived from :class:`Model<models.model.Model>`):
           parent model that created this data layer.
           Could be None if no model access is required for the use case.
-      num_workers (int): number of Horovod processes or None if Horovod is not used.
-      worker_id (int): Horovod process id or None if Horovod is not used.
+      num_workers (int): number of Horovod processes or number of GPUs
+          if Horovod is not used.
+      worker_id (int): Horovod process id or GPU id if Horovod is not used.
+
     Config parameters:
+
     * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
       Typically will be True for train and False for inference and evaluation.
     * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
@@ -81,7 +84,7 @@ class DataLayer:
     if self._params['mode'] != 'train' and self._params['shuffle']:
       raise ValueError("Shuffle should not be performed in eval or infer modes")
 
-    # could be used for correct Horovod processing
+    # should be used for correct evaluation on multiple GPUs
     self._num_workers = num_workers
     self._worker_id = worker_id
 
@@ -98,24 +101,26 @@ class DataLayer:
   @property
   @abc.abstractmethod
   def iterator(self):
-    """Dataset iterator. Should be created by :meth:`build_graph`."""
+    """``tf.data.Dataset`` iterator.
+    Should be created by :meth:`self.build_graph()<build_graph>`.
+    """
     pass
 
   @property
   @abc.abstractmethod
   def input_tensors(self):
-    """Returns input tensors that will be connected to the model graph.
-    Should be created by :meth:`build_graph`.
-    Returns:
-      list: input tensors generated with
-      :meth:`self.gen_input_tensors()<gen_input_tensors>`.
+    """List of input tensors that will be connected to the model graph.
+    Should be created by :meth:`self.build_graph()<build_graph>`.
     """
     pass
 
   def get_size_in_samples(self):
     """Should return the dataset size in samples.
     That is, the number of objects in the dataset. This method is used to
-    calculate a valid epoch size.
+    calculate a valid epoch size. If this method is not defined, you will need
+    to make sure that your dataset for evaluation will be created only for
+    one epoch. You will also not be able to use ``num_epochs`` parameter in the
+    base config.
     Returns:
       int: dataset size in samples.
     """
