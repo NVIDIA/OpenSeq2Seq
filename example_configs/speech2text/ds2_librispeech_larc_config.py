@@ -34,7 +34,7 @@ base_params = {
     "power": 2,
   },
   "larc_params": {
-    "larc_nu": 1.0,
+    "larc_nu": 0.001,
   },
   "dtype": tf.float32,
   # weight decay
