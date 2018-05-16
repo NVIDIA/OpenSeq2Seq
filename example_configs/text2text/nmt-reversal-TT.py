@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text import ParallelTextDataLayer
-from open_seq2seq.losses import BasicSequenceLoss
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
+from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
 
@@ -14,64 +14,65 @@ https://arxiv.org/abs/1706.03762 on the toy task of reversing sequences
 """
 
 base_model = BasicText2TextWithAttention
+d_model = 128
+num_layers = 2
 
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
   "batch_size_per_gpu": 64,
-  "max_steps": 1100,
+  "max_steps": 800,
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-TransformerFP32",
+  "logdir": "ReversalTask-TransformerFP",
 
-  "optimizer": "Adam",
+  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
-    "beta2": 0.98,
-    "epsilon": 0.001,
+    "beta2": 0.997,
+    "epsilon": 0.000000001,
   },
   "learning_rate": 1.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "warmup_steps": 600,
-    "d_model": 64,
+    "warmup_steps": 200,
+    "d_model": d_model,
   },
   "dtype": tf.float32,
-
   "encoder": TransformerEncoder,
   "encoder_params": {
-    "initializer": tf.uniform_unit_scaling_initializer,
-    "d_model": 64,
-    "ffn_inner_dim": 128,
-    "encoder_layers": 1,
-    "attention_heads": 8,
-    "encoder_drop_prob": 0.0,
+    "encoder_layers": num_layers,
+    "hidden_size": d_model,
+    "num_heads": 8,
+    "attention_dropout": 0.1,
+    "filter_size": 4*d_model,
+    "relu_dropout": 0.1,
+    "layer_postprocess_dropout": 0.1,
   },
 
   "decoder": TransformerDecoder,
   "decoder_params": {
-    "initializer": tf.uniform_unit_scaling_initializer,
-    "use_encoder_emb": True,
-    "tie_emb_and_proj": True,
-    "d_model": 64,
-    "ffn_inner_dim": 128,
-    "decoder_layers": 1,
-    "attention_heads": 8,
-    "decoder_drop_prob": 0.0,
+    "layer_postprocess_dropout": 0.1,
+    "num_hidden_layers": num_layers,
+    "hidden_size": d_model,
+    "num_heads": 8,
+    "attention_dropout": 0.1,
+    "relu_dropout": 0.1,
+    "filter_size": 4*d_model,
+    "beam_size": 1,
+    "alpha": 1.0,
+    "extra_decode_length": 2,
+    "EOS_ID": SpecialTextTokens.EOS_ID.value,
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
-    "END_SYMBOL": SpecialTextTokens.EOS_ID.value,    
+    "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
 
-  "loss": BasicSequenceLoss,
-  "loss_params": {
-    "offset_target_by_one": True,
-    "do_mask": True,
-    #"label_smoothing": 0.01,
-  }
+  "loss": PaddedCrossEntropyLossWithSmoothing,
+  "loss_params": {}
 }
 
 train_params = {

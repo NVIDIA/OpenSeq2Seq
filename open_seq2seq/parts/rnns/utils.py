@@ -5,8 +5,8 @@ from six.moves import range
 
 from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
                                            MultiRNNCell
-from open_seq2seq.parts.experimental_rnn_cells.slstm import BasicSLSTMCell
-from open_seq2seq.parts.experimental_rnn_cells.glstm import GLSTMCell
+from open_seq2seq.parts.rnns.slstm import BasicSLSTMCell
+from open_seq2seq.parts.rnns.glstm import GLSTMCell
 
 import tensorflow as tf
 

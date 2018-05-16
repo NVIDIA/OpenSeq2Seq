@@ -5,6 +5,7 @@ from open_seq2seq.decoders import TransformerDecoder
 from open_seq2seq.data.text2text import TransformerDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.data.text2text.tokenizer import EOS_ID
 import tensorflow as tf
 
 """
@@ -63,6 +64,7 @@ base_params = {
     "beam_size": 1,
     "alpha": 1.0,
     "extra_decode_length": 50,
+    "EOS_ID": EOS_ID,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,

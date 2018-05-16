@@ -4,9 +4,9 @@ from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
-from open_seq2seq.data.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 """
 This configuration file describes classic RNN-based encoder-decoder model
@@ -34,15 +34,15 @@ base_params = {
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
 
-
   "encoder": TransformerEncoder,
   "encoder_params": {
-    "initializer": tf.glorot_uniform_initializer,
-    "d_model": 128,
-    "ffn_inner_dim": 256,
-    "encoder_layers": 1,
-    "attention_heads": 8,
-    "encoder_drop_prob": 0.8,
+    "encoder_layers": 2,
+    "hidden_size": 128,
+    "num_heads": 8,
+    "attention_dropout": 0.1,
+    "filter_size": 4 * 128,
+    "relu_dropout": 0.1,
+    "layer_postprocess_dropout": 0.1,
   },
 
   "decoder": RNNDecoderWithAttention,

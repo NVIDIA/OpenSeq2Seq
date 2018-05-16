@@ -11,7 +11,6 @@ from open_seq2seq.parts.transformer import utils, attention_layer, \
   ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
   LayerNormalization
-from open_seq2seq.data.tokenizer import EOS_ID
 
 class TransformerDecoder(Decoder):
   @staticmethod
@@ -24,7 +23,22 @@ class TransformerDecoder(Decoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return {}
+    return {
+      'EOS_ID': int,
+      'dtype': [tf.float32, tf.float16, 'mixed'],
+      'layer_postprocess_dropout': float,
+      'num_hidden_layers': int,
+      'hidden_size': int,
+      'num_heads': int,
+      'attention_dropout': float,
+      'relu_dropout': float,
+      'filter_size': int,
+      'batch_size': int,
+      'tgt_vocab_size': int,
+      'beam_size': int,
+      'alpha': float,
+      'extra_decode_length': int,
+    }
 
   @staticmethod
   def get_optional_params():
@@ -41,19 +55,9 @@ class TransformerDecoder(Decoder):
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      'dtype': [tf.float32, tf.float16, 'mixed'],
-      'layer_postprocess_dropout': float,
-      'num_hidden_layers': int,
-      'hidden_size': int,
-      'num_heads': int,
-      'attention_dropout': float,
-      'relu_dropout': float,
-      'filter_size': int,
-      'batch_size': int,
-      'tgt_vocab_size': int,
-      'beam_size': int,
-      'alpha': float,
-      'extra_decode_length': int,
+      'GO_SYMBOL': int,
+      'PAD_SYMBOL': int,
+      'END_SYMBOL': int,
     }
 
   def __init__(self, params, model,
@@ -98,15 +102,6 @@ class TransformerDecoder(Decoder):
           self.params["hidden_size"])
 
       if targets is None:
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-        print("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
         return self.predict(encoder_outputs, inputs_attention_bias)
       else:
         logits = self.decode_pass(targets, encoder_outputs, inputs_attention_bias)
@@ -253,7 +248,7 @@ class TransformerDecoder(Decoder):
         beam_size=self.params["beam_size"],
         alpha=self.params["alpha"],
         max_decode_length=max_decode_length,
-        eos_id=EOS_ID)
+        eos_id=self.params["EOS_ID"])
 
     # Get the top sequence for each batch element
     top_decoded_ids = decoded_ids[:, 0, 1:]

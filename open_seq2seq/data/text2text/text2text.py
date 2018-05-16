@@ -4,13 +4,12 @@ from __future__ import unicode_literals
 
 import numpy as np
 import tensorflow as tf
-import random
 import os
 from enum import Enum
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary, pad_vocab_to_eight
-from open_seq2seq.data.t2t import _read_and_batch_from_files
-from open_seq2seq.data.tokenizer import PAD_ID, PAD, EOS_ID, EOS
+from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
+from open_seq2seq.data.text2text.tokenizer import PAD_ID
 
 
 class SpecialTextTokens(Enum):
@@ -59,7 +58,7 @@ class ParallelTextDataLayer(DataLayer):
       'pad_vocab_to_eight' : bool,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params, model, num_workers=1, worker_id=0):
     super(ParallelTextDataLayer, self).__init__(params, model,
                                                 num_workers, worker_id)
     self._batch_size = self.params['batch_size']
@@ -79,6 +78,8 @@ class ParallelTextDataLayer(DataLayer):
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
     self._prefetch_buffer_size = self.params.get('prefetch_buffer_size', 4)
+    self._num_workers = num_workers
+    self._worker_id = worker_id
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
       raise ValueError("If padding to 8 in data layer, then "
                        "max_length should be multiple of 8")
@@ -179,7 +180,7 @@ class ParallelTextDataLayer(DataLayer):
     _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
       lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
                                     tf.less_equal(t2[1], self.max_len))
-    )
+    ).shard(num_shards=self._num_workers, index=self._worker_id)
 
     if self.params['shuffle']:
       _src_tgt_dataset = _src_tgt_dataset\
@@ -203,7 +204,8 @@ class ParallelTextDataLayer(DataLayer):
        0))).prefetch(buffer_size=self._prefetch_buffer_size)
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
-    if self._use_targets:
+
+    if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
@@ -246,7 +248,7 @@ class TransformerDataLayer(DataLayer):
       'tgt_vocab_file': str,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params, model, num_workers=1, worker_id=0):
     super(TransformerDataLayer, self).__init__(params, model,
                                                       num_workers, worker_id)
     self.src_vocab_file = self.params['src_vocab_file']
@@ -271,6 +273,9 @@ class TransformerDataLayer(DataLayer):
     self.params['source_seq2idx'] = self.src_seq2idx
     self.params['target_idx2seq'] = self.tgt_idx2seq
     self.params['source_idx2seq'] = self.src_idx2seq
+
+    self._num_workers = num_workers
+    self._worker_id = worker_id
 
     self._input_tensors = None
     self._iterator = None

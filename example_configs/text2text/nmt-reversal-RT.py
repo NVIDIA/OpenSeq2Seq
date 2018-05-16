@@ -2,9 +2,9 @@ from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text import ParallelTextDataLayer
-from open_seq2seq.losses import CrossEntropyWithSmoothing
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
+from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
 
@@ -45,35 +45,34 @@ base_params = {
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
     "encoder_cell_type": "lstm",
-    "encoder_cell_units": 64,
+    "encoder_cell_units": 128,
     "encoder_layers": 1,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": False,
-    "src_emb_size": 64,
+    "src_emb_size": 128,
   },
 
   "decoder": TransformerDecoder,
   "decoder_params": {
-    "initializer": tf.glorot_uniform_initializer,
-    "use_encoder_emb": False,
-    "tie_emb_and_proj": True,
-    "d_model": 64,
-    "ffn_inner_dim": 128,
-    "decoder_layers": 1,
-    "attention_heads": 8,
-    "decoder_drop_prob": 0.8,
+    "layer_postprocess_dropout": 0.1,
+    "num_hidden_layers": 2,
+    "hidden_size": 128,
+    "num_heads": 8,
+    "attention_dropout": 0.1,
+    "relu_dropout": 0.1,
+    "filter_size": 4*128,
+    "beam_size": 1,
+    "alpha": 1.0,
+    "extra_decode_length": 2,
+    "EOS_ID": SpecialTextTokens.EOS_ID.value,
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
 
-  "loss": CrossEntropyWithSmoothing,
-  "loss_params": {
-    "offset_target_by_one": True,
-    "do_mask": True,
-    "label_smoothing": 0.01,
-  }
+  "loss": PaddedCrossEntropyLossWithSmoothing,
+  "loss_params": {}
 }
 
 train_params = {

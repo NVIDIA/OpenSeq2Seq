@@ -4,12 +4,11 @@ RNN-based encoders
 """
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import copy
 import tensorflow as tf
 
-from open_seq2seq.parts.utils import create_rnn_cell
+from open_seq2seq.parts.rnns.utils import create_rnn_cell
 from .encoder import Encoder
 
 

@@ -4,19 +4,18 @@ RNN-based decoders
 """
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import copy
 import tensorflow as tf
 
-from open_seq2seq.parts.experimental_rnn_cells.gnmt import GNMTAttentionMultiCell, \
+from open_seq2seq.parts.rnns.gnmt import GNMTAttentionMultiCell, \
                                                            gnmt_residual_fn
-from open_seq2seq.parts.utils import create_rnn_cell
-from open_seq2seq.parts.attention_wrapper import BahdanauAttention, \
+from open_seq2seq.parts.rnns.utils import create_rnn_cell
+from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
                                                  LuongAttention, \
                                                  AttentionWrapper
 from .decoder import Decoder
-from open_seq2seq.parts.rnn_beam_search_decoder import BeamSearchDecoder
+from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 
 
 class RNNDecoderWithAttention(Decoder):
