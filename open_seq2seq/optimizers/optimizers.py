@@ -397,14 +397,20 @@ def optimize_loss(loss,
         v_norm = tf.norm(tensor=tf.cast(v, tf.float32), ord=2)
         g_norm = tf.norm(tensor=tf.cast(g, tf.float32), ord=2)
 
-        larc_grad_update = tf.maximum(larc_nu * v_norm / (g_norm + eps),
-                                      min_update)
-
         if larc_mode == 'clip':
+          larc_grad_update = tf.maximum(
+            larc_nu * v_norm / (lr * (g_norm + eps)),
+            min_update,
+          )
           if "larc_summaries" in summaries:
             summary.scalar('larc_clip_on/{}'.format(v.name),
                            tf.cast(tf.less(larc_grad_update, 1.0), tf.int32))
           larc_grad_update = tf.minimum(larc_grad_update, 1.0)
+        else:
+          larc_grad_update = tf.maximum(
+            larc_nu * v_norm / (g_norm + eps),
+            min_update,
+          )
         larc_grad_update = tf.saturate_cast(larc_grad_update, var_dtype)
         gradients[idx] = (larc_grad_update * g, v)
 

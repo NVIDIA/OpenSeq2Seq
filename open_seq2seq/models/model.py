@@ -158,12 +158,18 @@ class Model:
     * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
       will be performed if some gradients exceed this value (this is checked
       for each variable independently).
-    * **larc_mode** --- specify this to use LARC or LARS optimization
-      algorithms. Could be either "scale" (LARS) or "clip" (LARC).
-      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that
-      it works in addition to any other optimization algorithm since we treat
+    * **larc_params** --- dictionary with parameters for LARC (or LARS)
+      optimization algorithms. Can contain the following parameters:
+
+      * **larc_mode** --- Could be either "scale" (LARS) or "clip" (LARC).
+      Note that it works in addition to any other optimization algorithm
+      since we treat
       it as adaptive gradient clipping and learning rate adjustment.
-    * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **min_update** (float) --- minimal value of the LARC (LARS) update.
+      * **epsilon** (float) --- small number added to gradient norm in
+      denominator for numerical stability.
+
     * **loss_scale** (float) --- static loss scale to use. For details see
       :ref:`mixed precision training <mixed_precision>` section in docs.
     * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
