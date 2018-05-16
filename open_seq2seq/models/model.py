@@ -158,18 +158,6 @@ class Model:
     * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
       will be performed if some gradients exceed this value (this is checked
       for each variable independently).
-    * **larc_params** --- dictionary with parameters for LARC (or LARS)
-      optimization algorithms. Can contain the following parameters:
-
-      * **larc_mode** --- Could be either "scale" (LARS) or "clip" (LARC).
-      Note that it works in addition to any other optimization algorithm
-      since we treat
-      it as adaptive gradient clipping and learning rate adjustment.
-      * **larc_nu** (float) --- LARC or LARS scaling parameter.
-      * **min_update** (float) --- minimal value of the LARC (LARS) update.
-      * **epsilon** (float) --- small number added to gradient norm in
-      denominator for numerical stability.
-
     * **loss_scale** (float) --- static loss scale to use. For details see
       :ref:`mixed precision training <mixed_precision>` section in docs.
     * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
@@ -178,6 +166,17 @@ class Model:
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
+    * **larc_params** --- dictionary with parameters for LARC (or LARS)
+      optimization algorithms. Can contain the following parameters:
+
+      * **larc_mode** --- Could be either "scale" (LARS) or "clip" (LARC).
+        Note that it works in addition to any other optimization algorithm
+        since we treat
+        it as adaptive gradient clipping and learning rate adjustment.
+      * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **min_update** (float) --- minimal value of the LARC (LARS) update.
+      * **epsilon** (float) --- small number added to gradient norm in
+        denominator for numerical stability.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
 
@@ -271,7 +270,10 @@ class Model:
           self._steps_in_epoch //= self.num_gpus
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
-    self._outputs = [None] * self.num_gpus
+    if self.on_horovod:
+      self._output = None
+    else:
+      self._outputs = [None] * self.num_gpus
     self.loss = None
     self.train_op = None
     self.eval_losses = None
@@ -283,7 +285,6 @@ class Model:
     else:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
-
 
     if not self.on_horovod:  # not using Horovod
       # below we follow data parallelism for multi-GPU training
@@ -330,9 +331,9 @@ class Model:
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
 
-        loss, self._outputs = self._build_forward_pass_graph(input_tensors,
-                                                             gpu_id=0)
-        if self._outputs is not None and not isinstance(self._outputs, list):
+        loss, self._output = self._build_forward_pass_graph(input_tensors,
+                                                            gpu_id=0)
+        if self._output is not None and not isinstance(self._output, list):
           raise ValueError('Decoder samples have to be either None or list')
 
         if self._mode == "train":
@@ -407,8 +408,7 @@ class Model:
     """Abstract method. Should create the graph of the forward pass of the model.
 
     Args:
-      input_tensors (list): list of all input tensors
-          required to build the model.
+      input_tensors (list): ``input_tensors`` defined by the data_layer class.
       gpu_id (int, optional): id of the GPU where the current copy of the model
           is constructed. For Horovod this is always zero.
 
@@ -429,89 +429,176 @@ class Model:
     pass
 
   def maybe_print_logs(self, input_values, output_values):
-    """This function can be used to print logs that help to visualize training.
+    """This method can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
-    predictions. This function will be called every ``print_samples_steps``
+    predictions. This method will be called every ``print_samples_steps``
     (config parameter) iterations and input/output values will be populated
     automatically by calling ``sess.run`` on corresponding tensors. Note that
-    this function is not abstract and does not have to be implemented in
+    this method is not abstract and does not have to be implemented in
     derived classes. But if additional printing functionality is required,
-    overwriting this function can be a useful way to add it.
+    overwriting this method can be a useful way to add it.
 
     Args:
       input_values: evaluation of :meth:`self.data_layer.input_tensors
-                                  <data.data_layer.DataLayer.get_input_tensors>`.
+                                  <data.data_layer.DataLayer.input_tensors>`.
       output_values: evaluation of :meth:`self.get_output_tensors()
                                           <get_output_tensors>`.
 
     Returns:
-      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
+      dict: dictionary with values that need to be logged to TensorBoard
+      (can be empty).
     """
     # by default return an empty dictionary and do nothing
     return {}
 
   def evaluate(self, input_values, output_values):
-    """This function can be used to calculate evaluation metrics.
-    For example, for speech-to-text models this function can calculate
-    word-error-rate on the validation data. For text-to-text models, this
-    function can compute BLEU score. Look at the corresponding derived classes
-    for examples of this. This function will be called every
+    """This method can be used in conjunction with
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` to calculate
+    evaluation metrics.
+    For example, for speech-to-text models these methods can calculate
+    word-error-rate on the validation data. For text-to-text models, these
+    methods can compute BLEU score. Look at the corresponding derived classes
+    for examples of this. These methods will be called every
     ``eval_steps`` (config parameter) iterations and
     input/output values will be populated automatically by calling ``sess.run``
-    on corresponding tensors for each batch (using evaluation model). Note that
+    on corresponding tensors (using evaluation model).
+    The :meth:`self.evaluate()<evaluate>` method is called on each batch data
+    and it's results will be collected and provided to
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` for finalization.
+    Note that
     this function is not abstract and does not have to be implemented in
     derived classes. But if evaluation functionality is required,
     overwriting this function can be a useful way to add it.
 
     Args:
-      inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.input_tensors
-          <data.data_layer.DataLayer.get_input_tensors>`
-          for each batch in evaluation dataset.
-      outputs_per_batch (list): list with evaluation of
-          :meth:`self.get_output_tensors() <get_output_tensors>`
-          for each batch in evaluation dataset.
+      input_values: evaluation of :meth:`self.data_layer.input_tensors
+                                  <data.data_layer.DataLayer.input_tensors>`.
+      output_values: evaluation of :meth:`self.get_output_tensors()
+                                          <get_output_tensors>`.
 
     Returns:
-      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
+      list: all necessary values for evaluation finalization (e.g. accuracy on
+      current batch, which will then be averaged in finalization method).
     """
-    # by default return an empty dictionary and do nothing
     return []
 
   def finalize_evaluation(self, results_per_batch):
-    pass
+    """This method can be used in conjunction with
+    :meth:`self.evaluate()<evaluate>` to calculate
+    evaluation metrics.
+    For example, for speech-to-text models these methods can calculate
+    word-error-rate on the validation data. For text-to-text models, these
+    methods can compute BLEU score. Look at the corresponding derived classes
+    for examples of this. These methods will be called every
+    ``eval_steps`` (config parameter) iterations and
+    input/output values will be populated automatically by calling ``sess.run``
+    on corresponding tensors (using evaluation model).
+    The :meth:`self.evaluate()<evaluate>` method is called on each batch data
+    and it's results will be collected and provided to
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` for finalization.
+    Note that
+    these methods are not abstract and does not have to be implemented in
+    derived classes. But if evaluation functionality is required,
+    overwriting these methods can be a useful way to add it.
+
+    Args:
+      results_per_batch (list): aggregation of values returned from all calls
+          to :meth:`self.evaluate()<evaluate>` method (number of calls will be
+          equal to number of evaluation batches).
+
+    Returns:
+      dict: dictionary with values that need to be logged to TensorBoard
+      (can be empty).
+    """
+    # by default return an empty dictionary and do nothing
+    return {}
 
   def infer(self, input_values, output_values):
+    """This method is analogous to :meth:`self.evaluate()<evaluate>`, but used
+    in conjunction with :meth:`self.finalize_inference()<finalize_inference>`
+    to perform inference.
+
+    Args:
+      input_values: evaluation of :meth:`self.data_layer.input_tensors
+                                  <data.data_layer.DataLayer.input_tensors>`.
+      output_values: evaluation of :meth:`self.get_output_tensors()
+                                          <get_output_tensors>`.
+
+    Returns:
+      list: all necessary values for inference finalization (e.g. this method
+      can return final generated sequences for each batch which will then be
+      saved to file in :meth:`self.finalize_inference()<finalize_inference>`
+      method).
+    """
     return []
 
   def finalize_inference(self, results_per_batch, output_file):
-    """ This function should be implemented if the model support inference mode.
-    For example for speech-to-text and text-to-text models, this function will
+    """This method should be implemented if the model support inference mode.
+    For example for speech-to-text and text-to-text models, this method will
     log the corresponding input-output pair to the output_file.
 
     Args:
-      inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.input_tensors
-          <data.data_layer.DataLayer.get_input_tensors>`
-          for each batch in evaluation dataset.
-      outputs_per_batch (list): list with evaluation of
-          :meth:`self.get_output_tensors() <get_output_tensors>`
-          for each batch in evaluation dataset.
+      results_per_batch (list): aggregation of values returned from all calls
+          to :meth:`self.evaluate()<evaluate>` method (number of calls will be
+          equal to number of evaluation batches).
       output_file (str): name of the output file that inference results should
           be saved to.
     """
     pass
 
   def clip_last_batch(self, last_batch, true_size):
+    """This method performs last batch clipping.
+    Used in cases when dataset is not divisible by the batch size and model
+    does not support dynamic batch sizes. In those cases, the last batch will
+    containing some data from the ``next epoch'' and this method can be used
+    to remove that data. This method works for both
+    dense and sparse tensors. In most cases you will not need to overwrite this
+    method.
+
+    Args:
+      last_batch (list): list with elements that could be either ``np.array``
+          or ``tf.SparseTensorValue`` containing data for last batch. The
+          assumption is that the first axis of all data tensors will correspond
+          to the current batch size.
+      true_size (int): true size that the last batch should be cut to.
+    """
     return clip_last_batch(last_batch, true_size)
 
-  def get_output_tensors(self):
+  def get_output_tensors(self, worker_id=0):
     """Returns output tensors generated by :meth:`_build_forward_pass_graph.`
+    When using Horovod, ``worker_id`` parameter is ignored. When using
+    tower-based multi-GPU approach, ``worker_id`` can be used to select tensors
+    for corresponding tower/GPU.
+
+    Args:
+      worker_id (int): id of the worker to get tensors from
+          (not used for Horovod).
 
     Returns:
-      list: list with output tensors.
+      output tensors.
     """
-    return self._outputs
+    if self.on_horovod:
+      return self._output
+    else:
+      return self._outputs[worker_id]
+
+  def get_data_layer(self, worker_id=0):
+    """Returns model data layer.
+    When using Horovod, ``worker_id`` parameter is ignored. When using
+    tower-based multi-GPU approach, ``worker_id`` can be used to select
+    data layer for corresponding tower/GPU.
+
+    Args:
+      worker_id (int): id of the worker to get data layer from
+          (not used for Horovod).
+
+    Returns:
+      model data layer.
+    """
+    if self.on_horovod:
+      return self._data_layer
+    else:
+      return self._data_layers[worker_id]
 
   def get_tf_dtype(self):
     """Returns actual TensorFlow dtype that will be used as variables dtype."""
@@ -524,13 +611,6 @@ class Model:
   def params(self):
     """Parameters used to construct the model (dictionary)."""
     return self._params
-
-  def get_data_layer(self, worker_id=0):
-    """Model data layer."""
-    if self.on_horovod:
-      return self._data_layer
-    else:
-      return self._data_layers[worker_id]
 
   @property
   def steps_in_epoch(self):
@@ -550,7 +630,7 @@ class Model:
   def num_gpus(self):
     """Number of GPUs the model will be run on.
     For Horovod this is always 1 and actual number of GPUs is controlled by
-    MPI parameters.
+    Open-MPI parameters.
     """
     return len(self._gpu_ids)
 

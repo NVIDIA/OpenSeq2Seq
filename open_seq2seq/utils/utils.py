@@ -55,7 +55,7 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     data_layer = model.get_data_layer(dl_id)
     if compute_loss:
       loss_tensor = model.eval_losses[dl_id]
-    output_tensors = model.get_output_tensors()[dl_id]
+    output_tensors = model.get_output_tensors(dl_id)
 
   sess.run(data_layer.iterator.initializer)
 
