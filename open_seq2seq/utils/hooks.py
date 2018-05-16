@@ -21,10 +21,8 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._iter_count = 0
     self._global_step = None
     self._model = model
-    output_tensors = model.get_output_tensors()
-    if not model.on_horovod:
-      # using only first GPU
-      output_tensors = output_tensors[0]
+    # using only first GPU
+    output_tensors = model.get_output_tensors(0)
     self._fetches = [
       model.get_data_layer(0).input_tensors,
       output_tensors,
