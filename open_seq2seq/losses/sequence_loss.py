@@ -247,6 +247,7 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
     return dict(Loss.get_optional_params(), **{
       'batch_size': int,
       'tgt_vocab_size': int,
+      'label_smoothing': float,
     })
 
   def __init__(self, params, model, name="padded_cross_entropy_with_smoothing"):
