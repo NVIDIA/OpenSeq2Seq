@@ -9,9 +9,9 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
-from .data_layer import DataLayer
+from open_seq2seq.data.data_layer import DataLayer
 from .speech_utils import get_speech_features_from_file
-from .utils import load_pre_existing_vocabulary
+from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
 class Speech2TextDataLayer(DataLayer):

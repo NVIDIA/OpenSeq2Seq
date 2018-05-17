@@ -5,8 +5,8 @@ from six.moves import range
 
 import tensorflow as tf
 from .resnet_blocks import conv2d_fixed_padding, batch_norm, block_layer, \
-                           _bottleneck_block_v1, _bottleneck_block_v2, \
-                           _building_block_v1, _building_block_v2
+                           bottleneck_block_v1, bottleneck_block_v2, \
+                           building_block_v1, building_block_v2
 from .encoder import Encoder
 
 
@@ -60,14 +60,14 @@ class ResNetEncoder(Encoder):
 
     if self.bottleneck:
       if self.version == 1:
-        self.block_fn = _bottleneck_block_v1
+        self.block_fn = bottleneck_block_v1
       else:
-        self.block_fn = _bottleneck_block_v2
+        self.block_fn = bottleneck_block_v2
     else:
       if self.version == 1:
-        self.block_fn = _building_block_v1
+        self.block_fn = building_block_v1
       else:
-        self.block_fn = _building_block_v2
+        self.block_fn = building_block_v2
 
     training = self.mode == 'train'
     regularizer = self.params.get('regularizer', None)

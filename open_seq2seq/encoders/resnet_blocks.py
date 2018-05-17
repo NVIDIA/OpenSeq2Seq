@@ -35,10 +35,6 @@ import tensorflow as tf
 
 _BATCH_NORM_DECAY = 0.997
 _BATCH_NORM_EPSILON = 1e-5
-DEFAULT_VERSION = 2
-DEFAULT_DTYPE = tf.float32
-CASTABLE_TYPES = (tf.float16,)
-ALLOWED_TYPES = (DEFAULT_DTYPE,) + CASTABLE_TYPES
 
 
 ################################################################################
@@ -98,8 +94,8 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
 ################################################################################
 # ResNet block definitions.
 ################################################################################
-def _building_block_v1(inputs, filters, training, projection_shortcut, strides,
-                       data_format, regularizer):
+def building_block_v1(inputs, filters, training, projection_shortcut, strides,
+                      data_format, regularizer):
   """A single block for ResNet v1, without a bottleneck.
 
   Convolution then batch normalization then ReLU as described by:
@@ -145,8 +141,8 @@ def _building_block_v1(inputs, filters, training, projection_shortcut, strides,
   return inputs
 
 
-def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
-                       data_format, regularizer):
+def building_block_v2(inputs, filters, training, projection_shortcut, strides,
+                      data_format, regularizer):
   """A single block for ResNet v2, without a bottleneck.
 
   Batch normalization then ReLu then convolution as described by:
@@ -191,8 +187,8 @@ def _building_block_v2(inputs, filters, training, projection_shortcut, strides,
   return inputs + shortcut
 
 
-def _bottleneck_block_v1(inputs, filters, training, projection_shortcut,
-                         strides, data_format, regularizer):
+def bottleneck_block_v1(inputs, filters, training, projection_shortcut,
+                        strides, data_format, regularizer):
   """A single block for ResNet v1, with a bottleneck.
 
   Similar to _building_block_v1(), except using the "bottleneck" blocks
@@ -246,8 +242,8 @@ def _bottleneck_block_v1(inputs, filters, training, projection_shortcut,
   return inputs
 
 
-def _bottleneck_block_v2(inputs, filters, training, projection_shortcut,
-                         strides, data_format, regularizer):
+def bottleneck_block_v2(inputs, filters, training, projection_shortcut,
+                        strides, data_format, regularizer):
   """A single block for ResNet v2, without a bottleneck.
 
   Similar to _building_block_v2(), except using the "bottleneck" blocks
