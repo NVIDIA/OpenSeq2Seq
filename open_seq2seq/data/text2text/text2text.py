@@ -180,7 +180,12 @@ class ParallelTextDataLayer(DataLayer):
     _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
       lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
                                     tf.less_equal(t2[1], self.max_len))
-    ).shard(num_shards=self._num_workers, index=self._worker_id)
+    )
+
+    if self._num_workers > 1:
+      _src_tgt_dataset = _src_tgt_dataset\
+        .shard(num_shards=self._num_workers, index=self._worker_id)
+
 
     if self.params['shuffle']:
       _src_tgt_dataset = _src_tgt_dataset\
@@ -250,7 +255,7 @@ class TransformerDataLayer(DataLayer):
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
     super(TransformerDataLayer, self).__init__(params, model,
-                                                      num_workers, worker_id)
+                                               num_workers, worker_id)
     self.src_vocab_file = self.params['src_vocab_file']
     # if tgt vocab isn't specified - assume common vocab file
     self.tgt_vocab_file = self.params.get('tgt_vocab_file', self.src_vocab_file)
@@ -290,7 +295,9 @@ class TransformerDataLayer(DataLayer):
       max_length=self.params['max_length'],
       num_cpu_cores=self.params.get('num_cpu_cores', 2),
       shuffle=self.params['shuffle'],
-      repeat=self.params['repeat'])
+      repeat=self.params['repeat'],
+      num_workers=self._num_workers,
+      worker_id=self._worker_id)
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()

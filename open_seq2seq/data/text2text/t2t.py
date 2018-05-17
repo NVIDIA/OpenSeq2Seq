@@ -190,7 +190,8 @@ def _batch_examples(dataset, batch_size, max_length):
 
 
 def _read_and_batch_from_files(
-    file_pattern, batch_size, max_length, num_cpu_cores, shuffle, repeat):
+    file_pattern, batch_size, max_length, num_cpu_cores, shuffle, repeat,
+    num_workers, worker_id):
   """Create dataset where each item is a dict of "inputs" and "targets".
 
   Args:
@@ -201,11 +202,15 @@ def _read_and_batch_from_files(
     shuffle: If true, randomizes order of elements.
     repeat: Number of times to repeat the dataset. If None, the dataset is
       repeated forever.
+    num_workers: Number of workers or number of Horovod workers
+    worker_id: Worker id or Horovod rank
 
   Returns:
     tf.data.Dataset object containing examples loaded from the files.
   """
   dataset = tf.data.Dataset.list_files(file_pattern)
+  if num_workers > 1:
+    dataset = dataset.shard(num_shards=num_workers, index=worker_id)
 
   if shuffle:
     # Shuffle filenames
