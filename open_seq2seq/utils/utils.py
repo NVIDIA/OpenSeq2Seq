@@ -109,15 +109,21 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     if step >= bench_start:
       total_time += time.time() - tm
 
-    # assuming inputs[0].shape[0] is batch size
-    batch_size = inputs[0].shape[0]
+    # assuming any element of inputs["source_tensors"][ shape[0] is batch size
+    batch_size = inputs["source_tensors"][0].shape[0]
 
     if compute_loss:
       total_loss += loss * batch_size
       total_samples += batch_size
 
     if size_defined and step == data_size:
-      inputs = model.clip_last_batch(inputs, last_batch_size)
+      inputs["source_tensors"] = model.clip_last_batch(
+        inputs["source_tensors"], last_batch_size,
+      )
+      if 'target_tensors' in inputs:
+        inputs["target_tensors"] = model.clip_last_batch(
+          inputs["target_tensors"], last_batch_size,
+        )
       outputs = model.clip_last_batch(outputs, last_batch_size)
 
     if mode == 'eval':

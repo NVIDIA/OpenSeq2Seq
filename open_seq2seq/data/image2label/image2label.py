@@ -84,7 +84,9 @@ class ImagenetDataLayer(DataLayer):
     dataset = dataset.prefetch(1)
 
     self._iterator = dataset.make_initializable_iterator()
-    self._input_tensors = self.iterator.get_next()
+    inputs, labels = self.iterator.get_next()
+    self._input_tensors['source_tensors'] = inputs
+    self._input_tensors['target_tensors'] = labels
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
