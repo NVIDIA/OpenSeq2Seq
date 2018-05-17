@@ -185,8 +185,8 @@ class TransformerDecoder(Decoder):
 
     timing_signal = utils.get_position_encoding(
         max_decode_length + 1, self.params["hidden_size"])
-    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
-        max_decode_length)
+    decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+        max_decode_length), dtype=self.params['dtype'])
 
     def symbols_to_logits_fn(ids, i, cache):
       """Generate logits for next potential IDs.
@@ -213,12 +213,14 @@ class TransformerDecoder(Decoder):
       #decoder_input += timing_signal[i:i + 1]
 
       self_attention_bias = decoder_self_attention_bias[:, :, i:i + 1, :i + 1]
+
       decoder_outputs = self._call(#self.decoder_stack(
           decoder_input, cache.get("encoder_outputs"), self_attention_bias,
           cache.get("encoder_decoder_attention_bias"), cache)
       logits = self.embedding_softmax_layer.linear(decoder_outputs)
       logits = tf.squeeze(logits, axis=[1])
-      return logits, cache
+      #return logits, cache
+      return tf.cast(logits, tf.float32), cache
     return symbols_to_logits_fn
 
   def predict(self, encoder_outputs, encoder_decoder_attention_bias):
@@ -236,9 +238,11 @@ class TransformerDecoder(Decoder):
     cache = {
         "layer_%d" % layer: {
             "k": tf.zeros([batch_size, 0,
-                           self.params["hidden_size"]]),
+                           self.params["hidden_size"]],
+                          dtype=encoder_outputs.dtype),
             "v": tf.zeros([batch_size, 0,
-                           self.params["hidden_size"]]),
+                           self.params["hidden_size"]],
+                          dtype=encoder_outputs.dtype),
         } for layer in range(self.params["num_hidden_layers"])}
 
     # Add encoder output and attention bias to the cache.

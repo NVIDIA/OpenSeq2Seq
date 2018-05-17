@@ -23,7 +23,7 @@ from tensorflow.python.util import nest
 
 # Default value for INF
 #INF = 1. * 1e7
-INF = 32768
+INF = 32768.0
 
 
 class _StateKeys(object):
@@ -74,6 +74,9 @@ class SequenceBeamSearch(object):
     """Beam search for sequences with highest scores."""
     state, state_shapes = self._create_initial_state(initial_ids, initial_cache)
 
+    print("AAAAAAAAAAAAAAAA")
+    print(state)
+    print("AAAAAAAAAAAAAAAA")
     finished_state = tf.while_loop(
         self._continue_search, self._search_step, loop_vars=[state],
         shape_invariants=[state_shapes], parallel_iterations=1, back_prop=False)
