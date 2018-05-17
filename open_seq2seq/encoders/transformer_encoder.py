@@ -11,6 +11,8 @@ from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
   LayerNormalization
 
 class TransformerEncoder(Encoder):
+  """Transformer model encoder"""
+
   @staticmethod
   def get_required_params():
     """Static method with description of required parameters.
@@ -21,7 +23,16 @@ class TransformerEncoder(Encoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return {}
+    return dict(Encoder.get_required_params(), **{
+      "encoder_layers": int,
+      "hidden_size": int,
+      "num_heads": int,
+      "attention_dropout": float,
+      "filter_size": int,
+      "src_vocab_size": int,
+      "relu_dropout": float,
+      "layer_postprocess_dropout": float,
+    })
 
   @staticmethod
   def get_optional_params():
@@ -33,22 +44,13 @@ class TransformerEncoder(Encoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return {
+    return dict(Encoder.get_optional_params(), **{
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
-      "encoder_layers": int,
-      "hidden_size": int,
-      "num_heads": int,
-      "attention_dropout": float,
-      "filter_size": int,
-      "src_vocab_size": int,
-      "relu_dropout": float,
-      "layer_postprocess_dropout": float,
-      'dtype': [tf.float32, tf.float16, 'mixed'],
-    }
-  """Transformer model encoder"""
+    })
+
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
     super(TransformerEncoder, self).__init__(
       params, model, name=name, mode=mode,
@@ -102,13 +104,16 @@ class TransformerEncoder(Encoder):
       # applying dropout.
       embedded_inputs = self.embedding_softmax_layer(inputs)
       inputs_padding = utils.get_padding(inputs)
-      inputs_attention_bias = utils.get_padding_bias(inputs)
+      #inputs_attention_bias = utils.get_padding_bias(inputs)
+      inputs_attention_bias = tf.cast(utils.get_padding_bias(inputs),
+                                      dtype=self.params['dtype'])
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]
         pos_encoding = utils.get_position_encoding(
             length, self.params["hidden_size"])
-        encoder_inputs = embedded_inputs + pos_encoding
+        encoder_inputs = embedded_inputs + tf.cast(x=pos_encoding,
+                                                   dtype=embedded_inputs.dtype)
 
       if self.mode == "train":
         encoder_inputs = tf.nn.dropout(

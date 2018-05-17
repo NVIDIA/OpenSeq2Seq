@@ -63,7 +63,9 @@ class EmbeddingSharedWeights(tf.layers.Layer):
       padding = model_utils.get_padding(x)
 
       # Set all padding embedding values to 0
-      embeddings *= tf.expand_dims(1 - padding, -1)
+      #embeddings *= tf.expand_dims(1 - padding, -1)
+      embeddings *= tf.cast(tf.expand_dims(1 - padding, -1),
+                            dtype=embeddings.dtype)
       return embeddings
 
   def linear(self, x):

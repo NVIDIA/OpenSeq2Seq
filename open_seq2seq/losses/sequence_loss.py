@@ -257,6 +257,7 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
 
   def _compute_loss(self, input_dict):
     logits = input_dict["decoder_output"]["logits"]
+    logits = tf.cast(logits, dtype=tf.float32)
     if logits is None:
       return 0.0
     labels = input_dict["tgt_sequence"]

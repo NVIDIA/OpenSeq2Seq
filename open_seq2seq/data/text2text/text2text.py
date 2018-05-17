@@ -13,10 +13,10 @@ from open_seq2seq.data.text2text.tokenizer import PAD_ID
 
 
 class SpecialTextTokens(Enum):
-  UNK_ID = 0  # out-of-vocabulary tokens will map there
-  S_ID = 1  # special start of sentence token
-  EOS_ID = 2  # special end of sentence token
-  PAD_ID = 3  # special padding token
+  PAD_ID = 0  # special padding token
+  EOS_ID = 1  # special end of sentence token
+  S_ID = 2  # special start of sentence token
+  UNK_ID = 3  # out-of-vocabulary tokens will map there
   OUT_OF_BUCKET = 1234567890
   END_OF_CHOICE = -100
 

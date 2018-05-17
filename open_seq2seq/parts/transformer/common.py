@@ -7,8 +7,6 @@ from __future__ import print_function
 
 import tensorflow as tf
 
-_NEG_INF = -1e9
-
 # Define defaults for parameters
 
 class LayerNormalization(tf.layers.Layer):
@@ -26,6 +24,7 @@ class LayerNormalization(tf.layers.Layer):
     self.built = True
 
   def call(self, x, epsilon=1e-6):
+  #def call(self, x, epsilon=1e-4):
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
     norm_x = (x - mean) * tf.rsqrt(variance + epsilon)

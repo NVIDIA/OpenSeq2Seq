@@ -27,7 +27,10 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-TransformerFP",
+  "logdir": "ReversalTask-Transformer-MP",
+  #"dtype": tf.float32,
+  "dtype": "mixed",
+  "automatic_loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -41,7 +44,6 @@ base_params = {
     "warmup_steps": 200,
     "d_model": d_model,
   },
-  "dtype": tf.float32,
   "encoder": TransformerEncoder,
   "encoder_params": {
     "encoder_layers": num_layers,

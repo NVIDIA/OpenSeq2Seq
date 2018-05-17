@@ -23,9 +23,8 @@ class TransformerDecoder(Decoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return {
+    return dict(Decoder.get_required_params(), **{
       'EOS_ID': int,
-      'dtype': [tf.float32, tf.float16, 'mixed'],
       'layer_postprocess_dropout': float,
       'num_hidden_layers': int,
       'hidden_size': int,
@@ -38,7 +37,7 @@ class TransformerDecoder(Decoder):
       'beam_size': int,
       'alpha': float,
       'extra_decode_length': int,
-    }
+    })
 
   @staticmethod
   def get_optional_params():
@@ -50,7 +49,7 @@ class TransformerDecoder(Decoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return {
+    return dict(Decoder.get_optional_params(), **{
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
@@ -58,7 +57,7 @@ class TransformerDecoder(Decoder):
       'GO_SYMBOL': int,
       'PAD_SYMBOL': int,
       'END_SYMBOL': int,
-    }
+    })
 
   def __init__(self, params, model,
                name="transformer_decoder", mode='train'):
@@ -123,6 +122,9 @@ class TransformerDecoder(Decoder):
       layer_cache = cache[layer_name] if cache is not None else None
       with tf.variable_scope(layer_name):
         with tf.variable_scope("self_attention"):
+          # TODO: Figure out why this is needed
+          decoder_self_attention_bias = tf.cast(x=decoder_self_attention_bias,
+                                                dtype=decoder_inputs.dtype)
           decoder_inputs = self_attention_layer(
               decoder_inputs, decoder_self_attention_bias, cache=layer_cache)
         with tf.variable_scope("encdec_attention"):
@@ -156,15 +158,17 @@ class TransformerDecoder(Decoder):
           decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
     with tf.name_scope("add_pos_encoding"):
       length = tf.shape(decoder_inputs)[1]
-      decoder_inputs += utils.get_position_encoding(
-          length, self.params["hidden_size"])
+      #decoder_inputs += utils.get_position_encoding(
+      #    length, self.params["hidden_size"])
+      decoder_inputs += tf.cast(utils.get_position_encoding(
+         length, self.params["hidden_size"]), dtype=self.params['dtype'])
     if self.mode == "train":
       decoder_inputs = tf.nn.dropout(
           decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
 
     # Run values
-    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
-        length)
+    decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+        length), dtype=decoder_inputs.dtype)
 
 
     # do decode
@@ -204,7 +208,9 @@ class TransformerDecoder(Decoder):
 
       # Preprocess decoder input by getting embeddings and adding timing signal.
       decoder_input = self.embedding_softmax_layer(decoder_input)
-      decoder_input += timing_signal[i:i + 1]
+      decoder_input += tf.cast(x=timing_signal[i:i + 1],
+                               dtype=decoder_input.dtype)
+      #decoder_input += timing_signal[i:i + 1]
 
       self_attention_bias = decoder_self_attention_bias[:, :, i:i + 1, :i + 1]
       decoder_outputs = self._call(#self.decoder_stack(
