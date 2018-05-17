@@ -63,6 +63,9 @@ class BasicText2TextWithAttention(Seq2Seq):
     self.params['decoder_params']['batch_size'] = (
       self.params['batch_size_per_gpu']
     )
+    self.params['decoder_params']['tgt_vocab_size'] = (
+      self.get_data_layer().params['tgt_vocab_size']
+    )
     return super(BasicText2TextWithAttention, self)._create_decoder()
 
   def _create_loss(self):

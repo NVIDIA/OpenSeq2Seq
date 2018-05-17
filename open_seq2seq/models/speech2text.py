@@ -43,6 +43,12 @@ def levenshtein(a, b):
 
 
 class Speech2Text(Seq2Seq):
+  def _create_decoder(self):
+    self.params['decoder_params']['tgt_vocab_size'] = (
+      self.get_data_layer().params['tgt_vocab_size']
+    )
+    return super(Speech2Text, self)._create_decoder()
+
   def maybe_print_logs(self, input_values, output_values):
     y, len_y = input_values['target_tensors']
     decoded_sequence = output_values

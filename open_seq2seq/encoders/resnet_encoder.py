@@ -4,8 +4,9 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
-from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
-
+from .resnet_blocks import conv2d_fixed_padding, batch_norm, block_layer, \
+                           _bottleneck_block_v1, _bottleneck_block_v2, \
+                           _building_block_v1, _building_block_v2
 from .encoder import Encoder
 
 
@@ -26,7 +27,7 @@ class ResNetEncoder(Encoder):
     super(ResNetEncoder, self).__init__(params, model, name, mode)
 
   def _encode(self, input_dict):
-    inputs = input_dict['inputs']
+    inputs = input_dict['source_tensors'][0]
 
     self.resnet_size = 50
     if self.resnet_size < 50:
@@ -69,7 +70,7 @@ class ResNetEncoder(Encoder):
         self.block_fn = _building_block_v2
 
     training = self.mode == 'train'
-    regularizer = self.params['regularizer']
+    regularizer = self.params.get('regularizer', None)
 
     if self.data_format == 'channels_first':
       # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
@@ -115,11 +116,6 @@ class ResNetEncoder(Encoder):
     inputs = tf.reduce_mean(inputs, axes, keepdims=True)
     inputs = tf.identity(inputs, 'final_reduce_mean')
 
-    inputs = tf.reshape(inputs, [-1, self.final_size])
-    inputs = tf.layers.dense(inputs=inputs, units=self.num_classes,
-                             regularizer=regularizer)
-    logits = tf.identity(inputs, 'final_dense')
+    outputs = tf.reshape(inputs, [-1, self.final_size])
 
-    return {
-      'logits': logits,
-    }
+    return {'outputs': outputs}

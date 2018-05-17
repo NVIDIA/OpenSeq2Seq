@@ -9,6 +9,32 @@ import os
 from .decoder import Decoder
 
 
+class FullyConnectedDecoder(Decoder):
+  @staticmethod
+  def get_required_params():
+    return dict(Decoder.get_required_params(), **{
+      'output_dim': int,
+    })
+
+  def __init__(self, params, model,
+               name="fully_connected_decoder", mode='train'):
+
+    super(FullyConnectedDecoder, self).__init__(params, model, name, mode)
+
+  def _decode(self, input_dict):
+    inputs = input_dict['encoder_output']['outputs']
+    regularizer = self.params.get('regularizer', None)
+
+    # activation is linear by default
+    logits = tf.layers.dense(
+      inputs=inputs,
+      units=self.params['output_dim'],
+      kernel_regularizer=regularizer,
+      name='fully_connected',
+    )
+    return {'logits': logits, 'samples': [logits]}
+
+
 class FullyConnectedTimeDecoder(Decoder):
   """Fully connected decoder that operates on inputs with time dimension.
   That is, input shape should be ``[batch size, time length, num features]``.

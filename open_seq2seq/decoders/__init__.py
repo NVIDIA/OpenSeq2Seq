@@ -7,4 +7,4 @@ from .decoder import Decoder
 from .rnn_decoders import RNNDecoderWithAttention, \
                           BeamSearchRNNDecoderWithAttention
 from .transformer_decoder import TransformerDecoder
-from .fc_decoder import FullyConnectedTimeDecoder, FullyConnectedCTCDecoder
+from .fc_decoders import FullyConnectedCTCDecoder

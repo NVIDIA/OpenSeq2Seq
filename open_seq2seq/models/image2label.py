@@ -4,41 +4,15 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
-import tensorflow as tf
 import numpy as np
 
-from .model import Model
+from .seq2seq import Seq2Seq
 from open_seq2seq.utils.utils import deco_print
-from .resnet_model import conv2d_fixed_padding, batch_norm, block_layer, \
-                          _bottleneck_block_v1, _bottleneck_block_v2, \
-                          _building_block_v1, _building_block_v2
 
 
-class ResNet(Model):
-  @staticmethod
-  def get_optional_params():
-    return dict(Model.get_optional_params(), **{
-      'weight_decay': float,
-      'regularize_bn': bool,
-      'resnet_size': int,
-    })
-
-  def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-    inputs, labels = input_tensors
-
-
-
-      if self.mode == "train" or self.mode == "eval":
-        with tf.variable_scope("Loss"):
-          loss = tf.losses.softmax_cross_entropy(logits=logits,
-                                                 onehot_labels=labels)
-      else:
-        deco_print("Inference Mode. Loss part of graph isn't built.")
-        loss = None
-      return loss, [logits]
-
+class Image2Label(Seq2Seq):
   def maybe_print_logs(self, input_values, output_values):
-    labels = input_values[1]
+    labels = input_values['target_tensors'][0]
     logits = output_values[0]
 
     labels = np.where(labels == 1)[1]
@@ -77,7 +51,7 @@ class ResNet(Model):
 
   def evaluate(self, input_values, output_values):
     logits = output_values[0]
-    labels = input_values[1]
+    labels = input_values['target_tensors'][0]
     labels = np.where(labels == 1)[1]
 
     total = logits.shape[0]

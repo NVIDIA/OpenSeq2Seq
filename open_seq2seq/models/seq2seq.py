@@ -98,7 +98,6 @@ class Seq2Seq(Model):
       instance of a class derived from :class:`decoders.decoder.Decoder`.
     """
     params = self.params['decoder_params']
-    params['tgt_vocab_size'] = self.get_data_layer().params['tgt_vocab_size']
     return self.params['decoder'](params=params, mode=self.mode, model=self)
 
   def _create_loss(self):
@@ -123,8 +122,21 @@ class Seq2Seq(Model):
     See :meth:`models.model.Model._build_forward_pass_graph` for description of
     arguments and return values.
     """
+    if not isinstance(input_tensors, dict) or \
+       'source_tensors' not in input_tensors:
+      raise ValueError('Input tensors should be a dict containing '
+                       '"source_tensors" key')
+
+    if not isinstance(input_tensors['source_tensors'], list):
+      raise ValueError('source_tensors should be a list')
+
     source_tensors = input_tensors['source_tensors']
     if self.mode == "train" or self.mode == "eval":
+      if 'target_tensors' not in input_tensors:
+        raise ValueError('Input tensors should contain "target_tensors" key'
+                         'when mode != "infer"')
+      if not isinstance(input_tensors['target_tensors'], list):
+        raise ValueError('target_tensors should be a list')
       target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
