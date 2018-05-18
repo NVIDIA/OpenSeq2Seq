@@ -41,8 +41,7 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
             sparse_xentropy = BasicSequenceLoss(params=loss_params, model=None)
             loss_input_dict = {
                 "decoder_output": {"logits": logits},
-                "tgt_sequence": targets,
-                "tgt_length": tgt_lengths,
+                "target_tensors": [targets, tgt_lengths],
                 }
             l1 = sparse_xentropy.compute_loss(input_dict=loss_input_dict)
             l2 = xentropy.compute_loss(input_dict=loss_input_dict)

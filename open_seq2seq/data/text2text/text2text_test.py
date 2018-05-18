@@ -37,13 +37,15 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     with self.test_session(use_gpu=True) as sess:
       sess.run(dl.iterator.initializer)
       et = sess.run(dl.input_tensors)
-      self.assertEqual(len(et), 4)
-      self.assertEqual(et[0].shape[0], self.params['batch_size'])
-      self.assertLessEqual(et[0].shape[1], self.params['max_length'])
-      self.assertEqual(et[1].shape[0], self.params['batch_size'])
-      self.assertEqual(et[2].shape[0], self.params['batch_size'])
-      self.assertLessEqual(et[2].shape[1], self.params['max_length'])
-      self.assertEqual(et[3].shape[0], self.params['batch_size'])
+      #self.assertEqual(len(et), 2)
+      self.assertIn('source_tensors', et)
+      self.assertIn('target_tensors', et)
+      self.assertEqual(et['source_tensors'][0].shape[0], self.params['batch_size'])
+      self.assertLessEqual(et['source_tensors'][0].shape[1], self.params['max_length'])
+      self.assertEqual(et['source_tensors'][1].shape[0], self.params['batch_size'])
+      self.assertEqual(et['target_tensors'][0].shape[0], self.params['batch_size'])
+      self.assertLessEqual(et['target_tensors'][0].shape[1], self.params['max_length'])
+      self.assertEqual(et['target_tensors'][1].shape[0], self.params['batch_size'])
 
   def test_init_test2(self):
     self.params['mode'] = "infer" # in this case we do not yield targets
@@ -55,10 +57,11 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     with self.test_session(use_gpu=True) as sess:
       sess.run(dl.iterator.initializer)
       et = sess.run(dl.input_tensors)
-      self.assertEqual(len(et), 2)
-      self.assertEqual(et[0].shape[0], self.params['batch_size'])
-      self.assertLessEqual(et[0].shape[1], self.params['max_length'])
-      self.assertEqual(et[1].shape[0], self.params['batch_size'])
+      #self.assertEqual(len(et), 1)
+      self.assertIn('source_tensors', et)
+      self.assertEqual(et['source_tensors'][0].shape[0], self.params['batch_size'])
+      self.assertLessEqual(et['source_tensors'][0].shape[1], self.params['max_length'])
+      self.assertEqual(et['source_tensors'][1].shape[0], self.params['batch_size'])
 
   def test_pad8(self):
     self.params['shuffle'] = False  # in this case we do not yield targets
@@ -70,13 +73,15 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     with self.test_session(use_gpu=True) as sess:
       sess.run(dl.iterator.initializer)
       et = sess.run(dl.input_tensors)
-      self.assertEqual(len(et), 4)
-      self.assertEqual(et[0].shape[0], self.params['batch_size'])
-      self.assertTrue(et[0].shape[1] % 8 == 0)
-      self.assertEqual(et[1].shape[0], self.params['batch_size'])
-      self.assertEqual(et[2].shape[0], self.params['batch_size'])
-      self.assertTrue(et[2].shape[1] % 8 == 0)
-      self.assertEqual(et[3].shape[0], self.params['batch_size'])
+      #self.assertEqual(len(et), 4)
+      self.assertIn('source_tensors', et)
+      self.assertIn('target_tensors', et)
+      self.assertEqual(et['source_tensors'][0].shape[0], self.params['batch_size'])
+      self.assertTrue(et['source_tensors'][0].shape[1] % 8 == 0)
+      self.assertEqual(et['source_tensors'][1].shape[0], self.params['batch_size'])
+      self.assertEqual(et['target_tensors'][0].shape[0], self.params['batch_size'])
+      self.assertTrue(et['target_tensors'][0].shape[1] % 8 == 0)
+      self.assertEqual(et['target_tensors'][1].shape[0], self.params['batch_size'])
 
 """
 class TransformerDataLayerTests(tf.test.TestCase):

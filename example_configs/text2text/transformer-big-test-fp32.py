@@ -2,9 +2,10 @@ from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import BasicText2TextWithAttention
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import TransformerDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
 
@@ -14,34 +15,33 @@ https://arxiv.org/abs/1706.03762 on the toy task of reversing sequences
 """
 
 base_model = BasicText2TextWithAttention
-d_model = 128
-num_layers = 2
+d_model = 512
+num_layers = 6
+data_root = "/home/okuchaiev/repos/forks/reference/translation/processed_data/"
 
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
-  "batch_size_per_gpu": 64,
-  "max_steps": 800,
+  "batch_size_per_gpu": 2048,
+  "max_steps": 340000,
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
-  "eval_steps": 50,
+  "eval_steps": 4000,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-Transformer-MP",
+  "logdir": "Transformer-big-test-FP32-DL2",
   "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
-
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
     "beta2": 0.997,
-    "epsilon": 0.000000001,
+    "epsilon": 1e-09,
   },
-  "learning_rate": 1.0,
+
+  "learning_rate": 2.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "warmup_steps": 200,
+    "warmup_steps": 16000,
     "d_model": d_model,
   },
   "encoder": TransformerEncoder,
@@ -64,59 +64,46 @@ base_params = {
     "attention_dropout": 0.1,
     "relu_dropout": 0.1,
     "filter_size": 4*d_model,
-    "beam_size": 1,
-    "alpha": 1.0,
-    "extra_decode_length": 2,
-    "EOS_ID": SpecialTextTokens.EOS_ID.value,
+    "beam_size": 4,
+    "alpha": 0.6,
+    "extra_decode_length": 50,
+    "EOS_ID": EOS_ID,
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,
-  "loss_params": {}
+  "loss_params": {
+     "label_smoothing": 0.1,
+  }
 }
 
 train_params = {
-  "data_layer": ParallelTextDataLayer,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/target.txt",
-    "source_file": "toy_text_data/train/source.txt",
-    "target_file": "toy_text_data/train/target.txt",
-    "shuffle": True,
-    "repeat": True,
-    "max_length": 56,
-    "delimiter": " ",
+    'data_dir': data_root,
+    'file_pattern': "*train*",
+    'src_vocab_file': data_root + "vocab.ende.32768",
+    'max_length': 256,
+    'shuffle': True,
+    'repeat': 100000,
+    'mode': 'train',
+    "delimiter": ' ',
   },
 }
 
 eval_params = {
-  "data_layer": ParallelTextDataLayer,
+  "batch_size_per_gpu": 512,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/target.txt",
-    "source_file": "toy_text_data/dev/source.txt",
-    "target_file": "toy_text_data/dev/target.txt",
-    "shuffle": False,
-    # because we evaluate many times
-    "repeat": True,
-    "max_length": 56,
-    "delimiter": " ",
-  },
-}
-
-infer_params = {
-  "batch_size_per_gpu": 1,
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "src_vocab_file": "toy_text_data/vocab/source.txt",
-    "tgt_vocab_file": "toy_text_data/vocab/source.txt",
-    "source_file": "toy_text_data/test/source.txt",
-    "target_file": "toy_text_data/test/target.txt",
-    "shuffle": False,
-    "repeat": False,
-    "max_length": 256,
-    "delimiter": " ",
+    'data_dir': data_root,
+    'file_pattern': "*dev*",
+    'src_vocab_file': data_root + "vocab.ende.32768",
+    'max_length': 512,
+    'shuffle': False,
+    'repeat': 1,
+    'mode': 'train',
+    "delimiter": ' ',
   },
 }

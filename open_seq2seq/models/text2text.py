@@ -109,7 +109,8 @@ class BasicText2TextWithAttention(Seq2Seq):
           step += 1
 
   def maybe_print_logs(self, input_values, output_values):
-    x, len_x, y, len_y = input_values
+    x, len_x = input_values['source_tensors']
+    y, len_y = input_values['target_tensors']
     samples = output_values[0]
 
     x_sample = x[0]
@@ -144,7 +145,8 @@ class BasicText2TextWithAttention(Seq2Seq):
     return {}
 
   def evaluate(self, input_values, output_values):
-    ex, elen_x, ey, elen_y = input_values
+    ex, elen_x = input_values['source_tensors']
+    ey, elen_y = input_values['target_tensors']
 
     x_sample = ex[0]
     len_x_sample = elen_x[0]

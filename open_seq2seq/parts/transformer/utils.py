@@ -22,7 +22,7 @@ import math
 
 import tensorflow as tf
 
-_NEG_INF = -1e9
+_NEG_INF = -1e4
 
 
 def get_position_encoding(
@@ -87,6 +87,7 @@ def get_padding(x, padding_value=0):
   """
   with tf.name_scope("padding"):
     return tf.to_float(tf.equal(x, padding_value))
+    #return tf.cast(tf.equal(x, padding_value), dtype=x.dtype)
 
 
 def get_padding_bias(x):

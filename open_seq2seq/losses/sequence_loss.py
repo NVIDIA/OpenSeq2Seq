@@ -62,8 +62,10 @@ class BasicSequenceLoss(Loss):
     :return: Singleton loss tensor
     """
     logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    #target_sequence = input_dict["tgt_sequence"]
+    #tgt_lengths = input_dict["tgt_length"]
+    target_sequence = input_dict['target_tensors'][0]
+    tgt_lengths = input_dict['target_tensors'][1]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
@@ -185,8 +187,10 @@ class CrossEntropyWithSmoothing(Loss):
     :return: Singleton loss tensor
     """
     logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    target_sequence = input_dict["target_tensors"][0]
+    tgt_lengths = input_dict["target_tensors"][1]
+    #target_sequence = input_dict["tgt_sequence"]
+    #tgt_lengths = input_dict["tgt_length"]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models      
@@ -257,9 +261,12 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
 
   def _compute_loss(self, input_dict):
     logits = input_dict["decoder_output"]["logits"]
+    logits = tf.cast(logits, dtype=tf.float32)
     if logits is None:
       return 0.0
-    labels = input_dict["tgt_sequence"]
+    #labels = input_dict["tgt_sequence"]
+    labels = input_dict["target_tensors"][0]
+    #tgt_lengths = input_dict["target_tensors"][1]
 
     def _pad_tensors_to_same_length(x, y):
       """Pad x and y so that the results have the same length (second dimension)."""

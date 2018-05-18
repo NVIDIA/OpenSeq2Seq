@@ -13,10 +13,10 @@ from open_seq2seq.data.text2text.tokenizer import PAD_ID
 
 
 class SpecialTextTokens(Enum):
-  UNK_ID = 0  # out-of-vocabulary tokens will map there
-  S_ID = 1  # special start of sentence token
-  EOS_ID = 2  # special end of sentence token
-  PAD_ID = 3  # special padding token
+  PAD_ID = 0  # special padding token
+  EOS_ID = 1  # special end of sentence token
+  S_ID = 2  # special start of sentence token
+  UNK_ID = 3  # out-of-vocabulary tokens will map there
   OUT_OF_BUCKET = 1234567890
   END_OF_CHOICE = -100
 
@@ -144,6 +144,8 @@ class ParallelTextDataLayer(DataLayer):
     self.params['target_idx2seq'] = self.tgt_idx2seq
     self.params['source_idx2seq'] = self.src_idx2seq
 
+    self._input_tensors = {}
+
   def build_graph(self):
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
@@ -180,7 +182,12 @@ class ParallelTextDataLayer(DataLayer):
     _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
       lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
                                     tf.less_equal(t2[1], self.max_len))
-    ).shard(num_shards=self._num_workers, index=self._worker_id)
+    )
+
+    if self._num_workers > 1:
+      _src_tgt_dataset = _src_tgt_dataset\
+        .shard(num_shards=self._num_workers, index=self._worker_id)
+
 
     if self.params['shuffle']:
       _src_tgt_dataset = _src_tgt_dataset\
@@ -209,10 +216,11 @@ class ParallelTextDataLayer(DataLayer):
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
-      self._input_tensors = [x, x_length, y, y_length]
+      self._input_tensors['source_tensors'] = [x, x_length]
+      self._input_tensors['target_tensors'] = [y, y_length]
     else:
       t1, _ = self.iterator.get_next()
-      self._input_tensors = [t1[0], t1[1]]
+      self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
 
   def get_size_in_samples(self):
@@ -250,7 +258,7 @@ class TransformerDataLayer(DataLayer):
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
     super(TransformerDataLayer, self).__init__(params, model,
-                                                      num_workers, worker_id)
+                                               num_workers, worker_id)
     self.src_vocab_file = self.params['src_vocab_file']
     # if tgt vocab isn't specified - assume common vocab file
     self.tgt_vocab_file = self.params.get('tgt_vocab_file', self.src_vocab_file)
@@ -277,7 +285,7 @@ class TransformerDataLayer(DataLayer):
     self._num_workers = num_workers
     self._worker_id = worker_id
 
-    self._input_tensors = None
+    self._input_tensors = {}
     self._iterator = None
     self.batched_dataset = None
 
@@ -290,16 +298,19 @@ class TransformerDataLayer(DataLayer):
       max_length=self.params['max_length'],
       num_cpu_cores=self.params.get('num_cpu_cores', 2),
       shuffle=self.params['shuffle'],
-      repeat=self.params['repeat'])
+      repeat=self.params['repeat'],
+      num_workers=self._num_workers,
+      worker_id=self._worker_id)
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
-      self._input_tensors = x, len_x, y, len_y
+      self._input_tensors['source_tensors'] = [x, len_x]
+      self._input_tensors['target_tensors'] = [y, len_y]
     else:
-      self._input_tensors = x, len_x
+      self._input_tensors['source_tensors'] = [x, len_x]
 
   @property
   def iterator(self):
