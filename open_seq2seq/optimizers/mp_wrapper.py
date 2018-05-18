@@ -104,6 +104,47 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
                        apply_ops_wrapper)
     else:
       return apply_ops_wrapper()
+  #
+  # def _apply_dense(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._apply_dense(*args, **kwargs)
+  #
+  # def _resource_apply_dense(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._resource_apply_dense(*args, **kwargs)
+  #
+  # def _resource_apply_sparse_duplicate_indices(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._resource_apply_sparse_duplicate_indices(*args,
+  #                                                                   **kwargs)
+  #
+  # def _resource_apply_sparse(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._resource_apply_sparse(*args, **kwargs)
+  #
+  # def _apply_sparse_duplicate_indices(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._apply_sparse_duplicate_indices(*args, **kwargs)
+  #
+  # def _apply_sparse(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._apply_sparse(*args, **kwargs)
+  #
+  # def _prepare(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._prepare(*args, **kwargs)
+  #
+  # def _create_slots(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._create_slots(*args, **kwargs)
+  #
+  # def _valid_dtypes(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._valid_dtypes(*args, **kwargs)
+  #
+  # def _finish(self, *args, **kwargs):
+  #   """Calls this same method on the underlying optimizer."""
+  #   return self._optimizer._finish(*args, **kwargs)
 
 
 def mp_regularizer_wrapper(regularizer):

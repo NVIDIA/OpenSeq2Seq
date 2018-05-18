@@ -19,7 +19,7 @@ base_params = {
   "dtype": tf.float32,
 
   "save_summaries_steps": 2000,
-  "print_loss_steps": 2000,
+  "print_loss_steps": 100,
   "print_samples_steps": 2000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
