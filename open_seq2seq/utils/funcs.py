@@ -6,7 +6,8 @@ from six.moves import range
 import tensorflow as tf
 import time
 
-from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook
+from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
+                   BroadcastGlobalVariablesHook
 from open_seq2seq.utils.utils import deco_print, get_results_for_epoch
 from tensorflow.python import debug as tf_debug
 
@@ -30,7 +31,7 @@ def train(train_model, eval_model=None, debug_port=None):
   # defining necessary hooks
   hooks = [tf.train.StopAtStepHook(last_step=train_model.last_step)]
   if hvd is not None:
-    hooks.append(hvd.BroadcastGlobalVariablesHook(0))
+    hooks.append(BroadcastGlobalVariablesHook(0))
 
   if master_worker:
     checkpoint_dir = train_model.params['logdir']

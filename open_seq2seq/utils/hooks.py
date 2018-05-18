@@ -12,6 +12,49 @@ from open_seq2seq.utils.utils import deco_print, log_summaries_from_dict, \
                                      get_results_for_epoch
 
 
+class BroadcastGlobalVariablesHook(tf.train.SessionRunHook):
+  """
+  SessionRunHook that will broadcast all global variables from root rank
+  to all other processes during initialization.
+  This is necessary to ensure consistent initialization of all workers when
+  training is started with random weights or restored from a checkpoint.
+  """
+
+  def __init__(self, root_rank, device=''):
+    """Construct a new BroadcastGlobalVariablesHook that will broadcast all
+    global variables from root rank to all other processes during initialization.
+    Args:
+      root_rank:
+        Rank that will send data, other ranks will receive data.
+      device:
+        Device to be used for broadcasting. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_BROADCAST.
+    """
+    super(BroadcastGlobalVariablesHook, self).__init__()
+    self.root_rank = root_rank
+    self.bcast_op = None
+    self.device = device
+
+  def begin(self):
+    def broadcast_global_variables(root_rank):
+      from horovod.tensorflow.mpi_ops import broadcast
+      ops = []
+      for var in tf.global_variables():
+        if var.dtype.base_dtype == tf.float16:
+          ops.append(tf.assign(var, tf.cast(broadcast(tf.cast(var, tf.float32),
+                                                      root_rank), tf.float16)))
+        else:
+          ops.append(tf.assign(var, broadcast(var, root_rank)))
+      return tf.group(*ops)
+
+    if not self.bcast_op or self.bcast_op.graph != tf.get_default_graph():
+      with tf.device(self.device):
+        self.bcast_op = broadcast_global_variables(self.root_rank)
+
+  def after_create_session(self, session, coord):
+    session.run(self.bcast_op)
+
+
 class PrintSamplesHook(tf.train.SessionRunHook):
   """Session hook that prints training samples and prediction from time to time
   """

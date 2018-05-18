@@ -87,6 +87,112 @@ def get_regularization_loss(scope=None, name="total_regularization_loss"):
     return constant_op.constant(0.0)
 
 
+class DistributedOptimizer(tf.train.Optimizer):
+  """An optimizer that wraps another tf.Optimizer, using an allreduce to
+  average gradient values before applying gradients to model weights."""
+
+  def __init__(self, optimizer, name=None, use_locking=False, device_dense='',
+               device_sparse=''):
+    """Construct a new DistributedOptimizer, which uses another optimizer
+    under the hood for computing single-process gradient values and
+    applying gradient updates after the gradient values have been averaged
+    across all the Horovod ranks.
+    Args:
+      optimizer:
+        Optimizer to use for computing gradients and applying updates.
+      name:
+        Optional name prefix for the operations created when applying
+        gradients. Defaults to "Distributed" followed by the provided
+        optimizer type.
+      use_locking:
+        Whether to use locking when updating variables.
+        See Optimizer.__init__ for more info.
+      device_dense:
+        Device to be used for dense tensors. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_ALLREDUCE.
+      device_sparse:
+        Device to be used for sparse tensors. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_ALLGATHER.
+    """
+    if name is None:
+      name = "Distributed{}".format(type(optimizer).__name__)
+
+    self._optimizer = optimizer
+    self._device_dense = device_dense
+    self._device_sparse = device_sparse
+    super(DistributedOptimizer, self).__init__(
+      name=name, use_locking=use_locking)
+
+  def compute_gradients(self, *args, **kwargs):
+    """Compute gradients of all trainable variables.
+    See Optimizer.compute_gradients() for more info.
+    In DistributedOptimizer, compute_gradients() is overriden to also
+    allreduce the gradients before returning them.
+    """
+    gradients = self._optimizer.compute_gradients(*args, **kwargs)
+    from horovod.common import size
+    from horovod.tensorflow import allreduce
+
+    if size() > 1:
+      averaged_gradients = []
+      with tf.name_scope(self._name + "_Allreduce"):
+        for grad, var in gradients:
+          if grad is not None:
+            avg_grad = allreduce(grad, device_dense=self._device_dense,
+                                 device_sparse=self._device_sparse)
+            averaged_gradients.append((avg_grad, var))
+          else:
+            averaged_gradients.append((None, var))
+      return averaged_gradients
+    else:
+      return gradients
+
+  def apply_gradients(self, grads_and_vars, global_step=None, name=None):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer.apply_gradients(grads_and_vars, global_step, name)
+
+  def _apply_dense(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._apply_dense(*args, **kwargs)
+
+  def _resource_apply_dense(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._resource_apply_dense(*args, **kwargs)
+
+  def _resource_apply_sparse_duplicate_indices(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._resource_apply_sparse_duplicate_indices(*args,
+                                                                    **kwargs)
+
+  def _resource_apply_sparse(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._resource_apply_sparse(*args, **kwargs)
+
+  def _apply_sparse_duplicate_indices(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._apply_sparse_duplicate_indices(*args, **kwargs)
+
+  def _apply_sparse(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._apply_sparse(*args, **kwargs)
+
+  def _prepare(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._prepare(*args, **kwargs)
+
+  def _create_slots(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._create_slots(*args, **kwargs)
+
+  def _valid_dtypes(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._valid_dtypes(*args, **kwargs)
+
+  def _finish(self, *args, **kwargs):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer._finish(*args, **kwargs)
+
+
 def optimize_loss(loss,
                   learning_rate,
                   optimizer,
@@ -273,9 +379,6 @@ def optimize_loss(loss,
                        "subclass of Optimizer, instance of "
                        "subclass of Optimizer or function with one argument. "
                        "Got %s." % str(optimizer))
-    if on_horovod:
-      import horovod.tensorflow as hvd
-      opt = hvd.DistributedOptimizer(opt)
     # All trainable variables, if specific variables are not specified.
     if variables is None:
       variables = vars_.trainable_variables()
@@ -296,6 +399,8 @@ def optimize_loss(loss,
         opt,
         automatic_loss_scaler=loss_scaler,
       )
+    if on_horovod:
+      opt = DistributedOptimizer(opt)
 
     # Compute gradients.
     gradients = opt.compute_gradients(
