@@ -357,7 +357,7 @@ class Model:
         lr_policy = lambda lr, gs: self.params['lr_policy'](lr, gs, **lr_params)
 
       self.train_op = optimize_loss(
-        loss=self.loss + get_regularization_loss(),
+        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
         learning_rate=self.params['learning_rate'],
         optimizer=self.params['optimizer'],

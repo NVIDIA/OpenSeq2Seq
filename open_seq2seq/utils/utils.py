@@ -364,8 +364,19 @@ def cast_types(input_dict, dtype):
         if value.dtype.base_dtype != dtype.base_dtype:
           cast_input_dict[key] = tf.cast(value, dtype)
           continue
-    if type(value) == dict:
+    if isinstance(value, dict):
       cast_input_dict[key] = cast_types(input_dict[key], dtype)
+      continue
+    if isinstance(value, list):
+      cur_list = []
+      for nest_value in value:
+        if isinstance(nest_value, tf.Tensor):
+          if nest_value.dtype == tf.float16 or nest_value.dtype == tf.float32:
+            if nest_value.dtype.base_dtype != dtype.base_dtype:
+              cur_list.append(tf.cast(nest_value, dtype))
+              continue
+        cur_list.append(nest_value)
+      cast_input_dict[key] = cur_list
       continue
     cast_input_dict[key] = input_dict[key]
   return cast_input_dict
