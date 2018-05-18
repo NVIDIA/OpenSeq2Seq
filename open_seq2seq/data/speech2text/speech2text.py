@@ -9,9 +9,9 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
-from .data_layer import DataLayer
+from open_seq2seq.data.data_layer import DataLayer
 from .speech_utils import get_speech_features_from_file
-from .utils import load_pre_existing_vocabulary
+from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -153,10 +153,10 @@ class Speech2TextDataLayer(DataLayer):
                  self.params['num_audio_features']])
     x_length = tf.reshape(x_length, [self.params['batch_size']])
 
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [x, x_length]
     if self.params['mode'] != 'infer':
-      self._input_tensors = [x, x_length, y, y_length]
-    else:
-      self._input_tensors = [x, x_length]
+      self._input_tensors['target_tensors'] = [y, y_length]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.

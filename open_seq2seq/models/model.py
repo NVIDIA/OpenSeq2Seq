@@ -351,10 +351,13 @@ class Model:
         if 'decay_steps' in self.params['lr_policy'].__code__.co_varnames and \
            'decay_steps' not in lr_params:
           lr_params['decay_steps'] = self._last_step
+        if 'steps_per_epoch' in self.params['lr_policy'].__code__.co_varnames and \
+           'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
+          lr_params['steps_per_epoch'] = self.steps_in_epoch
         lr_policy = lambda lr, gs: self.params['lr_policy'](lr, gs, **lr_params)
 
       self.train_op = optimize_loss(
-        loss=self.loss + get_regularization_loss(),
+        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
         learning_rate=self.params['learning_rate'],
         optimizer=self.params['optimizer'],

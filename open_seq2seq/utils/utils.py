@@ -109,15 +109,21 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     if step >= bench_start:
       total_time += time.time() - tm
 
-    # assuming inputs[0].shape[0] is batch size
-    batch_size = inputs[0].shape[0]
+    # assuming any element of inputs["source_tensors"][ shape[0] is batch size
+    batch_size = inputs["source_tensors"][0].shape[0]
 
     if compute_loss:
       total_loss += loss * batch_size
       total_samples += batch_size
 
     if size_defined and step == data_size:
-      inputs = model.clip_last_batch(inputs, last_batch_size)
+      inputs["source_tensors"] = model.clip_last_batch(
+        inputs["source_tensors"], last_batch_size,
+      )
+      if 'target_tensors' in inputs:
+        inputs["target_tensors"] = model.clip_last_batch(
+          inputs["target_tensors"], last_batch_size,
+        )
       outputs = model.clip_last_batch(outputs, last_batch_size)
 
     if mode == 'eval':
@@ -358,8 +364,19 @@ def cast_types(input_dict, dtype):
         if value.dtype.base_dtype != dtype.base_dtype:
           cast_input_dict[key] = tf.cast(value, dtype)
           continue
-    if type(value) == dict:
+    if isinstance(value, dict):
       cast_input_dict[key] = cast_types(input_dict[key], dtype)
+      continue
+    if isinstance(value, list):
+      cur_list = []
+      for nest_value in value:
+        if isinstance(nest_value, tf.Tensor):
+          if nest_value.dtype == tf.float16 or nest_value.dtype == tf.float32:
+            if nest_value.dtype.base_dtype != dtype.base_dtype:
+              cur_list.append(tf.cast(nest_value, dtype))
+              continue
+        cur_list.append(nest_value)
+      cast_input_dict[key] = cur_list
       continue
     cast_input_dict[key] = input_dict[key]
   return cast_input_dict

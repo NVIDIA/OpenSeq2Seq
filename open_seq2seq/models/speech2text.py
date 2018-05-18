@@ -43,8 +43,14 @@ def levenshtein(a, b):
 
 
 class Speech2Text(Seq2Seq):
+  def _create_decoder(self):
+    self.params['decoder_params']['tgt_vocab_size'] = (
+      self.get_data_layer().params['tgt_vocab_size']
+    )
+    return super(Speech2Text, self)._create_decoder()
+
   def maybe_print_logs(self, input_values, output_values):
-    x, len_x, y, len_y = input_values
+    y, len_y = input_values['target_tensors']
     decoded_sequence = output_values
     y_one_sample = y[0]
     len_y_one_sample = len_y[0]
@@ -90,11 +96,12 @@ class Speech2Text(Seq2Seq):
       decoded_sequence,
       self.get_data_layer().params['idx2char'],
     )
-    for sample_id in range(input_values[0].shape[0]):
+    batch_size = input_values['source_tensors'][0].shape[0]
+    for sample_id in range(batch_size):
       # y is the third returned input value, thus input_values[2]
       # len_y is the fourth returned input value
-      y = input_values[2][sample_id]
-      len_y = input_values[3][sample_id]
+      y = input_values['target_tensors'][0][sample_id]
+      len_y = input_values['target_tensors'][1][sample_id]
       true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
                               y[:len_y]))
       pred_text = "".join(decoded_texts[sample_id])
@@ -111,7 +118,7 @@ class Speech2Text(Seq2Seq):
       decoded_sequence,
       self.get_data_layer().params['idx2char'],
     )
-    for sample_id in range(input_values[0].shape[0]):
+    for sample_id in range(len(decoded_texts)):
       preds.append("".join(decoded_texts[sample_id]))
     return preds
 

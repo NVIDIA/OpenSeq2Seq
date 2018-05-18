@@ -48,7 +48,8 @@ class UtilsTests(tf.test.TestCase):
           with self.test_session(g, use_gpu=True) as sess:
             sess.run(tf.global_variables_initializer())
             inputs_per_batch = get_results_for_epoch(model, sess, False, "eval")
-            length_list.append(np.hstack([inp[1] for inp in inputs_per_batch]))
+            length_list.append(np.hstack([inp['source_tensors'][1]
+                                          for inp in inputs_per_batch]))
 
     for i in range(len(length_list) - 1):
       npt.assert_allclose(length_list[i], length_list[i + 1])

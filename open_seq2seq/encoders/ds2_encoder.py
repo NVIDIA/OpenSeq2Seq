@@ -188,8 +188,7 @@ class DeepSpeech2Encoder(Encoder):
       }
     """
 
-    source_sequence = input_dict['src_sequence']
-    src_length = input_dict['src_length']
+    source_sequence, src_length = input_dict['source_tensors']
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0

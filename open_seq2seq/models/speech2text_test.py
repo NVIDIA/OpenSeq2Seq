@@ -249,9 +249,13 @@ class Speech2TextModelTests(tf.test.TestCase):
 
     results = []
     for inp, out in zip(input_values, output_values):
-      results.append(model.evaluate(inp, out))
+      inp_dict = {'source_tensors': [inp[0], inp[1]],
+                  'target_tensors': [inp[2], inp[3]]}
+      results.append(model.evaluate(inp_dict, out))
     for inp, out in zip(input_values, output_values):
-      results.append(model.evaluate(inp, out))
+      inp_dict = {'source_tensors': [inp[0], inp[1]],
+                  'target_tensors': [inp[2], inp[3]]}
+      results.append(model.evaluate(inp_dict, out))
     output_dict = model.finalize_evaluation(results)
 
     w_lev = 0.0
@@ -266,7 +270,9 @@ class Speech2TextModelTests(tf.test.TestCase):
     self.assertEqual(output_dict['Eval WER'], w_lev / w_len)
     self.assertEqual(output_dict['Eval WER'], 37 / 40.0)
 
-    output_dict = model.maybe_print_logs(input_values[0], output_values[0])
+    inp_dict = {'source_tensors': [input_values[0][0], input_values[0][1]],
+                'target_tensors': [input_values[0][2], input_values[0][3]]}
+    output_dict = model.maybe_print_logs(inp_dict, output_values[0])
     self.assertEqual(output_dict['Sample WER'], 0.4)
 
 

@@ -98,7 +98,6 @@ class Seq2Seq(Model):
       instance of a class derived from :class:`decoders.decoder.Decoder`.
     """
     params = self.params['decoder_params']
-    params['tgt_vocab_size'] = self.get_data_layer().params['tgt_vocab_size']
     return self.params['decoder'](params=params, mode=self.mode, model=self)
 
   def _create_loss(self):
@@ -123,27 +122,30 @@ class Seq2Seq(Model):
     See :meth:`models.model.Model._build_forward_pass_graph` for description of
     arguments and return values.
     """
+    if not isinstance(input_tensors, dict) or \
+       'source_tensors' not in input_tensors:
+      raise ValueError('Input tensors should be a dict containing '
+                       '"source_tensors" key')
+
+    if not isinstance(input_tensors['source_tensors'], list):
+      raise ValueError('source_tensors should be a list')
+
+    source_tensors = input_tensors['source_tensors']
     if self.mode == "train" or self.mode == "eval":
-      src_sequence, src_length, tgt_sequence, tgt_length = input_tensors
-    else:
-      src_sequence, src_length = input_tensors
-      tgt_sequence, tgt_length = None, None
+      if 'target_tensors' not in input_tensors:
+        raise ValueError('Input tensors should contain "target_tensors" key'
+                         'when mode != "infer"')
+      if not isinstance(input_tensors['target_tensors'], list):
+        raise ValueError('target_tensors should be a list')
+      target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
-      encoder_input = {
-        "src_sequence": src_sequence,
-        "src_length": src_length,
-      }
+      encoder_input = {"source_tensors": source_tensors}
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
-      tgt_length_eval = tf.cast(1.2 * tf.cast(src_length, tf.float32), tf.int32)
-      decoder_input = {
-        "encoder_output": encoder_output,
-        "tgt_sequence": tgt_sequence if self.mode == "train" else None,
-        # when the mode is not "train", replacing correct tgt_length with
-        # somewhat increased src_length
-        "tgt_length": tgt_length if self.mode == "train" else tgt_length_eval
-      }
+      decoder_input = {"encoder_output": encoder_output}
+      if self.mode == "train":
+        decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       decoder_samples = decoder_output.get("samples", None)
 
@@ -151,8 +153,7 @@ class Seq2Seq(Model):
         with tf.variable_scope("Loss"):
           loss_input_dict = {
             "decoder_output": decoder_output,
-            "tgt_sequence": tgt_sequence,
-            "tgt_length": tgt_length,
+            "target_tensors": target_tensors,
           }
           loss = self.loss_computator.compute_loss(loss_input_dict)
       else:

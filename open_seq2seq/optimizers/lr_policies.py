@@ -9,6 +9,35 @@ from six.moves import range
 import tensorflow as tf
 
 
+def piecewise_constant(initial_learning_rate, global_step, boundaries,
+                       decay_rates, steps_per_epoch=None):
+  """Piecewise constant learning rate decay.
+  When defined in the config, only ``boundaries`` and ``decay_rates`` need to
+  be provided (other parameters are automatically populated by
+  :class:`Model<models.model.Model>` class). ``boundaries`` are treated as
+  epochs if ``num_epochs`` is provided in the config, otherwise treated as
+  steps.
+
+  Args:
+    initial_learning_rate (float): initial learning rate to use.
+    global_step: global step TensorFlow tensor.
+    boundaries (list): could be either defined in steps
+        (if ``batches_per_epoch=None``) or in epochs if ``batches_per_epoch``
+        parameter is defined.
+    decay_rates: multiplier of the initial learning rate for each boundary.
+    steps_per_epoch: number of batches in one training epoch. If provided,
+        boundaries are treated as epochs, otherwise as steps.
+
+  Returns:
+    learning rate at step ``global_step``.
+  """
+  if steps_per_epoch is not None:
+    boundaries = [steps_per_epoch * epoch for epoch in boundaries]
+  decay_rates = [1.0] + decay_rates
+  vals = [initial_learning_rate * decay for decay in decay_rates]
+  return tf.train.piecewise_constant(global_step, boundaries, vals)
+
+
 def exp_decay(learning_rate,
               var_global_step,
               begin_decay_at,
