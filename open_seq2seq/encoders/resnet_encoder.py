@@ -116,9 +116,9 @@ class ResNetEncoder(Encoder):
       inputs = tf.identity(inputs, 'initial_max_pool')
 
     for i, num_blocks in enumerate(block_sizes):
-      num_filters = num_filters * (2**i)
+      cur_num_filters = num_filters * (2**i)
       inputs = block_layer(
-        inputs=inputs, filters=num_filters, bottleneck=bottleneck,
+        inputs=inputs, filters=cur_num_filters, bottleneck=bottleneck,
         block_fn=block_fn, blocks=num_blocks,
         strides=block_strides[i], training=training,
         name='block_layer{}'.format(i + 1), data_format=data_format,
