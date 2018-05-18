@@ -84,6 +84,10 @@ class UnidirectionalRNNEncoderWithEmbedding(Encoder):
       * src_lengths - (copy ref from input) a Tensor of shape [batch_size]
     """
     # TODO: make a separate level of config for cell_params?
+    source_sequence = input_dict['source_tensors'][0]
+    source_length = input_dict['source_tensors'][1]
+
+
     cell_params = copy.deepcopy(self.params)
     cell_params["num_units"] = self.params['encoder_cell_units']
 
@@ -114,21 +118,21 @@ class UnidirectionalRNNEncoderWithEmbedding(Encoder):
 
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
       self.enc_emb_w,
-      input_dict['src_sequence'],
+      source_sequence,
     ), self.params['dtype'])
 
     encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
       cell=self._encoder_cell_fw,
       inputs=embedded_inputs,
-      sequence_length=input_dict['src_length'],
+      sequence_length=source_length,
       time_major=time_major,
       swap_memory=use_swap_memory,
       dtype=embedded_inputs.dtype,
     )
     return {'outputs': encoder_outputs,
             'state': encoder_state,
-            'src_lengths': input_dict['src_length'],
-            'encoder_input': input_dict['src_sequence']}
+            'src_lengths': source_length,
+            'encoder_input': source_sequence}
 
   @property
   def src_vocab_size(self):
@@ -212,6 +216,8 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
       * encoder_state - a Tensor of shape [batch_size, dim]
       * src_lengths - (copy ref from input) a Tensor of shape [batch_size]
     """
+    source_sequence = input_dict['source_tensors'][0]
+    source_length = input_dict['source_tensors'][1]
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
 
@@ -253,14 +259,14 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
 
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
       self.enc_emb_w,
-      input_dict['src_sequence'],
+      source_sequence,
     ), self.params['dtype'])
 
     encoder_output, encoder_state = tf.nn.bidirectional_dynamic_rnn(
       cell_fw=self._encoder_cell_fw,
       cell_bw=self._encoder_cell_bw,
       inputs=embedded_inputs,
-      sequence_length=input_dict['src_length'],
+      sequence_length=source_length,
       time_major=time_major,
       swap_memory=use_swap_memory,
       dtype=embedded_inputs.dtype,
@@ -268,8 +274,8 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
     encoder_outputs = tf.concat(encoder_output, 2)
     return {'outputs': encoder_outputs,
             'state': encoder_state,
-            'src_lengths': input_dict['src_length'],
-            'encoder_input': input_dict['src_sequence']}
+            'src_lengths': source_length,
+            'encoder_input': source_sequence}
 
   @property
   def src_vocab_size(self):
@@ -336,7 +342,8 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
     self._src_emb_size = self.params['src_emb_size']
 
   def _encode(self, input_dict):
-
+    source_sequence = input_dict['source_tensors'][0]
+    source_length = input_dict['source_tensors'][1]
     self._enc_emb_w = tf.get_variable(
       name="EncoderEmbeddingMatrix",
       shape=[self._src_vocab_size, self._src_emb_size],
@@ -394,7 +401,7 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
     use_swap_memory = self.params.get("use_swap_memory", False)
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
       self.enc_emb_w,
-      input_dict['src_sequence'],
+      source_sequence,
     ), self.params['dtype'])
 
     # first bi-directional layer
@@ -402,7 +409,7 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
       cell_fw=self._encoder_l1_cell_fw,
       cell_bw=self._encoder_l1_cell_bw,
       inputs=embedded_inputs,
-      sequence_length=input_dict['src_length'],
+      sequence_length=source_length,
       swap_memory=use_swap_memory,
       time_major=time_major,
       dtype=embedded_inputs.dtype,
@@ -413,7 +420,7 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
     encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
       cell=tf.contrib.rnn.MultiRNNCell(self._encoder_cells),
       inputs=encoder_l1_outputs,
-      sequence_length=input_dict['src_length'],
+      sequence_length=source_length,
       swap_memory=use_swap_memory,
       time_major = time_major,
       dtype=encoder_l1_outputs.dtype,
@@ -421,8 +428,8 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
 
     return {'outputs': encoder_outputs,
             'state': encoder_state,
-            'src_lengths': input_dict['src_length'],
-            'encoder_input': input_dict['src_sequence']}
+            'src_lengths': source_length,
+            'encoder_input': source_sequence}
 
   @property
   def src_vocab_size(self):

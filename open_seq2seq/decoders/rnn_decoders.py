@@ -167,8 +167,10 @@ class RNNDecoderWithAttention(Decoder):
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_lengths']
-    tgt_inputs = input_dict['tgt_sequence']
-    tgt_lengths = input_dict['tgt_length']
+    tgt_inputs = input_dict['target_tensors'][0] if 'target_tensors' in \
+                                                    input_dict else None
+    tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
+                                                    input_dict else None
 
     self._dec_emb_w = tf.get_variable(
       name='DecoderEmbeddingMatrix',

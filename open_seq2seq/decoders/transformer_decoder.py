@@ -68,7 +68,9 @@ class TransformerDecoder(Decoder):
     self.layers = []
 
   def _decode(self, input_dict):
-    targets = input_dict['tgt_sequence']
+    #targets = input_dict['tgt_sequence']
+    targets = input_dict['target_tensors'][0] if 'target_tensors' \
+                                                 in input_dict else None
     encoder_outputs = input_dict['encoder_output']['outputs']
     inputs_attention_bias = input_dict['encoder_output']['inputs_attention_bias']
     self.embedding_softmax_layer = input_dict['encoder_output']['embedding_softmax_layer']

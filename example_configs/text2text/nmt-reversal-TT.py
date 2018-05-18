@@ -28,9 +28,9 @@ base_params = {
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
   "logdir": "ReversalTask-Transformer-MP",
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {

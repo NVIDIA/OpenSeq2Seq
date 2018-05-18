@@ -109,8 +109,9 @@ class DataLayer:
   @property
   @abc.abstractmethod
   def input_tensors(self):
-    """List of input tensors that will be connected to the model graph.
-    Should be created by :meth:`self.build_graph()<build_graph>`.
+    """Dictionary which should may contain two keys: (1) `source_tensors` and
+    (2) `target_sensors`. Both (1) and (2) are lists of tensors
+     :meth:`self.build_graph()<build_graph>`.
     """
     pass
 

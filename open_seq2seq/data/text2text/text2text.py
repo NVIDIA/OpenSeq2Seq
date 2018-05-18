@@ -144,6 +144,8 @@ class ParallelTextDataLayer(DataLayer):
     self.params['target_idx2seq'] = self.tgt_idx2seq
     self.params['source_idx2seq'] = self.src_idx2seq
 
+    self._input_tensors = {}
+
   def build_graph(self):
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
@@ -214,10 +216,11 @@ class ParallelTextDataLayer(DataLayer):
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
-      self._input_tensors = [x, x_length, y, y_length]
+      self._input_tensors['source_tensors'] = [x, x_length]
+      self._input_tensors['target_tensors'] = [y, y_length]
     else:
       t1, _ = self.iterator.get_next()
-      self._input_tensors = [t1[0], t1[1]]
+      self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
 
   def get_size_in_samples(self):
@@ -282,7 +285,7 @@ class TransformerDataLayer(DataLayer):
     self._num_workers = num_workers
     self._worker_id = worker_id
 
-    self._input_tensors = None
+    self._input_tensors = {}
     self._iterator = None
     self.batched_dataset = None
 
@@ -304,9 +307,10 @@ class TransformerDataLayer(DataLayer):
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
-      self._input_tensors = x, len_x, y, len_y
+      self._input_tensors['source_tensors'] = [x, len_x]
+      self._input_tensors['target_tensors'] = [y, len_y]
     else:
-      self._input_tensors = x, len_x
+      self._input_tensors['source_tensors'] = [x, len_x]
 
   @property
   def iterator(self):
