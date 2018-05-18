@@ -15,12 +15,12 @@ base_params = {
   "num_epochs": 100,
 
   "num_gpus": 4,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 64,
   "dtype": tf.float32,
 
-  "save_summaries_steps": 500,
-  "print_loss_steps": 10,
-  "print_samples_steps": 5000,
+  "save_summaries_steps": 2000,
+  "print_loss_steps": 2000,
+  "print_samples_steps": 2000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
   "logdir": "experiments/resnet50-imagenet",
@@ -31,7 +31,7 @@ base_params = {
   },
   "lr_policy": piecewise_constant,
   "lr_policy_params": {
-    "boundaries": [1, 3, 5, 10],
+    "boundaries": [30, 60, 80, 90],
     "decay_rates": [0.1, 0.01, 0.001, 1e-4],
   },
   "learning_rate": 0.1,
@@ -45,6 +45,9 @@ base_params = {
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   "encoder": ResNetEncoder,
+  "encoder_params": {
+    'resnet_size': 50,
+  },
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
     "output_dim": 1001,
