@@ -22,7 +22,8 @@ import math
 
 import tensorflow as tf
 
-_NEG_INF = -1e4
+#_NEG_INF = -1e4
+_NEG_INF = -1e9
 
 
 def get_position_encoding(

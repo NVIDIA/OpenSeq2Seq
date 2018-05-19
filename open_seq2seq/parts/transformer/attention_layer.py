@@ -126,9 +126,23 @@ class Attention(tf.layers.Layer):
     q *= depth ** -0.5
 
     # Calculate dot product attention
+    #logits = tf.matmul(q, k, transpose_b=True)
+    #logits += bias
+    #weights = tf.nn.softmax(logits, name="attention_weights")
     logits = tf.matmul(q, k, transpose_b=True)
-    logits += bias
-    weights = tf.nn.softmax(logits, name="attention_weights")
+    dtype = logits.dtype
+    if dtype != tf.float32:
+      # upcast softmax inputs
+      logits = tf.cast(x=logits, dtype=tf.float32)
+      logits += bias
+      weights = tf.nn.softmax(logits, name="attention_weights")
+      # downcast softmax output
+      weights = tf.cast(weights, dtype=dtype)
+    else:
+      logits += bias
+      weights = tf.nn.softmax(logits, name="attention_weights")
+
+
     if self.train:
       weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)
     attention_output = tf.matmul(weights, v)

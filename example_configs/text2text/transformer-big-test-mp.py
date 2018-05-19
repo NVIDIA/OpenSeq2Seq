@@ -54,6 +54,7 @@ base_params = {
     "filter_size": 4*d_model,
     "relu_dropout": 0.1,
     "layer_postprocess_dropout": 0.1,
+    "pad_embeddings_2_eight": True,
   },
 
   "decoder": TransformerDecoder,

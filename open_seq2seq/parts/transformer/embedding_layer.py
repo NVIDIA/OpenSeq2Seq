@@ -26,10 +26,14 @@ from . import utils as model_utils
 class EmbeddingSharedWeights(tf.layers.Layer):
   """Calculates input embeddings and pre-softmax linear with shared weights."""
 
-  def __init__(self, vocab_size, hidden_size):
+  def __init__(self, vocab_size, hidden_size, pad2eight=False):
     super(EmbeddingSharedWeights, self).__init__()
     self.vocab_size = vocab_size
-    self.hidden_size = hidden_size
+    padf = lambda x: x if x % 8 == 0 else x + 8 - x % 8
+    if pad2eight:
+      self.hidden_size = padf(hidden_size)
+    else:
+      self.hidden_size = hidden_size
 
   def build(self, _):
     with tf.variable_scope("embedding_and_softmax", reuse=tf.AUTO_REUSE):
