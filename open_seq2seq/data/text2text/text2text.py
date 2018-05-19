@@ -254,6 +254,7 @@ class TransformerDataLayer(DataLayer):
       'repeat': int,
       'num_cpu_cores': int,
       'tgt_vocab_file': str,
+      'm_padding': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -304,6 +305,34 @@ class TransformerDataLayer(DataLayer):
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()
+
+    if self.params.get('m_padding', False):
+      # MAGIC PADDING
+      x = tf.cond(tf.equal(tf.shape(x)[1] % 8, 0),
+                  true_fn = lambda: x,
+                  false_fn = lambda: tf.pad(x,
+                                            paddings=[[0, 0],
+                                                      [0, 8 - tf.shape(x)[1] % 8]]))
+
+      y = tf.cond(tf.equal(tf.shape(y)[1] % 8, 0),
+                  true_fn = lambda: y,
+                  false_fn = lambda: tf.pad(y,
+                                            paddings=[[0, 0],
+                                                      [0, 8 - tf.shape(y)[1] % 8]]))
+
+      x = tf.cond(tf.equal(tf.shape(x)[0] % 8, 0),
+                  true_fn = lambda: x,
+                  false_fn = lambda: tf.pad(x,
+                                            paddings=[[0, 8 - tf.shape(x)[0] % 8],
+                                                      [0, 0]]))
+
+      y = tf.cond(tf.equal(tf.shape(y)[0] % 8, 0),
+                  true_fn=lambda: y,
+                  false_fn=lambda: tf.pad(y,
+                                          paddings=[[0, 8 - tf.shape(y)[0] % 8],
+                                                    [0, 0]]))
+      # ENDOF MAGIC PADDING
+
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':

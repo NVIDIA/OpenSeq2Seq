@@ -59,6 +59,9 @@ class TransformerDecoder(Decoder):
       'END_SYMBOL': int,
     })
 
+  def _cast_types(self, input_dict):
+    return input_dict
+
   def __init__(self, params, model,
                name="transformer_decoder", mode='train'):
     super(TransformerDecoder, self).__init__(params, model, name, mode)
@@ -125,8 +128,8 @@ class TransformerDecoder(Decoder):
       with tf.variable_scope(layer_name):
         with tf.variable_scope("self_attention"):
           # TODO: Figure out why this is needed
-          decoder_self_attention_bias = tf.cast(x=decoder_self_attention_bias,
-                                                dtype=decoder_inputs.dtype)
+          #decoder_self_attention_bias = tf.cast(x=decoder_self_attention_bias,
+          #                                      dtype=decoder_inputs.dtype)
           decoder_inputs = self_attention_layer(
               decoder_inputs, decoder_self_attention_bias, cache=layer_cache)
         with tf.variable_scope("encdec_attention"):
@@ -169,8 +172,9 @@ class TransformerDecoder(Decoder):
           decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
 
     # Run values
-    decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
-        length), dtype=decoder_inputs.dtype)
+    #decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+    #    length), dtype=decoder_inputs.dtype)
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
 
 
     # do decode
@@ -187,8 +191,10 @@ class TransformerDecoder(Decoder):
 
     timing_signal = utils.get_position_encoding(
         max_decode_length + 1, self.params["hidden_size"])
-    decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
-        max_decode_length), dtype=self.params['dtype'])
+    #decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+    #    max_decode_length), dtype=self.params['dtype'])
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
+      max_decode_length)
 
     def symbols_to_logits_fn(ids, i, cache):
       """Generate logits for next potential IDs.

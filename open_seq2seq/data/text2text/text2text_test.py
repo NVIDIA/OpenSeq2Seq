@@ -83,11 +83,11 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       self.assertTrue(et['target_tensors'][0].shape[1] % 8 == 0)
       self.assertEqual(et['target_tensors'][1].shape[0], self.params['batch_size'])
 
-"""
+
 class TransformerDataLayerTests(tf.test.TestCase):
   def setUp(self):
     create_data()
-    batch_size = 512
+    batch_size = 2048
     self.params = {
       'data_dir': "/home/okuchaiev/repos/forks/reference/translation/processed_data/",
       'file_pattern': "*dev*",
@@ -96,7 +96,8 @@ class TransformerDataLayerTests(tf.test.TestCase):
       'max_length': 256,
       'shuffle': True,
       'repeat': 1,
-      'mode' : 'train',
+      'mode': 'train',
+      'delimiter': ' ',
     }
 
   def test_TransformerDataLayer(self):
@@ -122,26 +123,15 @@ class TransformerDataLayerTests(tf.test.TestCase):
       sess.run(iterator.initializer)
       while True:
         try:
-          ex, elen_x, ey, elen_y = sess.run(inputs)
+          [ex, elen_x], [ey, elen_y] = sess.run([inputs['source_tensors'],
+                                                 inputs['target_tensors']])
           print(ex.shape)
           print(elen_x.shape)
           print(ey.shape)
           print(elen_y.shape)
         except tf.errors.OutOfRangeError:
           break
-      print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBB")
-      #dl.redo_iterator()
-      sess.run(iterator.initializer)
-      while True:
-        try:
-          ex, elen_x, ey, elen_y = sess.run(inputs)
-          print(ex.shape)
-          print(elen_x.shape)
-          print(ey.shape)
-          print(elen_y.shape)
-        except tf.errors.OutOfRangeError:
-          break
-"""
+
 
 
 if __name__ == '__main__':

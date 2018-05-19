@@ -49,6 +49,7 @@ class TransformerEncoder(Encoder):
       'regularizer_params': dict,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
+      'pad_embeddings_2_eight': bool,
     })
 
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
@@ -77,7 +78,8 @@ class TransformerEncoder(Encoder):
     if len(self.layers) == 0:
       # prepare encoder graph
       self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
-        self.params["src_vocab_size"], self.params["hidden_size"])
+        self.params["src_vocab_size"], self.params["hidden_size"],
+      pad2eight=self.params.get('pad_embeddings_2_eight', False))
 
       for _ in range(self.params['encoder_layers']):
         # Create sublayers for each layer.
@@ -105,9 +107,10 @@ class TransformerEncoder(Encoder):
       # applying dropout.
       embedded_inputs = self.embedding_softmax_layer(inputs)
       inputs_padding = utils.get_padding(inputs)
-      #inputs_attention_bias = utils.get_padding_bias(inputs)
-      inputs_attention_bias = tf.cast(utils.get_padding_bias(inputs),
-                                      dtype=self.params['dtype'])
+      inputs_attention_bias = utils.get_padding_bias(inputs)
+
+      #inputs_attention_bias = tf.cast(utils.get_padding_bias(inputs),
+      #                                dtype=self.params['dtype'])
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]
