@@ -411,7 +411,7 @@ class Model:
     """Abstract method. Should create the graph of the forward pass of the model.
 
     Args:
-      input_tensors (list): ``input_tensors`` defined by the data_layer class.
+      input_tensors: ``input_tensors`` defined by the data_layer class.
       gpu_id (int, optional): id of the GPU where the current copy of the model
           is constructed. For Horovod this is always zero.
 
