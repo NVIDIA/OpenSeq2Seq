@@ -29,3 +29,11 @@ sequence\_loss
     :members:
     :undoc-members:
     :show-inheritance:
+
+cross\_entropy\_loss
+----------------------------------
+
+.. automodule:: losses.cross_entropy_loss
+    :members:
+    :undoc-members:
+    :show-inheritance:
