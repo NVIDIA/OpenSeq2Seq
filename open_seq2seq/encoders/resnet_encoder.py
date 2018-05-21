@@ -31,6 +31,7 @@ class ResNetEncoder(Encoder):
       'first_pool_size': int,
       'first_pool_stride': int,
       'data_format': ['channels_first', 'channels_last'],
+      'regularize_bn': bool,
     })
 
   def __init__(self, params, model, name="resnet_encoder", mode='train'):
@@ -94,6 +95,8 @@ class ResNetEncoder(Encoder):
 
     training = self.mode == 'train'
     regularizer = self.params.get('regularizer', None)
+    regularize_bn = self.params.get('regularize_bn', True)
+    bn_regularizer = regularizer if regularize_bn else None
 
     if data_format == 'channels_first':
       # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
@@ -122,10 +125,11 @@ class ResNetEncoder(Encoder):
         block_fn=block_fn, blocks=num_blocks,
         strides=block_strides[i], training=training,
         name='block_layer{}'.format(i + 1), data_format=data_format,
-        regularizer=regularizer,
+        regularizer=regularizer, bn_regularizer=bn_regularizer,
       )
 
-    inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+    inputs = batch_norm(inputs, training, data_format,
+                        regularizer=bn_regularizer)
     inputs = tf.nn.relu(inputs)
 
     # The current top layer has shape
