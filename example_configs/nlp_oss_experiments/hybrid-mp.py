@@ -1,18 +1,18 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
-from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.optimizers.lr_policies import transformer_policy
 
 data_root = "/data/wmt16_s2s/"
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
@@ -27,15 +27,11 @@ base_params = {
   "logdir": "Hybrid-MP-luong10-P8-AAT",
   "optimizer": "Adam",
   "optimizer_params": {},
-  "learning_rate": 0.0008,
-  # luong10 decay scheme
-  "lr_policy": exp_decay,
+  "learning_rate": 2.0,
+  "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "begin_decay_at": 170000,
-    "decay_steps": 17000,
-    "decay_rate": 0.5,
-    "use_staircase_decay": True,
-    "min_lr": 0.0000005,
+    "warmup_steps": 16000,
+    "d_model": 1024,
   },
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],

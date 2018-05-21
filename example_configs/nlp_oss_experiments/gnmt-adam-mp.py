@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
@@ -12,7 +12,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/data/wmt16_s2s/"
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
