@@ -14,10 +14,10 @@ decoder
     :undoc-members:
     :show-inheritance:
 
-fc\_decoder
+fc\_decoders
 ---------------------------
 
-.. automodule:: decoders.fc_decoder
+.. automodule:: decoders.fc_decoders
     :members:
     :undoc-members:
     :show-inheritance:

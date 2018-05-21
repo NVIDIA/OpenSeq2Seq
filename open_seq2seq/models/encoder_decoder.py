@@ -9,7 +9,7 @@ from open_seq2seq.models.model import Model
 
 class EncoderDecoderModel(Model):
   """
-  Standard sequence-to-sequence class with one encoder and one decoder.
+  Standard encoder-decoder class with one encoder and one decoder.
   "encoder-decoder-loss" models should inherit from this class.
   """
 
@@ -30,7 +30,7 @@ class EncoderDecoderModel(Model):
     })
 
   def __init__(self, params, mode="train", hvd=None):
-    """Sequence-to-sequence model constructor.
+    """Encoder-decoder model constructor.
     Note that TensorFlow graph should not be created here. All graph creation
     logic is happening inside
     :meth:`self._build_forward_pass_graph() <_build_forward_pass_graph>` method.
@@ -111,16 +111,28 @@ class EncoderDecoderModel(Model):
     return self.params['loss'](params=self.params['loss_params'], model=self)
 
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-    """TensorFlow graph for sequence-to-sequence model is created here.
+    """TensorFlow graph for encoder-decoder-loss model is created here.
     This function connects encoder, decoder and loss together. As an input for
-    encoder it will specify source sequence and source length (as returned from
-    the data layer). As an input for decoder it will specify target sequence
-    and target length as well as all output returned from encoder. For loss it
-    will also specify target sequence and length and all output returned from
+    encoder it will specify source tensors (as returned from
+    the data layer). As an input for decoder it will specify target tensors
+    as well as all output returned from encoder. For loss it
+    will also specify target tensors and all output returned from
     decoder. Note that loss will only be built for mode == "train" or "eval".
 
-    See :meth:`models.model.Model._build_forward_pass_graph` for description of
-    arguments and return values.
+    Args:
+      input_tensors (dict): ``input_tensors`` dictionary that has to contain
+          ``source_tensors`` key with the list of all source tensors, and
+          ``target_tensors`` with the list of all target tensors. Note that
+          ``target_tensors`` only need to be provided if mode is
+          "train" or "eval".
+      gpu_id (int, optional): id of the GPU where the current copy of the model
+          is constructed. For Horovod this is always zero.
+
+    Returns:
+      tuple: tuple containing loss tensor as returned from
+      ``loss.compute_loss()`` and samples tensor, which is taken from
+      ``decoder.decode()['samples']``. When ``mode == 'infer'``, loss will
+      be None.
     """
     if not isinstance(input_tensors, dict) or \
        'source_tensors' not in input_tensors:

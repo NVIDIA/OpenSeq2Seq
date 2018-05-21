@@ -6,6 +6,12 @@ data
     :undoc-members:
     :show-inheritance:
 
+.. toctree::
+
+    data.image2label
+    data.speech2text
+    data.text2text
+
 data\_layer
 -----------------------
 
@@ -14,26 +20,10 @@ data\_layer
     :undoc-members:
     :show-inheritance:
 
-speech2text
------------------------
-
-.. automodule:: data.speech2text
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-speech\_utils
+utils
 -------------------------
 
-.. automodule:: data.speech_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-text2text
----------------------
-
-.. automodule:: data.text2text
+.. automodule:: data.utils
     :members:
     :undoc-members:
     :show-inheritance:

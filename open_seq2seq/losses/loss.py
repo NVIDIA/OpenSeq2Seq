@@ -105,12 +105,12 @@ class Loss:
     return a singleton loss tensor.
 
     Args:
-      input_dict (dict): dictionary containing loss inputs. This dict will
-          typically have the following content::
+      input_dict (dict): dictionary containing loss inputs.
+          If the loss is used with :class:`models.encoder_decoder` class,
+          ``input_dict`` will have the following content::
             {
-              "decoder_output": decoder_output,
-              "tgt_sequence": target_sequence,
-              "tgt_length": target_length,
+              "decoder_output": dictionary returned from decoder.decode() method
+              "target_tensors": data_layer.input_tensors['target_tensors']
             }
 
     Returns:
