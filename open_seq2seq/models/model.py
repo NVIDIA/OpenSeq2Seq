@@ -442,10 +442,13 @@ class Model:
     overwriting this method can be a useful way to add it.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.input_tensors
-                                  <data.data_layer.DataLayer.input_tensors>`.
-      output_values: evaluation of :meth:`self.get_output_tensors()
-                                          <get_output_tensors>`.
+      input_values: evaluation of
+          :meth:`self.get_data_layer(0).input_tensors
+          <data.data_layer.DataLayer.input_tensors>`, that is, input tensors
+          for one batch on the *first* GPU.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors(0) <get_output_tensors>`,
+          that is, output tensors for one batch on the *first* GPU.
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
@@ -474,10 +477,15 @@ class Model:
     overwriting this function can be a useful way to add it.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.input_tensors
-                                  <data.data_layer.DataLayer.input_tensors>`.
-      output_values: evaluation of :meth:`self.get_output_tensors()
-                                          <get_output_tensors>`.
+      input_values: evaluation of
+          :meth:`self.get_data_layer().input_tensors
+          <data.data_layer.DataLayer.input_tensors>` concatenated  across
+          all workers. That is, input tensors for one batch combined
+          from *all* GPUs.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>` concatenated
+          across all workers. That is, output tensors for one batch combined
+          from *all* GPUs.
 
     Returns:
       list: all necessary values for evaluation finalization (e.g. accuracy on
@@ -522,10 +530,15 @@ class Model:
     to perform inference.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.input_tensors
-                                  <data.data_layer.DataLayer.input_tensors>`.
-      output_values: evaluation of :meth:`self.get_output_tensors()
-                                          <get_output_tensors>`.
+      input_values: evaluation of
+          :meth:`self.get_data_layer().input_tensors
+          <data.data_layer.DataLayer.input_tensors>` concatenated  across
+          all workers. That is, input tensors for one batch combined
+          from *all* GPUs.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>` concatenated
+          across all workers. That is, output tensors for one batch combined
+          from *all* GPUs.
 
     Returns:
       list: all necessary values for inference finalization (e.g. this method
@@ -553,7 +566,7 @@ class Model:
     """This method performs last batch clipping.
     Used in cases when dataset is not divisible by the batch size and model
     does not support dynamic batch sizes. In those cases, the last batch will
-    containing some data from the ``next epoch'' and this method can be used
+    contain some data from the "next epoch" and this method can be used
     to remove that data. This method works for both
     dense and sparse tensors. In most cases you will not need to overwrite this
     method.
