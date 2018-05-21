@@ -18,6 +18,7 @@ class DataLayer:
   @staticmethod
   def get_required_params():
     """Static method with description of required parameters.
+
       Returns:
         dict:
             Dictionary containing all the parameters that **have to** be
@@ -31,6 +32,7 @@ class DataLayer:
   @staticmethod
   def get_optional_params():
     """Static method with description of optional parameters.
+
       Returns:
         dict:
             Dictionary containing all the parameters that **can** be
@@ -109,9 +111,15 @@ class DataLayer:
   @property
   @abc.abstractmethod
   def input_tensors(self):
-    """Dictionary which should may contain two keys: (1) `source_tensors` and
-    (2) `target_sensors`. Both (1) and (2) are lists of tensors
-     :meth:`self.build_graph()<build_graph>`.
+    """Dictionary containing input tensors.
+    This dictionary has to define the following keys: `source_tensors`,
+    which should contain all tensors describing the input object (i.e. tensors
+    that are passed to the encoder, e.g. input sequence and input length). And
+    when ``self.params['mode'] != "infer"`` data layer should also define
+    `target_tensors` which is the list of all tensors related to the
+    corresponding target object (i.e. tensors taht are passed to the decoder and
+    loss, e.g. target sequence and target length). Note that all tensors have
+    to be created inside :meth:`self.build_graph()<build_graph>` method.
     """
     pass
 
@@ -119,9 +127,10 @@ class DataLayer:
     """Should return the dataset size in samples.
     That is, the number of objects in the dataset. This method is used to
     calculate a valid epoch size. If this method is not defined, you will need
-    to make sure that your dataset for evaluation will be created only for
+    to make sure that your dataset for evaluation is created only for
     one epoch. You will also not be able to use ``num_epochs`` parameter in the
     base config.
+
     Returns:
       int: dataset size in samples.
     """
