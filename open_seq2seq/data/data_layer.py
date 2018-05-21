@@ -50,6 +50,7 @@ class DataLayer:
     """Data layer constructor.
     The TensorFlow graph should not be created here, but rather in the
     :meth:`self.build_graph() <build_graph>` method.
+
     Args:
       params (dict): parameters describing the data layer.
           All supported parameters are listed in :meth:`get_required_params`,
