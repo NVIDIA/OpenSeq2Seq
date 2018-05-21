@@ -70,6 +70,10 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     dl.build_graph()
     print(len(dl.src_seq2idx))
     print(len(dl.tgt_seq2idx))
+    print(dl.src_seq2idx)
+    print(dl.src_idx2seq)
+    for i in range(len(dl.src_seq2idx)):
+      self.assertIn(i, dl.src_idx2seq)
     with self.test_session(use_gpu=True) as sess:
       sess.run(dl.iterator.initializer)
       et = sess.run(dl.input_tensors)
