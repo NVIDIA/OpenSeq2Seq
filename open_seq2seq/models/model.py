@@ -48,7 +48,6 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'learning_rate': float,
       'logdir': str,
       'num_gpus': int,  # cannot be used when gpu_ids is specified
       'gpu_ids': list,  # cannot be used when num_gpus is specified
@@ -136,7 +135,6 @@ class Model:
       configuration.
       For complete list of possible parameters see the corresponding
       class docs.
-    * **learning_rate** (float) --- initial learning rate for training.
     * **optimizer** (string or TensorFlow optimizer class) --- optimizer to
       use for training. Could be either "Adam", "Adagrad", "Ftrl", "Momentum",
       "RMSProp", "SGD" or any valid TensorFlow optimizer class.
@@ -354,12 +352,12 @@ class Model:
         if 'steps_per_epoch' in self.params['lr_policy'].__code__.co_varnames and \
            'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
           lr_params['steps_per_epoch'] = self.steps_in_epoch
-        lr_policy = lambda lr, gs: self.params['lr_policy'](lr, gs, **lr_params)
+        lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,
+                                                        **lr_params)
 
       self.train_op = optimize_loss(
         loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
-        learning_rate=self.params['learning_rate'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
         gradient_noise_scale=None,

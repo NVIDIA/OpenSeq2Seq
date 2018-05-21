@@ -8,6 +8,7 @@ from open_seq2seq.decoders import RNNDecoderWithAttention, \
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
@@ -27,7 +28,10 @@ base_params = {
   "logdir": "nmt-small-en-de",
   "optimizer": "Adam",
   "optimizer_params": {},
-  "learning_rate": 0.001,
+  "lr_policy": fixed_lr,
+  "lr_policy_params": {
+    "learning_rate": 0.001,
+  },
   "larc_params": {
     "larc_nu": 0.001,
   },

@@ -10,6 +10,7 @@ import numpy.testing as npt
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper, \
                                                MixedPrecisionOptimizerWrapper
 from open_seq2seq.optimizers import optimize_loss
+from .lr_policies import fixed_lr
 
 
 class MixedPrecisionOptimizerTests(tf.test.TestCase):
@@ -109,7 +110,8 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
         y_pred = tf.layers.dense(x_ph, 1, use_bias=False)
         loss = tf.losses.mean_squared_error(y_ph, y_pred)
         loss += tf.losses.get_regularization_loss()
-        train_op = optimize_loss(loss, 0.05, "Adam", {}, dtype=dtype)
+        train_op = optimize_loss(loss, "Adam", {},
+                                 lambda gs: fixed_lr(gs, 0.05), dtype=dtype)
 
         with self.test_session(g, use_gpu=True) as sess:
           sess.run(tf.global_variables_initializer())

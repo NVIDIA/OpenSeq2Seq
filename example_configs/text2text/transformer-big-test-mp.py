@@ -39,9 +39,9 @@ base_params = {
     "epsilon": 1e-09,
   },
 
-  "learning_rate": 2.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
+    "learning_rate": 2.0,
     "warmup_steps": 16000,
     "d_model": d_model,
   },
