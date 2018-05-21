@@ -30,6 +30,7 @@ rather than after.
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from six.moves import range
 
 import tensorflow as tf
 
@@ -95,7 +96,7 @@ def conv2d_fixed_padding(inputs, filters, kernel_size, strides,
 # ResNet block definitions.
 ################################################################################
 def building_block_v1(inputs, filters, training, projection_shortcut, strides,
-                      data_format, regularizer):
+                      data_format, regularizer, bn_regularizer):
   """A single block for ResNet v1, without a bottleneck.
 
   Convolution then batch normalization then ReLU as described by:
@@ -123,18 +124,18 @@ def building_block_v1(inputs, filters, training, projection_shortcut, strides,
   if projection_shortcut is not None:
     shortcut = projection_shortcut(inputs)
     shortcut = batch_norm(inputs=shortcut, training=training,
-                          data_format=data_format, regularizer=regularizer)
+                          data_format=data_format, regularizer=bn_regularizer)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format, regularizer=regularizer)
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=1,
       data_format=data_format, regularizer=regularizer)
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs += shortcut
   inputs = tf.nn.relu(inputs)
 
@@ -142,7 +143,7 @@ def building_block_v1(inputs, filters, training, projection_shortcut, strides,
 
 
 def building_block_v2(inputs, filters, training, projection_shortcut, strides,
-                      data_format, regularizer):
+                      data_format, regularizer, bn_regularizer):
   """A single block for ResNet v2, without a bottleneck.
 
   Batch normalization then ReLu then convolution as described by:
@@ -166,7 +167,7 @@ def building_block_v2(inputs, filters, training, projection_shortcut, strides,
     The output tensor of the block; shape should match inputs.
   """
   shortcut = inputs
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
 
   # The projection shortcut should come after the first batch norm and ReLU
@@ -178,7 +179,7 @@ def building_block_v2(inputs, filters, training, projection_shortcut, strides,
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format, regularizer=regularizer)
 
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=1,
@@ -188,7 +189,7 @@ def building_block_v2(inputs, filters, training, projection_shortcut, strides,
 
 
 def bottleneck_block_v1(inputs, filters, training, projection_shortcut,
-                        strides, data_format, regularizer):
+                        strides, data_format, regularizer, bn_regularizer):
   """A single block for ResNet v1, with a bottleneck.
 
   Similar to _building_block_v1(), except using the "bottleneck" blocks
@@ -218,24 +219,24 @@ def bottleneck_block_v1(inputs, filters, training, projection_shortcut,
   if projection_shortcut is not None:
     shortcut = projection_shortcut(inputs)
     shortcut = batch_norm(inputs=shortcut, training=training,
-                          data_format=data_format, regularizer=regularizer)
+                          data_format=data_format, regularizer=bn_regularizer)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=1, strides=1,
       data_format=data_format, regularizer=regularizer)
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format, regularizer=regularizer)
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
 
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=4 * filters, kernel_size=1, strides=1,
       data_format=data_format, regularizer=regularizer)
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs += shortcut
   inputs = tf.nn.relu(inputs)
 
@@ -243,7 +244,7 @@ def bottleneck_block_v1(inputs, filters, training, projection_shortcut,
 
 
 def bottleneck_block_v2(inputs, filters, training, projection_shortcut,
-                        strides, data_format, regularizer):
+                        strides, data_format, regularizer, bn_regularizer):
   """A single block for ResNet v2, without a bottleneck.
 
   Similar to _building_block_v2(), except using the "bottleneck" blocks
@@ -275,7 +276,7 @@ def bottleneck_block_v2(inputs, filters, training, projection_shortcut,
     The output tensor of the block; shape should match inputs.
   """
   shortcut = inputs
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
 
   # The projection shortcut should come after the first batch norm and ReLU
@@ -287,13 +288,13 @@ def bottleneck_block_v2(inputs, filters, training, projection_shortcut,
       inputs=inputs, filters=filters, kernel_size=1, strides=1,
       data_format=data_format, regularizer=regularizer)
 
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=filters, kernel_size=3, strides=strides,
       data_format=data_format, regularizer=regularizer)
 
-  inputs = batch_norm(inputs, training, data_format, regularizer=regularizer)
+  inputs = batch_norm(inputs, training, data_format, regularizer=bn_regularizer)
   inputs = tf.nn.relu(inputs)
   inputs = conv2d_fixed_padding(
       inputs=inputs, filters=4 * filters, kernel_size=1, strides=1,
@@ -303,7 +304,7 @@ def bottleneck_block_v2(inputs, filters, training, projection_shortcut,
 
 
 def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
-                training, name, data_format, regularizer):
+                training, name, data_format, regularizer, bn_regularizer):
   """Creates one layer of blocks for the ResNet model.
 
   Args:
@@ -335,10 +336,11 @@ def block_layer(inputs, filters, bottleneck, block_fn, blocks, strides,
 
   # Only the first block per block_layer uses projection_shortcut and strides
   inputs = block_fn(inputs, filters, training, projection_shortcut, strides,
-                    data_format, regularizer=regularizer)
+                    data_format, regularizer=regularizer,
+                    bn_regularizer=bn_regularizer)
 
   for _ in range(1, blocks):
     inputs = block_fn(inputs, filters, training, None, 1, data_format,
-                      regularizer=regularizer)
+                      regularizer=regularizer, bn_regularizer=bn_regularizer)
 
   return tf.identity(inputs, name)
