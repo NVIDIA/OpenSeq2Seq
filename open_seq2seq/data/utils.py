@@ -18,7 +18,7 @@ def pad_vocab_to_eight(vocab):
   if v_len % 8 == 0:
     return vocab
   for id_add in range(0, 8 - v_len % 8):
-    vocab['<$'+str(id_add)+'$>'] = v_len+id_add
+    vocab['<$'+str(id_add)+'$>'] = v_len + id_add
   return vocab
 
 
