@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
@@ -12,7 +12,7 @@ from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 # This model should run fine on single GPU such as 1080ti or better
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,

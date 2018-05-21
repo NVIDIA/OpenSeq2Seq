@@ -99,9 +99,6 @@ class ResNetEncoder(Encoder):
     bn_regularizer = regularizer if regularize_bn else None
 
     if data_format == 'channels_first':
-      # Convert the inputs from channels_last (NHWC) to channels_first (NCHW).
-      # This provides a large performance boost on GPU. See
-      # https://www.tensorflow.org/performance/performance_guide#data_formats
       inputs = tf.transpose(inputs, [0, 3, 1, 2])
 
     inputs = conv2d_fixed_padding(
@@ -109,6 +106,11 @@ class ResNetEncoder(Encoder):
       strides=conv_stride, data_format=data_format, regularizer=regularizer,
     )
     inputs = tf.identity(inputs, 'initial_conv')
+
+    if version == 1:
+      inputs = batch_norm(inputs, training, data_format,
+                          regularizer=bn_regularizer)
+      inputs = tf.nn.relu(inputs)
 
     if first_pool_size:
       inputs = tf.layers.max_pooling2d(
@@ -127,10 +129,10 @@ class ResNetEncoder(Encoder):
         name='block_layer{}'.format(i + 1), data_format=data_format,
         regularizer=regularizer, bn_regularizer=bn_regularizer,
       )
-
-    inputs = batch_norm(inputs, training, data_format,
-                        regularizer=bn_regularizer)
-    inputs = tf.nn.relu(inputs)
+    if version == 2:
+      inputs = batch_norm(inputs, training, data_format,
+                          regularizer=bn_regularizer)
+      inputs = tf.nn.relu(inputs)
 
     # The current top layer has shape
     # `batch_size x pool_size x pool_size x final_size`.

@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import TransformerDecoder
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
@@ -13,7 +13,7 @@ This configuration file describes a tiny variant of Transformer model from
 https://arxiv.org/abs/1706.03762 on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 d_model = 128
 num_layers = 2
 

@@ -1,6 +1,6 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
@@ -13,7 +13,7 @@ This configuration file describes classic RNN-based encoder-decoder model
 with attention on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,

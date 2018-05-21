@@ -6,11 +6,11 @@ from six.moves import range
 
 import numpy as np
 
-from .seq2seq import Seq2Seq
+from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
 
 
-class Image2Label(Seq2Seq):
+class Image2Label(EncoderDecoderModel):
   def maybe_print_logs(self, input_values, output_values):
     labels = input_values['target_tensors'][0]
     logits = output_values[0]
