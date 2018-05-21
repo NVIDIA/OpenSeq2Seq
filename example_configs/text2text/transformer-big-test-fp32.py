@@ -44,6 +44,10 @@ base_params = {
     "warmup_steps": 16000,
     "d_model": d_model,
   },
+
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+
   "encoder": TransformerEncoder,
   "encoder_params": {
     "encoder_layers": num_layers,
