@@ -7,7 +7,7 @@ import nltk
 import re
 import codecs
 
-from .seq2seq import Seq2Seq
+from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.utils.utils import deco_print, array_to_string, \
                                      text_ids_to_string
@@ -49,7 +49,7 @@ def calculate_bleu(preds, targets):
   return bleu_score
 
 
-class BasicText2TextWithAttention(Seq2Seq):
+class Text2Text(EncoderDecoderModel):
   """
   An example class implementing classical text-to-text model.
   """
@@ -57,7 +57,7 @@ class BasicText2TextWithAttention(Seq2Seq):
     self.params['encoder_params']['src_vocab_size'] = (
       self.get_data_layer().params['src_vocab_size']
     )
-    return super(BasicText2TextWithAttention, self)._create_encoder()
+    return super(Text2Text, self)._create_encoder()
 
   def _create_decoder(self):
     self.params['decoder_params']['batch_size'] = (
@@ -66,14 +66,14 @@ class BasicText2TextWithAttention(Seq2Seq):
     self.params['decoder_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['tgt_vocab_size']
     )
-    return super(BasicText2TextWithAttention, self)._create_decoder()
+    return super(Text2Text, self)._create_decoder()
 
   def _create_loss(self):
     self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
     self.params['loss_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['tgt_vocab_size']
     )
-    return super(BasicText2TextWithAttention, self)._create_loss()
+    return super(Text2Text, self)._create_loss()
 
   def infer(self, input_values, output_values):
     input_strings, output_strings = [], []

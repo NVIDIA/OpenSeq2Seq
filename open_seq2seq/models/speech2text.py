@@ -8,7 +8,7 @@ import pandas as pd
 import tensorflow as tf
 import numpy as np
 
-from .seq2seq import Seq2Seq
+from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
 
 
@@ -42,7 +42,7 @@ def levenshtein(a, b):
     return current[n]
 
 
-class Speech2Text(Seq2Seq):
+class Speech2Text(EncoderDecoderModel):
   def _create_decoder(self):
     self.params['decoder_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['tgt_vocab_size']

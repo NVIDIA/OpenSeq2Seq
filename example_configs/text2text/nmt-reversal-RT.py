@@ -1,5 +1,5 @@
 from __future__ import absolute_import, division, print_function
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import TransformerDecoder
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
@@ -13,7 +13,7 @@ This configuration file describes a model which uses RNN-based encoder
 and Transformer-based decoder on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,

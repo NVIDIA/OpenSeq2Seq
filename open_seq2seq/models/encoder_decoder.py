@@ -7,7 +7,7 @@ from open_seq2seq.utils.utils import deco_print
 from open_seq2seq.models.model import Model
 
 
-class Seq2Seq(Model):
+class EncoderDecoderModel(Model):
   """
   Standard sequence-to-sequence class with one encoder and one decoder.
   "encoder-decoder-loss" models should inherit from this class.
@@ -63,7 +63,7 @@ class Seq2Seq(Model):
     * **loss_params** (dict) --- dictionary with loss configuration. For
       complete list of possible parameters see the corresponding class docs.
     """
-    super(Seq2Seq, self).__init__(params=params, mode=mode, hvd=hvd)
+    super(EncoderDecoderModel, self).__init__(params=params, mode=mode, hvd=hvd)
     if 'encoder_params' not in self.params:
       self.params['encoder_params'] = {}
     if 'decoder_params' not in self.params:
