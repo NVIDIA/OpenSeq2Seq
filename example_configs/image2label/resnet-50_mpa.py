@@ -17,7 +17,7 @@ base_params = {
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
   "dtype": "mixed",
-  "loss_scale": 10.0,
+  "automatic_loss_scaling": "Backoff",
 
   "save_summaries_steps": 2000,
   "print_loss_steps": 100,
