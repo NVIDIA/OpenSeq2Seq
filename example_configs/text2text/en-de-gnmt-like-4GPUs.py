@@ -10,7 +10,6 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_model = Text2Text
@@ -18,31 +17,32 @@ base_model = Text2Text
 base_params = {
   "use_horovod": False,
   "num_gpus": 4,
-  "max_steps": 150000,
-  "batch_size_per_gpu": 128,
+  "max_steps": 340000,
+  "batch_size_per_gpu": 32,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-SGD-4xGPUs-FP32",
-
-  "optimizer": "SGD",
+  "logdir": "GNMT-Adam-LR0.0008-FP32-4x32-MP-luong10-P8-AAT",
+  "optimizer": "Adam",
   "optimizer_params": {},
+  # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
-    "learning_rate": 1.0,
-    "begin_decay_at": 42500,
-    "decay_steps": 4550,
+    "learning_rate": 0.0008,
+    "begin_decay_at": 170000,
+    "decay_steps": 17000,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
-    "min_lr": 0.00005,
+    "min_lr": 0.0000005,
   },
-  "max_grad_norm": 5.0,
+  #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+  #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+  "max_grad_norm": 32768.0,
   "dtype": tf.float32,
-  # "dtype": "mixed",
-  # "automatic_loss_scaling": "Backoff",
-
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
@@ -83,7 +83,7 @@ base_params = {
   "loss": BasicSequenceLoss,
   "loss_params": {
     "offset_target_by_one": True,
-    "average_across_timestep": False,
+    "average_across_timestep": True,
     "do_mask": True
   }
 }
@@ -91,6 +91,7 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
@@ -100,13 +101,14 @@ train_params = {
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
-    "max_length": 48,
+    "max_length": 50,
   },
 }
 eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2013.tok.bpe.32000.en",
@@ -142,6 +144,7 @@ infer_params = {
 
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2014.tok.bpe.32000.en",
@@ -150,5 +153,6 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
+    "max_length": 512,
   },
 }
