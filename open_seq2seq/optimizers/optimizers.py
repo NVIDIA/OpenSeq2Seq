@@ -147,62 +147,16 @@ class DistributedOptimizer(tf.train.Optimizer):
     else:
       return gradients
 
-  def apply_gradients(self, grads_and_vars, global_step=None, name=None):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer.apply_gradients(grads_and_vars, global_step, name)
-
-  def _apply_dense(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._apply_dense(*args, **kwargs)
-
-  def _resource_apply_dense(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._resource_apply_dense(*args, **kwargs)
-
-  def _resource_apply_sparse_duplicate_indices(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._resource_apply_sparse_duplicate_indices(*args,
-                                                                    **kwargs)
-
-  def _resource_apply_sparse(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._resource_apply_sparse(*args, **kwargs)
-
-  def _apply_sparse_duplicate_indices(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._apply_sparse_duplicate_indices(*args, **kwargs)
-
-  def _apply_sparse(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._apply_sparse(*args, **kwargs)
-
-  def _prepare(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._prepare(*args, **kwargs)
-
-  def _create_slots(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._create_slots(*args, **kwargs)
-
-  def _valid_dtypes(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._valid_dtypes(*args, **kwargs)
-
-  def _finish(self, *args, **kwargs):
-    """Calls this same method on the underlying optimizer."""
-    return self._optimizer._finish(*args, **kwargs)
-
 
 def optimize_loss(loss,
-                  learning_rate,
                   optimizer,
                   optimizer_params,
+                  learning_rate_decay_fn,
                   global_step=None,
                   dtype=tf.float32,
                   gradient_noise_scale=None,
                   gradient_multipliers=None,
                   clip_gradients=None,
-                  learning_rate_decay_fn=None,
                   update_ops=None,
                   variables=None,
                   name=None,
@@ -315,24 +269,6 @@ def optimize_loss(loss,
     if update_ops:
       loss = control_flow_ops.with_dependencies(list(update_ops), loss)
 
-    # Learning rate variable, with possible decay.
-    lr = None
-    if learning_rate is not None:
-      if isinstance(learning_rate, ops.Tensor) and \
-         learning_rate.get_shape().ndims == 0:
-        lr = learning_rate
-      elif isinstance(learning_rate, float):
-        if learning_rate < 0.0:
-          raise ValueError("Invalid learning_rate %s.", learning_rate)
-        lr = vs.get_variable(
-            "learning_rate", [],
-            trainable=False,
-            initializer=init_ops.constant_initializer(learning_rate))
-      else:
-        raise ValueError("Learning rate should be 0d Tensor or float. "
-                         "Got %s of type %s" % (str(learning_rate),
-                                                str(type(learning_rate))))
-
     if summaries is None:
       summaries = ["learning_rate", "global_gradient_norm"]
     else:
@@ -340,10 +276,9 @@ def optimize_loss(loss,
         if summ not in OPTIMIZER_SUMMARIES:
           raise ValueError("Summaries should be one of [%s], you provided %s." %
                            (", ".join(OPTIMIZER_SUMMARIES), summ))
-    if learning_rate is not None and learning_rate_decay_fn is not None:
-      if global_step is None:
-        raise ValueError("global_step is required for learning_rate_decay_fn.")
-      lr = learning_rate_decay_fn(lr, global_step)
+    if global_step is None:
+      raise ValueError("global_step is required for learning_rate_decay_fn.")
+    lr = learning_rate_decay_fn(global_step)
 
     if "learning_rate" in summaries:
       summary.scalar("learning_rate", lr)

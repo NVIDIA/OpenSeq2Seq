@@ -38,9 +38,9 @@ base_params = {
     "beta2": 0.997,
     "epsilon": 0.000000001,
   },
-  "learning_rate": 1.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
+    "learning_rate": 1.0,
     "warmup_steps": 200,
     "d_model": d_model,
   },

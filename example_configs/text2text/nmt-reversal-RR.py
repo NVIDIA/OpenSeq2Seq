@@ -7,6 +7,7 @@ from open_seq2seq.decoders import RNNDecoderWithAttention, \
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 """
 This configuration file describes classic RNN-based encoder-decoder model
@@ -30,7 +31,10 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-4},
-  "learning_rate": 0.001,
+  "lr_policy": fixed_lr,
+  "lr_policy_params": {
+    'learning_rate': 0.001
+  },
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
 

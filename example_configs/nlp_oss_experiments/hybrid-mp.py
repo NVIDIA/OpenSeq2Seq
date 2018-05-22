@@ -27,9 +27,9 @@ base_params = {
   "logdir": "Hybrid-MP-luong10-P8-AAT",
   "optimizer": "Adam",
   "optimizer_params": {},
-  "learning_rate": 2.0,
   "lr_policy": transformer_policy,
   "lr_policy_params": {
+    "learning_rate": 2.0,
     "warmup_steps": 16000,
     "d_model": 1024,
   },

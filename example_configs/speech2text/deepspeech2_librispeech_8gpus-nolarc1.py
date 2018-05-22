@@ -28,10 +28,10 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "learning_rate": 0.001,
   "lr_policy": poly_decay,
   "lr_policy_params": {
-   "power": 0.5,
+    "learning_rate": 0.001,
+    "power": 0.5,
   },
   "dtype": tf.float32,
   # weight decay

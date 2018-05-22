@@ -27,10 +27,10 @@ base_params = {
   "logdir": "GNMT-SGD-LR1.0-MX5.0-4x32-MP-luong10-P8",
   "optimizer": "SGD",
   "optimizer_params": {},
-  "learning_rate": 1.0,
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
+    "learning_rate": 1.0,
     "begin_decay_at": 170000,
     "decay_steps": 17000,
     "decay_rate": 0.5,

@@ -26,9 +26,9 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  "learning_rate": 0.0001,
   "lr_policy": exp_decay,
   "lr_policy_params": {
+    "learning_rate": 0.0001,
     "begin_decay_at": 0,
     "decay_steps": 5000,
     "decay_rate": 0.9,

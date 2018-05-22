@@ -29,9 +29,9 @@ base_params = {
 
   "optimizer": "SGD",
   "optimizer_params": {},
-  "learning_rate": 1.0,
   "lr_policy": exp_decay,
   "lr_policy_params": {
+    "learning_rate": 1.0,
     "begin_decay_at": 42500,
     "decay_steps": 4550,
     "decay_rate": 0.5,
