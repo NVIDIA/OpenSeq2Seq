@@ -76,7 +76,7 @@ class ImagenetDataLayer(DataLayer):
     dataset = dataset.repeat()
 
     dataset = dataset.map(
-      lambda value: parse_record(value, self.params['mode'] == 'training'),
+      lambda value: parse_record(value, self.params['mode'] == 'train'),
       num_parallel_calls=self.params.get('num_parallel_calls', 16),
     )
 
