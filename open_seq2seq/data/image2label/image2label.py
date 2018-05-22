@@ -85,6 +85,8 @@ class ImagenetDataLayer(DataLayer):
 
     self._iterator = dataset.make_initializable_iterator()
     inputs, labels = self.iterator.get_next()
+    if self.params['mode'] == 'train':
+      tf.summary.image('augmented_images', inputs, max_outputs=1)
     self._input_tensors = {
       'source_tensors': [inputs],
       'target_tensors': [labels],

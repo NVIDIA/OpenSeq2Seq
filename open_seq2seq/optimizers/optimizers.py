@@ -306,7 +306,7 @@ def optimize_loss(loss,
     elif isinstance(optimizer, optimizer_.Optimizer):
       opt = optimizer
     elif callable(optimizer):
-      if learning_rate is not None:
+      if lr is not None:
         opt = optimizer(lr, **optimizer_params)
       else:
         opt = optimizer(**optimizer_params)
