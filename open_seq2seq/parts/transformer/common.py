@@ -18,17 +18,21 @@ class LayerNormalization(tf.layers.Layer):
 
   def build(self, _):
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
-                                 initializer=tf.ones_initializer())
+                                 initializer=tf.ones_initializer(dtype=tf.float32),
+                                 dtype=tf.float32)
     self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
-                                initializer=tf.zeros_initializer())
+                                initializer=tf.zeros_initializer(dtype=tf.float32),
+                                dtype=tf.float32)
     self.built = True
 
   def call(self, x, epsilon=1e-6):
-  #def call(self, x, epsilon=1e-4):
+    dtype = x.dtype
+    x = tf.cast(x=x, dtype=tf.float32)
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
     norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
-    return norm_x * self.scale + self.bias
+    result = norm_x * self.scale + self.bias
+    return tf.cast(x=result, dtype=dtype)
 
 
 class PrePostProcessingWrapper(object):
