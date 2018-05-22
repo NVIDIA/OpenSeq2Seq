@@ -31,10 +31,10 @@ base_params = {
   },
   "lr_policy": piecewise_constant,
   "lr_policy_params": {
+    "learning_rate": 0.1,
     "boundaries": [30, 60, 80, 90],
     "decay_rates": [0.1, 0.01, 0.001, 1e-4],
   },
-  "learning_rate": 0.1,
 
   "initializer": tf.variance_scaling_initializer,
 
@@ -47,6 +47,7 @@ base_params = {
   "encoder": ResNetEncoder,
   "encoder_params": {
     'resnet_size': 50,
+    "regularize_bn": False,
   },
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
