@@ -147,6 +147,10 @@ class DistributedOptimizer(tf.train.Optimizer):
     else:
       return gradients
 
+  def apply_gradients(self, grads_and_vars, global_step=None, name=None):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer.apply_gradients(grads_and_vars, global_step, name)
+
 
 def optimize_loss(loss,
                   optimizer,
