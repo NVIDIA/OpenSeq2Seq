@@ -10,23 +10,21 @@ kinds of output that OpenSeq2Seq generates for you.
 How to run models
 -----------------
 
-There are two scripts that can be used to run the models: ``run.py`` and
-``start_experiment.sh``. The latter one is just a convenient bash
-wrapper around ``run.py`` that adds additional functionality, so we will
-describe it in the end. Since ``run.py`` is a fairly simple Python script,
-you can probably understand
+The main script to run all models is ``run.py``. Since it is a fairly simple
+Python script, you can probably understand
 how to use it by running ``run.py --help`` which will display all available
 command line parameters and their short description. If that does not contain
-enough details, continue reading this section. Otherwise, just skip to the
-description of ``start_experiment.sh`` script (last paragraph of this section).
+enough details, continue reading this section. Otherwise, you can safely skip
+to the next section, which describes config parameters.
 
 There are 2 main parameters of ``run.py`` that will be
 used most often: ``--config_file`` and ``--mode``. The first one is a required
-parameter with path to the python configuration file (described in the :ref:`next
-section <config-params>`). ``--mode`` parameter can be one of the "train",
-"eval", "train\_eval" or "infer". This will do what it says: run the model in
-the corresponding mode (with "train\_eval" executing training with periodic
-evaluation). The other parameters of the ``run.py`` script are the following:
+parameter with path to the python configuration file (described in the
+:ref:`next section <config-params>`). ``--mode`` parameter can be one of the
+"train", "eval", "train\_eval" or "infer". This will do what it says: run
+the model in the corresponding mode (with "train\_eval" executing training
+with periodic evaluation).
+The other parameters of the ``run.py`` script are the following:
 
 * ``--continue_learning`` --- specify this when you want to continue learning
   from existing checkpoint. This parameter is only checked when ``--mode`` is
@@ -64,23 +62,18 @@ evaluation). The other parameters of the ``run.py`` script are the following:
   running execute ``run.py`` with ``--debug_port=6067`` attribute.
   After that tensorboard should have debugging tab.
 
-In order to make it more convenient to run multiple experiments we provide
-``start_experiment.sh`` script that is a wrapper around ``run.py`` script which
-does the following things. First, it will make sure that the complete output of
-``run.py`` is saved inside the log directory (in the "output\_<time stamp>.log
-file, where <time stamp> is a string with current date and time to make sure
-that everything is saved if you run this script multiple times).
-Second, it will log the current git commit and git diff in the
-"gitinfo\_<time stamp>.log" file to make it possible to completely reproduce the
-experiment. Finally, it will save the current experiment configuration in the
-"config\_<time stamp>.py" file. To run ``start_experiment.sh`` you will need to
-define the following environment variables: ``LOGDIR`` (path to the desired log
-directory), ``CONFIG_FILE`` (path to the Python configuration file), ``MODE``
-(mode to execute ``run.py`` in) and ``CONTINUE_LEARNING`` (whether to specify
-``--continue_learning`` flag for ``run.py``, could be 1 or 0). For example to
-train DeepSpeech2-like model on the toy speech data you can run::
-
-   LOGDIR=experiments/librispeech CONFIG_FILE=example_configs/speech2text/ds2_toy_data_config.py MODE=train_eval CONTINUE_LEARNING=0 ./start_experiment.sh
+* ``--enable_logs`` --- specifying this parameter will enable additional
+  convenient log information to be saved. Namely, the script will save all
+  output (both stdout and stderr), exact configuration file, git information
+  (git commit hash and git diff) and exact command line parameters used to start
+  the script. For all log files it will automatically append current time stamp
+  so that subsequent runs do not overwrite any information. One important thing
+  to note is that specifying this parameter will force the script to save
+  all TensorFlow logs (tensorboard events, checkpoint, etc.) in the ``logs``
+  subfolder. Thus, if you want to restore the model that was saved with
+  ``enable_logs`` specified you will need to either specify it again or move
+  the model checkpoints from the ``logs`` directory into the base ``logdir``
+  folder (which is a config parameter).
 
 .. _config-params:
 
@@ -90,15 +83,16 @@ Config parameters
 The experiment parameters are completely defined in one Python configuration
 file. This file must define ``base_params`` dictionary and ``base_model`` class.
 ``base_model`` should be any class derived from
-:class:`Model<models.model.Model>`. Currently it can only be
-:class:`Speech2Text<models.speech2text.Speech2Text>` or
-:class:`BasicText2TextWithAttention<models.text2text.BasicText2TextWithAttention>`.
+:class:`Model<models.model.Model>`. Currently it can be
+:class:`Speech2Text<models.speech2text.Speech2Text>`,
+:class:`Text2Text<models.text2text.Text2Text>` or
+:class:`Image2Label<models.image2label.Image2Label>`.
 Note that this parameter is not a string, but an actual Python class, so you
 will need to add corresponding imports in the configuration file. In addition
 to ``base_params`` and ``base_model`` you can define
 ``train_params``, ``eval_params`` and ``infer_params`` dictionaries that will
 overwrite corresponding parts of ``base_params`` when the corresponding mode
-is used. For example of configuration file look in the ``example_configs``
+is used. For examples of configuration files look in the ``example_configs``
 directory. The complete list of all possible configuration parameters is
 defined in the documentation in various places. A good place to look first is
 the :meth:`Model.__init__()<models.model.Model.__init__>` method
@@ -113,16 +107,19 @@ corresponding class docs. For example, to see all supported data layer parameter
 look into the docs for :class:`data.data_layer.DataLayer`. Sometimes, derived classes
 might define their additional parameters, in that case you should be looking
 into both, parent class and its child. For example, look into
-:class:`models.seq2seq.Seq2Seq`, which defines sequence-to-sequence specific
-parameters (i.e. encoder, decoder and loss). You can also have a look at
+:class:`models.encoder_decoder.EncoderDecoderModel`, which defines parameters
+specific for models that can be expressed as encoder-decoder-loss blocks.
+You can also have a look at
 :class:`encoders.encoder.Encoder` (which defines some parameters shared across
 all encoders) and :class:`encoders.ds2_encoder.DeepSpeech2Encoder` (which
 additionally defines a set of DeepSpeech-2 specific parameters).
 
 .. note::
-    For convenience all *first level* parameters can be overwritten by
-    command line arguments. For example, try to add ``--logdir`` argument
-    to your ``run.py`` execution.
+    For convenience all string or numerical config parameters can be overwritten
+    by command line arguments. To overwrite parameters of the nested
+    dictionaries, separate the dictionary and parameter name with "/".
+    For example, try to specify ``--logdir`` argument or
+    ``--lr_policy_params/learning_rate`` in your ``run.py`` execution.
 
 
 What is being logged

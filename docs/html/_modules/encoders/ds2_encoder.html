@@ -165,7 +165,7 @@
 <div class="viewcode-block" id="conv2d_bn_actv"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv2d_bn_actv</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
                    <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span>
                    <span class="n">bn_epsilon</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Helper function that applied convolution, batch norm and activation.&quot;&quot;&quot;</span>
+  <span class="sd">&quot;&quot;&quot;Helper function that applies convolution, batch norm and activation.&quot;&quot;&quot;</span>
   <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
     <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
     <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
@@ -262,8 +262,8 @@
 
 <div class="viewcode-block" id="DeepSpeech2Encoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder">[docs]</a><span class="k">class</span> <span class="nc">DeepSpeech2Encoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;DeepSpeech-2 like encoder.&quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="DeepSpeech2Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="DeepSpeech2Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;conv_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
@@ -277,8 +277,8 @@
       <span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="DeepSpeech2Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="DeepSpeech2Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;row_conv_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
@@ -333,16 +333,26 @@
 <div class="viewcode-block" id="DeepSpeech2Encoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder._encode">[docs]</a>  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Creates TensorFlow graph for DeepSpeech-2 like encoder.</span>
 
-<span class="sd">    Expects the following inputs::</span>
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): input dictionary that has to contain</span>
+<span class="sd">          the following fields::</span>
+<span class="sd">            input_dict = {</span>
+<span class="sd">              &quot;source_tensors&quot;: [</span>
+<span class="sd">                src_sequence (shape=[batch_size, sequence length, num features]),</span>
+<span class="sd">                src_length (shape=[batch_size])</span>
+<span class="sd">              ]</span>
+<span class="sd">            }</span>
 
-<span class="sd">      input_dict = {</span>
-<span class="sd">        &quot;src_sequence&quot;: tensor of shape [batch_size, sequence length, num features]</span>
-<span class="sd">        &quot;src_length&quot;: tensor of shape [batch_size]</span>
-<span class="sd">      }</span>
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: dictionary with the following tensors::</span>
+
+<span class="sd">        {</span>
+<span class="sd">          &#39;outputs&#39;: hidden state, shape=[batch_size, sequence length, n_hidden]</span>
+<span class="sd">          &#39;src_length&#39;: tensor, shape=[batch_size]</span>
+<span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
-    <span class="n">source_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_sequence&#39;</span><span class="p">]</span>
-    <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
+    <span class="n">source_sequence</span><span class="p">,</span> <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
 
     <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
     <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">training</span> <span class="k">else</span> <span class="mf">1.0</span>
@@ -480,7 +490,7 @@
         <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
       <span class="p">)</span>
 
-    <span class="c1"># Reshape [B, T, C] --&gt; [T*B, C]</span>
+    <span class="c1"># Reshape [B, T, C] --&gt; [B*T, C]</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">top_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
 
@@ -494,8 +504,8 @@
     <span class="p">)</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span> <span class="n">keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
 
-    <span class="c1"># reshape from  [T*B,A] --&gt; [T, B, A].</span>
-    <span class="c1"># Output shape: [n_steps, batch_size, n_hidden]</span>
+    <span class="c1"># reshape from  [B*T,A] --&gt; [B, T, A].</span>
+    <span class="c1"># Output shape: [batch_size, n_steps, n_hidden]</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
       <span class="n">outputs</span><span class="p">,</span>
       <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_hidden&#39;</span><span class="p">]],</span>
@@ -550,7 +560,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

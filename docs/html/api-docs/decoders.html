@@ -95,9 +95,9 @@
 <li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">decoders</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.decoder">decoder</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-decoders.fc_decoder">fc_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.fc_decoders">fc_decoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.rnn_decoders">rnn_decoders</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-decoders.transformer_decoders">transformer_decoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#transformer-decoders">transformer_decoders</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
@@ -181,28 +181,28 @@ A Decoder typically takes representation and produces data.</p>
 <dl class="class">
 <dt id="decoders.decoder.Decoder">
 <em class="property">class </em><code class="descclassname">decoders.decoder.</code><code class="descname">Decoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class from which all decoders must inherit.</p>
 <dl class="method">
 <dt id="decoders.decoder.Decoder.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Decoder constructor.
 Note that decoder constructors should not modify TensorFlow graph, all
-graph construction should happen in the <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a>
+graph construction should happen in the <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a>
 method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the decoder.
-All supported parameters are listed in <a class="reference internal" href="#decoders.decoder.Decoder.get_required_params" title="decoders.decoder.Decoder.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#decoders.decoder.Decoder.get_optional_params" title="decoders.decoder.Decoder.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) &#8211; parent model that created this decoder.
+<li><strong>params</strong> (<em>dict</em>) – parameters describing the decoder.
+All supported parameters are listed in <a class="reference internal" href="#decoders.decoder.Decoder.get_required_params" title="decoders.decoder.Decoder.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#decoders.decoder.Decoder.get_optional_params" title="decoders.decoder.Decoder.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this decoder.
 Could be None if no model access is required for the use case.</li>
-<li><strong>name</strong> (<em>str</em>) &#8211; name for decoder variable scope.</li>
-<li><strong>mode</strong> (<em>str</em>) &#8211; mode decoder is going to be run in.
-Could be &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.</li>
+<li><strong>name</strong> (<em>str</em>) – name for decoder variable scope.</li>
+<li><strong>mode</strong> (<em>str</em>) – mode decoder is going to be run in.
+Could be “train”, “eval” or “infer”.</li>
 </ul>
 </td>
 </tr>
@@ -210,16 +210,16 @@ Could be &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>initializer</strong> &#8212; any valid TensorFlow initializer. If no initializer
+<li><strong>initializer</strong> — any valid TensorFlow initializer. If no initializer
 is provided, model initializer will be used.</li>
-<li><strong>initializer_params</strong> (dict) &#8212; dictionary that will be passed to
-initializer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>regularizer</strong> &#8212; and valid TensorFlow regularizer. If no regularizer
+<li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
+initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>regularizer</strong> — and valid TensorFlow regularizer. If no regularizer
 is provided, model regularizer will be used.</li>
-<li><strong>regularizer_params</strong> (dict) &#8212; dictionary that will be passed to
-regularizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>dtype</strong> &#8212; model dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code>, <code class="docutils literal"><span class="pre">tf.float32</span></code>
-or &#8220;mixed&#8221;. For details see
+<li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
+regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>, <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>
+or “mixed”. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs. If no
 dtype is provided, model dtype will be used.</li>
 </ul>
@@ -233,7 +233,7 @@ dtype is provided, model dtype will be used.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; dictionary passed to <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – dictionary passed to <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a>
 method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">same as input_dict, but with all Tensors cast to decoder dtype.</td>
@@ -254,29 +254,23 @@ and produce some output sequence as an output.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; <p>dictionary containing decoder inputs. This dict will
-typically have the following content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s2">&quot;encoder_output&quot;</span><span class="p">:</span> <span class="n">encoder_output</span><span class="p">,</span>
-  <span class="s2">&quot;tgt_sequence&quot;</span><span class="p">:</span> <span class="n">target_sequence</span><span class="p">,</span>
-  <span class="s2">&quot;tgt_length&quot;</span><span class="p">:</span> <span class="n">target_length</span><span class="p">,</span>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary containing decoder inputs.
+If the decoder is used with <a class="reference internal" href="models.html#module-models.encoder_decoder" title="models.encoder_decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder</span></code></a> class,
+<code class="docutils literal notranslate"><span class="pre">input_dict</span></code> will have the following content:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;encoder_output&quot;</span><span class="p">:</span> <span class="n">dictionary</span> <span class="n">returned</span> <span class="kn">from</span> <span class="nn">encoder.encode</span><span class="p">()</span> <span class="n">method</span>
+  <span class="s2">&quot;target_tensors&quot;</span><span class="p">:</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>dictionary of decoder outputs. Typically this will be just::</dt>
-<dd><dl class="first docutils">
-<dt>{</dt>
-<dd>&#8220;logits&#8221;: logits,  # what will be passed to Loss
-&#8220;samples&#8221;: samples,  # actual decoded sequence,<blockquote class="last">
-<div># e.g. characters instead of logits</div></blockquote>
-</dd>
-</dl>
-<p class="last">}</p>
-</dd>
-</dl>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of decoder outputs. Typically this will be just:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">logits</span> <span class="n">that</span> <span class="n">will</span> <span class="n">be</span> <span class="n">passed</span> <span class="n">to</span> <span class="n">Loss</span>
+  <span class="s2">&quot;samples&quot;</span><span class="p">:</span> <span class="n">actual</span> <span class="n">decoded</span> <span class="n">output</span><span class="p">,</span> <span class="n">e</span><span class="o">.</span><span class="n">g</span><span class="o">.</span> <span class="n">characters</span> <span class="n">instead</span> <span class="n">of</span> <span class="n">logits</span>
+<span class="p">}</span>
+</pre></div>
+</div>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
@@ -288,16 +282,16 @@ typically have the following content:</p>
 <dl class="method">
 <dt id="decoders.decoder.Decoder.decode">
 <code class="descname">decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/decoder.html#Decoder.decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.decoder.Decoder.decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a> method.
+<dd><p>Wrapper around <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a> method.
 Here name, initializer and dtype are set in the variable scope and then
-<a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a> method is called.</p>
+<a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a> method is called.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; see <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a> docs.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – see <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a> docs.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">see <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal"><span class="pre">self._decode()</span></code></a> docs.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">see <a class="reference internal" href="#decoders.decoder.Decoder._decode" title="decoders.decoder.Decoder._decode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._decode()</span></code></a> docs.</td>
 </tr>
 </tbody>
 </table>
@@ -312,8 +306,8 @@ Here name, initializer and dtype are set in the variable scope and then
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" title="decoders.decoder.Decoder.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" title="decoders.decoder.Decoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -330,8 +324,8 @@ class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" ti
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" title="decoders.decoder.Decoder.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" title="decoders.decoder.Decoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -360,106 +354,251 @@ class <a class="reference internal" href="#decoders.decoder.Decoder.__init__" ti
 </dd></dl>
 
 </div>
-<div class="section" id="module-decoders.fc_decoder">
-<span id="fc-decoder"></span><h2>fc_decoder<a class="headerlink" href="#module-decoders.fc_decoder" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-decoders.fc_decoders">
+<span id="fc-decoders"></span><h2>fc_decoders<a class="headerlink" href="#module-decoders.fc_decoders" title="Permalink to this headline">¶</a></h2>
+<p>This module defines various fully-connected decoders (consisting of one
+fully connected layer).</p>
+<p>These classes are usually used for models that are not really
+sequence-to-sequence and thus should be artificially split into encoder and
+decoder by cutting, for example, on the last fully-connected layer.</p>
 <dl class="class">
-<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder">
-<em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedCTCDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="decoders.fc_decoder.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.fc_decoder.FullyConnectedTimeDecoder</span></code></a></p>
+<dt id="decoders.fc_decoders.FullyConnectedCTCDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoders.</code><code class="descname">FullyConnectedCTCDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedCTCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedCTCDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedTimeDecoder" title="decoders.fc_decoders.FullyConnectedTimeDecoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.fc_decoders.FullyConnectedTimeDecoder</span></code></a></p>
 <p>Fully connected time decoder that provides a CTC-based text
 generation (either with or without language model). If language model is not
-used, <code class="docutils literal"><span class="pre">tf.nn.ctc_greedy_decoder</span></code> will be used as text generation method.</p>
+used, <code class="docutils literal notranslate"><span class="pre">tf.nn.ctc_greedy_decoder</span></code> will be used as text generation method.</p>
 <dl class="method">
-<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="decoders.fc_decoders.FullyConnectedCTCDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_ctc_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedCTCDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedCTCDecoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fully connected CTC decoder constructor.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>use_language_model</strong> (bool) &#8212; whether to use language model for
+<li><strong>use_language_model</strong> (bool) — whether to use language model for
 output text generation. If False, other config parameters are not used.</li>
-<li><strong>decoder_library_path</strong> (string) &#8212; path to the ctc decoder with
+<li><strong>decoder_library_path</strong> (string) — path to the ctc decoder with
 language model library.</li>
-<li><strong>lm_binary_path</strong> (string) &#8212; path to the language model file.</li>
-<li><strong>lm_trie_path</strong> (string) &#8212; path to the language model trie file.</li>
-<li><strong>alphabet_config_path</strong> (string) &#8212; path to the alphabet file.</li>
-<li><strong>beam_width</strong> (int) &#8212; beam width for beam search.</li>
-<li><strong>lm_weight</strong> (float) &#8212; weight that is assigned to language model
+<li><strong>lm_binary_path</strong> (string) — path to the language model file.</li>
+<li><strong>lm_trie_path</strong> (string) — path to the language model trie file.</li>
+<li><strong>alphabet_config_path</strong> (string) — path to the alphabet file.</li>
+<li><strong>beam_width</strong> (int) — beam width for beam search.</li>
+<li><strong>lm_weight</strong> (float) — weight that is assigned to language model
 probabilities.</li>
-<li><strong>word_count_weight</strong> (float) &#8212; weight that is assigned to the
+<li><strong>word_count_weight</strong> (float) — weight that is assigned to the
 word count.</li>
-<li><strong>valid_word_count_weight</strong> (float) &#8212; weight that is assigned to the
+<li><strong>valid_word_count_weight</strong> (float) — weight that is assigned to the
 valid word count, i.e. words that exist in language model dictionary.</li>
 </ul>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params">
-<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="decoders.fc_decoders.FullyConnectedCTCDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedCTCDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedCTCDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedCTCDecoder.__init__" title="decoders.fc_decoders.FullyConnectedCTCDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
-<dt id="decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params">
-<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedCTCDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedCTCDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="decoders.fc_decoders.FullyConnectedCTCDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedCTCDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedCTCDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedCTCDecoder.__init__" title="decoders.fc_decoders.FullyConnectedCTCDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
-<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder">
-<em class="property">class </em><code class="descclassname">decoders.fc_decoder.</code><code class="descname">FullyConnectedTimeDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
-<p>Fully connected decoder that operates on inputs with time dimension.
-That is, input shape should be <code class="docutils literal"><span class="pre">[batch</span> <span class="pre">size,</span> <span class="pre">time</span> <span class="pre">length,</span> <span class="pre">num</span> <span class="pre">features]</span></code>.</p>
+<dt id="decoders.fc_decoders.FullyConnectedDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoders.</code><code class="descname">FullyConnectedDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Simple decoder consisting of one fully-connected layer.</p>
 <dl class="method">
-<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dt id="decoders.fc_decoders.FullyConnectedDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fully connected decoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>output_dim</strong> (int) — output dimension.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.fc_decoders.FullyConnectedDecoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedDecoder._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method performs linear transformation of input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
+the following fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;encoder_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">output</span> <span class="n">of</span> <span class="n">encoder</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_features</span><span class="p">])</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span> <span class="k">with</span> <span class="n">the</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">]</span>
+  <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">logits</span><span class="p">]</span> <span class="p">(</span><span class="n">same</span> <span class="k">as</span> <span class="n">logits</span> <span class="n">but</span> <span class="n">wrapped</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.fc_decoders.FullyConnectedDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedDecoder.__init__" title="decoders.fc_decoders.FullyConnectedDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="decoders.fc_decoders.FullyConnectedTimeDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoders.</code><code class="descname">FullyConnectedTimeDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedTimeDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedTimeDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Fully connected decoder that operates on inputs with time dimension.
+That is, input shape should be <code class="docutils literal notranslate"><span class="pre">[batch</span> <span class="pre">size,</span> <span class="pre">time</span> <span class="pre">length,</span> <span class="pre">num</span> <span class="pre">features]</span></code>.</p>
+<dl class="method">
+<dt id="decoders.fc_decoders.FullyConnectedTimeDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_time_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedTimeDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedTimeDecoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Fully connected time decoder constructor.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>tgt_vocab_size</strong> (int) &#8212; target vocabulary size, i.e. number of
+<li><strong>tgt_vocab_size</strong> (int) — target vocabulary size, i.e. number of
 output features.</li>
-<li><strong>logits_to_outputs_func</strong> &#8212; function that maps produced logits to
+<li><strong>logits_to_outputs_func</strong> — function that maps produced logits to
 decoder samples, i.e. actual text sequences.</li>
 </ul>
 </dd></dl>
 
 <dl class="method">
-<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder._decode">
-<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder._decode" title="Permalink to this definition">¶</a></dt>
+<dt id="decoders.fc_decoders.FullyConnectedTimeDecoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedTimeDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedTimeDecoder._decode" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates TensorFlow graph for fully connected time decoder.</p>
-<p>Expects the following inputs:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;encoder_output&quot;</span><span class="p">:</span> <span class="p">{</span>
-    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">time</span> <span class="n">length</span><span class="p">,</span> <span class="n">hidden</span> <span class="n">dim</span><span class="p">]</span>
-    <span class="s2">&quot;src_length&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="n">of</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
+the following fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;encoder_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="k">with</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">time</span> <span class="n">length</span><span class="p">,</span> <span class="n">hidden</span> <span class="n">dim</span><span class="p">]</span>
+    <span class="s2">&quot;src_length&quot;</span><span class="p">:</span> <span class="n">tensor</span> <span class="k">with</span> <span class="n">shape</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 </div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span> <span class="k">with</span> <span class="n">the</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">time</span> <span class="n">length</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">tgt_vocab_size</span><span class="p">]</span>
+  <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">logits_to_outputs_func</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params">
-<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="decoders.fc_decoders.FullyConnectedTimeDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedTimeDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedTimeDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedTimeDecoder.__init__" title="decoders.fc_decoders.FullyConnectedTimeDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
-<dt id="decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params">
-<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoder.html#FullyConnectedTimeDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoder.FullyConnectedTimeDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="decoders.fc_decoders.FullyConnectedTimeDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedTimeDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedTimeDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedTimeDecoder.__init__" title="decoders.fc_decoders.FullyConnectedTimeDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 </div>
 <div class="section" id="module-decoders.rnn_decoders">
 <span id="rnn-decoders"></span><h2>rnn_decoders<a class="headerlink" href="#module-decoders.rnn_decoders" title="Permalink to this headline">¶</a></h2>
-<p>RNN-based decoders</p>
+<p>RNN-based decoders.</p>
 <dl class="class">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">BeamSearchRNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="decoders.rnn_decoders.RNNDecoderWithAttention"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.rnn_decoders.RNNDecoderWithAttention</span></code></a></p>
 <p>Beam search version of RNN-based decoder with attention.
 Can be used only during Inference (mode=infer)</p>
 <dl class="method">
@@ -485,7 +624,7 @@ Must define:</p>
 <li>luong_scale - (optional)</li>
 <li>mode - train or infer</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
+<p>… add any cell-specific parameters here as well</p>
 </div></blockquote>
 </dd></dl>
 
@@ -527,47 +666,59 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__" title="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention">
 <em class="property">class </em><code class="descclassname">decoders.rnn_decoders.</code><code class="descname">RNNDecoderWithAttention</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
-<p>Typical RNN decoder with attention mechanism</p>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Typical RNN decoder with attention mechanism.</p>
 <dl class="method">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes RNN decoder with embedding
-:param params: dictionary with decoder parameters
-Must define:</p>
-<blockquote>
-<div><ul class="simple">
-<li>batch_size - batch size</li>
-<li>GO_SYMBOL - GO symbol id, must be the same as used in data layer</li>
-<li>END_SYMBOL - END symbol id, must be the same as used in data layer</li>
-<li>tgt_vocab_size - vocabulary size of target</li>
-<li>tgt_emb_size - embedding to use</li>
-<li>decoder_cell_units - number of units in RNN</li>
-<li>decoder_cell_type - RNN type: lstm, gru, glstm, etc.</li>
-<li>decoder_dp_input_keep_prob -</li>
-<li>decoder_dp_output_keep_prob -</li>
-<li>decoder_use_skip_connections - use residual connections or not</li>
-<li>attention_type - bahdanau, luong, gnmt, gnmt_v2</li>
-<li>bahdanau_normalize - (optional)</li>
-<li>luong_scale - (optional)</li>
-<li>mode - train or infer</li>
+<dd><p>Initializes RNN decoder with embedding.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>batch_size</strong> (int) — batch size.</li>
+<li><strong>GO_SYMBOL</strong> (int) — GO symbol id, must be the same as used in
+data layer.</li>
+<li><strong>END_SYMBOL</strong> (int) — END symbol id, must be the same as used in
+data layer.</li>
+<li><strong>tgt_emb_size</strong> (int) — embedding size to use.</li>
+<li><strong>decoder_cell_units</strong> (int) - number of units in RNN</li>
+<li><strong>decoder_cell_type</strong> (string) - RNN type: lstm, gru, glstm, etc.</li>
+<li><strong>decoder_dp_input_keep_prob</strong> (float) - dropout input keep probability.</li>
+<li><strong>decoder_dp_output_keep_prob</strong> (float) - dropout output keep probability.</li>
+<li><strong>decoder_use_skip_connections</strong> (bool) - use residual connections or not.</li>
+<li><strong>attention_type</strong> (string) - bahdanau, luong, gnmt or gnmt_v2.</li>
+<li><strong>bahdanau_normalize</strong> (bool, optional) - whether to use normalization in
+bahdanau attention.</li>
+<li><strong>luong_scale</strong> (bool, optional) - whether to use scale in luong attention</li>
+<li>… add any cell-specific parameters here as well.</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">
 <code class="descname">_build_attention</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_sequence_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._build_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds Attention part of the graph.
-Currently supports &#8220;bahdanau&#8221; and &#8220;luong&#8221;
+Currently supports “bahdanau” and “luong”
 :param encoder_outputs:
 :param encoder_sequence_length:
 :return:</p>
@@ -623,97 +774,44 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="staticmethod">
-<dt id="decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params">
-<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-decoders.transformer_decoders">
-<span id="transformer-decoders"></span><h2>transformer_decoders<a class="headerlink" href="#module-decoders.transformer_decoders" title="Permalink to this headline">¶</a></h2>
-<p>Encoders based on Transformers arch from <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a></p>
-<dl class="class">
-<dt id="decoders.transformer_decoders.TransformerDecoder">
-<em class="property">class </em><code class="descclassname">decoders.transformer_decoders.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
-<p>Greedy Transformer Decoder</p>
-<dl class="method">
-<dt id="decoders.transformer_decoders.TransformerDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes Decoder
-:param params: dictionary of decoder parameters</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="decoders.transformer_decoders.TransformerDecoder._decode">
-<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder._decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decodes decoder input sequence.
-:param input_dict: dictionary of decoder inputs
-For example (but may differ):
-decoder_input= { &#8220;src_inputs&#8221; : decoder source sequence,</p>
-<blockquote>
-<div>&#8220;src_lengths&#8221; : decoder source length,
-&#8220;tgt_inputs&#8221; :  (during training),
-&#8220;tgt_lengths&#8221; : (during training)}</div></blockquote>
+<dd><p>Static method with description of optional parameters.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dictionary of decoder outputs</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention.__init__" title="decoders.rnn_decoders.RNNDecoderWithAttention.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
-<p>For example (but may differ):
-decoder_output = {&#8220;decoder_outputs&#8221; : decoder_outputs,</p>
-<blockquote>
-<div>&#8220;decoder_lengths&#8221; : decoder_lengths}</div></blockquote>
 </dd></dl>
 
 <dl class="staticmethod">
-<dt id="decoders.transformer_decoders.TransformerDecoder.get_optional_params">
-<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="staticmethod">
-<dt id="decoders.transformer_decoders.TransformerDecoder.get_required_params">
-<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#TransformerDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="decoders.transformer_decoders.TransformerDecoder.params">
-<code class="descname">params</code><a class="headerlink" href="#decoders.transformer_decoders.TransformerDecoder.params" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parameters used to construct the encoder</p>
+<dt id="decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithAttention.__init__" title="decoders.rnn_decoders.RNNDecoderWithAttention.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
 
-<dl class="function">
-<dt id="decoders.transformer_decoders.transformer_decoder_fn">
-<code class="descclassname">decoders.transformer_decoders.</code><code class="descname">transformer_decoder_fn</code><span class="sig-paren">(</span><em>decoder_input_seq</em>, <em>encoder_input_seq</em>, <em>encoder_outputs</em>, <em>dec_emb_w</em>, <em>output_projector</em>, <em>num_decoder_blocks</em>, <em>d_model</em>, <em>ffn_inner_dim</em>, <em>attention_heads</em>, <em>norm_type</em>, <em>drop_prob=0.0</em>, <em>training=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoders.html#transformer_decoder_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoders.transformer_decoder_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformer decoder function. It will train all steps in parallel,
-but for inference should be used in auto-regressive manner.
-:param decoder_input_seq: input sequence to the decoder before the embedding
-of shape [batch_size, T]
-For iteration 0 during inference, this should contain GO symbols and be of
-shape [batch_size, 1]
-:param encoder_input_seq: input sequence to the encoder before the embedding
-of shape [batch_size, T]. Necessary for pad masking biases
-:param encoder_outputs: representation computed by encoder,
-tensor of shape [batch, T, dim]
-:param dec_emb_w: embedding matrix for decoder inputs
-:param output_projector: output projection layer for decoder
-:param num_decoder_blocks: number of decoder layers/blocks
-:param d_model: Int
-:param ffn_inner_dim: Int - dimensionality for the middle for ffn transorm
-:param attention_heads: Int - number of attention heads
-:param dropout_drop_prob: (default: 0.0) dropout drop probability
-:return: Logits tensor of shape [batch, time, d_model]</p>
-</dd></dl>
-
+</div>
+<div class="section" id="transformer-decoders">
+<h2>transformer_decoders<a class="headerlink" href="#transformer-decoders" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -770,7 +868,7 @@ tensor of shape [batch, T, dim]
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

@@ -155,23 +155,57 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">os</span>
 
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
+
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">log_summaries_from_dict</span><span class="p">,</span> \
+                                     <span class="n">get_results_for_epoch</span>
 
 
-<div class="viewcode-block" id="log_summaries_from_dict"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.log_summaries_from_dict">[docs]</a><span class="k">def</span> <span class="nf">log_summaries_from_dict</span><span class="p">(</span><span class="n">dict_to_log</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
-  <span class="c1"># this returns the same writer as was created by</span>
-  <span class="c1"># the first call to this function</span>
-  <span class="n">sm_writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriterCache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
-  <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_to_log</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">sm_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span>
-      <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">simple_value</span><span class="o">=</span><span class="n">value</span><span class="p">)]),</span>
-      <span class="n">global_step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="n">sm_writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
+<div class="viewcode-block" id="BroadcastGlobalVariablesHook"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook">[docs]</a><span class="k">class</span> <span class="nc">BroadcastGlobalVariablesHook</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunHook</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  SessionRunHook that will broadcast all global variables from root rank</span>
+<span class="sd">  to all other processes during initialization.</span>
+<span class="sd">  This is necessary to ensure consistent initialization of all workers when</span>
+<span class="sd">  training is started with random weights or restored from a checkpoint.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BroadcastGlobalVariablesHook.__init__"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">root_rank</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct a new BroadcastGlobalVariablesHook that will broadcast all</span>
+<span class="sd">    global variables from root rank to all other processes during initialization.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      root_rank:</span>
+<span class="sd">        Rank that will send data, other ranks will receive data.</span>
+<span class="sd">      device:</span>
+<span class="sd">        Device to be used for broadcasting. Uses GPU by default</span>
+<span class="sd">        if Horovod was build with HOROVOD_GPU_BROADCAST.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">BroadcastGlobalVariablesHook</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">root_rank</span> <span class="o">=</span> <span class="n">root_rank</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">bcast_op</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span></div>
+
+<div class="viewcode-block" id="BroadcastGlobalVariablesHook.begin"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">broadcast_global_variables</span><span class="p">(</span><span class="n">root_rank</span><span class="p">):</span>
+      <span class="kn">from</span> <span class="nn">horovod.tensorflow.mpi_ops</span> <span class="k">import</span> <span class="n">broadcast</span>
+      <span class="n">ops</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">tf</span><span class="o">.</span><span class="n">global_variables</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+          <span class="n">ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">broadcast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+                                                      <span class="n">root_rank</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">root_rank</span><span class="p">)))</span>
+      <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="o">*</span><span class="n">ops</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">bcast_op</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">bcast_op</span><span class="o">.</span><span class="n">graph</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_default_graph</span><span class="p">():</span>
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">bcast_op</span> <span class="o">=</span> <span class="n">broadcast_global_variables</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">root_rank</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BroadcastGlobalVariablesHook.after_create_session"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.after_create_session">[docs]</a>  <span class="k">def</span> <span class="nf">after_create_session</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">session</span><span class="p">,</span> <span class="n">coord</span><span class="p">):</span>
+    <span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">bcast_op</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="PrintSamplesHook"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.PrintSamplesHook">[docs]</a><span class="k">class</span> <span class="nc">PrintSamplesHook</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">SessionRunHook</span><span class="p">):</span>
@@ -183,9 +217,11 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_iter_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_global_step</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+    <span class="c1"># using only first GPU</span>
+    <span class="n">output_tensors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_fetches</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">(),</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(),</span>
+      <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
+      <span class="n">output_tensors</span><span class="p">,</span>
     <span class="p">]</span>
 
 <div class="viewcode-block" id="PrintSamplesHook.begin"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.PrintSamplesHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -279,14 +315,9 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_iter_count</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_global_step</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_fetches</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">loss</span><span class="p">,</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">(),</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(),</span>
-    <span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="n">last_step</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="mf">1e9</span>
 
 <div class="viewcode-block" id="RunEvaluationHook.begin"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.RunEvaluationHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -305,47 +336,37 @@
       <span class="k">return</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">update_last_triggered_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Running evaluation on a validation set:&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Running evaluation on a validation set:&quot;</span><span class="p">)</span>
 
-    <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-    <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
-
-    <span class="k">for</span> <span class="n">cnt</span><span class="p">,</span> <span class="n">feed_dict</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">iterate_one_epoch</span><span class="p">(</span><span class="n">cross_over</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="p">):</span>
-      <span class="n">loss</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">,</span>
-      <span class="p">)</span>
-      <span class="n">inputs_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
-      <span class="n">outputs_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
-      <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span>
-
-    <span class="n">total_loss</span> <span class="o">/=</span> <span class="p">(</span><span class="n">cnt</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation loss: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
-    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">maybe_evaluate</span><span class="p">(</span>
-      <span class="n">inputs_per_batch</span><span class="p">,</span>
-      <span class="n">outputs_per_batch</span><span class="p">,</span>
+    <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span> <span class="o">=</span> <span class="n">get_results_for_epoch</span><span class="p">(</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;eval_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_loss</span>
 
-    <span class="c1"># saving the best validation model</span>
-    <span class="k">if</span> <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="n">total_loss</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
-        <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
-        <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span> <span class="s1">&#39;best_models&#39;</span><span class="p">,</span>
-                     <span class="s1">&#39;val_loss=</span><span class="si">{:.4f}</span><span class="s1">-step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)),</span>
-        <span class="n">global_step</span><span class="o">=</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation loss: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-    <span class="c1"># optionally logging to tensorboard any values</span>
-    <span class="c1"># returned from maybe_print_logs</span>
-    <span class="k">if</span> <span class="n">dict_to_log</span><span class="p">:</span>
-      <span class="n">log_summaries_from_dict</span><span class="p">(</span>
-        <span class="n">dict_to_log</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
-        <span class="n">step</span><span class="p">,</span>
-      <span class="p">)</span></div></div>
+      <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">finalize_evaluation</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">)</span>
+      <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;eval_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_loss</span>
+
+      <span class="c1"># saving the best validation model</span>
+      <span class="k">if</span> <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="n">total_loss</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+          <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span> <span class="s1">&#39;best_models&#39;</span><span class="p">,</span>
+                       <span class="s1">&#39;val_loss=</span><span class="si">{:.4f}</span><span class="s1">-step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)),</span>
+          <span class="n">global_step</span><span class="o">=</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="p">)</span>
+
+      <span class="c1"># optionally logging to tensorboard any values</span>
+      <span class="c1"># returned from maybe_print_logs</span>
+      <span class="k">if</span> <span class="n">dict_to_log</span><span class="p">:</span>
+        <span class="n">log_summaries_from_dict</span><span class="p">(</span>
+          <span class="n">dict_to_log</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
+          <span class="n">step</span><span class="p">,</span>
+        <span class="p">)</span></div></div>
 </pre></div>
 
            </div>
@@ -391,7 +412,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

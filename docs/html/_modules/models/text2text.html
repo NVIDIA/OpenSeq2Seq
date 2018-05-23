@@ -156,13 +156,12 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
-<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">nltk</span>
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">import</span> <span class="nn">codecs</span>
 
-<span class="kn">from</span> <span class="nn">.seq2seq</span> <span class="k">import</span> <span class="n">Seq2Seq</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.data.text2text</span> <span class="k">import</span> <span class="n">SpecialTextTokens</span>
+<span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.data.text2text.text2text</span> <span class="k">import</span> <span class="n">SpecialTextTokens</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">array_to_string</span><span class="p">,</span> \
                                      <span class="n">text_ids_to_string</span>
 
@@ -203,158 +202,162 @@
   <span class="k">return</span> <span class="n">bleu_score</span></div>
 
 
-<div class="viewcode-block" id="BasicText2TextWithAttention"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.BasicText2TextWithAttention">[docs]</a><span class="k">class</span> <span class="nc">BasicText2TextWithAttention</span><span class="p">(</span><span class="n">Seq2Seq</span><span class="p">):</span>
+<div class="viewcode-block" id="Text2Text"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text">[docs]</a><span class="k">class</span> <span class="nc">Text2Text</span><span class="p">(</span><span class="n">EncoderDecoderModel</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  An example class implementing classical text-to-text model.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="k">def</span> <span class="nf">_create_encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_encoder</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Text2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_encoder</span><span class="p">()</span>
 
   <span class="k">def</span> <span class="nf">_create_decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Text2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
 
   <span class="k">def</span> <span class="nf">_create_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">BasicText2TextWithAttention</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_loss</span><span class="p">()</span>
+    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Text2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_loss</span><span class="p">()</span>
 
-<div class="viewcode-block" id="BasicText2TextWithAttention.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.BasicText2TextWithAttention.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
-    <span class="c1"># this function assumes it is run on 1 gpu with batch size of 1</span>
+<div class="viewcode-block" id="Text2Text.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="n">input_strings</span><span class="p">,</span> <span class="n">output_strings</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="n">input_values</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">input_sample</span><span class="p">,</span> <span class="n">output_sample</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+      <span class="n">output_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_ids_to_string</span><span class="p">(</span>
+        <span class="n">output_sample</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">S_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">EOS_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
+      <span class="p">))</span>
+      <span class="n">input_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_ids_to_string</span><span class="p">(</span>
+        <span class="n">input_sample</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">S_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">EOS_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">],</span>
+        <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
+      <span class="p">))</span>
+    <span class="k">return</span> <span class="n">input_strings</span><span class="p">,</span> <span class="n">output_strings</span></div>
+
+<div class="viewcode-block" id="Text2Text.finalize_inference"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text.finalize_inference">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
     <span class="k">with</span> <span class="n">codecs</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fout</span><span class="p">:</span>
-      <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">)):</span>
-        <span class="n">input_values</span> <span class="o">=</span> <span class="n">inputs_per_batch</span><span class="p">[</span><span class="n">step</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">output_values</span> <span class="o">=</span> <span class="n">outputs_per_batch</span><span class="p">[</span><span class="n">step</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">output_string</span> <span class="o">=</span> <span class="n">text_ids_to_string</span><span class="p">(</span>
-          <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">S_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">EOS_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">input_string</span> <span class="o">=</span> <span class="n">text_ids_to_string</span><span class="p">(</span>
-          <span class="n">input_values</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">S_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">EOS_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">],</span>
-          <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_string</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">200</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Input sequence:  </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_string</span><span class="p">))</span>
-          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Output sequence: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_string</span><span class="p">))</span>
-          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span></div>
+      <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+      <span class="k">for</span> <span class="n">input_strings</span><span class="p">,</span> <span class="n">output_strings</span> <span class="ow">in</span> <span class="n">results_per_batch</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">input_string</span><span class="p">,</span> <span class="n">output_string</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">input_strings</span><span class="p">,</span> <span class="n">output_strings</span><span class="p">):</span>
+          <span class="n">fout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">output_string</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="mi">200</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Input sequence:  </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">input_string</span><span class="p">))</span>
+            <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Output sequence: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output_string</span><span class="p">))</span>
+            <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+          <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span></div>
 
-<div class="viewcode-block" id="BasicText2TextWithAttention.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.BasicText2TextWithAttention.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
-    <span class="n">x</span><span class="p">,</span> <span class="n">len_x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span>
+<div class="viewcode-block" id="Text2Text.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="n">x</span><span class="p">,</span> <span class="n">len_x</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
+    <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
     <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-      <span class="n">x_sample</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">len_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">y_sample</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">len_y</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">x_sample</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">len_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">y_sample</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">len_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">x_sample</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">len_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y_sample</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">len_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="n">deco_print</span><span class="p">(</span>
       <span class="s2">&quot;Train Source[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
         <span class="n">x_sample</span><span class="p">[:</span><span class="n">len_x_sample</span><span class="p">],</span>
-        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
-        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
       <span class="p">),</span>
       <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span>
       <span class="s2">&quot;Train Target[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
         <span class="n">y_sample</span><span class="p">[:</span><span class="n">len_y_sample</span><span class="p">],</span>
-        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
       <span class="p">),</span>
       <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span>
       <span class="s2">&quot;Train Prediction[0]: &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
         <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
-        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
       <span class="p">),</span>
       <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="BasicText2TextWithAttention.maybe_evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.BasicText2TextWithAttention.maybe_evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">):</span>
+<div class="viewcode-block" id="Text2Text.evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text.evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="n">ex</span><span class="p">,</span> <span class="n">elen_x</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
+    <span class="n">ey</span><span class="p">,</span> <span class="n">elen_y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
+
+    <span class="n">x_sample</span> <span class="o">=</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">elen_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">y_sample</span> <span class="o">=</span> <span class="n">ey</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">elen_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">deco_print</span><span class="p">(</span>
+      <span class="s2">&quot;*****EVAL Source[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
+        <span class="n">x_sample</span><span class="p">[:</span><span class="n">len_x_sample</span><span class="p">],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+      <span class="p">),</span>
+      <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">deco_print</span><span class="p">(</span>
+      <span class="s2">&quot;*****EVAL Target[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
+        <span class="n">y_sample</span><span class="p">[:</span><span class="n">len_y_sample</span><span class="p">],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+      <span class="p">),</span>
+      <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">deco_print</span><span class="p">(</span>
+      <span class="s2">&quot;*****EVAL Prediction[0]: &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
+        <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+      <span class="p">),</span>
+      <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
+    <span class="p">)</span>
     <span class="n">preds</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">):</span>
-      <span class="n">ex</span><span class="p">,</span> <span class="n">elen_x</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">elen_y</span> <span class="o">=</span> <span class="n">input_values</span>     
 
-      <span class="c1">##################</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-        <span class="n">x_sample</span> <span class="o">=</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">elen_x</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">y_sample</span> <span class="o">=</span> <span class="n">ey</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">elen_y</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">x_sample</span> <span class="o">=</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">len_x_sample</span> <span class="o">=</span> <span class="n">elen_x</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">y_sample</span> <span class="o">=</span> <span class="n">ey</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-        <span class="n">len_y_sample</span> <span class="o">=</span> <span class="n">elen_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eval_using_bleu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">preds</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">transform_for_bleu</span><span class="p">(</span>
+        <span class="n">sample</span><span class="p">,</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+        <span class="n">bpe_used</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe_used&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+      <span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">samples</span><span class="p">])</span>
+      <span class="n">targets</span><span class="o">.</span><span class="n">extend</span><span class="p">([[</span><span class="n">transform_for_bleu</span><span class="p">(</span>
+        <span class="n">yi</span><span class="p">,</span>
+        <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
+        <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
+        <span class="n">bpe_used</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe_used&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+      <span class="p">)]</span> <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="n">ey</span><span class="p">])</span>
 
-      <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;*****EVAL Source[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
-          <span class="n">x_sample</span><span class="p">[:</span><span class="n">len_x_sample</span><span class="p">],</span>
-          <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;source_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
-        <span class="p">),</span>
-        <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-      <span class="p">)</span>
-      <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;*****EVAL Target[0]:     &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
-          <span class="n">y_sample</span><span class="p">[:</span><span class="n">len_y_sample</span><span class="p">],</span>
-          <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
-        <span class="p">),</span>
-        <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-      <span class="p">)</span>
-      <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-      <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;*****EVAL Prediction[0]: &quot;</span> <span class="o">+</span> <span class="n">array_to_string</span><span class="p">(</span>
-          <span class="n">samples</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
-          <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
-        <span class="p">),</span>
-        <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span>
-      <span class="p">)</span>
-      <span class="n">samples</span> <span class="o">=</span> <span class="n">output_values</span>
-      <span class="c1">##################</span>
+    <span class="k">return</span> <span class="n">preds</span><span class="p">,</span> <span class="n">targets</span></div>
 
+<div class="viewcode-block" id="Text2Text.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.text2text.Text2Text.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">):</span>
+    <span class="n">preds</span><span class="p">,</span> <span class="n">targets</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">preds_cur</span><span class="p">,</span> <span class="n">targets_cur</span> <span class="ow">in</span> <span class="n">results_per_batch</span><span class="p">:</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eval_using_bleu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
-        <span class="n">preds</span><span class="o">.</span><span class="n">extend</span><span class="p">([</span><span class="n">transform_for_bleu</span><span class="p">(</span>
-          <span class="n">si</span><span class="p">,</span>
-          <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-          <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
-          <span class="n">bpe_used</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe_used&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-        <span class="p">)</span> <span class="k">for</span> <span class="n">sample</span> <span class="ow">in</span> <span class="n">samples</span> <span class="k">for</span> <span class="n">si</span> <span class="ow">in</span> <span class="n">sample</span><span class="p">])</span>
-        <span class="n">targets</span><span class="o">.</span><span class="n">extend</span><span class="p">([[</span><span class="n">transform_for_bleu</span><span class="p">(</span>
-          <span class="n">yii</span><span class="p">,</span>
-          <span class="n">vocab</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;target_idx2seq&#39;</span><span class="p">],</span>
-          <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-          <span class="n">delim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;delimiter&quot;</span><span class="p">],</span>
-          <span class="n">bpe_used</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe_used&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-        <span class="p">)]</span> <span class="k">for</span> <span class="n">yi</span> <span class="ow">in</span> <span class="n">ey</span> <span class="k">for</span> <span class="n">yii</span> <span class="ow">in</span> <span class="n">yi</span><span class="p">])</span>
+        <span class="n">preds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">preds_cur</span><span class="p">)</span>
+        <span class="n">targets</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">targets_cur</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;eval_using_bleu&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
       <span class="n">eval_bleu</span> <span class="o">=</span> <span class="n">calculate_bleu</span><span class="p">(</span><span class="n">preds</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span>
@@ -407,7 +410,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

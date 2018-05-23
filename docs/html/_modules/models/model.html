@@ -163,20 +163,19 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">clip_last_batch</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.optimizers</span> <span class="k">import</span> <span class="n">optimize_loss</span><span class="p">,</span> <span class="n">get_regularization_loss</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.data</span> <span class="k">import</span> <span class="n">MultiGPUWrapper</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
+<div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Model</span><span class="p">:</span>
   <span class="sd">&quot;&quot;&quot;Abstract class that any model should inherit from.</span>
 <span class="sd">  It automatically enables multi-GPU (or Horovod) computation,</span>
 <span class="sd">  has mixed precision support, logs training summaries, etc.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Model.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Model.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -191,8 +190,8 @@
       <span class="s1">&#39;data_layer&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
     <span class="p">}</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Model.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Model.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -202,7 +201,6 @@
 <span class="sd">            class :meth:`__init__` method.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s1">&#39;learning_rate&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;logdir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
       <span class="s1">&#39;num_gpus&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="c1"># cannot be used when gpu_ids is specified</span>
       <span class="s1">&#39;gpu_ids&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>  <span class="c1"># cannot be used when num_gpus is specified</span>
@@ -229,8 +227,7 @@
       <span class="s1">&#39;lr_policy&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid learning rate policy function</span>
       <span class="s1">&#39;lr_policy_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
       <span class="s1">&#39;max_grad_norm&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;larc_nu&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;larc_mode&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">,</span> <span class="s1">&#39;clip&#39;</span><span class="p">],</span>
+      <span class="s1">&#39;larc_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
       <span class="s1">&#39;loss_scale&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;automatic_loss_scaling&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMax&#39;</span><span class="p">],</span>
       <span class="s1">&#39;summaries&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
@@ -291,7 +288,6 @@
 <span class="sd">      configuration.</span>
 <span class="sd">      For complete list of possible parameters see the corresponding</span>
 <span class="sd">      class docs.</span>
-<span class="sd">    * **learning_rate** (float) --- initial learning rate for training.</span>
 <span class="sd">    * **optimizer** (string or TensorFlow optimizer class) --- optimizer to</span>
 <span class="sd">      use for training. Could be either &quot;Adam&quot;, &quot;Adagrad&quot;, &quot;Ftrl&quot;, &quot;Momentum&quot;,</span>
 <span class="sd">      &quot;RMSProp&quot;, &quot;SGD&quot; or any valid TensorFlow optimizer class.</span>
@@ -313,12 +309,6 @@
 <span class="sd">    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping</span>
 <span class="sd">      will be performed if some gradients exceed this value (this is checked</span>
 <span class="sd">      for each variable independently).</span>
-<span class="sd">    * **larc_mode** --- specify this to use LARC or LARS optimization</span>
-<span class="sd">      algorithms. Could be either &quot;scale&quot; (LARS) or &quot;clip&quot; (LARC).</span>
-<span class="sd">      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that</span>
-<span class="sd">      it works in addition to any other optimization algorithm since we treat</span>
-<span class="sd">      it as adaptive gradient clipping and learning rate adjustment.</span>
-<span class="sd">    * **larc_nu** (float) --- LARC or LARS scaling parameter.</span>
 <span class="sd">    * **loss_scale** (float) --- static loss scale to use. For details see</span>
 <span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
 <span class="sd">    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be</span>
@@ -327,6 +317,17 @@
 <span class="sd">    * **summaries** (list) --- which summaries to log. Could contain</span>
 <span class="sd">      &quot;learning_rate&quot;, &quot;gradients&quot;, &quot;gradient_norm&quot;, &quot;global_gradient_norm&quot;,</span>
 <span class="sd">      &quot;variables&quot;, &quot;variable_norm&quot;.</span>
+<span class="sd">    * **larc_params** --- dictionary with parameters for LARC (or LARS)</span>
+<span class="sd">      optimization algorithms. Can contain the following parameters:</span>
+
+<span class="sd">      * **larc_mode** --- Could be either &quot;scale&quot; (LARS) or &quot;clip&quot; (LARC).</span>
+<span class="sd">        Note that it works in addition to any other optimization algorithm</span>
+<span class="sd">        since we treat</span>
+<span class="sd">        it as adaptive gradient clipping and learning rate adjustment.</span>
+<span class="sd">      * **larc_nu** (float) --- LARC or LARS scaling parameter.</span>
+<span class="sd">      * **min_update** (float) --- minimal value of the LARC (LARS) update.</span>
+<span class="sd">      * **epsilon** (float) --- small number added to gradient norm in</span>
+<span class="sd">        denominator for numerical stability.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
 
@@ -385,7 +386,7 @@
 
     <span class="n">dl_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
-    <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;use_targets&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span>
+    <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span>
@@ -393,8 +394,12 @@
         <span class="n">num_workers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">(),</span> <span class="n">worker_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">(),</span>
       <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">dl</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span><span class="n">params</span><span class="o">=</span><span class="n">dl_params</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="n">MultiGPUWrapper</span><span class="p">(</span><span class="n">dl</span><span class="p">,</span> <span class="n">num_gpus</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_data_layers</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_data_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span>
+          <span class="n">params</span><span class="o">=</span><span class="n">dl_params</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="bp">self</span><span class="p">,</span>
+          <span class="n">num_workers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="n">worker_id</span><span class="p">,</span>
+        <span class="p">))</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="k">if</span> <span class="s2">&quot;max_steps&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
@@ -402,16 +407,27 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">=</span> <span class="kc">None</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="c1"># doing a few less steps if data size is not divisible by the batch size</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span><span class="o">.</span><span class="n">get_size_in_batches</span><span class="p">()</span>
-        <span class="c1"># if on Horovod, there will be hvd.size() independent data_layer copies</span>
-        <span class="c1"># and thus the total size is hvd.size() times smaller.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="o">//</span> \
+                               <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The data_layer is not compatible with &#39;</span>
+                           <span class="s1">&#39;epoch execution, since it does not provide &#39;</span>
+                           <span class="s1">&#39;get_size_in_samples() method. Either update the &#39;</span>
+                           <span class="s1">&#39;data layer or switch to using &quot;max_steps&quot; &#39;</span>
+                           <span class="s1">&#39;paremeter.&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">train_op</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">train_op</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Model.compile"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.compile">[docs]</a>  <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;TensorFlow graph is built here.&quot;&quot;&quot;</span>
@@ -420,9 +436,6 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="n">init_dict</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;initializer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
       <span class="n">initializer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;initializer&#39;</span><span class="p">](</span><span class="o">**</span><span class="n">init_dict</span><span class="p">)</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
-    <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_layer</span><span class="o">.</span><span class="n">get_input_tensors</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>  <span class="c1"># not using Horovod</span>
       <span class="c1"># below we follow data parallelism for multi-GPU training</span>
@@ -437,15 +450,23 @@
         <span class="p">):</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Building graph on GPU:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gpu_id</span><span class="p">))</span>
 
+          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
+          <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span>
+
           <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span>
-            <span class="p">[</span><span class="n">input_tensor</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="k">for</span> <span class="n">input_tensor</span> <span class="ow">in</span> <span class="n">input_tensors</span><span class="p">],</span>
+            <span class="n">input_tensors</span><span class="p">,</span>
             <span class="n">gpu_id</span><span class="o">=</span><span class="n">gpu_cnt</span><span class="p">,</span>
           <span class="p">)</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
+             <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder samples have to be either None or list&#39;</span><span class="p">)</span>
           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
             <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
       <span class="c1"># end of for gpu_ind loop</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="n">losses</span>
     <span class="k">else</span><span class="p">:</span>  <span class="c1"># is using Horovod</span>
       <span class="c1"># gpu_id should always be zero, since Horovod takes care of isolating</span>
       <span class="c1"># different processes to 1 GPU only</span>
@@ -458,10 +479,18 @@
         <span class="n">deco_print</span><span class="p">(</span>
           <span class="s2">&quot;Building graph in Horovod rank: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">())</span>
         <span class="p">)</span>
-        <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span>
-                                                                <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
+        <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">input_tensors</span>
+
+        <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span>
+                                                            <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder samples have to be either None or list&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="p">[</span><span class="n">loss</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="k">if</span> <span class="s1">&#39;lr_policy&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
@@ -473,12 +502,15 @@
         <span class="k">if</span> <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span> <span class="ow">and</span> \
            <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lr_params</span><span class="p">:</span>
           <span class="n">lr_params</span><span class="p">[</span><span class="s1">&#39;decay_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span>
-        <span class="n">lr_policy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">lr</span><span class="p">,</span> <span class="n">gs</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">](</span><span class="n">lr</span><span class="p">,</span> <span class="n">gs</span><span class="p">,</span> <span class="o">**</span><span class="n">lr_params</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s1">&#39;steps_per_epoch&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span> <span class="ow">and</span> \
+           <span class="s1">&#39;steps_per_epoch&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lr_params</span> <span class="ow">and</span> <span class="s1">&#39;num_epochs&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+          <span class="n">lr_params</span><span class="p">[</span><span class="s1">&#39;steps_per_epoch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span>
+        <span class="n">lr_policy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">gs</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">](</span><span class="n">global_step</span><span class="o">=</span><span class="n">gs</span><span class="p">,</span>
+                                                        <span class="o">**</span><span class="n">lr_params</span><span class="p">)</span>
 
       <span class="bp">self</span><span class="o">.</span><span class="n">train_op</span> <span class="o">=</span> <span class="n">optimize_loss</span><span class="p">(</span>
-        <span class="n">loss</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">+</span> <span class="n">get_regularization_loss</span><span class="p">(),</span>
+        <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_regularization_loss</span><span class="p">(),</span>
         <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>
-        <span class="n">learning_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;learning_rate&#39;</span><span class="p">],</span>
         <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">],</span>
         <span class="n">optimizer_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimizer_params&#39;</span><span class="p">,</span> <span class="p">{}),</span>
         <span class="n">gradient_noise_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -491,13 +523,18 @@
         <span class="n">summaries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;summaries&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">increment_global_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">LARC_nu</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;larc_nu&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">LARC_mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;larc_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;clip&#39;</span><span class="p">),</span>
+        <span class="n">larc_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;larc_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="n">loss_scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loss_scale&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
         <span class="n">automatic_loss_scaling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;automatic_loss_scaling&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="n">on_horovod</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">,</span>
       <span class="p">)</span>
       <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">:</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;epoch&quot;</span><span class="p">,</span>
+          <span class="n">tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">floor</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">get_global_step</span><span class="p">()</span> <span class="o">/</span>
+                          <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)),</span>
+        <span class="p">)</span>
 
       <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Trainable variables:&quot;</span><span class="p">)</span>
@@ -520,13 +557,12 @@
         <span class="k">else</span><span class="p">:</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s1">&#39;Total trainable parameters: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_params</span><span class="p">))</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="Model._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._build_forward_pass_graph">[docs]</a>  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Model._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._build_forward_pass_graph">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Abstract method. Should create the graph of the forward pass of the model.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      input_tensors (list): list of all input tensors</span>
-<span class="sd">          required to build the model.</span>
+<span class="sd">      input_tensors: ``input_tensors`` defined by the data_layer class.</span>
 <span class="sd">      gpu_id (int, optional): id of the GPU where the current copy of the model</span>
 <span class="sd">          is constructed. For Horovod this is always zero.</span>
 
@@ -547,80 +583,189 @@
     <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Model.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function can be used to print logs that help to visualize training.</span>
+    <span class="sd">&quot;&quot;&quot;This method can be used to print logs that help to visualize training.</span>
 <span class="sd">    For example, you can print sample input sequences and their corresponding</span>
-<span class="sd">    predictions. This function will be called every ``print_samples_steps``</span>
+<span class="sd">    predictions. This method will be called every ``print_samples_steps``</span>
 <span class="sd">    (config parameter) iterations and input/output values will be populated</span>
 <span class="sd">    automatically by calling ``sess.run`` on corresponding tensors. Note that</span>
-<span class="sd">    this function is not abstract and does not have to be implemented in</span>
+<span class="sd">    this method is not abstract and does not have to be implemented in</span>
 <span class="sd">    derived classes. But if additional printing functionality is required,</span>
-<span class="sd">    overwriting this function can be a useful way to add it.</span>
+<span class="sd">    overwriting this method can be a useful way to add it.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      input_values: evaluation of :meth:`self.data_layer.get_input_tensors()</span>
-<span class="sd">                                  &lt;data.data_layer.DataLayer.get_input_tensors&gt;`.</span>
-<span class="sd">      output_values: evaluation of :meth:`self.get_output_tensors()</span>
-<span class="sd">                                          &lt;get_output_tensors&gt;`.</span>
+<span class="sd">      input_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_data_layer(0).input_tensors</span>
+<span class="sd">          &lt;data.data_layer.DataLayer.input_tensors&gt;`, that is, input tensors</span>
+<span class="sd">          for one batch on the *first* GPU.</span>
+<span class="sd">      output_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_output_tensors(0) &lt;get_output_tensors&gt;`,</span>
+<span class="sd">          that is, output tensors for one batch on the *first* GPU.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      dict: dictionary with values that need to be logged to TensorBoard (can be empty).</span>
+<span class="sd">      dict: dictionary with values that need to be logged to TensorBoard</span>
+<span class="sd">      (can be empty).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># by default return an empty dictionary and do nothing</span>
     <span class="k">return</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="Model.maybe_evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.maybe_evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This function can be used to calculate evaluation metrics.</span>
-<span class="sd">    For example, for speech-to-text models this function can calculate</span>
-<span class="sd">    word-error-rate on the validation data. For text-to-text models, this</span>
-<span class="sd">    function can compute BLEU score. Look at the corresponding derived classes</span>
-<span class="sd">    for examples of this. This function will be called every</span>
+<div class="viewcode-block" id="Model.evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This method can be used in conjunction with</span>
+<span class="sd">    :meth:`self.finalize_evaluation()&lt;finalize_evaluation&gt;` to calculate</span>
+<span class="sd">    evaluation metrics.</span>
+<span class="sd">    For example, for speech-to-text models these methods can calculate</span>
+<span class="sd">    word-error-rate on the validation data. For text-to-text models, these</span>
+<span class="sd">    methods can compute BLEU score. Look at the corresponding derived classes</span>
+<span class="sd">    for examples of this. These methods will be called every</span>
 <span class="sd">    ``eval_steps`` (config parameter) iterations and</span>
 <span class="sd">    input/output values will be populated automatically by calling ``sess.run``</span>
-<span class="sd">    on corresponding tensors for each batch (using evaluation model). Note that</span>
+<span class="sd">    on corresponding tensors (using evaluation model).</span>
+<span class="sd">    The :meth:`self.evaluate()&lt;evaluate&gt;` method is called on each batch data</span>
+<span class="sd">    and it&#39;s results will be collected and provided to</span>
+<span class="sd">    :meth:`self.finalize_evaluation()&lt;finalize_evaluation&gt;` for finalization.</span>
+<span class="sd">    Note that</span>
 <span class="sd">    this function is not abstract and does not have to be implemented in</span>
 <span class="sd">    derived classes. But if evaluation functionality is required,</span>
 <span class="sd">    overwriting this function can be a useful way to add it.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      inputs_per_batch (list): list with evaluation of</span>
-<span class="sd">          :meth:`self.data_layer.get_input_tensors()</span>
-<span class="sd">          &lt;data.data_layer.DataLayer.get_input_tensors&gt;`</span>
-<span class="sd">          for each batch in evaluation dataset.</span>
-<span class="sd">      outputs_per_batch (list): list with evaluation of</span>
-<span class="sd">          :meth:`self.get_output_tensors() &lt;get_output_tensors&gt;`</span>
-<span class="sd">          for each batch in evaluation dataset.</span>
+<span class="sd">      input_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_data_layer().input_tensors</span>
+<span class="sd">          &lt;data.data_layer.DataLayer.input_tensors&gt;` concatenated  across</span>
+<span class="sd">          all workers. That is, input tensors for one batch combined</span>
+<span class="sd">          from *all* GPUs.</span>
+<span class="sd">      output_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_output_tensors() &lt;get_output_tensors&gt;` concatenated</span>
+<span class="sd">          across all workers. That is, output tensors for one batch combined</span>
+<span class="sd">          from *all* GPUs.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      dict: dictionary with values that need to be logged to TensorBoard (can be empty).</span>
+<span class="sd">      list: all necessary values for evaluation finalization (e.g. accuracy on</span>
+<span class="sd">      current batch, which will then be averaged in finalization method).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Model.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This method can be used in conjunction with</span>
+<span class="sd">    :meth:`self.evaluate()&lt;evaluate&gt;` to calculate</span>
+<span class="sd">    evaluation metrics.</span>
+<span class="sd">    For example, for speech-to-text models these methods can calculate</span>
+<span class="sd">    word-error-rate on the validation data. For text-to-text models, these</span>
+<span class="sd">    methods can compute BLEU score. Look at the corresponding derived classes</span>
+<span class="sd">    for examples of this. These methods will be called every</span>
+<span class="sd">    ``eval_steps`` (config parameter) iterations and</span>
+<span class="sd">    input/output values will be populated automatically by calling ``sess.run``</span>
+<span class="sd">    on corresponding tensors (using evaluation model).</span>
+<span class="sd">    The :meth:`self.evaluate()&lt;evaluate&gt;` method is called on each batch data</span>
+<span class="sd">    and it&#39;s results will be collected and provided to</span>
+<span class="sd">    :meth:`self.finalize_evaluation()&lt;finalize_evaluation&gt;` for finalization.</span>
+<span class="sd">    Note that</span>
+<span class="sd">    these methods are not abstract and does not have to be implemented in</span>
+<span class="sd">    derived classes. But if evaluation functionality is required,</span>
+<span class="sd">    overwriting these methods can be a useful way to add it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      results_per_batch (list): aggregation of values returned from all calls</span>
+<span class="sd">          to :meth:`self.evaluate()&lt;evaluate&gt;` method (number of calls will be</span>
+<span class="sd">          equal to number of evaluation batches).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: dictionary with values that need to be logged to TensorBoard</span>
+<span class="sd">      (can be empty).</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># by default return an empty dictionary and do nothing</span>
     <span class="k">return</span> <span class="p">{}</span></div>
 
-<div class="viewcode-block" id="Model.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs_per_batch</span><span class="p">,</span> <span class="n">outputs_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot; This function should be implemented if the model support inference mode.</span>
-<span class="sd">    For example for speech-to-text and text-to-text models, this function will</span>
+<div class="viewcode-block" id="Model.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This method is analogous to :meth:`self.evaluate()&lt;evaluate&gt;`, but used</span>
+<span class="sd">    in conjunction with :meth:`self.finalize_inference()&lt;finalize_inference&gt;`</span>
+<span class="sd">    to perform inference.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_data_layer().input_tensors</span>
+<span class="sd">          &lt;data.data_layer.DataLayer.input_tensors&gt;` concatenated  across</span>
+<span class="sd">          all workers. That is, input tensors for one batch combined</span>
+<span class="sd">          from *all* GPUs.</span>
+<span class="sd">      output_values: evaluation of</span>
+<span class="sd">          :meth:`self.get_output_tensors() &lt;get_output_tensors&gt;` concatenated</span>
+<span class="sd">          across all workers. That is, output tensors for one batch combined</span>
+<span class="sd">          from *all* GPUs.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      list: all necessary values for inference finalization (e.g. this method</span>
+<span class="sd">      can return final generated sequences for each batch which will then be</span>
+<span class="sd">      saved to file in :meth:`self.finalize_inference()&lt;finalize_inference&gt;`</span>
+<span class="sd">      method).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[]</span></div>
+
+<div class="viewcode-block" id="Model.finalize_inference"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.finalize_inference">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This method should be implemented if the model support inference mode.</span>
+<span class="sd">    For example for speech-to-text and text-to-text models, this method will</span>
 <span class="sd">    log the corresponding input-output pair to the output_file.</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      inputs_per_batch (list): list with evaluation of</span>
-<span class="sd">          :meth:`self.data_layer.get_input_tensors()</span>
-<span class="sd">          &lt;data.data_layer.DataLayer.get_input_tensors&gt;`</span>
-<span class="sd">          for each batch in evaluation dataset.</span>
-<span class="sd">      outputs_per_batch (list): list with evaluation of</span>
-<span class="sd">          :meth:`self.get_output_tensors() &lt;get_output_tensors&gt;`</span>
-<span class="sd">          for each batch in evaluation dataset.</span>
+<span class="sd">      results_per_batch (list): aggregation of values returned from all calls</span>
+<span class="sd">          to :meth:`self.evaluate()&lt;evaluate&gt;` method (number of calls will be</span>
+<span class="sd">          equal to number of evaluation batches).</span>
 <span class="sd">      output_file (str): name of the output file that inference results should</span>
 <span class="sd">          be saved to.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
+    <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Model.get_output_tensors"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_output_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">get_output_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.clip_last_batch"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.clip_last_batch">[docs]</a>  <span class="k">def</span> <span class="nf">clip_last_batch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">last_batch</span><span class="p">,</span> <span class="n">true_size</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;This method performs last batch clipping.</span>
+<span class="sd">    Used in cases when dataset is not divisible by the batch size and model</span>
+<span class="sd">    does not support dynamic batch sizes. In those cases, the last batch will</span>
+<span class="sd">    contain some data from the &quot;next epoch&quot; and this method can be used</span>
+<span class="sd">    to remove that data. This method works for both</span>
+<span class="sd">    dense and sparse tensors. In most cases you will not need to overwrite this</span>
+<span class="sd">    method.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      last_batch (list): list with elements that could be either ``np.array``</span>
+<span class="sd">          or ``tf.SparseTensorValue`` containing data for last batch. The</span>
+<span class="sd">          assumption is that the first axis of all data tensors will correspond</span>
+<span class="sd">          to the current batch size.</span>
+<span class="sd">      true_size (int): true size that the last batch should be cut to.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">clip_last_batch</span><span class="p">(</span><span class="n">last_batch</span><span class="p">,</span> <span class="n">true_size</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Model.get_output_tensors"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_output_tensors">[docs]</a>  <span class="k">def</span> <span class="nf">get_output_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns output tensors generated by :meth:`_build_forward_pass_graph.`</span>
+<span class="sd">    When using Horovod, ``worker_id`` parameter is ignored. When using</span>
+<span class="sd">    tower-based multi-GPU approach, ``worker_id`` can be used to select tensors</span>
+<span class="sd">    for corresponding tower/GPU.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      worker_id (int): id of the worker to get tensors from</span>
+<span class="sd">          (not used for Horovod).</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      list: list with output tensors.</span>
+<span class="sd">      output tensors.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span></div>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Model.get_data_layer"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_data_layer">[docs]</a>  <span class="k">def</span> <span class="nf">get_data_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns model data layer.</span>
+<span class="sd">    When using Horovod, ``worker_id`` parameter is ignored. When using</span>
+<span class="sd">    tower-based multi-GPU approach, ``worker_id`` can be used to select</span>
+<span class="sd">    data layer for corresponding tower/GPU.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      worker_id (int): id of the worker to get data layer from</span>
+<span class="sd">          (not used for Horovod).</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      model data layer.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layers</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Model.get_tf_dtype"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_tf_dtype">[docs]</a>  <span class="k">def</span> <span class="nf">get_tf_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns actual TensorFlow dtype that will be used as variables dtype.&quot;&quot;&quot;</span>
@@ -633,11 +778,6 @@
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Parameters used to construct the model (dictionary).&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span>
-
-  <span class="nd">@property</span>
-  <span class="k">def</span> <span class="nf">data_layer</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Model data layer.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">steps_in_epoch</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -657,7 +797,7 @@
   <span class="k">def</span> <span class="nf">num_gpus</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Number of GPUs the model will be run on.</span>
 <span class="sd">    For Horovod this is always 1 and actual number of GPUs is controlled by</span>
-<span class="sd">    MPI parameters.</span>
+<span class="sd">    Open-MPI parameters.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gpu_ids</span><span class="p">)</span>
 
@@ -669,7 +809,12 @@
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">on_horovod</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Whether the model is run on Horovod or not.&quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">hvd</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;horovod.tensorflow module&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span></div>
 </pre></div>
 
            </div>
@@ -715,7 +860,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

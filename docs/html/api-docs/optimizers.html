@@ -177,6 +177,59 @@
 <div class="section" id="id1">
 <h2>optimizers<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-optimizers.optimizers"></span><p>Optimizer ops for use in layers and tf.learn.</p>
+<dl class="class">
+<dt id="optimizers.optimizers.DistributedOptimizer">
+<em class="property">class </em><code class="descclassname">optimizers.optimizers.</code><code class="descname">DistributedOptimizer</code><span class="sig-paren">(</span><em>optimizer</em>, <em>name=None</em>, <em>use_locking=False</em>, <em>device_dense=''</em>, <em>device_sparse=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
+<p>An optimizer that wraps another tf.Optimizer, using an allreduce to
+average gradient values before applying gradients to model weights.</p>
+<dl class="method">
+<dt id="optimizers.optimizers.DistributedOptimizer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>optimizer</em>, <em>name=None</em>, <em>use_locking=False</em>, <em>device_dense=''</em>, <em>device_sparse=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct a new DistributedOptimizer, which uses another optimizer
+under the hood for computing single-process gradient values and
+applying gradient updates after the gradient values have been averaged
+across all the Horovod ranks.
+:param optimizer: Optimizer to use for computing gradients and applying updates.
+:param name: Optional name prefix for the operations created when applying</p>
+<blockquote>
+<div>gradients. Defaults to “Distributed” followed by the provided
+optimizer type.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>use_locking</strong> – Whether to use locking when updating variables.
+See Optimizer.__init__ for more info.</li>
+<li><strong>device_dense</strong> – Device to be used for dense tensors. Uses GPU by default
+if Horovod was build with HOROVOD_GPU_ALLREDUCE.</li>
+<li><strong>device_sparse</strong> – Device to be used for sparse tensors. Uses GPU by default
+if Horovod was build with HOROVOD_GPU_ALLGATHER.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="optimizers.optimizers.DistributedOptimizer.apply_gradients">
+<code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>global_step=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.apply_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.apply_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calls this same method on the underlying optimizer.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="optimizers.optimizers.DistributedOptimizer.compute_gradients">
+<code class="descname">compute_gradients</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.compute_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.compute_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute gradients of all trainable variables.
+See Optimizer.compute_gradients() for more info.
+In DistributedOptimizer, compute_gradients() is overriden to also
+allreduce the gradients before returning them.</p>
+</dd></dl>
+
+</dd></dl>
+
 <dl class="function">
 <dt id="optimizers.optimizers._adaptive_max_norm">
 <code class="descclassname">optimizers.optimizers.</code><code class="descname">_adaptive_max_norm</code><span class="sig-paren">(</span><em>norm</em>, <em>std_factor</em>, <em>decay</em>, <em>global_step</em>, <em>epsilon</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_adaptive_max_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._adaptive_max_norm" title="Permalink to this definition">¶</a></dt>
@@ -221,16 +274,16 @@ rescaled such that the global norm becomes <cite>exp(mean)</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>std_factor</strong> &#8211; Python scaler (or tensor).
+<li><strong>std_factor</strong> – Python scaler (or tensor).
 <cite>max_norm = exp(mean + std_factor*std)</cite></li>
-<li><strong>decay</strong> &#8211; The smoothing factor of the moving averages.</li>
-<li><strong>static_max_norm</strong> &#8211; If provided, will threshold the norm to this value as an
+<li><strong>decay</strong> – The smoothing factor of the moving averages.</li>
+<li><strong>static_max_norm</strong> – If provided, will threshold the norm to this value as an
 extra safety.</li>
-<li><strong>global_step</strong> &#8211; Optional global_step. If provided, <cite>decay = decay*n/(n+1)</cite>.
+<li><strong>global_step</strong> – Optional global_step. If provided, <cite>decay = decay*n/(n+1)</cite>.
 This provides a quicker adaptation of the mean for the first steps.</li>
-<li><strong>report_summary</strong> &#8211; If <cite>True</cite>, will add histogram summaries of the <cite>max_norm</cite>.</li>
-<li><strong>epsilon</strong> &#8211; Small value chosen to avoid zero variance.</li>
-<li><strong>name</strong> &#8211; The name for this operation is used to scope operations and summaries.</li>
+<li><strong>report_summary</strong> – If <cite>True</cite>, will add histogram summaries of the <cite>max_norm</cite>.</li>
+<li><strong>epsilon</strong> – Small value chosen to avoid zero variance.</li>
+<li><strong>name</strong> – The name for this operation is used to scope operations and summaries.</li>
 </ul>
 </td>
 </tr>
@@ -259,24 +312,24 @@ This provides a quicker adaptation of the mean for the first steps.</li>
 
 <dl class="function">
 <dt id="optimizers.optimizers.optimize_loss">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>learning_rate</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>global_step=None</em>, <em>dtype=tf.float32</em>, <em>gradient_noise_scale=None</em>, <em>gradient_multipliers=None</em>, <em>clip_gradients=None</em>, <em>learning_rate_decay_fn=None</em>, <em>update_ops=None</em>, <em>variables=None</em>, <em>name=None</em>, <em>summaries=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>increment_global_step=True</em>, <em>LARC_nu=None</em>, <em>LARC_mode='clip'</em>, <em>loss_scale=1.0</em>, <em>automatic_loss_scaling=None</em>, <em>on_horovod=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>global_step=None</em>, <em>dtype=tf.float32</em>, <em>gradient_noise_scale=None</em>, <em>gradient_multipliers=None</em>, <em>clip_gradients=None</em>, <em>update_ops=None</em>, <em>variables=None</em>, <em>name=None</em>, <em>summaries=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>increment_global_step=True</em>, <em>larc_params=None</em>, <em>loss_scale=1.0</em>, <em>automatic_loss_scaling=None</em>, <em>on_horovod=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given loss and parameters for optimizer, returns a training op.</p>
 <p>Various ways of passing optimizers include:</p>
 <ul>
 <li><dl class="first docutils">
 <dt>by string specifying the name of the optimizer. See OPTIMIZER_CLS_NAMES</dt>
-<dd><p class="first last">for full list. E.g. <cite>optimize_loss(..., optimizer=&#8217;Adam&#8217;)</cite>.</p>
+<dd><p class="first last">for full list. E.g. <cite>optimize_loss(…, optimizer=’Adam’)</cite>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>by function taking learning rate <cite>Tensor</cite> as argument and returning an</dt>
-<dd><p class="first last"><cite>Optimizer</cite> instance. E.g. <cite>optimize_loss(...,
+<dd><p class="first last"><cite>Optimizer</cite> instance. E.g. <cite>optimize_loss(…,
 optimizer=lambda lr: tf.train.MomentumOptimizer(lr, momentum=0.5))</cite>.</p>
 </dd>
 </dl>
 <p>Alternatively, if <cite>learning_rate</cite> is <cite>None</cite>, the function takes no
-arguments. E.g. <a href="#id2"><span class="problematic" id="id3">`</span></a>optimize_loss(..., learning_rate=None,</p>
+arguments. E.g. <a href="#id2"><span class="problematic" id="id3">`</span></a>optimize_loss(…, learning_rate=None,</p>
 <blockquote>
 <div><p>optimizer=lambda: tf.train.MomentumOptimizer(0.5, momentum=0.5))`.</p>
 </div></blockquote>
@@ -284,14 +337,14 @@ arguments. E.g. <a href="#id2"><span class="problematic" id="id3">`</span></a>op
 <li><dl class="first docutils">
 <dt>by a subclass of <cite>Optimizer</cite> having a single-argument constructor</dt>
 <dd><p class="first last">(the argument is the learning rate), such as AdamOptimizer or
-AdagradOptimizer. E.g. <cite>optimize_loss(...,
+AdagradOptimizer. E.g. <cite>optimize_loss(…,
 optimizer=tf.train.AdagradOptimizer)</cite>.</p>
 </dd>
 </dl>
 </li>
 <li><dl class="first docutils">
 <dt>by an instance of a subclass of <cite>Optimizer</cite>.</dt>
-<dd><p class="first last">E.g., <cite>optimize_loss(..., optimizer=tf.train.AdagradOptimizer(0.5))</cite>.</p>
+<dd><p class="first last">E.g., <cite>optimize_loss(…, optimizer=tf.train.AdagradOptimizer(0.5))</cite>.</p>
 </dd>
 </dl>
 </li>
@@ -301,19 +354,19 @@ optimizer=tf.train.AdagradOptimizer)</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>loss</strong> &#8211; Scalar <cite>Tensor</cite>.</li>
-<li><strong>global_step</strong> &#8211; Scalar int <cite>Tensor</cite>, step counter to update on each step
+<li><strong>loss</strong> – Scalar <cite>Tensor</cite>.</li>
+<li><strong>global_step</strong> – Scalar int <cite>Tensor</cite>, step counter to update on each step
 unless <cite>increment_global_step</cite> is <cite>False</cite>. If not supplied,
 it will be fetched from the default graph (see
 <cite>tf.train.get_global_step</cite> for details). If it has
 not been created, no step will be incremented with each weight
 update. <cite>learning_rate_decay_fn</cite> requires <cite>global_step</cite>.</li>
-<li><strong>learning_rate</strong> &#8211; float or <cite>Tensor</cite>, magnitude of update per each training
+<li><strong>learning_rate</strong> – float or <cite>Tensor</cite>, magnitude of update per each training
 step. Can be <cite>None</cite>.</li>
-<li><strong>optimizer</strong> &#8211; <p>string, class or optimizer instance, used as trainer.
-string should be name of optimizer, like &#8216;SGD&#8217;,</p>
+<li><strong>optimizer</strong> – <p>string, class or optimizer instance, used as trainer.
+string should be name of optimizer, like ‘SGD’,</p>
 <blockquote>
-<div>&#8216;Adam&#8217;, &#8216;Adagrad&#8217;. Full list in OPTIMIZER_CLS_NAMES constant.</div></blockquote>
+<div>’Adam’, ‘Adagrad’. Full list in OPTIMIZER_CLS_NAMES constant.</div></blockquote>
 <dl class="docutils">
 <dt>class should be sub-class of <cite>tf.Optimizer</cite> that implements</dt>
 <dd><cite>compute_gradients</cite> and <cite>apply_gradients</cite> functions.</dd>
@@ -322,50 +375,50 @@ string should be name of optimizer, like &#8216;SGD&#8217;,</p>
 functions.</dd>
 </dl>
 </li>
-<li><strong>gradient_noise_scale</strong> &#8211; float or None, adds 0-mean normal noise scaled by this
+<li><strong>gradient_noise_scale</strong> – float or None, adds 0-mean normal noise scaled by this
 value.</li>
-<li><strong>gradient_multipliers</strong> &#8211; dict of variables or variable names to floats.
+<li><strong>gradient_multipliers</strong> – dict of variables or variable names to floats.
 If present, gradients for specified
 variables will be multiplied by given constant.</li>
-<li><strong>clip_gradients</strong> &#8211; float, callable or <cite>None</cite>. If float, is provided, a global
+<li><strong>clip_gradients</strong> – float, callable or <cite>None</cite>. If float, is provided, a global
 clipping is applied to prevent the norm of the gradient to exceed this
 value. Alternatively, a callable can be provided e.g.: adaptive_clipping.
 This callable takes a <cite>list</cite> of <cite>(gradients, variables)</cite> <a href="#id4"><span class="problematic" id="id5">`</span></a>tuple`s and
 returns the same thing with the gradients modified.</li>
-<li><strong>learning_rate_decay_fn</strong> &#8211; function, takes <cite>learning_rate</cite> and <cite>global_step</cite>
+<li><strong>learning_rate_decay_fn</strong> – function, takes <cite>learning_rate</cite> and <cite>global_step</cite>
 <cite>Tensor`s, returns `Tensor</cite>.
 Can be used to implement any learning rate decay
 functions.
 For example: <cite>tf.train.exponential_decay</cite>.
 Ignored if <cite>learning_rate</cite> is not supplied.</li>
-<li><strong>update_ops</strong> &#8211; list of update <cite>Operation`s to execute at each step. If `None</cite>,
+<li><strong>update_ops</strong> – list of update <cite>Operation`s to execute at each step. If `None</cite>,
 uses elements of UPDATE_OPS collection. The order of execution
 between <cite>update_ops</cite> and <cite>loss</cite> is non-deterministic.</li>
-<li><strong>variables</strong> &#8211; list of variables to optimize or
+<li><strong>variables</strong> – list of variables to optimize or
 <cite>None</cite> to use all trainable variables.</li>
-<li><strong>name</strong> &#8211; The name for this operation is used to scope operations and summaries.</li>
-<li><strong>summaries</strong> &#8211; List of internal quantities to visualize on tensorboard. If not
+<li><strong>name</strong> – The name for this operation is used to scope operations and summaries.</li>
+<li><strong>summaries</strong> – List of internal quantities to visualize on tensorboard. If not
 set only the loss and the learning rate will be reported. The
 complete list is in OPTIMIZER_SUMMARIES.</li>
-<li><strong>colocate_gradients_with_ops</strong> &#8211; If True, try colocating gradients with the
+<li><strong>colocate_gradients_with_ops</strong> – If True, try colocating gradients with the
 corresponding op.</li>
-<li><strong>increment_global_step</strong> &#8211; Whether to increment <cite>global_step</cite>. If your model
+<li><strong>increment_global_step</strong> – Whether to increment <cite>global_step</cite>. If your model
 calls <cite>optimize_loss</cite> multiple times per training step (e.g. to optimize
 different parts of the model), use this arg to avoid incrementing
 <cite>global_step</cite> more times than necessary.</li>
-<li><strong>LARC_mode</strong> &#8211; &#8216;scale&#8217; or &#8216;clip&#8217;</li>
-<li><strong>LARC_nu</strong> &#8211; If not None, LARC re-scaling will be
+<li><strong>LARC_mode</strong> – ‘scale’ or ‘clip’</li>
+<li><strong>LARC_nu</strong> – If not None, LARC re-scaling will be
 applied <a class="reference external" href="https://arxiv.org/pdf/1708.03888.pdf">https://arxiv.org/pdf/1708.03888.pdf</a> with nu=LARC_nu</li>
-<li><strong>automatic_loss_scaling</strong> &#8211; if not None, use the corresponding automatic
-loss scaling algorithm. Must be one of &#8216;Backoff&#8217;
-of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use ALS.</li>
+<li><strong>automatic_loss_scaling</strong> – if not None, use the corresponding automatic
+loss scaling algorithm. Must be one of ‘Backoff’
+of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Training op.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if:
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if:
 * <cite>loss</cite> is an invalid type or shape.
 * <cite>global_step</cite> is an invalid type or shape.
 * <cite>learning_rate</cite> is an invalid type or value.
@@ -390,16 +443,91 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 <dl class="class">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">
 <em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>automatic_loss_scaler=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">
 <code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>global_step=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper.apply_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Apply gradients to variables.</p>
+<p>This is the second part of <cite>minimize()</cite>. It returns an <cite>Operation</cite> that
+applies gradients.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>grads_and_vars</strong> – List of (gradient, variable) pairs as returned by
+<cite>compute_gradients()</cite>.</li>
+<li><strong>global_step</strong> – Optional <cite>Variable</cite> to increment by one after the
+variables have been updated.</li>
+<li><strong>name</strong> – Optional name for the returned operation.  Default to the
+name passed to the <cite>Optimizer</cite> constructor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">An <cite>Operation</cite> that applies the specified gradients. If <cite>global_step</cite>
+was not None, that operation also increments <cite>global_step</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>grads_and_vars</cite> is malformed.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If none of the variables have gradients.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If you should use <cite>_distributed_apply()</cite> instead.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">
 <code class="descname">compute_gradients</code><span class="sig-paren">(</span><em>loss</em>, <em>var_list=None</em>, <em>gate_gradients=1</em>, <em>aggregation_method=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>grad_loss=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper.compute_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Compute gradients of <cite>loss</cite> for the variables in <cite>var_list</cite>.</p>
+<p>This is the first part of <cite>minimize()</cite>.  It returns a list
+of (gradient, variable) pairs where “gradient” is the gradient
+for “variable”.  Note that “gradient” can be a <cite>Tensor</cite>, an
+<cite>IndexedSlices</cite>, or <cite>None</cite> if there is no gradient for the
+given variable.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>loss</strong> – A Tensor containing the value to minimize or a callable taking
+no arguments which returns the value to minimize. When eager execution
+is enabled it must be a callable.</li>
+<li><strong>var_list</strong> – Optional list or tuple of <cite>tf.Variable</cite> to update to minimize
+<cite>loss</cite>.  Defaults to the list of variables collected in the graph
+under the key <cite>GraphKeys.TRAINABLE_VARIABLES</cite>.</li>
+<li><strong>gate_gradients</strong> – How to gate the computation of gradients.  Can be
+<cite>GATE_NONE</cite>, <cite>GATE_OP</cite>, or <cite>GATE_GRAPH</cite>.</li>
+<li><strong>aggregation_method</strong> – Specifies the method used to combine gradient terms.
+Valid values are defined in the class <cite>AggregationMethod</cite>.</li>
+<li><strong>colocate_gradients_with_ops</strong> – If True, try colocating gradients with
+the corresponding op.</li>
+<li><strong>grad_loss</strong> – Optional. A <cite>Tensor</cite> holding the gradient computed for <cite>loss</cite>.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of (gradient, variable) pairs. Variable is always present, but
+gradient can be <cite>None</cite>.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>var_list</cite> contains anything else than <cite>Variable</cite> objects.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If some arguments are invalid.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">RuntimeError</span></code> – If called with eager execution enabled and <cite>loss</cite> is
+not callable.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p>&#64;compatibility(eager)
+When eager execution is enabled, <cite>gate_gradients</cite>, <cite>aggregation_method</cite>,
+and <cite>colocate_gradients_with_ops</cite> are ignored.
+&#64;end_compatibility</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -414,7 +542,7 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">AutomaticLossScaler</code><span class="sig-paren">(</span><em>algorithm='Backoff'</em>, <em>scale_min=1.0</em>, <em>scale_max=16777216.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS">
 <code class="descname">SUPPORTED_ALGOS</code><em class="property"> = ['Backoff', 'LogMax']</em><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS" title="Permalink to this definition">¶</a></dt>
@@ -422,7 +550,7 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 
 <dl class="staticmethod">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">
-<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><em>grads_and_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -440,7 +568,7 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">BackoffScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>step_factor</em>, <em>step_window</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#BackoffScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler.loss_scale">
 <code class="descname">loss_scale</code><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler.loss_scale" title="Permalink to this definition">¶</a></dt>
@@ -456,7 +584,7 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler">
 <em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">LogMaxScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>log_max</em>, <em>beta1</em>, <em>beta2</em>, <em>overflow_std_dev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#LogMaxScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler.loss_scale">
 <code class="descname">loss_scale</code><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler.loss_scale" title="Permalink to this definition">¶</a></dt>
@@ -472,48 +600,150 @@ of &#8216;LogMax&#8217;. <cite>dtype</cite> must be &#8220;mixed&#8221; to use A
 </div>
 <div class="section" id="module-optimizers.lr_policies">
 <span id="lr-policies"></span><h2>lr_policies<a class="headerlink" href="#module-optimizers.lr_policies" title="Permalink to this headline">¶</a></h2>
-<p>File containing various learning rate policies</p>
+<p>Module containing various learning rate policies. Learning rate policy can
+be any function that takes arbitrary arguments from the config (with additional
+<code class="docutils literal notranslate"><span class="pre">global_step</span></code> variable provided automatically) and returns learning rate
+value for the current step.</p>
 <dl class="function">
 <dt id="optimizers.lr_policies.exp_decay">
-<code class="descclassname">optimizers.lr_policies.</code><code class="descname">exp_decay</code><span class="sig-paren">(</span><em>learning_rate</em>, <em>var_global_step</em>, <em>begin_decay_at</em>, <em>decay_steps</em>, <em>decay_rate</em>, <em>use_staircase_decay</em>, <em>min_lr</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#exp_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.exp_decay" title="Permalink to this definition">¶</a></dt>
-<dd><p>Exponential decay
-:param learning_rate:
-:param var_global_step:
-:param begin_decay_at:
-:param decay_steps:
-:param decay_rate:
-:param use_staircase_decay:
-:param min_lr:
-:return:</p>
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">exp_decay</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>decay_steps</em>, <em>decay_rate</em>, <em>use_staircase_decay</em>, <em>begin_decay_at=0</em>, <em>min_lr=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#exp_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.exp_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Exponential decay learning rate policy.
+This function is equivalent to <code class="docutils literal notranslate"><span class="pre">tensorflow.train.exponential_decay</span></code> with
+some additional functionality. Namely, it adds <code class="docutils literal notranslate"><span class="pre">begin_decay_at</span></code> parameter
+and <code class="docutils literal notranslate"><span class="pre">min_lr</span></code> parameter which are the first step to start decaying learning
+rate and minimal value of the learning rate correspondingly.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor.</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – initial learning rate to use.</li>
+<li><strong>decay_steps</strong> (<em>int</em>) – number of steps to apply decay for.</li>
+<li><strong>decay_rate</strong> (<em>float</em>) – the rate of the decay.</li>
+<li><strong>use_staircase_decay</strong> (<em>bool</em>) – whether to use staircase decay.</li>
+<li><strong>begin_decay_at</strong> (<em>int</em>) – the first step to start decaying learning rate.</li>
+<li><strong>min_lr</strong> (<em>float</em>) – minimal value of the learning rate.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="optimizers.lr_policies.fixed_lr">
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">fixed_lr</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#fixed_lr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.fixed_lr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fixed learning rate policy.
+This function always returns <code class="docutils literal notranslate"><span class="pre">learning_rate</span></code>, ignoring <code class="docutils literal notranslate"><span class="pre">global_step</span></code>
+value.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor (ignored for this policy).</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – fixed learning rate to use.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="optimizers.lr_policies.piecewise_constant">
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">piecewise_constant</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>boundaries</em>, <em>decay_rates</em>, <em>steps_per_epoch=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#piecewise_constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.piecewise_constant" title="Permalink to this definition">¶</a></dt>
+<dd><p>Piecewise constant learning rate decay.
+When defined in the config, only <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> and <code class="docutils literal notranslate"><span class="pre">decay_rates</span></code> need to
+be provided (other parameters are automatically populated by
+<a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a> class). <code class="docutils literal notranslate"><span class="pre">boundaries</span></code> are treated as
+epochs if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> is provided in the config, otherwise treated as
+steps.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor.</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – initial learning rate to use.</li>
+<li><strong>boundaries</strong> (<em>list</em>) – could be either defined in steps
+(if <code class="docutils literal notranslate"><span class="pre">batches_per_epoch=None</span></code>) or in epochs if <code class="docutils literal notranslate"><span class="pre">batches_per_epoch</span></code>
+parameter is defined.</li>
+<li><strong>decay_rates</strong> – multiplier of the initial learning rate for each boundary.</li>
+<li><strong>steps_per_epoch</strong> – number of batches in one training epoch. If provided,
+boundaries are treated as epochs, otherwise as steps.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="optimizers.lr_policies.poly_decay">
-<code class="descclassname">optimizers.lr_policies.</code><code class="descname">poly_decay</code><span class="sig-paren">(</span><em>learning_rate</em>, <em>var_global_step</em>, <em>decay_steps</em>, <em>begin_decay_at=0</em>, <em>power=1.0</em>, <em>min_lr=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#poly_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.poly_decay" title="Permalink to this definition">¶</a></dt>
-<dd><p>Polynomial decay
-:param learning_rate:
-:param var_global_step:
-:param decay_steps:
-:param begin_decay_at:
-:param power:
-:param min_lr:
-:return:</p>
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">poly_decay</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>decay_steps</em>, <em>power=1.0</em>, <em>begin_decay_at=0</em>, <em>min_lr=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#poly_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.poly_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Polynomial decay learning rate policy.
+This function is equivalent to <code class="docutils literal notranslate"><span class="pre">tensorflow.train.polynomial_decay</span></code> with
+some additional functionality. Namely, it adds <code class="docutils literal notranslate"><span class="pre">begin_decay_at</span></code> parameter
+which is the first step to start decaying learning rate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor.</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – initial learning rate to use.</li>
+<li><strong>decay_steps</strong> (<em>int</em>) – number of steps to apply decay for.</li>
+<li><strong>power</strong> (<em>float</em>) – power for polynomial decay.</li>
+<li><strong>begin_decay_at</strong> (<em>int</em>) – the first step to start decaying learning rate.</li>
+<li><strong>min_lr</strong> (<em>float</em>) – minimal value of the learning rate
+(same as <code class="docutils literal notranslate"><span class="pre">end_learning_rate</span></code> TensorFlow parameter).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="function">
 <dt id="optimizers.lr_policies.transformer_policy">
-<code class="descclassname">optimizers.lr_policies.</code><code class="descname">transformer_policy</code><span class="sig-paren">(</span><em>learning_rate</em>, <em>var_global_step</em>, <em>d_model</em>, <em>warmup_steps</em>, <em>max_lr=None</em>, <em>coefficient=1.0</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#transformer_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.transformer_policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformer&#8217;s learning rate policy from <a class="reference external" href="https://arxiv.org/pdf/1706.03762.pdf">https://arxiv.org/pdf/1706.03762.pdf</a>,
-with a hat (max_lr).
-(Also called &#8220;noam&#8221; learning_rate_decay_scheme)
-:param learning_rate: learning_rate
-:param var_global_step: global step
-:param d_model: model dimensionality
-:param warmup_steps: steps to do warmup
-:param max_lr: max_lr, e.g. hat
-:param coefficient: optimizer adjustment. Recommended 0.002 if &#8220;Adam&#8221; else 1.0
-:param dtype:
-:return: adjusted learning rate</p>
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">transformer_policy</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>d_model</em>, <em>warmup_steps</em>, <em>max_lr=None</em>, <em>coefficient=1.0</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#transformer_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.transformer_policy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transformer’s learning rate policy from <a class="reference external" href="https://arxiv.org/pdf/1706.03762.pdf">https://arxiv.org/pdf/1706.03762.pdf</a>
+with a hat (max_lr) (also called “noam” learning rate decay scheme).</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor (ignored for this policy).</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – initial learning rate to use.</li>
+<li><strong>d_model</strong> (<em>int</em>) – model dimensionality.</li>
+<li><strong>warmup_steps</strong> (<em>int</em>) – number of warm-up steps.</li>
+<li><strong>max_lr</strong> (<em>float</em>) – maximal learning rate, i.e. hat.</li>
+<li><strong>coefficient</strong> (<em>float</em>) – optimizer adjustment.
+Recommended 0.002 if using “Adam” else 1.0.</li>
+<li><strong>dtype</strong> – dtype for this policy.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>
@@ -572,7 +802,7 @@ with a hat (max_lr).
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

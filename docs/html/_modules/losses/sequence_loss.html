@@ -164,15 +164,15 @@
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Basic sequence-to-sequence loss. This one does not use one-hot encodings</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="BasicSequenceLoss.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="BasicSequenceLoss.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="BasicSequenceLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="BasicSequenceLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;offset_target_by_one&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;average_across_timestep&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -215,8 +215,10 @@
 <span class="sd">    :return: Singleton loss tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
-    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;tgt_sequence&quot;</span><span class="p">]</span>
-    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;tgt_length&quot;</span><span class="p">]</span>
+    <span class="c1">#target_sequence = input_dict[&quot;tgt_sequence&quot;]</span>
+    <span class="c1">#tgt_lengths = input_dict[&quot;tgt_length&quot;]</span>
+    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>
       <span class="c1"># this is necessary for auto-regressive models</span>
@@ -287,15 +289,15 @@
 <span class="sd">  Softmax cross entropy loss with label smoothing. This one uses one-hot encodings</span>
 <span class="sd">  for labels</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="CrossEntropyWithSmoothing.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="CrossEntropyWithSmoothing.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="CrossEntropyWithSmoothing.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="CrossEntropyWithSmoothing.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;offset_target_by_one&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;average_across_timestep&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -338,8 +340,10 @@
 <span class="sd">    :return: Singleton loss tensor</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
-    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;tgt_sequence&quot;</span><span class="p">]</span>
-    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;tgt_length&quot;</span><span class="p">]</span>
+    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1">#target_sequence = input_dict[&quot;tgt_sequence&quot;]</span>
+    <span class="c1">#tgt_lengths = input_dict[&quot;tgt_length&quot;]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>
       <span class="c1"># this is necessary for auto-regressive models      </span>
@@ -392,6 +396,70 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
     <span class="k">return</span> <span class="n">loss</span></div></div>
+
+
+<div class="viewcode-block" id="PaddedCrossEntropyLossWithSmoothing"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing">[docs]</a><span class="k">class</span> <span class="nc">PaddedCrossEntropyLossWithSmoothing</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
+<div class="viewcode-block" id="PaddedCrossEntropyLossWithSmoothing.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;label_smoothing&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;padded_cross_entropy_with_smoothing&quot;</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">PaddedCrossEntropyLossWithSmoothing</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_label_smoothing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label_smoothing&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
+    <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">logits</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="mf">0.0</span>
+    <span class="c1">#labels = input_dict[&quot;tgt_sequence&quot;]</span>
+    <span class="n">labels</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1">#tgt_lengths = input_dict[&quot;target_tensors&quot;][1]</span>
+
+    <span class="k">def</span> <span class="nf">_pad_tensors_to_same_length</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+      <span class="sd">&quot;&quot;&quot;Pad x and y so that the results have the same length (second dimension).&quot;&quot;&quot;</span>
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;pad_to_same_length&quot;</span><span class="p">):</span>
+        <span class="n">x_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">x</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">y_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">y</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="n">max_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">x_length</span><span class="p">,</span> <span class="n">y_length</span><span class="p">)</span>
+
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">x_length</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">y_length</span><span class="p">]])</span>
+        <span class="k">return</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;loss&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">]):</span>
+      <span class="n">logits</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="n">_pad_tensors_to_same_length</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">)</span>
+
+      <span class="c1"># Calculate smoothing cross entropy</span>
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;smoothing_cross_entropy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">]):</span>
+        <span class="n">confidence</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_smoothing</span>
+        <span class="n">low_confidence</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">confidence</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">soft_targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
+          <span class="n">depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">,</span>
+          <span class="n">on_value</span><span class="o">=</span><span class="n">confidence</span><span class="p">,</span>
+          <span class="n">off_value</span><span class="o">=</span><span class="n">low_confidence</span><span class="p">)</span>
+        <span class="n">xentropy</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax_cross_entropy_with_logits_v2</span><span class="p">(</span>
+          <span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="o">=</span><span class="n">soft_targets</span><span class="p">)</span>
+
+        <span class="c1"># Calculate the best (lowest) possible value of cross entropy, and</span>
+        <span class="c1"># subtract from the cross entropy loss.</span>
+        <span class="n">normalizing_constant</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span>
+            <span class="n">confidence</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">confidence</span><span class="p">)</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span>
+            <span class="n">low_confidence</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">low_confidence</span> <span class="o">+</span> <span class="mf">1e-20</span><span class="p">))</span>
+        <span class="n">xentropy</span> <span class="o">-=</span> <span class="n">normalizing_constant</span>
+
+      <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">not_equal</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+      <span class="n">xentropy</span> <span class="o">=</span> <span class="n">xentropy</span> <span class="o">*</span> <span class="n">weights</span>
+      <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">xentropy</span> <span class="o">*</span> <span class="n">weights</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+
+      <span class="k">return</span> <span class="n">loss</span></div>
 </pre></div>
 
            </div>
@@ -437,7 +505,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
