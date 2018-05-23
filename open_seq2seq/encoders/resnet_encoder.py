@@ -32,6 +32,8 @@ class ResNetEncoder(Encoder):
       'first_pool_stride': int,
       'data_format': ['channels_first', 'channels_last'],
       'regularize_bn': bool,
+      'bn_momentum': float,
+      'bn_epsilon': float,
     })
 
   def __init__(self, params, model, name="resnet_encoder", mode='train'):
@@ -81,6 +83,8 @@ class ResNetEncoder(Encoder):
     block_strides = self.params.get('block_strides', [1, 2, 2, 2])
     version = self.params.get('version', 2)
     data_format = self.params.get('data_format', 'channels_first')
+    bn_momentum = self.params.get('bn_momentum', 0.997)
+    bn_epsilon = self.params.get('bn_epsilon', 1e-5)
 
     if bottleneck:
       if version == 1:
@@ -109,7 +113,8 @@ class ResNetEncoder(Encoder):
 
     if version == 1:
       inputs = batch_norm(inputs, training, data_format,
-                          regularizer=bn_regularizer)
+                          regularizer=bn_regularizer,
+                          momentum=bn_momentum, epsilon=bn_epsilon)
       inputs = tf.nn.relu(inputs)
 
     if first_pool_size:
@@ -128,10 +133,12 @@ class ResNetEncoder(Encoder):
         strides=block_strides[i], training=training,
         name='block_layer{}'.format(i + 1), data_format=data_format,
         regularizer=regularizer, bn_regularizer=bn_regularizer,
+        bn_momentum=bn_momentum, bn_epsilon=bn_epsilon,
       )
     if version == 2:
       inputs = batch_norm(inputs, training, data_format,
-                          regularizer=bn_regularizer)
+                          regularizer=bn_regularizer,
+                          momentum=bn_momentum, epsilon=bn_epsilon)
       inputs = tf.nn.relu(inputs)
 
     # The current top layer has shape

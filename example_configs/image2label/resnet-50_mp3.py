@@ -3,7 +3,7 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant
+from open_seq2seq.optimizers.lr_policies import poly_decay
 import tensorflow as tf
 
 
@@ -17,7 +17,7 @@ base_params = {
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
   "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "loss_scale": 1000.0,
 
   "save_summaries_steps": 2000,
   "print_loss_steps": 100,
@@ -30,18 +30,21 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": piecewise_constant,
+
+  "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.1,
-    "boundaries": [30, 60, 80, 90],
-    "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+    "learning_rate": 0.5,
+    "power": 2.0,
+  },
+  "larc_params": {
+    "larc_nu": 0.001,
   },
 
   "initializer": tf.variance_scaling_initializer,
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 0.0001,
+    'scale': 0.0005,
   },
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -49,6 +52,9 @@ base_params = {
   "encoder_params": {
     'resnet_size': 50,
     "regularize_bn": False,
+    "version": 1,
+    "bn_momentum": 0.9,
+    "bn_epsilon": 1e-4,
   },
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
