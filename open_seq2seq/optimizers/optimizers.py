@@ -424,14 +424,14 @@ def optimize_loss(loss,
     if larc_params is not None:
       check_params(
         config=larc_params,
-        required_dict={'larc_nu': float},
+        required_dict={'larc_eta': float},
         optional_dict={
           'larc_mode': ['clip', 'scale'],
           'min_update': float,
           'epsilon': float
         },
       )
-      larc_nu = larc_params['larc_nu']
+      larc_eta = larc_params['larc_eta']
       larc_mode = larc_params.get('larc_mode', 'clip')
       min_update = larc_params.get('min_update', 1e-7)
       eps = larc_params.get('epsilon', 1e-7)
@@ -443,7 +443,7 @@ def optimize_loss(loss,
 
         if larc_mode == 'clip':
           larc_grad_update = tf.maximum(
-            larc_nu * v_norm / (lr * (g_norm + eps)),
+            larc_eta * v_norm / (lr * (g_norm + eps)),
             min_update,
           )
           if "larc_summaries" in summaries:
@@ -452,7 +452,7 @@ def optimize_loss(loss,
           larc_grad_update = tf.minimum(larc_grad_update, 1.0)
         else:
           larc_grad_update = tf.maximum(
-            larc_nu * v_norm / (g_norm + eps),
+            larc_eta * v_norm / (g_norm + eps),
             min_update,
           )
         larc_grad_update = tf.saturate_cast(larc_grad_update, var_dtype)
