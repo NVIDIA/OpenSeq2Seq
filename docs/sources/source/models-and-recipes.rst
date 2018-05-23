@@ -61,28 +61,51 @@ Final metrics: test BLEU score = xx.xx. Model checkpoint: link.
 Speech recognition
 ------------------
 
-Quick Deep Speech 2 Model
-~~~~~~~~~~~~~~~~~~~~~~~~~
+Deep Speech 2 based models
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+Deep Speech 2 model description: https://arxiv.org/abs/1512.02595.
+
+Small model
+~~~~~~~~~~~~~
 
 This small Deep Speech 2 like model can be trained on a 'clean' subset of
 LibriSpeech in less than a day using a single GPU.
 
 Command to train on 1 GPU::
 
-    python run.py --config_file=example_configs/speech2text/ds2_quick_librispeech_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_small_1gpu.py --mode=train_eval --enable_logs
 
-Final metrics: WER = 9.29% on LibriSpeech dev clean with a beam width = 2048 after 12 epochs.
-Model checkpoint: `link <https://drive.google.com/file/d/1O3OHwPdPikI812pkF2vRcxlUSQNMLMLN/view?usp=sharing>`_.
+Final metrics: on LibriSpeech dev clean after 12 epochs WER = 9.32% with beam width = 2048.
+With beam width = 512, WER = 11.77%.
+
+Model checkpoint: coming soon.
 
 
-Deep Speech 2
-~~~~~~~~~~~~~
+Medium model
+~~~~~~~~~~~~~~~~~~~~
 
-Model description: https://arxiv.org/abs/1512.02595.
+This is a medium version of Deep Speech 2 with 3 convolutional and 3 unidirectional GRU layers.
 
 Command to train on 4 GPUs::
 
-    python run.py --config_file=example_configs/speech2text/ds2_librispeech_adam_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_medium_4gpus.py --mode=train_eval --enable_logs
 
-Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
-Model checkpoint: `link <https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing>`_.
+Final metrics: on LibriSpeech dev clean after 50 epochs WER = 5.5% with beam width = 2048.
+With beam width = 512, WER = 5.96%.
+
+Model checkpoint: coming soon.
+
+
+Large model
+~~~~~~~~~~~~~~~~~~~~
+
+This is a large version of Deep Speech 2 with 2 convolutional and 5 bidirectional GRU layers.
+
+Command to train on 8 GPUs::
+
+    python run.py --config_file=example_configs/speech2text/ds2_large_8gpus.py --mode=train_eval --enable_logs
+
+Final metrics: on LibriSpeech dev clean after 50 epochs WER = 4.59% with beam width = 2048.
+With beam width = 512, WER = 4.9%.
+
+Model checkpoint: coming soon.
