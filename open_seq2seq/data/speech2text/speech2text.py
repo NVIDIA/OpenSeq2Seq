@@ -15,9 +15,7 @@ from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
 class Speech2TextDataLayer(DataLayer):
-  """Speech-to-text data layer class, that uses ``tf.data`` API.
-  This is a recommended class to use in real experiments.
-  """
+  """Speech-to-text data layer class."""
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -35,7 +33,7 @@ class Speech2TextDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """Speech-to-text ``tf.data`` based data layer constructor.
+    """Speech-to-text data layer constructor.
 
     See parent class for arguments description.
 
@@ -54,7 +52,7 @@ class Speech2TextDataLayer(DataLayer):
           'noise_level_max': -60,
         }
       For additional details on these parameters see
-      :func:`data.speech_utils.augment_audio_signal` function.
+      :func:`data.speech2text.speech_utils.augment_audio_signal` function.
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
@@ -88,6 +86,7 @@ class Speech2TextDataLayer(DataLayer):
     self._input_tensors = None
 
   def split_data(self, data):
+    """Method that performs data split for evaluation."""
     if self.params['mode'] != 'train' and self._num_workers is not None:
       size = len(data)
       start = size // self._num_workers * self._worker_id
@@ -101,10 +100,11 @@ class Speech2TextDataLayer(DataLayer):
 
   @property
   def iterator(self):
+    """Underlying tf.data iterator."""
     return self._iterator
 
   def build_graph(self):
-    """Builds data reading graph using ``tf.data`` API."""
+    """Builds data processing graph using ``tf.data`` API."""
     self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle']:
       self._dataset = self._dataset.shuffle(self._size)
@@ -203,6 +203,18 @@ class Speech2TextDataLayer(DataLayer):
 
   @property
   def input_tensors(self):
+    """Dictionary with input tensors.
+
+    ``input_tensors["source_tensors"]`` contains:
+
+      * source_sequence (shape=[batch_size x sequence length x num_audio_features])
+      * source_length (shape=[batch_size])
+
+    ``input_tensors["target_tensors"]`` contains:
+
+      * target_sequence (shape=[batch_size x sequence length x num_audio_features])
+      * target_length (shape=[batch_size])
+    """
     return self._input_tensors
 
   def get_size_in_samples(self):
