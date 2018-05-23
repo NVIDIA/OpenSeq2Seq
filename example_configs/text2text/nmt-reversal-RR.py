@@ -1,19 +1,20 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
-from open_seq2seq.models import BasicText2TextWithAttention
+from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
-from open_seq2seq.data.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
-from open_seq2seq.data.text2text import SpecialTextTokens
+from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 """
 This configuration file describes classic RNN-based encoder-decoder model
 with attention on the toy task of reversing sequences
 """
 
-base_model = BasicText2TextWithAttention
+base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
@@ -30,7 +31,10 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-4},
-  "learning_rate": 0.001,
+  "lr_policy": fixed_lr,
+  "lr_policy_params": {
+    'learning_rate': 0.001
+  },
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
 

@@ -182,17 +182,17 @@ mode):</p>
 <div class="section" id="small-nmt-model">
 <h3>Small NMT Model<a class="headerlink" href="#small-nmt-model" title="Permalink to this headline">¶</a></h3>
 <p>Command to train on 1 GPU:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using <code class="docutils literal"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
+<p>Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
 Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing">link</a>  .</p>
 </div>
 <div class="section" id="gnmt">
 <h3>GNMT<a class="headerlink" href="#gnmt" title="Permalink to this headline">¶</a></h3>
 <p>Model description: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</p>
 <p>Command to train on 4 GPUs:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>Final metrics: test BLEU score = xx.xx. Model checkpoint: link.</p>
@@ -201,12 +201,12 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 <h3>Transformers<a class="headerlink" href="#transformers" title="Permalink to this headline">¶</a></h3>
 <p>Model description: <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
 <p>Command to train on 4 GPUs:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>Final metrics: test BLEU score = xx.xx. Model checkpoint: link.</p>
 <p>Command to train on 1 GPU:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">1</span><span class="n">GPU</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">1</span><span class="n">GPU</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>Final metrics: test BLEU score = xx.xx. Model checkpoint: link.</p>
@@ -216,10 +216,10 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 <h2>Speech recognition<a class="headerlink" href="#speech-recognition" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="quick-deep-speech-2-model">
 <h3>Quick Deep Speech 2 Model<a class="headerlink" href="#quick-deep-speech-2-model" title="Permalink to this headline">¶</a></h3>
-<p>This small Deep Speech 2 like model can be trained on a &#8216;clean&#8217; subset of
+<p>This small Deep Speech 2 like model can be trained on a ‘clean’ subset of
 LibriSpeech in less than a day using a single GPU.</p>
 <p>Command to train on 1 GPU:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_quick_librispeech_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_quick_librispeech_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>Final metrics: WER = 9.29% on LibriSpeech dev clean with a beam width = 2048 after 12 epochs.
@@ -229,7 +229,7 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 <h3>Deep Speech 2<a class="headerlink" href="#deep-speech-2" title="Permalink to this headline">¶</a></h3>
 <p>Model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.</p>
 <p>Command to train on 4 GPUs:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_adam_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_adam_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
@@ -291,7 +291,7 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

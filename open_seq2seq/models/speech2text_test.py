@@ -17,6 +17,7 @@ from open_seq2seq.test_utils.test_speech_config import base_params, \
                                                        eval_params, \
                                                        base_model
 from open_seq2seq.utils import train, evaluate, infer
+from open_seq2seq.utils.utils import get_available_gpus
 
 
 class Speech2TextModelTests(tf.test.TestCase):
@@ -33,21 +34,20 @@ class Speech2TextModelTests(tf.test.TestCase):
       eval_model = base_model(params=eval_config, mode="eval", hvd=None)
       eval_model.compile(force_var_reuse=True)
 
-      train(train_model, eval_model, hvd=None)
+      train(train_model, eval_model)
       saver = tf.train.Saver()
       checkpoint = tf.train.latest_checkpoint(train_model.params['logdir'])
       with self.test_session(g, use_gpu=True) as sess:
         saver.restore(sess, checkpoint)
+        sess.run([train_model.get_data_layer(i).iterator.initializer
+                  for i in range(train_model.num_gpus)])
+        sess.run([eval_model.get_data_layer(i).iterator.initializer
+                  for i in range(eval_model.num_gpus)])
 
         weights = sess.run(tf.trainable_variables())
-        loss = sess.run(
-          train_model.loss,
-          train_model.data_layer.next_batch_feed_dict(),
-        )
-        eval_loss = sess.run(
-          eval_model.loss,
-          eval_model.data_layer.next_batch_feed_dict(),
-        )
+        loss = sess.run(train_model.loss)
+        eval_losses = sess.run(eval_model.eval_losses)
+        eval_loss = np.mean(eval_losses)
         weights_new = sess.run(tf.trainable_variables())
 
         # checking that the weights has not changed from just computing the loss
@@ -103,12 +103,20 @@ class Speech2TextModelTests(tf.test.TestCase):
     train_config, infer_config = self.prepare_config()
     train_config['num_epochs'] = 200
     infer_config['batch_size_per_gpu'] = 4
-    infer_config['num_gpus'] = 1
+
+    with tf.Graph().as_default() as g:
+      with self.test_session(g, use_gpu=True) as sess:
+        gpus = get_available_gpus()
+
+    if len(gpus) > 1:
+      infer_config['num_gpus'] = 2
+    else:
+      infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():
       train_model = base_model(params=train_config, mode="train", hvd=None)
       train_model.compile()
-      train(train_model, None, hvd=None)
+      train(train_model, None)
 
     with tf.Graph().as_default():
       infer_model = base_model(params=infer_config, mode="infer", hvd=None)
@@ -181,7 +189,7 @@ class Speech2TextModelTests(tf.test.TestCase):
       model.compile()
     model._gpu_ids = range(5)
     model.params['batch_size_per_gpu'] = 2
-    char2idx = model.data_layer.params['char2idx']
+    char2idx = model.get_data_layer().params['char2idx']
     inputs = [
       ['this is a great day', 'london is the capital of great britain'],
       ['ooo', 'lll'],
@@ -231,13 +239,24 @@ class Speech2TextModelTests(tf.test.TestCase):
       values[gpu_id] = np.array(values[gpu_id], dtype=np.int)
       indices[gpu_id] = np.array(indices[gpu_id], dtype=np.int)
 
-    input_values = [None, None, y, len_y]
+    x = [np.empty(2)] * len(y)
+    len_x = [None] * len(y)
+    input_values = list(zip(x, len_x, y, len_y))
     output_values = [
-      tf.SparseTensorValue(indices[i], values[i], dense_shape[i])
+      [tf.SparseTensorValue(indices[i], values[i], dense_shape[i])]
       for i in range(num_gpus)
     ]
-    output_dict = model.maybe_evaluate([input_values, input_values],
-                                       [output_values, output_values])
+
+    results = []
+    for inp, out in zip(input_values, output_values):
+      inp_dict = {'source_tensors': [inp[0], inp[1]],
+                  'target_tensors': [inp[2], inp[3]]}
+      results.append(model.evaluate(inp_dict, out))
+    for inp, out in zip(input_values, output_values):
+      inp_dict = {'source_tensors': [inp[0], inp[1]],
+                  'target_tensors': [inp[2], inp[3]]}
+      results.append(model.evaluate(inp_dict, out))
+    output_dict = model.finalize_evaluation(results)
 
     w_lev = 0.0
     w_len = 0.0
@@ -251,7 +270,9 @@ class Speech2TextModelTests(tf.test.TestCase):
     self.assertEqual(output_dict['Eval WER'], w_lev / w_len)
     self.assertEqual(output_dict['Eval WER'], 37 / 40.0)
 
-    output_dict = model.maybe_print_logs(input_values, output_values)
+    inp_dict = {'source_tensors': [input_values[0][0], input_values[0][1]],
+                'target_tensors': [input_values[0][2], input_values[0][3]]}
+    output_dict = model.maybe_print_logs(inp_dict, output_values[0])
     self.assertEqual(output_dict['Sample WER'], 0.4)
 
 

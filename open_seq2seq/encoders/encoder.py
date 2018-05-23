@@ -145,11 +145,11 @@ class Encoder:
     produce some hidden representation as an output.
 
     Args:
-      input_dict (dict): dictionary containing encoder inputs. This dict will
-          typically have the following content::
+      input_dict (dict): dictionary containing encoder inputs.
+          If the encoder is used with :class:`models.encoder_decoder` class,
+          ``input_dict`` will have the following content::
             {
-              "src_sequence": source_sequence,
-              "src_length": source_length,
+              "source_tensors": data_layer.input_tensors['source_tensors']
             }
 
     Returns:

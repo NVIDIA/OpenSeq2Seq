@@ -6,13 +6,18 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
+import datetime
 import argparse
 import pprint
 import runpy
 import copy
 import os
+import sys
+import shutil
 
-from open_seq2seq.utils.utils import deco_print
+from open_seq2seq.utils.utils import deco_print, flatten_dict, \
+                                     nest_dict, nested_update, get_git_diff, \
+                                     get_git_hash, Logger
 from open_seq2seq.utils import train, infer, evaluate
 
 
@@ -39,6 +44,8 @@ def main():
                       help='first step to start counting time for benchmarking')
   parser.add_argument('--debug_port', type=int,
                       help='run TensorFlow in debug mode on specified port')
+  parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
+                      help='whether to log output, git info, cmd args, etc.')
   args, unknown = parser.parse_known_args()
 
   if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
@@ -57,31 +64,107 @@ def main():
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
-  for pm, value in base_config.items():
+  for pm, value in flatten_dict(base_config).items():
     if type(value) is int or type(value) is float or type(value) is str or \
        type(value) is bool:
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
   config_update = parser_unk.parse_args(unknown)
-  base_config.update(vars(config_update))
+  nested_update(base_config, nest_dict(vars(config_update)))
 
-  train_config = copy.deepcopy(base_config)
-  eval_config = copy.deepcopy(base_config)
-  infer_config = copy.deepcopy(base_config)
+  # checking that everything is correct with log directory
+  logdir = base_config['logdir']
+  if args.benchmark:
+    args.no_dir_check = True
+  try:
+    if args.enable_logs:
+      ckpt_dir = os.path.join(logdir, 'logs')
+    else:
+      ckpt_dir = logdir
+    if args.mode == 'train' or args.mode == 'train_eval':
+      if os.path.isfile(logdir):
+        raise IOError("There is a file with the same name as \"logdir\" "
+                      "parameter. You should change the log directory path "
+                      "or delete the file to continue.")
+
+      # check if "logdir" directory exists and non-empty
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        if not args.continue_learning:
+          raise IOError("Log directory is not empty. If you want to continue "
+                        "learning, you should provide "
+                        "\"--continue_learning\" flag")
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if checkpoint is None:
+          raise IOError(
+            "There is no valid TensorFlow checkpoint in the "
+            "{} directory. Can't load model".format(ckpt_dir)
+          )
+      else:
+        if args.continue_learning:
+          raise IOError("The log directory is empty or does not exist. "
+                        "You should probably not provide "
+                        "\"--continue_learning\" flag?")
+        checkpoint = None
+    elif args.mode == 'infer' or args.mode == 'eval':
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if checkpoint is None:
+          raise IOError(
+            "There is no valid TensorFlow checkpoint in the "
+            "{} directory. Can't load model".format(ckpt_dir)
+          )
+      else:
+        raise IOError(
+          "{} does not exist or is empty, can't restore model".format(ckpt_dir)
+        )
+  except IOError as e:
+    if args.no_dir_check:
+      print("Warning: {}".format(e))
+      print("Resuming operation since no_dir_check argument was provided")
+    else:
+      raise
 
   if base_config['use_horovod']:
-    if args.mode == "infer" or args.mode == "eval":
-      raise NotImplementedError("Inference or evaluation on horovod "
-                                "is not supported yet")
-    if args.mode == "train_eval":
-      deco_print("Evaluation during training is not yet supported on horovod, "
-                 "defaulting to just doing mode=\"train\"")
-      args.mode = "train"
     import horovod.tensorflow as hvd
     hvd.init()
     if hvd.rank() == 0:
       deco_print("Using horovod")
   else:
     hvd = None
+
+  if args.enable_logs:
+    if hvd is None or hvd.rank() == 0:
+      if not os.path.exists(logdir):
+        os.makedirs(logdir)
+
+      tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+      shutil.copy(
+        args.config_file,
+        os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
+      )
+
+      with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)), 'w') as f:
+        f.write(" ".join(sys.argv))
+
+      with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)), 'w') as f:
+        f.write('commit hash: {}'.format(get_git_hash()))
+        f.write(get_git_diff())
+
+      old_stdout = sys.stdout
+      old_stderr = sys.stderr
+      stdout_log = open(
+        os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
+      )
+      stderr_log = open(
+        os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
+      )
+      sys.stdout = Logger(sys.stdout, stdout_log)
+      sys.stderr = Logger(sys.stderr, stderr_log)
+
+    base_config['logdir'] = os.path.join(logdir, 'logs')
+
+  train_config = copy.deepcopy(base_config)
+  eval_config = copy.deepcopy(base_config)
+  infer_config = copy.deepcopy(base_config)
 
   if args.mode == 'train' or args.mode == 'train_eval':
     if 'train_params' in config_module:
@@ -92,12 +175,7 @@ def main():
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
       eval_config.update(copy.deepcopy(config_module['eval_params']))
-      eval_config['gpu_ids'] = [eval_config['num_gpus'] - 1]
-      if 'num_gpus' in eval_config:
-        del eval_config['num_gpus']
     if hvd is None or hvd.rank() == 0:
-      deco_print("Evaluation can only be run on one GPU. "
-                 "Setting num_gpus to 1 for eval model")
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
   if args.mode == "infer":
@@ -105,54 +183,9 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
-    deco_print("Inference can be run only on one GPU. Setting num_gpus to 1")
-    infer_config['num_gpus'] = 1
-    deco_print("Inference config:")
-    pprint.pprint(infer_config)
-
-  # checking that everything is correct with log directory
-  logdir = base_config['logdir']
-  if args.benchmark:
-    args.no_dir_check = True
-  try:
-    if args.mode == 'train' or args.mode == 'train_eval':
-      if os.path.isfile(logdir):
-        raise IOError("There is a file with the same name as \"logdir\" "
-                      "parameter. You should change the log directory path "
-                      "or delete the file to continue.")
-
-      # check if "logdir" directory exists and non-empty
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(logdir)
-        if not args.continue_learning:
-          raise IOError("Log directory is not empty. If you want to continue "
-                        "learning, you should provide "
-                        "\"--continue_learning\" flag")
-        if checkpoint is None:
-          raise IOError("There is no valid TensorFlow checkpoint in the "
-                        "log directory. Can't restore variables.")
-      else:
-        if args.continue_learning:
-          raise IOError("The log directory is empty or does not exist. "
-                        "You should probably not provide "
-                        "\"--continue_learning\" flag?")
-        checkpoint = None
-    elif args.mode == 'infer' or args.mode == 'eval':
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(logdir)
-        if checkpoint is None:
-          raise IOError("There is no valid TensorFlow checkpoint in the "
-                        "{} directory. Can't load model".format(logdir))
-      else:
-        raise IOError(
-          "{} does not exist or is empty, can't restore model".format(logdir)
-        )
-  except IOError as e:
-    if args.no_dir_check:
-      print("Warning: {}".format(e))
-      print("Resuming operation since no_dir_check argument was provided")
-    else:
-      raise
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")
@@ -169,8 +202,9 @@ def main():
     elif 'bench_start' not in train_config:
       train_config['bench_start'] = 10  # default value
 
-    deco_print("New benchmarking config:")
-    pprint.pprint(train_config)
+    if hvd is None or hvd.rank() == 0:
+      deco_print("New benchmarking config:")
+      pprint.pprint(train_config)
     args.mode = "train"
     checkpoint = None
 
@@ -183,19 +217,20 @@ def main():
           "Restored checkpoint from {}. Resuming training".format(checkpoint),
         )
   elif args.mode == 'eval' or args.mode == 'infer':
-    deco_print("Loading model from {}".format(checkpoint))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Loading model from {}".format(checkpoint))
 
   with tf.Graph().as_default():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
-      train(train_model, None, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, None, debug_port=args.debug_port)
     elif args.mode == 'train_eval':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile(force_var_reuse=True)
-      train(train_model, eval_model, hvd=hvd, debug_port=args.debug_port)
+      train(train_model, eval_model, debug_port=args.debug_port)
     elif args.mode == "eval":
       eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile()
@@ -204,6 +239,12 @@ def main():
       infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
+
+  if args.enable_logs and (hvd is None or hvd.rank() == 0):
+    sys.stdout = old_stdout
+    sys.stderr = old_stderr
+    stdout_log.close()
+    stderr_log.close()
 
 
 if __name__ == '__main__':

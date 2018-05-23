@@ -150,37 +150,49 @@
             
   <h1>All modules for which code is available</h1>
 <ul><li><a href="data/data_layer.html">data.data_layer</a></li>
-<li><a href="data/speech2text.html">data.speech2text</a></li>
-<li><a href="data/speech_utils.html">data.speech_utils</a></li>
-<li><a href="data/text2text.html">data.text2text</a></li>
+<li><a href="data/image2label/image2label.html">data.image2label.image2label</a></li>
+<li><a href="data/image2label/imagenet_preprocessing.html">data.image2label.imagenet_preprocessing</a></li>
+<li><a href="data/speech2text/speech2text.html">data.speech2text.speech2text</a></li>
+<li><a href="data/speech2text/speech_utils.html">data.speech2text.speech_utils</a></li>
+<li><a href="data/text2text/t2t.html">data.text2text.t2t</a></li>
+<li><a href="data/text2text/text2text.html">data.text2text.text2text</a></li>
+<li><a href="data/text2text/tokenizer.html">data.text2text.tokenizer</a></li>
+<li><a href="data/utils.html">data.utils</a></li>
 <li><a href="decoders/decoder.html">decoders.decoder</a></li>
-<li><a href="decoders/fc_decoder.html">decoders.fc_decoder</a></li>
+<li><a href="decoders/fc_decoders.html">decoders.fc_decoders</a></li>
 <li><a href="decoders/rnn_decoders.html">decoders.rnn_decoders</a></li>
-<li><a href="decoders/transformer_decoders.html">decoders.transformer_decoders</a></li>
 <li><a href="encoders/ds2_encoder.html">encoders.ds2_encoder</a></li>
 <li><a href="encoders/encoder.html">encoders.encoder</a></li>
+<li><a href="encoders/resnet_blocks.html">encoders.resnet_blocks</a></li>
+<li><a href="encoders/resnet_encoder.html">encoders.resnet_encoder</a></li>
 <li><a href="encoders/rnn_encoders.html">encoders.rnn_encoders</a></li>
-<li><a href="encoders/transformer_encoders.html">encoders.transformer_encoders</a></li>
+<li><a href="losses/cross_entropy_loss.html">losses.cross_entropy_loss</a></li>
 <li><a href="losses/ctc_loss.html">losses.ctc_loss</a></li>
 <li><a href="losses/loss.html">losses.loss</a></li>
 <li><a href="losses/sequence_loss.html">losses.sequence_loss</a></li>
+<li><a href="models/encoder_decoder.html">models.encoder_decoder</a></li>
+<li><a href="models/image2label.html">models.image2label</a></li>
 <li><a href="models/model.html">models.model</a></li>
-<li><a href="models/seq2seq.html">models.seq2seq</a></li>
 <li><a href="models/speech2text.html">models.speech2text</a></li>
 <li><a href="models/text2text.html">models.text2text</a></li>
 <li><a href="optimizers/automatic_loss_scaler.html">optimizers.automatic_loss_scaler</a></li>
 <li><a href="optimizers/lr_policies.html">optimizers.lr_policies</a></li>
 <li><a href="optimizers/mp_wrapper.html">optimizers.mp_wrapper</a></li>
 <li><a href="optimizers/optimizers.html">optimizers.optimizers</a></li>
-<li><a href="parts/attention.html">parts.attention</a></li>
-<li><a href="parts/attention_wrapper.html">parts.attention_wrapper</a></li>
-<li><a href="parts/common.html">parts.common</a></li>
-<li><a href="parts/experimental_rnn_cells/flstm.html">parts.experimental_rnn_cells.flstm</a></li>
-<li><a href="parts/experimental_rnn_cells/glstm.html">parts.experimental_rnn_cells.glstm</a></li>
-<li><a href="parts/experimental_rnn_cells/gnmt.html">parts.experimental_rnn_cells.gnmt</a></li>
-<li><a href="parts/experimental_rnn_cells/slstm.html">parts.experimental_rnn_cells.slstm</a></li>
-<li><a href="parts/t2t_timing_signal.html">parts.t2t_timing_signal</a></li>
-<li><a href="parts/utils.html">parts.utils</a></li>
+<li><a href="parts/rnns/attention_wrapper.html">parts.rnns.attention_wrapper</a></li>
+<li><a href="parts/rnns/flstm.html">parts.rnns.flstm</a></li>
+<li><a href="parts/rnns/glstm.html">parts.rnns.glstm</a></li>
+<li><a href="parts/rnns/gnmt.html">parts.rnns.gnmt</a></li>
+<li><a href="parts/rnns/rnn_beam_search_decoder.html">parts.rnns.rnn_beam_search_decoder</a></li>
+<li><a href="parts/rnns/slstm.html">parts.rnns.slstm</a></li>
+<li><a href="parts/rnns/utils.html">parts.rnns.utils</a></li>
+<li><a href="parts/transformer/attention_layer.html">parts.transformer.attention_layer</a></li>
+<li><a href="parts/transformer/beam_search.html">parts.transformer.beam_search</a></li>
+<li><a href="parts/transformer/beam_search_test.html">parts.transformer.beam_search_test</a></li>
+<li><a href="parts/transformer/common.html">parts.transformer.common</a></li>
+<li><a href="parts/transformer/embedding_layer.html">parts.transformer.embedding_layer</a></li>
+<li><a href="parts/transformer/ffn_layer.html">parts.transformer.ffn_layer</a></li>
+<li><a href="parts/transformer/utils.html">parts.transformer.utils</a></li>
 <li><a href="utils/funcs.html">utils.funcs</a></li>
 <li><a href="utils/hooks.html">utils.hooks</a></li>
 <li><a href="utils/utils.html">utils.utils</a></li>
@@ -229,7 +241,7 @@
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

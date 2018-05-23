@@ -3,7 +3,7 @@ import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
-from open_seq2seq.data import Speech2TextDataLayer, Speech2TextPlaceholdersDataLayer
+from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
@@ -30,14 +30,15 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
+    "learning_rate": 0.001,
     "power": 2,
     "decay_steps": 500,
   },
-  "learning_rate": 0.001,
-  "larc_nu": 0.001,
-  "larc_mode": 'clip',
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
   "dtype": tf.float32,
-  "summaries": ['learning_rate', 'variables', 'gradients',
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": DeepSpeech2Encoder,

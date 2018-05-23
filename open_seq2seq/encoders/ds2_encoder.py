@@ -12,7 +12,7 @@ from .encoder import Encoder
 def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
                    padding, regularizer, training, data_format, bn_momentum,
                    bn_epsilon):
-  """Helper function that applied convolution, batch norm and activation."""
+  """Helper function that applies convolution, batch norm and activation."""
   conv = tf.layers.conv2d(
     name="{}".format(name),
     inputs=inputs,
@@ -180,16 +180,26 @@ class DeepSpeech2Encoder(Encoder):
   def _encode(self, input_dict):
     """Creates TensorFlow graph for DeepSpeech-2 like encoder.
 
-    Expects the following inputs::
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              "source_tensors": [
+                src_sequence (shape=[batch_size, sequence length, num features]),
+                src_length (shape=[batch_size])
+              ]
+            }
 
-      input_dict = {
-        "src_sequence": tensor of shape [batch_size, sequence length, num features]
-        "src_length": tensor of shape [batch_size]
-      }
+    Returns:
+      dict: dictionary with the following tensors::
+
+        {
+          'outputs': hidden state, shape=[batch_size, sequence length, n_hidden]
+          'src_length': tensor, shape=[batch_size]
+        }
     """
 
-    source_sequence = input_dict['src_sequence']
-    src_length = input_dict['src_length']
+    source_sequence, src_length = input_dict['source_tensors']
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
@@ -327,7 +337,7 @@ class DeepSpeech2Encoder(Encoder):
         bn_epsilon=bn_epsilon,
       )
 
-    # Reshape [B, T, C] --> [T*B, C]
+    # Reshape [B, T, C] --> [B*T, C]
     c = top_layer.get_shape().as_list()[-1]
     top_layer = tf.reshape(top_layer, [-1, c])
 
@@ -341,8 +351,8 @@ class DeepSpeech2Encoder(Encoder):
     )
     outputs = tf.nn.dropout(x=top_layer, keep_prob=dropout_keep_prob)
 
-    # reshape from  [T*B,A] --> [T, B, A].
-    # Output shape: [n_steps, batch_size, n_hidden]
+    # reshape from  [B*T,A] --> [B, T, A].
+    # Output shape: [batch_size, n_steps, n_hidden]
     outputs = tf.reshape(
       outputs,
       [batch_size, -1, self.params['n_hidden']],

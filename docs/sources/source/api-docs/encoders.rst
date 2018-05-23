@@ -37,3 +37,19 @@ transformer\_encoders
     :members:
     :undoc-members:
     :show-inheritance:
+
+resnet\_encoder
+----------------------------------
+
+.. automodule:: encoders.resnet_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+resnet\_blocks
+--------------------------------
+
+.. automodule:: encoders.resnet_blocks
+    :members:
+    :undoc-members:
+    :show-inheritance:

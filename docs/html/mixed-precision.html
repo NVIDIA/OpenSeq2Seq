@@ -172,30 +172,30 @@ increases the memory and compute requirements for training the model.
 We introduce methodology for training deep neural networks using
 half-precision floating point numbers, without losing model accuracy or
 having to modify hyperparameters. This nearly halves memory requirements
-and, on recent GPUs, speeds up arithmetic. ...</p>
+and, on recent GPUs, speeds up arithmetic. …</p>
 <p>DNN operations benchmarked with DeepBench on Volta GPU see 2-6x speedups
 compared to FP32 implementations if they are limited by memory or arithmetic
 bandwidth. Speedups are lower when operations are latency-limited.</p>
-<p class="attribution">&mdash;&#8220;Mixed Precision Training&#8221;, Micikevicius et al, ICLR, 2018 <a class="reference internal" href="#mp-2018" id="id1">[1]</a></p>
+<p class="attribution">&mdash;“Mixed Precision Training”, Micikevicius et al, ICLR, 2018 <a class="reference internal" href="#mp-2018" id="id1">[1]</a></p>
 </div></blockquote>
 <div class="section" id="prerequisites">
 <h2>Prerequisites<a class="headerlink" href="#prerequisites" title="Permalink to this headline">¶</a></h2>
 <p>Mixed precision training utilizes Tensor Cores introduced in <a class="reference external" href="https://www.nvidia.com/en-us/data-center/volta-gpu-architecture/">NVIDIA Volta GPUs</a>
 such as <a class="reference external" href="https://www.nvidia.com/en-us/titan/titan-v/">Titan V</a> and <a class="reference external" href="https://www.nvidia.com/en-us/data-center/tesla/tesla-qualified-servers-catalog/">Tesla V100</a>.
 NVIDIA Volta GPUs are also available from <a class="reference external" href="https://aws.amazon.com/blogs/aws/new-amazon-ec2-instances-with-up-to-8-nvidia-tesla-v100-gpus-p3/">AWS on p3.2xlarge, p3.8xlarge, p3.16xlarge instances</a> .</p>
-<p>For an optimal mixed precision performance we recommend using NVIDIA&#8217;s TensorFlow docker containers (version 18.03 and above)
+<p>For an optimal mixed precision performance we recommend using NVIDIA’s TensorFlow docker containers (version 18.03 and above)
 which can be obtained here: <a class="reference external" href="http://ngc.nvidia.com/">NVIDIA GPU cloud</a> .
 Alternatively, you can build TensorFlow yourself with CUDA 9.1 and this <a class="reference external" href="https://github.com/tensorflow/tensorflow/pull/18436">PR</a> included:</p>
 </div>
 <div class="section" id="how-to-enable-mixed-precision">
 <h2>How to enable mixed precision<a class="headerlink" href="#how-to-enable-mixed-precision" title="Permalink to this headline">¶</a></h2>
 <p>Enabling mixed precision with existing models in OpenSeq2Seq is simple:
-change <code class="docutils literal"><span class="pre">dtype</span></code> parameter of <code class="docutils literal"><span class="pre">model_params</span></code> to &#8220;mixed&#8221;.
+change <code class="docutils literal notranslate"><span class="pre">dtype</span></code> parameter of <code class="docutils literal notranslate"><span class="pre">model_params</span></code> to “mixed”.
 You might need to enable loss scaling: either statically, by setting
-<code class="docutils literal"><span class="pre">loss_scale</span></code> parameter inside <code class="docutils literal"><span class="pre">model_params</span></code> to the desired number, or
-you can use dynamic loss scaling by setting <code class="docutils literal"><span class="pre">automatic_loss_scaling</span></code> parameter
-to &#8220;Backoff&#8221; or &#8220;LogMax&#8221;:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span> <span class="n">base_params</span> <span class="o">=</span> <span class="p">{</span>
+<code class="docutils literal notranslate"><span class="pre">loss_scale</span></code> parameter inside <code class="docutils literal notranslate"><span class="pre">model_params</span></code> to the desired number, or
+you can use dynamic loss scaling by setting <code class="docutils literal notranslate"><span class="pre">automatic_loss_scaling</span></code> parameter
+to “Backoff” or “LogMax”:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span> <span class="n">base_params</span> <span class="o">=</span> <span class="p">{</span>
    <span class="o">...</span>
    <span class="s2">&quot;dtype&quot;</span><span class="p">:</span> <span class="s2">&quot;mixed&quot;</span><span class="p">,</span>
    <span class="c1"># enabling static or dynamic loss scaling might improve model convergence</span>
@@ -235,18 +235,18 @@ TensorFlow optimizers. The model is created with float16 data type, so all
 variables and gradients are in float16 by default (except for the layers which
 are explicitly redefined as float32; for example data layers or operations on
 CPU). The wrapper then converts float16 gradients to float32 and submits them
-to TensorFlow&#8217;s optimizer, which updates the master copy of weights. Updated
+to TensorFlow’s optimizer, which updates the master copy of weights. Updated
 weights are converted back to float16, and used by the model in the next
-iteration. The <a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper"><code class="xref py py-class docutils literal"><span class="pre">MixedPrecisionOptimizerWrapper</span></code></a>
+iteration. The <a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedPrecisionOptimizerWrapper</span></code></a>
 architecture is graphically illustrated below:</p>
 <div class="figure align-center" id="id4">
 <a class="reference internal image-reference" href="_images/MixedPrecisionOptimizer.png"><img alt="_images/MixedPrecisionOptimizer.png" src="_images/MixedPrecisionOptimizer.png" style="width: 499.5px; height: 161.0px;" /></a>
-<p class="caption"><span class="caption-text">&#8220;Mixed precision&#8221; optimizer wrapper around any TensorFlow optimizer.</span></p>
+<p class="caption"><span class="caption-text">“Mixed precision” optimizer wrapper around any TensorFlow optimizer.</span></p>
 </div>
 </div>
 <div class="section" id="regularizers">
 <h3>Regularizers<a class="headerlink" href="#regularizers" title="Permalink to this headline">¶</a></h3>
-<p><a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper"><code class="xref py py-class docutils literal"><span class="pre">MixedPrecisionOptimizerWrapper</span></code></a>
+<p><a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper"><code class="xref py py-class docutils literal notranslate"><span class="pre">MixedPrecisionOptimizerWrapper</span></code></a>
 ensures that all float16 variables will have
 a master copy in float32 and that their gradients will be cast to the full
 precision before computing the weight update. While this is enough in most
@@ -254,27 +254,27 @@ situations, in some cases it is important to keep the gradient in float32 from
 the beginning of the computation. One common case when this is necessary is
 weight decay regularization. This regularization results in the following
 addition to the usual gradients with respect to the loss:
-<span class="math">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
-where <span class="math">\(\lambda\)</span> is usually on the order of
-<span class="math">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
+<span class="math notranslate">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
+where <span class="math notranslate">\(\lambda\)</span> is usually on the order of
+<span class="math notranslate">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
 Given that the weights are commonly initialized with small values, multiplying
 them with weight decay coefficient $lambda$ can result in numerical underflow.
 To overcome this problem we implemented the following design principles. First,
 all regularizers should be defined on the variable creation level by passing
-regularizer function as a regularizer parameter to the <code class="docutils literal"><span class="pre">tf.get_variable</span></code>
-function or <code class="docutils literal"><span class="pre">tf.layers</span></code> objects (this is a recommended way to do it in
+regularizer function as a regularizer parameter to the <code class="docutils literal notranslate"><span class="pre">tf.get_variable</span></code>
+function or <code class="docutils literal notranslate"><span class="pre">tf.layers</span></code> objects (this is a recommended way to do it in
 TensorFlow). Second, the regularizer function should be wrapped with
-<a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.mp_regularizer_wrapper" title="optimizers.mp_wrapper.mp_regularizer_wrapper"><code class="xref py py-func docutils literal"><span class="pre">mp_regularizer_wrapper</span></code></a>
+<a class="reference internal" href="api-docs/optimizers.html#optimizers.mp_wrapper.mp_regularizer_wrapper" title="optimizers.mp_wrapper.mp_regularizer_wrapper"><code class="xref py py-func docutils literal notranslate"><span class="pre">mp_regularizer_wrapper</span></code></a>
 function which will do two things. First, it
 will add weights and the user-provided regularization function to the TensorFlow
 collection. And second, it will disable the underlying regularization function
 by returning None (only if the weights are in float16, otherwise it will not
 introduce any additional behavior). The created collection will later be
-retrieved by <code class="docutils literal"><span class="pre">MixedPrecisionOptimizerWrapper</span></code> and the corresponding
+retrieved by <code class="docutils literal notranslate"><span class="pre">MixedPrecisionOptimizerWrapper</span></code> and the corresponding
 functions will be applied to the float32 copy of the weights ensuring that their
 gradients always stay in the full precision. Since this regularization will not
-be a part of the loss computation graph, we explicitly call <code class="docutils literal"><span class="pre">tf.gradients</span></code>
-and add the result to the gradients passed in the <code class="docutils literal"><span class="pre">compute_gradients</span></code>
+be a part of the loss computation graph, we explicitly call <code class="docutils literal notranslate"><span class="pre">tf.gradients</span></code>
+and add the result to the gradients passed in the <code class="docutils literal notranslate"><span class="pre">compute_gradients</span></code>
 function of the optimizer.</p>
 </div>
 <div class="section" id="automatic-loss-scaling">
@@ -371,7 +371,7 @@ update.</li>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

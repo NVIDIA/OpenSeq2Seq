@@ -200,7 +200,7 @@
 
 <span class="kn">from</span> <span class="nn">.automatic_loss_scaler</span> <span class="k">import</span> <span class="n">AutomaticLossScaler</span>
 <span class="kn">from</span> <span class="nn">.mp_wrapper</span> <span class="k">import</span> <span class="n">MixedPrecisionOptimizerWrapper</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">mask_nans</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">mask_nans</span><span class="p">,</span> <span class="n">check_params</span>
 
 
 <span class="n">OPTIMIZER_CLS_NAMES</span> <span class="o">=</span> <span class="p">{</span>
@@ -219,6 +219,7 @@
   <span class="s2">&quot;global_gradient_norm&quot;</span><span class="p">,</span>
   <span class="s2">&quot;variables&quot;</span><span class="p">,</span>
   <span class="s2">&quot;variable_norm&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;larc_summaries&quot;</span><span class="p">,</span>
 <span class="p">]</span>
 
 
@@ -239,24 +240,87 @@
     <span class="k">return</span> <span class="n">constant_op</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="DistributedOptimizer"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer">[docs]</a><span class="k">class</span> <span class="nc">DistributedOptimizer</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;An optimizer that wraps another tf.Optimizer, using an allreduce to</span>
+<span class="sd">  average gradient values before applying gradients to model weights.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DistributedOptimizer.__init__"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_locking</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">device_dense</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">,</span>
+               <span class="n">device_sparse</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Construct a new DistributedOptimizer, which uses another optimizer</span>
+<span class="sd">    under the hood for computing single-process gradient values and</span>
+<span class="sd">    applying gradient updates after the gradient values have been averaged</span>
+<span class="sd">    across all the Horovod ranks.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      optimizer:</span>
+<span class="sd">        Optimizer to use for computing gradients and applying updates.</span>
+<span class="sd">      name:</span>
+<span class="sd">        Optional name prefix for the operations created when applying</span>
+<span class="sd">        gradients. Defaults to &quot;Distributed&quot; followed by the provided</span>
+<span class="sd">        optimizer type.</span>
+<span class="sd">      use_locking:</span>
+<span class="sd">        Whether to use locking when updating variables.</span>
+<span class="sd">        See Optimizer.__init__ for more info.</span>
+<span class="sd">      device_dense:</span>
+<span class="sd">        Device to be used for dense tensors. Uses GPU by default</span>
+<span class="sd">        if Horovod was build with HOROVOD_GPU_ALLREDUCE.</span>
+<span class="sd">      device_sparse:</span>
+<span class="sd">        Device to be used for sparse tensors. Uses GPU by default</span>
+<span class="sd">        if Horovod was build with HOROVOD_GPU_ALLGATHER.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Distributed</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">optimizer</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_device_dense</span> <span class="o">=</span> <span class="n">device_dense</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_device_sparse</span> <span class="o">=</span> <span class="n">device_sparse</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">DistributedOptimizer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">use_locking</span><span class="o">=</span><span class="n">use_locking</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="DistributedOptimizer.compute_gradients"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.compute_gradients">[docs]</a>  <span class="k">def</span> <span class="nf">compute_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Compute gradients of all trainable variables.</span>
+<span class="sd">    See Optimizer.compute_gradients() for more info.</span>
+<span class="sd">    In DistributedOptimizer, compute_gradients() is overriden to also</span>
+<span class="sd">    allreduce the gradients before returning them.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">gradients</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="kn">from</span> <span class="nn">horovod.common</span> <span class="k">import</span> <span class="n">size</span>
+    <span class="kn">from</span> <span class="nn">horovod.tensorflow</span> <span class="k">import</span> <span class="n">allreduce</span>
+
+    <span class="k">if</span> <span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="n">averaged_gradients</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s2">&quot;_Allreduce&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">grad</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">gradients</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">avg_grad</span> <span class="o">=</span> <span class="n">allreduce</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">device_dense</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_dense</span><span class="p">,</span>
+                                 <span class="n">device_sparse</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_device_sparse</span><span class="p">)</span>
+            <span class="n">averaged_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">avg_grad</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">averaged_gradients</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="kc">None</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
+      <span class="k">return</span> <span class="n">averaged_gradients</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">gradients</span></div>
+
+<div class="viewcode-block" id="DistributedOptimizer.apply_gradients"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.apply_gradients">[docs]</a>  <span class="k">def</span> <span class="nf">apply_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads_and_vars</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Calls this same method on the underlying optimizer.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span><span class="n">grads_and_vars</span><span class="p">,</span> <span class="n">global_step</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span></div></div>
+
+
 <div class="viewcode-block" id="optimize_loss"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.optimize_loss">[docs]</a><span class="k">def</span> <span class="nf">optimize_loss</span><span class="p">(</span><span class="n">loss</span><span class="p">,</span>
-                  <span class="n">learning_rate</span><span class="p">,</span>
                   <span class="n">optimizer</span><span class="p">,</span>
                   <span class="n">optimizer_params</span><span class="p">,</span>
+                  <span class="n">learning_rate_decay_fn</span><span class="p">,</span>
                   <span class="n">global_step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
                   <span class="n">gradient_noise_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">gradient_multipliers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">clip_gradients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">learning_rate_decay_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">update_ops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">summaries</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">increment_global_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                  <span class="n">LARC_nu</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                  <span class="n">LARC_mode</span><span class="o">=</span><span class="s1">&#39;clip&#39;</span><span class="p">,</span>
+                  <span class="n">larc_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">loss_scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
                   <span class="n">automatic_loss_scaling</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">on_horovod</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
@@ -362,24 +426,6 @@
     <span class="k">if</span> <span class="n">update_ops</span><span class="p">:</span>
       <span class="n">loss</span> <span class="o">=</span> <span class="n">control_flow_ops</span><span class="o">.</span><span class="n">with_dependencies</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">update_ops</span><span class="p">),</span> <span class="n">loss</span><span class="p">)</span>
 
-    <span class="c1"># Learning rate variable, with possible decay.</span>
-    <span class="n">lr</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="n">learning_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">ops</span><span class="o">.</span><span class="n">Tensor</span><span class="p">)</span> <span class="ow">and</span> \
-         <span class="n">learning_rate</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">ndims</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="n">learning_rate</span>
-      <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">learning_rate</span> <span class="o">&lt;</span> <span class="mf">0.0</span><span class="p">:</span>
-          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid learning_rate </span><span class="si">%s</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">)</span>
-        <span class="n">lr</span> <span class="o">=</span> <span class="n">vs</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
-            <span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="p">[],</span>
-            <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-            <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">))</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Learning rate should be 0d Tensor or float. &quot;</span>
-                         <span class="s2">&quot;Got </span><span class="si">%s</span><span class="s2"> of type </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">),</span>
-                                                <span class="nb">str</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">))))</span>
-
     <span class="k">if</span> <span class="n">summaries</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">summaries</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="s2">&quot;global_gradient_norm&quot;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -387,12 +433,12 @@
         <span class="k">if</span> <span class="n">summ</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">OPTIMIZER_SUMMARIES</span><span class="p">:</span>
           <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Summaries should be one of [</span><span class="si">%s</span><span class="s2">], you provided </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span>
                            <span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">OPTIMIZER_SUMMARIES</span><span class="p">),</span> <span class="n">summ</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">learning_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">learning_rate_decay_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">global_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;global_step is required for learning_rate_decay_fn.&quot;</span><span class="p">)</span>
-      <span class="n">lr</span> <span class="o">=</span> <span class="n">learning_rate_decay_fn</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">global_step</span><span class="p">)</span>
-      <span class="k">if</span> <span class="s2">&quot;learning_rate&quot;</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
-        <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="n">lr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">global_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;global_step is required for learning_rate_decay_fn.&quot;</span><span class="p">)</span>
+    <span class="n">lr</span> <span class="o">=</span> <span class="n">learning_rate_decay_fn</span><span class="p">(</span><span class="n">global_step</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;learning_rate&quot;</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
+      <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span> <span class="n">lr</span><span class="p">)</span>
 
     <span class="c1"># Create optimizer, given specified parameters.</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">six</span><span class="o">.</span><span class="n">string_types</span><span class="p">):</span>
@@ -413,7 +459,7 @@
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">optimizer</span><span class="p">,</span> <span class="n">optimizer_</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
       <span class="n">opt</span> <span class="o">=</span> <span class="n">optimizer</span>
     <span class="k">elif</span> <span class="n">callable</span><span class="p">(</span><span class="n">optimizer</span><span class="p">):</span>
-      <span class="k">if</span> <span class="n">learning_rate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">lr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">opt</span> <span class="o">=</span> <span class="n">optimizer</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="o">**</span><span class="n">optimizer_params</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">opt</span> <span class="o">=</span> <span class="n">optimizer</span><span class="p">(</span><span class="o">**</span><span class="n">optimizer_params</span><span class="p">)</span>
@@ -425,9 +471,6 @@
                        <span class="s2">&quot;subclass of Optimizer, instance of &quot;</span>
                        <span class="s2">&quot;subclass of Optimizer or function with one argument. &quot;</span>
                        <span class="s2">&quot;Got </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">optimizer</span><span class="p">))</span>
-    <span class="k">if</span> <span class="n">on_horovod</span><span class="p">:</span>
-      <span class="kn">import</span> <span class="nn">horovod.tensorflow</span> <span class="k">as</span> <span class="nn">hvd</span>
-      <span class="n">opt</span> <span class="o">=</span> <span class="n">hvd</span><span class="o">.</span><span class="n">DistributedOptimizer</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
     <span class="c1"># All trainable variables, if specific variables are not specified.</span>
     <span class="k">if</span> <span class="n">variables</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">variables</span> <span class="o">=</span> <span class="n">vars_</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
@@ -448,6 +491,8 @@
         <span class="n">opt</span><span class="p">,</span>
         <span class="n">automatic_loss_scaler</span><span class="o">=</span><span class="n">loss_scaler</span><span class="p">,</span>
       <span class="p">)</span>
+    <span class="k">if</span> <span class="n">on_horovod</span><span class="p">:</span>
+      <span class="n">opt</span> <span class="o">=</span> <span class="n">DistributedOptimizer</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
 
     <span class="c1"># Compute gradients.</span>
     <span class="n">gradients</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span>
@@ -481,7 +526,7 @@
       <span class="p">)</span>
 
     <span class="c1"># Optionally clip gradients by global norm.</span>
-    <span class="k">if</span> <span class="n">clip_gradients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">LARC_nu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">clip_gradients</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">larc_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span>
         <span class="s2">&quot;LARC and gradient norm clipping should not be used together&quot;</span>
       <span class="p">)</span>
@@ -529,45 +574,48 @@
       <span class="p">)</span>
 
     <span class="c1"># LARC gradient re-scaling</span>
-    <span class="k">if</span> <span class="n">LARC_nu</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">LARC_nu</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">larc_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">check_params</span><span class="p">(</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">larc_params</span><span class="p">,</span>
+        <span class="n">required_dict</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;larc_eta&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">},</span>
+        <span class="n">optional_dict</span><span class="o">=</span><span class="p">{</span>
+          <span class="s1">&#39;larc_mode&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;clip&#39;</span><span class="p">,</span> <span class="s1">&#39;scale&#39;</span><span class="p">],</span>
+          <span class="s1">&#39;min_update&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+          <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="p">},</span>
+      <span class="p">)</span>
+      <span class="n">larc_eta</span> <span class="o">=</span> <span class="n">larc_params</span><span class="p">[</span><span class="s1">&#39;larc_eta&#39;</span><span class="p">]</span>
+      <span class="n">larc_mode</span> <span class="o">=</span> <span class="n">larc_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;larc_mode&#39;</span><span class="p">,</span> <span class="s1">&#39;clip&#39;</span><span class="p">)</span>
+      <span class="n">min_update</span> <span class="o">=</span> <span class="n">larc_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_update&#39;</span><span class="p">,</span> <span class="mf">1e-7</span><span class="p">)</span>
+      <span class="n">eps</span> <span class="o">=</span> <span class="n">larc_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-7</span><span class="p">)</span>
+
       <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">gradients</span><span class="p">):</span>
         <span class="n">var_dtype</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">dtype</span>
         <span class="n">v_norm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="nb">ord</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
         <span class="n">g_norm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="n">tensor</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="nb">ord</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
 
-        <span class="n">zero_const</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
-        <span class="c1"># this condition is necessary for two reasons.</span>
-        <span class="c1"># First, g_norm can be zero. In that case we can not use the usual</span>
-        <span class="c1"># formula, but it does not matter what larc_local_lr is, since it will</span>
-        <span class="c1"># be multiplied by g = 0.</span>
-        <span class="c1"># Second, v_norm can be zero. In that case, we want to switch to the</span>
-        <span class="c1"># usual gradient descent since the usual LARC update will always be 0.</span>
-        <span class="c1"># Thus, we make larc_local_lr = 1e-5 so that</span>
-        <span class="c1"># we move a little bit away from zero and can use LARC again</span>
-        <span class="n">larc_local_lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
-          <span class="n">pred</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">v_norm</span><span class="p">,</span> <span class="n">zero_const</span><span class="p">),</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">g_norm</span><span class="p">,</span> <span class="n">zero_const</span><span class="p">),</span>
-          <span class="p">),</span>
-          <span class="n">true_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">LARC_nu</span> <span class="o">*</span> <span class="n">v_norm</span> <span class="o">/</span> <span class="n">g_norm</span><span class="p">,</span>
-          <span class="n">false_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">Print</span><span class="p">(</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="p">[],</span>
-            <span class="s2">&quot;g_norm = 0 or v_norm = 0 for </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
-          <span class="p">),</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="n">LARC_mode</span> <span class="o">==</span> <span class="s1">&#39;clip&#39;</span><span class="p">:</span>
-          <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;switched_to_global/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-                         <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">greater</span><span class="p">(</span><span class="n">larc_local_lr</span><span class="p">,</span> <span class="n">lr</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
-          <span class="n">larc_local_lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
-            <span class="n">pred</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">larc_local_lr</span><span class="p">,</span> <span class="n">lr</span><span class="p">),</span>
-            <span class="n">true_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">larc_local_lr</span> <span class="o">/</span> <span class="n">lr</span><span class="p">,</span>
-            <span class="n">false_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span>
+        <span class="k">if</span> <span class="n">larc_mode</span> <span class="o">==</span> <span class="s1">&#39;clip&#39;</span><span class="p">:</span>
+          <span class="n">larc_grad_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+            <span class="n">larc_eta</span> <span class="o">*</span> <span class="n">v_norm</span> <span class="o">/</span> <span class="p">(</span><span class="n">lr</span> <span class="o">*</span> <span class="p">(</span><span class="n">g_norm</span> <span class="o">+</span> <span class="n">eps</span><span class="p">)),</span>
+            <span class="n">min_update</span><span class="p">,</span>
           <span class="p">)</span>
-        <span class="n">larc_local_lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span><span class="n">larc_local_lr</span><span class="p">,</span> <span class="n">var_dtype</span><span class="p">)</span>
-        <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;larc_local_lr/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">larc_local_lr</span><span class="p">)</span>
-        <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;larc_effective_lr/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
-                       <span class="n">larc_local_lr</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">lr</span><span class="p">,</span> <span class="n">var_dtype</span><span class="p">))</span>
-        <span class="n">gradients</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">larc_local_lr</span> <span class="o">*</span> <span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+          <span class="k">if</span> <span class="s2">&quot;larc_summaries&quot;</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
+            <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;larc_clip_on/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                           <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">larc_grad_update</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
+          <span class="n">larc_grad_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">larc_grad_update</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">larc_grad_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
+            <span class="n">larc_eta</span> <span class="o">*</span> <span class="n">v_norm</span> <span class="o">/</span> <span class="p">(</span><span class="n">g_norm</span> <span class="o">+</span> <span class="n">eps</span><span class="p">),</span>
+            <span class="n">min_update</span><span class="p">,</span>
+          <span class="p">)</span>
+        <span class="n">larc_grad_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span><span class="n">larc_grad_update</span><span class="p">,</span> <span class="n">var_dtype</span><span class="p">)</span>
+        <span class="n">gradients</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">larc_grad_update</span> <span class="o">*</span> <span class="n">g</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+        <span class="c1"># adding additional summary</span>
+        <span class="k">if</span> <span class="s2">&quot;larc_summaries&quot;</span> <span class="ow">in</span> <span class="n">summaries</span><span class="p">:</span>
+          <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s1">&#39;larc_grad_update/</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">larc_grad_update</span><span class="p">)</span>
+          <span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="s2">&quot;larc_grad_norm/</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">name</span><span class="p">),</span>
+                         <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">g_norm</span><span class="p">,</span> <span class="n">var_dtype</span><span class="p">)</span> <span class="o">*</span> <span class="n">larc_grad_update</span><span class="p">)</span>
 
     <span class="c1"># Create gradient updates.</span>
     <span class="n">grad_updates</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span>
@@ -780,7 +828,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

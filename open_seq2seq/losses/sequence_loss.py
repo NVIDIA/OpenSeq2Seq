@@ -62,8 +62,10 @@ class BasicSequenceLoss(Loss):
     :return: Singleton loss tensor
     """
     logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    #target_sequence = input_dict["tgt_sequence"]
+    #tgt_lengths = input_dict["tgt_length"]
+    target_sequence = input_dict['target_tensors'][0]
+    tgt_lengths = input_dict['target_tensors'][1]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
@@ -185,8 +187,10 @@ class CrossEntropyWithSmoothing(Loss):
     :return: Singleton loss tensor
     """
     logits = input_dict["decoder_output"]["logits"]
-    target_sequence = input_dict["tgt_sequence"]
-    tgt_lengths = input_dict["tgt_length"]
+    target_sequence = input_dict["target_tensors"][0]
+    tgt_lengths = input_dict["target_tensors"][1]
+    #target_sequence = input_dict["tgt_sequence"]
+    #tgt_lengths = input_dict["tgt_length"]
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models      
@@ -239,3 +243,67 @@ class CrossEntropyWithSmoothing(Loss):
     else:
       loss /= self._batch_size
     return loss
+
+
+class PaddedCrossEntropyLossWithSmoothing(Loss):
+  @staticmethod
+  def get_optional_params():
+    return dict(Loss.get_optional_params(), **{
+      'batch_size': int,
+      'tgt_vocab_size': int,
+      'label_smoothing': float,
+    })
+
+  def __init__(self, params, model, name="padded_cross_entropy_with_smoothing"):
+    super(PaddedCrossEntropyLossWithSmoothing, self).__init__(params, model, name)
+    self._tgt_vocab_size = self.params["tgt_vocab_size"]
+    self._label_smoothing = self.params.get("label_smoothing", 0.0)
+
+  def _compute_loss(self, input_dict):
+    logits = input_dict["decoder_output"]["logits"]
+    logits = tf.cast(logits, dtype=tf.float32)
+    if logits is None:
+      return 0.0
+    #labels = input_dict["tgt_sequence"]
+    labels = input_dict["target_tensors"][0]
+    #tgt_lengths = input_dict["target_tensors"][1]
+
+    def _pad_tensors_to_same_length(x, y):
+      """Pad x and y so that the results have the same length (second dimension)."""
+      with tf.name_scope("pad_to_same_length"):
+        x_length = tf.shape(x)[1]
+        y_length = tf.shape(y)[1]
+
+        max_length = tf.maximum(x_length, y_length)
+
+        x = tf.pad(x, [[0, 0], [0, max_length - x_length], [0, 0]])
+        y = tf.pad(y, [[0, 0], [0, max_length - y_length]])
+        return x, y
+
+    with tf.name_scope("loss", [logits, labels]):
+      logits, labels = _pad_tensors_to_same_length(logits, labels)
+
+      # Calculate smoothing cross entropy
+      with tf.name_scope("smoothing_cross_entropy", [logits, labels]):
+        confidence = 1.0 - self._label_smoothing
+        low_confidence = (1.0 - confidence) / tf.to_float(self._tgt_vocab_size - 1)
+        soft_targets = tf.one_hot(
+          tf.cast(labels, tf.int32),
+          depth=self._tgt_vocab_size,
+          on_value=confidence,
+          off_value=low_confidence)
+        xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(
+          logits=logits, labels=soft_targets)
+
+        # Calculate the best (lowest) possible value of cross entropy, and
+        # subtract from the cross entropy loss.
+        normalizing_constant = -(
+            confidence * tf.log(confidence) + tf.to_float(self._tgt_vocab_size - 1) *
+            low_confidence * tf.log(low_confidence + 1e-20))
+        xentropy -= normalizing_constant
+
+      weights = tf.to_float(tf.not_equal(labels, 0))
+      xentropy = xentropy * weights
+      loss = tf.reduce_sum(xentropy * weights) / tf.reduce_sum(weights)
+
+      return loss

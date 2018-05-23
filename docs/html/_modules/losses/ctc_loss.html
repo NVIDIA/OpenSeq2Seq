@@ -172,8 +172,8 @@
 
 <div class="viewcode-block" id="CTCLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss">[docs]</a><span class="k">class</span> <span class="nc">CTCLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Implementation of the CTC loss.&quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="CTCLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="CTCLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;mask_nan&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
@@ -201,17 +201,28 @@
 <span class="sd">    Expects the following inputs::</span>
 
 <span class="sd">      input_dict = {</span>
-<span class="sd">        &quot;decoder_output&quot;: {</span>
-<span class="sd">          &quot;logits&quot;: tensor of shape [batch_size, time length, num features]</span>
-<span class="sd">          &quot;src_length&quot;: tensor of shape [batch_size]</span>
-<span class="sd">        }</span>
-<span class="sd">        &quot;tgt_sequence&quot;: tensor of shape [batch_size, time length]</span>
-<span class="sd">        &quot;tgt_length&quot;: tensor of shape [batch_size]</span>
+
 <span class="sd">      }</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): input dictionary that has to contain</span>
+<span class="sd">          the following fields::</span>
+<span class="sd">            input_dict = {</span>
+<span class="sd">              &quot;decoder_output&quot;: {</span>
+<span class="sd">                &quot;logits&quot;: tensor, shape [batch_size, time length, tgt_vocab_size]</span>
+<span class="sd">                &quot;src_length&quot;: tensor, shape [batch_size]</span>
+<span class="sd">              },</span>
+<span class="sd">              &quot;target_tensors&quot;: [</span>
+<span class="sd">                tgt_sequence (shape=[batch_size, time length, num features]),</span>
+<span class="sd">                tgt_length (shape=[batch_size])</span>
+<span class="sd">              ]</span>
+<span class="sd">            }</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      averaged CTC loss.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span>
-    <span class="n">tgt_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_sequence&#39;</span><span class="p">]</span>
-    <span class="n">tgt_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;tgt_length&#39;</span><span class="p">]</span>
+    <span class="n">tgt_sequence</span><span class="p">,</span> <span class="n">tgt_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
     <span class="c1"># this loss needs an access to src_length since they</span>
     <span class="c1"># might get changed in the encoder</span>
     <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
@@ -275,7 +286,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

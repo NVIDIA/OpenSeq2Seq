@@ -10,10 +10,9 @@ import numpy as np
 import copy
 import time
 
-from open_seq2seq.utils.utils import deco_print
+from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
-from open_seq2seq.data import MultiGPUWrapper
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -49,7 +48,6 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'learning_rate': float,
       'logdir': str,
       'num_gpus': int,  # cannot be used when gpu_ids is specified
       'gpu_ids': list,  # cannot be used when num_gpus is specified
@@ -76,8 +74,7 @@ class Model:
       'lr_policy': None,  # any valid learning rate policy function
       'lr_policy_params': dict,
       'max_grad_norm': float,
-      'larc_nu': float,
-      'larc_mode': ['scale', 'clip'],
+      'larc_params': dict,
       'loss_scale': float,
       'automatic_loss_scaling': [None, 'Backoff', 'LogMax'],
       'summaries': list,
@@ -138,7 +135,6 @@ class Model:
       configuration.
       For complete list of possible parameters see the corresponding
       class docs.
-    * **learning_rate** (float) --- initial learning rate for training.
     * **optimizer** (string or TensorFlow optimizer class) --- optimizer to
       use for training. Could be either "Adam", "Adagrad", "Ftrl", "Momentum",
       "RMSProp", "SGD" or any valid TensorFlow optimizer class.
@@ -160,12 +156,6 @@ class Model:
     * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
       will be performed if some gradients exceed this value (this is checked
       for each variable independently).
-    * **larc_mode** --- specify this to use LARC or LARS optimization
-      algorithms. Could be either "scale" (LARS) or "clip" (LARC).
-      You also need to specify ``larc_nu`` to enable LARC or LARS. Note that
-      it works in addition to any other optimization algorithm since we treat
-      it as adaptive gradient clipping and learning rate adjustment.
-    * **larc_nu** (float) --- LARC or LARS scaling parameter.
     * **loss_scale** (float) --- static loss scale to use. For details see
       :ref:`mixed precision training <mixed_precision>` section in docs.
     * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
@@ -174,6 +164,17 @@ class Model:
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
+    * **larc_params** --- dictionary with parameters for LARC (or LARS)
+      optimization algorithms. Can contain the following parameters:
+
+      * **larc_mode** --- Could be either "scale" (LARS) or "clip" (LARC).
+        Note that it works in addition to any other optimization algorithm
+        since we treat
+        it as adaptive gradient clipping and learning rate adjustment.
+      * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **min_update** (float) --- minimal value of the LARC (LARS) update.
+      * **epsilon** (float) --- small number added to gradient norm in
+        denominator for numerical stability.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
 
@@ -232,7 +233,7 @@ class Model:
 
     dl_params = self._params.get('data_layer_params', {})
     dl_params['batch_size'] = self._params['batch_size_per_gpu']
-    dl_params['use_targets'] = (self._mode == "train" or self._mode == "eval")
+    dl_params['mode'] = self._mode
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -240,8 +241,12 @@ class Model:
         num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
       )
     else:
-      dl = self._params['data_layer'](params=dl_params, model=self)
-      self._data_layer = MultiGPUWrapper(dl, num_gpus=self.num_gpus)
+      self._data_layers = []
+      for worker_id in range(self.num_gpus):
+        self._data_layers.append(self._params['data_layer'](
+          params=dl_params, model=self,
+          num_workers=self.num_gpus, worker_id=worker_id,
+        ))
 
     if self._mode == "train":
       if "max_steps" in self._params:
@@ -249,16 +254,27 @@ class Model:
         self._steps_in_epoch = None
       else:
         # doing a few less steps if data size is not divisible by the batch size
-        self._steps_in_epoch = self._data_layer.get_size_in_batches()
-        # if on Horovod, there will be hvd.size() independent data_layer copies
-        # and thus the total size is hvd.size() times smaller.
+        self._steps_in_epoch = self.get_data_layer().get_size_in_samples() // \
+                               self.get_data_layer().params['batch_size']
+        if self._steps_in_epoch is None:
+          raise ValueError('The data_layer is not compatible with '
+                           'epoch execution, since it does not provide '
+                           'get_size_in_samples() method. Either update the '
+                           'data layer or switch to using "max_steps" '
+                           'paremeter.')
         if self.on_horovod:
           self._steps_in_epoch //= self._hvd.size()
+        else:
+          self._steps_in_epoch //= self.num_gpus
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
-    self._outputs = [None] * self.num_gpus
+    if self.on_horovod:
+      self._output = None
+    else:
+      self._outputs = [None] * self.num_gpus
     self.loss = None
     self.train_op = None
+    self.eval_losses = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -267,9 +283,6 @@ class Model:
     else:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
-
-    self.data_layer.build_graph()
-    input_tensors = self.data_layer.get_input_tensors()
 
     if not self.on_horovod:  # not using Horovod
       # below we follow data parallelism for multi-GPU training
@@ -284,15 +297,23 @@ class Model:
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
+          self.get_data_layer(gpu_cnt).build_graph()
+          input_tensors = self.get_data_layer(gpu_cnt).input_tensors
+
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
-            [input_tensor[gpu_cnt] for input_tensor in input_tensors],
+            input_tensors,
             gpu_id=gpu_cnt,
           )
+          if self._outputs[gpu_cnt] is not None and \
+             not isinstance(self._outputs[gpu_cnt], list):
+            raise ValueError('Decoder samples have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
-      if self._mode == "train" or self._mode == "eval":
+      if self._mode == "train":
         self.loss = tf.reduce_mean(losses)
+      if self._mode == "eval":
+        self.eval_losses = losses
     else:  # is using Horovod
       # gpu_id should always be zero, since Horovod takes care of isolating
       # different processes to 1 GPU only
@@ -305,10 +326,18 @@ class Model:
         deco_print(
           "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
-        loss, self._outputs[0] = self._build_forward_pass_graph(input_tensors,
-                                                                gpu_id=0)
-        if self._mode == "train" or self._mode == "eval":
+        self.get_data_layer().build_graph()
+        input_tensors = self.get_data_layer().input_tensors
+
+        loss, self._output = self._build_forward_pass_graph(input_tensors,
+                                                            gpu_id=0)
+        if self._output is not None and not isinstance(self._output, list):
+          raise ValueError('Decoder samples have to be either None or list')
+
+        if self._mode == "train":
           self.loss = loss
+        if self._mode == "eval":
+          self.eval_losses = [loss]
 
     if self._mode == "train":
       if 'lr_policy' not in self.params:
@@ -320,12 +349,15 @@ class Model:
         if 'decay_steps' in self.params['lr_policy'].__code__.co_varnames and \
            'decay_steps' not in lr_params:
           lr_params['decay_steps'] = self._last_step
-        lr_policy = lambda lr, gs: self.params['lr_policy'](lr, gs, **lr_params)
+        if 'steps_per_epoch' in self.params['lr_policy'].__code__.co_varnames and \
+           'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
+          lr_params['steps_per_epoch'] = self.steps_in_epoch
+        lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,
+                                                        **lr_params)
 
       self.train_op = optimize_loss(
-        loss=self.loss + get_regularization_loss(),
+        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
-        learning_rate=self.params['learning_rate'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
         gradient_noise_scale=None,
@@ -338,13 +370,18 @@ class Model:
         summaries=self.params.get('summaries', None),
         colocate_gradients_with_ops=True,
         increment_global_step=True,
-        LARC_nu=self.params.get('larc_nu', None),
-        LARC_mode=self.params.get('larc_mode', 'clip'),
+        larc_params=self.params.get('larc_params', None),
         loss_scale=self.params.get('loss_scale', 1.0),
         automatic_loss_scaling=self.params.get('automatic_loss_scaling', None),
         on_horovod=self.on_horovod,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
+      if self.steps_in_epoch:
+        tf.summary.scalar(
+          name="epoch",
+          tensor=tf.floor(tf.train.get_global_step() /
+                          tf.constant(self.steps_in_epoch, dtype=tf.int64)),
+        )
 
       if not self.on_horovod or self._hvd.rank() == 0:
         deco_print("Trainable variables:")
@@ -372,8 +409,7 @@ class Model:
     """Abstract method. Should create the graph of the forward pass of the model.
 
     Args:
-      input_tensors (list): list of all input tensors
-          required to build the model.
+      input_tensors: ``input_tensors`` defined by the data_layer class.
       gpu_id (int, optional): id of the GPU where the current copy of the model
           is constructed. For Horovod this is always zero.
 
@@ -394,80 +430,189 @@ class Model:
     pass
 
   def maybe_print_logs(self, input_values, output_values):
-    """This function can be used to print logs that help to visualize training.
+    """This method can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
-    predictions. This function will be called every ``print_samples_steps``
+    predictions. This method will be called every ``print_samples_steps``
     (config parameter) iterations and input/output values will be populated
     automatically by calling ``sess.run`` on corresponding tensors. Note that
-    this function is not abstract and does not have to be implemented in
+    this method is not abstract and does not have to be implemented in
     derived classes. But if additional printing functionality is required,
-    overwriting this function can be a useful way to add it.
+    overwriting this method can be a useful way to add it.
 
     Args:
-      input_values: evaluation of :meth:`self.data_layer.get_input_tensors()
-                                  <data.data_layer.DataLayer.get_input_tensors>`.
-      output_values: evaluation of :meth:`self.get_output_tensors()
-                                          <get_output_tensors>`.
+      input_values: evaluation of
+          :meth:`self.get_data_layer(0).input_tensors
+          <data.data_layer.DataLayer.input_tensors>`, that is, input tensors
+          for one batch on the *first* GPU.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors(0) <get_output_tensors>`,
+          that is, output tensors for one batch on the *first* GPU.
 
     Returns:
-      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
+      dict: dictionary with values that need to be logged to TensorBoard
+      (can be empty).
     """
     # by default return an empty dictionary and do nothing
     return {}
 
-  def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
-    """This function can be used to calculate evaluation metrics.
-    For example, for speech-to-text models this function can calculate
-    word-error-rate on the validation data. For text-to-text models, this
-    function can compute BLEU score. Look at the corresponding derived classes
-    for examples of this. This function will be called every
+  def evaluate(self, input_values, output_values):
+    """This method can be used in conjunction with
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` to calculate
+    evaluation metrics.
+    For example, for speech-to-text models these methods can calculate
+    word-error-rate on the validation data. For text-to-text models, these
+    methods can compute BLEU score. Look at the corresponding derived classes
+    for examples of this. These methods will be called every
     ``eval_steps`` (config parameter) iterations and
     input/output values will be populated automatically by calling ``sess.run``
-    on corresponding tensors for each batch (using evaluation model). Note that
+    on corresponding tensors (using evaluation model).
+    The :meth:`self.evaluate()<evaluate>` method is called on each batch data
+    and it's results will be collected and provided to
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` for finalization.
+    Note that
     this function is not abstract and does not have to be implemented in
     derived classes. But if evaluation functionality is required,
     overwriting this function can be a useful way to add it.
 
     Args:
-      inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
-          <data.data_layer.DataLayer.get_input_tensors>`
-          for each batch in evaluation dataset.
-      outputs_per_batch (list): list with evaluation of
-          :meth:`self.get_output_tensors() <get_output_tensors>`
-          for each batch in evaluation dataset.
+      input_values: evaluation of
+          :meth:`self.get_data_layer().input_tensors
+          <data.data_layer.DataLayer.input_tensors>` concatenated  across
+          all workers. That is, input tensors for one batch combined
+          from *all* GPUs.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>` concatenated
+          across all workers. That is, output tensors for one batch combined
+          from *all* GPUs.
 
     Returns:
-      dict: dictionary with values that need to be logged to TensorBoard (can be empty).
+      list: all necessary values for evaluation finalization (e.g. accuracy on
+      current batch, which will then be averaged in finalization method).
+    """
+    return []
+
+  def finalize_evaluation(self, results_per_batch):
+    """This method can be used in conjunction with
+    :meth:`self.evaluate()<evaluate>` to calculate
+    evaluation metrics.
+    For example, for speech-to-text models these methods can calculate
+    word-error-rate on the validation data. For text-to-text models, these
+    methods can compute BLEU score. Look at the corresponding derived classes
+    for examples of this. These methods will be called every
+    ``eval_steps`` (config parameter) iterations and
+    input/output values will be populated automatically by calling ``sess.run``
+    on corresponding tensors (using evaluation model).
+    The :meth:`self.evaluate()<evaluate>` method is called on each batch data
+    and it's results will be collected and provided to
+    :meth:`self.finalize_evaluation()<finalize_evaluation>` for finalization.
+    Note that
+    these methods are not abstract and does not have to be implemented in
+    derived classes. But if evaluation functionality is required,
+    overwriting these methods can be a useful way to add it.
+
+    Args:
+      results_per_batch (list): aggregation of values returned from all calls
+          to :meth:`self.evaluate()<evaluate>` method (number of calls will be
+          equal to number of evaluation batches).
+
+    Returns:
+      dict: dictionary with values that need to be logged to TensorBoard
+      (can be empty).
     """
     # by default return an empty dictionary and do nothing
     return {}
 
-  def infer(self, inputs_per_batch, outputs_per_batch, output_file):
-    """ This function should be implemented if the model support inference mode.
-    For example for speech-to-text and text-to-text models, this function will
+  def infer(self, input_values, output_values):
+    """This method is analogous to :meth:`self.evaluate()<evaluate>`, but used
+    in conjunction with :meth:`self.finalize_inference()<finalize_inference>`
+    to perform inference.
+
+    Args:
+      input_values: evaluation of
+          :meth:`self.get_data_layer().input_tensors
+          <data.data_layer.DataLayer.input_tensors>` concatenated  across
+          all workers. That is, input tensors for one batch combined
+          from *all* GPUs.
+      output_values: evaluation of
+          :meth:`self.get_output_tensors() <get_output_tensors>` concatenated
+          across all workers. That is, output tensors for one batch combined
+          from *all* GPUs.
+
+    Returns:
+      list: all necessary values for inference finalization (e.g. this method
+      can return final generated sequences for each batch which will then be
+      saved to file in :meth:`self.finalize_inference()<finalize_inference>`
+      method).
+    """
+    return []
+
+  def finalize_inference(self, results_per_batch, output_file):
+    """This method should be implemented if the model support inference mode.
+    For example for speech-to-text and text-to-text models, this method will
     log the corresponding input-output pair to the output_file.
 
     Args:
-      inputs_per_batch (list): list with evaluation of
-          :meth:`self.data_layer.get_input_tensors()
-          <data.data_layer.DataLayer.get_input_tensors>`
-          for each batch in evaluation dataset.
-      outputs_per_batch (list): list with evaluation of
-          :meth:`self.get_output_tensors() <get_output_tensors>`
-          for each batch in evaluation dataset.
+      results_per_batch (list): aggregation of values returned from all calls
+          to :meth:`self.evaluate()<evaluate>` method (number of calls will be
+          equal to number of evaluation batches).
       output_file (str): name of the output file that inference results should
           be saved to.
     """
-    return None
+    pass
 
-  def get_output_tensors(self):
+  def clip_last_batch(self, last_batch, true_size):
+    """This method performs last batch clipping.
+    Used in cases when dataset is not divisible by the batch size and model
+    does not support dynamic batch sizes. In those cases, the last batch will
+    contain some data from the "next epoch" and this method can be used
+    to remove that data. This method works for both
+    dense and sparse tensors. In most cases you will not need to overwrite this
+    method.
+
+    Args:
+      last_batch (list): list with elements that could be either ``np.array``
+          or ``tf.SparseTensorValue`` containing data for last batch. The
+          assumption is that the first axis of all data tensors will correspond
+          to the current batch size.
+      true_size (int): true size that the last batch should be cut to.
+    """
+    return clip_last_batch(last_batch, true_size)
+
+  def get_output_tensors(self, worker_id=0):
     """Returns output tensors generated by :meth:`_build_forward_pass_graph.`
+    When using Horovod, ``worker_id`` parameter is ignored. When using
+    tower-based multi-GPU approach, ``worker_id`` can be used to select tensors
+    for corresponding tower/GPU.
+
+    Args:
+      worker_id (int): id of the worker to get tensors from
+          (not used for Horovod).
 
     Returns:
-      list: list with output tensors.
+      output tensors.
     """
-    return self._outputs
+    if self.on_horovod:
+      return self._output
+    else:
+      return self._outputs[worker_id]
+
+  def get_data_layer(self, worker_id=0):
+    """Returns model data layer.
+    When using Horovod, ``worker_id`` parameter is ignored. When using
+    tower-based multi-GPU approach, ``worker_id`` can be used to select
+    data layer for corresponding tower/GPU.
+
+    Args:
+      worker_id (int): id of the worker to get data layer from
+          (not used for Horovod).
+
+    Returns:
+      model data layer.
+    """
+    if self.on_horovod:
+      return self._data_layer
+    else:
+      return self._data_layers[worker_id]
 
   def get_tf_dtype(self):
     """Returns actual TensorFlow dtype that will be used as variables dtype."""
@@ -480,11 +625,6 @@ class Model:
   def params(self):
     """Parameters used to construct the model (dictionary)."""
     return self._params
-
-  @property
-  def data_layer(self):
-    """Model data layer."""
-    return self._data_layer
 
   @property
   def steps_in_epoch(self):
@@ -504,7 +644,7 @@ class Model:
   def num_gpus(self):
     """Number of GPUs the model will be run on.
     For Horovod this is always 1 and actual number of GPUs is controlled by
-    MPI parameters.
+    Open-MPI parameters.
     """
     return len(self._gpu_ids)
 
@@ -517,3 +657,8 @@ class Model:
   def on_horovod(self):
     """Whether the model is run on Horovod or not."""
     return self._hvd is not None
+
+  @property
+  def hvd(self):
+    """horovod.tensorflow module"""
+    return self._hvd

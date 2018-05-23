@@ -2,23 +2,57 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
+
 import tensorflow as tf
 import time
 import os
 
-from open_seq2seq.utils.utils import deco_print
+
+from open_seq2seq.utils.utils import deco_print, log_summaries_from_dict, \
+                                     get_results_for_epoch
 
 
-def log_summaries_from_dict(dict_to_log, output_dir, step):
-  # this returns the same writer as was created by
-  # the first call to this function
-  sm_writer = tf.summary.FileWriterCache.get(output_dir)
-  for tag, value in dict_to_log.items():
-    sm_writer.add_summary(
-      tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
-      global_step=step,
-    )
-    sm_writer.flush()
+class BroadcastGlobalVariablesHook(tf.train.SessionRunHook):
+  """
+  SessionRunHook that will broadcast all global variables from root rank
+  to all other processes during initialization.
+  This is necessary to ensure consistent initialization of all workers when
+  training is started with random weights or restored from a checkpoint.
+  """
+
+  def __init__(self, root_rank, device=''):
+    """Construct a new BroadcastGlobalVariablesHook that will broadcast all
+    global variables from root rank to all other processes during initialization.
+    Args:
+      root_rank:
+        Rank that will send data, other ranks will receive data.
+      device:
+        Device to be used for broadcasting. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_BROADCAST.
+    """
+    super(BroadcastGlobalVariablesHook, self).__init__()
+    self.root_rank = root_rank
+    self.bcast_op = None
+    self.device = device
+
+  def begin(self):
+    def broadcast_global_variables(root_rank):
+      from horovod.tensorflow.mpi_ops import broadcast
+      ops = []
+      for var in tf.global_variables():
+        if var.dtype.base_dtype == tf.float16:
+          ops.append(tf.assign(var, tf.cast(broadcast(tf.cast(var, tf.float32),
+                                                      root_rank), tf.float16)))
+        else:
+          ops.append(tf.assign(var, broadcast(var, root_rank)))
+      return tf.group(*ops)
+
+    if not self.bcast_op or self.bcast_op.graph != tf.get_default_graph():
+      with tf.device(self.device):
+        self.bcast_op = broadcast_global_variables(self.root_rank)
+
+  def after_create_session(self, session, coord):
+    session.run(self.bcast_op)
 
 
 class PrintSamplesHook(tf.train.SessionRunHook):
@@ -30,9 +64,11 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._iter_count = 0
     self._global_step = None
     self._model = model
+    # using only first GPU
+    output_tensors = model.get_output_tensors(0)
     self._fetches = [
-      model.data_layer.get_input_tensors(),
-      model.get_output_tensors(),
+      model.get_data_layer(0).input_tensors,
+      output_tensors,
     ]
 
   def begin(self):
@@ -126,14 +162,9 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     self._iter_count = 0
     self._global_step = None
     self._model = model
-    self._fetches = [
-      model.loss,
-      model.data_layer.get_input_tensors(),
-      model.get_output_tensors(),
-    ]
     self._triggered = False
     self._last_step = last_step
-    self._eval_saver = tf.train.Saver()
+    self._eval_saver = tf.train.Saver(save_relative_paths=True)
     self._best_eval_loss = 1e9
 
   def begin(self):
@@ -152,44 +183,34 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       return
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
-    deco_print("Running evaluation on a validation set:")
+    if not self._model.on_horovod or self._model.hvd.rank() == 0:
+      deco_print("Running evaluation on a validation set:")
 
-    inputs_per_batch, outputs_per_batch = [], []
-    total_loss = 0.0
-
-    for cnt, feed_dict in enumerate(
-      self._model.data_layer.iterate_one_epoch(cross_over=True)
-    ):
-      loss, inputs, outputs = run_context.session.run(
-        self._fetches, feed_dict,
-      )
-      inputs_per_batch.append(inputs)
-      outputs_per_batch.append(outputs)
-      total_loss += loss
-
-    total_loss /= (cnt + 1)
-    deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
-    dict_to_log = self._model.maybe_evaluate(
-      inputs_per_batch,
-      outputs_per_batch,
+    results_per_batch, total_loss = get_results_for_epoch(
+      self._model, run_context.session, mode="eval", compute_loss=True,
     )
-    dict_to_log['eval_loss'] = total_loss
 
-    # saving the best validation model
-    if total_loss < self._best_eval_loss:
-      self._best_eval_loss = total_loss
-      self._eval_saver.save(
-        run_context.session,
-        os.path.join(self._model.params['logdir'], 'best_models',
-                     'val_loss={:.4f}-step'.format(total_loss)),
-        global_step=step + 1,
-      )
+    if not self._model.on_horovod or self._model.hvd.rank() == 0:
+      deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
 
-    # optionally logging to tensorboard any values
-    # returned from maybe_print_logs
-    if dict_to_log:
-      log_summaries_from_dict(
-        dict_to_log,
-        self._model.params['logdir'],
-        step,
-      )
+      dict_to_log = self._model.finalize_evaluation(results_per_batch)
+      dict_to_log['eval_loss'] = total_loss
+
+      # saving the best validation model
+      if total_loss < self._best_eval_loss:
+        self._best_eval_loss = total_loss
+        self._eval_saver.save(
+          run_context.session,
+          os.path.join(self._model.params['logdir'], 'best_models',
+                       'val_loss={:.4f}-step'.format(total_loss)),
+          global_step=step + 1,
+        )
+
+      # optionally logging to tensorboard any values
+      # returned from maybe_print_logs
+      if dict_to_log:
+        log_summaries_from_dict(
+          dict_to_log,
+          self._model.params['logdir'],
+          step,
+        )

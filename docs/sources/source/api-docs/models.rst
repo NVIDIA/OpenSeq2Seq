@@ -14,10 +14,10 @@ model
     :undoc-members:
     :show-inheritance:
 
-seq2seq
+encoder\_decoder
 ---------------------
 
-.. automodule:: models.seq2seq
+.. automodule:: models.encoder_decoder
     :members:
     :undoc-members:
     :show-inheritance:
@@ -34,6 +34,14 @@ text2text
 -----------------------
 
 .. automodule:: models.text2text
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+image2label
+-------------------------
+
+.. automodule:: models.image2label
     :members:
     :undoc-members:
     :show-inheritance:

@@ -170,36 +170,54 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="models.html">models</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.model">model</a></li>
-<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.seq2seq">seq2seq</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.encoder_decoder">encoder_decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.speech2text">speech2text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2text">text2text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.image2label">image2label</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="data.html">data</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.image2label.html">image2label</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.image2label.html#id1">image2label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.image2label.html#module-data.image2label.imagenet_preprocessing">imagenet_preprocessing</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.speech2text.html">speech2text</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.speech2text.html#id1">speech2text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.speech2text.html#module-data.speech2text.speech_utils">speech_utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="data.text2text.html">text2text</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.text2text.html#module-data.text2text.t2t">t2t</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2text.html#id1">text2text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2text.html#module-data.text2text.tokenizer">tokenizer</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="data.html#module-data.data_layer">data_layer</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data.html#module-data.speech2text">speech2text</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data.html#module-data.speech_utils">speech_utils</a></li>
-<li class="toctree-l2"><a class="reference internal" href="data.html#module-data.text2text">text2text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html#module-data.utils">utils</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="encoders.html">encoders</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.encoder">encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.ds2_encoder">ds2_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.rnn_encoders">rnn_encoders</a></li>
-<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.transformer_encoders">transformer_encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#transformer-encoders">transformer_encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.resnet_encoder">resnet_encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.resnet_blocks">resnet_blocks</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="decoders.html">decoders</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.decoder">decoder</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.fc_decoder">fc_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.fc_decoders">fc_decoders</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.rnn_decoders">rnn_decoders</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.transformer_decoders">transformer_decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html#transformer-decoders">transformer_decoders</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="losses.html">losses</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.loss">loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.ctc_loss">ctc_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.sequence_loss">sequence_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimizers.html">optimizers</a><ul>
@@ -210,18 +228,26 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="parts.html">parts</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="parts.experimental_rnn_cells.html">experimental_rnn_cells</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.flstm">flstm</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.glstm">glstm</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.gnmt">gnmt</a></li>
-<li class="toctree-l3"><a class="reference internal" href="parts.experimental_rnn_cells.html#module-parts.experimental_rnn_cells.slstm">slstm</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.rnns.html">rnns</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.attention_wrapper">attention_wrapper</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.flstm">flstm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.glstm">glstm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.gnmt">gnmt</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.rnn_beam_search_decoder">rnn_beam_search_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.slstm">slstm</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.utils">utils</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="parts.html#module-parts.attention">attention</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parts.html#module-parts.attention_wrapper">attention_wrapper</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parts.html#module-parts.common">common</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parts.html#module-parts.t2t_timing_signal">t2t_timing_signal</a></li>
-<li class="toctree-l2"><a class="reference internal" href="parts.html#module-parts.utils">utils</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.transformer.html">transformer</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.attention_layer">attention_layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.beam_search">beam_search</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.beam_search_test">beam_search_test</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.common">common</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.embedding_layer">embedding_layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.ffn_layer">ffn_layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html#module-parts.transformer.utils">utils</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="utils.html">utils</a><ul>
@@ -287,7 +313,7 @@
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

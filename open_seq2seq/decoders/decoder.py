@@ -146,21 +146,21 @@ class Decoder:
     and produce some output sequence as an output.
 
     Args:
-      input_dict (dict): dictionary containing decoder inputs. This dict will
-          typically have the following content::
+      input_dict (dict): dictionary containing decoder inputs.
+          If the decoder is used with :class:`models.encoder_decoder` class,
+          ``input_dict`` will have the following content::
             {
-              "encoder_output": encoder_output,
-              "tgt_sequence": target_sequence,
-              "tgt_length": target_length,
+              "encoder_output": dictionary returned from encoder.encode() method
+              "target_tensors": data_layer.input_tensors['target_tensors']
             }
 
+
     Returns:
-      dict:
-        dictionary of decoder outputs. Typically this will be just::
+      dict: dictionary of decoder outputs. Typically this will be just::
+
           {
-            "logits": logits,  # what will be passed to Loss
-            "samples": samples,  # actual decoded sequence,
-                                 # e.g. characters instead of logits
+            "logits": logits that will be passed to Loss
+            "samples": actual decoded output, e.g. characters instead of logits
           }
     """
     pass

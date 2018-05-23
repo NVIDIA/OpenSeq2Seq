@@ -32,17 +32,23 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
     train_config['data_layer_params']['source_file'] = "./toy_data/train/source.txt"
     train_config['data_layer_params']['target_file'] = "./toy_data/train/target.txt"
 
+    step = 0
     with tf.Graph().as_default():
       model = config_module['base_model'](train_config, "train", None)
       model.compile()
       with self.test_session(use_gpu=True) as sess:
         tf.global_variables_initializer().run()
-        for num in range(0, 2):
-          for i, model_dict in enumerate(model.data_layer.iterate_one_epoch()):
+        sess.run(model.get_data_layer().iterator.initializer)
+        while True:
+          try:
             loss, _ = sess.run(
-              [model.loss, model.train_op],
-              feed_dict=model_dict,
+              [model.loss, model.train_op]
             )
+          except tf.errors.OutOfRangeError:
+            break
+          step += 1
+          if step >=25:
+            break
 
 
 class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
@@ -75,19 +81,24 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
     train_config['data_layer_params']['source_file'] = "./toy_data/train/source.txt"
     train_config['data_layer_params']['target_file'] = "./toy_data/train/target.txt"
     train_config["use_horovod"] = True
-
+    #train_config['data_layer_params']["repeat"] = False
+    step = 0
     with tf.Graph().as_default():
       model = config_module['base_model'](train_config, "train", None)
       model.compile()
       with self.test_session(use_gpu=True) as sess:
         tf.global_variables_initializer().run()
-        for num in range(0, 2):
-          for i, model_dict in enumerate(model.data_layer.iterate_one_epoch()):
+        sess.run(model.get_data_layer().iterator.initializer)
+        while True:
+          try:
             loss, _ = sess.run(
-              [model.loss, model.train_op],
-              feed_dict=model_dict,
+              [model.loss, model.train_op]
             )
-
+          except tf.errors.OutOfRangeError:
+            break
+          step += 1
+          if step >=25:
+            break
 
 if __name__ == '__main__':
   tf.test.main()

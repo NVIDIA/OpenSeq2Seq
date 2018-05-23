@@ -47,7 +47,7 @@ from tensorflow.python.training import training as train
 
 from .automatic_loss_scaler import AutomaticLossScaler
 from .mp_wrapper import MixedPrecisionOptimizerWrapper
-from open_seq2seq.utils.utils import mask_nans
+from open_seq2seq.utils.utils import mask_nans, check_params
 
 
 OPTIMIZER_CLS_NAMES = {
@@ -66,6 +66,7 @@ OPTIMIZER_SUMMARIES = [
   "global_gradient_norm",
   "variables",
   "variable_norm",
+  "larc_summaries",
 ]
 
 
@@ -86,24 +87,87 @@ def get_regularization_loss(scope=None, name="total_regularization_loss"):
     return constant_op.constant(0.0)
 
 
+class DistributedOptimizer(tf.train.Optimizer):
+  """An optimizer that wraps another tf.Optimizer, using an allreduce to
+  average gradient values before applying gradients to model weights."""
+
+  def __init__(self, optimizer, name=None, use_locking=False, device_dense='',
+               device_sparse=''):
+    """Construct a new DistributedOptimizer, which uses another optimizer
+    under the hood for computing single-process gradient values and
+    applying gradient updates after the gradient values have been averaged
+    across all the Horovod ranks.
+    Args:
+      optimizer:
+        Optimizer to use for computing gradients and applying updates.
+      name:
+        Optional name prefix for the operations created when applying
+        gradients. Defaults to "Distributed" followed by the provided
+        optimizer type.
+      use_locking:
+        Whether to use locking when updating variables.
+        See Optimizer.__init__ for more info.
+      device_dense:
+        Device to be used for dense tensors. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_ALLREDUCE.
+      device_sparse:
+        Device to be used for sparse tensors. Uses GPU by default
+        if Horovod was build with HOROVOD_GPU_ALLGATHER.
+    """
+    if name is None:
+      name = "Distributed{}".format(type(optimizer).__name__)
+
+    self._optimizer = optimizer
+    self._device_dense = device_dense
+    self._device_sparse = device_sparse
+    super(DistributedOptimizer, self).__init__(
+      name=name, use_locking=use_locking)
+
+  def compute_gradients(self, *args, **kwargs):
+    """Compute gradients of all trainable variables.
+    See Optimizer.compute_gradients() for more info.
+    In DistributedOptimizer, compute_gradients() is overriden to also
+    allreduce the gradients before returning them.
+    """
+    gradients = self._optimizer.compute_gradients(*args, **kwargs)
+    from horovod.common import size
+    from horovod.tensorflow import allreduce
+
+    if size() > 1:
+      averaged_gradients = []
+      with tf.name_scope(self._name + "_Allreduce"):
+        for grad, var in gradients:
+          if grad is not None:
+            avg_grad = allreduce(grad, device_dense=self._device_dense,
+                                 device_sparse=self._device_sparse)
+            averaged_gradients.append((avg_grad, var))
+          else:
+            averaged_gradients.append((None, var))
+      return averaged_gradients
+    else:
+      return gradients
+
+  def apply_gradients(self, grads_and_vars, global_step=None, name=None):
+    """Calls this same method on the underlying optimizer."""
+    return self._optimizer.apply_gradients(grads_and_vars, global_step, name)
+
+
 def optimize_loss(loss,
-                  learning_rate,
                   optimizer,
                   optimizer_params,
+                  learning_rate_decay_fn,
                   global_step=None,
                   dtype=tf.float32,
                   gradient_noise_scale=None,
                   gradient_multipliers=None,
                   clip_gradients=None,
-                  learning_rate_decay_fn=None,
                   update_ops=None,
                   variables=None,
                   name=None,
                   summaries=None,
                   colocate_gradients_with_ops=False,
                   increment_global_step=True,
-                  LARC_nu=None,
-                  LARC_mode='clip',
+                  larc_params=None,
                   loss_scale=1.0,
                   automatic_loss_scaling=None,
                   on_horovod=False):
@@ -209,24 +273,6 @@ def optimize_loss(loss,
     if update_ops:
       loss = control_flow_ops.with_dependencies(list(update_ops), loss)
 
-    # Learning rate variable, with possible decay.
-    lr = None
-    if learning_rate is not None:
-      if isinstance(learning_rate, ops.Tensor) and \
-         learning_rate.get_shape().ndims == 0:
-        lr = learning_rate
-      elif isinstance(learning_rate, float):
-        if learning_rate < 0.0:
-          raise ValueError("Invalid learning_rate %s.", learning_rate)
-        lr = vs.get_variable(
-            "learning_rate", [],
-            trainable=False,
-            initializer=init_ops.constant_initializer(learning_rate))
-      else:
-        raise ValueError("Learning rate should be 0d Tensor or float. "
-                         "Got %s of type %s" % (str(learning_rate),
-                                                str(type(learning_rate))))
-
     if summaries is None:
       summaries = ["learning_rate", "global_gradient_norm"]
     else:
@@ -234,12 +280,12 @@ def optimize_loss(loss,
         if summ not in OPTIMIZER_SUMMARIES:
           raise ValueError("Summaries should be one of [%s], you provided %s." %
                            (", ".join(OPTIMIZER_SUMMARIES), summ))
-    if learning_rate is not None and learning_rate_decay_fn is not None:
-      if global_step is None:
-        raise ValueError("global_step is required for learning_rate_decay_fn.")
-      lr = learning_rate_decay_fn(lr, global_step)
-      if "learning_rate" in summaries:
-        summary.scalar("learning_rate", lr)
+    if global_step is None:
+      raise ValueError("global_step is required for learning_rate_decay_fn.")
+    lr = learning_rate_decay_fn(global_step)
+
+    if "learning_rate" in summaries:
+      summary.scalar("learning_rate", lr)
 
     # Create optimizer, given specified parameters.
     if isinstance(optimizer, six.string_types):
@@ -260,7 +306,7 @@ def optimize_loss(loss,
     elif isinstance(optimizer, optimizer_.Optimizer):
       opt = optimizer
     elif callable(optimizer):
-      if learning_rate is not None:
+      if lr is not None:
         opt = optimizer(lr, **optimizer_params)
       else:
         opt = optimizer(**optimizer_params)
@@ -272,9 +318,6 @@ def optimize_loss(loss,
                        "subclass of Optimizer, instance of "
                        "subclass of Optimizer or function with one argument. "
                        "Got %s." % str(optimizer))
-    if on_horovod:
-      import horovod.tensorflow as hvd
-      opt = hvd.DistributedOptimizer(opt)
     # All trainable variables, if specific variables are not specified.
     if variables is None:
       variables = vars_.trainable_variables()
@@ -295,6 +338,8 @@ def optimize_loss(loss,
         opt,
         automatic_loss_scaler=loss_scaler,
       )
+    if on_horovod:
+      opt = DistributedOptimizer(opt)
 
     # Compute gradients.
     gradients = opt.compute_gradients(
@@ -328,7 +373,7 @@ def optimize_loss(loss,
       )
 
     # Optionally clip gradients by global norm.
-    if clip_gradients is not None and LARC_nu is not None:
+    if clip_gradients is not None and larc_params is not None:
       raise AttributeError(
         "LARC and gradient norm clipping should not be used together"
       )
@@ -376,45 +421,48 @@ def optimize_loss(loss,
       )
 
     # LARC gradient re-scaling
-    if LARC_nu is not None and isinstance(LARC_nu, float):
+    if larc_params is not None:
+      check_params(
+        config=larc_params,
+        required_dict={'larc_eta': float},
+        optional_dict={
+          'larc_mode': ['clip', 'scale'],
+          'min_update': float,
+          'epsilon': float
+        },
+      )
+      larc_eta = larc_params['larc_eta']
+      larc_mode = larc_params.get('larc_mode', 'clip')
+      min_update = larc_params.get('min_update', 1e-7)
+      eps = larc_params.get('epsilon', 1e-7)
+
       for idx, (g, v) in enumerate(gradients):
         var_dtype = v.dtype
         v_norm = tf.norm(tensor=tf.cast(v, tf.float32), ord=2)
         g_norm = tf.norm(tensor=tf.cast(g, tf.float32), ord=2)
 
-        zero_const = tf.constant(0.0, dtype=tf.float32)
-        # this condition is necessary for two reasons.
-        # First, g_norm can be zero. In that case we can not use the usual
-        # formula, but it does not matter what larc_local_lr is, since it will
-        # be multiplied by g = 0.
-        # Second, v_norm can be zero. In that case, we want to switch to the
-        # usual gradient descent since the usual LARC update will always be 0.
-        # Thus, we make larc_local_lr = 1e-5 so that
-        # we move a little bit away from zero and can use LARC again
-        larc_local_lr = tf.cond(
-          pred=tf.logical_and(
-            tf.greater(v_norm, zero_const),
-            tf.greater(g_norm, zero_const),
-          ),
-          true_fn=lambda: LARC_nu * v_norm / g_norm,
-          false_fn=lambda: tf.Print(
-            tf.constant(1e-5, dtype=tf.float32), [],
-            "g_norm = 0 or v_norm = 0 for {}".format(v.name)
-          ),
-        )
-        if LARC_mode == 'clip':
-          summary.scalar('switched_to_global/{}'.format(v.name),
-                         tf.cast(tf.greater(larc_local_lr, lr), tf.int32))
-          larc_local_lr = tf.cond(
-            pred=tf.less(larc_local_lr, lr),
-            true_fn=lambda: larc_local_lr / lr,
-            false_fn=lambda: tf.constant(1.0, dtype=tf.float32),
+        if larc_mode == 'clip':
+          larc_grad_update = tf.maximum(
+            larc_eta * v_norm / (lr * (g_norm + eps)),
+            min_update,
           )
-        larc_local_lr = tf.saturate_cast(larc_local_lr, var_dtype)
-        summary.scalar('larc_local_lr/{}'.format(v.name), larc_local_lr)
-        summary.scalar('larc_effective_lr/{}'.format(v.name),
-                       larc_local_lr * tf.cast(lr, var_dtype))
-        gradients[idx] = (larc_local_lr * g, v)
+          if "larc_summaries" in summaries:
+            summary.scalar('larc_clip_on/{}'.format(v.name),
+                           tf.cast(tf.less(larc_grad_update, 1.0), tf.int32))
+          larc_grad_update = tf.minimum(larc_grad_update, 1.0)
+        else:
+          larc_grad_update = tf.maximum(
+            larc_eta * v_norm / (g_norm + eps),
+            min_update,
+          )
+        larc_grad_update = tf.saturate_cast(larc_grad_update, var_dtype)
+        gradients[idx] = (larc_grad_update * g, v)
+
+        # adding additional summary
+        if "larc_summaries" in summaries:
+          summary.scalar('larc_grad_update/{}'.format(v.name), larc_grad_update)
+          summary.scalar("larc_grad_norm/{}".format(v.name),
+                         tf.cast(g_norm, var_dtype) * larc_grad_update)
 
     # Create gradient updates.
     grad_updates = opt.apply_gradients(

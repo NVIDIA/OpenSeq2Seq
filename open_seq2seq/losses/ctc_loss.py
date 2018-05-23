@@ -48,17 +48,28 @@ class CTCLoss(Loss):
     Expects the following inputs::
 
       input_dict = {
-        "decoder_output": {
-          "logits": tensor of shape [batch_size, time length, num features]
-          "src_length": tensor of shape [batch_size]
-        }
-        "tgt_sequence": tensor of shape [batch_size, time length]
-        "tgt_length": tensor of shape [batch_size]
+
       }
+
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              "decoder_output": {
+                "logits": tensor, shape [batch_size, time length, tgt_vocab_size]
+                "src_length": tensor, shape [batch_size]
+              },
+              "target_tensors": [
+                tgt_sequence (shape=[batch_size, time length, num features]),
+                tgt_length (shape=[batch_size])
+              ]
+            }
+
+    Returns:
+      averaged CTC loss.
     """
     logits = input_dict['decoder_output']['logits']
-    tgt_sequence = input_dict['tgt_sequence']
-    tgt_length = input_dict['tgt_length']
+    tgt_sequence, tgt_length = input_dict['target_tensors']
     # this loss needs an access to src_length since they
     # might get changed in the encoder
     src_length = input_dict['decoder_output']['src_length']

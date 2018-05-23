@@ -3,9 +3,12 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
-import pandas as pd
 
-from .seq2seq import Seq2Seq
+import pandas as pd
+import tensorflow as tf
+import numpy as np
+
+from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
 
 
@@ -39,26 +42,27 @@ def levenshtein(a, b):
     return current[n]
 
 
-class Speech2Text(Seq2Seq):
+class Speech2Text(EncoderDecoderModel):
+  def _create_decoder(self):
+    self.params['decoder_params']['tgt_vocab_size'] = (
+      self.get_data_layer().params['tgt_vocab_size']
+    )
+    return super(Speech2Text, self)._create_decoder()
+
   def maybe_print_logs(self, input_values, output_values):
-    x, len_x, y, len_y = input_values
+    y, len_y = input_values['target_tensors']
     decoded_sequence = output_values
-    # using only the first sample from the batch on the first gpu, thus y[0][0]
-    if self.on_horovod:
-      y_one_sample = y[0]
-      len_y_one_sample = len_y[0]
-      decoded_sequence_one_batch = decoded_sequence[0]
-    else:
-      y_one_sample = y[0][0]
-      len_y_one_sample = len_y[0][0]
-      decoded_sequence_one_batch = decoded_sequence[0]
+    y_one_sample = y[0]
+    len_y_one_sample = len_y[0]
+    decoded_sequence_one_batch = decoded_sequence[0]
+
     # we also clip the sample by the correct length
     true_text = "".join(map(
-      self.data_layer.params['idx2char'].get,
+      self.get_data_layer().params['idx2char'].get,
       y_one_sample[:len_y_one_sample],
     ))
     pred_text = "".join(sparse_tensor_to_chars(
-      decoded_sequence_one_batch, self.data_layer.params['idx2char'])[0]
+      decoded_sequence_one_batch, self.get_data_layer().params['idx2char'])[0]
     )
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
                  len(true_text.split())
@@ -70,35 +74,12 @@ class Speech2Text(Seq2Seq):
       'Sample WER': sample_wer,
     }
 
-  def maybe_evaluate(self, inputs_per_batch, outputs_per_batch):
+  def finalize_evaluation(self, results_per_batch):
     total_word_lev = 0.0
     total_word_count = 0.0
-    samples_count = 0
-    dataset_size = self.data_layer.get_size_in_samples()
-
-    for input_values, output_values in zip(inputs_per_batch, outputs_per_batch):
-      for gpu_id in range(self.num_gpus):
-        decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_to_chars(
-          decoded_sequence,
-          self.data_layer.params['idx2char'],
-        )
-        for sample_id in range(self.params['batch_size_per_gpu']):
-          # this is necessary for correct processing of the last batch
-          if samples_count >= dataset_size:
-            break
-          samples_count += 1
-
-          # y is the third returned input value, thus input_values[2]
-          # len_y is the fourth returned input value
-          y = input_values[2][gpu_id][sample_id]
-          len_y = input_values[3][gpu_id][sample_id]
-          true_text = "".join(map(self.data_layer.params['idx2char'].get,
-                                  y[:len_y]))
-          pred_text = "".join(decoded_texts[sample_id])
-
-          total_word_lev += levenshtein(true_text.split(), pred_text.split())
-          total_word_count += len(true_text.split())
+    for word_lev, word_count in results_per_batch:
+      total_word_lev += word_lev
+      total_word_count += word_count
 
     total_wer = 1.0 * total_word_lev / total_word_count
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
@@ -106,28 +87,49 @@ class Speech2Text(Seq2Seq):
       "Eval WER": total_wer,
     }
 
-  def infer(self, inputs_per_batch, outputs_per_batch, output_file):
-    preds = []
-    samples_count = 0
-    dataset_size = self.data_layer.get_size_in_samples()
+  def evaluate(self, input_values, output_values):
+    total_word_lev = 0.0
+    total_word_count = 0.0
 
-    for input_values, output_values in zip(inputs_per_batch,
-                                           outputs_per_batch):
-      for gpu_id in range(self.num_gpus):
-        decoded_sequence = output_values[gpu_id]
-        decoded_texts = sparse_tensor_to_chars(
-          decoded_sequence,
-          self.data_layer.params['idx2char'],
-        )
-        for sample_id in range(self.params['batch_size_per_gpu']):
-          # this is necessary for correct processing of the last batch
-          if samples_count >= dataset_size:
-            break
-          samples_count += 1
-          preds.append("".join(decoded_texts[sample_id]))
+    decoded_sequence = output_values[0]
+    decoded_texts = sparse_tensor_to_chars(
+      decoded_sequence,
+      self.get_data_layer().params['idx2char'],
+    )
+    batch_size = input_values['source_tensors'][0].shape[0]
+    for sample_id in range(batch_size):
+      # y is the third returned input value, thus input_values[2]
+      # len_y is the fourth returned input value
+      y = input_values['target_tensors'][0][sample_id]
+      len_y = input_values['target_tensors'][1][sample_id]
+      true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
+                              y[:len_y]))
+      pred_text = "".join(decoded_texts[sample_id])
+
+      total_word_lev += levenshtein(true_text.split(), pred_text.split())
+      total_word_count += len(true_text.split())
+
+    return total_word_lev, total_word_count
+
+  def infer(self, input_values, output_values):
+    preds = []
+    decoded_sequence = output_values[0]
+    decoded_texts = sparse_tensor_to_chars(
+      decoded_sequence,
+      self.get_data_layer().params['idx2char'],
+    )
+    for sample_id in range(len(decoded_texts)):
+      preds.append("".join(decoded_texts[sample_id]))
+    return preds
+
+  def finalize_inference(self, results_per_batch, output_file):
+    preds = []
+
+    for result in results_per_batch:
+      preds.extend(result)
     pd.DataFrame(
       {
-        'wav_filename': self.data_layer.params['files'],
+        'wav_filename': self.get_data_layer().all_files,
         'predicted_transcript': preds,
       },
       columns=['wav_filename', 'predicted_transcript'],
