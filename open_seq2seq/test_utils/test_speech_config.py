@@ -35,7 +35,7 @@ base_params = {
     "decay_steps": 500,
   },
   "larc_params": {
-    "larc_nu": 0.001,
+    "larc_eta": 0.001,
   },
   "dtype": tf.float32,
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',

@@ -37,7 +37,7 @@ base_params = {
     "power": 2.0,
   },
   "larc_params": {
-    "larc_nu": 0.001,
+    "larc_eta": 0.001,
   },
 
   "initializer": tf.variance_scaling_initializer,
