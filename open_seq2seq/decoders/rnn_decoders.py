@@ -1,6 +1,6 @@
 # Copyright (c) 2018 NVIDIA Corporation
 """
-RNN-based decoders
+RNN-based decoders.
 """
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
@@ -19,8 +19,7 @@ from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 
 
 class RNNDecoderWithAttention(Decoder):
-  """
-  Typical RNN decoder with attention mechanism
+  """Typical RNN decoder with attention mechanism.
   """
   @staticmethod
   def get_required_params():
@@ -54,25 +53,28 @@ class RNNDecoderWithAttention(Decoder):
 
   def __init__(self, params, model,
                name='rnn_decoder_with_attention', mode='train'):
-    """
-    Initializes RNN decoder with embedding
-    :param params: dictionary with decoder parameters
-    Must define:
-      * batch_size - batch size
-      * GO_SYMBOL - GO symbol id, must be the same as used in data layer
-      * END_SYMBOL - END symbol id, must be the same as used in data layer
-      * tgt_vocab_size - vocabulary size of target
-      * tgt_emb_size - embedding to use
-      * decoder_cell_units - number of units in RNN
-      * decoder_cell_type - RNN type: lstm, gru, glstm, etc.
-      * decoder_dp_input_keep_prob -
-      * decoder_dp_output_keep_prob -
-      * decoder_use_skip_connections - use residual connections or not
-      * attention_type - bahdanau, luong, gnmt, gnmt_v2
-      * bahdanau_normalize - (optional)
-      * luong_scale - (optional)
-      * mode - train or infer
-      ... add any cell-specific parameters here as well
+    """Initializes RNN decoder with embedding.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **batch_size** (int) --- batch size.
+    * **GO_SYMBOL** (int) --- GO symbol id, must be the same as used in
+      data layer.
+    * **END_SYMBOL** (int) --- END symbol id, must be the same as used in
+      data layer.
+    * **tgt_emb_size** (int) --- embedding size to use.
+    * **decoder_cell_units** (int) - number of units in RNN
+    * **decoder_cell_type** (string) - RNN type: lstm, gru, glstm, etc.
+    * **decoder_dp_input_keep_prob** (float) - dropout input keep probability.
+    * **decoder_dp_output_keep_prob** (float) - dropout output keep probability.
+    * **decoder_use_skip_connections** (bool) - use residual connections or not.
+    * **attention_type** (string) - bahdanau, luong, gnmt or gnmt_v2.
+    * **bahdanau_normalize** (bool, optional) - whether to use normalization in
+      bahdanau attention.
+    * **luong_scale** (bool, optional) - whether to use scale in luong attention
+    * ... add any cell-specific parameters here as well.
     """
     super(RNNDecoderWithAttention, self).__init__(params, model, name, mode)
     self._batch_size = self.params['batch_size']

@@ -15,19 +15,24 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
                                   window_size=20e-3,
                                   window_stride=10e-3,
                                   augmentation=None):
-  """
-  :param filename: WAVE filename
-  :param num_features: number of speech features in frequency domain
-  :param features_type: 'mfcc' or 'spectrogram'
-  :param window_size: size of analysis window, ms
-  :param window_stride: stride of analysis window, ms
-  :param augmentation: None or dictionary of augmentation parameters;
-                       If not None, has to have 'time_stretch_ratio',
-                       'noise_level_min', 'noise_level_max' fields, e.g.:
-                       augmentation={'time_stretch_ratio': 0.2,
-                                     'noise_level_min': -90,
-                                     'noise_level_max': -46}
-  :return: (num_time_steps, num_features) NumPy array
+  """Function to convert audio file to numpy array of features.
+
+  Args:
+    filename (string): WAVE filename.
+    num_features (int): number of speech features in frequency domain.
+    features_type (string): 'mfcc' or 'spectrogram'.
+    window_size (float): size of analysis window in milli-seconds.
+    window_stride (float): stride of analysis window in milli-seconds.
+    augmentation (dict, optional): None or dictionary of augmentation parameters.
+        If not None, has to have 'time_stretch_ratio',
+        'noise_level_min', 'noise_level_max' fields, e.g.::
+          augmentation={
+            'time_stretch_ratio': 0.2,
+            'noise_level_min': -90,
+            'noise_level_max': -46,
+          }
+  Returns:
+    np.array: np.array of audio features with shape=[num_time_steps, num_features].
   """
   # load audio signal
   fs, signal = wave.read(filename)
@@ -38,16 +43,15 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
 
 
 def augment_audio_signal(signal, fs, augmentation):
-  """
-  :param signal: np.array containing raw audio signal
-  :param fs: float, frames per second
-  :param augmentation: None or dictionary of augmentation parameters;
-                       If not None, has to have 'time_stretch_ratio',
-                       'noise_level_min', 'noise_level_max' fields, e.g.:
-                       augmentation={'time_stretch_ratio': 0.2,
-                                     'noise_level_min': -90,
-                                     'noise_level_max': -46}
-  :return: np.array with augmented signal
+  """Function that performs audio signal augmentation.
+
+  Args:
+    signal (np.array): np.array containing raw audio signal.
+    fs (float): frames per second.
+    augmentation (dict): dictionary of augmentation parameters. See
+        :func:`get_speech_features_from_file` for specification and example.
+  Returns:
+    np.array: np.array with augmented audio signal.
   """
   signal_float = signal.astype(np.float32) / 32768.0
 
@@ -76,20 +80,21 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
                         window_size=20e-3,
                         window_stride=10e-3,
                         augmentation=None):
-  """
-  :param signal: np.array containing raw audio signal
-  :param fs: float, frames per second
-  :param num_features: number of speech features in frequency domain
-  :param features_type: 'mfcc' or 'spectrogram'
-  :param window_size: size of analysis window, ms
-  :param window_stride: stride of analysis window, ms
-  :param augmentation: None or dictionary of augmentation parameters;
-                       If not None, has to have 'time_stretch_ratio',
-                       'noise_level_min', 'noise_level_max' fields, e.g.:
-                       augmentation={'time_stretch_ratio': 0.2,
-                                     'noise_level_min': -90,
-                                     'noise_level_max': -46}
-  :return: (num_time_steps, num_features) NumPy array
+  """Function to convert raw audio signal to numpy array of features.
+
+  Args:
+    signal (np.array): np.array containing raw audio signal.
+    fs (float): frames per second.
+    num_features (int): number of speech features in frequency domain.
+    pad_to (int): if specified, the length will be padded to become divisible
+        by ``pad_to`` parameter.
+    features_type (string): 'mfcc' or 'spectrogram'.
+    window_size (float): size of analysis window in milli-seconds.
+    window_stride (float): stride of analysis window in milli-seconds.
+    augmentation (dict, optional): dictionary of augmentation parameters. See
+        :func:`get_speech_features_from_file` for specification and example.
+  Returns:
+    np.array: np.array of audio features with shape=[num_time_steps, num_features].
   """
   if augmentation is not None:
     if 'time_stretch_ratio' not in augmentation:
