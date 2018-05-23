@@ -88,7 +88,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
       self.assertEqual(et['target_tensors'][1].shape[0], self.params['batch_size'])
 
 
-class TransformerDataLayerTests(tf.test.TestCase):
+"""class TransformerDataLayerTests(tf.test.TestCase):
   def setUp(self):
     create_data()
     batch_size = 2048
@@ -135,7 +135,7 @@ class TransformerDataLayerTests(tf.test.TestCase):
           print(elen_y.shape)
         except tf.errors.OutOfRangeError:
           break
-
+"""
 
 
 if __name__ == '__main__':
