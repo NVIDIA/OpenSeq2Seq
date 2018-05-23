@@ -10,27 +10,31 @@ from open_seq2seq.optimizers.lr_policies import transformer_policy
 import tensorflow as tf
 
 """
-This configuration file describes a tiny variant of Transformer model from
-https://arxiv.org/abs/1706.03762 on the toy task of reversing sequences
+This configuration file describes a variant of Transformer model from
+https://arxiv.org/abs/1706.03762
 """
 
 base_model = Text2Text
 d_model = 512
 num_layers = 6
-data_root = "/home/okuchaiev/repos/forks/reference/translation/processed_data/"
+# TO Get Processed WMT data, use this script:
+# https://github.com/mlperf/reference/blob/master/translation/tensorflow/transformer/data_download.py
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR *PROCESSED* WMT DATA]"
 
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
-  "batch_size_per_gpu": 2048,
+  "batch_size_per_gpu": 2048, # this size is in tokens
   "max_steps": 340000,
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
   "eval_steps": 4000,
   "save_checkpoint_steps": 300,
-  "logdir": "Transformer-big-test-FP32-DL2",
+  "logdir": "Transformer-big",
   "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
@@ -45,9 +49,9 @@ base_params = {
     "d_model": d_model,
   },
 
-  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-
+  #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+  #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+  
   "encoder": TransformerEncoder,
   "encoder_params": {
     "encoder_layers": num_layers,
@@ -57,6 +61,7 @@ base_params = {
     "filter_size": 4*d_model,
     "relu_dropout": 0.1,
     "layer_postprocess_dropout": 0.1,
+    "pad_embeddings_2_eight": True,
   },
 
   "decoder": TransformerDecoder,

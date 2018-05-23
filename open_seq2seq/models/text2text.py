@@ -77,6 +77,7 @@ class Text2Text(EncoderDecoderModel):
 
   def infer(self, input_values, output_values):
     input_strings, output_strings = [], []
+    input_values = input_values['source_tensors']
     for input_sample, output_sample in zip(input_values, output_values):
       output_strings.append(text_ids_to_string(
         output_sample[0],
