@@ -1,4 +1,11 @@
 # Copyright (c) 2018 NVIDIA Corporation
+"""This module defines various fully-connected decoders (consisting of one
+fully connected layer).
+
+These classes are usually used for models that are not really
+sequence-to-sequence and thus should be artificially split into encoder and
+decoder by cutting, for example, on the last fully-connected layer.
+"""
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
@@ -10,6 +17,8 @@ from .decoder import Decoder
 
 
 class FullyConnectedDecoder(Decoder):
+  """Simple decoder consisting of one fully-connected layer.
+  """
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
@@ -18,10 +27,36 @@ class FullyConnectedDecoder(Decoder):
 
   def __init__(self, params, model,
                name="fully_connected_decoder", mode='train'):
+    """Fully connected decoder constructor.
 
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **output_dim** (int) --- output dimension.
+    """
     super(FullyConnectedDecoder, self).__init__(params, model, name, mode)
 
   def _decode(self, input_dict):
+    """This method performs linear transformation of input.
+
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              'encoder_output': {
+                'outputs': output of encoder (shape=[batch_size, num_features])
+              }
+            }
+
+    Returns:
+      dict: dictionary with the following tensors::
+
+        {
+          'logits': logits with the shape=[batch_size, output_dim]
+          'samples': [logits] (same as logits but wrapped in list)
+        }
+    """
     inputs = input_dict['encoder_output']['outputs']
     regularizer = self.params.get('regularizer', None)
 
@@ -69,14 +104,23 @@ class FullyConnectedTimeDecoder(Decoder):
   def _decode(self, input_dict):
     """Creates TensorFlow graph for fully connected time decoder.
 
-    Expects the following inputs::
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              'encoder_output': {
+                "outputs": tensor with shape [batch_size, time length, hidden dim]
+                "src_length": tensor with shape [batch_size]
+              }
+            }
 
-      input_dict = {
-        "encoder_output": {
-          "outputs": tensor of shape [batch_size, time length, hidden dim]
-          "src_length": tensor of shape [batch_size]
+    Returns:
+      dict: dictionary with the following tensors::
+
+        {
+          'logits': logits with the shape=[time length, batch_size, tgt_vocab_size]
+          'samples': logits_to_outputs_func(logits, input_dict)
         }
-      }
     """
     inputs = input_dict['encoder_output']['outputs']
     regularizer = self.params.get('regularizer', None)
