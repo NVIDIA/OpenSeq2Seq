@@ -29,6 +29,7 @@
   
     <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_overrides.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Distributed training" href="distr-training.html" />
@@ -93,8 +94,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#speech-recognition">Speech recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#quick-deep-speech-2-model">Quick Deep Speech 2 Model</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#deep-speech-2">Deep Speech 2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#deep-speech-2-based-models">Deep Speech 2 based models</a></li>
 </ul>
 </li>
 </ul>
@@ -174,9 +174,17 @@
 <p class="last">This section is work in progress. Some of the info is not ready. Check back soon.</p>
 </div>
 <p>Currently OpenSeq2Seq has implemented models for machine translation and
-automatic speech recognition. Namely, the following models are supported
-(to run evaluation or inference the same config can be used with corresponding
-mode):</p>
+automatic speech recognition. To train models you can use the following
+commands (don’t forget to substitute valid config_file path there).</p>
+<p>With Horovod (highly recommended when using multiple GPUs):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">--</span><span class="n">mca</span> <span class="n">orte_base_help_aggregate</span> <span class="mi">0</span> <span class="o">-</span><span class="n">mca</span> <span class="n">btl</span> <span class="o">^</span><span class="n">openib</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="o">-</span><span class="n">H</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">4</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">none</span> <span class="o">-</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">slot</span> <span class="o">-</span><span class="n">x</span> <span class="n">LD_LIBRARY_PATH</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
+</div>
+<p>Without Horovod:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
+</div>
+<p>The description of implemented models is available in the next sections:</p>
 <div class="section" id="machine-translation">
 <h2>Machine translation<a class="headerlink" href="#machine-translation" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="small-nmt-model">
@@ -185,8 +193,8 @@ mode):</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
-Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing">link</a>  .</p>
+<p>Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.</p>
+<p>Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing">link</a>  .</p>
 </div>
 <div class="section" id="gnmt">
 <h3>GNMT<a class="headerlink" href="#gnmt" title="Permalink to this headline">¶</a></h3>
@@ -195,7 +203,8 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">xxx</span><span class="o">-</span><span class="mi">4</span><span class="n">GPUs</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>Final metrics: test BLEU score = xx.xx. Model checkpoint: link.</p>
+<p>Final metrics: test BLEU score = xx.xx.</p>
+<p>Model checkpoint: link.</p>
 </div>
 <div class="section" id="transformers">
 <h3>Transformers<a class="headerlink" href="#transformers" title="Permalink to this headline">¶</a></h3>
@@ -214,26 +223,62 @@ Model checkpoint: <a class="reference external" href="https://drive.google.com/f
 </div>
 <div class="section" id="speech-recognition">
 <h2>Speech recognition<a class="headerlink" href="#speech-recognition" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="quick-deep-speech-2-model">
-<h3>Quick Deep Speech 2 Model<a class="headerlink" href="#quick-deep-speech-2-model" title="Permalink to this headline">¶</a></h3>
-<p>This small Deep Speech 2 like model can be trained on a ‘clean’ subset of
-LibriSpeech in less than a day using a single GPU.</p>
-<p>Command to train on 1 GPU:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_quick_librispeech_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
-</pre></div>
-</div>
-<p>Final metrics: WER = 9.29% on LibriSpeech dev clean with a beam width = 2048 after 12 epochs.
-Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1O3OHwPdPikI812pkF2vRcxlUSQNMLMLN/view?usp=sharing">link</a>.</p>
-</div>
-<div class="section" id="deep-speech-2">
-<h3>Deep Speech 2<a class="headerlink" href="#deep-speech-2" title="Permalink to this headline">¶</a></h3>
-<p>Model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.</p>
-<p>Command to train on 4 GPUs:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_adam_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
-</pre></div>
-</div>
-<p>Final metrics: WER = 6.04% on LibriSpeech dev clean with a beam width = 2048 after 100 epochs.
-Model checkpoint: <a class="reference external" href="https://drive.google.com/file/d/1TBd5VA6EHLBxLzuMZIe3Z0D0EQJiYVPi/view?usp=sharing">link</a>.</p>
+<div class="section" id="deep-speech-2-based-models">
+<h3>Deep Speech 2 based models<a class="headerlink" href="#deep-speech-2-based-models" title="Permalink to this headline">¶</a></h3>
+<p>Original Deep Speech 2 model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.
+The table below contains description and results of
+Deep Speech 2 based models available in OpenSeq2Seq.</p>
+<p>WER-512 and WER-2048 is word error rate obtained with beam width of 512 and 2048
+correspondingly. For more details about model descriptions and training setup,
+have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/">configuration files</a>.</p>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+<col width="17%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Config file</th>
+<th class="head">WER-512</th>
+<th class="head">WER-2048</th>
+<th class="head">Training setup and additional comments</th>
+<th class="head">Short description of the model</th>
+<th class="head">Checkpoint</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py">ds2_large_8gpus.py</a></td>
+<td>4.90%</td>
+<td>4.59%</td>
+<td>This model was trained for 50 epochs using SGD with Momentum and LARC on
+a “clean” subset of LibriSpeech in a few days using Horovod on eight GPUs.</td>
+<td>This model has 2 convolutional layers and 5 bidirectional
+GRU layers with 800 units.</td>
+<td><a class="reference external" href="https://drive.google.com/file/d/1gfGg3DzXviNhYlIyxl12gWp47R8Uz-Bf/view?usp=sharing">link</a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py">ds2_medium_4gpus.py</a></td>
+<td>5.96%</td>
+<td>5.50%</td>
+<td>This model was trained for 50 epochs using Adam on a “clean” subset of
+LibriSpeech in a few days using Horovod on four GPUs.</td>
+<td>This model has 3 convolutional layers and 3 unidirectional
+GRU layers with 1024 units.</td>
+<td>Coming soon.</td>
+</tr>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py">ds2_small_1gpu.py</a></td>
+<td>11.77%</td>
+<td>9.32%</td>
+<td>This model was trained for 12 epochs using Adam on a “clean” subset of
+LibriSpeech in less than a day using a single GPU.</td>
+<td>This model has 2 convolutional layers and 2 unidirectional
+GRU layers with 512 units.</td>
+<td><a class="reference external" href="https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing">link</a></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
 </div>
