@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
+import numpy as np
 import time
 
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
@@ -89,6 +90,12 @@ def train(train_model, eval_model=None, debug_port=None):
   scaffold = tf.train.Scaffold(
     local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
   )
+  fetches = [train_model.train_op]
+  if 'bench_mode' in train_model.params:
+    total_objects = 0.0
+    # on horovod num_gpus is 1
+    for worker_id in range(train_model.num_gpus):
+      fetches.append(train_model.get_data_layer(worker_id).input_tensors)
 
   # starting training
   with tf.train.MonitoredTrainingSession(
@@ -107,11 +114,23 @@ def train(train_model, eval_model=None, debug_port=None):
         break
       tm = time.time()
       try:
-        sess.run(train_model.train_op)
+        fetches_vals = sess.run(fetches)
       except tf.errors.OutOfRangeError:
         break
       if step >= bench_start:
         total_time += time.time() - tm
+        if 'bench_mode' in train_model.params:
+          for i in range(train_model.num_gpus):
+            if train_model.params['bench_mode'] == 'tokens':
+              # adding source length
+              total_objects += np.sum(fetches_vals[i + 1]["source_tensors"][-1])
+              # adding target length
+              total_objects += np.sum(fetches_vals[i + 1]["target_tensors"][-1])
+            elif train_model.params['bench_mode'] == 'images':
+              # adding batch size
+              total_objects += np.sum(
+                fetches_vals[i + 1]["source_tensors"][0].shape[0]
+              )
       step += 1
 
   if hvd is not None:
@@ -119,13 +138,23 @@ def train(train_model, eval_model=None, debug_port=None):
   else:
     deco_print("Finished training")
 
+  if train_model.on_horovod:
+    ending = " on worker {}".format(hvd.rank())
+  else:
+    ending = ""
   if step > bench_start:
     deco_print(
-      "Avg time per step: {:.3}s".format(
-        1.0 * total_time / (step - bench_start))
+      "Avg time per step{}: {:.3f}s".format(
+        ending, 1.0 * total_time / (step - bench_start))
     )
+    if 'bench_mode' in train_model.params:
+      deco_print(
+        "Avg {} per second{}: {:.3f}".format(
+          train_model.params['bench_mode'],
+          ending, 1.0 * total_objects / total_time)
+      )
   else:
-    deco_print("Not enough steps for benchmarking")
+    deco_print("Not enough steps for benchmarking{}".format(ending))
 
 
 def restore_and_get_results(model, checkpoint, mode):

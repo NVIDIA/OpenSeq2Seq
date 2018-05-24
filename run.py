@@ -42,6 +42,7 @@ def main():
                       help='max_steps for benchmarking')
   parser.add_argument('--bench_start', type=int,
                       help='first step to start counting time for benchmarking')
+  parser.add_argument('--bench_mode', help='could be "images" or "tokens"')
   parser.add_argument('--debug_port', type=int,
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
@@ -201,6 +202,9 @@ def main():
       train_config['bench_start'] = args.bench_start
     elif 'bench_start' not in train_config:
       train_config['bench_start'] = 10  # default value
+
+    if args.bench_mode:
+      train_config['bench_mode'] = args.bench_mode
 
     if hvd is None or hvd.rank() == 0:
       deco_print("New benchmarking config:")
