@@ -1,0 +1,489 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data.text2text.t2t &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_overrides.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>data.text2text.t2t</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for data.text2text.t2t</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2018 MLBenchmark Group. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+<span class="sd">&quot;&quot;&quot;Input pipeline for the transformer model to read, filter, and batch examples.</span>
+
+<span class="sd">Two things to note in the pipeline:</span>
+
+<span class="sd">1. Batching scheme</span>
+
+<span class="sd">   The examples encoded in the TFRecord files contain data in the format:</span>
+<span class="sd">     {&quot;inputs&quot;: [variable length array of integers],</span>
+<span class="sd">      &quot;targets&quot;: [variable length array of integers]}</span>
+<span class="sd">   Where integers in the arrays refer to tokens in the English and German vocab</span>
+<span class="sd">   file (named `vocab.ende.32768`).</span>
+
+<span class="sd">   Prior to batching, elements in the dataset are grouped by length (max between</span>
+<span class="sd">   &quot;inputs&quot; and &quot;targets&quot; length). Each group is then batched such that:</span>
+<span class="sd">     group_batch_size * length &lt;= batch_size.</span>
+
+<span class="sd">   Another way to view batch_size is the maximum number of tokens in each batch.</span>
+
+<span class="sd">   Once batched, each element in the dataset will have the shape:</span>
+<span class="sd">     {&quot;inputs&quot;: [group_batch_size, padded_input_length],</span>
+<span class="sd">      &quot;targets&quot;: [group_batch_size, padded_target_length]}</span>
+<span class="sd">   Lengths are padded to the longest &quot;inputs&quot; or &quot;targets&quot; sequence in the batch</span>
+<span class="sd">   (padded_input_length and padded_target_length can be different).</span>
+
+<span class="sd">   This batching scheme decreases the fraction of padding tokens per training</span>
+<span class="sd">   batch, thus improving the training speed significantly.</span>
+
+<span class="sd">2. Shuffling</span>
+
+<span class="sd">   While training, the dataset is shuffled in two places in the code. The first</span>
+<span class="sd">   is the list of training files. Second, while reading records using</span>
+<span class="sd">   `parallel_interleave`, the `sloppy` argument is used to generate randomness</span>
+<span class="sd">   in the order of the examples.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="c1"># Use the number of training files as the shuffle buffer.</span>
+<span class="n">_FILE_SHUFFLE_BUFFER</span> <span class="o">=</span> <span class="mi">100</span>
+<span class="c1"># Buffer size for reading records from a TFRecord file. Each training file is</span>
+<span class="c1"># 7.2 MB, so 8 MB allows an entire file to be kept in memory.</span>
+<span class="n">_READ_RECORD_BUFFER</span> <span class="o">=</span> <span class="mi">8</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">*</span> <span class="mi">1000</span>
+
+<span class="c1"># Example grouping constants. Defines length boundaries for each group.</span>
+<span class="c1"># These values are the defaults used in Tensor2Tensor.</span>
+<span class="n">_MIN_BOUNDARY</span> <span class="o">=</span> <span class="mi">8</span>
+<span class="n">_BOUNDARY_SCALE</span> <span class="o">=</span> <span class="mf">1.1</span>
+
+
+<div class="viewcode-block" id="_load_records"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._load_records">[docs]</a><span class="k">def</span> <span class="nf">_load_records</span><span class="p">(</span><span class="n">filename</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Read file and return a dataset of tf.Examples.&quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">TFRecordDataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="n">_READ_RECORD_BUFFER</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_parse_example"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._parse_example">[docs]</a><span class="k">def</span> <span class="nf">_parse_example</span><span class="p">(</span><span class="n">serialized_example</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Return inputs and targets Tensors from a serialized tf.Example.&quot;&quot;&quot;</span>
+  <span class="n">data_fields</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
+      <span class="s2">&quot;targets&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+  <span class="p">}</span>
+  <span class="n">parsed</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">parse_single_example</span><span class="p">(</span><span class="n">serialized_example</span><span class="p">,</span> <span class="n">data_fields</span><span class="p">)</span>
+  <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse_tensor_to_dense</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">])</span>
+  <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse_tensor_to_dense</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">])</span>
+  <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span></div>
+
+
+<div class="viewcode-block" id="_filter_max_length"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._filter_max_length">[docs]</a><span class="k">def</span> <span class="nf">_filter_max_length</span><span class="p">(</span><span class="n">example</span><span class="p">,</span> <span class="n">max_length</span><span class="o">=</span><span class="mi">256</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Indicates whether the example&#39;s length is lower than the maximum length.&quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">,</span>
+                        <span class="n">tf</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">&lt;=</span> <span class="n">max_length</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="_get_example_length"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._get_example_length">[docs]</a><span class="k">def</span> <span class="nf">_get_example_length</span><span class="p">(</span><span class="n">example</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Returns the maximum length between the example inputs and targets.&quot;&quot;&quot;</span>
+  <span class="n">length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">example</span><span class="p">[</span><span class="mi">1</span><span class="p">])[</span><span class="mi">0</span><span class="p">])</span>
+  <span class="k">return</span> <span class="n">length</span></div>
+
+
+<div class="viewcode-block" id="_create_min_max_boundaries"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._create_min_max_boundaries">[docs]</a><span class="k">def</span> <span class="nf">_create_min_max_boundaries</span><span class="p">(</span>
+    <span class="n">max_length</span><span class="p">,</span> <span class="n">min_boundary</span><span class="o">=</span><span class="n">_MIN_BOUNDARY</span><span class="p">,</span> <span class="n">boundary_scale</span><span class="o">=</span><span class="n">_BOUNDARY_SCALE</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Create min and max boundary lists up to max_length.</span>
+
+<span class="sd">  For example, when max_length=24, min_boundary=4 and boundary_scale=2, the</span>
+<span class="sd">  returned values will be:</span>
+<span class="sd">    buckets_min = [0, 4, 8, 16, 24]</span>
+<span class="sd">    buckets_max = [4, 8, 16, 24, 25]</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    max_length: The maximum length of example in dataset.</span>
+<span class="sd">    min_boundary: Minimum length in boundary.</span>
+<span class="sd">    boundary_scale: Amount to scale consecutive boundaries in the list.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    min and max boundary lists</span>
+
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Create bucket boundaries list by scaling the previous boundary or adding 1</span>
+  <span class="c1"># (to ensure increasing boundary sizes).</span>
+  <span class="n">bucket_boundaries</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="n">x</span> <span class="o">=</span> <span class="n">min_boundary</span>
+  <span class="k">while</span> <span class="n">x</span> <span class="o">&lt;</span> <span class="n">max_length</span><span class="p">:</span>
+    <span class="n">bucket_boundaries</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">x</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">boundary_scale</span><span class="p">))</span>
+
+  <span class="c1"># Create min and max boundary lists from the initial list.</span>
+  <span class="n">buckets_min</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">bucket_boundaries</span>
+  <span class="n">buckets_max</span> <span class="o">=</span> <span class="n">bucket_boundaries</span> <span class="o">+</span> <span class="p">[</span><span class="n">max_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+  <span class="k">return</span> <span class="n">buckets_min</span><span class="p">,</span> <span class="n">buckets_max</span></div>
+
+
+<div class="viewcode-block" id="_batch_examples"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._batch_examples">[docs]</a><span class="k">def</span> <span class="nf">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Group examples by similar lengths, and return batched dataset.</span>
+
+<span class="sd">  Each batch of similar-length examples are padded to the same length, and may</span>
+<span class="sd">  have different number of elements in each batch, such that:</span>
+<span class="sd">    group_batch_size * padded_length &lt;= batch_size.</span>
+
+<span class="sd">  This decreases the number of padding tokens per batch, which improves the</span>
+<span class="sd">  training speed.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    dataset: Dataset of unbatched examples.</span>
+<span class="sd">    batch_size: Max number of tokens per batch of examples.</span>
+<span class="sd">    max_length: Max number of tokens in an example input or target sequence.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    Dataset of batched examples with similar lengths.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># Get min and max boundary lists for each example. These are used to calculate</span>
+  <span class="c1"># the `bucket_id`, which is the index at which:</span>
+  <span class="c1"># buckets_min[bucket_id] &lt;= len(example) &lt; buckets_max[bucket_id]</span>
+  <span class="c1"># Note that using both min and max lists improves the performance.</span>
+  <span class="n">buckets_min</span><span class="p">,</span> <span class="n">buckets_max</span> <span class="o">=</span> <span class="n">_create_min_max_boundaries</span><span class="p">(</span><span class="n">max_length</span><span class="p">)</span>
+
+  <span class="c1"># Create list of batch sizes for each bucket_id, so that</span>
+  <span class="c1"># bucket_batch_size[bucket_id] * buckets_max[bucket_id] &lt;= batch_size</span>
+  <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">buckets_max</span><span class="p">]</span>
+  <span class="c1"># bucket_id will be a tensor, so convert this list to a tensor as well.</span>
+  <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">bucket_batch_sizes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">example_to_bucket_id</span><span class="p">(</span><span class="n">example_input</span><span class="p">,</span> <span class="n">example_target</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return int64 bucket id for this example, calculated based on length.&quot;&quot;&quot;</span>
+    <span class="n">seq_length</span> <span class="o">=</span> <span class="n">_get_example_length</span><span class="p">((</span><span class="n">example_input</span><span class="p">,</span> <span class="n">example_target</span><span class="p">))</span>
+
+    <span class="c1"># TODO: investigate whether removing code branching improves performance.</span>
+    <span class="n">conditions_c</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span><span class="n">buckets_min</span><span class="p">,</span> <span class="n">seq_length</span><span class="p">),</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">less</span><span class="p">(</span><span class="n">seq_length</span><span class="p">,</span> <span class="n">buckets_max</span><span class="p">))</span>
+    <span class="n">bucket_id</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_min</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">conditions_c</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">bucket_id</span>
+
+  <span class="k">def</span> <span class="nf">window_size_fn</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return number of examples to be grouped when given a bucket id.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">bucket_batch_sizes</span><span class="p">[</span><span class="n">bucket_id</span><span class="p">]</span>
+
+  <span class="k">def</span> <span class="nf">batching_fn</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">,</span> <span class="n">grouped_dataset</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Batch and add padding to a dataset of elements with similar lengths.&quot;&quot;&quot;</span>
+    <span class="n">bucket_batch_size</span> <span class="o">=</span> <span class="n">window_size_fn</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">)</span>
+
+    <span class="c1"># Batch the dataset and add padding so that all input sequences in the</span>
+    <span class="c1"># examples have the same length, and all target sequences have the same</span>
+    <span class="c1"># lengths as well. Resulting lengths of inputs and targets can differ.</span>
+    <span class="k">return</span> <span class="n">grouped_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span><span class="n">bucket_batch_size</span><span class="p">,</span> <span class="p">([</span><span class="kc">None</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">]))</span>
+
+  <span class="k">return</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">group_by_window</span><span class="p">(</span>
+      <span class="n">key_func</span><span class="o">=</span><span class="n">example_to_bucket_id</span><span class="p">,</span>
+      <span class="n">reduce_func</span><span class="o">=</span><span class="n">batching_fn</span><span class="p">,</span>
+      <span class="n">window_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">window_size_func</span><span class="o">=</span><span class="n">window_size_fn</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="_read_and_batch_from_files"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._read_and_batch_from_files">[docs]</a><span class="k">def</span> <span class="nf">_read_and_batch_from_files</span><span class="p">(</span>
+    <span class="n">file_pattern</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">num_cpu_cores</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span>
+    <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Create dataset where each item is a dict of &quot;inputs&quot; and &quot;targets&quot;.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    file_pattern: String used to match the input TFRecord files.</span>
+<span class="sd">    batch_size: Maximum number of tokens per batch of examples</span>
+<span class="sd">    max_length: Maximum number of tokens per example</span>
+<span class="sd">    num_cpu_cores: Number of cpu cores for parallel input processing.</span>
+<span class="sd">    shuffle: If true, randomizes order of elements.</span>
+<span class="sd">    repeat: Number of times to repeat the dataset. If None, the dataset is</span>
+<span class="sd">      repeated forever.</span>
+<span class="sd">    num_workers: Number of workers or number of Horovod workers</span>
+<span class="sd">    worker_id: Worker id or Horovod rank</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    tf.data.Dataset object containing examples loaded from the files.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">list_files</span><span class="p">(</span><span class="n">file_pattern</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">num_workers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shard</span><span class="p">(</span><span class="n">num_shards</span><span class="o">=</span><span class="n">num_workers</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">worker_id</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">shuffle</span><span class="p">:</span>
+    <span class="c1"># Shuffle filenames</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="n">_FILE_SHUFFLE_BUFFER</span><span class="p">)</span>
+
+  <span class="c1"># Read files and interleave results. When training, the order of the examples</span>
+  <span class="c1"># will be non-deterministic.</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">apply</span><span class="p">(</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">parallel_interleave</span><span class="p">(</span>
+          <span class="n">_load_records</span><span class="p">,</span> <span class="n">sloppy</span><span class="o">=</span><span class="n">shuffle</span><span class="p">,</span> <span class="n">cycle_length</span><span class="o">=</span><span class="n">num_cpu_cores</span><span class="p">))</span>
+
+  <span class="c1"># Parse each tf.Example into a dictionary</span>
+  <span class="c1"># TODO: Look into prefetch_input_elements for performance optimization.</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_parse_example</span><span class="p">,</span>
+                        <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_cpu_cores</span><span class="p">)</span>
+
+  <span class="c1"># Remove examples where the input or target length exceeds the maximum length,</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">_filter_max_length</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">max_length</span><span class="p">))</span>
+
+  <span class="c1"># Batch such that each batch has examples of similar length.</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">repeat</span><span class="p">)</span>
+
+  <span class="c1"># Prefetch the next element to improve speed of input pipeline.</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">dataset</span></div>
+
+
+<div class="viewcode-block" id="train_input_fn"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t.train_input_fn">[docs]</a><span class="k">def</span> <span class="nf">train_input_fn</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Load and return dataset of batched examples for use during training.&quot;&quot;&quot;</span>
+  <span class="n">file_pattern</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;data_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;*train*&quot;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">_read_and_batch_from_files</span><span class="p">(</span>
+      <span class="n">file_pattern</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">max_length</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">num_cpu_cores</span><span class="p">,</span>
+      <span class="n">shuffle</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">repeat_dataset</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="eval_input_fn"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t.eval_input_fn">[docs]</a><span class="k">def</span> <span class="nf">eval_input_fn</span><span class="p">(</span><span class="n">params</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Load and return dataset of batched examples for use during evaluation.&quot;&quot;&quot;</span>
+  <span class="n">file_pattern</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="s2">&quot;data_dir&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">),</span> <span class="s2">&quot;*dev*&quot;</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">_read_and_batch_from_files</span><span class="p">(</span>
+      <span class="n">file_pattern</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">max_length</span><span class="p">,</span> <span class="n">params</span><span class="o">.</span><span class="n">num_cpu_cores</span><span class="p">,</span>
+      <span class="n">shuffle</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">repeat</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>
