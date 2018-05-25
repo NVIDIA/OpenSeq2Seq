@@ -3,7 +3,7 @@ from open_seq2seq.encoders import ResNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
-from open_seq2seq.optimizers.lr_policies import poly_decay2
+from open_seq2seq.optimizers.lr_policies import piecewise_constant
 import tensorflow as tf
 
 
@@ -12,7 +12,7 @@ base_model = Image2Label
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 25,
+  "num_epochs": 50,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
@@ -29,13 +29,11 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": poly_decay2,
+  "lr_policy": piecewise_constant,
   "lr_policy_params": {
-    "learning_rate": 1.0,
-    "power": 2.0,
-  },
-  "larc_params": {
-    "larc_eta": 0.001,
+    "learning_rate": 0.05,
+    "boundaries": [20, 40],
+    "decay_rates": [0.1, 0.01],
   },
 
   "initializer": tf.variance_scaling_initializer,
