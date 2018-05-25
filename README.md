@@ -5,6 +5,9 @@
 
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 
+## Documentation
+https://nvidia.github.io/OpenSeq2Seq/
+
 This is a research project, not an official NVIDIA product.
 
 OpenSeq2Seq main goal is to allow researchers to most effectively
@@ -29,8 +32,9 @@ in the future.
 3. Mixed precision training for NVIDIA Volta GPUs
 
 
-## Documentation
-https://nvidia.github.io/OpenSeq2Seq/
+## Requirements
+1. TensorFlow 1.7
+2. Horovod >= 0.12.0 (using Horovod is not required, but is highly recommended for multi-GPU setup)
 
 ## Acknowledgments
 Speech-to-text workflow uses some parts of [Mozilla DeepSpeech](https://github.com/Mozilla/DeepSpeech) project.

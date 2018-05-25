@@ -96,14 +96,14 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - 4.90%
      - 4.59%
      - This model was trained for 50 epochs using SGD with Momentum and LARC on
-       a "clean" subset of LibriSpeech in a few days using Horovod on eight GPUs.
+       the full LibriSpeech in a few days using Horovod on eight GPUs.
      - This model has 2 convolutional layers and 5 bidirectional
        GRU layers with 800 units.
      - `link <https://drive.google.com/file/d/1gfGg3DzXviNhYlIyxl12gWp47R8Uz-Bf/view?usp=sharing>`_
    * - `ds2_medium_4gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py>`_
      - 5.96%
      - 5.50%
-     - This model was trained for 50 epochs using Adam on a "clean" subset of
+     - This model was trained for 50 epochs using Adam on the full
        LibriSpeech in a few days using Horovod on four GPUs.
      - This model has 3 convolutional layers and 3 unidirectional
        GRU layers with 1024 units.
