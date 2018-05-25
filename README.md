@@ -5,8 +5,7 @@
 
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 
-## Documentation
-https://nvidia.github.io/OpenSeq2Seq/
+Documentation: https://nvidia.github.io/OpenSeq2Seq/
 
 This is a research project, not an official NVIDIA product.
 
