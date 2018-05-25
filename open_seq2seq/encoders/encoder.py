@@ -40,6 +40,7 @@ class Encoder:
     return {
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
+      'increase_regularization_from_zero': bool,
       'initializer': None,  # any valid TensorFlow initializer
       'initializer_params': dict,
       'dtype': [tf.float32, tf.float16, 'mixed'],
@@ -87,22 +88,6 @@ class Encoder:
       else:
         self._params['dtype'] = tf.float32
 
-    if 'regularizer' not in self._params:
-      if self._model and 'regularizer' in self._model.params:
-        self._params['regularizer'] = self._model.params['regularizer']
-        self._params['regularizer_params'] = self._model.params['regularizer_params']
-
-    if 'regularizer' in self._params:
-      init_dict = self._params.get('regularizer_params', {})
-      self._params['regularizer'] = self._params['regularizer'](**init_dict)
-      if self._params['dtype'] == 'mixed':
-        self._params['regularizer'] = mp_regularizer_wrapper(
-          self._params['regularizer'],
-        )
-
-    if self._params['dtype'] == 'mixed':
-      self._params['dtype'] = tf.float16
-
     self._name = name
     self._mode = mode
 
@@ -117,6 +102,32 @@ class Encoder:
     Returns:
       see :meth:`self._encode() <_encode>` docs.
     """
+    if 'regularizer' not in self._params:
+      if self._model and 'regularizer' in self._model.params:
+        self._params['regularizer'] = copy.deepcopy(self._model.params['regularizer'])
+        self._params['regularizer_params'] = copy.deepcopy(self._model.params['regularizer_params'])
+        self._params['increase_regularization_from_zero'] = (
+          self._model.params['increase_regularization_from_zero']
+        )
+
+    if 'regularizer' in self._params:
+      init_dict = self._params.get('regularizer_params', {})
+      if 'increase_regularization_from_zero' in self.params and \
+         'scale' in init_dict:
+        global_step = tf.cast(tf.train.get_global_step(), tf.float32)
+        init_dict['scale'] = init_dict['scale'] * global_step / \
+                             (self._model.last_step - 1.0)
+        if self.mode == 'train':
+          tf.summary.scalar('weight_decay_encoder', init_dict['scale'])
+      self._params['regularizer'] = self._params['regularizer'](**init_dict)
+      if self._params['dtype'] == 'mixed':
+        self._params['regularizer'] = mp_regularizer_wrapper(
+          self._params['regularizer'],
+        )
+
+    if self._params['dtype'] == 'mixed':
+      self._params['dtype'] = tf.float16
+
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)

@@ -71,6 +71,7 @@ class Model:
       'initializer_params': dict,
       'regularizer': None,  # any valid TensorFlow regularizer
       'regularizer_params': dict,
+      'increase_regularization_from_zero': bool,
       'dtype': [tf.float16, tf.float32, 'mixed'],
       'lr_policy': None,  # any valid learning rate policy function
       'lr_policy_params': dict,
@@ -249,7 +250,7 @@ class Model:
           num_workers=self.num_gpus, worker_id=worker_id,
         ))
 
-    if self._mode == "train":
+    if self._mode == "train" or self._mode == "eval":
       if "max_steps" in self._params:
         self._last_step = self._params["max_steps"]
         self._steps_in_epoch = None
@@ -279,6 +280,7 @@ class Model:
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
+    tf.train.get_or_create_global_step()
     if 'initializer' not in self.params:
       initializer = None
     else:
