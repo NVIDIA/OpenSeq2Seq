@@ -91,6 +91,42 @@ def exp_decay(global_step, learning_rate, decay_steps, decay_rate,
   return final_lr
 
 
+def poly_decay2(global_step, learning_rate, decay_steps, power=1.0,
+                begin_decay_at=0, min_lr=0.0):
+  """Polynomial decay learning rate policy.
+  This function is equivalent to ``tensorflow.train.polynomial_decay`` with
+  some additional functionality. Namely, it adds ``begin_decay_at`` parameter
+  which is the first step to start decaying learning rate.
+
+  Args:
+    global_step: global step TensorFlow tensor.
+    learning_rate (float): initial learning rate to use.
+    decay_steps (int): number of steps to apply decay for.
+    power (float): power for polynomial decay.
+    begin_decay_at (int): the first step to start decaying learning rate.
+    min_lr (float): minimal value of the learning rate
+        (same as ``end_learning_rate`` TensorFlow parameter).
+
+  Returns:
+    learning rate at step ``global_step``.
+  """
+  cur_step = global_step - begin_decay_at
+  cur_step += decay_steps
+
+  lr = tf.cond(
+    global_step < begin_decay_at,
+    lambda: learning_rate,
+    lambda: tf.train.polynomial_decay(
+      learning_rate,
+      global_step=cur_step,
+      decay_steps=decay_steps * 2,
+      end_learning_rate=min_lr,
+      power=power),
+    name="learning_rate"
+  )
+  return lr
+
+
 def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
                begin_decay_at=0, min_lr=0.0):
   """Polynomial decay learning rate policy.
