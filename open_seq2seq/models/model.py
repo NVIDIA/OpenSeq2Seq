@@ -62,7 +62,6 @@ class Model:
       'num_epochs': int,
       'max_steps': int,
       'bench_start': int,
-      'bench_mode': ['tokens', 'images'],
 
       'data_layer_params': dict,
       'optimizer': None,  # could be class or string
