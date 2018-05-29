@@ -148,10 +148,9 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
           1.0 * total_time / (step - bench_start), worker_id),
       )
     else:
-      if model.on_horovod:
-        deco_print(
-          "Not enough steps for benchmarking on worker {}".format(worker_id)
-        )
+      deco_print(
+        "Not enough steps for benchmarking on worker {}".format(worker_id)
+      )
 
   if compute_loss:
     return results_per_batch, total_loss, total_samples

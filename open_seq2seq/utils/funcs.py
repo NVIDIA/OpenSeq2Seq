@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
+import numpy as np
 import time
 
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
@@ -89,6 +90,15 @@ def train(train_model, eval_model=None, debug_port=None):
   scaffold = tf.train.Scaffold(
     local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
   )
+  fetches = [train_model.train_op]
+  try:
+    total_objects = 0.0
+    # on horovod num_gpus is 1
+    for worker_id in range(train_model.num_gpus):
+      fetches.append(train_model.get_num_objects_per_step(worker_id))
+  except NotImplementedError:
+    deco_print("WARNING: Can't compute number of objects per step, since "
+               "train model does not define get_num_objects_per_step method.")
 
   # starting training
   with tf.train.MonitoredTrainingSession(
@@ -107,11 +117,14 @@ def train(train_model, eval_model=None, debug_port=None):
         break
       tm = time.time()
       try:
-        sess.run(train_model.train_op)
+        fetches_vals = sess.run(fetches)
       except tf.errors.OutOfRangeError:
         break
       if step >= bench_start:
         total_time += time.time() - tm
+        if len(fetches) > 1:
+          for i in range(train_model.num_gpus):
+            total_objects += np.sum(fetches_vals[i + 1])
       step += 1
 
   if hvd is not None:
@@ -119,13 +132,22 @@ def train(train_model, eval_model=None, debug_port=None):
   else:
     deco_print("Finished training")
 
+  if train_model.on_horovod:
+    ending = " on worker {}".format(hvd.rank())
+  else:
+    ending = ""
   if step > bench_start:
     deco_print(
-      "Avg time per step: {:.3}s".format(
-        1.0 * total_time / (step - bench_start))
+      "Avg time per step{}: {:.3f}s".format(
+        ending, 1.0 * total_time / (step - bench_start))
     )
+    if len(fetches) > 1:
+      deco_print(
+        "Avg objects per second{}: {:.3f}".format(
+          ending, 1.0 * total_objects / total_time)
+      )
   else:
-    deco_print("Not enough steps for benchmarking")
+    deco_print("Not enough steps for benchmarking{}".format(ending))
 
 
 def restore_and_get_results(model, checkpoint, mode):

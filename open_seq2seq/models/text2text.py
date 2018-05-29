@@ -6,6 +6,7 @@ from six.moves import range
 import nltk
 import re
 import codecs
+import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
@@ -212,3 +213,12 @@ class Text2Text(EncoderDecoderModel):
       return {'Eval_BLEU_Score': eval_bleu}
 
     return {}
+
+  def get_num_objects_per_step(self, worker_id=0):
+    """Returns number of source tokens + number of target tokens in batch."""
+    data_layer = self.get_data_layer(worker_id)
+    # sum of source length in batch
+    num_tokens = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])
+    # sum of target length in batch
+    num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    return num_tokens

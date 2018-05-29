@@ -79,7 +79,9 @@ The table below contains description and results of
 Deep Speech 2 based models available in OpenSeq2Seq.
 
 WER-512 and WER-2048 is word error rate obtained with beam width of 512 and 2048
-correspondingly. For more details about model descriptions and training setup,
+correspondingly. For beam width of 2048 we also used ``batch_size_per_gpu = 1``
+to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
+For more details about model descriptions and training setup,
 have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/>`_.
 
 .. list-table::
@@ -96,18 +98,18 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - 4.90%
      - 4.59%
      - This model was trained for 50 epochs using SGD with Momentum and LARC on
-       a "clean" subset of LibriSpeech in a few days using Horovod on eight GPUs.
+       the full LibriSpeech in a few days using Horovod on eight GPUs.
      - This model has 2 convolutional layers and 5 bidirectional
        GRU layers with 800 units.
      - `link <https://drive.google.com/file/d/1gfGg3DzXviNhYlIyxl12gWp47R8Uz-Bf/view?usp=sharing>`_
    * - `ds2_medium_4gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py>`_
-     - 5.96%
-     - 5.50%
-     - This model was trained for 50 epochs using Adam on a "clean" subset of
+     - 6.12%
+     - 5.49%
+     - This model was trained for 50 epochs using Adam on the full
        LibriSpeech in a few days using Horovod on four GPUs.
      - This model has 3 convolutional layers and 3 unidirectional
        GRU layers with 1024 units.
-     - Coming soon.
+     - `link <https://drive.google.com/file/d/1XpnyZzMaO38RE4dSOJZkcaJ3T8B0lxKe/view?usp=sharing>`_
    * - `ds2_small_1gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py>`_
      - 11.77%
      - 9.32%
