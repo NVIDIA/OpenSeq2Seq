@@ -112,7 +112,7 @@ class Decoder:
 
     if 'regularizer' in self._params:
       init_dict = self._params.get('regularizer_params', {})
-      if 'increase_regularization_from_zero' in self.params and \
+      if self.params.get('increase_regularization_from_zero', False) and \
          'scale' in init_dict:
         global_step = tf.cast(tf.train.get_global_step(), tf.float32)
         init_dict['scale'] = init_dict['scale'] * global_step / \
