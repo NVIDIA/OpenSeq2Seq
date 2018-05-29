@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import numpy as np
+import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
@@ -58,3 +59,9 @@ class Image2Label(EncoderDecoderModel):
     top1 = np.sum(np.argmax(logits, axis=1) == labels)
     top5 = np.sum(labels[:, np.newaxis] == np.argpartition(logits, -5)[:, -5:])
     return total, top1, top5
+
+  def get_num_objects_per_step(self, worker_id=0):
+    """Returns number of images in current batch, i.e. batch size."""
+    data_layer = self.get_data_layer(worker_id)
+    num_images = tf.shape(data_layer.input_tensors['source_tensors'][0])[0]
+    return num_images

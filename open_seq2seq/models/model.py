@@ -622,6 +622,21 @@ class Model:
     else:
       return self.params['dtype']
 
+  def get_num_objects_per_step(self, worker_id=0):
+    """Define this method if you need benchmarking functionality.
+    For example, for translation models, this method should return number of
+    tokens in current batch, for image recognition model should return number
+    of images in current batch.
+
+    Args:
+      worker_id (int): id of the worker to get data layer from
+          (not used for Horovod).
+
+    Returns:
+      tf.Tensor with number of objects in batch.
+    """
+    raise NotImplementedError()
+
   @property
   def params(self):
     """Parameters used to construct the model (dictionary)."""
