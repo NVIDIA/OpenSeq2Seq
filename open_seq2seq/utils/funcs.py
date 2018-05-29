@@ -9,7 +9,8 @@ import time
 
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from open_seq2seq.utils.utils import deco_print, get_results_for_epoch
+from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
+                                     collect_if_horovod
 from tensorflow.python import debug as tf_debug
 
 
@@ -127,27 +128,19 @@ def train(train_model, eval_model=None, debug_port=None):
             total_objects += np.sum(fetches_vals[i + 1])
       step += 1
 
-  if hvd is not None:
-    deco_print("Finished training on rank {}".format(hvd.rank()))
-  else:
-    deco_print("Finished training")
+  if len(fetches) > 1:
+    total_objects = collect_if_horovod(total_objects, hvd, mode="sum")
 
-  if train_model.on_horovod:
-    ending = " on worker {}".format(hvd.rank())
-  else:
-    ending = ""
-  if step > bench_start:
-    deco_print(
-      "Avg time per step{}: {:.3f}s".format(
-        ending, 1.0 * total_time / (step - bench_start))
-    )
-    if len(fetches) > 1:
-      deco_print(
-        "Avg objects per second{}: {:.3f}".format(
-          ending, 1.0 * total_objects / total_time)
-      )
-  else:
-    deco_print("Not enough steps for benchmarking{}".format(ending))
+  if master_worker:
+    deco_print("Finished training")
+    if step > bench_start:
+      avg_time = 1.0 * total_time / (step - bench_start)
+      deco_print("Avg time per step: {:.3f}s".format(avg_time))
+      if len(fetches) > 1:
+        avg_objects = 1.0 * total_objects / total_time
+        deco_print("Avg objects per second: {:.3f}".format(avg_objects))
+    else:
+      deco_print("Not enough steps for benchmarking")
 
 
 def restore_and_get_results(model, checkpoint, mode):

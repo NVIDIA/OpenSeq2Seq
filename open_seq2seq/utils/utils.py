@@ -31,6 +31,42 @@ def clip_sparse(value, size):
                               dense_shape_clipped)
 
 
+def collect_if_horovod(value, hvd, mode='sum'):
+  """Collects values from all workers if run on Horovod.
+  Note, that on all workers except first this function will return None.
+
+  Args:
+    value: value to collect.
+    hvd: horovod.tensorflow module or None
+    mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
+        For "sum" and "mean" value has to be numerical, for "gather", value has
+        to be iterable.
+
+  Returns:
+    collected results if run on Horovod or value otherwise.
+  """
+  if hvd is None:
+    return value
+
+  import mpi4py.rc
+  mpi4py.rc.initialize = False
+  from mpi4py import MPI
+
+  values = MPI.COMM_WORLD.gather(value)
+  # synchronize all workers
+  MPI.COMM_WORLD.Barrier()
+
+  if MPI.COMM_WORLD.Get_rank() != 0:
+    return None
+
+  if mode == 'sum':
+    return np.sum(values)
+  elif mode == 'mean':
+    return np.mean(values)
+  elif mode == 'gather':
+    return [item for sl in values for item in sl]
+
+
 def clip_last_batch(last_batch, true_size):
   last_batch_clipped = []
   for val in last_batch:
