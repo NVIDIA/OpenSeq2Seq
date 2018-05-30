@@ -28,7 +28,7 @@ in the next section.
 Running tests
 -------------
 In order to check that everything is installed correctly it is recommended to
-run unittests (you need to have at least two GPUs in order to do that)::
+run unittests::
 
    python -m unittest discover -s open_seq2seq -p '*_test.py'
 
