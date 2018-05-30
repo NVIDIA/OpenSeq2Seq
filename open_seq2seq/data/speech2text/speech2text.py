@@ -86,9 +86,14 @@ class Speech2TextDataLayer(DataLayer):
     self._input_tensors = None
 
   def split_data(self, data):
-    """Method that performs data split for evaluation."""
-    if self.params['mode'] != 'train':
-      return data[self._worker_id::self._num_workers]
+    if self.params['mode'] != 'train' and self._num_workers is not None:
+      size = len(data)
+      start = size // self._num_workers * self._worker_id
+      if self._worker_id == self._num_workers - 1:
+        end = size
+      else:
+        end = size // self._num_workers * (self._worker_id + 1)
+      return data[start:end]
     else:
       return data
 
