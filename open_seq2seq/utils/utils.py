@@ -102,12 +102,18 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     fetches.append(cur_fetches)
     total_samples.append(0.0)
     if size_defined:
-      dl_sizes.append(model.get_data_layer(worker_id).get_size_in_samples)
+      dl_sizes.append(model.get_data_layer(worker_id).get_size_in_samples())
 
   sess.run([model.get_data_layer(i).iterator.initializer
             for i in range(model.num_gpus)])
 
   step = 0
+
+  if verbose:
+    if model.on_horovod:
+      ending = "on worker {}".format(model.hvd.rank())
+    else:
+      ending = ""
 
   while True:
     tm = time.time()
@@ -168,9 +174,29 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       else:
         raise ValueError("Unknown mode: {}".format(mode))
 
+    if verbose:
+      if size_defined:
+        data_size = np.sum(dl_sizes)
+        if data_size > 10 and step % (data_size // 10) == 0:
+          deco_print("Processed {}/{} batches{}".format(
+            (step + 1) * model.num_gpus, data_size, ending))
+      else:
+        deco_print("Processed {} batches{}".format(step + 1, ending), end='\r')
+
     if len(fetches_vals) == 0 or skip_workers == model.num_gpus:
       break
     step += 1
+
+  if verbose:
+    if step > bench_start:
+      deco_print(
+        "Avg time per step: {:.3}s{}".format(
+          1.0 * total_time / (step - bench_start), ending),
+      )
+    else:
+      deco_print(
+        "Not enough steps for benchmarking{}".format(ending)
+      )
 
   if compute_loss:
     return results_per_batch, total_loss, np.sum(total_samples)
