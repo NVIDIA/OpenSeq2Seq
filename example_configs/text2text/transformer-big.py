@@ -22,7 +22,7 @@ data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 2,
+  "num_gpus": 4,
   "batch_size_per_gpu": 128,  # this size is in sentence pairs
   "max_steps": 500000,
   "save_summaries_steps": 50,
@@ -30,7 +30,7 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
-  "logdir": "Transformer-big",
+  "logdir": "Transformer-FP32",
   "dtype": tf.float32,
   # "dtype": "mixed",
   # "automatic_loss_scaling": "Backoff",

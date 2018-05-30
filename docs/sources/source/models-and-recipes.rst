@@ -8,10 +8,12 @@ Models and recipes
 .. metrics and links to checkpoints (tensorboards also?) of trained models.
 
 .. note::
-    This section is work in progress. Some of the info is not ready. Check back soon.
+    Currently OpenSeq2Seq has model implementations for machine translation and
+    automatic speech recognition. All models work both in float32 and mixed precision.
+    We recommend you use :ref:`mixed precision training <mixed_precision>` when training on Volta GPUs.
 
-Currently OpenSeq2Seq has implemented models for machine translation and
-automatic speech recognition. To train models you can use the following
+
+To train models you can use the following
 commands (don't forget to substitute valid config_file path there).
 
 With Horovod (highly recommended when using multiple GPUs)::
@@ -27,47 +29,34 @@ The description of implemented models is available in the next sections:
 Machine translation
 -------------------
 
-Small NMT Model
-~~~~~~~~~~~~~~~
+.. list-table::
+   :widths: 1 1 1 1 1
+   :header-rows: 1
 
-Command to train on 1 GPU::
+   * - Config file
+     - BLEU
+     - Training setup and additional comments
+     - Short description of the model
+     - Checkpoint
+   * - `en-de-nmt-small.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-nmt-small.py>`_
+     - 20.23
+     - This model should train on a single GPU such as 1080Ti. It is trained using Adam optimizer.
+     - RNN-based. Bi-directional encoder with 2 layers and. GNMT-like decoder with 2 layers and attention. Uses LSTM cells of size 512.
+     - `link <https://drive.google.com/file/d/1Ty9hiOQx4V28jJmIbj7FWUyw7LVA39SF/view?usp=sharing>`_
+   * - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-gnmt-like-4GPUs.py>`_
+     - 23.89
+     - This model was trained on 4 GPUs with Adam optimizer and learning rate decay.
+     - RNN-based. This is GNMT-like model which tries to match the one described in https://arxiv.org/abs/1609.08144 as close as possible.
+     - `link <https://drive.google.com/file/d/1HVc4S8-wv1-AZK1JeWgn6YNITSFAMes_/view?usp=sharing>`_
+   * - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/transformer-big.py>`_
+     - 26.17
+     - This model was trained on 4 GPUs with Adam optimizer and learning rate decay.
+     - Transformer "big" model. This model does not have any RNN layers
+     - `link <https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing>`_
 
-    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=train_eval
-
-Final metrics: test BLEU score = 20.17 on newstest2014.tok.de using ``multi-bleu.perl`` script from Mosses.
-
-Model checkpoint: `link <https://drive.google.com/file/d/1Lr3eRC4Z3N_FpYzrKtS9809ttBjPJYgT/view?usp=sharing>`_  .
-
-GNMT
-~~~~
-
-Model description: https://arxiv.org/abs/1609.08144.
-
-Command to train on 4 GPUs::
-
-    python run.py --config_file=example_configs/text2text/xxx-4GPUs.py --mode=train_eval
-
-Final metrics: test BLEU score = xx.xx.
-
-Model checkpoint: link.
-
-
-Transformers
-~~~~~~~~~~~~
-
-Model description: https://arxiv.org/abs/1706.03762.
-
-Command to train on 4 GPUs::
-
-    python run.py --config_file=example_configs/text2text/xxx-4GPUs.py --mode=train_eval
-
-Final metrics: test BLEU score = xx.xx. Model checkpoint: link.
-
-Command to train on 1 GPU::
-
-    python run.py --config_file=example_configs/text2text/xxx-1GPU.py --mode=train_eval
-
-Final metrics: test BLEU score = xx.xx. Model checkpoint: link.
+GNMT model description can be found `here <https://arxiv.org/abs/1609.08144>`_.
+Transformer model description can be found `here <https://arxiv.org/abs/1706.03762>`_.
+We measure BLEU score on newstest2014.tok.de file using ``multi-bleu.perl`` script from Mosses.
 
 Speech recognition
 ------------------
