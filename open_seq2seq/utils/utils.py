@@ -155,13 +155,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
         # this data_layer is at the last batch with few more elements, cutting
         if total_samples[worker_id] > dl_sizes[worker_id]:
           last_batch_size = dl_sizes[worker_id] % batch_size
-          inputs["source_tensors"] = model.clip_last_batch(
-            inputs["source_tensors"], last_batch_size,
-          )
-          if 'target_tensors' in inputs:
-            inputs["target_tensors"] = model.clip_last_batch(
-              inputs["target_tensors"], last_batch_size,
-            )
+          for key, value in inputs.items():
+            inputs[key] = model.clip_last_batch(value, last_batch_size)
           outputs = model.clip_last_batch(outputs, last_batch_size)
 
       if compute_loss:
@@ -200,124 +195,6 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 
   if compute_loss:
     return results_per_batch, total_loss, np.sum(total_samples)
-  else:
-    return results_per_batch
-
-
-
-def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
-  total_time = 0.0
-  bench_start = model.params.get('bench_start', 10)
-  results_per_batch = []
-
-  if model.on_horovod:
-    data_layer = model.get_data_layer()
-    if compute_loss:
-      loss_tensor = model.eval_losses[0]
-    output_tensors = model.get_output_tensors()
-  else:
-    data_layer = model.get_data_layer(dl_id)
-    if compute_loss:
-      loss_tensor = model.eval_losses[dl_id]
-    output_tensors = model.get_output_tensors(dl_id)
-
-  sess.run(data_layer.iterator.initializer)
-
-  fetches = [
-    data_layer.input_tensors,
-    output_tensors,
-  ]
-
-  if compute_loss:
-    fetches.append(loss_tensor)
-    total_loss = 0.0
-    total_samples = 0.0
-
-  size_defined = data_layer.get_size_in_samples() is not None
-
-  if size_defined:
-    data_size = data_layer.get_size_in_samples() // \
-                data_layer.params['batch_size']
-    last_batch_size = data_layer.get_size_in_samples() % \
-                      data_layer.params['batch_size']
-
-  if model.on_horovod:
-    worker_id = model.hvd.rank()
-  else:
-    worker_id = dl_id
-
-  cross_over = 0
-  if size_defined:
-    if data_size == 0:
-      raise ValueError(
-        "Batch size is bigger than dataset size: {} > {}".format(
-          data_layer.params['batch_size'], data_layer.get_size_in_samples()
-        )
-      )
-    if last_batch_size != 0:
-      cross_over = 1
-  else:
-    # setting data_size to be infinity and assuming
-    # that tf.errors.OutOfRangeError will be raised
-    data_size = 1000000000000
-
-  for step in range(data_size + cross_over):
-    tm = time.time()
-    try:
-      if compute_loss:
-        inputs, outputs, loss = sess.run(fetches)
-      else:
-        inputs, outputs = sess.run(fetches)
-    except tf.errors.OutOfRangeError:
-      break
-    if step >= bench_start:
-      total_time += time.time() - tm
-
-    # assuming any element of inputs["source_tensors"][ shape[0] is batch size
-    batch_size = inputs["source_tensors"][0].shape[0]
-
-    if compute_loss:
-      total_loss += loss * batch_size
-      total_samples += batch_size
-
-    if size_defined and step == data_size:
-      inputs["source_tensors"] = model.clip_last_batch(
-        inputs["source_tensors"], last_batch_size,
-      )
-      if 'target_tensors' in inputs:
-        inputs["target_tensors"] = model.clip_last_batch(
-          inputs["target_tensors"], last_batch_size,
-        )
-      outputs = model.clip_last_batch(outputs, last_batch_size)
-
-    if mode == 'eval':
-      results_per_batch.append(model.evaluate(inputs, outputs))
-    elif mode == 'infer':
-      results_per_batch.append(model.infer(inputs, outputs))
-    else:
-      raise ValueError("Unknown mode: {}".format(mode))
-
-    if verbose:
-      if size_defined:
-        if data_size > 10 and step % (data_size // 10) == 0:
-          deco_print("Processed {}/{} batches on worker {}".format(
-            step + 1, data_size, worker_id))
-      else:
-        deco_print("Processed {} batches".format(step + 1), end='\r')
-
-  if verbose:
-    if step > bench_start:
-      deco_print(
-        "Avg time per step: {:.3}s on worker {}".format(
-          1.0 * total_time / (step - bench_start), worker_id),
-      )
-    else:
-      deco_print(
-        "Not enough steps for benchmarking on worker {}".format(worker_id)
-      )
-
-  if compute_loss:
-    return results_per_batch, total_loss, total_samples
   else:
     return results_per_batch
 

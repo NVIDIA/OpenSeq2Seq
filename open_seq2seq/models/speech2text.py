@@ -120,13 +120,21 @@ class Speech2Text(EncoderDecoderModel):
     )
     for sample_id in range(len(decoded_texts)):
       preds.append("".join(decoded_texts[sample_id]))
-    return preds
+    return preds, input_values['source_ids']
 
   def finalize_inference(self, results_per_batch, output_file):
     preds = []
+    ids = []
 
-    for result in results_per_batch:
+    for result, idx in results_per_batch:
       preds.extend(result)
+      ids.extend(idx)
+
+    preds = np.array(preds)
+    ids = np.hstack(ids)
+    # restoring the correct order
+    preds = preds[np.argsort(ids)]
+
     pd.DataFrame(
       {
         'wav_filename': self.get_data_layer().all_files,
