@@ -25,6 +25,16 @@ and skip the next section that describes speech-specific installation process.
 If you need speech models, then you have to build TensorFlow from sources as described 
 in the next section.
 
+Running tests
+-------------
+In order to check that everything is installed correctly it is recommended to
+run unittests (you need to have at least two GPUs in order to do that)::
+
+   python -m unittest discover -s open_seq2seq -p '*_test.py'
+
+It might take up to 10 minutes. You should see a lot of output, but no errors
+in the end.
+
 .. _installation_speech:
 
 OpenSeq2Seq for speech
@@ -111,15 +121,6 @@ Horovod installation
 
 After TensorFlow and all other requirements are installed, you can also follow
 `these steps <https://github.com/uber/horovod#install>`_ to enable
-Horovod-based distributed training.
-
-Running tests
--------------
-In order to check that everything is installed correctly it is recommended to
-run unittests (you need to have at least two GPUs in order to do that)::
-
-   python -m unittest discover -s open_seq2seq -p '*_test.py'
-
-It might take up to 10 minutes. You should see a lot of output, but no errors
-in the end.
+Horovod-based distributed training. You also need to install:
+```pip install mpi4py```
 
