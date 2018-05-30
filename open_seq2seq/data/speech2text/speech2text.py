@@ -197,10 +197,11 @@ class Speech2TextDataLayer(DataLayer):
     """Parses audio from file and returns array of audio features.
 
     Args:
-      audio_filename: audio file name.
+      id_and_audio_filename: tuple of sample id and corresponding audio file name.
 
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
+      sample id.
     """
     idx, audio_filename = id_and_audio_filename
     pad_to = self.params.get('pad_to', 8)
