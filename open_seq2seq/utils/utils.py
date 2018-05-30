@@ -77,6 +77,108 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
+def iterate_data(model, sess, compute_loss, mode, verbose):
+  total_time = 0.0
+  bench_start = model.params.get('bench_start', 10)
+  results_per_batch = []
+
+  size_defined = model.get_data_layer().get_size_in_samples() is not None
+  if size_defined:
+    dl_sizes = []
+
+  if compute_loss:
+    total_loss = 0.0
+
+  total_samples = []
+  fetches = []
+
+  for worker_id in range(model.num_gpus):
+    cur_fetches = [
+      model.get_data_layer(worker_id).input_tensors,
+      model.get_output_tensors(worker_id),
+    ]
+    if compute_loss:
+      cur_fetches.append(model.eval_losses[worker_id])
+    fetches.append(cur_fetches)
+    total_samples.append(0.0)
+    if size_defined:
+      dl_sizes.append(model.get_data_layer(worker_id).get_size_in_samples)
+
+  sess.run([model.get_data_layer(i).iterator.initializer
+            for i in range(model.num_gpus)])
+
+  step = 0
+
+  while True:
+    tm = time.time()
+    if size_defined:
+      fetches_vals = sess.run(fetches)
+    else:
+      # if size is not defined we have to process fetches sequentially, so not
+      # to lose data when exception is thrown on one data layer
+      fetches_vals = []
+      for one_fetch in fetches:
+        try:
+          fetches_vals.append(sess.run(one_fetch))
+        except tf.errors.OutOfRangeError:
+          continue
+
+    if step >= bench_start:
+      total_time += time.time() - tm
+
+    skip_workers = 0
+
+    # looping over num_gpus. In Horovod case this loop is "dummy",
+    # since num_gpus = 1
+    for worker_id, fetches_val in enumerate(fetches_vals):
+      if compute_loss:
+        inputs, outputs, loss = fetches_val
+      else:
+        inputs, outputs = fetches_val
+
+      # assuming any element of inputs["source_tensors"] .shape[0] is batch size
+      batch_size = inputs["source_tensors"][0].shape[0]
+      total_samples[worker_id] += batch_size
+
+      if size_defined:
+        # this data_layer is finished
+        if total_samples[worker_id] - batch_size > dl_sizes[worker_id]:
+          skip_workers += 1
+          continue
+
+        # this data_layer is at the last batch with few more elements, cutting
+        if total_samples[worker_id] > dl_sizes[worker_id]:
+          last_batch_size = dl_sizes[worker_id] % batch_size
+          inputs["source_tensors"] = model.clip_last_batch(
+            inputs["source_tensors"], last_batch_size,
+          )
+          if 'target_tensors' in inputs:
+            inputs["target_tensors"] = model.clip_last_batch(
+              inputs["target_tensors"], last_batch_size,
+            )
+          outputs = model.clip_last_batch(outputs, last_batch_size)
+
+      if compute_loss:
+        total_loss += loss * batch_size
+
+      if mode == 'eval':
+        results_per_batch.append(model.evaluate(inputs, outputs))
+      elif mode == 'infer':
+        results_per_batch.append(model.infer(inputs, outputs))
+      else:
+        raise ValueError("Unknown mode: {}".format(mode))
+
+    if len(fetches_vals) == 0 or skip_workers == model.num_gpus:
+      break
+    step += 1
+
+  if compute_loss:
+    return results_per_batch, total_loss, np.sum(total_samples)
+  else:
+    return results_per_batch
+
+
+
 def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
@@ -129,7 +231,7 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
     if last_batch_size != 0:
       cross_over = 1
   else:
-    # setting data_size to be infinity and assume
+    # setting data_size to be infinity and assuming
     # that tf.errors.OutOfRangeError will be raised
     data_size = 1000000000000
 
@@ -195,31 +297,14 @@ def iterate_data_layer(model, dl_id, sess, compute_loss, mode, verbose):
 
 
 def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
-  if model.on_horovod:
-    if compute_loss:
-      results_per_batch, total_loss, total_samples = iterate_data_layer(
-        model, 0, sess, compute_loss, mode, verbose,
-      )
-    else:
-      results_per_batch = iterate_data_layer(
-        model, 0, sess, compute_loss, mode, verbose,
-      )
+  if compute_loss:
+    results_per_batch, total_loss, total_samples = iterate_data(
+      model, sess, compute_loss, mode, verbose,
+    )
   else:
-    results_per_batch_all = []
-    total_loss_all = []
-    total_samples_all = []
-    for dl_id in range(model.num_gpus):
-      if compute_loss:
-        results_per_batch, total_loss, total_samples = iterate_data_layer(
-          model, dl_id, sess, compute_loss, mode, verbose,
-        )
-        total_loss_all.append(total_loss)
-        total_samples_all.append(total_samples)
-      else:
-        results_per_batch = iterate_data_layer(
-          model, dl_id, sess, compute_loss, mode, verbose,
-        )
-      results_per_batch_all.append(results_per_batch)
+    results_per_batch = iterate_data(
+      model, sess, compute_loss, mode, verbose,
+    )
 
   if model.on_horovod:
     import mpi4py.rc
@@ -239,11 +324,11 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       else:
         return None
 
-  if compute_loss:
-    total_loss = np.sum(total_loss_all)
-    total_samples = np.sum(total_samples_all)
-  # moving GPU dimension into the batch dimension
-  results_per_batch = [item for sl in results_per_batch_all for item in sl]
+    if compute_loss:
+      total_loss = np.sum(total_loss_all)
+      total_samples = np.sum(total_samples_all)
+    # moving GPU dimension into the batch dimension
+    results_per_batch = [item for sl in results_per_batch_all for item in sl]
 
   if compute_loss:
     total_loss /= total_samples
