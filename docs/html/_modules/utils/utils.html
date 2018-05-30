@@ -303,10 +303,9 @@
           <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">),</span> <span class="n">worker_id</span><span class="p">),</span>
       <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-        <span class="n">deco_print</span><span class="p">(</span>
-          <span class="s2">&quot;Not enough steps for benchmarking on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
-        <span class="p">)</span>
+      <span class="n">deco_print</span><span class="p">(</span>
+        <span class="s2">&quot;Not enough steps for benchmarking on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+      <span class="p">)</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span>

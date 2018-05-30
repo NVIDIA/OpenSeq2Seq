@@ -160,6 +160,7 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
@@ -212,7 +213,13 @@
     <span class="n">total</span> <span class="o">=</span> <span class="n">logits</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">top1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="n">labels</span><span class="p">)</span>
     <span class="n">top5</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">labels</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">argpartition</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="o">-</span><span class="mi">5</span><span class="p">)[:,</span> <span class="o">-</span><span class="mi">5</span><span class="p">:])</span>
-    <span class="k">return</span> <span class="n">total</span><span class="p">,</span> <span class="n">top1</span><span class="p">,</span> <span class="n">top5</span></div></div>
+    <span class="k">return</span> <span class="n">total</span><span class="p">,</span> <span class="n">top1</span><span class="p">,</span> <span class="n">top5</span></div>
+
+<div class="viewcode-block" id="Image2Label.get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.image2label.Image2Label.get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns number of images in current batch, i.e. batch size.&quot;&quot;&quot;</span>
+    <span class="n">data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+    <span class="n">num_images</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">num_images</span></div></div>
 </pre></div>
 
            </div>
