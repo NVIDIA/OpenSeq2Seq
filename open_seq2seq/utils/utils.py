@@ -209,35 +209,22 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
       model, sess, compute_loss, mode, verbose,
     )
 
-  if model.on_horovod:
-    import mpi4py.rc
-    mpi4py.rc.initialize = False
-    from mpi4py import MPI
+  if compute_loss:
+    total_samples = collect_if_horovod(total_samples, model.hvd, 'sum')
+    total_loss = collect_if_horovod(total_loss, model.hvd, 'sum')
+  results_per_batch = collect_if_horovod(results_per_batch, model.hvd, 'gather')
 
+  if results_per_batch is None:
+    # returning dummy tuple of correct shape if not in master worker
     if compute_loss:
-      total_samples_all = MPI.COMM_WORLD.gather(total_samples)
-      total_loss_all = MPI.COMM_WORLD.gather(total_loss)
-    results_per_batch_all = MPI.COMM_WORLD.gather(results_per_batch)
-
-    MPI.COMM_WORLD.Barrier()
-    if MPI.COMM_WORLD.Get_rank() != 0:
-      # returning dummy tuple of correct shape
-      if compute_loss:
-        return None, None
-      else:
-        return None
-
-    if compute_loss:
-      total_loss = np.sum(total_loss_all)
-      total_samples = np.sum(total_samples_all)
-    # moving GPU dimension into the batch dimension
-    results_per_batch = [item for sl in results_per_batch_all for item in sl]
+      return None, None
+    else:
+      return None
 
   if compute_loss:
-    total_loss /= total_samples
-    return results_per_batch, total_loss
-
-  return results_per_batch
+    return results_per_batch, total_loss / total_samples
+  else:
+    return results_per_batch
 
 
 def log_summaries_from_dict(dict_to_log, output_dir, step):
