@@ -92,6 +92,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
   total_samples = []
   fetches = []
 
+  # on horovod num_gpus is 1
   for worker_id in range(model.num_gpus):
     cur_fetches = [
       model.get_data_layer(worker_id).input_tensors,
@@ -99,19 +100,25 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     ]
     if compute_loss:
       cur_fetches.append(model.eval_losses[worker_id])
-    fetches.append(cur_fetches)
-    total_samples.append(0.0)
     if size_defined:
       dl_sizes.append(model.get_data_layer(worker_id).get_size_in_samples())
+    try:
+      total_objects = 0.0
+      cur_fetches.append(model.get_num_objects_per_step(worker_id))
+    except NotImplementedError:
+      total_objects = None
+      deco_print("WARNING: Can't compute number of objects per step, since "
+                 "train model does not define get_num_objects_per_step method.")
+    fetches.append(cur_fetches)
+    total_samples.append(0.0)
 
   sess.run([model.get_data_layer(i).iterator.initializer
             for i in range(model.num_gpus)])
 
   step = 0
-
   if verbose:
     if model.on_horovod:
-      ending = "on worker {}".format(model.hvd.rank())
+      ending = " on worker {}".format(model.hvd.rank())
     else:
       ending = ""
 
@@ -138,9 +145,12 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     # since num_gpus = 1
     for worker_id, fetches_val in enumerate(fetches_vals):
       if compute_loss:
-        inputs, outputs, loss = fetches_val
+        inputs, outputs, loss = fetches_val[:3]
       else:
-        inputs, outputs = fetches_val
+        inputs, outputs = fetches_val[:2]
+
+      if total_objects is not None:
+        total_objects += np.sum(fetches_val[-1])
 
       # assuming any element of inputs["source_tensors"] .shape[0] is batch size
       batch_size = inputs["source_tensors"][0].shape[0]
@@ -171,8 +181,9 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 
     if verbose:
       if size_defined:
-        data_size = np.sum(dl_sizes)
-        if data_size > 10 and step % (data_size // 10) == 0:
+        data_size = int(np.ceil(np.sum(dl_sizes) /
+                                model.params['batch_size_per_gpu']))
+        if data_size > 10 and (step * model.num_gpus) % (data_size // 10) == 0:
           deco_print("Processed {}/{} batches{}".format(
             (step + 1) * model.num_gpus, data_size, ending))
       else:
@@ -188,6 +199,10 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
         "Avg time per step: {:.3}s{}".format(
           1.0 * total_time / (step - bench_start), ending),
       )
+      if total_objects is not None:
+        avg_objects = 1.0 * total_objects / total_time
+        deco_print("Avg objects per second{}: {:.3f}".format(avg_objects,
+                                                             ending))
     else:
       deco_print(
         "Not enough steps for benchmarking{}".format(ending)

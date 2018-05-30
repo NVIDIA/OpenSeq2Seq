@@ -143,7 +143,7 @@ class Speech2Text(EncoderDecoderModel):
       columns=['wav_filename', 'predicted_transcript'],
     ).to_csv(output_file, index=False)
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of audio frames in current batch."""
     data_layer = self.get_data_layer(worker_id)
     num_frames = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])

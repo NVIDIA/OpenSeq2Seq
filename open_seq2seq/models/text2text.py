@@ -214,7 +214,7 @@ class Text2Text(EncoderDecoderModel):
 
     return {}
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of source tokens + number of target tokens in batch."""
     data_layer = self.get_data_layer(worker_id)
     # sum of source length in batch
