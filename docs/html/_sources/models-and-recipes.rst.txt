@@ -18,7 +18,7 @@ commands (don't forget to substitute valid config_file path there).
 
 With Horovod (highly recommended when using multiple GPUs)::
 
-    mpirun --allow-run-as-root --mca orte_base_help_aggregate 0 -mca btl ^openib -np 4 -H localhost:4 -bind-to none -map-by slot -x LD_LIBRARY_PATH python run.py --config_file=... --mode=train_eval --enable_logs
+    mpirun --allow-run-as-root --mca orte_base_help_aggregate 0 -mca btl ^openib -np 4 -H localhost:4 -bind-to none -map-by slot -x LD_LIBRARY_PATH python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
 
 Without Horovod::
 
