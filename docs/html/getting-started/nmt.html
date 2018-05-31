@@ -180,77 +180,77 @@
 <h2>Toy task - reversing sequences<a class="headerlink" href="#toy-task-reversing-sequences" title="Permalink to this headline">¶</a></h2>
 <p>You can tests how things work on the following end-to-end toy task.
 First, execute:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">create_toy_data</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">create_toy_data</span>
 </pre></div>
 </div>
-<p>This should create <code class="docutils literal"><span class="pre">toy_text_data</span></code> folder on disk. This is a data for the toy
+<p>This should create <code class="docutils literal notranslate"><span class="pre">toy_text_data</span></code> folder on disk. This is a data for the toy
 machine translation problem where the task is to learn to reverse sequences.</p>
-<p>For example, if src=``α α ζ ε ε κ δ ε κ α ζ`` then, &#8220;correct&#8221; translation is tgt=``ζ α κ ε δ κ ε ε ζ α α``.</p>
+<p>For example, if src=``α α ζ ε ε κ δ ε κ α ζ`` then, “correct” translation is tgt=``ζ α κ ε δ κ ε ε ζ α α``.</p>
 <p>To train a simple, RNN-based encoder-decoder model with attention, execute the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>This will train a model and perform evaluation on the &#8220;dev&#8221; dataset in parallel.
+<p>This will train a model and perform evaluation on the “dev” dataset in parallel.
 To view the progress of training, start Tensorboard:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=.</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=.</span>
 </pre></div>
 </div>
-<p>To run &#8220;inference&#8221; mode on the &#8220;test&#8221; execute the following command:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
+<p>To run “inference” mode on the “test” execute the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
 </pre></div>
 </div>
-<p>Once, finished, you will get inference results in <code class="docutils literal"><span class="pre">output.txt</span></code> file. You can measure how
-well it did by launching Mosses&#8217;s script:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">toy_text_data</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">target</span><span class="o">.</span><span class="n">txt</span> <span class="o">&lt;</span> <span class="n">output</span><span class="o">.</span><span class="n">txt</span>
+<p>Once, finished, you will get inference results in <code class="docutils literal notranslate"><span class="pre">output.txt</span></code> file. You can measure how
+well it did by launching Mosses’s script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">toy_text_data</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">target</span><span class="o">.</span><span class="n">txt</span> <span class="o">&lt;</span> <span class="n">output</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>You should get above 0.9 (which corresponds to BLEU score of 90).
-To train a &#8220;Transformer&#8221;-based model (see <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> paper) use <code class="docutils literal"><span class="pre">example_configs/nmt_reversal-TT.py</span></code>
+To train a “Transformer”-based model (see <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> paper) use <code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TT.py</span></code>
 configuration file.</p>
 <div class="section" id="feeling-adventurous">
 <h3>Feeling adventurous?<a class="headerlink" href="#feeling-adventurous" title="Permalink to this headline">¶</a></h3>
 <p>One of the main goals of OpenSeq2Seq is to allow you easily experiment with different architectures. Try out these configurations:</p>
 <ol class="arabic simple">
-<li><code class="docutils literal"><span class="pre">example_configs/nmt_reversal-TR.py</span></code> - a model which uses Transformer&#8217;s encoder and RNN decoder with attention</li>
-<li><code class="docutils literal"><span class="pre">example_configs/nmt_reversal-RT.py</span></code> - a model which uses RNN-based encoder Transformer-based decoder</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TR.py</span></code> - a model which uses Transformer’s encoder and RNN decoder with attention</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-RT.py</span></code> - a model which uses RNN-based encoder Transformer-based decoder</li>
 </ol>
 </div>
 </div>
 <div class="section" id="creating-english-to-german-translator">
 <h2>Creating English-to-German translator<a class="headerlink" href="#creating-english-to-german-translator" title="Permalink to this headline">¶</a></h2>
 <p>Execute the following script to get WMT data:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">get_wmt16_en_dt</span><span class="o">.</span><span class="n">sh</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">get_wmt16_en_dt</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 <p>This will take a while as a lot of data needs to be downloaded and pre-processed.
-After, this is is finished you can try training a &#8220;real&#8221; model very much like you did above for the toy task:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+After, this is is finished you can try training a “real” model very much like you did above for the toy task:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
-<p>Before you execute this script, make sure that you&#8217;ve changed <code class="docutils literal"><span class="pre">data_root</span></code> inside <code class="docutils literal"><span class="pre">en-de-nmt-small.py</span></code> to point to the correct WMT data location.
+<p>Before you execute this script, make sure that you’ve changed <code class="docutils literal notranslate"><span class="pre">data_root</span></code> inside <code class="docutils literal notranslate"><span class="pre">en-de-nmt-small.py</span></code> to point to the correct WMT data location.
 This configuration will take a while to train on a single system. If your GPU does not have enough memory
-try reducing the <code class="docutils literal"><span class="pre">batch_size_per_gpu</span></code> parameter. Also, you might want to disable parallel evaluation by using <code class="docutils literal"><span class="pre">--mode=train</span></code>.
-You can adjusted <code class="docutils literal"><span class="pre">num_gpus</span></code> parameter to train on more than one GPU if available.</p>
+try reducing the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code> parameter. Also, you might want to disable parallel evaluation by using <code class="docutils literal notranslate"><span class="pre">--mode=train</span></code>.
+You can adjusted <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> parameter to train on more than one GPU if available.</p>
 <div class="section" id="run-inference">
 <h3>Run inference<a class="headerlink" href="#run-inference" title="Permalink to this headline">¶</a></h3>
 <p>Once training is done, you can run inference:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">file_with_BPE_segmentation</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">file_with_BPE_segmentation</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
 </pre></div>
 </div>
 <p>Note that because BPE-based vocabularies were used during training, the results will contain BPE segmentation.
-Also, make sure you use only 1 GPU for inference (<code class="docutils literal"><span class="pre">-num_gpus=1</span></code>) because otherwise the order of lines in output file is not defined.</p>
+Also, make sure you use only 1 GPU for inference (<code class="docutils literal notranslate"><span class="pre">-num_gpus=1</span></code>) because otherwise the order of lines in output file is not defined.</p>
 </div>
 <div class="section" id="cleaning-bpe-segmentation">
 <h3>Cleaning BPE segmentation<a class="headerlink" href="#cleaning-bpe-segmentation" title="Permalink to this headline">¶</a></h3>
 <p>Before computing BLEU scores you need to remove BPE segmentation:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">file_with_BPE_segmentation</span><span class="o">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">sed</span> <span class="o">-</span><span class="n">r</span> <span class="s1">&#39;s/(@@ )|(@@ ?$)//g&#39;</span> <span class="o">&gt;</span> <span class="n">cleaned_file</span><span class="o">.</span><span class="n">txt</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">file_with_BPE_segmentation</span><span class="o">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">sed</span> <span class="o">-</span><span class="n">r</span> <span class="s1">&#39;s/(@@ )|(@@ ?$)//g&#39;</span> <span class="o">&gt;</span> <span class="n">cleaned_file</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="computing-bleu-scores">
 <h3>Computing BLEU scores<a class="headerlink" href="#computing-bleu-scores" title="Permalink to this headline">¶</a></h3>
-<p>Run <code class="docutils literal"><span class="pre">`multi-blue.perl`</span></code> script on cleaned data:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">newstest2014</span><span class="o">.</span><span class="n">tok</span><span class="o">.</span><span class="n">de</span> <span class="o">&lt;</span> <span class="n">cleaned_file</span><span class="o">.</span><span class="n">txt</span>
+<p>Run <code class="docutils literal notranslate"><span class="pre">`multi-blue.perl`</span></code> script on cleaned data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">newstest2014</span><span class="o">.</span><span class="n">tok</span><span class="o">.</span><span class="n">de</span> <span class="o">&lt;</span> <span class="n">cleaned_file</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
 <p>You should get a BLEU score above 20 for this model on newstest2014.tok.de.</p>
@@ -311,7 +311,7 @@ Also, make sure you use only 1 GPU for inference (<code class="docutils literal"
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
