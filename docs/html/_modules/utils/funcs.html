@@ -159,6 +159,7 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">from</span> <span class="nn">.hooks</span> <span class="k">import</span> <span class="n">PrintSamplesHook</span><span class="p">,</span> <span class="n">RunEvaluationHook</span><span class="p">,</span> <span class="n">PrintLossAndTimeHook</span><span class="p">,</span> \
@@ -244,6 +245,15 @@
   <span class="n">scaffold</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Scaffold</span><span class="p">(</span>
     <span class="n">local_init_op</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">(),</span> <span class="n">init_data_layer</span><span class="p">)</span>
   <span class="p">)</span>
+  <span class="n">fetches</span> <span class="o">=</span> <span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">train_op</span><span class="p">]</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="n">total_objects</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="c1"># on horovod num_gpus is 1</span>
+    <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
+      <span class="n">fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">get_num_objects_per_step</span><span class="p">(</span><span class="n">worker_id</span><span class="p">))</span>
+  <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;WARNING: Can&#39;t compute number of objects per step, since &quot;</span>
+               <span class="s2">&quot;train model does not define get_num_objects_per_step method.&quot;</span><span class="p">)</span>
 
   <span class="c1"># starting training</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MonitoredTrainingSession</span><span class="p">(</span>
@@ -262,11 +272,14 @@
         <span class="k">break</span>
       <span class="n">tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
       <span class="k">try</span><span class="p">:</span>
-        <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">train_op</span><span class="p">)</span>
+        <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span>
       <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
         <span class="k">break</span>
       <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
         <span class="n">total_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tm</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
+            <span class="n">total_objects</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
       <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
 
   <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -274,13 +287,22 @@
   <span class="k">else</span><span class="p">:</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training&quot;</span><span class="p">)</span>
 
+  <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+    <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot; on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">())</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
   <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
     <span class="n">deco_print</span><span class="p">(</span>
-      <span class="s2">&quot;Avg time per step: </span><span class="si">{:.3}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">))</span>
+      <span class="s2">&quot;Avg time per step</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+        <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">))</span>
     <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span>
+        <span class="s2">&quot;Avg objects per second</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+          <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span><span class="p">)</span>
+      <span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking&quot;</span><span class="p">)</span></div>
+    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>

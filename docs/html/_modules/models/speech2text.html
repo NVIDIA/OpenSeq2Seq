@@ -288,7 +288,13 @@
         <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
       <span class="p">},</span>
       <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">],</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div></div>
+    <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Speech2Text.get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns number of audio frames in current batch.&quot;&quot;&quot;</span>
+    <span class="n">data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+    <span class="n">num_frames</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">num_frames</span></div></div>
 </pre></div>
 
            </div>

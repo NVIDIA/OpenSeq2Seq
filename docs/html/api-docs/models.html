@@ -488,6 +488,26 @@ data layer for corresponding tower/GPU.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="models.model.Model.get_num_objects_per_step">
+<code class="descname">get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Define this method if you need benchmarking functionality.
+For example, for translation models, this method should return number of
+tokens in current batch, for image recognition model should return number
+of images in current batch.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) – id of the worker to get data layer from
+(not used for Horovod).</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">tf.Tensor with number of objects in batch.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="models.model.Model.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.get_optional_params" title="Permalink to this definition">¶</a></dt>
@@ -981,6 +1001,12 @@ be saved to.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="models.speech2text.Speech2Text.get_num_objects_per_step">
+<code class="descname">get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns number of audio frames in current batch.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="models.speech2text.Speech2Text.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.infer" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is analogous to <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
@@ -1181,6 +1207,12 @@ be saved to.</li>
 </dd></dl>
 
 <dl class="method">
+<dt id="models.text2text.Text2Text.get_num_objects_per_step">
+<code class="descname">get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns number of source tokens + number of target tokens in batch.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="models.text2text.Text2Text.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.infer" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method is analogous to <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
@@ -1367,6 +1399,12 @@ equal to number of evaluation batches).</td>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.image2label.Image2Label.get_num_objects_per_step">
+<code class="descname">get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label.get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label.get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns number of images in current batch, i.e. batch size.</p>
 </dd></dl>
 
 <dl class="method">
