@@ -461,8 +461,8 @@ def optimize_loss(loss,
         # adding additional summary
         if "larc_summaries" in summaries:
           summary.scalar('larc_grad_update/{}'.format(v.name), larc_grad_update)
-          summary.scalar("larc_grad_norm/{}".format(v.name),
-                         tf.cast(g_norm, var_dtype) * larc_grad_update)
+          summary.scalar("larc_final_lr/{}".format(v.name),
+                         tf.cast(lr, var_dtype) * larc_grad_update)
 
     # Create gradient updates.
     grad_updates = opt.apply_gradients(
