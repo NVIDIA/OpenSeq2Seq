@@ -32,7 +32,7 @@ in the future.
 
 
 ## Requirements
-1. TensorFlow 1.7
+1. TensorFlow >= 1.7
 2. Horovod >= 0.12.0 (using Horovod is not required, but is highly recommended for multi-GPU setup)
 
 ## Acknowledgments
