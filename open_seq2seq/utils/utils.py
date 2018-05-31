@@ -116,6 +116,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
             for i in range(model.num_gpus)])
 
   step = 0
+  processed_batches = 0
   if verbose:
     if model.on_horovod:
       ending = " on worker {}".format(model.hvd.rank())
@@ -169,6 +170,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
             inputs[key] = model.clip_last_batch(value, last_batch_size)
           outputs = model.clip_last_batch(outputs, last_batch_size)
 
+      processed_batches += 1
+
       if compute_loss:
         total_loss += loss * batch_size
 
@@ -179,30 +182,32 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       else:
         raise ValueError("Unknown mode: {}".format(mode))
 
-    if verbose:
-      if size_defined:
-        data_size = int(np.ceil(np.sum(dl_sizes) /
-                                model.params['batch_size_per_gpu']))
-        if data_size > 10 and (step * model.num_gpus) % (data_size // 10) == 0:
-          deco_print("Processed {}/{} batches{}".format(
-            (step + 1) * model.num_gpus, data_size, ending))
-      else:
-        deco_print("Processed {} batches{}".format(step + 1, ending), end='\r')
-
     if len(fetches_vals) == 0 or skip_workers == model.num_gpus:
       break
+
+    if verbose:
+      if size_defined:
+        data_size = int(np.sum(np.ceil(np.array(dl_sizes) /
+                                       model.params['batch_size_per_gpu'])))
+        if step == 0 or (data_size > 10 and
+                         processed_batches % (data_size // 10) == 0):
+          deco_print("Processed {}/{} batches{}".format(
+            processed_batches, data_size, ending))
+      else:
+        deco_print("Processed {} batches{}".format(processed_batches, ending),
+                   end='\r')
     step += 1
 
   if verbose:
     if step > bench_start:
       deco_print(
-        "Avg time per step: {:.3}s{}".format(
-          1.0 * total_time / (step - bench_start), ending),
+        "Avg time per step{}: {:.3}s".format(
+          ending, 1.0 * total_time / (step - bench_start)),
       )
       if total_objects is not None:
         avg_objects = 1.0 * total_objects / total_time
-        deco_print("Avg objects per second{}: {:.3f}".format(avg_objects,
-                                                             ending))
+        deco_print("Avg objects per second{}: {:.3f}".format(ending,
+                                                             avg_objects))
     else:
       deco_print(
         "Not enough steps for benchmarking{}".format(ending)
