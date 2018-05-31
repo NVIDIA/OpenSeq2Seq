@@ -123,12 +123,12 @@ def _central_crop(image, crop_height, crop_width):
       image, [crop_top, crop_left, 0], [crop_height, crop_width, -1])
 
 
-def _mean_image_subtraction(image, means, num_channels):
-  """Subtracts the given means from each image channel.
+def _mean_image_subtraction_and_normalization(image, means, num_channels):
+  """Subtracts the given means from each image channel and divides by 127.5.
 
   For example:
     means = [123.68, 116.779, 103.939]
-    image = _mean_image_subtraction(image, means)
+    image = _mean_image_subtraction_and_normalization(image, means)
 
   Note that the rank of `image` must be known.
 
@@ -138,7 +138,7 @@ def _mean_image_subtraction(image, means, num_channels):
     num_channels: number of color channels in the image that will be distorted.
 
   Returns:
-    the centered image.
+    the centered image and normalized image.
 
   Raises:
     ValueError: If the rank of `image` is unknown, if `image` has a rank other
@@ -154,7 +154,7 @@ def _mean_image_subtraction(image, means, num_channels):
   # We have a 1-D tensor of means; convert to 3-D.
   means = tf.expand_dims(tf.expand_dims(means, 0), 0)
 
-  return image - means
+  return (image - means) / 127.5
 
 
 def _smallest_size_at_least(height, width, resize_min):
@@ -261,7 +261,8 @@ def preprocess_image(image_buffer, bbox, output_height, output_width,
 
   image.set_shape([output_height, output_width, num_channels])
 
-  return _mean_image_subtraction(image, _CHANNEL_MEANS, num_channels)
+  return _mean_image_subtraction_and_normalization(image, _CHANNEL_MEANS,
+                                                   num_channels)
 
 
 def _parse_example_proto(example_serialized):
