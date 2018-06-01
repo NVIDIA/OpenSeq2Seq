@@ -3,7 +3,7 @@ from open_seq2seq.encoders.alexnet_encoder import AlexNetEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
-from open_seq2seq.optimizers.lr_policies import piecewise_constant
+from open_seq2seq.optimizers.lr_policies import poly_decay
 import tensorflow as tf
 
 
@@ -29,18 +29,17 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": piecewise_constant,
+  "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.02,
-    "boundaries": [30, 60, 80, 90],
-    "decay_rates": [0.1, 0.01, 0.001, 1e-4],
+    "power": 1.0,
   },
 
   "initializer": tf.variance_scaling_initializer,
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 0.0001,
+    'scale': 0.0005,
   },
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
