@@ -35,6 +35,21 @@ from six.moves import range
 import tensorflow as tf
 
 
+def conv(inputs, filters, kernel_size,
+         data_format, regularizer, strides=(1, 1), padding="SAME"):
+  output = tf.layers.conv2d(
+    inputs=inputs, filters=filters, kernel_size=kernel_size, strides=strides,
+    padding=padding, use_bias=True,
+    data_format=data_format, kernel_regularizer=regularizer)
+  output = tf.nn.relu(output)
+  return output
+
+
+def pool(inputs, pool_size, data_format, strides=(2, 2), padding='VALID'):
+  return tf.layers.max_pooling2d(inputs, pool_size=pool_size, strides=strides,
+                                 padding=padding, data_format=data_format)
+
+
 ################################################################################
 # Convenience functions for building the ResNet model.
 ################################################################################

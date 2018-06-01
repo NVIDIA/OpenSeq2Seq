@@ -26,7 +26,7 @@ To view the progress of training, start Tensorboard::
 
 To run "inference" mode on the "test" execute the following command::
 
-  python run.py --config_file=example_configs/text2text/nmt-reversal-RR.py --mode=infer --infer_output_file=output.txt
+  python run.py --config_file=example_configs/text2text/nmt-reversal-RR.py --mode=infer --infer_output_file=output.txt --num_gpus=1
 
 Once, finished, you will get inference results in ``output.txt`` file. You can measure how
 well it did by launching Mosses's script::
@@ -71,9 +71,10 @@ Run inference
 
 Once training is done, you can run inference::
 
-    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt
+    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt --num_gpus=1
 
 Note that because BPE-based vocabularies were used during training, the results will contain BPE segmentation.
+Also, make sure you use only 1 GPU for inference (``-num_gpus=1``) because otherwise the order of lines in output file is not defined.
 
 *************************
 Cleaning BPE segmentation

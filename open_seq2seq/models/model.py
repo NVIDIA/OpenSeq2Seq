@@ -171,7 +171,7 @@ class Model:
         Note that it works in addition to any other optimization algorithm
         since we treat
         it as adaptive gradient clipping and learning rate adjustment.
-      * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **larc_eta** (float) --- LARC or LARS scaling parameter.
       * **min_update** (float) --- minimal value of the LARC (LARS) update.
       * **epsilon** (float) --- small number added to gradient norm in
         denominator for numerical stability.
