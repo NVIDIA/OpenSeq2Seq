@@ -17,6 +17,7 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
     )
     self._optimizer = optimizer
     self._fp32_to_fp16 = {}
+    self._loss_scaler = None
     if loss_scale is None:
       self._loss_scale = 1.0
     elif isinstance(loss_scale, float):
