@@ -10,23 +10,27 @@ from .automatic_loss_scaler import AutomaticLossScaler
 
 
 class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
-  def __init__(self, optimizer, automatic_loss_scaler=None):
+  def __init__(self, optimizer, loss_scale=None):
     super(MixedPrecisionOptimizerWrapper, self).__init__(
       optimizer._use_locking,
       optimizer._name + '-MP',
     )
     self._optimizer = optimizer
     self._fp32_to_fp16 = {}
-    self._loss_scaler = automatic_loss_scaler
+    if loss_scale is None:
+      self._loss_scale = 1.0
+    elif isinstance(loss_scale, float):
+      self._loss_scale = loss_scale
+    elif isinstance(loss_scale, AutomaticLossScaler):
+      self._loss_scaler = loss_scale
+      self._loss_scale = self._loss_scaler.loss_scale
 
   def compute_gradients(self, loss, var_list=None,
                         gate_gradients=tf.train.Optimizer.GATE_OP,
                         aggregation_method=None,
                         colocate_gradients_with_ops=False,
                         grad_loss=None):
-    if self._loss_scaler:
-      loss *= self._loss_scaler.loss_scale
-
+    loss *= self._loss_scale
     grads_and_vars_fp16 = self._optimizer.compute_gradients(
       loss, var_list=var_list,
       gate_gradients=gate_gradients,
@@ -59,7 +63,7 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
           fp32_grad = tf.cast(grad, tf.float32)
           # adding regularization part with respect to fp32 copy
           if var.name in reg_funcs:
-            fp32_grad += tf.gradients(
+            fp32_grad += self._loss_scale * tf.gradients(
               tf.contrib.layers.apply_regularization(
                 reg_funcs[var.name],
                 [fp32_var],
@@ -70,11 +74,8 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
         else:
           grads_and_vars_fp32.append((grad, var))
 
-    # Unscale gradients if necessary
-    if self._loss_scaler:
-      grads_and_vars_fp32 = _scale_grads(grads_and_vars_fp32,
-                                         1. / self._loss_scaler.loss_scale)
-
+    grads_and_vars_fp32 = _scale_grads(grads_and_vars_fp32,
+                                       1.0 / self._loss_scale)
     return grads_and_vars_fp32
 
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):

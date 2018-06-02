@@ -323,32 +323,24 @@ def optimize_loss(loss,
       variables = vars_.trainable_variables()
 
     if automatic_loss_scaling is not None:
-      if not automatic_loss_scaling in AutomaticLossScaler.SUPPORTED_ALGOS:
+      if automatic_loss_scaling not in AutomaticLossScaler.SUPPORTED_ALGOS:
         raise ValueError("Unknown automatic loss scaling algorithm: %s."
                          % automatic_loss_sclaing)
       if dtype != "mixed":
         raise ValueError("Automatic loss scaling can be used only with "
                          "dtype=mixed.")
-      loss_scaler = AutomaticLossScaler(algorithm=automatic_loss_scaling)
-    else:
-      loss_scaler = None
+      loss_scale = AutomaticLossScaler(algorithm=automatic_loss_scaling)
 
     if dtype == 'mixed':
-      opt = MixedPrecisionOptimizerWrapper(
-        opt,
-        automatic_loss_scaler=loss_scaler,
-      )
+      opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scale)
     if on_horovod:
       opt = DistributedOptimizer(opt)
 
     # Compute gradients.
     gradients = opt.compute_gradients(
-        loss if loss_scale == 1.0 else loss * loss_scale,
-        variables,
-        colocate_gradients_with_ops=colocate_gradients_with_ops)
-
-    if loss_scale != 1.0:
-      gradients = _multiply_gradients_const(gradients, 1.0 / loss_scale)
+      loss, variables,
+      colocate_gradients_with_ops=colocate_gradients_with_ops,
+    )
 
     # Optionally add gradient noise.
     if gradient_noise_scale is not None:
@@ -609,20 +601,6 @@ def _multiply_gradients(grads_and_vars, gradient_multipliers):
       key = var if var in gradient_multipliers else var.name
       multiplier = constant_op.constant(
           gradient_multipliers[key], dtype=dtypes.float32)
-      if isinstance(grad, ops.IndexedSlices):
-        grad_values = grad.values * multiplier
-        grad = ops.IndexedSlices(grad_values, grad.indices, grad.dense_shape)
-      else:
-        grad *= multiplier
-    multiplied_grads_and_vars.append((grad, var))
-  return multiplied_grads_and_vars
-
-
-def _multiply_gradients_const(grads_and_vars, multiplier):
-  """Multiply specified gradients."""
-  multiplied_grads_and_vars = []
-  for grad, var in grads_and_vars:
-    if grad is not None:
       if isinstance(grad, ops.IndexedSlices):
         grad_values = grad.values * multiplier
         grad = ops.IndexedSlices(grad_values, grad.indices, grad.dense_shape)
