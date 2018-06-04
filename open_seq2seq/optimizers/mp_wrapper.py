@@ -90,7 +90,7 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
           if var.name in self._fp32_to_fp16:
             dst_var = self._fp32_to_fp16[var.name]
             apply_ops.append(
-              tf.assign(dst_var, tf.cast(var, tf.float16)))
+              tf.assign(dst_var, tf.saturate_cast(var, tf.float16)))
       if apply_ops:
         return tf.group(apply_ops)
       return update_op
