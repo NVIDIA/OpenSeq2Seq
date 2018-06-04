@@ -50,13 +50,14 @@ base_params = {
     'resnet_size': 50,
     "regularize_bn": False,
   },
-  "decoder": FullyConnectedDecoder,
+   "decoder": FullyConnectedDecoder,
   "decoder_params": {
-    "output_dim": 1001,
+    "output_dim": 1000,
   },
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
     "data_dir": "data/tf-imagenet",
+    "image_size": 224,
   },
 }
