@@ -171,7 +171,7 @@ class Model:
         Note that it works in addition to any other optimization algorithm
         since we treat
         it as adaptive gradient clipping and learning rate adjustment.
-      * **larc_nu** (float) --- LARC or LARS scaling parameter.
+      * **larc_eta** (float) --- LARC or LARS scaling parameter.
       * **min_update** (float) --- minimal value of the LARC (LARS) update.
       * **epsilon** (float) --- small number added to gradient norm in
         denominator for numerical stability.
@@ -275,6 +275,7 @@ class Model:
     self.loss = None
     self.train_op = None
     self.eval_losses = None
+    self._num_objects_per_step = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -338,6 +339,12 @@ class Model:
           self.loss = loss
         if self._mode == "eval":
           self.eval_losses = [loss]
+
+    try:
+      self._num_objects_per_step = [self._get_num_objects_per_step(worker_id)
+                                    for worker_id in range(self.num_gpus)]
+    except NotImplementedError:
+      pass
 
     if self._mode == "train":
       if 'lr_policy' not in self.params:
@@ -621,7 +628,7 @@ class Model:
     else:
       return self.params['dtype']
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Define this method if you need benchmarking functionality.
     For example, for translation models, this method should return number of
     tokens in current batch, for image recognition model should return number
@@ -635,6 +642,12 @@ class Model:
       tf.Tensor with number of objects in batch.
     """
     raise NotImplementedError()
+
+  def get_num_objects_per_step(self, worker_id=0):
+    if self._num_objects_per_step:
+      return self._num_objects_per_step[worker_id]
+    else:
+      raise NotImplementedError()
 
   @property
   def params(self):
