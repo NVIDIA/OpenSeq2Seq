@@ -24,6 +24,8 @@ class ImagenetDataLayer(DataLayer):
     return dict(DataLayer.get_optional_params(), **{
       'num_parallel_calls': int,
       'shuffle_buffer': int,
+      'image_size': int,
+      'num_classes': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -76,7 +78,12 @@ class ImagenetDataLayer(DataLayer):
     dataset = dataset.repeat()
 
     dataset = dataset.map(
-      lambda value: parse_record(value, self.params['mode'] == 'train'),
+      lambda value: parse_record(
+        raw_record=value,
+        is_training=self.params['mode'] == 'train',
+        image_size=self.params.get('image_size', 224),
+        num_classes=self.params.get('num_classes', 1000),
+      ),
       num_parallel_calls=self.params.get('num_parallel_calls', 16),
     )
 

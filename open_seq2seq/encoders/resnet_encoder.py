@@ -135,6 +135,7 @@ class ResNetEncoder(Encoder):
         regularizer=regularizer, bn_regularizer=bn_regularizer,
         bn_momentum=bn_momentum, bn_epsilon=bn_epsilon,
       )
+      print(inputs.shape)
     if version == 2:
       inputs = batch_norm(inputs, training, data_format,
                           regularizer=bn_regularizer,
