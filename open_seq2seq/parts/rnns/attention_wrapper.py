@@ -32,6 +32,7 @@ from tensorflow.python.framework import ops
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.layers import base as layers_base
 from tensorflow.python.layers import core as layers_core
+from tensorflow.python.layers.convolutional import Conv1D
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import check_ops
 from tensorflow.python.ops import clip_ops
@@ -57,9 +58,10 @@ __all__ = [
     "monotonic_attention",
     "BahdanauMonotonicAttention",
     "LuongMonotonicAttention",
+    "LocationSensitiveAttention"
 ]
 
-
+array_ops
 _zero_state_tensors = rnn_cell_impl._zero_state_tensors  # pylint: disable=protected-access
 
 
@@ -582,6 +584,187 @@ class BahdanauAttention(_BaseAttentionMechanism):
     next_state = alignments
     return alignments, next_state
 
+def _bahdanau_score_with_location(processed_query, keys, location):
+  """Implements Bahdanau-style (additive) scoring function.
+
+  This attention has two forms.  The first is Bhandanau attention,
+  as described in:
+
+  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
+  "Neural Machine Translation by Jointly Learning to Align and Translate."
+  ICLR 2015. https://arxiv.org/abs/1409.0473
+
+  The second is the normalized form.  This form is inspired by the
+  weight normalization article:
+
+  Tim Salimans, Diederik P. Kingma.
+  "Weight Normalization: A Simple Reparameterization to Accelerate
+   Training of Deep Neural Networks."
+  https://arxiv.org/abs/1602.07868
+
+  To enable the second form, set `normalize=True`.
+
+  Args:
+    processed_query: Tensor, shape `[batch_size, num_units]` to compare to keys.
+    keys: Processed memory, shape `[batch_size, max_time, num_units]`.
+    normalize: Whether to normalize the score function.
+
+  Returns:
+    A `[batch_size, max_time]` tensor of unnormalized score values.
+  """
+  dtype = processed_query.dtype
+  # Get the number of hidden units from the trailing dimension of keys
+  num_units = keys.shape[2].value or array_ops.shape(keys)[2]
+  # Reshape from [batch_size, ...] to [batch_size, 1, ...] for broadcasting.
+  processed_query = array_ops.expand_dims(processed_query, 1)
+  v = variable_scope.get_variable(
+      "attention_v", [num_units], dtype=dtype)
+  # if normalize:
+  #   # Scalar used in weight normalization
+  #   g = variable_scope.get_variable(
+  #       "attention_g", dtype=dtype, shape=[1],
+  #       #initializer=math.sqrt((1. / num_units)))
+  #       initializer=init_ops.constant_initializer(math.sqrt(1. / num_units),
+  #                                                 dtype=dtype))
+  #   # Bias added prior to the nonlinearity
+  #   b = variable_scope.get_variable(
+  #       "attention_b", [num_units], dtype=dtype,
+  #       initializer=init_ops.zeros_initializer())
+  #   # normed_v = g * v / ||v||
+  #   normed_v = g * v * math_ops.rsqrt(
+  #       math_ops.reduce_sum(math_ops.square(v)))
+  #   return math_ops.reduce_sum(
+  #       normed_v * math_ops.tanh(keys + processed_query + b), [2])
+  # else:
+  #   return math_ops.reduce_sum(v * math_ops.tanh(keys + processed_query), [2])
+  # print(keys.shape)
+  # print(processed_query.shape)
+  # print(location.shape)
+  # print(v.shape)
+  # input()
+  return math_ops.reduce_sum(v * math_ops.tanh(keys + processed_query + location), [2])
+
+class LocationLayer(layers_base.Layer):
+  def __init__(self, filters, kernel_size, attention_units,
+                strides=1, data_format="channels_last",
+                name=None, **kwargs):
+    super(LocationLayer, self).__init__(name=name, **kwargs)
+    # padding = int((kernel_size - 1) / 2)
+    self.conv_layer = Conv1D(
+      name="{}".format(name),
+      filters=filters,
+      kernel_size=kernel_size,
+      strides=strides,
+      padding="SAME",
+      use_bias=False,
+      data_format=data_format,
+    )
+    self.location_dense = layers_core.Dense(
+      attention_units, use_bias=False)
+
+  def __call__(self, prev_attention):
+    # prev_attention = array_ops.expand_dims(prev_attention, axis=-1)
+    location_attention = self.conv_layer(prev_attention)
+    location_attention = self.location_dense(location_attention)
+    return location_attention
+
+class LocationSensitiveAttention(_BaseAttentionMechanism):
+  """Implements Bahdanau-style (additive) attention.
+
+  This attention has two forms.  The first is Bahdanau attention,
+  as described in:
+
+  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
+  "Neural Machine Translation by Jointly Learning to Align and Translate."
+  ICLR 2015. https://arxiv.org/abs/1409.0473
+
+  The second is the normalized form.  This form is inspired by the
+  weight normalization article:
+
+  Tim Salimans, Diederik P. Kingma.
+  "Weight Normalization: A Simple Reparameterization to Accelerate
+   Training of Deep Neural Networks."
+  https://arxiv.org/abs/1602.07868
+
+  To enable the second form, construct the object with parameter
+  `normalize=True`.
+  """
+
+  def __init__(self,
+               num_units,
+               memory,
+               memory_sequence_length=None,
+               probability_fn=None,
+               score_mask_value=None,
+               dtype=None,
+               name="LocationSensitiveAttention"):
+    """Construct the Attention mechanism.
+
+    Args:
+      num_units: The depth of the query mechanism.
+      memory: The memory to query; usually the output of an RNN encoder.  This
+        tensor should be shaped `[batch_size, max_time, ...]`.
+      memory_sequence_length (optional): Sequence lengths for the batch entries
+        in memory.  If provided, the memory tensor rows are masked with zeros
+        for values past the respective sequence lengths.
+      normalize: Python boolean.  Whether to normalize the energy term.
+      probability_fn: (optional) A `callable`.  Converts the score to
+        probabilities.  The default is @{tf.nn.softmax}. Other options include
+        @{tf.contrib.seq2seq.hardmax} and @{tf.contrib.sparsemax.sparsemax}.
+        Its signature should be: `probabilities = probability_fn(score)`.
+      score_mask_value: (optional): The mask value for score before passing into
+        `probability_fn`. The default is -inf. Only used if
+        `memory_sequence_length` is not None.
+      dtype: The data type for the query and memory layers of the attention
+        mechanism.
+      name: Name to use when creating ops.
+    """
+    if probability_fn is None:
+      probability_fn = nn_ops.softmax
+    if dtype is None:
+      dtype = dtypes.float32
+    wrapped_probability_fn = lambda score, _: probability_fn(score)
+    super(LocationSensitiveAttention, self).__init__(
+        query_layer=layers_core.Dense(
+            num_units, name="query_layer", use_bias=False, dtype=dtype),
+        memory_layer=layers_core.Dense(
+            num_units, name="memory_layer", use_bias=False, dtype=dtype),
+        memory=memory,
+        probability_fn=wrapped_probability_fn,
+        memory_sequence_length=memory_sequence_length,
+        score_mask_value=score_mask_value,
+        name=name)
+    self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtype)
+    # print(self.cumulative_location_weights.shape)
+    self.location_layer = LocationLayer(32, 31, num_units)
+    self._num_units = num_units
+    self._name = name
+
+  def __call__(self, query, state):
+    """Score the query based on the keys and values.
+
+    Args:
+      query: Tensor of dtype matching `self.values` and shape
+        `[batch_size, query_depth]`.
+      state: Tensor of dtype matching `self.values` and shape
+        `[batch_size, alignments_size]`
+        (`alignments_size` is memory's `max_time`).
+
+    Returns:
+      alignments: Tensor of dtype matching `self.values` and shape
+        `[batch_size, alignments_size]` (`alignments_size` is memory's
+        `max_time`).
+    """
+    with variable_scope.variable_scope(None, "location_attention", [query]):
+      processed_query = self.query_layer(query) if self.query_layer else query
+      location = array_ops.stack((state, self.cumulative_location_weights), axis=-1)
+      processed_location = self.location_layer(location)
+      self.cumulative_location_weights += processed_location
+      score = _bahdanau_score_with_location(processed_query, self._keys, processed_location)
+    alignments = self._probability_fn(score, state)
+    next_state = alignments
+    return alignments, next_state
+
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.
@@ -627,7 +810,7 @@ def monotonic_attention(p_choose_i, previous_attention, mode):
     mode: How to compute the attention distribution.  Must be one of
       'recursive', 'parallel', or 'hard'.
         * 'recursive' uses tf.scan to recursively compute the distribution.
-          This is slowest but is exact, general, and does not suffer from
+          This is slowesattention_mechanismt but is exact, general, and does not suffer from
           numerical instabilities.
         * 'parallel' uses parallelized cumulative-sum and cumulative-product
           operations to compute a closed-form solution to the recurrence
@@ -1263,10 +1446,15 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
 
   @property
   def output_size(self):
-    if self._output_attention:
+    if self._output_attention == True:
       return self._attention_layer_size
-    else:
+    elif self._output_attention == False:
       return self._cell.output_size
+    elif self._output_attention == "both":
+      return self._attention_layer_size + self._cell.output_size
+    else:
+      raise ValueError(
+          "output_attention: %s must be either True, False, or both" % self._output_attention)
 
   @property
   def state_size(self):
@@ -1427,7 +1615,12 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         alignments=self._item_or_tuple(all_alignments),
         alignment_history=self._item_or_tuple(maybe_all_histories))
 
-    if self._output_attention:
+    if self._output_attention == True:
       return attention, next_state
-    else:
+    elif self._output_attention == False:
       return cell_output, next_state
+    elif self._output_attention == "both":
+      return array_ops.concat((cell_output, attention), axis=-1), next_state
+    else:
+      raise ValueError(
+          "output_attention: %s must be either True, False, or both" % self._output_attention)
