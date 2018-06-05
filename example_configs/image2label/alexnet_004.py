@@ -14,8 +14,8 @@ base_params = {
   "use_horovod": False,
   "num_epochs": 100,
 
-  "num_gpus": 8,
-  "batch_size_per_gpu": 128,
+  "num_gpus": 4,
+  "batch_size_per_gpu": 256,
   "dtype": tf.float32,
 
   "save_summaries_steps": 2000,
