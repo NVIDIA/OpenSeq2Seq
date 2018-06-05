@@ -144,11 +144,11 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 80,
     "output_type": "mel",
-    "vocab_file": "../test.txt",
+    "vocab_file": "/data/vocab.txt",
     "dataset_files": [
-      "/home/jasoli/Downloads/LJSpeech-1.1/val_128.csv",
+      "/data/train.csv",
     ],
-    'dataset_location':"/home/jasoli/Downloads/LJSpeech-1.1/wavs/",
+    'dataset_location':"/data/wavs/",
     "shuffle": True,
     "mag_power": 2,
     "feature_normalize": False,
@@ -160,11 +160,11 @@ eval_params = {
   "data_layer_params": {
     "num_audio_features": 80,
     "output_type": "mel",
-    "vocab_file": "../test.txt",
+    "vocab_file": "/data/vocab.txt",
     "dataset_files": [
-      "/home/jasoli/Downloads/LJSpeech-1.1/val_128.csv",
+      "/data/val.csv",
     ],
-    'dataset_location':"/home/jasoli/Downloads/LJSpeech-1.1/wavs/",
+    'dataset_location':"/data/wavs/",
     "shuffle": False,
     "mag_power": 2,
     "feature_normalize": False,

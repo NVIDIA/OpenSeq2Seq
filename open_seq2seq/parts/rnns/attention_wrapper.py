@@ -810,7 +810,7 @@ def monotonic_attention(p_choose_i, previous_attention, mode):
     mode: How to compute the attention distribution.  Must be one of
       'recursive', 'parallel', or 'hard'.
         * 'recursive' uses tf.scan to recursively compute the distribution.
-          This is slowesattention_mechanismt but is exact, general, and does not suffer from
+          This is slowest but is exact, general, and does not suffer from
           numerical instabilities.
         * 'parallel' uses parallelized cumulative-sum and cumulative-product
           operations to compute a closed-form solution to the recurrence
