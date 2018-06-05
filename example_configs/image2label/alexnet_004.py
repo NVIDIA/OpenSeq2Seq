@@ -1,5 +1,5 @@
 from open_seq2seq.models import Image2Label
-from open_seq2seq.encoders.alexnet_encoder import AlexNetEncoder
+from open_seq2seq.encoders.cnn_encoder import CNNEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
@@ -43,8 +43,52 @@ base_params = {
   },
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-  "encoder": AlexNetEncoder,
-  "encoder_params": {},
+  "encoder": CNNEncoder,
+  "encoder_params": {
+    'data_format': 'channels_first',
+    'cnn_layers': [
+      (tf.layers.conv2d, {
+        'filters': 64, 'kernel_size': (11, 11),
+        'strides': (4, 4), 'padding': 'VALID',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+      (tf.layers.conv2d, {
+        'filters': 192, 'kernel_size': (5, 5),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+      (tf.layers.conv2d, {
+        'filters': 384, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.conv2d, {
+        'filters': 256, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.conv2d, {
+        'filters': 256, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+    ],
+    'fc_layers': [
+      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+      (tf.nn.dropout,   {'keep_prob': 0.5}),
+      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+      (tf.nn.dropout,   {'keep_prob': 0.5}),
+    ],
+  },
 
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
