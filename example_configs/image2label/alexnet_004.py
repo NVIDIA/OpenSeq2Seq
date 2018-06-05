@@ -92,12 +92,13 @@ base_params = {
 
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
-    "output_dim": 1000,
+    "output_dim": 1001,
   },
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
     "data_dir": "data/tf-imagenet",
     "image_size": 227,
+    "num_classes": 1001,
   },
 }
