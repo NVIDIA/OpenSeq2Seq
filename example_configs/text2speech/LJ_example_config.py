@@ -14,9 +14,9 @@ base_params = {
   "use_horovod": True,
   "num_epochs": 500,
 
-  "num_gpus": 4,
+  "num_gpus": 1,
   # 'gpu_ids': [1],
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 48,
 
   "save_summaries_steps": 500,
   "print_loss_steps": 50,
@@ -92,7 +92,7 @@ base_params = {
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': 'lstm',
-    'decoder_layers': 2,
+    'decoder_layers': 1,
     'decoder_use_skip_connections': False,
     
     'enable_prenet': True,
@@ -147,11 +147,11 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 80,
     "output_type": "mel",
-    "vocab_file": "/data/vocab.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
-      "/data/train.csv",
+      "/data/speech/LJSpeech/train.csv",
     ],
-    'dataset_location':"/data/wavs/",
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": True,
     "mag_power": 2,
     "feature_normalize": False,
@@ -163,11 +163,11 @@ eval_params = {
   "data_layer_params": {
     "num_audio_features": 80,
     "output_type": "mel",
-    "vocab_file": "/data/vocab.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
-      "/data/val.csv",
+      "/data/speech/LJSpeech/val.csv",
     ],
-    'dataset_location':"/data/wavs/",
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
     "mag_power": 2,
     "feature_normalize": False,
