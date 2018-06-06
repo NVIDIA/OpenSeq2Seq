@@ -1,6 +1,6 @@
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import Wave2LetterEncoder
+from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
@@ -12,17 +12,17 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 10,
-
   "num_gpus": 4,
   "batch_size_per_gpu": 32,
+
+  "num_epochs": 10,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
   "print_samples_steps": 3000,
   "eval_steps": 3000,
   "save_checkpoint_steps": 1000,
-  "logdir": "w2l_log_folder",
+  "logdir": "ds2_log_folder",
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -33,55 +33,53 @@ base_params = {
     "learning_rate": 0.001,
     "power": 0.5,
   },
-
   "dtype": tf.float32,
+  # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
     'scale': 0.0005
   },
+  "initializer": tf.contrib.layers.xavier_initializer,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-  "encoder": Wave2LetterEncoder,
+  "encoder": DeepSpeech2Encoder,
   "encoder_params": {
-    "convnet_layers": [
+    "conv_layers": [
       {
-        "type": "conv1d", "repeat" : 6,
-        "kernel_size": [7], "stride": [1],
-        "num_channels": 250, "padding": "SAME"
+        "kernel_size": [11, 41], "stride": [2, 2],
+        "num_channels": 32, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 1,
-        "kernel_size": [32], "stride": [1],
-        "num_channels": 1000, "padding": "SAME"
-      },
-      {
-        "type": "conv1d", "repeat" : 1,
-        "kernel_size": [1], "stride": [1],
-        "num_channels": 1000, "padding": "SAME" #n_hidden = num_channels
+        "kernel_size": [11, 21], "stride": [1, 2],
+        "num_channels": 32, "padding": "SAME"
       },
     ],
+    "num_rnn_layers": 5,
+    "rnn_cell_dim": 800,
 
-    "dropout_keep_prob": 1.0,
+    "use_cudnn_rnn": True,
+    "rnn_type": "cudnn_gru",
+    "rnn_unidirectional": False,
 
-    "initializer": tf.contrib.layers.xavier_initializer,
-    "initializer_params": {
-      'uniform': False,
-    },
-    "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
-    "data_format": "channels_last",
+    "row_conv": False,
+
+    "n_hidden": 1600,
+
+    "dropout_keep_prob": 0.5,
+    "activation_fn": tf.nn.relu,
+    "data_format": "channels_first",
   },
 
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
-    "initializer": tf.contrib.layers.xavier_initializer,
     "use_language_model": True,
 
     # params for decoding the sequence with language model
-    "beam_width": 64,
-    "lm_weight": 1.0,
-    "word_count_weight": 1.5,
+    "beam_width": 512,
+    "lm_weight": 2.0,
+    "word_count_weight": 1.0,
     "valid_word_count_weight": 2.5,
 
     "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
@@ -98,6 +96,9 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
+    "augmentation": {'time_stretch_ratio': 0.05,
+                     'noise_level_min': -90,
+                     'noise_level_max': -60},
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "data/librispeech/librivox-train-clean-100.csv",
@@ -116,19 +117,6 @@ eval_params = {
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "data/librispeech/librivox-dev-clean.csv",
-    ],
-    "shuffle": False,
-  },
-}
-
-infer_params = {
-  "data_layer": Speech2TextDataLayer,
-  "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
-    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-    "dataset_files": [
-      "data/librispeech/librivox-test-clean.csv",
     ],
     "shuffle": False,
   },
