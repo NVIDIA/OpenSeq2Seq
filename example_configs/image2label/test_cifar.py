@@ -12,7 +12,7 @@ base_model = Image2Label
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 100,
+  "num_epochs": 200,
 
   "num_gpus": 1,
   "batch_size_per_gpu": 32,
@@ -23,7 +23,7 @@ base_params = {
   "print_samples_steps": 2000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "experiments/alexnet-imagenet",
+  "logdir": "experiments/test-cifar",
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -110,6 +110,6 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": CifarDataLayer,
   "data_layer_params": {
-    "data_dir": "data/cifar10_data/cifar-10-batches-bin",
+    "data_dir": "data/cifar-10-batches-bin",
   },
 }
