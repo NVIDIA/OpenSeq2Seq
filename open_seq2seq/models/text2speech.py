@@ -55,9 +55,11 @@ def plot_spectrogram(ground_truth, generated_sample, post_net_sample, attention,
   fig.colorbar(colour4, cax=cbar_ax2)
 
   if append:
-    name = './{}/Output_Step{}_{}_{}.png'.format(logdir, train_step, number, append)
+    name = '{}/Output_Step{}_{}_{}.png'.format(logdir, train_step, number, append)
   else:
-    name = './{}/Output_Step{}_{}.png'.format(logdir, train_step, number)
+    name = '{}/Output_Step{}_{}.png'.format(logdir, train_step, number)
+  if logdir[0] != '/':
+    name = "./"+name
   #save
   fig.savefig(name, dpi=300)
 
