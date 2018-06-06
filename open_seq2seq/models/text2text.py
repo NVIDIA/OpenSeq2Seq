@@ -45,7 +45,7 @@ def calculate_bleu(preds, targets):
   :return: bleu score - float32
   """
   bleu_score = nltk.translate.bleu_score.corpus_bleu(
-    targets, preds, #emulate_multibleu=True,
+    targets, preds, emulate_multibleu=True,
   )
   return bleu_score
 
