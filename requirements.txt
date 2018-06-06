@@ -1,5 +1,5 @@
 numpy
-nltk>=3.2.3
+nltk==3.2.5
 resampy
 python_speech_features
 pandas
