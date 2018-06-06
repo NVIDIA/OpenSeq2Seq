@@ -344,6 +344,7 @@ def parse_record(raw_record, is_training, image_size=224, num_classes=1000):
       num_channels=3,
       is_training=is_training)
 
-  label = tf.one_hot(tf.reshape(label, shape=[]), num_classes)
+  # subtracting 1 to make labels go from 0 to 999
+  label = tf.one_hot(tf.reshape(label - 1, shape=[]), num_classes)
 
   return image, label

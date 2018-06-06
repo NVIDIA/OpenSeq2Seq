@@ -56,8 +56,9 @@ class Image2Label(EncoderDecoderModel):
     labels = np.where(labels == 1)[1]
 
     total = logits.shape[0]
-    top1 = np.sum(np.argmax(logits, axis=1) == labels)
-    top5 = np.sum(labels[:, np.newaxis] == np.argpartition(logits, -5)[:, -5:])
+    top1 = np.sum(np.equal(np.argmax(logits, axis=1), labels))
+    top5 = np.sum(np.equal(labels[:, np.newaxis],
+                           np.argpartition(logits, -5)[:, -5:]))
     return total, top1, top5
 
   def _get_num_objects_per_step(self, worker_id=0):
