@@ -104,6 +104,6 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - 9.32%
      - This model was trained for 12 epochs using Adam on a "clean" subset of
        LibriSpeech in less than a day using a single GPU.
-     - This model has 2 convolutional layers and 2 unidirectional
+     - This model has 2 convolutional layers and 2 bidirectional
        GRU layers with 512 units.
      - `link <https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing>`_

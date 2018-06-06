@@ -131,3 +131,4 @@ def _scale_grads(grads_and_vars, scale):
         grad *= scale
     scaled_grads_and_vars.append((grad, var))
   return scaled_grads_and_vars
+
