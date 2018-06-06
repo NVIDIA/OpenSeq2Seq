@@ -24,12 +24,19 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
-  "optimizer": "Adam",
+  "optimizer": "Momentum",
+  "optimizer_params": {
+    "momentum": 0.90,
+  },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.0002,
-    "power": 0.5,
+    "learning_rate": 0.005,
+    "power": 2,
   },
+  "larc_params": {
+    "larc_nu": 0.001,
+  },
+
   "dtype": tf.float32,
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
