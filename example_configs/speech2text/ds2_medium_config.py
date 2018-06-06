@@ -12,16 +12,16 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 300,
+  "num_epochs": 10,
 
-  "num_gpus": 1,
-  "batch_size_per_gpu": 2,
+  "num_gpus": 4,
+  "batch_size_per_gpu": 32,
 
-  "save_summaries_steps": 10,
+  "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 20,
-  "eval_steps": 50,
-  "save_checkpoint_steps": 50,
+  "print_samples_steps": 3000,
+  "eval_steps": 3000,
+  "save_checkpoint_steps": 1000,
   "logdir": "ds2_log_folder",
 
   "optimizer": "Momentum",
@@ -31,9 +31,14 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 2,
+    "power": 0.5,
   },
   "dtype": tf.float32,
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    'scale': 0.0005
+  },
+
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
