@@ -11,19 +11,19 @@ base_model = Text2Speech
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  "num_epochs": 5000,
+  "use_horovod": True,
+  "num_epochs": 500,
 
-  "num_gpus": 1,
+  "num_gpus": 4,
   # 'gpu_ids': [1],
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 64,
 
   "save_summaries_steps": 500,
   "print_loss_steps": 50,
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
-  "logdir": "results/tacotron-LJ-example",
+  "logdir": "result/tacotron-LJ-example",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
