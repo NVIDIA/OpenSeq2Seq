@@ -102,3 +102,52 @@ base_params = {
     "num_classes": 1000,
   },
 }
+
+eval_params = {
+  "encoder": CNNEncoder,
+  "encoder_params": {
+    'data_format': 'channels_first',
+    'cnn_layers': [
+      (tf.layers.conv2d, {
+        'filters': 64, 'kernel_size': (11, 11),
+        'strides': (4, 4), 'padding': 'VALID',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+      (tf.layers.conv2d, {
+        'filters': 192, 'kernel_size': (5, 5),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+      (tf.layers.conv2d, {
+        'filters': 384, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.conv2d, {
+        'filters': 256, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.conv2d, {
+        'filters': 256, 'kernel_size': (3, 3),
+        'strides': (1, 1), 'padding': 'SAME',
+        'activation': tf.nn.relu,
+      }),
+      (tf.layers.max_pooling2d, {
+        'pool_size': (3, 3), 'strides': (2, 2),
+      }),
+    ],
+    'fc_layers': [
+      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+      (tf.nn.dropout, {'keep_prob': 1.0}),
+      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+      (tf.nn.dropout, {'keep_prob': 1.0}),
+    ],
+  },
+}
