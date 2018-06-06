@@ -12,7 +12,7 @@ base_model = Image2Label
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 100,
+  "num_epochs": 120,
 
   "num_gpus": 4,
   "batch_size_per_gpu": 256,
@@ -31,7 +31,7 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.02,
+    "learning_rate": 0.04,
     "power": 1.0,
   },
 
@@ -84,70 +84,21 @@ base_params = {
     ],
     'fc_layers': [
       (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
-      (tf.nn.dropout,   {'keep_prob': 0.5}),
+      (tf.layers.dropout, {'rate': 0.5}),
       (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
-      (tf.nn.dropout,   {'keep_prob': 0.5}),
+      (tf.layers.dropout, {'rate': 0.5}),
     ],
   },
 
   "decoder": FullyConnectedDecoder,
   "decoder_params": {
-    "output_dim": 1001,
+    "output_dim": 1000,
   },
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
     "data_dir": "data/tf-imagenet",
     "image_size": 227,
-    "num_classes": 1001,
-  },
-}
-
-eval_params = {
-  "encoder": CNNEncoder,
-  "encoder_params": {
-    'data_format': 'channels_first',
-    'cnn_layers': [
-      (tf.layers.conv2d, {
-        'filters': 64, 'kernel_size': (11, 11),
-        'strides': (4, 4), 'padding': 'VALID',
-        'activation': tf.nn.relu,
-      }),
-      (tf.layers.max_pooling2d, {
-        'pool_size': (3, 3), 'strides': (2, 2),
-      }),
-      (tf.layers.conv2d, {
-        'filters': 192, 'kernel_size': (5, 5),
-        'strides': (1, 1), 'padding': 'SAME',
-        'activation': tf.nn.relu,
-      }),
-      (tf.layers.max_pooling2d, {
-        'pool_size': (3, 3), 'strides': (2, 2),
-      }),
-      (tf.layers.conv2d, {
-        'filters': 384, 'kernel_size': (3, 3),
-        'strides': (1, 1), 'padding': 'SAME',
-        'activation': tf.nn.relu,
-      }),
-      (tf.layers.conv2d, {
-        'filters': 256, 'kernel_size': (3, 3),
-        'strides': (1, 1), 'padding': 'SAME',
-        'activation': tf.nn.relu,
-      }),
-      (tf.layers.conv2d, {
-        'filters': 256, 'kernel_size': (3, 3),
-        'strides': (1, 1), 'padding': 'SAME',
-        'activation': tf.nn.relu,
-      }),
-      (tf.layers.max_pooling2d, {
-        'pool_size': (3, 3), 'strides': (2, 2),
-      }),
-    ],
-    'fc_layers': [
-      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
-      (tf.nn.dropout, {'keep_prob': 1.0}),
-      (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
-      (tf.nn.dropout, {'keep_prob': 1.0}),
-    ],
+    "num_classes": 1000,
   },
 }
