@@ -4,17 +4,17 @@ from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
 from open_seq2seq.losses import MeanSquaredErrorLoss, BasicMeanSquaredErrorLoss
-from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 
 base_model = Text2Speech
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": True,
+  "use_horovod": False,
   "num_epochs": 5000,
 
-  "num_gpus": 4,
+  "num_gpus": 1,
   # 'gpu_ids': [1],
   "batch_size_per_gpu": 32,
 
@@ -28,7 +28,10 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  "learning_rate": 1e-3,
+  "lr_policy": fixed_lr,
+  "lr_policy_params": {
+    "learning_rate": 1e-3,
+  },
   # "lr_policy": exp_decay,
   # "lr_policy_params": {
   #   "begin_decay_at": 0,
