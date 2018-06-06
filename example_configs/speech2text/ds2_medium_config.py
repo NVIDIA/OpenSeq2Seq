@@ -12,16 +12,16 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_gpus": 4,
-  "batch_size_per_gpu": 32,
+  "num_epochs": 300,
 
-  "num_epochs": 10,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 2,
 
-  "save_summaries_steps": 100,
+  "save_summaries_steps": 10,
   "print_loss_steps": 10,
-  "print_samples_steps": 3000,
-  "eval_steps": 3000,
-  "save_checkpoint_steps": 1000,
+  "print_samples_steps": 20,
+  "eval_steps": 50,
+  "save_checkpoint_steps": 50,
   "logdir": "ds2_log_folder",
 
   "optimizer": "Momentum",
@@ -31,16 +31,9 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 0.5,
+    "power": 2,
   },
   "dtype": tf.float32,
-  # weight decay
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    'scale': 0.0005
-  },
-  "initializer": tf.contrib.layers.xavier_initializer,
-
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
@@ -53,33 +46,42 @@ base_params = {
       },
       {
         "kernel_size": [11, 21], "stride": [1, 2],
-        "num_channels": 32, "padding": "SAME"
+        "num_channels": 64, "padding": "SAME"
+      },
+      {
+        "kernel_size": [11, 21], "stride": [1, 2],
+        "num_channels": 96, "padding": "SAME"
       },
     ],
-    "num_rnn_layers": 5,
-    "rnn_cell_dim": 800,
+    "n_hidden": 256,
 
-    "use_cudnn_rnn": True,
-    "rnn_type": "cudnn_gru",
+    "rnn_cell_dim": 256,
+    "rnn_type": "gru",
+    "num_rnn_layers": 1,
     "rnn_unidirectional": False,
-
     "row_conv": False,
+    "row_conv_width": 8,
+    "use_cudnn_rnn": True,
 
-    "n_hidden": 1600,
+    "dropout_keep_prob": 1.0,
 
-    "dropout_keep_prob": 0.5,
-    "activation_fn": tf.nn.relu,
+    "initializer": tf.contrib.layers.xavier_initializer,
+    "initializer_params": {
+      'uniform': False,
+    },
+    "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
     "data_format": "channels_first",
   },
 
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
+    "initializer": tf.contrib.layers.xavier_initializer,
     "use_language_model": True,
 
     # params for decoding the sequence with language model
-    "beam_width": 512,
-    "lm_weight": 2.0,
-    "word_count_weight": 1.0,
+    "beam_width": 64,
+    "lm_weight": 1.0,
+    "word_count_weight": 1.5,
     "valid_word_count_weight": 2.5,
 
     "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
@@ -96,9 +98,6 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 160,
     "input_type": "spectrogram",
-    "augmentation": {'time_stretch_ratio': 0.05,
-                     'noise_level_min': -90,
-                     'noise_level_max': -60},
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-train-clean-100.csv",
@@ -117,6 +116,19 @@ eval_params = {
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-dev-clean.csv",
+    ],
+    "shuffle": False,
+  },
+}
+
+infer_params = {
+  "data_layer": Speech2TextDataLayer,
+  "data_layer_params": {
+    "num_audio_features": 160,
+    "input_type": "spectrogram",
+    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "dataset_files": [
+      "/data/librispeech/librivox-test-clean.csv",
     ],
     "shuffle": False,
   },
