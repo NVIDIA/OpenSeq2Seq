@@ -33,9 +33,6 @@ base_params = {
     "learning_rate": 0.005,
     "power": 2,
   },
-  "larc_params": {
-    "larc_nu": 0.001,
-  },
 
   "dtype": tf.float32,
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
