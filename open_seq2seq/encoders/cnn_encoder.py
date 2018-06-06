@@ -77,12 +77,19 @@ class CNNEncoder(Encoder):
 
     if data_format == 'channels_first':
       x = tf.transpose(x, [0, 2, 3, 1])
-    input_shape = x.get_shape().as_list()
-    num_inputs = input_shape[1] * input_shape[2] * input_shape[3]
-    x = tf.reshape(x, [-1, num_inputs])
 
-    for layer, layer_params in self.params.get('fc_layers', []):
-      x = build_layer(x, layer, layer_params, data_format,
-                      regularizer, self.mode == 'train')
+    fc_layers = self.params.get('fc_layers', [])
+
+    # if fully connected layers exist, flattening the output and applying them
+    if fc_layers:
+      input_shape = x.get_shape().as_list()
+      num_inputs = input_shape[1] * input_shape[2] * input_shape[3]
+      x = tf.reshape(x, [-1, num_inputs])
+      for layer, layer_params in fc_layers:
+        x = build_layer(x, layer, layer_params, data_format, regularizer,
+                        self.mode == 'train')
+    else:
+      # if there are no fully connected layers, doing average pooling
+      x = tf.reduce_mean(x, [1, 2])
 
     return {'outputs': x}
