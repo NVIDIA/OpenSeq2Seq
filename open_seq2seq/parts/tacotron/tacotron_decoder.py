@@ -111,10 +111,11 @@ class TacotronDecoder(decoder.Decoder):
       `(outputs, next_state, next_inputs, finished)`.
     """
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
-      attention_context, attention_state = self._attention_cell(inputs, state[0])
+      attention_context, attention_state = self._attention_cell(state[1].h, state[0])
       decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
       cell_outputs, decoder_state = self._decoder_cell(decoder_rnn_input, state[1])
       cell_state = (attention_state, decoder_state)
+      cell_outputs = array_ops.concat((cell_outputs, attention_context), axis=-1)
       if self._output_layer is not None:
         cell_outputs = self._output_layer(cell_outputs)
       sample_ids = self._helper.sample(
