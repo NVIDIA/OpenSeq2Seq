@@ -200,7 +200,7 @@
 <span class="sd">  :return: bleu score - float32</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">bleu_score</span> <span class="o">=</span> <span class="n">nltk</span><span class="o">.</span><span class="n">translate</span><span class="o">.</span><span class="n">bleu_score</span><span class="o">.</span><span class="n">corpus_bleu</span><span class="p">(</span>
-    <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="c1">#emulate_multibleu=True,</span>
+    <span class="n">targets</span><span class="p">,</span> <span class="n">preds</span><span class="p">,</span> <span class="n">emulate_multibleu</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
   <span class="p">)</span>
   <span class="k">return</span> <span class="n">bleu_score</span></div>
 
