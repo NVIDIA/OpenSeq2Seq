@@ -23,7 +23,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
-  "logdir": "result/tacotron-LJ-full-attention",
+  "logdir": "result/tacotron-LJ-full-attention-l2",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",

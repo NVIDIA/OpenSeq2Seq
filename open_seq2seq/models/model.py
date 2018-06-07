@@ -11,8 +11,13 @@ import copy
 import time
 
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
-from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
+# from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
+from open_seq2seq.optimizers import optimize_loss
 from open_seq2seq.utils.utils import check_params
+
+def get_regularization_loss(weight_decay):
+  return tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()]) * weight_decay
+
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -356,7 +361,7 @@ class Model:
                                                         **lr_params)
 
       self.train_op = optimize_loss(
-        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
+        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(self.params['regularizer_params']['scale']),
         dtype=self.params['dtype'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
@@ -392,6 +397,8 @@ class Model:
           deco_print('{}'.format(var.name), offset=2)
           deco_print('shape: {}, {}'.format(var.get_shape(), var.dtype),
                      offset=4)
+          deco_print('init: {}'.format(var.initial_value), offset=4)
+
           if var.get_shape():
             for dim in var.get_shape():
               var_params *= dim.value
