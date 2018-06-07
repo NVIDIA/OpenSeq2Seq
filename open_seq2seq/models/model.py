@@ -10,6 +10,11 @@ import numpy as np
 import copy
 import time
 
+try:
+    from inspect import signature
+except ImportError:
+    from funcsigs import signature
+
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
@@ -353,10 +358,10 @@ class Model:
         lr_params = self.params.get('lr_policy_params', {})
         # adding default decay_steps = max_steps if lr_policy supports it and
         # different value is not provided
-        if 'decay_steps' in self.params['lr_policy'].__code__.co_varnames and \
-           'decay_steps' not in lr_params:
+        func_params = signature(self.params['lr_policy']).parameters
+        if 'decay_steps' in func_params and 'decay_steps' not in lr_params:
           lr_params['decay_steps'] = self._last_step
-        if 'steps_per_epoch' in self.params['lr_policy'].__code__.co_varnames and \
+        if 'steps_per_epoch' in func_params and \
            'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
           lr_params['steps_per_epoch'] = self.steps_in_epoch
         lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,

@@ -608,4 +608,3 @@ def _multiply_gradients(grads_and_vars, gradient_multipliers):
         grad *= multiplier
     multiplied_grads_and_vars.append((grad, var))
   return multiplied_grads_and_vars
-
