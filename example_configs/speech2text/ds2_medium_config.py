@@ -30,7 +30,7 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.001,
+    "learning_rate": 0.0001,
     "power": 2,
   },
   "dtype": tf.float32,
