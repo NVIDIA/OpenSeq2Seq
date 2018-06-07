@@ -12,7 +12,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 10,
+  "num_epochs": 50,
 
   "num_gpus": 4,
   "batch_size_per_gpu": 32,
@@ -31,7 +31,7 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 0.5,
+    "power": 2,
   },
   "dtype": tf.float32,
   "regularizer": tf.contrib.layers.l2_regularizer,
