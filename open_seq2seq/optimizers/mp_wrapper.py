@@ -61,14 +61,7 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
                          "FP32_MASTER_COPIES"],
           )
           self._fp32_to_fp16[fp32_var.name] = var
-          assert_grad_nan = tf.Assert(
-            tf.is_finite(tf.reduce_sum(grad)),
-            [grad, var],
-            summarize=1000,
-            name="nan_assert_for/{}".format(var.name.split(':')[0]),
-          )
-          with tf.control_dependencies([assert_grad_nan]):
-            fp32_grad = tf.cast(grad, tf.float32)
+          fp32_grad = tf.cast(grad, tf.float32)
           # adding regularization part with respect to fp32 copy
           if var.name in reg_funcs:
             fp32_grad += self._loss_scale * tf.gradients(
