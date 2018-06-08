@@ -34,10 +34,6 @@ base_params = {
   },
 
   "dtype": tf.float32,
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    'scale': 0.0005
-  },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -67,7 +63,6 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 0.2,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
