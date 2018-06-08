@@ -30,8 +30,8 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.0001,
-    "power": 2,
+    "learning_rate": 0.001,
+    "power": 1,
   },
   "dtype": tf.float32,
   "regularizer": tf.contrib.layers.l2_regularizer,
@@ -58,17 +58,17 @@ base_params = {
         "num_channels": 96, "padding": "SAME"
       },
     ],
-    "n_hidden": 256,
+    "n_hidden": 1024,
 
-    "rnn_cell_dim": 256,
+    "rnn_cell_dim": 768,
     "rnn_type": "gru",
-    "num_rnn_layers": 1,
+    "num_rnn_layers": 5,
     "rnn_unidirectional": False,
     "row_conv": False,
     "row_conv_width": 8,
     "use_cudnn_rnn": True,
 
-    "dropout_keep_prob": 1.0,
+    "dropout_keep_prob": 0.5,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
@@ -84,7 +84,7 @@ base_params = {
     "use_language_model": True,
 
     # params for decoding the sequence with language model
-    "beam_width": 64,
+    "beam_width": 512,
     "lm_weight": 1.0,
     "word_count_weight": 1.5,
     "valid_word_count_weight": 2.5,

@@ -30,8 +30,8 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.0001,
-    "power": 2,
+    "learning_rate": 0.001,
+    "power": 1,
   },
 
   "dtype": tf.float32,
@@ -47,9 +47,14 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 6,
+        "type": "conv1d", "repeat" : 5,
         "kernel_size": [7], "stride": [1],
         "num_channels": 250, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [11], "stride": [1],
+        "num_channels": 500, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
@@ -63,7 +68,7 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 1.0,
+    "dropout_keep_prob": 0.5,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
@@ -79,7 +84,7 @@ base_params = {
     "use_language_model": True,
 
     # params for decoding the sequence with language model
-    "beam_width": 64,
+    "beam_width": 512,
     "lm_weight": 1.0,
     "word_count_weight": 1.5,
     "valid_word_count_weight": 2.5,
