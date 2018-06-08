@@ -61,6 +61,7 @@ base_params = {
       },
     ],
 
+    "dropout_keep_prob": 1.0,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
