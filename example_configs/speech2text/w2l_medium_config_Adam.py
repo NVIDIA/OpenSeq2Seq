@@ -24,14 +24,11 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
+  "optimizer": "Adam",
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 1,
+    "power": 0.5,
   },
 
   "dtype": tf.float32,
