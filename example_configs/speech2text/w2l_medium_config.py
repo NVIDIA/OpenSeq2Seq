@@ -31,9 +31,10 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 1,
+    "power": 0.5,
   },
 
+  "max_grad_norm": 15.0,
   "dtype": tf.float32,
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
@@ -68,7 +69,7 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 0.2,
+    "dropout_keep_prob": 1.0,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
