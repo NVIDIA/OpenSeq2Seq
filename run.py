@@ -8,6 +8,7 @@ from six.moves import range
 import tensorflow as tf
 import datetime
 import argparse
+import ast
 import pprint
 import runpy
 import copy
@@ -65,9 +66,10 @@ def main():
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
-    if type(value) is int or type(value) is float or type(value) is str or \
-       type(value) is bool:
+    if type(value) is int or type(value) is float or type(value) is str:
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
+    elif type(value) is bool:
+      parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
 
