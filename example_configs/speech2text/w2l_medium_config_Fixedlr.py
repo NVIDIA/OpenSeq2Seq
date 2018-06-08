@@ -28,7 +28,7 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": fixed_lr,
+  "lr_policy": "fixed_lr",
   "lr_policy_params": {
     "learning_rate": 0.001,
   },
