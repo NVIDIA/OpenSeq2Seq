@@ -13,10 +13,10 @@ num_audio_features = 513
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": True,
+  "use_horovod": False,
   "num_epochs": 500,
 
-  "num_gpus": 1,
+  "num_gpus": 4,
   # 'gpu_ids': [1],
   "batch_size_per_gpu": 48,
 

@@ -260,7 +260,7 @@ class TacotronTrainingHelper(Helper):
     if anneal_sampling_prob:
       ## Currently hard-coded
       curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(10480./48.))
-      curr_step = tf.floor(tf.div(curr_epoch,tf.constant(500/20)))
+      curr_step = tf.floor(tf.div(curr_epoch,tf.constant(500./20.)))
       self.sampling_prob = tf.div(curr_step,tf.constant(20.))
     else:
       self.sampling_prob = sampling_prob
