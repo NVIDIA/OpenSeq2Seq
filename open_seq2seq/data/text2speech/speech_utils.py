@@ -33,7 +33,7 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
   :return: (num_time_steps, num_features) NumPy array
   """
   # load audio signal
-  if features_type == "mel":
+  if features_type == "mel" or features_type =="test" or features_type=='spectrogram':
     signal, fs = librosa.core.load(filename, sr=None)
   else:
     fs, signal = wave.read(filename)
@@ -134,14 +134,10 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
 
 
   if features_type == 'spectrogram':
-    frames = psf.sigproc.framesig(sig=signal,
-                                  frame_len=n_window_size,
-                                  frame_step=n_window_stride,
-                                  winfunc=np.hanning)
-
-    # n_window_size = int(n_window_size)
-    # features = np.log1p(psf.sigproc.powspec(frames, NFFT=N_window_size))
-    features = psf.sigproc.logpowspec(frames, NFFT=n_window_size)
+    complex_spec = librosa.stft(y=signal,
+                                n_fft=n_window_size)
+    mag, _ = librosa.magphase(complex_spec)
+    features = np.log(np.clip(mag, a_min=1e-5, a_max=None)).T
     assert num_features <= n_window_size // 2 + 1, \
         "num_features for spectrogram should be <= (fs * window_size // 2 + 1)"
 
@@ -170,7 +166,14 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
                                       power=mag_power)
     features = np.log(np.clip(features, a_min=1e-5, a_max=None)).T
     # features = features.T
-
+  elif features_type == 'test':
+    n_window_size = 512
+    complex_spec = librosa.stft(y=signal,
+                                n_fft=n_window_size)
+    assert num_features <= n_window_size // 2 + 1, \
+        "num_features for spectrogram should be <= (fs * window_size // 2 + 1)"
+    features = np.concatenate((complex_spec.real[:num_features,:],complex_spec.imag[:num_features,:]), axis=0)
+    features = np.log(np.clip(features, a_min=1e-5, a_max=None)).T
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 

@@ -12,6 +12,8 @@ import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from scipy.io.wavfile import write
+import librosa
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
@@ -65,6 +67,35 @@ def plot_spectrogram(ground_truth, generated_sample, post_net_sample, attention,
 
   plt.close(fig)
 
+def save_audio(mag_spec, logdir, name, train=True):
+  magnitudes = np.exp(mag_spec)
+  signal = griffin_lim(magnitudes.T**1.2)
+  if train:
+    file_name = '{}/sample_train_step_{}.wav'.format(logdir, name)
+  else:
+    file_name = '{}/sample_eval_step_{}.wav'.format(logdir, name)
+  if logdir[0] != '/':
+    file_name = "./"+file_name
+  write(file_name, 22050 ,signal)
+
+def griffin_lim(magnitudes, n_iters=50):
+  """
+  PARAMS
+  ------
+  magnitudes: spectrogram magnitudes
+  stft_fn: STFT class with transform (STFT) and inverse (ISTFT) methods
+  """
+
+  phase = np.exp(2j * np.pi * np.random.rand(*magnitudes.shape))
+  complex_spec = magnitudes * phase
+  signal = librosa.istft(complex_spec)
+
+  for i in range(n_iters):
+    _, phase = librosa.magphase(librosa.stft(signal, n_fft=1024))
+    complex_spec = magnitudes * phase
+    signal = librosa.istft(complex_spec)
+  return signal
+
 def sparse_tensor_to_chars(tensor, idx2char):
   text = [''] * tensor.dense_shape[0]
   for idx_tuple, value in zip(tensor.indices, tensor.values):
@@ -94,6 +125,9 @@ class Text2Speech(EncoderDecoderModel):
                      attention_mask_sample,
                      self.params["logdir"], step,
                      append="train")
+
+    if self.get_data_layer().params['output_type'] == "spectrogram":
+      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
     
     return {}
 
@@ -171,6 +205,9 @@ class Text2Speech(EncoderDecoderModel):
                      attention_mask_sample,
                      self.params["logdir"], step,
                      append="eval")
+
+    if self.get_data_layer().params['output_type'] == "spectrogram":
+      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, train=False)
 
     return {}
 

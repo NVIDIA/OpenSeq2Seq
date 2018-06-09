@@ -229,7 +229,7 @@ class TacotronTrainingHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
   def __init__(self, inputs, sequence_length, enable_prenet, 
-              prenet_units=None, prenet_layers=None, sampling_prob=0.,
+              prenet_units=None, prenet_layers=None, sampling_prob=0., anneal_sampling_prob = False,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None):
     """Initializer.
@@ -255,7 +255,15 @@ class TacotronTrainingHelper(Helper):
     self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     self._batch_size = array_ops.size(sequence_length)
-    self.sampling_prob = sampling_prob
+    self.seed = 0
+    self.anneal_sampling_prob = anneal_sampling_prob
+    if anneal_sampling_prob:
+      ## Currently hard-coded
+      curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(10480./48.))
+      curr_step = tf.floor(tf.div(curr_epoch,tf.constant(500/20)))
+      self.sampling_prob = tf.div(curr_step,tf.constant(20.))
+    else:
+      self.sampling_prob = sampling_prob
     # self.context = context
 
     ## Create finished projection layer
@@ -324,7 +332,7 @@ class TacotronTrainingHelper(Helper):
         out = layer(out)
 
 
-      if self.sampling_prob > 0:
+      if self.anneal_sampling_prob or self.sampling_prob > 0:
         select_sampler = bernoulli.Bernoulli(
             probs=self.sampling_prob, dtype=dtypes.bool)
         select_sample = select_sampler.sample(

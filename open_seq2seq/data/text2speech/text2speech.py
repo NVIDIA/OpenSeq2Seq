@@ -25,7 +25,7 @@ class Text2SpeechDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       # 'input_type': ['spectrogram', 'mfcc'],
-      'output_type': ['spectrogram', 'mfcc', 'mel'],
+      'output_type': ['spectrogram', 'mfcc', 'mel', 'test'],
       'vocab_file': str,
       'dataset_files': list,
       'dataset_location': str,

@@ -94,7 +94,8 @@ class Tacotron2Decoder(Decoder):
       'postnet_bn_momentum': float,
       'postnet_bn_epsilon': float,
       'postnet_data_format': ['channels_first', 'channels_last'],
-      'postnet_keep_dropout_prob': float
+      'postnet_keep_dropout_prob': float,
+      "anneal_sampling_prob": bool,
     })
 
   def __init__(self, params, model,
@@ -411,7 +412,8 @@ class Tacotron2Decoder(Decoder):
                                       enable_prenet=enable_prenet,
                                       prenet_units=prenet_units,
                                       prenet_layers=prenet_layers,
-                                      sampling_prob=self.params['scheduled_sampling_prob'])
+                                      sampling_prob=self.params['scheduled_sampling_prob'],
+                                      anneal_sampling_prob=self.params.get('anneal_sampling_prob', False))
                                       # context=mean_pool)
       # helper = TacotronHelper(inputs=tgt_inputs,
       #                         sequence_length=tgt_lengths,

@@ -13,6 +13,19 @@ class MeanSquaredErrorLoss(Loss):
   def __init__(self, params, model, name="cross_entropy_loss"):
     super(MeanSquaredErrorLoss, self).__init__(params, model, name)
 
+  def get_optional_params(self):
+    """Static method with description of optional parameters.
+
+      Returns:
+        dict:
+            Dictionary containing all the parameters that **can** be
+            included into the ``params`` parameter of the
+            class :meth:`__init__` method.
+    """
+    return {
+      'use_mask': bool,
+    }
+
   def _compute_loss(self, input_dict):
     decoder_predictions = input_dict['decoder_output']['decoder_output']
     post_net_predictions = input_dict['decoder_output']['post_net_output']
@@ -49,8 +62,12 @@ class MeanSquaredErrorLoss(Loss):
     #                  begin=[0, 0, 0],
     #                  size=[-1, current_ts, -1])
 
-    mask = tf.sequence_mask(lengths=tgt_lengths,
+    if self.params.get("use_mask", True):
+      mask = tf.sequence_mask(lengths=tgt_lengths,
                               dtype=tf.float32)
+      mask = tf.expand_dims(mask, axis=-1)
+      decoder_loss = tf.losses.mean_squared_error(labels=labels, predictions=decoder_predictions, weights=mask)
+      post_net_loss = tf.losses.mean_squared_error(labels=labels, predictions=post_net_predictions, weights=mask)
     # mask = tf.expand_dims(mask, axis=-1)
 
     # print(mask.shape)
@@ -58,12 +75,17 @@ class MeanSquaredErrorLoss(Loss):
     # print(predictions.shape)
     # predictions = tf.reshape(predictions, [batch_size, -1, 96])
 
-    decoder_loss = tf.losses.mean_squared_error(labels=labels, predictions=decoder_predictions)
-    post_net_loss = tf.losses.mean_squared_error(labels=labels, predictions=post_net_predictions)
-    loss = tf.reduce_sum((decoder_loss + post_net_loss) * mask)
-    loss /= tf.reduce_sum(mask)
+    else:
+      decoder_loss = tf.losses.mean_squared_error(labels=labels, predictions=decoder_predictions)
+      post_net_loss = tf.losses.mean_squared_error(labels=labels, predictions=post_net_predictions)
+    # print(post_net_predictions.shape)
+    # print(mask.shape)
+    # print(decoder_loss.shape)
+    # loss = tf.reduce_sum((decoder_loss + post_net_loss) * mask)
+    # loss /= tf.reduce_sum(mask)
     # loss = tf.losses.mean_squared_error(labels=labels, predictions=predictions)
     # loss = tf.clip_by_norm(loss, 1.)
+    loss = decoder_loss + post_net_loss
     return loss
 
 class BasicMeanSquaredErrorLoss(Loss):

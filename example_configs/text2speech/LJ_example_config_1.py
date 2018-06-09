@@ -13,7 +13,7 @@ num_audio_features = 513
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
+  "use_horovod": True,
   "num_epochs": 500,
 
   "num_gpus": 1,
@@ -25,7 +25,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
-  "logdir": "result/tacotron-LJ-full-linear",
+  "logdir": "result/tacotron-LJ-full-linear-ss",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
