@@ -145,8 +145,7 @@ def optimize_loss(loss,
                   clip_gradients=None,
                   summaries=None,
                   larc_params=None,
-                  loss_scale=1.0,
-                  automatic_loss_scaling=None,
+                  loss_scaling=1.0,
                   on_horovod=False):
   """Given loss and parameters for optimizer, returns a training op.
 
@@ -158,24 +157,27 @@ def optimize_loss(loss,
         class should be sub-class of `tf.Optimizer` that implements
         `compute_gradients` and `apply_gradients` functions.
     optimizer_params: parameters of the optimizer.
-    clip_gradients: float, max gradient norm to clip to.
+    dtype: model dtype (tf.float16, tf.float32 or "mixed").
     learning_rate_decay_fn: function, takes `global_step`
         `Tensor`s, returns `Tensor`.
         Can be used to implement any learning rate decay
         functions.
         For example: `tf.train.exponential_decay`.
         Ignored if `learning_rate` is not supplied.
+    clip_gradients: float, max gradient norm to clip to.
     summaries: List of internal quantities to visualize on tensorboard. If not
         set only the loss and the learning rate will be reported. The
         complete list is in OPTIMIZER_SUMMARIES.
     larc_params: If not None, LARC re-scaling will
         be applied with corresponding parameters.
-    automatic_loss_scaling: if not None, use the corresponding automatic
-        loss scaling algorithm. Must be one of 'Backoff'
-        of 'LogMax'. `dtype` must be "mixed" to use ALS.
+    loss_scaling: could be float or string. If float, static loss scaling
+        is applied. If string, the corresponding automatic
+        loss scaling algorithm is used. Must be one of 'Backoff'
+        of 'LogMax' (case insensitive). Only used when dtype="mixed".
+    on_horovod: whether the model is run on horovod.
 
   Returns:
-    Training op.
+    training op.
   """
   if summaries is None:
     summaries = ["learning_rate", "global_gradient_norm"]
@@ -210,23 +212,18 @@ def optimize_loss(loss,
       optimizer = OPTIMIZER_CLS_NAMES[optimizer]
     opt = optimizer(learning_rate=lr, **optimizer_params)
 
-    if automatic_loss_scaling is not None:
-      if automatic_loss_scaling not in AutomaticLossScaler.SUPPORTED_ALGOS:
-        raise ValueError("Unknown automatic loss scaling algorithm: %s."
-                         % automatic_loss_scaling)
-      if dtype != "mixed":
-        raise ValueError("Automatic loss scaling can be used only with "
-                         "dtype=mixed.")
-      loss_scale = AutomaticLossScaler(algorithm=automatic_loss_scaling)
+    if isinstance(loss_scaling, six.string_types):
+      loss_scaling = AutomaticLossScaler(algorithm=loss_scaling)
 
     if dtype == 'mixed':
-      opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scale)
+      opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scaling)
     if on_horovod:
       opt = DistributedOptimizer(opt)
 
     # Compute gradients.
-    grads_and_vars = opt.compute_gradients(loss,
-                                           colocate_gradients_with_ops=True)
+    grads_and_vars = opt.compute_gradients(
+      loss, colocate_gradients_with_ops=True,
+    )
 
     if "global_gradient_norm" in summaries:
       tf.summary.scalar(
@@ -254,7 +251,6 @@ def optimize_loss(loss,
         var_name = variable.name.replace(":", "_")
         if "gradients" in summaries:
           # need to mask nans for automatic loss scaling
-          # TODO: add summary for skipped update!!!
           tf.summary.histogram("gradients/%s" % var_name, mask_nans(grad_values))
         if "gradient_norm" in summaries:
           tf.summary.scalar("gradient_norm/%s" % var_name, tf.norm(grad_values))
