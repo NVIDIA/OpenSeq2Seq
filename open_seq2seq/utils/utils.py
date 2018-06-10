@@ -125,26 +125,29 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 
   while True:
     tm = time.time()
+    fetches_vals = {}
     if size_defined:
-      fetches_vals = sess.run(fetches)
+      fetches_to_run = {}
+      # removing finished data layers
+      for worker_id in range(model.num_gpus):
+        if total_samples[worker_id] < dl_sizes[worker_id]:
+          fetches_to_run[worker_id] = fetches[worker_id]
+      fetches_vals = sess.run(fetches_to_run)
     else:
       # if size is not defined we have to process fetches sequentially, so not
       # to lose data when exception is thrown on one data layer
-      fetches_vals = []
-      for one_fetch in fetches:
+      for worker_id, one_fetch in enumerate(fetches):
         try:
-          fetches_vals.append(sess.run(one_fetch))
+          fetches_vals[worker_id] = sess.run(one_fetch)
         except tf.errors.OutOfRangeError:
           continue
 
     if step >= bench_start:
       total_time += time.time() - tm
 
-    skip_workers = 0
-
     # looping over num_gpus. In Horovod case this loop is "dummy",
     # since num_gpus = 1
-    for worker_id, fetches_val in enumerate(fetches_vals):
+    for worker_id, fetches_val in fetches_vals.items():
       if compute_loss:
         inputs, outputs, loss = fetches_val[:3]
       else:
@@ -158,11 +161,6 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       total_samples[worker_id] += batch_size
 
       if size_defined:
-        # this data_layer is finished
-        if total_samples[worker_id] - batch_size > dl_sizes[worker_id]:
-          skip_workers += 1
-          continue
-
         # this data_layer is at the last batch with few more elements, cutting
         if total_samples[worker_id] > dl_sizes[worker_id]:
           last_batch_size = dl_sizes[worker_id] % batch_size
@@ -182,7 +180,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       else:
         raise ValueError("Unknown mode: {}".format(mode))
 
-    if len(fetches_vals) == 0 or skip_workers == model.num_gpus:
+    if len(fetches_vals) == 0:
       break
 
     if verbose:

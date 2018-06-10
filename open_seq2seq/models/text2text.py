@@ -219,6 +219,11 @@ class Text2Text(EncoderDecoderModel):
     data_layer = self.get_data_layer(worker_id)
     # sum of source length in batch
     num_tokens = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])
-    # sum of target length in batch
-    num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    if self.mode != "infer":
+      # sum of target length in batch
+      num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    else:
+      # TODO: this is not going to be correct when batch size > 1, since it will
+      #       count padding?
+      num_tokens += tf.reduce_sum(tf.shape(self.get_output_tensors(worker_id)[0]))
     return num_tokens
