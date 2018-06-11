@@ -340,7 +340,7 @@ def optimize_loss(loss,
           grad_accum = tf.get_variable(
             grad.name.split(":")[0] + "_accum", shape=grad.shape,
             dtype=grad.dtype, initializer=tf.zeros_initializer(),
-            trainable=False,
+            trainable=False, validate_shape=bool(grad.get_shape())
           )
           accum_ops.append(tf.assign(grad_accum, grad_accum + grad / iter_size))
           grads_and_vars_accum.append((grad_accum, var))

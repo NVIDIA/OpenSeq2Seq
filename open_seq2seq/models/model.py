@@ -82,6 +82,7 @@ class Model:
       'larc_params': dict,
       'loss_scaling': None,  # float, "Backoff" or "LogMax"
       'summaries': list,
+      'iter_size': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -168,6 +169,8 @@ class Model:
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
+    * **iter_size** (int) --- same as in nvcaffe, the gradients will be
+      accumulated for ``iter_size`` number of steps before applying update.
     * **larc_params** --- dictionary with parameters for LARC (or LARS)
       optimization algorithms. Can contain the following parameters:
 
@@ -276,10 +279,12 @@ class Model:
       self._output = None
     else:
       self._outputs = [None] * self.num_gpus
+
     self.loss = None
     self.train_op = None
     self.eval_losses = None
     self._num_objects_per_step = None
+    self.skip_update_ph = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -366,6 +371,9 @@ class Model:
         lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,
                                                         **lr_params)
 
+      if self.params.get('iter_size', 1) > 1:
+        self.skip_update_ph = tf.placeholder(tf.bool)
+
       self.train_op = optimize_loss(
         loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
@@ -377,6 +385,8 @@ class Model:
         larc_params=self.params.get('larc_params', None),
         loss_scaling=self.params.get('loss_scaling', 1.0),
         on_horovod=self.on_horovod,
+        iter_size=self.params.get('iter_size', 1),
+        skip_update_ph=self.skip_update_ph,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:
