@@ -24,14 +24,14 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,15))
   
   if vmin is None:
-    vmin = min(np.min(ground_truth), np.min(generated_sample), np.min(post_net_sample), np.min(final_inputs))
+    vmin = min(np.min(ground_truth), np.min(generated_sample), np.min(post_net_sample))
   if vmax is None:
-    vmax = max(np.max(ground_truth), np.max(generated_sample), np.max(post_net_sample), np.max(final_inputs))
+    vmax = max(np.max(ground_truth), np.max(generated_sample), np.max(post_net_sample))
   
   colour1 = ax1.imshow(ground_truth.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
   colour2 = ax2.imshow(generated_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
   colour3 = ax3.imshow(post_net_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-  colour4 = ax4.imshow(final_inputs.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+  colour4 = ax4.imshow(final_inputs.T, cmap='viridis', interpolation='nearest', aspect='auto')
   colour5 = ax5.imshow(attention.T, cmap='viridis', interpolation='nearest', aspect='auto')
   
   ax1.invert_yaxis()
@@ -57,10 +57,12 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   plt.xlabel('time')
   
   fig.subplots_adjust(right=0.8)
-  cbar_ax1 = fig.add_axes([0.85, 0.35, 0.05, 0.5])
+  cbar_ax1 = fig.add_axes([0.85, 0.42, 0.05, 0.48])
   fig.colorbar(colour1, cax=cbar_ax1)
-  cbar_ax2 = fig.add_axes([0.85, 0.1, 0.05, 0.15])
+  cbar_ax2 = fig.add_axes([0.85, 0.25, 0.05, 0.12])
   fig.colorbar(colour4, cax=cbar_ax2)
+  cbar_ax3 = fig.add_axes([0.85, 0.1, 0.05, 0.12])
+  fig.colorbar(colour5, cax=cbar_ax3)
 
   if append:
     name = '{}/Output_Step{}_{}_{}.png'.format(logdir, train_step, number, append)
@@ -207,10 +209,10 @@ class Text2Speech(EncoderDecoderModel):
     final_inputs = output_values[3]
 
     y_sample = y[-1]
-    predicted_spectrogram_sample = predicted_decoder_spectrograms[-1]
-    predicted_final_spectrogram_sample = predicted_final_spectrograms[-1]
-    attention_mask_sample = attention_mask[-1]
-    final_inputs_sample = final_inputs[-1]
+    predicted_spectrogram_sample = predicted_decoder_spectrograms
+    predicted_final_spectrogram_sample = predicted_final_spectrograms
+    attention_mask_sample = attention_mask
+    final_inputs_sample = final_inputs
 
 
     plot_spectrogram_w_input(y_sample, predicted_spectrogram_sample,
@@ -227,6 +229,8 @@ class Text2Speech(EncoderDecoderModel):
 
 
   def evaluate(self, input_values, output_values):
+    # Need to reduce amount of data sent for horovod
+    output_values = [item[-1] for item in output_values]
     return [input_values, output_values]
 
   # def infer(self, input_values, output_values):

@@ -373,6 +373,7 @@ class Model:
 
       self.train_op = optimize_loss(
         loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(self.params['regularizer_params']['scale']),
+        # loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),

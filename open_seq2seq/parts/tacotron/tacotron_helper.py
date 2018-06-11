@@ -451,14 +451,14 @@ class TacotronHelper(Helper):
     finished = (next_time >= self._sequence_length)
     all_finished = math_ops.reduce_all(finished)
 
-    def get_next_input(outputs):
+    def get_next_input(out):
       # pre_net_result = self._pre_net_layer_2(self._pre_net_layer_1(outputs))
       # next_input = tf.concat([pre_net_result, outputs], axis=-1)
       for layer in self.prenet_layers:
-        outputs = tf.layers.dropout(layer(outputs), rate=0.5, training=True)
+        out = tf.layers.dropout(layer(out), rate=0.5, training=True)
         # outputs = layer(outputs)
       # outputs = tf.concat([outputs, self.context],axis=-1)
-      return outputs
+      return out
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
     next_inputs = control_flow_ops.cond(
         all_finished, 
