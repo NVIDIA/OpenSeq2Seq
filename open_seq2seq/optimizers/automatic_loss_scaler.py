@@ -12,7 +12,7 @@ class AutomaticLossScaler(object):
   SUPPORTED_ALGOS = ['backoff', 'logmax']
 
   def __init__(self, algorithm='Backoff', scale_min=1.0, scale_max=2.**24):
-    algorithm = algorithm.lower()
+    algorithm = algorithm.lower().strip()
     if algorithm == 'backoff':
       self.scaler = BackoffScaler(scale_min=scale_min,
                                   scale_max=scale_max,
