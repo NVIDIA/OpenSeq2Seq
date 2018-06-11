@@ -57,11 +57,11 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   plt.xlabel('time')
   
   fig.subplots_adjust(right=0.8)
-  cbar_ax1 = fig.add_axes([0.85, 0.42, 0.05, 0.48])
+  cbar_ax1 = fig.add_axes([0.85, 0.45, 0.05, 0.45])
   fig.colorbar(colour1, cax=cbar_ax1)
-  cbar_ax2 = fig.add_axes([0.85, 0.25, 0.05, 0.12])
+  cbar_ax2 = fig.add_axes([0.85, 0.27, 0.05, 0.14])
   fig.colorbar(colour4, cax=cbar_ax2)
-  cbar_ax3 = fig.add_axes([0.85, 0.1, 0.05, 0.12])
+  cbar_ax3 = fig.add_axes([0.85, 0.1, 0.05, 0.14])
   fig.colorbar(colour5, cax=cbar_ax3)
 
   if append:
@@ -202,13 +202,14 @@ class Text2Speech(EncoderDecoderModel):
     sample = results_per_batch[-1]
     input_values = sample[0]
     output_values = sample[1]
-    y, y_length = input_values['target_tensors']
+    # y, y_length = input_values['target_tensors']
+    y = input_values['target_tensors']
     predicted_decoder_spectrograms = output_values[0]
     predicted_final_spectrograms = output_values[1]
     attention_mask = output_values[2]
     final_inputs = output_values[3]
 
-    y_sample = y[-1]
+    y_sample = y
     predicted_spectrogram_sample = predicted_decoder_spectrograms
     predicted_final_spectrogram_sample = predicted_final_spectrograms
     attention_mask_sample = attention_mask
@@ -231,6 +232,7 @@ class Text2Speech(EncoderDecoderModel):
   def evaluate(self, input_values, output_values):
     # Need to reduce amount of data sent for horovod
     output_values = [item[-1] for item in output_values]
+    input_values = {key:value[0][-1] for key, value in input_values.items()}
     return [input_values, output_values]
 
   # def infer(self, input_values, output_values):
