@@ -74,6 +74,7 @@ base_params = {
       'uniform': False,
     },
     "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+    "gated_convolution" : False,
     "data_format": "channels_last",
   },
 
