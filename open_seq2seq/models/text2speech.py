@@ -21,7 +21,7 @@ from open_seq2seq.utils.utils import deco_print
 
 def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, attention, final_inputs,
  logdir, train_step, number=0, append=False, vmin=None, vmax=None):
-  fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,12))
+  fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,15))
   
   if vmin is None:
     vmin = min(np.min(ground_truth), np.min(generated_sample), np.min(post_net_sample), np.min(final_inputs))
