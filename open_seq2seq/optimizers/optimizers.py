@@ -137,6 +137,28 @@ class DistributedOptimizer(tf.train.Optimizer):
     return self._optimizer.apply_gradients(grads_and_vars, global_step, name)
 
 
+def reduce_gradients(grads_and_vars, on_horovod):
+  if on_horovod:
+    from horovod.common import size
+    from horovod.tensorflow import allreduce
+
+    if size() > 1:
+      averaged_grads_and_vars = []
+      with tf.name_scope("all_reduce"):
+        for grad, var in grads_and_vars:
+          if grad is not None:
+            avg_grad = allreduce(grad)
+            averaged_grads_and_vars.append((avg_grad, var))
+          else:
+            averaged_grads_and_vars.append((None, var))
+      return averaged_grads_and_vars
+    else:
+      return grads_and_vars
+  else:
+    # TODO: implement this
+    pass
+
+
 def optimize_loss(loss,
                   optimizer,
                   optimizer_params,
@@ -146,7 +168,9 @@ def optimize_loss(loss,
                   summaries=None,
                   larc_params=None,
                   loss_scaling=1.0,
-                  on_horovod=False):
+                  on_horovod=False,
+                  iter_size=1,
+                  skip_update_ph=None):
   """Given loss and parameters for optimizer, returns a training op.
 
   Args:
@@ -217,8 +241,6 @@ def optimize_loss(loss,
 
     if dtype == 'mixed':
       opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scaling)
-    if on_horovod:
-      opt = DistributedOptimizer(opt)
 
     # Compute gradients.
     grads_and_vars = opt.compute_gradients(
@@ -310,12 +332,50 @@ def optimize_loss(loss,
           tf.summary.scalar("larc_final_lr/{}".format(v.name),
                             tf.cast(lr, var_dtype) * larc_grad_update)
 
-    # Create gradient updates.
-    grad_updates = opt.apply_gradients(
-      grads_and_vars,
-      global_step=global_step,
-      name="train",
-    )
+    if on_horovod:
+      if iter_size > 1:
+        grads_and_vars_accum = []
+        accum_ops = []
+        for grad, var in grads_and_vars:
+          grad_accum = tf.get_variable(
+            grad.name.split(":")[0] + "_accum", shape=grad.shape,
+            dtype=grad.dtype, initializer=tf.zeros_initializer(),
+            trainable=False,
+          )
+          accum_ops.append(tf.assign(grad_accum, grad_accum + grad / iter_size))
+          grads_and_vars_accum.append((grad_accum, var))
+
+        accum_op = tf.group(accum_ops)
+
+        def clear_op():
+          with tf.control_dependencies([accum_op]):
+            red_grad_updates = opt.apply_gradients(
+              reduce_gradients(grads_and_vars_accum, on_horovod=True),
+              global_step=global_step,
+              name="train",
+            )
+
+          with tf.control_dependencies([red_grad_updates]):
+            return tf.group([tf.assign(g, tf.zeros_like(g))
+                             for g, v in grads_and_vars_accum])
+
+        grad_updates = tf.cond(
+          pred=skip_update_ph,
+          true_fn=lambda: accum_op,
+          false_fn=clear_op,
+        )
+      else:
+        grad_updates = opt.apply_gradients(
+          reduce_gradients(grads_and_vars, on_horovod=True),
+          global_step=global_step,
+          name="train",
+        )
+    else:
+      grad_updates = opt.apply_gradients(
+        grads_and_vars,
+        global_step=global_step,
+        name="train",
+      )
 
     # Ensure the train_tensor computes grad_updates.
     train_tensor = control_flow_ops.with_dependencies([grad_updates], loss)
