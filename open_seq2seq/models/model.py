@@ -80,8 +80,7 @@ class Model:
       'lr_policy_params': dict,
       'max_grad_norm': float,
       'larc_params': dict,
-      'loss_scale': float,
-      'automatic_loss_scaling': [None, 'Backoff', 'LogMax'],
+      'loss_scaling': None,  # float, "Backoff" or "LogMax"
       'summaries': list,
     }
 
@@ -161,11 +160,11 @@ class Model:
     * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
       will be performed if some gradients exceed this value (this is checked
       for each variable independently).
-    * **loss_scale** (float) --- static loss scale to use. For details see
-      :ref:`mixed precision training <mixed_precision>` section in docs.
-    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
-      either None, "Backoff" or "Logmax". For details see
-      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **loss_scaling** --- could be float or string. If float, static loss
+      scaling is applied. If string, the corresponding automatic
+      loss scaling algorithm is used. Must be one of 'Backoff'
+      of 'LogMax' (case insensitive). Only used when dtype="mixed". For details
+      see :ref:`mixed precision training <mixed_precision>` section in docs.
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
@@ -372,19 +371,11 @@ class Model:
         dtype=self.params['dtype'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
-        gradient_noise_scale=None,
-        gradient_multipliers=None,
         clip_gradients=self.params.get('max_grad_norm', None),
         learning_rate_decay_fn=lr_policy,
-        update_ops=None,
-        variables=None,
-        name="Loss_Optimization",
         summaries=self.params.get('summaries', None),
-        colocate_gradients_with_ops=True,
-        increment_global_step=True,
         larc_params=self.params.get('larc_params', None),
-        loss_scale=self.params.get('loss_scale', 1.0),
-        automatic_loss_scaling=self.params.get('automatic_loss_scaling', None),
+        loss_scaling=self.params.get('loss_scaling', 1.0),
         on_horovod=self.on_horovod,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
