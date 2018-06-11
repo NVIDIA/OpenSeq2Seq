@@ -53,6 +53,7 @@ class Wave2LetterEncoder(Encoder):
       'data_format': ['channels_first', 'channels_last'],
       'bn_momentum': float,
       'bn_epsilon': float,
+      'gated_convolution': bool,
 		})
 
 	def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -108,6 +109,7 @@ class Wave2LetterEncoder(Encoder):
 				layer_name, layer = self._get_layer(layer_type)
 				if layer_name == "conv":
 					ch_out = convnet_layers[idx_convnet]['num_channels']
+					if self.params['gated_convolution']: ch_out = 2*ch_out
 					kernel_size = convnet_layers[idx_convnet]['kernel_size']
 					strides = convnet_layers[idx_convnet]['stride']
 					padding = convnet_layers[idx_convnet]['padding']
@@ -128,10 +130,19 @@ class Wave2LetterEncoder(Encoder):
 						bn_epsilon=bn_epsilon,
 					)
 
-		if data_format == 'channels_first':
-			conv_feats = tf.transpose(conv_feats, [0, 2, 1])
+					#conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
+					if self.params['gated_convolution']:
+						#conv_feats: B T F
+						preactivations, gate_inputs = tf.split(conv_feats, num_or_size_splits=2, axis=2)
+						gate_outputs = tf.sigmoid(gate_inputs)
+						conv_feats_out = tf.multiply(preactivations, gate_outputs)
+					else: conv_feats_out = conv_feats
 
-		outputs = conv_feats
+
+		if data_format == 'channels_first':
+			conv_feats_out = tf.transpose(conv_feats_out, [0, 2, 1])
+
+		outputs = conv_feats_out
 		return {
 			'outputs': outputs,
 			'src_length': src_length,
