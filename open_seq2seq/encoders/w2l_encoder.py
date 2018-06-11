@@ -130,7 +130,7 @@ class Wave2LetterEncoder(Encoder):
 						bn_epsilon=bn_epsilon,
 					)
 
-					#conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
+					conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
 					if self.params['gated_convolution']:
 						#conv_feats: B T F
 						preactivations, gate_inputs = tf.split(conv_feats, num_or_size_splits=2, axis=2)
