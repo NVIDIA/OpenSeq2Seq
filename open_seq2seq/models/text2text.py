@@ -45,7 +45,7 @@ def calculate_bleu(preds, targets):
   :return: bleu score - float32
   """
   bleu_score = nltk.translate.bleu_score.corpus_bleu(
-    targets, preds, #emulate_multibleu=True,
+    targets, preds, emulate_multibleu=True,
   )
   return bleu_score
 
@@ -214,11 +214,16 @@ class Text2Text(EncoderDecoderModel):
 
     return {}
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of source tokens + number of target tokens in batch."""
     data_layer = self.get_data_layer(worker_id)
     # sum of source length in batch
     num_tokens = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])
-    # sum of target length in batch
-    num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    if self.mode != "infer":
+      # sum of target length in batch
+      num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    else:
+      # TODO: this is not going to be correct when batch size > 1, since it will
+      #       count padding?
+      num_tokens += tf.reduce_sum(tf.shape(self.get_output_tensors(worker_id)[0]))
     return num_tokens

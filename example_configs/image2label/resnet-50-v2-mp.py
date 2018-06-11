@@ -16,7 +16,8 @@ base_params = {
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
-  "dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
 
   "save_summaries_steps": 2000,
   "print_loss_steps": 100,
@@ -58,5 +59,6 @@ base_params = {
   "data_layer_params": {
     "data_dir": "data/tf-imagenet",
     "image_size": 224,
+    "num_classes": 1000,
   },
 }

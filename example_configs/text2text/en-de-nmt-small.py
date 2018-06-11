@@ -36,8 +36,8 @@ base_params = {
     "larc_eta": 0.001,
   },
   "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {

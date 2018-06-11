@@ -33,7 +33,7 @@ base_params = {
   "logdir": "Transformer-FP32",
   "dtype": tf.float32,
   # "dtype": "mixed",
-  # "automatic_loss_scaling": "Backoff",
+  # "loss_scaling": "Backoff",
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,

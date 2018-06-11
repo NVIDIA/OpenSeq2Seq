@@ -8,25 +8,25 @@ from six.moves import range
 import tensorflow as tf
 
 
-class AutomaticLossScaler:
-  SUPPORTED_ALGOS = ['Backoff', 'LogMax']
+class AutomaticLossScaler(object):
+  SUPPORTED_ALGOS = ['backoff', 'logmax']
 
   def __init__(self, algorithm='Backoff', scale_min=1.0, scale_max=2.**24):
-    if algorithm == 'Backoff':
+    algorithm = algorithm.lower().strip()
+    if algorithm == 'backoff':
       self.scaler = BackoffScaler(scale_min=scale_min,
                                   scale_max=scale_max,
                                   step_factor=2.0,
                                   step_window=2000)
-    elif algorithm == 'LogMax':
+    elif algorithm == 'logmax':
       self.scaler = LogMaxScaler(scale_min=scale_min,
                                  scale_max=scale_max,
                                  log_max=16.,
                                  beta1=0.99,
                                  beta2=0.999,
-                                 overflow_std_dev=3.09) # ppf(.999)
+                                 overflow_std_dev=3.09)  # ppf(.999)
     else:
-      raise ValueError('Unknown dynamic scaling algorithm: %s'
-                       % algorithm_name)
+      raise ValueError('Unknown scaling algorithm: {}'.format(algorithm))
 
   def update_op(self, has_nan, amax):
     return self.scaler.update_op(has_nan, amax)
@@ -55,7 +55,7 @@ class AutomaticLossScaler:
     return has_nan, amax
 
 
-class BackoffScaler:
+class BackoffScaler(object):
   def __init__(self, scale_min, scale_max, step_factor, step_window):
     self.scale_min = scale_min
     self.scale_max = scale_max
@@ -105,7 +105,7 @@ class BackoffScaler:
     return self.scale
 
 
-class LogMaxScaler:
+class LogMaxScaler(object):
   def __init__(self, scale_min, scale_max, log_max, beta1, beta2, overflow_std_dev):
     self.scale_min = scale_min
     self.scale_max = scale_max

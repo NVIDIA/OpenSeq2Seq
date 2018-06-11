@@ -13,22 +13,17 @@
 # limitations under the License.
 # ==============================================================================
 """Provides utilities to preprocess images.
-
 Training images are sampled using the provided bounding boxes, and subsequently
 cropped to the sampled bounding box. Images are additionally flipped randomly,
 then resized to the target output size (without aspect-ratio preservation).
-
 Images used during evaluation are resized (with aspect-ratio preservation) and
 centrally cropped.
-
 All images undergo mean color subtraction.
-
 Note that these steps are colloquially referred to as "ResNet preprocessing,"
 and they differ from "VGG preprocessing," which does not use bounding boxes
 and instead does an aspect-preserving resize followed by random crop during
 training. (These both differ from "Inception preprocessing," which introduces
 color distortion steps.)
-
 """
 
 from __future__ import absolute_import
@@ -47,14 +42,9 @@ _CHANNEL_MEANS = [_R_MEAN, _G_MEAN, _B_MEAN]
 # _RESIZE_MIN x (_RESIZE_MIN * 2).
 _RESIZE_MIN = 256
 
-_DEFAULT_IMAGE_SIZE = 224
-_NUM_CHANNELS = 3
-_NUM_CLASSES = 1001
-
 
 def _decode_crop_and_flip(image_buffer, bbox, num_channels):
   """Crops the given image to a random part of the image, and randomly flips.
-
   We use the fused decode_and_crop op, which performs better than the two ops
   used separately in series, but note that this requires that the image be
   passed in as an un-decoded string Tensor.
@@ -68,7 +58,6 @@ def _decode_crop_and_flip(image_buffer, bbox, num_channels):
 
   Returns:
     3-D tensor with cropped image.
-
   """
   # A large fraction of image datasets contain a human-annotated bounding box
   # delineating the region of the image containing the object of interest.  We
@@ -123,12 +112,12 @@ def _central_crop(image, crop_height, crop_width):
       image, [crop_top, crop_left, 0], [crop_height, crop_width, -1])
 
 
-def _mean_image_subtraction(image, means, num_channels):
-  """Subtracts the given means from each image channel.
+def _mean_image_subtraction_and_normalization(image, means, num_channels):
+  """Subtracts the given means from each image channel and divides by 127.5.
 
   For example:
     means = [123.68, 116.779, 103.939]
-    image = _mean_image_subtraction(image, means)
+    image = _mean_image_subtraction_and_normalization(image, means)
 
   Note that the rank of `image` must be known.
 
@@ -138,7 +127,7 @@ def _mean_image_subtraction(image, means, num_channels):
     num_channels: number of color channels in the image that will be distorted.
 
   Returns:
-    the centered image.
+    the centered image and normalized image.
 
   Raises:
     ValueError: If the rank of `image` is unknown, if `image` has a rank other
@@ -154,12 +143,11 @@ def _mean_image_subtraction(image, means, num_channels):
   # We have a 1-D tensor of means; convert to 3-D.
   means = tf.expand_dims(tf.expand_dims(means, 0), 0)
 
-  return image - means
+  return (image - means) / 127.5
 
 
 def _smallest_size_at_least(height, width, resize_min):
   """Computes new shape with the smallest side equal to `smallest_side`.
-
   Computes new shape with the smallest side equal to `smallest_side` while
   preserving the original aspect ratio.
 
@@ -209,7 +197,6 @@ def _aspect_preserving_resize(image, resize_min):
 
 def _resize_image(image, height, width):
   """Simple wrapper around tf.resize_images.
-
   This is primarily to make sure we use the same `ResizeMethod` and other
   details each time.
 
@@ -230,7 +217,6 @@ def _resize_image(image, height, width):
 def preprocess_image(image_buffer, bbox, output_height, output_width,
                      num_channels, is_training=False):
   """Preprocesses the given image.
-
   Preprocessing includes decoding, cropping, and resizing for both training
   and eval images. Training preprocessing, however, introduces some random
   distortion of the image to improve accuracy.
@@ -261,16 +247,15 @@ def preprocess_image(image_buffer, bbox, output_height, output_width,
 
   image.set_shape([output_height, output_width, num_channels])
 
-  return _mean_image_subtraction(image, _CHANNEL_MEANS, num_channels)
+  return _mean_image_subtraction_and_normalization(image, _CHANNEL_MEANS,
+                                                   num_channels)
 
 
 def _parse_example_proto(example_serialized):
   """Parses an Example proto containing a training example of an image.
-
   The output of the build_image_data.py image preprocessing script is a dataset
   containing serialized Example protocol buffers. Each Example proto contains
   the following fields (values are included as examples):
-
     image/height: 462
     image/width: 581
     image/colorspace: 'RGB'
@@ -334,16 +319,17 @@ def _parse_example_proto(example_serialized):
   return features['image/encoded'], label, bbox
 
 
-def parse_record(raw_record, is_training):
+def parse_record(raw_record, is_training, image_size=224, num_classes=1000):
   """Parses a record containing a training example of an image.
-
   The input record is parsed into a label and image, and the image is passed
   through preprocessing steps (cropping, flipping, and so on).
 
   Args:
     raw_record: scalar Tensor tf.string containing a serialized
-      Example protocol buffer.
+        Example protocol buffer.
     is_training: A boolean denoting whether the input is for training.
+    image_size (int): size that images should be resized to.
+    num_classes (int): number of output classes.
 
   Returns:
     Tuple with processed image tensor and one-hot-encoded label tensor.
@@ -353,11 +339,12 @@ def parse_record(raw_record, is_training):
   image = preprocess_image(
       image_buffer=image_buffer,
       bbox=bbox,
-      output_height=_DEFAULT_IMAGE_SIZE,
-      output_width=_DEFAULT_IMAGE_SIZE,
-      num_channels=_NUM_CHANNELS,
+      output_height=image_size,
+      output_width=image_size,
+      num_channels=3,
       is_training=is_training)
 
-  label = tf.one_hot(tf.reshape(label, shape=[]), _NUM_CLASSES)
+  # subtracting 1 to make labels go from 0 to 999
+  label = tf.one_hot(tf.reshape(label - 1, shape=[]), num_classes)
 
   return image, label

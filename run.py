@@ -8,6 +8,7 @@ from six.moves import range
 import tensorflow as tf
 import datetime
 import argparse
+import ast
 import pprint
 import runpy
 import copy
@@ -65,9 +66,10 @@ def main():
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
-    if type(value) is int or type(value) is float or type(value) is str or \
-       type(value) is bool:
+    if type(value) is int or type(value) is float or type(value) is str:
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
+    elif type(value) is bool:
+      parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
 
@@ -169,12 +171,14 @@ def main():
   if args.mode == 'train' or args.mode == 'train_eval':
     if 'train_params' in config_module:
       train_config.update(copy.deepcopy(config_module['train_params']))
+      nested_update(train_config, nest_dict(vars(config_update)))
     if hvd is None or hvd.rank() == 0:
       deco_print("Training config:")
       pprint.pprint(train_config)
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
       eval_config.update(copy.deepcopy(config_module['eval_params']))
+      nested_update(eval_config, nest_dict(vars(config_update)))
     if hvd is None or hvd.rank() == 0:
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
@@ -183,6 +187,7 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
+    nested_update(infer_config, nest_dict(vars(config_update)))
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
       pprint.pprint(infer_config)
