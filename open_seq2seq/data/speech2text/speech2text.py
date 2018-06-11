@@ -125,7 +125,7 @@ class Speech2TextDataLayer(DataLayer):
       )
     else:
       indices = self.split_data(
-        np.array(map(lambda num: str(num), range(len(self.all_files))))
+        np.array(list(map(lambda num: str(num), range(len(self.all_files)))))
       )
       self._dataset = tf.data.Dataset.from_tensor_slices(
         np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
