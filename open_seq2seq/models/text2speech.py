@@ -19,19 +19,20 @@ from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
 
 
-def plot_spectrogram(ground_truth, generated_sample, post_net_sample, attention,
+def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, attention, final_inputs,
  logdir, train_step, number=0, append=False, vmin=None, vmax=None):
-  fig, (ax1, ax2, ax3, ax4) = plt.subplots(nrows=4, figsize=(8,12))
+  fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,12))
   
   if vmin is None:
-    vmin = min(np.min(ground_truth), np.min(generated_sample), np.min(post_net_sample))
+    vmin = min(np.min(ground_truth), np.min(generated_sample), np.min(post_net_sample), np.min(final_inputs))
   if vmax is None:
-    vmax = max(np.max(ground_truth), np.max(generated_sample), np.min(post_net_sample))
+    vmax = max(np.max(ground_truth), np.max(generated_sample), np.max(post_net_sample), np.max(final_inputs))
   
   colour1 = ax1.imshow(ground_truth.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
   colour2 = ax2.imshow(generated_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
   colour3 = ax3.imshow(post_net_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-  colour4 = ax4.imshow(attention.T, cmap='viridis', interpolation='nearest', aspect='auto')
+  colour4 = ax4.imshow(final_inputs.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
+  colour5 = ax5.imshow(attention.T, cmap='viridis', interpolation='nearest', aspect='auto')
   
   ax1.invert_yaxis()
   ax1.set_ylabel('fourier components')
@@ -45,8 +46,13 @@ def plot_spectrogram(ground_truth, generated_sample, post_net_sample, attention,
   ax3.set_ylabel('fourier components')
   ax3.set_title('post net results')
 
-  ax4.set_title('attention')
-  ax4.set_ylabel('inputs')
+  ax4.invert_yaxis()
+  ax4.set_ylabel('fourier components')
+  ax4.set_title('Inputs')
+
+  ax5.invert_yaxis()
+  ax5.set_title('attention')
+  ax5.set_ylabel('inputs')
   
   plt.xlabel('time')
   
@@ -109,28 +115,6 @@ class Text2Speech(EncoderDecoderModel):
     )
     return super(Text2Speech, self)._create_decoder()
 
-  def maybe_print_logs(self, input_values, output_values, step):
-    y, y_length = input_values['target_tensors']
-    predicted_decoder_spectrograms = output_values[0]
-    predicted_final_spectrograms = output_values[1]
-    attention_mask = output_values[2]
-    y_sample = y[0]
-    y_length_sample = y_length[0]
-    predicted_spectrogram_sample = predicted_decoder_spectrograms[0]
-    predicted_final_spectrogram_sample = predicted_final_spectrograms[0]
-    attention_mask_sample = attention_mask[0]
-
-    plot_spectrogram(y_sample, predicted_spectrogram_sample,
-                     predicted_final_spectrogram_sample,
-                     attention_mask_sample,
-                     self.params["logdir"], step,
-                     append="train")
-
-    if self.get_data_layer().params['output_type'] == "spectrogram":
-      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
-    
-    return {}
-
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
     """TensorFlow graph for sequence-to-sequence model is created here.
     This function connects encoder, decoder and loss together. As an input for
@@ -168,9 +152,10 @@ class Text2Speech(EncoderDecoderModel):
       # if self.mode == "train":
       decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
-      decoder_out = decoder_output.get("decoder_output", 0)
-      decoder_post_net_outupt = decoder_output.get("post_net_output", 0)
-      attention_mask = decoder_output.get("alignments", 0)
+      decoder_out = decoder_output.get("decoder_output", 0.)
+      decoder_post_net_outupt = decoder_output.get("post_net_output", 0.)
+      attention_mask = decoder_output.get("alignments", 0.)
+      inputs = decoder_output.get("final_inputs", 0.)
 
       final_spectrogram = decoder_out + decoder_post_net_outupt
 
@@ -184,7 +169,32 @@ class Text2Speech(EncoderDecoderModel):
       else:
         deco_print("Inference Mode. Loss part of graph isn't built.")
         loss = None
-      return loss, [decoder_out, final_spectrogram, attention_mask]
+      return loss, [decoder_out, final_spectrogram, attention_mask, inputs]
+
+  def maybe_print_logs(self, input_values, output_values, step):
+    y, y_length = input_values['target_tensors']
+    predicted_decoder_spectrograms = output_values[0]
+    predicted_final_spectrograms = output_values[1]
+    attention_mask = output_values[2]
+    final_inputs = output_values[3]
+    y_sample = y[0]
+    y_length_sample = y_length[0]
+    predicted_spectrogram_sample = predicted_decoder_spectrograms[0]
+    predicted_final_spectrogram_sample = predicted_final_spectrograms[0]
+    attention_mask_sample = attention_mask[0]
+    final_inputs_sample = final_inputs[0]
+
+    plot_spectrogram_w_input(y_sample, predicted_spectrogram_sample,
+                     predicted_final_spectrogram_sample,
+                     attention_mask_sample,
+                     final_inputs_sample,
+                     self.params["logdir"], step,
+                     append="train")
+
+    if self.get_data_layer().params['output_type'] == "spectrogram":
+      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
+    
+    return {}
 
   def finalize_evaluation(self, results_per_batch, step):
     sample = results_per_batch[-1]
@@ -194,15 +204,19 @@ class Text2Speech(EncoderDecoderModel):
     predicted_decoder_spectrograms = output_values[0]
     predicted_final_spectrograms = output_values[1]
     attention_mask = output_values[2]
+    final_inputs = output_values[3]
 
     y_sample = y[-1]
     predicted_spectrogram_sample = predicted_decoder_spectrograms[-1]
     predicted_final_spectrogram_sample = predicted_final_spectrograms[-1]
     attention_mask_sample = attention_mask[-1]
+    final_inputs_sample = final_inputs[-1]
 
-    plot_spectrogram(y_sample, predicted_spectrogram_sample,
+
+    plot_spectrogram_w_input(y_sample, predicted_spectrogram_sample,
                      predicted_final_spectrogram_sample,
                      attention_mask_sample,
+                     final_inputs_sample,
                      self.params["logdir"], step,
                      append="eval")
 

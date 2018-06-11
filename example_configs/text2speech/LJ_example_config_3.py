@@ -139,7 +139,7 @@ base_params = {
   
   "loss": MeanSquaredErrorLoss,
   "loss_params": {
-    "use_mask": True
+    "use_mask": False
   },
   # "loss": BasicMeanSquaredErrorLoss,
   # "loss_params": {

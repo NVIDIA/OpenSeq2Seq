@@ -257,13 +257,13 @@ class TacotronTrainingHelper(Helper):
     self._batch_size = array_ops.size(sequence_length)
     self.seed = 0
     self.anneal_sampling_prob = anneal_sampling_prob
-    if anneal_sampling_prob:
+    # if anneal_sampling_prob:
       ## Currently hard-coded
-      curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(10480./48.))
-      curr_step = tf.floor(tf.div(curr_epoch,tf.constant(500./20.)))
-      self.sampling_prob = tf.div(curr_step,tf.constant(20.))
-    else:
-      self.sampling_prob = sampling_prob
+      # curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(128./32.))
+      # curr_step = tf.floor(tf.div(curr_epoch,tf.constant(100./20.)))
+      # self.sampling_prob = tf.div(curr_step,tf.constant(20.))
+    # else:
+    self.sampling_prob = sampling_prob
     # self.context = context
 
     ## Create finished projection layer
@@ -273,8 +273,8 @@ class TacotronTrainingHelper(Helper):
     #   use_bias=False,
     # )
     ## Create dense pre_net
+    self.prenet_layers=[]
     if enable_prenet:
-      self.prenet_layers=[]
       for idx in range(prenet_layers):
         self.prenet_layers.append(tf.layers.Dense(
           name="prenet_{}".format(idx + 1),
@@ -329,24 +329,23 @@ class TacotronTrainingHelper(Helper):
       # next_input = tf.concat([pre_net_result, inp], axis=-1)
       for layer in self.prenet_layers:
         next_input = tf.layers.dropout(layer(next_input), rate=0.5, training=True)
-        out = layer(out)
+        out = tf.layers.dropout(layer(out), rate=0.5, training=True)
 
 
       if self.anneal_sampling_prob or self.sampling_prob > 0:
         select_sampler = bernoulli.Bernoulli(
             probs=self.sampling_prob, dtype=dtypes.bool)
         select_sample = select_sampler.sample(
-            sample_shape=self.batch_size, seed=self.seed)
-        select_sample = tf.reshape(tf.tile(select_sample, [self.last_dim]),
-                                   [self.batch_size, self.last_dim])
+            sample_shape=(self.batch_size,1), seed=self.seed)
+        select_sample = tf.tile(select_sample, [1,self.last_dim])
         sample_ids = array_ops.where(
             select_sample,
             out,
-            gen_array_ops.fill([self.batch_size, self.last_dim], -1.))
+            gen_array_ops.fill([self.batch_size, self.last_dim], -20.))
         where_sampling = math_ops.cast(
-            array_ops.where(sample_ids > -1), dtypes.int32)
+            array_ops.where(sample_ids > -20), dtypes.int32)
         where_not_sampling = math_ops.cast(
-            array_ops.where(sample_ids <= -1), dtypes.int32)
+            array_ops.where(sample_ids <= -20), dtypes.int32)
         sample_ids_sampling = array_ops.gather_nd(sample_ids, where_sampling)
         inputs_not_sampling = array_ops.gather_nd(
             next_input, where_not_sampling)
@@ -403,8 +402,8 @@ class TacotronHelper(Helper):
     self._batch_size = array_ops.size(sequence_length)
     # self.context = context
 
+    self.prenet_layers=[]
     if enable_prenet:
-      self.prenet_layers=[]
       for idx in range(prenet_layers):
         self.prenet_layers.append(tf.layers.Dense(
           name="prenet_{}".format(idx + 1),

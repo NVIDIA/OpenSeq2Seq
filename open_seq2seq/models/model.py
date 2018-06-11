@@ -16,7 +16,7 @@ from open_seq2seq.optimizers import optimize_loss
 from open_seq2seq.utils.utils import check_params
 
 def get_regularization_loss(weight_decay):
-  return tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()]) * weight_decay
+  return tf.cast(tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()]) * weight_decay, tf.float32)
 
 
 

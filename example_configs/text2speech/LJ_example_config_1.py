@@ -22,8 +22,8 @@ base_params = {
 
   "save_summaries_steps": 500,
   "print_loss_steps": 50,
-  "print_samples_steps": 500,
-  "eval_steps": 500,
+  "print_samples_steps": 100,
+  "eval_steps": 100,
   "save_checkpoint_steps": 5000,
   "logdir": "result/tacotron-LJ-full-linear-ss",
   "max_grad_norm":1.,

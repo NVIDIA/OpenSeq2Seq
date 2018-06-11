@@ -19,6 +19,7 @@ from .decoder import Decoder
 from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 from open_seq2seq.parts.tacotron.tacotron_helper import TacotronHelper, TacotronTrainingHelper, TrainingHelper, InferenceHelper, ScheduledSamplingHelper
 from open_seq2seq.parts.tacotron.tacotron_decoder import TacotronDecoder
+from open_seq2seq.parts.tacotron.decoder import dynamic_decode
 from tensorflow.contrib.rnn import LSTMStateTuple
 
 
@@ -183,6 +184,7 @@ class Tacotron2Decoder(Decoder):
 
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
     self.num_audio_features = self.params['num_audio_features']
+    self.model = model
 
   def _build_attention(self,
                        encoder_outputs,
@@ -407,12 +409,22 @@ class Tacotron2Decoder(Decoder):
       #   initial_state = enc_state
 
     if self._mode == "train":
+      if self.params.get('anneal_sampling_prob', False):
+        if "128" in self.model.get_data_layer().params['dataset_files'][0]:
+          train_size = 128.
+        else:
+          train_size = 10480.
+        curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(train_size/_batch_size, tf.float32))
+        curr_step = tf.floor(tf.div(curr_epoch,tf.constant(self.model.params["num_epochs"]/20.)))
+        sampling_prob = tf.div(curr_step,tf.constant(20.))
+      else:
+        sampling_prob = self.params['scheduled_sampling_prob']
       helper = TacotronTrainingHelper(inputs=tgt_inputs,
                                       sequence_length=tgt_lengths,
                                       enable_prenet=enable_prenet,
                                       prenet_units=prenet_units,
                                       prenet_layers=prenet_layers,
-                                      sampling_prob=self.params['scheduled_sampling_prob'],
+                                      sampling_prob=sampling_prob,
                                       anneal_sampling_prob=self.params.get('anneal_sampling_prob', False))
                                       # context=mean_pool)
       # helper = TacotronHelper(inputs=tgt_inputs,
@@ -480,7 +492,8 @@ class Tacotron2Decoder(Decoder):
     else:
       maximum_iterations = tf.reduce_max(enc_src_lengths) * 2
 
-    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+    # final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+    final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(
       decoder=decoder,
       # impute_finished=False if self._decoder_type == "beam_search" else True,
       impute_finished=True,
@@ -540,348 +553,350 @@ class Tacotron2Decoder(Decoder):
     return {'decoder_output': final_outputs.rnn_output,
             'post_net_output': top_layer,
             'alignments': alignments,
-            'final_sequence_lengths': final_sequence_lengths}
+            'final_sequence_lengths': final_sequence_lengths,
+            'final_inputs': final_inputs}
 
 
-class BasicDecoder(Decoder):
-  """
-  Typical RNN decoder with attention mechanism
-  """
-  @staticmethod
-  def get_required_params():
-    return dict(Decoder.get_required_params(), **{
-      'attention_layer_size': int,
-      'attention_type': ['bahdanau', 'luong', 'gnmt', 'gnmt_v2', None],
-      'decoder_cell_units': int,
-      # 'decoder_proj_size': int,
-      'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
-      'decoder_layers': int,
-      'decoder_use_skip_connections': bool,
-      'num_audio_features': int,
-      # 'conv_layers': list,
-      'dropout_keep_prob': float
+# class BasicDecoder(Decoder):
+#   """
+#   Typical RNN decoder with attention mechanism
+#   """
+#   @staticmethod
+#   def get_required_params():
+#     return dict(Decoder.get_required_params(), **{
+#       'attention_layer_size': int,
+#       'attention_type': ['bahdanau', 'luong', 'gnmt', 'gnmt_v2', None],
+#       'decoder_cell_units': int,
+#       # 'decoder_proj_size': int,
+#       'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+#       'decoder_layers': int,
+#       'decoder_use_skip_connections': bool,
+#       'num_audio_features': int,
+#       # 'conv_layers': list,
+#       'dropout_keep_prob': float
 
-    })
+#     })
 
-  @staticmethod
-  def get_optional_params():
-    return dict(Decoder.get_optional_params(), **{
-      'bahdanau_normalize': bool,
-      'luong_scale': bool,
-      'decoder_dp_input_keep_prob': float,
-      'decoder_dp_output_keep_prob': float,
-      'time_major': bool,
-      # 'use_swap_memory': bool,
-      # 'proj_size': int,
-      # 'num_groups': int,
-      'PAD_SYMBOL': int,  # symbol id
-      'bn_momentum': float,
-      'bn_epsilon': float,
-      # 'data_format': ['channels_first', 'channels_last']
-    })
+#   @staticmethod
+#   def get_optional_params():
+#     return dict(Decoder.get_optional_params(), **{
+#       'bahdanau_normalize': bool,
+#       'luong_scale': bool,
+#       'decoder_dp_input_keep_prob': float,
+#       'decoder_dp_output_keep_prob': float,
+#       'time_major': bool,
+#       # 'use_swap_memory': bool,
+#       # 'proj_size': int,
+#       # 'num_groups': int,
+#       'PAD_SYMBOL': int,  # symbol id
+#       'bn_momentum': float,
+#       'bn_epsilon': float,
+#       # 'data_format': ['channels_first', 'channels_last']
+#     })
 
-  def __init__(self, params, model,
-               name='tacotron_2_decoder', mode='train'):
-    """
-    Initializes RNN decoder with embedding
-    :param params: dictionary with decoder parameters
-    Must define:
-      * batch_size - batch size
-      * GO_SYMBOL - GO symbol id, must be the same as used in data layer
-      * END_SYMBOL - END symbol id, must be the same as used in data layer
-      * tgt_vocab_size - vocabulary size of target
-      * tgt_emb_size - embedding to use
-      * decoder_cell_units - number of units in RNN
-      * decoder_cell_type - RNN type: lstm, gru, glstm, etc.
-      * decoder_dp_input_keep_prob -
-      * decoder_dp_output_keep_prob -
-      * decoder_use_skip_connections - use residual connections or not
-      * attention_type - bahdanau, luong, gnmt, gnmt_v2
-      * bahdanau_normalize - (optional)
-      * luong_scale - (optional)
-      * mode - train or infer
-      ... add any cell-specific parameters here as well
-    """
-    super(BasicDecoder, self).__init__(params, model, name, mode)
-    self.num_audio_features = self.params['num_audio_features']
+#   def __init__(self, params, model,
+#                name='tacotron_2_decoder', mode='train'):
+#     """
+#     Initializes RNN decoder with embedding
+#     :param params: dictionary with decoder parameters
+#     Must define:
+#       * batch_size - batch size
+#       * GO_SYMBOL - GO symbol id, must be the same as used in data layer
+#       * END_SYMBOL - END symbol id, must be the same as used in data layer
+#       * tgt_vocab_size - vocabulary size of target
+#       * tgt_emb_size - embedding to use
+#       * decoder_cell_units - number of units in RNN
+#       * decoder_cell_type - RNN type: lstm, gru, glstm, etc.
+#       * decoder_dp_input_keep_prob -
+#       * decoder_dp_output_keep_prob -
+#       * decoder_use_skip_connections - use residual connections or not
+#       * attention_type - bahdanau, luong, gnmt, gnmt_v2
+#       * bahdanau_normalize - (optional)
+#       * luong_scale - (optional)
+#       * mode - train or infer
+#       ... add any cell-specific parameters here as well
+#     """
+#     super(BasicDecoder, self).__init__(params, model, name, mode)
+#     self.num_audio_features = self.params['num_audio_features']
 
-  def _build_attention(self,
-                       encoder_outputs,
-                       encoder_sequence_length):
-    """
-    Builds Attention part of the graph.
-    Currently supports "bahdanau" and "luong"
-    :param encoder_outputs:
-    :param encoder_sequence_length:
-    :return:
-    """
-    with tf.variable_scope("AttentionMechanism"):
-      attention_depth = self.params['attention_layer_size']
-      if self.params['attention_type'] == 'bahdanau':
-        if 'bahdanau_normalize' in self.params:
-          bah_normalize = self.params['bahdanau_normalize']
-        else:
-          bah_normalize = False
-        # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-        attention_mechanism = BahdanauAttention(
-          num_units=attention_depth,
-          memory=encoder_outputs,
-          normalize=bah_normalize,
-          memory_sequence_length=encoder_sequence_length,
-          probability_fn=tf.nn.softmax,
-          dtype=tf.get_variable_scope().dtype
-        )
-      elif self.params['attention_type'] == 'luong':
-        if 'luong_scale' in self.params:
-          luong_scale = self.params['luong_scale']
-        else:
-          luong_scale = False
-        # attention_mechanism = tf.contrib.seq2seq.LuongAttention(
-        attention_mechanism = LuongAttention(
-          num_units=attention_depth,
-          memory=encoder_outputs,
-          scale=luong_scale,
-          memory_sequence_length=encoder_sequence_length,
-          probability_fn=tf.nn.softmax,
-          dtype=tf.get_variable_scope().dtype
-        )
-      elif self.params['attention_type'] == 'gnmt' or \
-           self.params['attention_type'] == 'gnmt_v2':
-        # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
-        attention_mechanism = BahdanauAttention(
-          num_units=attention_depth,
-          memory=encoder_outputs,
-          normalize=True,
-          memory_sequence_length=encoder_sequence_length,
-          probability_fn=tf.nn.softmax,
-          dtype=tf.get_variable_scope().dtype
-        )
-      else:
-        raise ValueError('Unknown Attention Type')
-      return attention_mechanism
+#   def _build_attention(self,
+#                        encoder_outputs,
+#                        encoder_sequence_length):
+#     """
+#     Builds Attention part of the graph.
+#     Currently supports "bahdanau" and "luong"
+#     :param encoder_outputs:
+#     :param encoder_sequence_length:
+#     :return:
+#     """
+#     with tf.variable_scope("AttentionMechanism"):
+#       attention_depth = self.params['attention_layer_size']
+#       if self.params['attention_type'] == 'bahdanau':
+#         if 'bahdanau_normalize' in self.params:
+#           bah_normalize = self.params['bahdanau_normalize']
+#         else:
+#           bah_normalize = False
+#         # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+#         attention_mechanism = BahdanauAttention(
+#           num_units=attention_depth,
+#           memory=encoder_outputs,
+#           normalize=bah_normalize,
+#           memory_sequence_length=encoder_sequence_length,
+#           probability_fn=tf.nn.softmax,
+#           dtype=tf.get_variable_scope().dtype
+#         )
+#       elif self.params['attention_type'] == 'luong':
+#         if 'luong_scale' in self.params:
+#           luong_scale = self.params['luong_scale']
+#         else:
+#           luong_scale = False
+#         # attention_mechanism = tf.contrib.seq2seq.LuongAttention(
+#         attention_mechanism = LuongAttention(
+#           num_units=attention_depth,
+#           memory=encoder_outputs,
+#           scale=luong_scale,
+#           memory_sequence_length=encoder_sequence_length,
+#           probability_fn=tf.nn.softmax,
+#           dtype=tf.get_variable_scope().dtype
+#         )
+#       elif self.params['attention_type'] == 'gnmt' or \
+#            self.params['attention_type'] == 'gnmt_v2':
+#         # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
+#         attention_mechanism = BahdanauAttention(
+#           num_units=attention_depth,
+#           memory=encoder_outputs,
+#           normalize=True,
+#           memory_sequence_length=encoder_sequence_length,
+#           probability_fn=tf.nn.softmax,
+#           dtype=tf.get_variable_scope().dtype
+#         )
+#       else:
+#         raise ValueError('Unknown Attention Type')
+#       return attention_mechanism
 
-  @staticmethod
-  def _add_residual_wrapper(cells, start_ind=1):
-    for idx, cell in enumerate(cells):
-      if idx >= start_ind:
-        cells[idx] = tf.contrib.rnn.ResidualWrapper(
-          cell,
-          residual_fn=gnmt_residual_fn,
-        )
-    return cells
+#   @staticmethod
+#   def _add_residual_wrapper(cells, start_ind=1):
+#     for idx, cell in enumerate(cells):
+#       if idx >= start_ind:
+#         cells[idx] = tf.contrib.rnn.ResidualWrapper(
+#           cell,
+#           residual_fn=gnmt_residual_fn,
+#         )
+#     return cells
 
-  def _decode(self, input_dict):
-    """
-    Decodes representation into data
-    :param input_dict: Python dictionary with inputs to decoder
-    Must define:
-      * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
-                     or [time, batch_size, dim]
-      * src_lengths - decoder input lengths Tensor of shape [batch_size]
-      * tgt_inputs - Only during training. labels Tensor of the
-                     shape [batch_size, time] or [time, batch_size]
-      * tgt_lengths - Only during training. labels lengths
-                      Tensor of the shape [batch_size]
-    :return: a Python dictionary with:
-      * final_outputs - tensor of shape [batch_size, time, dim]
-                        or [time, batch_size, dim]
-      * final_state - tensor with decoder final state
-      * final_sequence_lengths - tensor of shape [batch_size, time]
-                                 or [time, batch_size]
-    """
-    encoder_outputs = input_dict['encoder_output']['outputs']
-    enc_src_lengths = input_dict['encoder_output']['src_length']
-    enc_state = input_dict['encoder_output']['state']
-    tgt_inputs = input_dict['target_tensors'][0] if 'target_tensors' in \
-                                                    input_dict else None
-    tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
-                                                    input_dict else None
-    # print(tgt_inputs)
-    # print(tgt_lengths)
-    # input()
-    _batch_size = encoder_outputs.get_shape().as_list()[0]
+#   def _decode(self, input_dict):
+#     """
+#     Decodes representation into data
+#     :param input_dict: Python dictionary with inputs to decoder
+#     Must define:
+#       * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
+#                      or [time, batch_size, dim]
+#       * src_lengths - decoder input lengths Tensor of shape [batch_size]
+#       * tgt_inputs - Only during training. labels Tensor of the
+#                      shape [batch_size, time] or [time, batch_size]
+#       * tgt_lengths - Only during training. labels lengths
+#                       Tensor of the shape [batch_size]
+#     :return: a Python dictionary with:
+#       * final_outputs - tensor of shape [batch_size, time, dim]
+#                         or [time, batch_size, dim]
+#       * final_state - tensor with decoder final state
+#       * final_sequence_lengths - tensor of shape [batch_size, time]
+#                                  or [time, batch_size]
+#     """
+#     encoder_outputs = input_dict['encoder_output']['outputs']
+#     enc_src_lengths = input_dict['encoder_output']['src_length']
+#     enc_state = input_dict['encoder_output']['state']
+#     tgt_inputs = input_dict['target_tensors'][0] if 'target_tensors' in \
+#                                                     input_dict else None
+#     tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
+#                                                     input_dict else None
+#     # print(tgt_inputs)
+#     # print(tgt_lengths)
+#     # input()
+#     _batch_size = encoder_outputs.get_shape().as_list()[0]
 
-    training = (self._mode == "train")
-    dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
-    regularizer = self.params.get('regularizer', None)
-    bn_momentum = self.params.get('bn_momentum', 0.99)
-    bn_epsilon = self.params.get('bn_epsilon', 1e-3)
-    # data_format = self.params.get('data_format', 'channels_last')
-    # print(tgt_lengths)
+#     training = (self._mode == "train")
+#     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
+#     regularizer = self.params.get('regularizer', None)
+#     bn_momentum = self.params.get('bn_momentum', 0.99)
+#     bn_epsilon = self.params.get('bn_epsilon', 1e-3)
+#     # data_format = self.params.get('data_format', 'channels_last')
+#     # print(tgt_lengths)
 
-    # self._dec_emb_w = tf.get_variable(
-    #   name='DecoderEmbeddingMatrix',
-    #   shape=[self._tgt_vocab_size, self._tgt_emb_size],
-    #   dtype=tf.float32,
-    # )
+#     # self._dec_emb_w = tf.get_variable(
+#     #   name='DecoderEmbeddingMatrix',
+#     #   shape=[self._tgt_vocab_size, self._tgt_emb_size],
+#     #   dtype=tf.float32,
+#     # )
 
-    self._output_projection_layer = tf.layers.Dense(
-      self.num_audio_features, use_bias=False
-    )
+#     self._output_projection_layer = tf.layers.Dense(
+#       self.num_audio_features, use_bias=False
+#     )
 
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['decoder_cell_units']
-    # cell_params["proj_size"] = self.params['decoder_proj_size']
+#     cell_params = copy.deepcopy(self.params)
+#     cell_params["num_units"] = self.params['decoder_cell_units']
+#     # cell_params["proj_size"] = self.params['decoder_proj_size']
 
-    if self._mode == "train":
-      dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
-      dp_output_keep_prob = self.params.get('decoder_dp_output_keep_prob', 1.0)
-    else:
-      dp_input_keep_prob = 1.0
-      dp_output_keep_prob = 1.0
+#     if self._mode == "train":
+#       dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
+#       dp_output_keep_prob = self.params.get('decoder_dp_output_keep_prob', 1.0)
+#     else:
+#       dp_input_keep_prob = 1.0
+#       dp_output_keep_prob = 1.0
 
-    if type(self.params['attention_type']) == str and self.params['attention_type'].startswith('gnmt'):
-      residual_connections = False
-      wrap_to_multi_rnn = False
-    else:
-      residual_connections = self.params['decoder_use_skip_connections']
-      wrap_to_multi_rnn = True
+#     if type(self.params['attention_type']) == str and self.params['attention_type'].startswith('gnmt'):
+#       residual_connections = False
+#       wrap_to_multi_rnn = False
+#     else:
+#       residual_connections = self.params['decoder_use_skip_connections']
+#       wrap_to_multi_rnn = True
 
-    self._decoder_cells = create_rnn_cell(
-      cell_type=self.params['decoder_cell_type'],
-      cell_params=cell_params,
-      num_layers=self.params['decoder_layers'],
-      dp_input_keep_prob=dp_input_keep_prob,
-      dp_output_keep_prob=dp_output_keep_prob,
-      residual_connections=residual_connections,
-      wrap_to_multi_rnn=wrap_to_multi_rnn,
-    )
+#     self._decoder_cells = create_rnn_cell(
+#       cell_type=self.params['decoder_cell_type'],
+#       cell_params=cell_params,
+#       num_layers=self.params['decoder_layers'],
+#       dp_input_keep_prob=dp_input_keep_prob,
+#       dp_output_keep_prob=dp_output_keep_prob,
+#       residual_connections=residual_connections,
+#       wrap_to_multi_rnn=wrap_to_multi_rnn,
+#     )
 
-    # print(encoder_outputs.shape)
-    if self.params['attention_type'] is not None:
-      attention_mechanism = self._build_attention(
-        encoder_outputs,
-        enc_src_lengths,
-      )
-      if self.params['attention_type'].startswith('gnmt'):
-        attention_cell = self._decoder_cells.pop(0)
-        # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
-        attention_cell = AttentionWrapper(
-          attention_cell,
-          attention_mechanism=attention_mechanism,
-          attention_layer_size=None,
-          output_attention=False,
-          name="gnmt_attention")
-        attentive_decoder_cell = GNMTAttentionMultiCell(
-          attention_cell, self._add_residual_wrapper(self._decoder_cells),
-          use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
-      else:
-        # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-        attentive_decoder_cell = AttentionWrapper(
-          cell=self._decoder_cells,
-          attention_mechanism=attention_mechanism,
-          alignment_history=True
-        )
-      decoder_cell = attentive_decoder_cell
-    else:
-      decoder_cell = self._decoder_cells
+#     # print(encoder_outputs.shape)
+#     if self.params['attention_type'] is not None:
+#       attention_mechanism = self._build_attention(
+#         encoder_outputs,
+#         enc_src_lengths,
+#       )
+#       if self.params['attention_type'].startswith('gnmt'):
+#         attention_cell = self._decoder_cells.pop(0)
+#         # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
+#         attention_cell = AttentionWrapper(
+#           attention_cell,
+#           attention_mechanism=attention_mechanism,
+#           attention_layer_size=None,
+#           output_attention=False,
+#           name="gnmt_attention")
+#         attentive_decoder_cell = GNMTAttentionMultiCell(
+#           attention_cell, self._add_residual_wrapper(self._decoder_cells),
+#           use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
+#       else:
+#         # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
+#         attentive_decoder_cell = AttentionWrapper(
+#           cell=self._decoder_cells,
+#           attention_mechanism=attention_mechanism,
+#           alignment_history=True
+#         )
+#       decoder_cell = attentive_decoder_cell
+#     else:
+#       decoder_cell = self._decoder_cells
 
-    # print(enc_state)
-    # print(enc_state[0])
-    # input()
-    # print(decoder_cell.zero_state(batch_size=_batch_size, dtype=encoder_outputs.dtype))
-    # print(enc_state)
-    # input()
-    if self.params['decoder_layers'] == 1:
-      enc_state = enc_state[0]
-    #   enc_state = (enc_state[i] for i in range(self.params['decoder_layers']))
-    # else:
-    # enc_state = [enc_state[0], enc_state[1]]
-    # input()
-    # enc_state = tf.concat([enc_state]*2, 0)
-    # enc_state = (LSTMStateTuple(enc_state[0],enc_state[1]),LSTMStateTuple(enc_state[2],enc_state[3]))
-    # input()
+#     # print(enc_state)
+#     # print(enc_state[0])
+#     # input()
+#     # print(decoder_cell.zero_state(batch_size=_batch_size, dtype=encoder_outputs.dtype))
+#     # print(enc_state)
+#     # input()
+#     if self.params['decoder_layers'] == 1:
+#       enc_state = enc_state[0]
+#     #   enc_state = (enc_state[i] for i in range(self.params['decoder_layers']))
+#     # else:
+#     # enc_state = [enc_state[0], enc_state[1]]
+#     # input()
+#     # enc_state = tf.concat([enc_state]*2, 0)
+#     # enc_state = (LSTMStateTuple(enc_state[0],enc_state[1]),LSTMStateTuple(enc_state[2],enc_state[3]))
+#     # input()
 
-    if self._mode == "train":
-      # input_vectors = tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, tgt_inputs),
-      #                         dtype=self.params['dtype'])
-      # helper = TacotronHelper(inputs=tgt_inputs,
-      #                           sequence_length=tgt_lengths)
-      helper = TacotronTrainingHelper(inputs=tgt_inputs,
-                                sequence_length=tgt_lengths)
-      # helper = ScheduledSamplingHelper(inputs=tgt_inputs,
-      #                           sequence_length=tgt_lengths,
-      #                           sampling_probability = 0.5,
-      #                           seed = 0)
-      # helper = tf.contrib.seq2seq.TrainingHelper(
-      #   inputs=tgt_inputs,
-      #   sequence_length=tgt_lengths)
-      decoder = tf.contrib.seq2seq.BasicDecoder(
-        cell=decoder_cell,
-        helper=helper,
-        output_layer=self._output_projection_layer,
-        initial_state=enc_state
-      )
-    elif self._mode == "infer" or self._mode == "eval":
-      # embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, ids),
-      #                         dtype=self.params['dtype'])
-      helper = TacotronHelper(inputs=tgt_inputs,
-                              sequence_length=tgt_lengths)
-      # helper = tf.contrib.seq2seq.TrainingHelper(
-      #   inputs=encoder_outputs,
-      #   sequence_length=enc_src_lengths)
-      decoder = tf.contrib.seq2seq.BasicDecoder(
-        cell=decoder_cell,
-        helper=helper,
-        initial_state=enc_state,
-        output_layer=self._output_projection_layer,
-      )
-    else:
-      raise ValueError(
-        "Unknown mode for decoder: {}".format(self._mode)
-      )
+#     if self._mode == "train":
+#       # input_vectors = tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, tgt_inputs),
+#       #                         dtype=self.params['dtype'])
+#       # helper = TacotronHelper(inputs=tgt_inputs,
+#       #                           sequence_length=tgt_lengths)
+#       helper = TacotronTrainingHelper(inputs=tgt_inputs,
+#                                 sequence_length=tgt_lengths)
+#       # helper = ScheduledSamplingHelper(inputs=tgt_inputs,
+#       #                           sequence_length=tgt_lengths,
+#       #                           sampling_probability = 0.5,
+#       #                           seed = 0)
+#       # helper = tf.contrib.seq2seq.TrainingHelper(
+#       #   inputs=tgt_inputs,
+#       #   sequence_length=tgt_lengths)
+#       decoder = tf.contrib.seq2seq.BasicDecoder(
+#         cell=decoder_cell,
+#         helper=helper,
+#         output_layer=self._output_projection_layer,
+#         initial_state=enc_state
+#       )
+#     elif self._mode == "infer" or self._mode == "eval":
+#       # embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, ids),
+#       #                         dtype=self.params['dtype'])
+#       helper = TacotronHelper(inputs=tgt_inputs,
+#                               sequence_length=tgt_lengths)
+#       # helper = tf.contrib.seq2seq.TrainingHelper(
+#       #   inputs=encoder_outputs,
+#       #   sequence_length=enc_src_lengths)
+#       decoder = tf.contrib.seq2seq.BasicDecoder(
+#         cell=decoder_cell,
+#         helper=helper,
+#         initial_state=enc_state,
+#         output_layer=self._output_projection_layer,
+#       )
+#     else:
+#       raise ValueError(
+#         "Unknown mode for decoder: {}".format(self._mode)
+#       )
 
-    time_major = self.params.get("time_major", False)
-    use_swap_memory = self.params.get("use_swap_memory", False)
-    if self._mode == 'train' or self._mode == 'eval':
-      maximum_iterations = tf.reduce_max(tgt_lengths)
-    else:
-      maximum_iterations = tf.reduce_max(enc_src_lengths) * 2
+#     time_major = self.params.get("time_major", False)
+#     use_swap_memory = self.params.get("use_swap_memory", False)
+#     if self._mode == 'train' or self._mode == 'eval':
+#       maximum_iterations = tf.reduce_max(tgt_lengths)
+#     else:
+#       maximum_iterations = tf.reduce_max(enc_src_lengths) * 2
 
-    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
-      decoder=decoder,
-      # impute_finished=False if self._decoder_type == "beam_search" else True,
-      impute_finished=True,
-      maximum_iterations=maximum_iterations,
-      swap_memory=use_swap_memory,
-      output_time_major=time_major,
-    )
+#     final_outputs, final_state, final_sequence_lengths, final_inputs = tf.contrib.seq2seq.dynamic_decode(
+#       decoder=decoder,
+#       # impute_finished=False if self._decoder_type == "beam_search" else True,
+#       impute_finished=True,
+#       maximum_iterations=maximum_iterations,
+#       swap_memory=use_swap_memory,
+#       output_time_major=time_major,
+#     )
 
-    # ## Add the post net ##
-    # conv_layers = self.params['conv_layers']
-    # top_layer = final_outputs.rnn_output
-    # for idx_conv in range(len(conv_layers)):
-    #   ch_out = conv_layers[idx_conv]['num_channels']
-    #   kernel_size = conv_layers[idx_conv]['kernel_size']  # [time, freq]
-    #   strides = conv_layers[idx_conv]['stride']
-    #   padding = conv_layers[idx_conv]['padding']
-    #   activation_fn = conv_layers[idx_conv]['activation_fn']
+#     # ## Add the post net ##
+#     # conv_layers = self.params['conv_layers']
+#     # top_layer = final_outputs.rnn_output
+#     # for idx_conv in range(len(conv_layers)):
+#     #   ch_out = conv_layers[idx_conv]['num_channels']
+#     #   kernel_size = conv_layers[idx_conv]['kernel_size']  # [time, freq]
+#     #   strides = conv_layers[idx_conv]['stride']
+#     #   padding = conv_layers[idx_conv]['padding']
+#     #   activation_fn = conv_layers[idx_conv]['activation_fn']
 
-    #   if padding == "VALID":
-    #     final_sequence_lengths = (final_sequence_lengths - kernel_size[0] + strides[0]) // strides[0]
-    #   else:
-    #     final_sequence_lengths = (final_sequence_lengths + strides[0] - 1) // strides[0]
+#     #   if padding == "VALID":
+#     #     final_sequence_lengths = (final_sequence_lengths - kernel_size[0] + strides[0]) // strides[0]
+#     #   else:
+#     #     final_sequence_lengths = (final_sequence_lengths + strides[0] - 1) // strides[0]
 
-    #   top_layer = conv1d_bn_actv(
-    #     name="conv{}".format(idx_conv + 1),
-    #     inputs=top_layer,
-    #     filters=ch_out,
-    #     kernel_size=kernel_size,
-    #     activation_fn=activation_fn,
-    #     strides=strides,
-    #     padding=padding,
-    #     regularizer=regularizer,
-    #     training=training,
-    #     data_format=data_format,
-    #     bn_momentum=bn_momentum,
-    #     bn_epsilon=bn_epsilon,
-    #   )
+#     #   top_layer = conv1d_bn_actv(
+#     #     name="conv{}".format(idx_conv + 1),
+#     #     inputs=top_layer,
+#     #     filters=ch_out,
+#     #     kernel_size=kernel_size,
+#     #     activation_fn=activation_fn,
+#     #     strides=strides,
+#     #     padding=padding,
+#     #     regularizer=regularizer,
+#     #     training=training,
+#     #     data_format=data_format,
+#     #     bn_momentum=bn_momentum,
+#     #     bn_epsilon=bn_epsilon,
+#     #   )
 
-    if self.params['attention_type'] is not None:
-      alignments = tf.transpose(final_state.alignment_history.stack(), [1,0,2])
-    else:
-      alignments = tf.zeros([_batch_size,_batch_size,_batch_size])
-    return {'decoder_output': final_outputs.rnn_output,
-            # 'post_net_output': top_layer,
-            'alignments': alignments,
-            'final_sequence_lengths': final_sequence_lengths}
+#     if self.params['attention_type'] is not None:
+#       alignments = tf.transpose(final_state.alignment_history.stack(), [1,0,2])
+#     else:
+#       alignments = tf.zeros([_batch_size,_batch_size,_batch_size])
+#     return {'decoder_output': final_outputs.rnn_output,
+#             # 'post_net_output': top_layer,
+#             'alignments': alignments,
+#             'final_sequence_lengths': final_sequence_lengths,
+#             'final_inputs': final_inputs}

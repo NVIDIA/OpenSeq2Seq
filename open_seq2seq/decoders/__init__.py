@@ -8,4 +8,4 @@ from .rnn_decoders import RNNDecoderWithAttention, \
                           BeamSearchRNNDecoderWithAttention
 from .transformer_decoder import TransformerDecoder
 from .fc_decoders import FullyConnectedCTCDecoder, FullyConnectedDecoder
-from .tacotron2_decoder import Tacotron2Decoder, BasicDecoder
+from .tacotron2_decoder import Tacotron2Decoder
