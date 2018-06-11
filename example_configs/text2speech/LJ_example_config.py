@@ -170,7 +170,7 @@ eval_params = {
     "output_type": "spectrogram",
     "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
-      "/data/speech/LJSpeech/val.csv",
+      "/data/speech/LJSpeech/new_val.csv",
     ],
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
