@@ -229,7 +229,8 @@ class TacotronTrainingHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
   def __init__(self, inputs, sequence_length, enable_prenet, 
-              prenet_units=None, prenet_layers=None, sampling_prob=0., anneal_sampling_prob = False,
+              prenet_units=None, prenet_layers=None, prenet_activation=None,
+              sampling_prob=0., anneal_sampling_prob = False, sampling_test=False,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None):
     """Initializer.
@@ -264,6 +265,7 @@ class TacotronTrainingHelper(Helper):
       # self.sampling_prob = tf.div(curr_step,tf.constant(20.))
     # else:
     self.sampling_prob = sampling_prob
+    self.sampling_test = sampling_test
     # self.context = context
 
     ## Create finished projection layer
@@ -279,7 +281,7 @@ class TacotronTrainingHelper(Helper):
         self.prenet_layers.append(tf.layers.Dense(
           name="prenet_{}".format(idx + 1),
           units=prenet_units,
-          activation=tf.nn.relu,
+          activation=prenet_activation,
           use_bias=False,
         ))
 
@@ -359,7 +361,10 @@ class TacotronTrainingHelper(Helper):
                                          updates=inputs_not_sampling,
                                          shape=base_shape))
       # next_input = tf.concat([next_input, self.context],axis=-1)
-      return next_input
+      if self.sampling_test:
+        return tf.stop_gradient(next_input)
+      else:
+        return next_input
 
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
     next_inputs = control_flow_ops.cond(
@@ -374,7 +379,7 @@ class TacotronHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
   def __init__(self, inputs, sequence_length, enable_prenet, 
-              prenet_units=None, prenet_layers=None,
+              prenet_units=None, prenet_layers=None, prenet_activation=None,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None):
     """Initializer.
@@ -408,7 +413,7 @@ class TacotronHelper(Helper):
         self.prenet_layers.append(tf.layers.Dense(
           name="prenet_{}".format(idx + 1),
           units=prenet_units,
-          activation=tf.nn.relu,
+          activation=prenet_activation,
           use_bias=False,
         ))
 
