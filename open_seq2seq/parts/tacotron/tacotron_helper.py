@@ -324,7 +324,10 @@ class TacotronTrainingHelper(Helper):
     # Applies the fully connected pre-net to the decoder
     # Also decides whether the decoder is finished
     next_time = time + 1
-    finished = (next_time >= self._sequence_length)
+    if self.mask_decoder_sequence:
+      finished = (next_time >= self._sequence_length)
+    else:
+      finished = array_ops.tile([False], [self._batch_size])
     all_finished = math_ops.reduce_all(finished)
     def get_next_input(inp, out):
       next_input = inp.read(time)
@@ -368,13 +371,10 @@ class TacotronTrainingHelper(Helper):
         return next_input
 
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
-    if self.mask_decoder_sequence:
-      next_inputs = control_flow_ops.cond(
+    next_inputs = control_flow_ops.cond(
           all_finished, 
           lambda: self._zero_inputs,
           lambda: get_next_input(self._input_tas, outputs))
-    else:
-      next_inputs = get_next_input(self._input_tas, outputs)
 
     return (finished, next_inputs, state)
 
@@ -458,7 +458,10 @@ class TacotronHelper(Helper):
     # Applies the fully connected pre-net to the decoder
     # Also decides whether the decoder is finished
     next_time = time + 1
-    finished = (next_time >= self._sequence_length)
+    if self.mask_decoder_sequence:
+      finished = (next_time >= self._sequence_length)
+    else:
+      finished = array_ops.tile([False], [self._batch_size])
     all_finished = math_ops.reduce_all(finished)
 
     def get_next_input(out):
@@ -470,13 +473,10 @@ class TacotronHelper(Helper):
       # outputs = tf.concat([outputs, self.context],axis=-1)
       return out
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
-    if self.mask_decoder_sequence:
-      next_inputs = control_flow_ops.cond(
+    next_inputs = control_flow_ops.cond(
         all_finished, 
         lambda: self._zero_inputs,
         lambda: get_next_input(outputs))
-    else:
-      next_inputs = get_next_input(outputs)
     # print(next_input.shape)
     # print(next_inputs.shape)
     # input()
