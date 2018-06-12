@@ -273,6 +273,7 @@ class Model:
           self._steps_in_epoch //= self._hvd.size()
         else:
           self._steps_in_epoch //= self.num_gpus
+        self._steps_in_epoch //= self._params.get('iter_size', 1)
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     if self.on_horovod:

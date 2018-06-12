@@ -188,10 +188,15 @@ def optimize_loss(loss,
         grads_and_vars_accum = []
         accum_ops = []
         for grad, var in grads_and_vars:
-          grad_accum = tf.get_variable(
-            grad.name.split(":")[0] + "_accum", shape=grad.shape,
-            dtype=grad.dtype, initializer=tf.zeros_initializer(),
-            trainable=False, validate_shape=bool(grad.get_shape())
+          # necessary to use tf.Variable directly to instantiate cudnn rnn cells
+          # which don't have explicit shape.
+          grad_accum = tf.Variable(
+            initial_value=tf.zeros_like(var),
+            name=grad.name.split(":")[0] + "_accum",
+            expected_shape=grad.shape,
+            dtype=grad.dtype,
+            trainable=False,
+            validate_shape=bool(grad.get_shape())
           )
           accum_ops.append(tf.assign(grad_accum, grad_accum + grad / iter_size))
           grads_and_vars_accum.append((grad_accum, var))

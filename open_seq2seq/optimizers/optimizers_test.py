@@ -13,16 +13,19 @@ from .lr_policies import fixed_lr
 
 class IterSizeTests(tf.test.TestCase):
   def setUp(self):
-    try:
-      import horovod.tensorflow as hvd
-      hvd.init()
-    except ImportError:
-      print("Horovod not installed skipping IterSizeTests")
+    pass
 
   def tearDown(self):
     pass
 
   def test_updates(self):
+    try:
+      import horovod.tensorflow as hvd
+      hvd.init()
+    except ImportError:
+      print("Horovod not installed skipping test_updates")
+      return
+
     dtype = tf.float32
     with tf.Graph().as_default() as g:
       n_samples = 10
