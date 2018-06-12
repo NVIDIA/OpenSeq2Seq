@@ -118,7 +118,17 @@ def train(train_model, eval_model=None, debug_port=None):
         break
       tm = time.time()
       try:
-        fetches_vals = sess.run(fetches)
+        feed_dict = {}
+        iter_size = train_model.params.get('iter_size', 1)
+        if iter_size > 1:
+          feed_dict[train_model.skip_update_ph] = step % iter_size != 0
+        if step % iter_size == 0:
+          fetches_vals = sess.run(fetches, feed_dict)
+        else:
+          # necessary to skip "no-update" steps when iter_size > 1
+          def run_with_no_hooks(step_context):
+            return step_context.session.run(fetches, feed_dict)
+          fetches_vals = sess.run_step_fn(run_with_no_hooks)
       except tf.errors.OutOfRangeError:
         break
       if step >= bench_start:
