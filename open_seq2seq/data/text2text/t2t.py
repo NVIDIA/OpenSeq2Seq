@@ -45,8 +45,9 @@ Two things to note in the pipeline:
    is the list of training files. Second, while reading records using
    `parallel_interleave`, the `sloppy` argument is used to generate randomness
    in the order of the examples.
-"""
 
+3. Modified slightly to fit OpenSeq2Seq needs
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -191,7 +192,7 @@ def _batch_examples(dataset, batch_size, max_length):
 
 def _read_and_batch_from_files(
     file_pattern, batch_size, max_length, num_cpu_cores, shuffle, repeat,
-    num_workers, worker_id):
+    num_workers, worker_id, batch_in_tokens):
   """Create dataset where each item is a dict of "inputs" and "targets".
 
   Args:
@@ -204,6 +205,10 @@ def _read_and_batch_from_files(
       repeated forever.
     num_workers: Number of workers or number of Horovod workers
     worker_id: Worker id or Horovod rank
+    batch_in_tokens: whether to batch_size means amounts in tokens or sentence
+    pairs. batching in tokens is more efficient as it reduces PADs. batching in
+    sentences should be used in inference mode since order of
+    sentences is important
 
   Returns:
     tf.data.Dataset object containing examples loaded from the files.
@@ -230,8 +235,12 @@ def _read_and_batch_from_files(
   # Remove examples where the input or target length exceeds the maximum length,
   dataset = dataset.filter(lambda x, y: _filter_max_length((x, y), max_length))
 
-  # Batch such that each batch has examples of similar length.
-  dataset = _batch_examples(dataset, batch_size, max_length)
+  if batch_in_tokens:
+    # Batch such that each batch has examples of similar length.
+    dataset = _batch_examples(dataset, batch_size, max_length)
+  else:
+    # Examples can have different lenghts
+    dataset = dataset.padded_batch(batch_size, ([None], [None]))
   dataset = dataset.repeat(repeat)
 
   # Prefetch the next element to improve speed of input pipeline.
