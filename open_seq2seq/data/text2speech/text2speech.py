@@ -37,7 +37,8 @@ class Text2SpeechDataLayer(DataLayer):
       'augmentation': dict,
       'pad_to': int,
       'mag_power': int,
-      'feature_normalize': bool
+      'feature_normalize': bool,
+      'pad_EOS': bool
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -198,6 +199,8 @@ class Text2SpeechDataLayer(DataLayer):
       mag_power=self.params.get('mag_power', 2),
       feature_normalize=self.params.get('feature_normalize', True),
     )
+    if self.params.get("pad_EOS", False):
+      spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
     return np.int32(text_input), \
            np.int32([len(text_input)]), \
            spectrogram.astype(self.params['dtype'].as_numpy_dtype()), \

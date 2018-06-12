@@ -232,7 +232,7 @@ class TacotronTrainingHelper(Helper):
               prenet_units=None, prenet_layers=None, prenet_activation=None,
               sampling_prob=0., anneal_sampling_prob = False, sampling_test=False,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
-              context=None):
+              context=None, mask_decoder_sequence=None):
     """Initializer.
     Args:
       initialize_fn: callable that returns `(finished, next_inputs)`
@@ -266,6 +266,7 @@ class TacotronTrainingHelper(Helper):
     # else:
     self.sampling_prob = sampling_prob
     self.sampling_test = sampling_test
+    self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
     ## Create finished projection layer
@@ -367,10 +368,13 @@ class TacotronTrainingHelper(Helper):
         return next_input
 
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
-    next_inputs = control_flow_ops.cond(
-        all_finished, 
-        lambda: self._zero_inputs,
-        lambda: get_next_input(self._input_tas, outputs))
+    if self.mask_decoder_sequence:
+      next_inputs = control_flow_ops.cond(
+          all_finished, 
+          lambda: self._zero_inputs,
+          lambda: get_next_input(self._input_tas, outputs))
+    else:
+      next_inputs = get_next_input(self._input_tas, outputs)
 
     return (finished, next_inputs, state)
 
@@ -381,7 +385,7 @@ class TacotronHelper(Helper):
   def __init__(self, inputs, sequence_length, enable_prenet, 
               prenet_units=None, prenet_layers=None, prenet_activation=None,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
-              context=None):
+              context=None, mask_decoder_sequence=None):
     """Initializer.
     Args:
       initialize_fn: callable that returns `(finished, next_inputs)`
@@ -405,6 +409,7 @@ class TacotronHelper(Helper):
     self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     self._batch_size = array_ops.size(sequence_length)
+    self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
     self.prenet_layers=[]
@@ -465,12 +470,13 @@ class TacotronHelper(Helper):
       # outputs = tf.concat([outputs, self.context],axis=-1)
       return out
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
-    next_inputs = control_flow_ops.cond(
+    if self.mask_decoder_sequence:
+      next_inputs = control_flow_ops.cond(
         all_finished, 
         lambda: self._zero_inputs,
         lambda: get_next_input(outputs))
-
-
+    else:
+      next_inputs = get_next_input(outputs)
     # print(next_input.shape)
     # print(next_inputs.shape)
     # input()

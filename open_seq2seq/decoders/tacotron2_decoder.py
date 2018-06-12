@@ -99,6 +99,7 @@ class Tacotron2Decoder(Decoder):
       'postnet_keep_dropout_prob': float,
       "anneal_sampling_prob": bool,
       "sampling_test": bool,
+      "mask_decoder_sequence": bool,
     })
 
   def __init__(self, params, model,
@@ -411,6 +412,7 @@ class Tacotron2Decoder(Decoder):
       #   initial_state = enc_state
 
     prenet_activation = self.params.get("prenet_activation", tf.nn.relu)
+    mask_decoder_sequence = self.params.get("mask_decoder_sequence", True)
     if self._mode == "train":
       if self.params.get('anneal_sampling_prob', False):
         if "128" in self.model.get_data_layer().params['dataset_files'][0]:
@@ -430,7 +432,8 @@ class Tacotron2Decoder(Decoder):
                                       prenet_activation=prenet_activation,
                                       sampling_prob=sampling_prob,
                                       anneal_sampling_prob=self.params.get('anneal_sampling_prob', False),
-                                      sampling_test=self.params.get("sampling_test",False))
+                                      sampling_test=self.params.get("sampling_test",False),
+                                      mask_decoder_sequence=mask_decoder_sequence)
                                       # context=mean_pool)
       # helper = TacotronHelper(inputs=tgt_inputs,
       #                         sequence_length=tgt_lengths,
@@ -465,7 +468,8 @@ class Tacotron2Decoder(Decoder):
                               enable_prenet=enable_prenet,
                               prenet_units=prenet_units,
                               prenet_layers=prenet_layers,
-                              prenet_activation=prenet_activation)
+                              prenet_activation=prenet_activation,
+                              mask_decoder_sequence=mask_decoder_sequence)
                               # context=mean_pool)
       # helper = tf.contrib.seq2seq.TrainingHelper(
       #   inputs=encoder_outputs,
