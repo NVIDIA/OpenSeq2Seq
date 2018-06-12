@@ -25,7 +25,7 @@ class Text2SpeechDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       # 'input_type': ['spectrogram', 'mfcc'],
-      'output_type': ['spectrogram', 'mfcc', 'mel', 'test'],
+      'output_type': ['spectrogram', 'mfcc', 'mel', 'test', 'spectrogram_disk'],
       'vocab_file': str,
       'dataset_files': list,
       'dataset_location': str,
@@ -78,6 +78,11 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     names = ['wav_filename', 'transcript', 'transcript_normalized']
+
+    if "disk" in self.params["output_type"]:
+      self.load_from_disk = True
+    else:
+      self.load_from_disk = False
 
     self._files = None
     for csvs in params['dataset_files']:
@@ -191,14 +196,18 @@ class Text2SpeechDataLayer(DataLayer):
     # transcript = self._normalize_transcript(transcript)
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
     pad_to = self.params.get('pad_to', 8)
-    file_path = os.path.join(self.params['dataset_location'],audio_filename+".wav")
-    spectrogram = get_speech_features_from_file(
+    if self.load_from_disk:
+      file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
+      spectrogram = np.load(file_path)
+    else:
+      file_path = os.path.join(self.params['dataset_location'],audio_filename+".wav")
+      spectrogram = get_speech_features_from_file(
       file_path, self.params['num_audio_features'], pad_to,
       features_type=self.params['output_type'],
       augmentation=self.params.get('augmentation', None),
       mag_power=self.params.get('mag_power', 2),
       feature_normalize=self.params.get('feature_normalize', True),
-    )
+      )
     if self.params.get("pad_EOS", False):
       spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
     return np.int32(text_input), \
