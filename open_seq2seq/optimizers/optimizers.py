@@ -90,8 +90,7 @@ def reduce_gradients(grads_and_vars, on_horovod):
     else:
       return grads_and_vars
   else:
-    # TODO: implement this
-    pass
+    raise NotImplementedError("Reduce in tower-mode is not implemented.")
 
 
 def optimize_loss(loss,
@@ -182,7 +181,6 @@ def optimize_loss(loss,
       loss, colocate_gradients_with_ops=True,
     )
 
-    # TODO: apply iter_size to float16 gradients?
     if on_horovod:
       if iter_size > 1:
         grads_and_vars_accum = []

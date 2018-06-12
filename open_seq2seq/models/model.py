@@ -169,8 +169,9 @@ class Model:
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
-    * **iter_size** (int) --- same as in nvcaffe, the gradients will be
-      accumulated for ``iter_size`` number of steps before applying update.
+    * **iter_size** (int) --- use this parameter to emulate large batches.
+      The gradients will be accumulated for ``iter_size`` number of steps before
+      applying update.
     * **larc_params** --- dictionary with parameters for LARC (or LARS)
       optimization algorithms. Can contain the following parameters:
 
