@@ -11,14 +11,18 @@ base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  "num_epochs": 100,
 
-  "num_gpus": 2,
-  "batch_size_per_gpu": 2,
+  # "use_horovod": False,
+  "use_horovod": True,
+  "iter_size": 2,
+
+  "num_epochs": 10,
+
+  "num_gpus": 1,
+  "batch_size_per_gpu": 5,
 
   "save_summaries_steps": 10,
-  "print_loss_steps": 10,
+  "print_loss_steps": 1,
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 50,
@@ -64,7 +68,7 @@ base_params = {
     "rnn_unidirectional": False,
     "row_conv": False,
     "row_conv_width": 8,
-    "use_cudnn_rnn": True,
+    "use_cudnn_rnn": False,
 
     "dropout_keep_prob": 1.0,
 

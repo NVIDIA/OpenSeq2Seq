@@ -332,6 +332,7 @@ def optimize_loss(loss,
           tf.summary.scalar("larc_final_lr/{}".format(v.name),
                             tf.cast(lr, var_dtype) * larc_grad_update)
 
+    # TODO: move this to the top!
     if on_horovod:
       if iter_size > 1:
         grads_and_vars_accum = []
