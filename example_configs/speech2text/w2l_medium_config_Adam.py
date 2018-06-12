@@ -101,8 +101,8 @@ base_params = {
 train_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
+    "num_audio_features": 13,
+    "input_type": "mfcc",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-train-clean-100.csv",
@@ -116,8 +116,8 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
+    "num_audio_features": 13,
+    "input_type": "mfcc",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-dev-clean.csv",
@@ -129,8 +129,8 @@ eval_params = {
 infer_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
+    "num_audio_features": 13,
+    "input_type": "mfcc",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-test-clean.csv",
