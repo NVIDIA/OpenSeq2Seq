@@ -56,26 +56,26 @@ base_params = {
   "encoder": Tacotron2Encoder,
   "encoder_params": {
     "dropout_keep_prob": 0.5,
-    'src_emb_size': 512,
+    'src_emb_size': 256,
     "conv_layers": [
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME"
+        "num_channels": 256, "padding": "SAME"
       },
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME"
+        "num_channels": 256, "padding": "SAME"
       },
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME"
+        "num_channels": 256, "padding": "SAME"
       }
     ],
     "activation_fn": tf.nn.relu,
     "enable_bn" : True,
 
     "num_rnn_layers": 1,
-    "rnn_cell_dim": 256,
+    "rnn_cell_dim": 128,
     "use_cudnn_rnn": False,
     "rnn_type": "lstm",
     "rnn_unidirectional": False,
@@ -88,11 +88,11 @@ base_params = {
     'attention_layer_size': 128,
     'attention_type': 'location',
     'attention_rnn_enable': True,
-    'attention_rnn_units': 1024,
+    'attention_rnn_units': 512,
     'attention_rnn_layers': 1,
     'attention_rnn_cell_type': 'lstm',
 
-    'decoder_cell_units': 1024,
+    'decoder_cell_units': 512,
     'decoder_cell_type': 'lstm',
     'decoder_layers': 1,
     'decoder_use_skip_connections': False,
@@ -101,7 +101,9 @@ base_params = {
     'prenet_layers': 2,
     'prenet_units': 256,
 
+    "anneal_sampling_prob": True,
     'scheduled_sampling_prob': 0.,
+    "sampling_test": False,
 
     'enable_postnet': True,
     "postnet_keep_dropout_prob": 0.5,
@@ -110,22 +112,17 @@ base_params = {
     "postnet_conv_layers": [
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME",
+        "num_channels": 256, "padding": "SAME",
         "activation_fn": tf.nn.tanh
       },
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME",
+        "num_channels": 256, "padding": "SAME",
         "activation_fn": tf.nn.tanh
       },
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME",
-        "activation_fn": tf.nn.tanh
-      },
-      {
-        "kernel_size": [5], "stride": [1],
-        "num_channels": 512, "padding": "SAME",
+        "num_channels": 256, "padding": "SAME",
         "activation_fn": tf.nn.tanh
       },
       {
@@ -134,8 +131,6 @@ base_params = {
         "activation_fn": None
       }
     ],
-    "anneal_sampling_prob": True,
-    "sampling_test": False,
   },
   
   "loss": MeanSquaredErrorLoss,
@@ -152,7 +147,7 @@ train_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram",
+    "output_type": "spectrogram_disk",
     "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/val_128.csv",
@@ -168,7 +163,7 @@ eval_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram",
+    "output_type": "spectrogram_disk",
     "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/val_128.csv",

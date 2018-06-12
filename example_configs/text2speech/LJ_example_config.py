@@ -151,7 +151,7 @@ train_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram",
+    "output_type": "spectrogram_disk",
     "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
@@ -167,7 +167,7 @@ eval_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram",
+    "output_type": "spectrogram_disk",
     "vocab_file": "/data/speech/LJSpeech/vocab.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/new_val.csv",
