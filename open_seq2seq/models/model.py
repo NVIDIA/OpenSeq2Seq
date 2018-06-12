@@ -187,6 +187,9 @@ class Model:
 
     self._params = copy.deepcopy(params)
 
+    if self._params.get('iter_size', 1) > 1 and hvd is None:
+      raise ValueError("iter_size is only supported in Horovod mode")
+
     # parameter checks
     self._mode = mode
     if self._mode not in ["train", "infer", "eval"]:
@@ -274,6 +277,8 @@ class Model:
         else:
           self._steps_in_epoch //= self.num_gpus
         self._steps_in_epoch //= self._params.get('iter_size', 1)
+        if self._steps_in_epoch == 0:
+          raise ValueError("Overall batch size is too big for this dataset.")
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     if self.on_horovod:
