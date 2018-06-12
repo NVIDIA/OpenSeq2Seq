@@ -15,10 +15,10 @@ base_params = {
   "num_epochs": 100,
 
   "num_gpus": 2,
-  "batch_size_per_gpu": 5,
+  "batch_size_per_gpu": 2,
 
   "save_summaries_steps": 10,
-  "print_loss_steps": 1,
+  "print_loss_steps": 10
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 50,
@@ -64,7 +64,7 @@ base_params = {
     "rnn_unidirectional": False,
     "row_conv": False,
     "row_conv_width": 8,
-    "use_cudnn_rnn": False,
+    "use_cudnn_rnn": True,
 
     "dropout_keep_prob": 1.0,
 
