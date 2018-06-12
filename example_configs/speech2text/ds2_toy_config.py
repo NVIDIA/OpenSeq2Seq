@@ -18,7 +18,7 @@ base_params = {
   "batch_size_per_gpu": 2,
 
   "save_summaries_steps": 10,
-  "print_loss_steps": 10
+  "print_loss_steps": 10,
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 50,
