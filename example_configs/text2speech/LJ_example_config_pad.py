@@ -101,6 +101,7 @@ base_params = {
     'prenet_layers': 2,
     'prenet_units': 256,
 
+    "anneal_sampling_prob": True,
     'scheduled_sampling_prob': 0.,
 
     'enable_postnet': True,
@@ -134,7 +135,7 @@ base_params = {
         "activation_fn": None
       }
     ],
-    "anneal_sampling_prob": True,
+    "mask_decoder_sequence": True
   },
   
   "loss": MeanSquaredErrorLoss,
