@@ -5,10 +5,9 @@ RNN-based encoders
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import copy
 import tensorflow as tf
 
-from open_seq2seq.parts.rnns.utils import create_rnn_cell
+from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
 
 
@@ -22,8 +21,8 @@ class UnidirectionalRNNEncoderWithEmbedding(Encoder):
     return dict(Encoder.get_required_params(), **{
       'src_vocab_size': int,
       'src_emb_size': int,
-      'encoder_cell_units': int,
-      'encoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+      'core_cell': None,
+      'core_cell_params': dict,
       'encoder_layers': int,
       'encoder_use_skip_connections': bool,
     })
@@ -87,10 +86,6 @@ class UnidirectionalRNNEncoderWithEmbedding(Encoder):
     source_sequence = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
-
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['encoder_cell_units']
-
     self._enc_emb_w = tf.get_variable(
       name="EncoderEmbeddingMatrix",
       shape=[self._src_vocab_size, self._src_emb_size],
@@ -104,14 +99,16 @@ class UnidirectionalRNNEncoderWithEmbedding(Encoder):
       dp_input_keep_prob = 1.0
       dp_output_keep_prob = 1.0
 
-    self._encoder_cell_fw = create_rnn_cell(
-      cell_type=self.params['encoder_cell_type'],
-      cell_params=cell_params,
-      num_layers=self.params['encoder_layers'],
-      dp_input_keep_prob=dp_input_keep_prob,
-      dp_output_keep_prob=dp_output_keep_prob,
-      residual_connections=self.params['encoder_use_skip_connections'],
-    )
+    fwd_cells = [
+      single_cell(cell_class=self.params['core_cell'],
+                  cell_params=self.params.get('core_cell_params', {}),
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  residual_connections=self.params[
+                    'encoder_use_skip_connections']
+                  ) for _ in range(self.params['encoder_layers'])]
+
+    self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
@@ -157,10 +154,10 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
     return dict(Encoder.get_required_params(), **{
       'src_vocab_size': int,
       'src_emb_size': int,
-      'encoder_cell_units': int,
-      'encoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
       'encoder_layers': int,
       'encoder_use_skip_connections': bool,
+      'core_cell': None,
+      'core_cell_params': dict,
     })
 
   @staticmethod
@@ -227,9 +224,6 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
       dtype=tf.float32
     )
 
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['encoder_cell_units']
-
     if self._mode == "train":
       dp_input_keep_prob = self.params['encoder_dp_input_keep_prob']
       dp_output_keep_prob = self.params['encoder_dp_output_keep_prob']
@@ -237,25 +231,27 @@ class BidirectionalRNNEncoderWithEmbedding(Encoder):
       dp_input_keep_prob = 1.0
       dp_output_keep_prob = 1.0
 
+    fwd_cells = [
+      single_cell(cell_class=self.params['core_cell'],
+                  cell_params=self.params.get('core_cell_params', {}),
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  residual_connections=self.params['encoder_use_skip_connections']
+                  ) for _ in range(self.params['encoder_layers'])]
+    bwd_cells = [
+      single_cell(cell_class=self.params['core_cell'],
+                  cell_params=self.params.get('core_cell_params', {}),
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  residual_connections=self.params['encoder_use_skip_connections']
+                  ) for _ in range(self.params['encoder_layers'])]
+
+
     with tf.variable_scope("FW"):
-      self._encoder_cell_fw = create_rnn_cell(
-        cell_type=self.params['encoder_cell_type'],
-        cell_params=cell_params,
-        num_layers=self.params['encoder_layers'],
-        dp_input_keep_prob=dp_input_keep_prob,
-        dp_output_keep_prob=dp_output_keep_prob,
-        residual_connections=self.params['encoder_use_skip_connections']
-      )
+      self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
 
     with tf.variable_scope("BW"):
-      self._encoder_cell_bw = create_rnn_cell(
-        cell_type=self.params['encoder_cell_type'],
-        cell_params=cell_params,
-        num_layers=self.params['encoder_layers'],
-        dp_input_keep_prob=dp_input_keep_prob,
-        dp_output_keep_prob=dp_output_keep_prob,
-        residual_connections=self.params['encoder_use_skip_connections']
-      )
+      self._encoder_cell_bw = tf.contrib.rnn.MultiRNNCell(bwd_cells)
 
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
       self.enc_emb_w,
@@ -301,8 +297,10 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
     return dict(Encoder.get_required_params(), **{
       'src_vocab_size': int,
       'src_emb_size': int,
-      'encoder_cell_units': int,
-      'encoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+      'core_cell': None,
+      'core_cell_params': dict,
+      #'encoder_cell_units': int,
+      #'encoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
       'encoder_layers': int,
       'encoder_use_skip_connections': bool,
     })
@@ -353,27 +351,24 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
     if self.params['encoder_layers'] < 2:
       raise ValueError("GNMT encoder must have at least 2 layers")
 
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['encoder_cell_units']
+    #cell_params = copy.deepcopy(self.params)
+    #cell_params["num_units"] = self.params['encoder_cell_units']
 
     with tf.variable_scope("Level1FW"):
-      self._encoder_l1_cell_fw = create_rnn_cell(
-        cell_type=self.params['encoder_cell_type'],
-        cell_params=cell_params,
-        num_layers=1,
+      self._encoder_l1_cell_fw = single_cell(
+        cell_class=self.params['core_cell'],
+        cell_params=self.params.get('core_cell_params', {}),
         dp_input_keep_prob=1.0,
         dp_output_keep_prob=1.0,
-        residual_connections=False,
-      )
+        residual_connections=False)
+
     with tf.variable_scope("Level1BW"):
-      self._encoder_l1_cell_bw = create_rnn_cell(
-        cell_type=self.params['encoder_cell_type'],
-        cell_params=cell_params,
-        num_layers=1,
+      self._encoder_l1_cell_bw = single_cell(
+        cell_class=self.params['core_cell'],
+        cell_params=self.params.get('core_cell_params', {}),
         dp_input_keep_prob=1.0,
         dp_output_keep_prob=1.0,
-        residual_connections=False,
-      )
+        residual_connections=False)
 
     if self._mode == "train":
       dp_input_keep_prob = self.params['encoder_dp_input_keep_prob']
@@ -383,15 +378,13 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
       dp_output_keep_prob = 1.0
 
     with tf.variable_scope("UniDirLevel"):
-      self._encoder_cells = create_rnn_cell(
-        cell_type=self.params['encoder_cell_type'],
-        cell_params=cell_params,
-        num_layers=self.params['encoder_layers'] - 1,
+      self._encoder_cells = [single_cell(
+        cell_class=self.params['core_cell'],
+        cell_params=self.params.get('core_cell_params', {}),
         dp_input_keep_prob=dp_input_keep_prob,
         dp_output_keep_prob=dp_output_keep_prob,
-        residual_connections=False,
-        wrap_to_multi_rnn=False,
-      )
+        residual_connections=False) for _ in range(self.params['encoder_layers'] - 1)]
+
       # add residual connections starting from the third layer
       for idx, cell in enumerate(self._encoder_cells):
         if idx > 0:
@@ -422,7 +415,7 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
       inputs=encoder_l1_outputs,
       sequence_length=source_length,
       swap_memory=use_swap_memory,
-      time_major = time_major,
+      time_major=time_major,
       dtype=encoder_l1_outputs.dtype,
     )
 

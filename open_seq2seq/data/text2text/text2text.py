@@ -255,6 +255,7 @@ class TransformerDataLayer(DataLayer):
       'num_cpu_cores': int,
       'tgt_vocab_file': str,
       'm_padding': bool,
+      'batch_in_tokens': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
