@@ -118,11 +118,11 @@ eval_params = {
 
 infer_params = {
   "batch_size_per_gpu": 64, # it is now in samples, not tokens
-  "batch_in_tokens": False, # this is necessary to preserve the order
   "data_layer": TransformerDataLayer,
   "data_layer_params": {
     'data_dir': data_root,
     'file_pattern': "*test*",
+    'batch_in_tokens': False, # this is necessary to preserve the order
     'src_vocab_file': data_root + "vocab.ende.32768",
     'max_length': 256,
     'shuffle': False,
