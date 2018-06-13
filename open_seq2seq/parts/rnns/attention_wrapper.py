@@ -734,7 +734,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         memory_sequence_length=memory_sequence_length,
         score_mask_value=score_mask_value,
         name=name)
-    self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtype)
+    # self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtype)
     # print(self.cumulative_location_weights.shape)
     self.location_layer = LocationLayer(32, 31, num_units)
     self._num_units = num_units
@@ -765,6 +765,9 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     next_state = alignments
     return alignments, next_state
 
+  def initialize_location(self):
+    self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtypes.float32)
+    
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.

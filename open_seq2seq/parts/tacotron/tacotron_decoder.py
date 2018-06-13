@@ -98,6 +98,7 @@ class TacotronDecoder(decoder.Decoder):
     Returns:
       `(finished, first_inputs, initial_state)`.
     """
+    self._attention_cell._attention_mechanisms[0].initialize_location()
     return self._helper.initialize() + ((self._attention_initial_state,self._decoder_initial_state,),)
 
   def step(self, time, inputs, state, name=None):
