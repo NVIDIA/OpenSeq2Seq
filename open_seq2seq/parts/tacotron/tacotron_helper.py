@@ -332,8 +332,8 @@ class TacotronTrainingHelper(Helper):
     def get_next_input(inp, out):
       next_input = inp.read(time)
       if self.sampling_test:
-        next_input = tf.stop_gradients(next_input)
-        out = tf.stop_gradients(out)
+        next_input = tf.stop_gradient(next_input)
+        out = tf.stop_gradient(out)
       # pre_net_result = self._pre_net_layer_2(self._pre_net_layer_1(outputs))
       # next_input = tf.concat([pre_net_result, inp], axis=-1)
       for layer in self.prenet_layers:
