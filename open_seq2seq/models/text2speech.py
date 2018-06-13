@@ -193,7 +193,7 @@ class Text2Speech(EncoderDecoderModel):
                      self.params["logdir"], step,
                      append="train")
 
-    if self.get_data_layer().params['output_type'] == "spectrogram":
+    if "spectrogram" in self.get_data_layer().params['output_type']:
       save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
     
     return {}
@@ -223,7 +223,7 @@ class Text2Speech(EncoderDecoderModel):
                      self.params["logdir"], step,
                      append="eval")
 
-    if self.get_data_layer().params['output_type'] == "spectrogram":
+    if "spectrogram" in self.get_data_layer().params['output_type']:
       save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, train=False)
 
     return {}
