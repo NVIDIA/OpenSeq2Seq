@@ -193,6 +193,7 @@ class Text2SpeechDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
+    transcript = transcript.lower()
     # transcript = self._normalize_transcript(transcript)
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
     if self.params.get("pad_EOS", False):
