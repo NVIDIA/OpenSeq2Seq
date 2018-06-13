@@ -331,6 +331,9 @@ class TacotronTrainingHelper(Helper):
     all_finished = math_ops.reduce_all(finished)
     def get_next_input(inp, out):
       next_input = inp.read(time)
+      if self.sampling_test:
+        next_input = tf.stop_gradients(next_input)
+        out = tf.stop_gradients(out)
       # pre_net_result = self._pre_net_layer_2(self._pre_net_layer_1(outputs))
       # next_input = tf.concat([pre_net_result, inp], axis=-1)
       for layer in self.prenet_layers:
@@ -365,10 +368,7 @@ class TacotronTrainingHelper(Helper):
                                          updates=inputs_not_sampling,
                                          shape=base_shape))
       # next_input = tf.concat([next_input, self.context],axis=-1)
-      if self.sampling_test:
-        return tf.stop_gradient(next_input)
-      else:
-        return next_input
+      return next_input
 
     # next_input =  nest.map_structure(read_from_ta, self._input_tas)
     next_inputs = control_flow_ops.cond(
