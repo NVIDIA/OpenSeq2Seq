@@ -196,7 +196,7 @@ class Text2SpeechDataLayer(DataLayer):
     # transcript = self._normalize_transcript(transcript)
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
     if self.params.get("pad_EOS", False):
-      text_input.append(self.params['char2idx']["~"])
+      text_input = np.append(text_input, self.params['char2idx']["~"])
     pad_to = self.params.get('pad_to', 8)
     if self.load_from_disk:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
