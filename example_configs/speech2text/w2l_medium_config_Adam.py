@@ -37,7 +37,7 @@ base_params = {
   },
 
   "max_grad_norm": 15.0,
-  "dtype": tf.float16,
+  "dtype": tf.float32,
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
@@ -66,7 +66,7 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 0.8,
+    "dropout_keep_prob": 0.5,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
