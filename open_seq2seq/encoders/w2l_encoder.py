@@ -22,6 +22,7 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
 		use_bias=False,
 		data_format=data_format,
   )
+  conv = tf.expand_dims(conv, axis=-1)
 	bn = tf.layers.batch_normalization(
     name="{}/bn".format(name),
     inputs=conv,
@@ -31,6 +32,7 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
     momentum=bn_momentum,
     epsilon=bn_epsilon,
   )
+  bn = tf.squeeze(bn, axis=-1)
 	output = activation_fn(bn)
 	return output
 
