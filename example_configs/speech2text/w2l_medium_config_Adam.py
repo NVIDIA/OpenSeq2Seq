@@ -37,8 +37,7 @@ base_params = {
   },
 
   "max_grad_norm": 15.0,
-  "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "dtype": tf.float16,
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
