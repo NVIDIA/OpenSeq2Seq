@@ -40,9 +40,9 @@ base_params = {
   #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   #"max_grad_norm": 32768.0,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
