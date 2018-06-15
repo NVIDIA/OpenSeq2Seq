@@ -382,7 +382,7 @@ class TacotronTrainingHelper(Helper):
 class TacotronHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
-  def __init__(self, inputs, sequence_length, enable_prenet, 
+  def __init__(self, inputs, sequence_length, enable_prenet=True, 
               prenet_units=None, prenet_layers=None, prenet_activation=None,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None, mask_decoder_sequence=None):
@@ -402,13 +402,8 @@ class TacotronHelper(Helper):
     self._sample_ids_shape = tensor_shape.TensorShape(sample_ids_shape or [])
     self._sample_ids_dtype = sample_ids_dtype or dtypes.int32
 
-    if not time_major:
-      inputs = nest.map_structure(_transpose_batch_time, inputs)
-    self._input_tas = nest.map_structure(_unstack_ta, inputs)
     self._sequence_length = sequence_length
-    self._zero_inputs = nest.map_structure(
-        lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
-    self._batch_size = array_ops.size(sequence_length)
+    self._batch_size = inputs.get_shape()[0]
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
@@ -425,8 +420,7 @@ class TacotronHelper(Helper):
       pre_net_output = tf.zeros([self._batch_size, prenet_units])
       self._zero_inputs = pre_net_output
     else:
-      self._zero_inputs = nest.map_structure(
-        lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+      self._zero_inputs = inputs
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
 
   @property

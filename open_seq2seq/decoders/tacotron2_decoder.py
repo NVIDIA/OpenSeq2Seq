@@ -100,6 +100,7 @@ class Tacotron2Decoder(Decoder):
       "anneal_sampling_prob": bool,
       "sampling_test": bool,
       "mask_decoder_sequence": bool,
+      "use_prenet_output": bool,
     })
 
   def __init__(self, params, model,
@@ -278,6 +279,7 @@ class Tacotron2Decoder(Decoder):
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']
     # enc_state = input_dict['encoder_output']['state']
+    # if self._mode != "infer":
     tgt_inputs = input_dict['target_tensors'][0] if 'target_tensors' in \
                                                     input_dict else None
     tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
@@ -311,12 +313,9 @@ class Tacotron2Decoder(Decoder):
       dp_input_keep_prob = 1.0
       dp_output_keep_prob = 1.0
 
-    if type(self.params['attention_type']) == str and self.params['attention_type'].startswith('gnmt'):
-      residual_connections = False
-      wrap_to_multi_rnn = False
-    else:
-      residual_connections = self.params.get('decoder_use_skip_connections', False)
-      wrap_to_multi_rnn = True
+
+    residual_connections = self.params.get('decoder_use_skip_connections', False)
+    wrap_to_multi_rnn = True
 
     cell_params = {}
     cell_params["num_units"] = self.params['decoder_cell_units']
@@ -356,30 +355,36 @@ class Tacotron2Decoder(Decoder):
         attention_cell = self._attention_cells
 
       if self.params['attention_type'].startswith('gnmt'):
-        attention_cell = attention_cell.pop(0)
-        # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
-        attention_cell = AttentionWrapper(
-          attention_cell,
-          attention_mechanism=attention_mechanism,
-          attention_layer_size=None,
-          output_attention=False,
-          name="gnmt_attention")
-        attentive_cell = GNMTAttentionMultiCell(
-          attention_cell, self._add_residual_wrapper(self._decoder_cells),
-          use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
+        raise ValueError("Attention type is currently not supported")
+        # attention_cell = attention_cell.pop(0)
+        # # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
+        # attention_cell = AttentionWrapper(
+        #   attention_cell,
+        #   attention_mechanism=attention_mechanism,
+        #   attention_layer_size=None,
+        #   output_attention=False,
+        #   name="gnmt_attention")
+        # attentive_cell = GNMTAttentionMultiCell(
+        #   attention_cell, self._add_residual_wrapper(self._decoder_cells),
+        #   use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
       elif self.params['attention_type'] == "luong":
+        raise ValueError("Attention type is currently not supported")
         # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
-        attentive_cell = AttentionWrapper(
-          cell=attention_cell,
-          attention_mechanism=attention_mechanism,
-          alignment_history=True
-        )
+        # attentive_cell = AttentionWrapper(
+        #   cell=attention_cell,
+        #   attention_mechanism=attention_mechanism,
+        #   alignment_history=True
+        # )
       elif self.params['attention_type'] == "bahdanau":
+        if self.params["attention_rnn_enable"]:
+          output_attention = True
+        else:
+          output_attention = "both"
         attentive_cell = AttentionWrapper(
           cell=attention_cell,
           attention_mechanism=attention_mechanism,
           alignment_history=True,
-          output_attention=False
+          output_attention=output_attention
         )
       else:
         if self.params["attention_rnn_enable"]:
@@ -444,26 +449,11 @@ class Tacotron2Decoder(Decoder):
       # helper = tf.contrib.seq2seq.TrainingHelper(
       #   inputs=tgt_inputs,
       #   sequence_length=tgt_lengths)
-      if not self.params["attention_rnn_enable"]:
-        decoder = tf.contrib.seq2seq.BasicDecoder(
-          cell=decoder_cell,
-          helper=helper,
-          output_layer=self._output_projection_layer,
-          initial_state=initial_state
-        )
-      else:
-        decoder = TacotronDecoder(
-          decoder_cell=decoder_cell,
-          attention_cell=attentive_cell,
-          helper=helper,
-          output_layer=self._output_projection_layer,
-          initial_decoder_state=initial_state,
-          initial_attention_state=attentive_cell.zero_state(_batch_size, tf.float32)
-        )
-    elif self._mode == "infer" or self._mode == "eval":
+    elif self._mode == "eval":
       # embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, ids),
       #                         dtype=self.params['dtype'])
-      helper = TacotronHelper(inputs=tgt_inputs,
+      inputs = tf.zeros((_batch_size, self.num_audio_features))
+      helper = TacotronHelper(inputs=inputs,
                               sequence_length=tgt_lengths,
                               enable_prenet=enable_prenet,
                               prenet_units=prenet_units,
@@ -474,33 +464,47 @@ class Tacotron2Decoder(Decoder):
       # helper = tf.contrib.seq2seq.TrainingHelper(
       #   inputs=encoder_outputs,
       #   sequence_length=enc_src_lengths)
-      if not self.params["attention_rnn_enable"]:
-        decoder = tf.contrib.seq2seq.BasicDecoder(
-          cell=decoder_cell,
-          helper=helper,
-          initial_state=initial_state,
-          output_layer=self._output_projection_layer,
-        )
-      else:
-        decoder = TacotronDecoder(
-          decoder_cell=decoder_cell,
-          attention_cell=attentive_cell,
-          helper=helper,
-          output_layer=self._output_projection_layer,
-          initial_decoder_state=initial_state,
-          initial_attention_state=attentive_cell.zero_state(_batch_size, tf.float32)
-        )
+    elif self._mode == "infer":
+      inputs = tf.zeros((_batch_size, self.num_audio_features))
+      # tgt_lengths = None
+      helper = TacotronHelper(inputs=inputs,
+                              sequence_length=tgt_lengths,
+                              enable_prenet=enable_prenet,
+                              prenet_units=prenet_units,
+                              prenet_layers=prenet_layers,
+                              prenet_activation=prenet_activation,
+                              mask_decoder_sequence=mask_decoder_sequence)
     else:
       raise ValueError(
         "Unknown mode for decoder: {}".format(self._mode)
       )
 
+    if not self.params["attention_rnn_enable"]:
+      decoder = tf.contrib.seq2seq.BasicDecoder(
+        cell=decoder_cell,
+        helper=helper,
+        initial_state=initial_state,
+        output_layer=self._output_projection_layer,
+      )
+    else:
+      decoder = TacotronDecoder(
+        decoder_cell=decoder_cell,
+        attention_cell=attentive_cell,
+        helper=helper,
+        output_layer=self._output_projection_layer,
+        initial_decoder_state=initial_state,
+        initial_attention_state=attentive_cell.zero_state(_batch_size, tf.float32),
+        attention_type = self.params["attention_type"],
+        use_prenet_output = self.params.get("use_prenet_output", False)
+      )
+
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
-    if self._mode == 'train' or self._mode == 'eval':
-      maximum_iterations = tf.reduce_max(tgt_lengths)
-    else:
-      maximum_iterations = tf.reduce_max(enc_src_lengths) * 2
+    # if self._mode == 'train' or self._mode == 'eval':
+    #   maximum_iterations = tf.reduce_max(tgt_lengths)
+    # else:
+    #   maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
+    maximum_iterations = tf.reduce_max(tgt_lengths)
 
     # final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
     final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(

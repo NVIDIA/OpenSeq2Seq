@@ -28,11 +28,11 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   if vmax is None:
     vmax = max(np.max(ground_truth), np.max(generated_sample), np.max(post_net_sample))
   
-  colour1 = ax1.imshow(ground_truth.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-  colour2 = ax2.imshow(generated_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-  colour3 = ax3.imshow(post_net_sample.T, cmap='viridis', interpolation='nearest', aspect='auto', vmin=vmin, vmax=vmax)
-  colour4 = ax4.imshow(final_inputs.T, cmap='viridis', interpolation='nearest', aspect='auto')
-  colour5 = ax5.imshow(attention.T, cmap='viridis', interpolation='nearest', aspect='auto')
+  colour1 = ax1.imshow(ground_truth.T, cmap='viridis', interpolation=None, aspect='auto', vmin=vmin, vmax=vmax)
+  colour2 = ax2.imshow(generated_sample.T, cmap='viridis', interpolation=None, aspect='auto', vmin=vmin, vmax=vmax)
+  colour3 = ax3.imshow(post_net_sample.T, cmap='viridis', interpolation=None, aspect='auto', vmin=vmin, vmax=vmax)
+  colour4 = ax4.imshow(final_inputs.T, cmap='viridis', interpolation=None, aspect='auto')
+  colour5 = ax5.imshow(attention.T, cmap='viridis', interpolation=None, aspect='auto')
   
   ax1.invert_yaxis()
   ax1.set_ylabel('fourier components')
@@ -55,6 +55,12 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   ax5.set_ylabel('inputs')
   
   plt.xlabel('time')
+
+  ax1.axis('off')
+  ax2.axis('off')
+  ax3.axis('off')
+  ax4.axis('off')
+  ax5.axis('off')
   
   fig.subplots_adjust(right=0.8)
   cbar_ax1 = fig.add_axes([0.85, 0.45, 0.05, 0.45])
@@ -65,9 +71,9 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
   fig.colorbar(colour5, cax=cbar_ax3)
 
   if append:
-    name = '{}/Output_Step{}_{}_{}.png'.format(logdir, train_step, number, append)
+    name = '{}/Output_step{}_{}_{}.png'.format(logdir, train_step, number, append)
   else:
-    name = '{}/Output_Step{}_{}.png'.format(logdir, train_step, number)
+    name = '{}/Output_step{}_{}.png'.format(logdir, train_step, number)
   if logdir[0] != '/':
     name = "./"+name
   #save
@@ -75,13 +81,10 @@ def plot_spectrogram_w_input(ground_truth, generated_sample, post_net_sample, at
 
   plt.close(fig)
 
-def save_audio(mag_spec, logdir, name, train=True):
+def save_audio(mag_spec, logdir, step, mode="train", number=0):
   magnitudes = np.exp(mag_spec)
   signal = griffin_lim(magnitudes.T**1.2)
-  if train:
-    file_name = '{}/sample_train_step_{}.wav'.format(logdir, name)
-  else:
-    file_name = '{}/sample_eval_step_{}.wav'.format(logdir, name)
+  file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
   if logdir[0] != '/':
     file_name = "./"+file_name
   write(file_name, 22050 ,signal)
@@ -145,13 +148,14 @@ class Text2Speech(EncoderDecoderModel):
       if not isinstance(input_tensors['target_tensors'], list):
         raise ValueError('target_tensors should be a list')
       target_tensors = input_tensors['target_tensors']
+    target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
       encoder_input = {"source_tensors": source_tensors}
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
       decoder_input = {"encoder_output": encoder_output}
-      # if self.mode == "train":
+      # if self.mode != "infer":
       decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       decoder_out = decoder_output.get("decoder_output", 0.)
@@ -224,7 +228,7 @@ class Text2Speech(EncoderDecoderModel):
                      append="eval")
 
     if "spectrogram" in self.get_data_layer().params['output_type']:
-      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, train=False)
+      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
 
     return {}
 
@@ -235,26 +239,39 @@ class Text2Speech(EncoderDecoderModel):
     input_values = {key:value[0][-1] for key, value in input_values.items()}
     return [input_values, output_values]
 
-  # def infer(self, input_values, output_values):
-  #   preds = []
-  #   decoded_sequence = output_values[0]
-  #   decoded_texts = sparse_tensor_to_chars(
-  #     decoded_sequence,
-  #     self.get_data_layer().params['idx2char'],
-  #   )
-  #   for sample_id in range(len(decoded_texts)):
-  #     preds.append("".join(decoded_texts[sample_id]))
-  #   return preds
+  def infer(self, input_values, output_values):
+    if self.on_horovod:
+      raise ValueError('Inference is not supported on horovod') 
+    return [input_values, output_values]
 
-  # def finalize_inference(self, results_per_batch, output_file):
-  #   preds = []
+  def finalize_inference(self, results_per_batch, output_file):
+    print("output_file is ignored for ts2")
+    for i, sample in enumerate(results_per_batch):
+      input_values = sample[0]
+      output_values = sample[1]
+      y, y_length = input_values['target_tensors']
+      predicted_decoder_spectrograms = output_values[0]
+      predicted_final_spectrograms = output_values[1]
+      attention_mask = output_values[2]
+      final_inputs = output_values[3]
 
-  #   for result in results_per_batch:
-  #     preds.extend(result)
-  #   pd.DataFrame(
-  #     {
-  #       'wav_filename': self.get_data_layer().all_files,
-  #       'predicted_transcript': preds,
-  #     },
-  #     columns=['wav_filename', 'predicted_transcript'],
-  #   ).to_csv(output_file, index=False)
+      for j in range(len(y)):
+        y_sample = y[j]
+        predicted_spectrogram_sample = predicted_decoder_spectrograms[j]
+        predicted_final_spectrogram_sample = predicted_final_spectrograms[j]
+        attention_mask_sample = attention_mask[j]
+        final_inputs_sample = final_inputs[j]
+
+
+        plot_spectrogram_w_input(y_sample, predicted_spectrogram_sample,
+                       predicted_final_spectrogram_sample,
+                       attention_mask_sample,
+                       final_inputs_sample,
+                       self.params["logdir"], 0,
+                       number= i*len(y)+j,
+                       append="infer")
+
+        if "spectrogram" in self.get_data_layer().params['output_type']:
+          save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer", number=i*len(y)+j)
+
+    return {}

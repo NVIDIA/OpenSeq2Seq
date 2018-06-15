@@ -24,7 +24,9 @@ class TacotronDecoder(decoder.Decoder):
   """Basic sampling decoder."""
 
   def __init__(self, decoder_cell, attention_cell, helper,
-              initial_decoder_state, initial_attention_state, output_layer=None):
+              initial_decoder_state, initial_attention_state, 
+              attention_type, use_prenet_output=False,
+              output_layer=None):
     """Initialize BasicDecoder.
     Args:
       cell: An `RNNCell` instance.
@@ -51,6 +53,8 @@ class TacotronDecoder(decoder.Decoder):
     self._decoder_initial_state = initial_decoder_state
     self._attention_initial_state = initial_attention_state
     self._output_layer = output_layer
+    self.attention_type = attention_type
+    self.use_prenet_output = use_prenet_output
 
   @property
   def batch_size(self):
@@ -98,7 +102,8 @@ class TacotronDecoder(decoder.Decoder):
     Returns:
       `(finished, first_inputs, initial_state)`.
     """
-    self._attention_cell._attention_mechanisms[0].initialize_location()
+    if self.attention_type == "location":
+      self._attention_cell._attention_mechanisms[0].initialize_location()
     return self._helper.initialize() + ((self._attention_initial_state,self._decoder_initial_state,),)
 
   def step(self, time, inputs, state, name=None):
@@ -112,8 +117,11 @@ class TacotronDecoder(decoder.Decoder):
       `(outputs, next_state, next_inputs, finished)`.
     """
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
-      # Do an attention rnn step with the decoder output and previous attention state
-      attention_context, attention_state = self._attention_cell(state[1].h, state[0])
+      if self.use_prenet_output:
+        attention_context, attention_state = self._attention_cell(inputs, state[0])
+      else:
+        # Do an attention rnn step with the decoder output and previous attention state
+        attention_context, attention_state = self._attention_cell(state[1].h, state[0])
       # For the decoder rnn, the input is the (prenet) output + attention context
       decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
       cell_outputs, decoder_state = self._decoder_cell(decoder_rnn_input, state[1])

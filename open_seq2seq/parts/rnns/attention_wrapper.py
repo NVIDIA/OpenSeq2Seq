@@ -758,8 +758,9 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     with variable_scope.variable_scope(None, "location_attention", [query]):
       processed_query = self.query_layer(query) if self.query_layer else query
       location = array_ops.stack((state, self.cumulative_location_weights), axis=-1)
+      # location = array_ops.expand_dims(state, -1)
       processed_location = self.location_layer(location)
-      self.cumulative_location_weights += processed_location
+      self.cumulative_location_weights = processed_location + self.cumulative_location_weights
       score = _bahdanau_score_with_location(processed_query, self._keys, processed_location)
     alignments = self._probability_fn(score, state)
     next_state = alignments
@@ -767,7 +768,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
 
   def initialize_location(self):
     self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtypes.float32)
-    
+
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.
