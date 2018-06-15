@@ -30,10 +30,7 @@ class RNNDecoderWithAttention(Decoder):
       'tgt_emb_size': int,
       'attention_layer_size': int,
       'attention_type': ['bahdanau', 'luong', 'gnmt', 'gnmt_v2'],
-      #'decoder_cell_units': int,
-      #'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
       'core_cell': None,
-      'core_cell_params': dict,
       'decoder_layers': int,
       'decoder_use_skip_connections': bool,
       'batch_size': int,
@@ -42,6 +39,7 @@ class RNNDecoderWithAttention(Decoder):
   @staticmethod
   def get_optional_params():
     return dict(Decoder.get_optional_params(), **{
+      'core_cell_params': dict,
       'bahdanau_normalize': bool,
       'luong_scale': bool,
       'decoder_dp_input_keep_prob': float,
@@ -67,7 +65,7 @@ class RNNDecoderWithAttention(Decoder):
     * **END_SYMBOL** (int) --- END symbol id, must be the same as used in
       data layer.
     * **tgt_emb_size** (int) --- embedding size to use.
-    * **core_cell_params** (int) - parameters for RNN class
+    * **core_cell_params** (dict) - parameters for RNN class
     * **core_cell** (string) - RNN class.
     * **decoder_dp_input_keep_prob** (float) - dropout input keep probability.
     * **decoder_dp_output_keep_prob** (float) - dropout output keep probability.
