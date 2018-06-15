@@ -192,7 +192,7 @@ def optimize_loss(loss,
             initial_value=tf.zeros_like(var),
             name=grad.name.split(":")[0] + "_accum",
             expected_shape=var.shape,
-            dtype=grad.dtype,
+            dtype=var.dtype,
             trainable=False,
             validate_shape=bool(var.get_shape())
           )
