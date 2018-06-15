@@ -191,12 +191,18 @@ def optimize_loss(loss,
           grad_accum = tf.Variable(
             initial_value=tf.zeros_like(var),
             name=grad.name.split(":")[0] + "_accum",
-            expected_shape=grad.shape,
+            expected_shape=var.shape,
             dtype=grad.dtype,
             trainable=False,
-            validate_shape=bool(grad.get_shape())
+            validate_shape=bool(var.get_shape())
           )
-          accum_ops.append(tf.assign(grad_accum, grad_accum + grad / iter_size))
+          if isinstance(grad, tf.IndexedSlices):
+            add_grads = tf.scatter_nd_add(grad_accum, grad.indices,
+                                          grad.values / iter_size)
+          else:
+            add_grads = grad_accum + grad / iter_size
+
+          accum_ops.append(tf.assign(grad_accum, add_grads))
           grads_and_vars_accum.append((grad_accum, var))
 
         accum_op = tf.group(accum_ops)
