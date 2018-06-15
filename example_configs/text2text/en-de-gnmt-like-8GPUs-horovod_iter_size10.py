@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
-from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding
+from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding_cuDNN
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
@@ -10,57 +10,51 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16_s2s/"
 
 base_model = Text2Text
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 4,
-  "max_steps": 340000,
-  "batch_size_per_gpu": 32,
+  "use_horovod": True,
+  "iter_size": 10,
+  "num_gpus": 1,
+  "max_steps": 3400,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-Adam-LR0.0008-FP32-4x32-MP-luong10-P8-AAT",
+  "logdir": "GNMT-MP-cuDNN-enc",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
-    "learning_rate": 0.0008,
-    "begin_decay_at": 170000,
-    "decay_steps": 17000,
+    "learning_rate": 0.001,
+    "begin_decay_at": 1700,
+    "decay_steps": 170,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
   },
-  # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-  #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-  "max_grad_norm": 32768.0,
-  "dtype": tf.float32,
-  # "dtype": "mixed",
-  # "loss_scaling": "Backoff",
-  "encoder": GNMTLikeEncoderWithEmbedding,
+  #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+  #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+  #"max_grad_norm": 32768.0,
+  #"dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
+  "encoder": GNMTLikeEncoderWithEmbedding_cuDNN,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
     "initializer_params": {
       "minval": -0.1,
       "maxval": 0.1,
     },
-    #"encoder_cell_type": "lstm",
-    #"encoder_cell_units": 1024,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
-    "core_cell_params": {
-      "num_units": 1024,
-      # "forget_bias": 1.0,
-    },
+    "encoder_cell_type": "lstm",
+    "encoder_cell_units": 1024,
     "encoder_layers": 7,
-    "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
-    "encoder_use_skip_connections": True,
     "src_emb_size": 1024,
   },
 
@@ -71,13 +65,12 @@ base_params = {
        "minval": -0.1,
        "maxval": 0.1,
      },
-    #"decoder_cell_type": "lstm",
-    #"decoder_cell_units": 1024,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-      "num_units": 1024,
-      # "forget_bias": 1.0,
+        "num_units": 1024,
+        "forget_bias": 1.0,
     },
+
     "decoder_layers": 8,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
@@ -138,12 +131,9 @@ infer_params = {
   "decoder_params": {
     "beam_width": 10,
     "length_penalty": 1.0,
-    #"decoder_cell_type": "lstm",
-    #"decoder_cell_units": 1024,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 1024,
-      # "forget_bias": 1.0,
     },
     "decoder_layers": 8,
     "decoder_dp_input_keep_prob": 0.8,
