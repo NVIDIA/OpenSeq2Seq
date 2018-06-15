@@ -134,7 +134,8 @@ base_params = {
         "activation_fn": None
       }
     ],
-    "anneal_sampling_prob": True,
+    "anneal_sampling_prob": False,
+    "use_prenet_output": False,
   },
   
   "loss": MeanSquaredErrorLoss,
