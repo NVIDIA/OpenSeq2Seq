@@ -279,7 +279,8 @@ class RNNDecoderWithAttention(Decoder):
       output_time_major=time_major,
     )
 
-    return {'logits': final_outputs.rnn_output,
+    return {'logits': final_outputs.rnn_output if not time_major else
+    tf.transpose(final_outputs.rnn_output, perm=[1, 0, 2]),
             'samples': [tf.argmax(final_outputs.rnn_output, axis=-1)],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
@@ -464,7 +465,8 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       output_time_major=time_major,
     )
 
-    return {'logits': final_outputs.predicted_ids[:, :, 0],
+    return {'logits': final_outputs.predicted_ids[:, :, 0] if not time_major else
+      tf.transpose(final_outputs.predicted_ids[:, :, 0], perm=[1, 0, 2]),
             'samples': [final_outputs.predicted_ids[:, :, 0]],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}

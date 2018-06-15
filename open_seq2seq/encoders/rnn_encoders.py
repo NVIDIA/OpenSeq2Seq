@@ -9,7 +9,7 @@ import tensorflow as tf
 
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
-
+from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 
 class UnidirectionalRNNEncoderWithEmbedding(Encoder):
   """
@@ -435,3 +435,151 @@ class GNMTLikeEncoderWithEmbedding(Encoder):
   @property
   def enc_emb_w(self):
     return self._enc_emb_w
+
+class GNMTLikeEncoderWithEmbedding_cuDNN(Encoder):
+  """
+    Encoder similar to the one used in
+    GNMT model: https://arxiv.org/abs/1609.08144.
+    Must have at least 2 layers. Uses cuDNN RNN blocks for efficiency
+    """
+
+  @staticmethod
+  def get_required_params():
+    return dict(Encoder.get_required_params(), **{
+      'src_vocab_size': int,
+      'src_emb_size': int,
+      'encoder_cell_units': int,
+      'encoder_cell_type': ['lstm', 'gru'],
+      'encoder_layers': int,
+      #'core_cell': None,
+      #'core_cell_params': dict,
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(Encoder.get_optional_params(), **{
+      'encoder_dp_output_keep_prob': float,
+    })
+
+  def __init__(self, params, model,
+               name="gnmt_encoder_with_emb_cudnn", mode='train'):
+    """
+    Encodes data into representation
+    :param params: a Python dictionary.
+    Must define:
+      * src_inputs - a Tensor of shape [batch_size, time] or [time, batch_size]
+                     (depending on time_major param)
+      * src_lengths - a Tensor of shape [batch_size]
+    :return: a Python dictionary with:
+      * encoder_outputs - a Tensor of shape
+                          [batch_size, time, representation_dim]
+      or [time, batch_size, representation_dim]
+      * encoder_state - a Tensor of shape [batch_size, dim]
+      * src_lengths - (copy ref from input) a Tensor of shape [batch_size]
+    """
+    super(GNMTLikeEncoderWithEmbedding_cuDNN, self).__init__(
+      params, model, name=name, mode=mode,
+    )
+
+    self._src_vocab_size = self.params['src_vocab_size']
+    self._src_emb_size = self.params['src_emb_size']
+
+  def _encode(self, input_dict):
+    source_sequence = input_dict['source_tensors'][0]
+    source_length = input_dict['source_tensors'][1]
+    self._enc_emb_w = tf.get_variable(
+      name="EncoderEmbeddingMatrix",
+      shape=[self._src_vocab_size, self._src_emb_size],
+      dtype=tf.float32
+    )
+
+    if self.params['encoder_layers'] < 2:
+      raise ValueError("GNMT encoder must have at least 2 layers")
+
+    if self._mode == "train":
+      dp_output_keep_prob = self.params['encoder_dp_output_keep_prob']
+    else:
+      dp_output_keep_prob = 1.0
+
+    # source_sequence is of [batch, time] shape
+    embedded_inputs = tf.cast(tf.nn.embedding_lookup(
+      self.enc_emb_w,
+      tf.transpose(source_sequence), # cudnn wants [time, batch, ...]
+    ), self.params['dtype'])
+
+    with tf.variable_scope("Bi_Directional_Layer"):
+      direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
+      if self.params['encoder_cell_type'] == "gru":
+        bidirectional_block = tf.contrib.cudnn_rnn.CudnnGRU(
+          num_layers=1,
+          num_units=self.params['encoder_cell_units'],
+          direction=direction,
+          dropout=0.0,
+          dtype=self.params['dtype'],
+          name="cudnn_gru_bidi",
+        )
+      elif self.params['encoder_cell_type'] == "lstm":
+        bidirectional_block = tf.contrib.cudnn_rnn.CudnnLSTM(
+          num_layers=1,
+          num_units=self.params['encoder_cell_units'],
+          direction=direction,
+          dropout=0.0,
+          dtype=self.params['dtype'],
+          name="cudnn_lstm_bidi",
+        )
+      else:
+        raise ValueError(
+          "{} is not a valid rnn_type for cudnn_rnn layers"
+            .format(self.params['encoder_cell_units'])
+        )
+      bidi_output, bidi_state = bidirectional_block(embedded_inputs)
+
+    with tf.variable_scope("Uni_Directional_Layer"):
+      direction = cudnn_rnn_ops.CUDNN_RNN_UNIDIRECTION
+      layer_input = bidi_output
+      for ind in range(self.params['encoder_layers'] - 1):
+        with tf.variable_scope("uni_layer_{}".format(ind)):
+          if self.params['encoder_cell_type'] == "gru":
+            unidirectional_block = tf.contrib.cudnn_rnn.CudnnGRU(
+              num_layers=1,
+              num_units=self.params['encoder_cell_units'],
+              direction=direction,
+              dropout=1.0 - dp_output_keep_prob,
+              dtype=self.params['dtype'],
+              name="cudnn_gru_uni_".format(ind),
+            )
+          elif self.params['encoder_cell_type'] == "lstm":
+            unidirectional_block = tf.contrib.cudnn_rnn.CudnnLSTM(
+              num_layers=1,
+              num_units=self.params['encoder_cell_units'],
+              direction=direction,
+              dropout=1.0 - dp_output_keep_prob,
+              dtype=self.params['dtype'],
+              name="cudnn_lstm_uni_".format(ind),
+            )
+          layer_output, encoder_state = unidirectional_block(
+            layer_input)
+          if ind > 0: # add residual connection
+            layer_output = layer_input + layer_output
+          layer_input = layer_output
+
+    return {'outputs': tf.transpose(layer_input, perm=[1, 0, 2]),
+            'state': None,
+            'src_lengths': source_length,
+            'encoder_input': source_sequence}
+
+
+  @property
+  def src_vocab_size(self):
+    return self._src_vocab_size
+
+  @property
+  def src_emb_size(self):
+    return self._src_emb_size
+
+  @property
+  def enc_emb_w(self):
+    return self._enc_emb_w
+
+
+

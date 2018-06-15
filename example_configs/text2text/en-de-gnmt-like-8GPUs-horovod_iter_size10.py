@@ -16,8 +16,9 @@ base_model = Text2Text
 
 base_params = {
   "use_horovod": True,
+  "iter_size": 10,
   "num_gpus": 1,
-  "max_steps": 34000,
+  "max_steps": 3400,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
@@ -31,8 +32,8 @@ base_params = {
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "begin_decay_at": 17000,
-    "decay_steps": 1700,
+    "begin_decay_at": 1700,
+    "decay_steps": 170,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
