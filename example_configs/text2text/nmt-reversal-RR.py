@@ -18,6 +18,7 @@ base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
+  #"iter_size": 10,
   # set this to number of available GPUs
   "num_gpus": 1,
   "batch_size_per_gpu": 64,
@@ -36,13 +37,14 @@ base_params = {
     'learning_rate': 0.001
   },
   "max_grad_norm": 3.0,
-  "dtype": tf.float32,
+  #"dtype": tf.float32,
+  "dtype": "mixed",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
     #"encoder_cell_type": "lstm",
     #"encoder_cell_units": 128,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,#tf.nn.rnn_cell.LSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 128,
       #"forget_bias": 1.0,
@@ -58,7 +60,7 @@ base_params = {
   "decoder_params": {
     #"decoder_cell_type": "lstm",
     #"decoder_cell_units": 128,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     # tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 128,

@@ -130,7 +130,7 @@ infer_params = {
   "decoder_params": {
     "beam_width": 10,
     "length_penalty": 1.0,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 1024,
     },
