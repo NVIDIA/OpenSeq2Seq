@@ -15,7 +15,7 @@ base_params = {
   "num_epochs": 50,
 
   "num_gpus": 4,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 16,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
@@ -58,8 +58,28 @@ base_params = {
         "num_channels": 500, "padding": "SAME"
       },
       {
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [15], "stride": [1],
+        "num_channels": 500, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [19], "stride": [1],
+        "num_channels": 500, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [23], "stride": [1],
+        "num_channels": 750, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 2,
+        "kernel_size": [27], "stride": [1],
+        "num_channels": 750, "padding": "SAME"
+      },      
+      {
         "type": "conv1d", "repeat" : 1,
-        "kernel_size": [32], "stride": [1],
+        "kernel_size": [29], "stride": [1],
         "num_channels": 1000, "padding": "SAME"
       },
       {
