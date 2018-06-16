@@ -97,7 +97,7 @@ base_params = {
     },
     "activation_fn": lambda x: x,
     "gated_convolution" : True,
-    "weight_normalization" : False,
+    "weight_normalization" : True,
     "data_format": "channels_last",
   },
 
