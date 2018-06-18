@@ -12,7 +12,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 50,
+  "num_epochs": 60,
 
   "num_gpus": 4,
   "batch_size_per_gpu": 32,
@@ -24,13 +24,10 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
+  "optimizer": "Adam",
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.01,
+    "learning_rate": 0.0005,
     "power": 0.5,
   },
 
@@ -69,7 +66,7 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 0.7,
+    "dropout_keep_prob": 0.8,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {

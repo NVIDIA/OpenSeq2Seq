@@ -12,9 +12,9 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 50,
+  "num_epochs": 60,
 
-  "num_gpus": 4,
+  "num_gpus": 8,
   "batch_size_per_gpu": 16,
 
   "save_summaries_steps": 100,
@@ -24,13 +24,10 @@ base_params = {
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
+  "optimizer": "Adam",
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.01,
+    "learning_rate": 0.0005,
     "power": 0.5,
   },
 
@@ -50,33 +47,28 @@ base_params = {
       {
         "type": "conv1d", "repeat" : 5,
         "kernel_size": [7], "stride": [1],
-        "num_channels": 250, "padding": "SAME"
+        "num_channels": 200, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 500, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [15], "stride": [1],
-        "num_channels": 500, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [19], "stride": [1],
-        "num_channels": 500, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [23], "stride": [1],
-        "num_channels": 750, "padding": "SAME"
+        "num_channels": 600, "padding": "SAME"
       },
-      {
-        "type": "conv1d", "repeat" : 2,
-        "kernel_size": [27], "stride": [1],
-        "num_channels": 750, "padding": "SAME"
-      },      
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [29], "stride": [1],
