@@ -18,7 +18,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 1, # each Horovod process will occupy single GPU
   "max_steps": 34000,
-  "batch_size_per_gpu": 128,
+  "batch_size_per_gpu": 64,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
