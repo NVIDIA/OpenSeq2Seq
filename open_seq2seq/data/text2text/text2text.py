@@ -254,7 +254,7 @@ class TransformerDataLayer(DataLayer):
       'repeat': int,
       'num_cpu_cores': int,
       'tgt_vocab_file': str,
-      'm_padding': bool,
+      'pad_data_to_eight': bool,
       'batch_in_tokens': bool,
     })
 
@@ -303,37 +303,11 @@ class TransformerDataLayer(DataLayer):
       repeat=self.params['repeat'],
       num_workers=self._num_workers,
       worker_id=self._worker_id,
-      batch_in_tokens=self.params.get('batch_in_tokens', True))
+      batch_in_tokens=self.params.get('batch_in_tokens', True),
+      pad2eight=self.params.get('pad_data_to_eight', False))
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()
-
-    if self.params.get('m_padding', False):
-      # MAGIC PADDING
-      x = tf.cond(tf.equal(tf.shape(x)[1] % 8, 0),
-                  true_fn = lambda: x,
-                  false_fn = lambda: tf.pad(x,
-                                            paddings=[[0, 0],
-                                                      [0, 8 - tf.shape(x)[1] % 8]]))
-
-      y = tf.cond(tf.equal(tf.shape(y)[1] % 8, 0),
-                  true_fn = lambda: y,
-                  false_fn = lambda: tf.pad(y,
-                                            paddings=[[0, 0],
-                                                      [0, 8 - tf.shape(y)[1] % 8]]))
-
-      x = tf.cond(tf.equal(tf.shape(x)[0] % 8, 0),
-                  true_fn = lambda: x,
-                  false_fn = lambda: tf.pad(x,
-                                            paddings=[[0, 8 - tf.shape(x)[0] % 8],
-                                                      [0, 0]]))
-
-      y = tf.cond(tf.equal(tf.shape(y)[0] % 8, 0),
-                  true_fn=lambda: y,
-                  false_fn=lambda: tf.pad(y,
-                                          paddings=[[0, 8 - tf.shape(y)[0] % 8],
-                                                    [0, 0]]))
-      # ENDOF MAGIC PADDING
 
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)
