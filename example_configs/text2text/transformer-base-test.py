@@ -2,7 +2,7 @@ from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
 from open_seq2seq.decoders import TransformerDecoder
-from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
+from open_seq2seq.data.text2text.text2text import TransformerDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
@@ -18,22 +18,22 @@ base_model = Text2Text
 d_model = 512
 num_layers = 6
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/tmp/translate_ende/"
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 4,
-  "batch_size_per_gpu": 128,  # this size is in sentence pairs
+  "num_gpus": 1,
+  "batch_size_per_gpu": 4096,  # this size is in tokens
   "max_steps": 500000,
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
   "eval_steps": 4001,
-  "save_checkpoint_steps": 4000,
+  "save_checkpoint_steps": 1000,
   "logdir": "Transformer-FP32",
   "dtype": tf.float32,
   # "dtype": "mixed",
-  # "automatic_loss_scaling": "Backoff",
+  # "loss_scaling": "Backoff",
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
@@ -88,53 +88,46 @@ base_params = {
 }
 
 train_params = {
-  "data_layer": ParallelTextDataLayer,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "train.tok.clean.bpe.32000.en",
-    "target_file": data_root + "train.tok.clean.bpe.32000.de",
-    "delimiter": " ",
-    "shuffle": True,
-    "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
-    "max_length": 56,
+    'data_dir': data_root,
+    'file_pattern': "*train*",
+    'src_vocab_file': data_root + "vocab.ende.32768",
+    'max_length': 256,
+    'shuffle': True,
+    'repeat': 100000,
+    'mode': 'train',
+    "delimiter": ' ',
   },
 }
 
 eval_params = {
-  "batch_size_per_gpu": 16,
-  "data_layer": ParallelTextDataLayer,
+  "batch_size_per_gpu": 256,
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2013.tok.bpe.32000.en",
-    "target_file": data_root + "newstest2013.tok.bpe.32000.de",
-    "delimiter": " ",
-    "shuffle": False,
-    "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 1,
-    "max_length": 32,
+    'data_dir': data_root,
+    'file_pattern': "*dev*",
+    'src_vocab_file': data_root + "vocab.ende.32768",
+    'max_length': 256,
+    'shuffle': False,
+    'repeat': 1,
+    'mode': 'train',
+    "delimiter": ' ',
   },
 }
 
 infer_params = {
-  "batch_size_per_gpu": 1,
-  "data_layer": ParallelTextDataLayer,
+  "batch_size_per_gpu": 64, # it is now in samples, not tokens
+  "data_layer": TransformerDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-    # this is intentional
-    "target_file": data_root + "newstest2014.tok.bpe.32000.en",
-    "delimiter": " ",
-    "shuffle": False,
-    "repeat": False,
-    "max_length": 512,
+    'data_dir': data_root,
+    'file_pattern': "*test*",
+    'batch_in_tokens': False, # this is necessary to preserve the order
+    'src_vocab_file': data_root + "vocab.ende.32768",
+    'max_length': 256,
+    'shuffle': False,
+    'repeat': 1,
+    'mode': 'train',
+    "delimiter": ' ',
   },
 }

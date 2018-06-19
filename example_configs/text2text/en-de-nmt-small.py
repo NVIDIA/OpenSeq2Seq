@@ -10,7 +10,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16_s2s/"
 
 # This model should run fine on single GPU such as 1080ti or better
 base_model = Text2Text
@@ -18,12 +18,12 @@ base_model = Text2Text
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
-  "max_steps": 160082,
+  "max_steps": 100000,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
-  "eval_steps": 1000,
+  "eval_steps": 3000,
   "save_checkpoint_steps": 2001,
   "logdir": "nmt-small-en-de",
   "optimizer": "Adam",
@@ -32,18 +32,21 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 0.001,
   },
-  "larc_params": {
-    "larc_eta": 0.001,
-  },
+  #"larc_params": {
+  #  "larc_eta": 0.001,
+  #},
   "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.glorot_uniform_initializer,
-    "encoder_cell_type": "lstm",
-    "encoder_cell_units": 512,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+      "num_units": 512,
+      "forget_bias": 1.0,
+    },
     "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
@@ -55,8 +58,11 @@ base_params = {
   "decoder": RNNDecoderWithAttention,
   "decoder_params": {
     "initializer": tf.glorot_uniform_initializer,
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": 512,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 512,
+        "forget_bias": 1.0,
+    },
     "decoder_layers": 2,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,

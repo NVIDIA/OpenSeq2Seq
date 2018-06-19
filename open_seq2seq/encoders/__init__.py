@@ -6,7 +6,8 @@ An encoder typically takes data and produces representation.
 from .encoder import Encoder
 from .rnn_encoders import UnidirectionalRNNEncoderWithEmbedding, \
                           BidirectionalRNNEncoderWithEmbedding, \
-                          GNMTLikeEncoderWithEmbedding
+                          GNMTLikeEncoderWithEmbedding,\
+                          GNMTLikeEncoderWithEmbedding_cuDNN
 from .transformer_encoder import TransformerEncoder
 from .ds2_encoder import DeepSpeech2Encoder
 from .resnet_encoder import ResNetEncoder

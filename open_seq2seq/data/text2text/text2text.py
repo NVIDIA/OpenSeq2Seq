@@ -166,7 +166,7 @@ class ParallelTextDataLayer(DataLayer):
              [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
     _sources = tf.data.TextLineDataset(self.source_file)\
-      .map(lambda line: tf.py_func(func=src_token_to_id,inp=[line],
+      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
@@ -255,6 +255,7 @@ class TransformerDataLayer(DataLayer):
       'num_cpu_cores': int,
       'tgt_vocab_file': str,
       'm_padding': bool,
+      'batch_in_tokens': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -301,7 +302,8 @@ class TransformerDataLayer(DataLayer):
       shuffle=self.params['shuffle'],
       repeat=self.params['repeat'],
       num_workers=self._num_workers,
-      worker_id=self._worker_id)
+      worker_id=self._worker_id,
+      batch_in_tokens=self.params.get('batch_in_tokens', True))
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()
