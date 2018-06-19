@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 base_model = Text2Speech
 
-output_type = "spectrogram"
+output_type = "mel"
 
 if output_type == "spectrogram":
   num_audio_features = 513
