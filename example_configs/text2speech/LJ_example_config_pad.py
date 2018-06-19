@@ -3,7 +3,7 @@ from open_seq2seq.models import Text2Speech
 from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
-from open_seq2seq.losses import MeanSquaredErrorLoss, BasicMeanSquaredErrorLoss
+from open_seq2seq.losses import MeanSquaredErrorLoss, BasicMeanSquaredErrorLoss, TacotronLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 
@@ -144,7 +144,7 @@ base_params = {
     "mask_decoder_sequence": True
   },
   
-  "loss": MeanSquaredErrorLoss,
+  "loss": TacotronLoss,
   "loss_params": {
     "use_mask": True
   },
