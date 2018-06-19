@@ -16,7 +16,7 @@ base_model = Text2Text
 
 base_params = {
   "use_horovod": True,
-  "num_gpus": 1,
+  "num_gpus": 1, # each Horovod process will occupy single GPU
   "max_steps": 34000,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
@@ -24,13 +24,13 @@ base_params = {
   "print_samples_steps": 48,
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-MP-cuDNN-enc",
+  "logdir": "GNMT-like-en-de",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
-    "learning_rate": 0.001,
+    "learning_rate": 0.0008,
     "begin_decay_at": 17000,
     "decay_steps": 1700,
     "decay_rate": 0.5,
@@ -148,7 +148,7 @@ infer_params = {
 
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": False,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2014.tok.bpe.32000.en",

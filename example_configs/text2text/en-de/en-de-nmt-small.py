@@ -30,7 +30,7 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.001,
+    "learning_rate": 0.0008,
   },
   #"larc_params": {
   #  "larc_eta": 0.001,
