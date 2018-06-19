@@ -16,7 +16,7 @@ from tensorflow.python.ops import array_ops
 
 
 class BasicDecoderOutput(
-    collections.namedtuple("BasicDecoderOutput", ("rnn_output", "sample_id"))):
+    collections.namedtuple("BasicDecoderOutput", ("rnn_output", "target_output", "sample_id"))):
   pass
 
 
@@ -25,8 +25,8 @@ class TacotronDecoder(decoder.Decoder):
 
   def __init__(self, decoder_cell, attention_cell, helper,
               initial_decoder_state, initial_attention_state, 
-              attention_type, use_prenet_output=False,
-              output_layer=None):
+              attention_type, spec_layer, target_layer,
+              use_prenet_output=False):
     """Initialize BasicDecoder.
     Args:
       cell: An `RNNCell` instance.
@@ -43,26 +43,27 @@ class TacotronDecoder(decoder.Decoder):
     rnn_cell_impl.assert_like_rnncell("cell", attention_cell)
     if not isinstance(helper, helper_py.Helper):
       raise TypeError("helper must be a Helper, received: %s" % type(helper))
-    if (output_layer is not None
-        and not isinstance(output_layer, layers_base.Layer)):
+    if (spec_layer is not None
+        and not isinstance(spec_layer, layers_base.Layer)):
       raise TypeError(
-          "output_layer must be a Layer, received: %s" % type(output_layer))
-    self._decoder_cell = decoder_cell
-    self._attention_cell = attention_cell
-    self._helper = helper
-    self._decoder_initial_state = initial_decoder_state
-    self._attention_initial_state = initial_attention_state
-    self._output_layer = output_layer
+          "spec_layer must be a Layer, received: %s" % type(spec_layer))
+    self.decoder_cell = decoder_cell
+    self.attention_cell = attention_cell
+    self.helper = helper
+    self.decoder_initial_state = initial_decoder_state
+    self.attention_initial_state = initial_attention_state
+    self.spec_layer = spec_layer
+    self.target_layer = target_layer
     self.attention_type = attention_type
     self.use_prenet_output = use_prenet_output
 
   @property
   def batch_size(self):
-    return self._helper.batch_size
+    return self.helper.batch_size
 
   def _rnn_output_size(self):
-    size = self._decoder_cell.output_size
-    if self._output_layer is None:
+    size = self.decoder_cell.output_size
+    if self.spec_layer is None:
       return size
     else:
       # To use layer's compute_output_shape, we need to convert the
@@ -74,7 +75,25 @@ class TacotronDecoder(decoder.Decoder):
       output_shape_with_unknown_batch = nest.map_structure(
           lambda s: tensor_shape.TensorShape([None]).concatenate(s),
           size)
-      layer_output_shape = self._output_layer.compute_output_shape(
+      layer_output_shape = self.spec_layer.compute_output_shape(
+          output_shape_with_unknown_batch)
+      return nest.map_structure(lambda s: s[1:], layer_output_shape)
+
+  def _stop_token_output_size(self):
+    size = self.decoder_cell.output_size
+    if self.target_layer is None:
+      return size
+    else:
+      # To use layer's compute_output_shape, we need to convert the
+      # RNNCell's output_size entries into shapes with an unknown
+      # batch size.  We then pass this through the layer's
+      # compute_output_shape and read off all but the first (batch)
+      # dimensions to get the output size of the rnn with the layer
+      # applied to the top.
+      output_shape_with_unknown_batch = nest.map_structure(
+          lambda s: tensor_shape.TensorShape([None]).concatenate(s),
+          size)
+      layer_output_shape = self.target_layer.compute_output_shape(
           output_shape_with_unknown_batch)
       return nest.map_structure(lambda s: s[1:], layer_output_shape)
 
@@ -83,17 +102,19 @@ class TacotronDecoder(decoder.Decoder):
     # Return the cell output and the id
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
-        sample_id=self._helper.sample_ids_shape)
+        target_output=self._stop_token_output_size(),
+        sample_id=self.helper.sample_ids_shape)
 
   @property
   def output_dtype(self):
     # Assume the dtype of the cell is the output_size structure
     # containing the input_state's first component's dtype.
     # Return that structure and the sample_ids_dtype from the helper.
-    dtype = nest.flatten(self._decoder_initial_state)[0].dtype
+    dtype = nest.flatten(self.decoder_initial_state)[0].dtype
     return BasicDecoderOutput(
         nest.map_structure(lambda _: dtype, self._rnn_output_size()),
-        self._helper.sample_ids_dtype)
+        nest.map_structure(lambda _: dtype, self._stop_token_output_size()),
+        self.helper.sample_ids_dtype)
 
   def initialize(self, name=None):
     """Initialize the decoder.
@@ -103,8 +124,8 @@ class TacotronDecoder(decoder.Decoder):
       `(finished, first_inputs, initial_state)`.
     """
     if self.attention_type == "location":
-      self._attention_cell._attention_mechanisms[0].initialize_location()
-    return self._helper.initialize() + ((self._attention_initial_state,self._decoder_initial_state,),)
+      self.attention_cell._attention_mechanisms[0].initialize_location()
+    return self.helper.initialize() + ((self.attention_initial_state,self.decoder_initial_state,),)
 
   def step(self, time, inputs, state, name=None):
     """Perform a decoding step.
@@ -118,24 +139,25 @@ class TacotronDecoder(decoder.Decoder):
     """
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
       if self.use_prenet_output:
-        attention_context, attention_state = self._attention_cell(inputs, state[0])
+        attention_context, attention_state = self.attention_cell(inputs, state[0])
       else:
         # Do an attention rnn step with the decoder output and previous attention state
-        attention_context, attention_state = self._attention_cell(state[1].h, state[0])
+        attention_context, attention_state = self.attention_cell(state[1].h, state[0])
       # For the decoder rnn, the input is the (prenet) output + attention context
       decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
-      cell_outputs, decoder_state = self._decoder_cell(decoder_rnn_input, state[1])
+      cell_outputs, decoder_state = self.decoder_cell(decoder_rnn_input, state[1])
       cell_state = (attention_state, decoder_state)
       # Concatenate the decoder output and attention output and send it through a projection layer
       cell_outputs = array_ops.concat((cell_outputs, attention_context), axis=-1)
-      if self._output_layer is not None:
-        cell_outputs = self._output_layer(cell_outputs)
-      sample_ids = self._helper.sample(
+      if self.spec_layer is not None:
+        cell_outputs = self.spec_layer(cell_outputs)
+      target_outputs = self.target_layer(cell_outputs)
+      sample_ids = self.helper.sample(
           time=time, outputs=cell_outputs, state=cell_state)
-      (finished, next_inputs, next_state) = self._helper.next_inputs(
+      (finished, next_inputs, next_state) = self.helper.next_inputs(
           time=time,
           outputs=cell_outputs,
           state=cell_state,
           sample_ids=sample_ids)
-    outputs = BasicDecoderOutput(cell_outputs, sample_ids)
+    outputs = BasicDecoderOutput(cell_outputs, target_outputs, sample_ids)
     return (outputs, next_state, next_inputs, finished)

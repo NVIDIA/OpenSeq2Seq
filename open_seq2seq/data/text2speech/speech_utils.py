@@ -8,6 +8,7 @@ import resampy as rs
 import python_speech_features as psf
 import numpy as np
 import librosa
+import librosa.filters
 import math
 
 
@@ -193,3 +194,11 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
     s = np.std(features)
     features = (features - m) / s
   return features
+
+def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80):
+  mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
+  # print(mel_spec.shape)
+  # print(mel_basis.shape)
+  # spec = np.dot(mel_spec, mel_basis)
+  # print(spec.shape)
+  return np.dot(mel_spec, mel_basis)

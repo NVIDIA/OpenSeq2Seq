@@ -185,35 +185,37 @@ class Text2SpeechDataLayer(DataLayer):
       lambda line: tf.py_func(
         self._parse_audio_transcript_element,
         [line],
-        [tf.int32, tf.int32, self.params['dtype'], tf.int32],
+        [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'], tf.int32],
         stateful=False,
       ),
       num_parallel_calls=8,
     )
     self._dataset = self._dataset.padded_batch(
       self.params['batch_size'],
-      padded_shapes=([None], 1, [None, self.params['num_audio_features']], 1)
+      padded_shapes=([None], 1, [None, self.params['num_audio_features']], [None], 1),
+      padding_values=(0,0,0.,1.,0)
     )
 
     self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
 
 
-    x, x_length, y, y_length = self._iterator.get_next()
+    text, text_length, spec, target, spec_length = self._iterator.get_next()
     # y, y_length, x, x_length = self._iterator.get_next()
     # print(x.shape)
     # print(y.shape)
     # need to explicitly set batch size dimension
     # (it is employed in the model)
-    y.set_shape([self.params['batch_size'], None,
+    spec.set_shape([self.params['batch_size'], None,
                self.params['num_audio_features']])
-    y_length = tf.reshape(y_length, [self.params['batch_size']])
+    target.set_shape([self.params['batch_size'], None])
+    spec_length = tf.reshape(spec_length, [self.params['batch_size']])
     
-    x.set_shape([self.params['batch_size'], None])
-    x_length = tf.reshape(x_length, [self.params['batch_size']])
+    text.set_shape([self.params['batch_size'], None])
+    text_length = tf.reshape(text_length, [self.params['batch_size']])
 
     self._input_tensors = {}
-    self._input_tensors["source_tensors"] = [x, x_length]
-    self._input_tensors['target_tensors'] = [y, y_length]
+    self._input_tensors["source_tensors"] = [text, text_length]
+    self._input_tensors['target_tensors'] = [spec, target, spec_length]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
@@ -248,9 +250,12 @@ class Text2SpeechDataLayer(DataLayer):
       )
     if self.params.get("pad_EOS", False):
       spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
+    target = np.zeros([len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype())
+    target[-1] = 1.
     return np.int32(text_input), \
            np.int32([len(text_input)]), \
            spectrogram.astype(self.params['dtype'].as_numpy_dtype()), \
+           target, \
            np.int32([len(spectrogram)])
 
   # Might not be useful for actual text2speech applications

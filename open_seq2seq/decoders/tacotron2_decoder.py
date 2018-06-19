@@ -19,7 +19,7 @@ from .decoder import Decoder
 from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 from open_seq2seq.parts.tacotron.tacotron_helper import TacotronHelper, TacotronTrainingHelper, TrainingHelper, InferenceHelper, ScheduledSamplingHelper
 from open_seq2seq.parts.tacotron.tacotron_decoder import TacotronDecoder
-from open_seq2seq.parts.tacotron.decoder import dynamic_decode
+# from open_seq2seq.parts.tacotron.decoder import dynamic_decode
 from tensorflow.contrib.rnn import LSTMStateTuple
 
 
@@ -280,9 +280,11 @@ class Tacotron2Decoder(Decoder):
     enc_src_lengths = input_dict['encoder_output']['src_length']
     # enc_state = input_dict['encoder_output']['state']
     # if self._mode != "infer":
-    tgt_inputs = input_dict['target_tensors'][0] if 'target_tensors' in \
+    spec = input_dict['target_tensors'][0] if 'target_tensors' in \
                                                     input_dict else None
-    tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
+    target = input_dict['target_tensors'][1] if 'target_tensors' in \
+                                                    input_dict else None
+    spec_length = input_dict['target_tensors'][2] if 'target_tensors' in \
                                                     input_dict else None
     _batch_size = encoder_outputs.get_shape().as_list()[0]
     # mean_pool = tf.reduce_mean(encoder_outputs, axis=1)
@@ -304,6 +306,9 @@ class Tacotron2Decoder(Decoder):
 
     self._output_projection_layer = tf.layers.Dense(
       self.num_audio_features, use_bias=True
+    )
+    self.target_projection_layer = tf.layers.Dense(
+      1, use_bias=True
     )
 
     if self._mode == "train":
@@ -429,8 +434,8 @@ class Tacotron2Decoder(Decoder):
         sampling_prob = tf.div(curr_step,tf.constant(20.))
       else:
         sampling_prob = self.params['scheduled_sampling_prob']
-      helper = TacotronTrainingHelper(inputs=tgt_inputs,
-                                      sequence_length=tgt_lengths,
+      helper = TacotronTrainingHelper(inputs=spec,
+                                      sequence_length=spec_length,
                                       enable_prenet=enable_prenet,
                                       prenet_units=prenet_units,
                                       prenet_layers=prenet_layers,
@@ -454,7 +459,7 @@ class Tacotron2Decoder(Decoder):
       #                         dtype=self.params['dtype'])
       inputs = tf.zeros((_batch_size, self.num_audio_features))
       helper = TacotronHelper(inputs=inputs,
-                              sequence_length=tgt_lengths,
+                              sequence_length=spec_length,
                               enable_prenet=enable_prenet,
                               prenet_units=prenet_units,
                               prenet_layers=prenet_layers,
@@ -468,7 +473,7 @@ class Tacotron2Decoder(Decoder):
       inputs = tf.zeros((_batch_size, self.num_audio_features))
       # tgt_lengths = None
       helper = TacotronHelper(inputs=inputs,
-                              sequence_length=tgt_lengths,
+                              sequence_length=spec_length,
                               enable_prenet=enable_prenet,
                               prenet_units=prenet_units,
                               prenet_layers=prenet_layers,
@@ -491,11 +496,12 @@ class Tacotron2Decoder(Decoder):
         decoder_cell=decoder_cell,
         attention_cell=attentive_cell,
         helper=helper,
-        output_layer=self._output_projection_layer,
         initial_decoder_state=initial_state,
         initial_attention_state=attentive_cell.zero_state(_batch_size, tf.float32),
         attention_type = self.params["attention_type"],
-        use_prenet_output = self.params.get("use_prenet_output", False)
+        spec_layer=self._output_projection_layer,
+        target_layer=self.target_projection_layer,
+        use_prenet_output = self.params.get("use_prenet_output", True)
       )
 
     time_major = self.params.get("time_major", False)
@@ -504,10 +510,10 @@ class Tacotron2Decoder(Decoder):
     #   maximum_iterations = tf.reduce_max(tgt_lengths)
     # else:
     #   maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
-    maximum_iterations = tf.reduce_max(tgt_lengths)
+    maximum_iterations = tf.reduce_max(spec_length)
 
-    # final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
-    final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(
+    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+    # final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(
       decoder=decoder,
       # impute_finished=False if self._decoder_type == "beam_search" else True,
       impute_finished=True,
@@ -568,7 +574,7 @@ class Tacotron2Decoder(Decoder):
             'post_net_output': top_layer,
             'alignments': alignments,
             'final_sequence_lengths': final_sequence_lengths,
-            'final_inputs': final_inputs}
+            'target_output': final_outputs.target_output}
 
 
 # class BasicDecoder(Decoder):
