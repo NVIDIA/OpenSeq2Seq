@@ -13,6 +13,7 @@ base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_epochs": 60,
+  #"max_steps": 200,
 
   "num_gpus": 4,
   "batch_size_per_gpu": 32,
@@ -27,7 +28,7 @@ base_params = {
   "optimizer": "Adam",
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.0005,
+    "learning_rate": 0.001,
     "power": 0.5,
   },
 
@@ -37,10 +38,10 @@ base_params = {
   },
 
   "max_grad_norm": 15.0,
-  "dtype": tf.float32,
+  #"dtype": tf.float32,
 
-  #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff", 
+  "dtype": "mixed",
+  "automatic_loss_scaling": "Backoff", 
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
