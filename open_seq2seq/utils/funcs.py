@@ -136,6 +136,14 @@ def train(train_model, eval_model=None, debug_port=None):
         if len(fetches) > 1:
           for i in range(train_model.num_gpus):
             total_objects += np.sum(fetches_vals[i + 1])
+          if train_model.params['print_bench_info_steps'] is not None:
+            if step % train_model.params['print_bench_info_steps'] == 0:
+              total_objects_cur = collect_if_horovod(total_objects, hvd,
+                                                     mode="sum")
+              if master_worker:
+                avg_objects = 1.0 * total_objects_cur / total_time
+                deco_print("Avg objects per second: {:.3f}".format(avg_objects))
+
       step += 1
 
   if len(fetches) > 1:
