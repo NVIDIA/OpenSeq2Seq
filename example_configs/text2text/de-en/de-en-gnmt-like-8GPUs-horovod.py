@@ -39,10 +39,9 @@ base_params = {
   },
   #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-  #"max_grad_norm": 32768.0,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding_cuDNN,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
@@ -93,7 +92,7 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": False,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.de",
@@ -110,7 +109,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": False,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2013.tok.bpe.32000.de",
