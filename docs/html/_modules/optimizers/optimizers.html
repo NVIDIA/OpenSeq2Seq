@@ -478,32 +478,24 @@
       <span class="n">variables</span> <span class="o">=</span> <span class="n">vars_</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">()</span>
 
     <span class="k">if</span> <span class="n">automatic_loss_scaling</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">automatic_loss_scaling</span> <span class="ow">in</span> <span class="n">AutomaticLossScaler</span><span class="o">.</span><span class="n">SUPPORTED_ALGOS</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">automatic_loss_scaling</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">AutomaticLossScaler</span><span class="o">.</span><span class="n">SUPPORTED_ALGOS</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown automatic loss scaling algorithm: </span><span class="si">%s</span><span class="s2">.&quot;</span>
                          <span class="o">%</span> <span class="n">automatic_loss_sclaing</span><span class="p">)</span>
       <span class="k">if</span> <span class="n">dtype</span> <span class="o">!=</span> <span class="s2">&quot;mixed&quot;</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Automatic loss scaling can be used only with &quot;</span>
                          <span class="s2">&quot;dtype=mixed.&quot;</span><span class="p">)</span>
-      <span class="n">loss_scaler</span> <span class="o">=</span> <span class="n">AutomaticLossScaler</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">automatic_loss_scaling</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">loss_scaler</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="n">loss_scale</span> <span class="o">=</span> <span class="n">AutomaticLossScaler</span><span class="p">(</span><span class="n">algorithm</span><span class="o">=</span><span class="n">automatic_loss_scaling</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">dtype</span> <span class="o">==</span> <span class="s1">&#39;mixed&#39;</span><span class="p">:</span>
-      <span class="n">opt</span> <span class="o">=</span> <span class="n">MixedPrecisionOptimizerWrapper</span><span class="p">(</span>
-        <span class="n">opt</span><span class="p">,</span>
-        <span class="n">automatic_loss_scaler</span><span class="o">=</span><span class="n">loss_scaler</span><span class="p">,</span>
-      <span class="p">)</span>
+      <span class="n">opt</span> <span class="o">=</span> <span class="n">MixedPrecisionOptimizerWrapper</span><span class="p">(</span><span class="n">opt</span><span class="p">,</span> <span class="n">loss_scale</span><span class="o">=</span><span class="n">loss_scale</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">on_horovod</span><span class="p">:</span>
       <span class="n">opt</span> <span class="o">=</span> <span class="n">DistributedOptimizer</span><span class="p">(</span><span class="n">opt</span><span class="p">)</span>
 
     <span class="c1"># Compute gradients.</span>
     <span class="n">gradients</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span>
-        <span class="n">loss</span> <span class="k">if</span> <span class="n">loss_scale</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="k">else</span> <span class="n">loss</span> <span class="o">*</span> <span class="n">loss_scale</span><span class="p">,</span>
-        <span class="n">variables</span><span class="p">,</span>
-        <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="n">colocate_gradients_with_ops</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="n">loss_scale</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
-      <span class="n">gradients</span> <span class="o">=</span> <span class="n">_multiply_gradients_const</span><span class="p">(</span><span class="n">gradients</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">loss_scale</span><span class="p">)</span>
+      <span class="n">loss</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span>
+      <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="n">colocate_gradients_with_ops</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="c1"># Optionally add gradient noise.</span>
     <span class="k">if</span> <span class="n">gradient_noise_scale</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -772,19 +764,6 @@
     <span class="n">multiplied_grads_and_vars</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">grad</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
   <span class="k">return</span> <span class="n">multiplied_grads_and_vars</span></div>
 
-
-<div class="viewcode-block" id="_multiply_gradients_const"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers._multiply_gradients_const">[docs]</a><span class="k">def</span> <span class="nf">_multiply_gradients_const</span><span class="p">(</span><span class="n">grads_and_vars</span><span class="p">,</span> <span class="n">multiplier</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Multiply specified gradients.&quot;&quot;&quot;</span>
-  <span class="n">multiplied_grads_and_vars</span> <span class="o">=</span> <span class="p">[]</span>
-  <span class="k">for</span> <span class="n">grad</span><span class="p">,</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">grads_and_vars</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">grad</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">ops</span><span class="o">.</span><span class="n">IndexedSlices</span><span class="p">):</span>
-        <span class="n">grad_values</span> <span class="o">=</span> <span class="n">grad</span><span class="o">.</span><span class="n">values</span> <span class="o">*</span> <span class="n">multiplier</span>
-        <span class="n">grad</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">IndexedSlices</span><span class="p">(</span><span class="n">grad_values</span><span class="p">,</span> <span class="n">grad</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">grad</span><span class="o">.</span><span class="n">dense_shape</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">grad</span> <span class="o">*=</span> <span class="n">multiplier</span>
-    <span class="n">multiplied_grads_and_vars</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">grad</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
-  <span class="k">return</span> <span class="n">multiplied_grads_and_vars</span></div>
 </pre></div>
 
            </div>
