@@ -92,7 +92,7 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     dict_to_log = self._model.maybe_print_logs(input_values, output_values)
     # optionally logging to tensorboard any values
     # returned from maybe_print_logs
-    if dict_to_log:
+    if self._model.params['save_summaries_steps'] and dict_to_log:
       log_summaries_from_dict(
         dict_to_log,
         self._model.params['logdir'],
@@ -197,7 +197,8 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       dict_to_log['eval_loss'] = total_loss
 
       # saving the best validation model
-      if total_loss < self._best_eval_loss:
+      if self._model.params['save_checkpoint_steps'] and \
+         total_loss < self._best_eval_loss:
         self._best_eval_loss = total_loss
         self._eval_saver.save(
           run_context.session,
@@ -208,7 +209,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
 
       # optionally logging to tensorboard any values
       # returned from maybe_print_logs
-      if dict_to_log:
+      if self._model.params['save_summaries_steps']:
         log_summaries_from_dict(
           dict_to_log,
           self._model.params['logdir'],
