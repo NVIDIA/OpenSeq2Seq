@@ -79,7 +79,7 @@ class TransformerEncoder(Encoder):
       # prepare encoder graph
       self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
         self.params["src_vocab_size"], self.params["hidden_size"],
-      pad2eight=self.params.get('pad_embeddings_2_eight', False))
+        pad_vocab_to_eight=self.params.get('pad_embeddings_2_eight', False))
 
       for _ in range(self.params['encoder_layers']):
         # Create sublayers for each layer.

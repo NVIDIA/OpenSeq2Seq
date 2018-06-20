@@ -32,7 +32,7 @@ class Speech2TextDataLayer(DataLayer):
       'pad_to': int,
     })
 
-  def __init__(self, params, model, num_workers=None, worker_id=None):
+  def __init__(self, params, model, num_workers, worker_id):
     """Speech-to-text data layer constructor.
 
     See parent class for arguments description.
@@ -86,7 +86,6 @@ class Speech2TextDataLayer(DataLayer):
     self._input_tensors = None
 
   def split_data(self, data):
-    """Method that performs data split for evaluation."""
     if self.params['mode'] != 'train' and self._num_workers is not None:
       size = len(data)
       start = size // self._num_workers * self._worker_id
@@ -105,12 +104,12 @@ class Speech2TextDataLayer(DataLayer):
 
   def build_graph(self):
     """Builds data processing graph using ``tf.data`` API."""
-    self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
-    if self.params['shuffle']:
-      self._dataset = self._dataset.shuffle(self._size)
-    self._dataset = self._dataset.repeat()
-
     if self.params['mode'] != 'infer':
+      self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
+      if self.params['shuffle']:
+        self._dataset = self._dataset.shuffle(self._size)
+      self._dataset = self._dataset.repeat()
+
       self._dataset = self._dataset.map(
         lambda line: tf.py_func(
           self._parse_audio_transcript_element,
@@ -125,18 +124,25 @@ class Speech2TextDataLayer(DataLayer):
         padded_shapes=([None, self.params['num_audio_features']], 1, [None], 1)
       )
     else:
+      indices = self.split_data(
+        np.array(list(map(lambda num: str(num), range(len(self.all_files)))))
+      )
+      self._dataset = tf.data.Dataset.from_tensor_slices(
+        np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
+      )
+      self._dataset = self._dataset.repeat()
       self._dataset = self._dataset.map(
         lambda line: tf.py_func(
           self._parse_audio_element,
           [line],
-          [self.params['dtype'], tf.int32],
+          [self.params['dtype'], tf.int32, tf.int32],
           stateful=False,
         ),
         num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
         self.params['batch_size'],
-        padded_shapes=([None, self.params['num_audio_features']], 1)
+        padded_shapes=([None, self.params['num_audio_features']], 1, 1)
       )
 
     self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
@@ -148,7 +154,9 @@ class Speech2TextDataLayer(DataLayer):
       y.set_shape([self.params['batch_size'], None])
       y_length = tf.reshape(y_length, [self.params['batch_size']])
     else:
-      x, x_length = self._iterator.get_next()
+      x, x_length, x_id = self._iterator.get_next()
+      x_id = tf.reshape(x_id, [self.params['batch_size']])
+
     x.set_shape([self.params['batch_size'], None,
                  self.params['num_audio_features']])
     x_length = tf.reshape(x_length, [self.params['batch_size']])
@@ -157,6 +165,8 @@ class Speech2TextDataLayer(DataLayer):
     self._input_tensors["source_tensors"] = [x, x_length]
     if self.params['mode'] != 'infer':
       self._input_tensors['target_tensors'] = [y, y_length]
+    else:
+      self._input_tensors['source_ids'] = [x_id]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
@@ -183,15 +193,17 @@ class Speech2TextDataLayer(DataLayer):
            np.int32(target), \
            np.int32([len(target)])
 
-  def _parse_audio_element(self, audio_filename):
+  def _parse_audio_element(self, id_and_audio_filename):
     """Parses audio from file and returns array of audio features.
 
     Args:
-      audio_filename: audio file name.
+      id_and_audio_filename: tuple of sample id and corresponding audio file name.
 
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
+      sample id.
     """
+    idx, audio_filename = id_and_audio_filename
     pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
       audio_filename, self.params['num_audio_features'], pad_to,
@@ -199,7 +211,7 @@ class Speech2TextDataLayer(DataLayer):
       augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
-           np.int32([len(source)])
+           np.int32([len(source)]), np.int32([idx])
 
   @property
   def input_tensors(self):

@@ -185,6 +185,7 @@ def main():
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
     infer_config.update(copy.deepcopy(config_module['infer_params']))
+
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
       pprint.pprint(infer_config)

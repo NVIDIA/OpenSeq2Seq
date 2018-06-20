@@ -80,7 +80,6 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
     return grads_and_vars_fp32
 
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
-
     def apply_ops_wrapper():
       update_op = self._optimizer.apply_gradients(grads_and_vars,
                                                   global_step, name)
@@ -101,9 +100,7 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
       loss_scale_update_op = self._loss_scaler.update_op(grad_has_nans,
                                                          grad_amax)
       with tf.control_dependencies([loss_scale_update_op]):
-        return tf.cond(should_skip_update,
-                       tf.no_op,
-                       apply_ops_wrapper)
+        return tf.cond(should_skip_update, tf.no_op, apply_ops_wrapper)
     else:
       return apply_ops_wrapper()
 

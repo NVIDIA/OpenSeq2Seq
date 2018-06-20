@@ -80,22 +80,23 @@ class Text2Text(EncoderDecoderModel):
     input_strings, output_strings = [], []
     input_values = input_values['source_tensors']
     for input_sample, output_sample in zip(input_values, output_values):
-      output_strings.append(text_ids_to_string(
-        output_sample[0],
-        self.get_data_layer().params['target_idx2seq'],
-        S_ID=self.decoder.params['GO_SYMBOL'],
-        EOS_ID=self.decoder.params['END_SYMBOL'],
-        PAD_ID=self.decoder.params['PAD_SYMBOL'],
-        ignore_special=True, delim=' ',
-      ))
-      input_strings.append(text_ids_to_string(
-        input_sample[0],
-        self.get_data_layer().params['source_idx2seq'],
-        S_ID=self.decoder.params['GO_SYMBOL'],
-        EOS_ID=self.decoder.params['END_SYMBOL'],
-        PAD_ID=self.decoder.params['PAD_SYMBOL'],
-        ignore_special=True, delim=' ',
-      ))
+      for i in range(0, input_sample.shape[0]): # iterate over batch dimension
+        output_strings.append(text_ids_to_string(
+          output_sample[i],
+          self.get_data_layer().params['target_idx2seq'],
+          S_ID=self.decoder.params['GO_SYMBOL'],
+          EOS_ID=self.decoder.params['END_SYMBOL'],
+          PAD_ID=self.decoder.params['PAD_SYMBOL'],
+          ignore_special=True, delim=' ',
+        ))
+        input_strings.append(text_ids_to_string(
+          input_sample[i],
+          self.get_data_layer().params['source_idx2seq'],
+          S_ID=self.decoder.params['GO_SYMBOL'],
+          EOS_ID=self.decoder.params['END_SYMBOL'],
+          PAD_ID=self.decoder.params['PAD_SYMBOL'],
+          ignore_special=True, delim=' ',
+        ))
     return input_strings, output_strings
 
   def finalize_inference(self, results_per_batch, output_file):
@@ -214,11 +215,16 @@ class Text2Text(EncoderDecoderModel):
 
     return {}
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of source tokens + number of target tokens in batch."""
     data_layer = self.get_data_layer(worker_id)
     # sum of source length in batch
     num_tokens = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])
-    # sum of target length in batch
-    num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    if self.mode != "infer":
+      # sum of target length in batch
+      num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
+    else:
+      # TODO: this is not going to be correct when batch size > 1, since it will
+      #       count padding?
+      num_tokens += tf.reduce_sum(tf.shape(self.get_output_tensors(worker_id)[0]))
     return num_tokens

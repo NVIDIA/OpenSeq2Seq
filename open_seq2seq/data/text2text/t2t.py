@@ -45,8 +45,9 @@ Two things to note in the pipeline:
    is the list of training files. Second, while reading records using
    `parallel_interleave`, the `sloppy` argument is used to generate randomness
    in the order of the examples.
-"""
 
+3. Modified slightly to fit OpenSeq2Seq needs
+"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -72,7 +73,7 @@ def _load_records(filename):
   return tf.data.TFRecordDataset(filename, buffer_size=_READ_RECORD_BUFFER)
 
 
-def _parse_example(serialized_example):
+def _parse_example(serialized_example, pad_2_eight=False):
   """Return inputs and targets Tensors from a serialized tf.Example."""
   data_fields = {
       "inputs": tf.VarLenFeature(tf.int64),
@@ -81,6 +82,17 @@ def _parse_example(serialized_example):
   parsed = tf.parse_single_example(serialized_example, data_fields)
   inputs = tf.sparse_tensor_to_dense(parsed["inputs"])
   targets = tf.sparse_tensor_to_dense(parsed["targets"])
+
+  if pad_2_eight:
+    inputs = tf.cond(tf.equal(tf.shape(inputs)[0] % 8, 0),
+                     true_fn=lambda:  inputs,
+                     false_fn=lambda: tf.pad(inputs,
+                                      paddings=[[0, 8 - tf.shape(inputs)[0] % 8]]))
+    targets = tf.cond(tf.equal(tf.shape(targets)[0] % 8, 0),
+                     true_fn=lambda:  targets,
+                     false_fn=lambda: tf.pad(targets,
+                                      paddings=[[0, 8 - tf.shape(targets)[0] % 8]]))
+
   return inputs, targets
 
 
@@ -128,7 +140,7 @@ def _create_min_max_boundaries(
   return buckets_min, buckets_max
 
 
-def _batch_examples(dataset, batch_size, max_length):
+def _batch_examples(dataset, batch_size, max_length, pad_2_eight=True):
   """Group examples by similar lengths, and return batched dataset.
 
   Each batch of similar-length examples are padded to the same length, and may
@@ -154,7 +166,12 @@ def _batch_examples(dataset, batch_size, max_length):
 
   # Create list of batch sizes for each bucket_id, so that
   # bucket_batch_size[bucket_id] * buckets_max[bucket_id] <= batch_size
-  bucket_batch_sizes = [batch_size // x for x in buckets_max]
+  if pad_2_eight: # pad to 8 for HMMA
+    bucket_batch_sizes = [
+      batch_size // x if batch_size // x % 8 == 0 else batch_size // x + (
+            8 - batch_size // x % 8) for x in buckets_max]
+  else:
+    bucket_batch_sizes = [batch_size // x for x in buckets_max]
   # bucket_id will be a tensor, so convert this list to a tensor as well.
   bucket_batch_sizes = tf.constant(bucket_batch_sizes, dtype=tf.int64)
 
@@ -176,7 +193,6 @@ def _batch_examples(dataset, batch_size, max_length):
   def batching_fn(bucket_id, grouped_dataset):
     """Batch and add padding to a dataset of elements with similar lengths."""
     bucket_batch_size = window_size_fn(bucket_id)
-
     # Batch the dataset and add padding so that all input sequences in the
     # examples have the same length, and all target sequences have the same
     # lengths as well. Resulting lengths of inputs and targets can differ.
@@ -191,7 +207,7 @@ def _batch_examples(dataset, batch_size, max_length):
 
 def _read_and_batch_from_files(
     file_pattern, batch_size, max_length, num_cpu_cores, shuffle, repeat,
-    num_workers, worker_id):
+    num_workers, worker_id, batch_in_tokens, pad2eight=True):
   """Create dataset where each item is a dict of "inputs" and "targets".
 
   Args:
@@ -204,6 +220,11 @@ def _read_and_batch_from_files(
       repeated forever.
     num_workers: Number of workers or number of Horovod workers
     worker_id: Worker id or Horovod rank
+    batch_in_tokens: whether to batch_size means amounts in tokens or sentence
+    pairs. batching in tokens is more efficient as it reduces PADs. batching in
+    sentences should be used in inference mode since order of
+    sentences is important
+    pad2eight: if True, it will pad both dimensions to be divisible by 8
 
   Returns:
     tf.data.Dataset object containing examples loaded from the files.
@@ -224,14 +245,19 @@ def _read_and_batch_from_files(
 
   # Parse each tf.Example into a dictionary
   # TODO: Look into prefetch_input_elements for performance optimization.
-  dataset = dataset.map(_parse_example,
+  dataset = dataset.map(lambda x: _parse_example(x, pad_2_eight=pad2eight),
                         num_parallel_calls=num_cpu_cores)
 
   # Remove examples where the input or target length exceeds the maximum length,
   dataset = dataset.filter(lambda x, y: _filter_max_length((x, y), max_length))
 
-  # Batch such that each batch has examples of similar length.
-  dataset = _batch_examples(dataset, batch_size, max_length)
+  if batch_in_tokens:
+    # Batch such that each batch has examples of similar length.
+    dataset = _batch_examples(dataset, batch_size, max_length,
+                              pad_2_eight=pad2eight)
+  else:
+    # Examples can have different lenghts
+    dataset = dataset.padded_batch(batch_size, ([None], [None]))
   dataset = dataset.repeat(repeat)
 
   # Prefetch the next element to improve speed of input pipeline.
