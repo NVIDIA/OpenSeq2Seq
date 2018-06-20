@@ -16,6 +16,8 @@ if output_type == "spectrogram":
   output_type = "spectrogram_disk"
 elif output_type == "mel":
   num_audio_features = 80
+  output_type = "mel_disk"
+
 
 base_params = {
   "random_seed": 0,
@@ -97,6 +99,7 @@ base_params = {
     'attention_rnn_units': 1024,
     'attention_rnn_layers': 1,
     'attention_rnn_cell_type': 'lstm',
+    'attention_bias': False,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': 'lstm',
@@ -179,6 +182,23 @@ eval_params = {
     "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/new_val.csv",
+    ],
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
+    "shuffle": False,
+    "mag_power": 2,
+    "feature_normalize": False,
+    "pad_EOS": True
+  },
+}
+
+infer_params = {
+  "data_layer": Text2SpeechDataLayer,
+  "data_layer_params": {
+    "num_audio_features": num_audio_features,
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
+    "dataset_files": [
+      "/data/speech/LJSpeech/test.csv",
     ],
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,

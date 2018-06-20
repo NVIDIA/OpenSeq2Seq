@@ -382,7 +382,7 @@ class TacotronTrainingHelper(Helper):
 class TacotronHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
-  def __init__(self, inputs, sequence_length, enable_prenet=True, 
+  def __init__(self, inputs, enable_prenet=True, 
               prenet_units=None, prenet_layers=None, prenet_activation=None,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None, mask_decoder_sequence=None):
@@ -402,7 +402,7 @@ class TacotronHelper(Helper):
     self._sample_ids_shape = tensor_shape.TensorShape(sample_ids_shape or [])
     self._sample_ids_dtype = sample_ids_dtype or dtypes.int32
 
-    self._sequence_length = sequence_length
+    # self._sequence_length = sequence_length
     self._batch_size = inputs.get_shape()[0]
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
@@ -448,12 +448,14 @@ class TacotronHelper(Helper):
             math_ops.argmax(outputs, axis=-1), dtypes.int32)
     return sample_ids
 
-  def next_inputs(self, time, outputs, state, name=None, **unused_kwargs):
+  def next_inputs(self, time, outputs, state, stop_token_predictions, name=None, **unused_kwargs):
     # Applies the fully connected pre-net to the decoder
     # Also decides whether the decoder is finished
     next_time = time + 1
     if self.mask_decoder_sequence:
-      finished = (next_time >= self._sequence_length)
+      stop_token_predictions = tf.sigmoid(stop_token_predictions)
+      finished = tf.cast(tf.round(stop_token_predictions), tf.bool)
+      finished = tf.squeeze(finished)
     else:
       finished = array_ops.tile([False], [self._batch_size])
     all_finished = math_ops.reduce_all(finished)

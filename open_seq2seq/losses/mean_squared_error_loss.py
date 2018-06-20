@@ -40,8 +40,10 @@ class TacotronLoss(Loss):
     post_net_predictions = decoder_predictions + post_net_predictions
 
     predictions_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],num_feats])
+    stop_token_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],1])
     decoder_predictions = tf.concat([decoder_predictions, predictions_pad], axis=1)
     post_net_predictions = tf.concat([post_net_predictions, predictions_pad], axis=1)
+    stop_token_predictions = tf.concat([stop_token_predictions, stop_token_pad], axis=1)
 
     if self.params.get("use_mask", True):
       mask = tf.sequence_mask(lengths=spec_lengths,

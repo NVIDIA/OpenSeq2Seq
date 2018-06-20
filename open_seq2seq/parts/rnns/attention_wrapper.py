@@ -584,7 +584,7 @@ class BahdanauAttention(_BaseAttentionMechanism):
     next_state = alignments
     return alignments, next_state
 
-def _bahdanau_score_with_location(processed_query, keys, location):
+def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
   """Implements Bahdanau-style (additive) scoring function.
 
   This attention has two forms.  The first is Bhandanau attention,
@@ -619,29 +619,10 @@ def _bahdanau_score_with_location(processed_query, keys, location):
   processed_query = array_ops.expand_dims(processed_query, 1)
   v = variable_scope.get_variable(
       "attention_v", [num_units], dtype=dtype)
-  # if normalize:
-  #   # Scalar used in weight normalization
-  #   g = variable_scope.get_variable(
-  #       "attention_g", dtype=dtype, shape=[1],
-  #       #initializer=math.sqrt((1. / num_units)))
-  #       initializer=init_ops.constant_initializer(math.sqrt(1. / num_units),
-  #                                                 dtype=dtype))
-  #   # Bias added prior to the nonlinearity
-  #   b = variable_scope.get_variable(
-  #       "attention_b", [num_units], dtype=dtype,
-  #       initializer=init_ops.zeros_initializer())
-  #   # normed_v = g * v / ||v||
-  #   normed_v = g * v * math_ops.rsqrt(
-  #       math_ops.reduce_sum(math_ops.square(v)))
-  #   return math_ops.reduce_sum(
-  #       normed_v * math_ops.tanh(keys + processed_query + b), [2])
-  # else:
-  #   return math_ops.reduce_sum(v * math_ops.tanh(keys + processed_query), [2])
-  # print(keys.shape)
-  # print(processed_query.shape)
-  # print(location.shape)
-  # print(v.shape)
-  # input()
+  if use_bias:
+    b = variable_scope.get_variable(
+      "attention_bias", [num_units], dtype=dtype)
+    return math_ops.reduce_sum(v * math_ops.tanh(keys + processed_query + location + b), [2])
   return math_ops.reduce_sum(v * math_ops.tanh(keys + processed_query + location), [2])
 
 class LocationLayer(layers_base.Layer):
@@ -697,6 +678,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
                probability_fn=None,
                score_mask_value=None,
                dtype=None,
+               use_bias=False,
                name="LocationSensitiveAttention"):
     """Construct the Attention mechanism.
 
@@ -739,6 +721,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     self.location_layer = LocationLayer(32, 31, num_units)
     self._num_units = num_units
     self._name = name
+    self.use_bias = use_bias
 
   def __call__(self, query, state):
     """Score the query based on the keys and values.
@@ -761,7 +744,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       # location = array_ops.expand_dims(state, -1)
       processed_location = self.location_layer(location)
       self.cumulative_location_weights = processed_location + self.cumulative_location_weights
-      score = _bahdanau_score_with_location(processed_query, self._keys, processed_location)
+      score = _bahdanau_score_with_location(processed_query, self._keys, processed_location, self.use_bias)
     alignments = self._probability_fn(score, state)
     next_state = alignments
     return alignments, next_state

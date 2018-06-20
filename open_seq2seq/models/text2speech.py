@@ -21,7 +21,7 @@ from open_seq2seq.data.text2speech.speech_utils import inverse_mel
 
 
 def plot_spectrogram_w_target(ground_truth, generated_sample, post_net_sample, attention, target_sample, target,
- logdir, train_step, number=0, append=False, vmin=None, vmax=None):
+  audio_length, logdir, train_step, number=0, append=False, vmin=None, vmax=None):
   fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,15))
   
   if vmin is None:
@@ -34,6 +34,7 @@ def plot_spectrogram_w_target(ground_truth, generated_sample, post_net_sample, a
   colour3 = ax3.imshow(post_net_sample.T, cmap='viridis', interpolation=None, aspect='auto', vmin=vmin, vmax=vmax)
   colour4 = ax4.plot(target_sample, 'g.')
   colour4 = ax4.plot(target, 'r.')
+  ax4.axvline(x=audio_length)
   colour5 = ax5.imshow(attention.T, cmap='viridis', interpolation=None, aspect='auto')
   
   ax1.invert_yaxis()
@@ -68,6 +69,35 @@ def plot_spectrogram_w_target(ground_truth, generated_sample, post_net_sample, a
   cbar_ax3 = fig.add_axes([0.85, 0.1, 0.05, 0.14])
   fig.colorbar(colour5, cax=cbar_ax3)
 
+  if append:
+    name = '{}/Output_step{}_{}_{}.png'.format(logdir, train_step, number, append)
+  else:
+    name = '{}/Output_step{}_{}.png'.format(logdir, train_step, number)
+  if logdir[0] != '/':
+    name = "./"+name
+  #save
+  fig.savefig(name, dpi=300)
+
+  plt.close(fig)
+
+def plot_spectrograms(specs, titles, target_sample, audio_length,
+  logdir, train_step, number=0, append=False, vmin=None, vmax=None):
+  num_figs = len(specs) + 1
+  fig, ax = plt.subplots(nrows=num_figs, figsize=(8,num_figs*3))
+  
+  figures = []
+  for i, (spec, title) in enumerate(zip(specs,titles)):
+    colour = ax[i].imshow(spec.T, cmap='viridis', interpolation=None, aspect='auto')
+    figures.append(colour)
+    ax[i].invert_yaxis()
+    ax[i].set_title(title)
+    ax[i].axis('off')
+    fig.colorbar(colour, ax=ax[i])
+  target_fig = ax[-1].plot(target_sample, 'g.')
+  ax[-1].axvline(x=audio_length)
+  
+  plt.xlabel('time')
+   
   if append:
     name = '{}/Output_step{}_{}_{}.png'.format(logdir, train_step, number, append)
   else:
@@ -146,20 +176,21 @@ class Text2Speech(EncoderDecoderModel):
       if not isinstance(input_tensors['target_tensors'], list):
         raise ValueError('target_tensors should be a list')
       target_tensors = input_tensors['target_tensors']
-    target_tensors = input_tensors['target_tensors']
+    # target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
       encoder_input = {"source_tensors": source_tensors}
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
       decoder_input = {"encoder_output": encoder_output}
-      # if self.mode != "infer":
-      decoder_input['target_tensors'] = target_tensors
+      if self.mode != "infer":
+        decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       decoder_out = decoder_output.get("decoder_output", 0.)
       decoder_post_net_outupt = decoder_output.get("post_net_output", 0.)
       attention_mask = decoder_output.get("alignments", 0.)
       target_output = decoder_output.get("target_output", 0.)
+      final_sequence_lengths = decoder_output.get("final_sequence_lengths", 0.)
       target_output = tf.sigmoid(target_output)
 
       final_spectrogram = decoder_out + decoder_post_net_outupt
@@ -174,7 +205,7 @@ class Text2Speech(EncoderDecoderModel):
       else:
         deco_print("Inference Mode. Loss part of graph isn't built.")
         loss = None
-      return loss, [decoder_out, final_spectrogram, attention_mask, target_output]
+      return loss, [decoder_out, final_spectrogram, attention_mask, target_output, final_sequence_lengths]
 
   def maybe_print_logs(self, input_values, output_values, step):
     spec, target, _ = input_values['target_tensors']
@@ -189,15 +220,18 @@ class Text2Speech(EncoderDecoderModel):
     predicted_final_spectrogram_sample = predicted_final_spectrograms[0]
     attention_mask_sample = attention_mask[0]
     target_output_sample = target_output[0]
+    audio_length = output_values[4][0]
 
     plot_spectrogram_w_target(y_sample, predicted_spectrogram_sample,
                      predicted_final_spectrogram_sample,
                      attention_mask_sample,
                      target_output_sample,
                      target,
+                     audio_length,
                      self.params["logdir"], step,
                      append="train")
 
+    predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
     if "spectrogram" in self.get_data_layer().params['output_type']:
       predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
       save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
@@ -217,21 +251,25 @@ class Text2Speech(EncoderDecoderModel):
     predicted_final_spectrogram_sample = output_values[1]
     attention_mask_sample = output_values[2]
     target_output_sample = output_values[3]
+    audio_length = output_values[4]
 
     plot_spectrogram_w_target(y_sample, predicted_spectrogram_sample,
                      predicted_final_spectrogram_sample,
                      attention_mask_sample,
                      target_output_sample,
                      target,
+                     audio_length,
                      self.params["logdir"], step,
                      append="eval")
 
-    if "spectrogram" in self.get_data_layer().params['output_type']:
-      predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
-      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
-    elif "mel" in self.get_data_layer().params['output_type']:
-      predicted_final_spectrogram_sample = inverse_mel(predicted_final_spectrogram_sample)
-      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
+    predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
+    if audio_length > 2:
+      if "spectrogram" in self.get_data_layer().params['output_type']:
+        predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
+        save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
+      elif "mel" in self.get_data_layer().params['output_type']:
+        predicted_final_spectrogram_sample = inverse_mel(predicted_final_spectrogram_sample)
+        save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
 
     return {}
 
@@ -249,33 +287,52 @@ class Text2Speech(EncoderDecoderModel):
 
   def finalize_inference(self, results_per_batch, output_file):
     print("output_file is ignored for ts2")
-    batch_size = len(results_per_batch[0][0]['target_tensors'][0])
+    batch_size = len(results_per_batch[0][0]['source_tensors'][0])
     for i, sample in enumerate(results_per_batch):
       input_values = sample[0]
       output_values = sample[1]
-      y, y_length = input_values['target_tensors']
-      predicted_decoder_spectrograms = output_values[0]
+      # y, y_length = input_values['target_tensors']
+      # predicted_decoder_spectrograms = output_values[0]
       predicted_final_spectrograms = output_values[1]
       attention_mask = output_values[2]
-      final_inputs = output_values[3]
+      stop_tokens = output_values[3]
+      sequence_lengths = output_values[4]
 
-      for j in range(len(y)):
-        y_sample = y[j]
-        predicted_spectrogram_sample = predicted_decoder_spectrograms[j]
+      for j in range(len(predicted_final_spectrograms)):
+        # y_sample = y[j]
+        # predicted_spectrogram_sample = predicted_decoder_spectrograms[j]
         predicted_final_spectrogram_sample = predicted_final_spectrograms[j]
         attention_mask_sample = attention_mask[j]
-        final_inputs_sample = final_inputs[j]
+        stop_tokens_sample = stop_tokens[j]
 
+        specs = [predicted_final_spectrogram_sample, attention_mask_sample]
+        titles = ["final spectrogram", "attention"]
+        audio_length = sequence_lengths[j]
 
-        plot_spectrogram_w_input(y_sample, predicted_spectrogram_sample,
-                       predicted_final_spectrogram_sample,
-                       attention_mask_sample,
-                       final_inputs_sample,
-                       self.params["logdir"], 0,
-                       number= i*batch_size+j,
-                       append="infer")
+        if "mel" in self.get_data_layer().params['output_type']:
+          mag_spec = inverse_mel(predicted_final_spectrogram_sample)
+          log_mag_spec = np.log(np.clip(mag_spec, a_min=1e-5, a_max=None))
+          specs.append(log_mag_spec)
+          titles.append("linear spectrogram")
 
-        if "spectrogram" in self.get_data_layer().params['output_type']:
-          save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer", number=i*batch_size+j)
+        plot_spectrograms(specs,
+                          titles,
+                          stop_tokens_sample,
+                          audio_length,
+                          self.params["logdir"], 0,
+                          number= i*batch_size+j,
+                          append="infer")
+
+        # print(predicted_final_spectrogram_sample.shape)
+        if audio_length > 2:
+          if "spectrogram" in self.get_data_layer().params['output_type']:
+            predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
+            predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
+            save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer",number= i*batch_size+j)
+          elif "mel" in self.get_data_layer().params['output_type']:
+            predicted_final_spectrogram_sample = mag_spec[:audio_length-1,:]
+            save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer",number= i*batch_size+j)
+          # if "spectrogram" in self.get_data_layer().params['output_type']:
+          #   save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer", number=i*batch_size+j)
 
     return {}

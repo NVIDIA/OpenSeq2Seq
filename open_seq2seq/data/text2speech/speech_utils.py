@@ -195,11 +195,24 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
     features = (features - m) / s
   return features
 
-def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80):
+def get_mel(mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
+  """
+  Very hacky method to reconstruct mag spec from mel
+  """
   mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
-  # print(mel_spec.shape)
-  # print(mel_basis.shape)
-  # spec = np.dot(mel_spec, mel_basis)
-  # print(spec.shape)
+  mag_spec = np.exp(mag_spec)
+  mag_spec = np.power(mag_spec, power)
+  mel_spec = np.dot(mag_spec, mel_basis.T)
+  mel_spec = np.log(np.clip(mel_spec, a_min=1e-5, a_max=None))
+  return mel_spec
+
+def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
+  """
+  Very hacky method to reconstruct mag spec from mel
+  """
+  mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
   mel_spec = np.exp(mel_spec)
-  return np.dot(mel_spec, mel_basis)
+  mag_spec = np.dot(mel_spec, mel_basis)
+  mag_spec = np.power(mag_spec, 1./power)
+  mag_spec = mag_spec * 32
+  return mag_spec

@@ -12,7 +12,7 @@ import tensorflow as tf
 import pandas as pd
 
 from open_seq2seq.data.data_layer import DataLayer
-from .speech_utils import get_speech_features_from_file
+from .speech_utils import get_speech_features_from_file, get_mel
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
@@ -25,7 +25,7 @@ class Text2SpeechDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
       # 'input_type': ['spectrogram', 'mfcc'],
-      'output_type': ['spectrogram', 'mfcc', 'mel', 'test', 'spectrogram_disk'],
+      'output_type': ['spectrogram', 'mfcc', 'mel', 'test', 'spectrogram_disk', 'mel_disk'],
       'vocab_file': str,
       'dataset_files': list,
       'dataset_location': str,
@@ -84,6 +84,11 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       self.load_from_disk = False
 
+    if "mel" in self.params["output_type"]:
+      self.mel = True
+    else:
+      self.mel = False
+
     self._files = None
     for csvs in params['dataset_files']:
       files = pd.read_csv(csvs, encoding='utf-8', sep='\x7c', header=None, names=names, quoting=3)
@@ -92,11 +97,11 @@ class Text2SpeechDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    # if self.params['mode'] != 'infer':
-    #   cols = ['wav_filename', 'transcript_normalized']
-    # else:
-    #   cols = 'transcript_normalized'
-    cols = ['wav_filename', 'transcript_normalized']
+    if self.params['mode'] != 'infer':
+      cols = ['wav_filename', 'transcript_normalized']
+    else:
+      cols = 'transcript_normalized'
+    # cols = ['wav_filename', 'transcript_normalized']
 
     self.all_files = self._files.loc[:, cols].values
     self._files = self.split_data(self.all_files)
@@ -129,93 +134,65 @@ class Text2SpeechDataLayer(DataLayer):
       self._dataset = self._dataset.shuffle(self._size)
     self._dataset = self._dataset.repeat()
 
-    # if self.params['mode'] != 'infer':
-    #   self._dataset = self._dataset.map(
-    #     lambda line: tf.py_func(
-    #       self._parse_audio_transcript_element,
-    #       [line],
-    #       [tf.int32, tf.int32, self.params['dtype'], tf.int32],
-    #       stateful=False,
-    #     ),
-    #     num_parallel_calls=8,
-    #   )
-    #   self._dataset = self._dataset.padded_batch(
-    #     self.params['batch_size'],
-    #     padded_shapes=([None], 1, [None, self.params['num_audio_features']], 1)
-    #   )
-    # else:
-    #   self._dataset = self._dataset.map(
-    #     lambda line: tf.py_func(
-    #       self._parse_transcript_element,
-    #       [line],
-    #       [tf.int32, tf.int32],
-    #       stateful=False,
-    #     ),
-    #     num_parallel_calls=8,
-    #   )
-    #   self._dataset = self._dataset.padded_batch(
-    #     self.params['batch_size'],
-    #     padded_shapes=([None], 1)
-    # )
-
-    # self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
-
-
-    # if self.params['mode'] != 'infer':
-    #   x, x_length, y, y_length = self._iterator.get_next()
-    #   # y, y_length, x, x_length = self._iterator.get_next()
-    #   # print(x.shape)
-    #   # print(y.shape)
-    #   # need to explicitly set batch size dimension
-    #   # (it is employed in the model)
-    #   y.set_shape([self.params['batch_size'], None,
-    #              self.params['num_audio_features']])
-    #   y_length = tf.reshape(y_length, [self.params['batch_size']])
-    # else:
-    #   x, x_length = self._iterator.get_next()
-    # x.set_shape([self.params['batch_size'], None])
-    # x_length = tf.reshape(x_length, [self.params['batch_size']])
-
-    # self._input_tensors = {}
-    # self._input_tensors["source_tensors"] = [x, x_length]
-    # if self.params['mode'] != 'infer':
-    #   self._input_tensors['target_tensors'] = [y, y_length]
-
-    self._dataset = self._dataset.map(
-      lambda line: tf.py_func(
-        self._parse_audio_transcript_element,
-        [line],
-        [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'], tf.int32],
-        stateful=False,
-      ),
-      num_parallel_calls=8,
-    )
-    self._dataset = self._dataset.padded_batch(
-      self.params['batch_size'],
-      padded_shapes=([None], 1, [None, self.params['num_audio_features']], [None], 1),
-      padding_values=(0,0,0.,1.,0)
+    if self.params['mode'] != 'infer':
+      self._dataset = self._dataset.map(
+        lambda line: tf.py_func(
+          self._parse_audio_transcript_element,
+          [line],
+          [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'], tf.int32],
+          stateful=False,
+        ),
+        num_parallel_calls=8,
+      )
+      self._dataset = self._dataset.padded_batch(
+        self.params['batch_size'],
+        padded_shapes=([None], 1, [None, self.params['num_audio_features']], [None], 1),
+        padding_values=(0,0,0.,1.,0)
+      )
+    else:
+      self._dataset = self._dataset.map(
+        lambda line: tf.py_func(
+          self._parse_transcript_element,
+          [line],
+          [tf.int32, tf.int32],
+          stateful=False,
+        ),
+        num_parallel_calls=8,
+      )
+      self._dataset = self._dataset.padded_batch(
+        self.params['batch_size'],
+        padded_shapes=([None], 1)
     )
 
     self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
 
-
-    text, text_length, spec, target, spec_length = self._iterator.get_next()
-    # y, y_length, x, x_length = self._iterator.get_next()
-    # print(x.shape)
-    # print(y.shape)
-    # need to explicitly set batch size dimension
-    # (it is employed in the model)
-    spec.set_shape([self.params['batch_size'], None,
-               self.params['num_audio_features']])
-    target.set_shape([self.params['batch_size'], None])
-    spec_length = tf.reshape(spec_length, [self.params['batch_size']])
-    
+    if self.params['mode'] != 'infer':
+      text, text_length, spec, target, spec_length = self._iterator.get_next()
+      # need to explicitly set batch size dimension
+      # (it is employed in the model)
+      spec.set_shape([self.params['batch_size'], None,
+                 self.params['num_audio_features']])
+      target.set_shape([self.params['batch_size'], None])
+      spec_length = tf.reshape(spec_length, [self.params['batch_size']])
+    else:
+      text, text_length = self._iterator.get_next()
     text.set_shape([self.params['batch_size'], None])
     text_length = tf.reshape(text_length, [self.params['batch_size']])
 
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [text, text_length]
-    self._input_tensors['target_tensors'] = [spec, target, spec_length]
+    if self.params['mode'] != 'infer':
+      self._input_tensors['target_tensors'] = [spec, target, spec_length]
+
+
+    # text, text_length, spec, target, spec_length = self._iterator.get_next()
+    
+    # text.set_shape([self.params['batch_size'], None])
+    # text_length = tf.reshape(text_length, [self.params['batch_size']])
+
+    # self._input_tensors = {}
+    # self._input_tensors["source_tensors"] = [text, text_length]
+    # self._input_tensors['target_tensors'] = [spec, target, spec_length]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
@@ -239,6 +216,8 @@ class Text2SpeechDataLayer(DataLayer):
     if self.load_from_disk:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
       spectrogram = np.load(file_path)
+      if self.mel:
+        spectrogram = get_mel(spectrogram)
     else:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".wav")
       spectrogram = get_speech_features_from_file(

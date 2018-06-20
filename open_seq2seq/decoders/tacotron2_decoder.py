@@ -101,6 +101,7 @@ class Tacotron2Decoder(Decoder):
       "sampling_test": bool,
       "mask_decoder_sequence": bool,
       "use_prenet_output": bool,
+      "attention_bias": bool,
     })
 
   def __init__(self, params, model,
@@ -192,7 +193,8 @@ class Tacotron2Decoder(Decoder):
 
   def _build_attention(self,
                        encoder_outputs,
-                       encoder_sequence_length):
+                       encoder_sequence_length,
+                       attention_bias):
     """
     Builds Attention part of the graph.
     Currently supports "bahdanau", "luong", and "location"
@@ -208,7 +210,8 @@ class Tacotron2Decoder(Decoder):
           memory=encoder_outputs,
           memory_sequence_length=encoder_sequence_length,
           probability_fn=tf.nn.softmax,
-          dtype=tf.get_variable_scope().dtype
+          dtype=tf.get_variable_scope().dtype,
+          use_bias=attention_bias
         )
       elif self.params['attention_type'] == 'bahdanau':
         bah_normalize = self.params.get('bahdanau_normalize', False)
@@ -279,12 +282,12 @@ class Tacotron2Decoder(Decoder):
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']
     # enc_state = input_dict['encoder_output']['state']
-    # if self._mode != "infer":
-    spec = input_dict['target_tensors'][0] if 'target_tensors' in \
+    if self._mode != "infer":
+      spec = input_dict['target_tensors'][0] if 'target_tensors' in \
                                                     input_dict else None
-    target = input_dict['target_tensors'][1] if 'target_tensors' in \
+      target = input_dict['target_tensors'][1] if 'target_tensors' in \
                                                     input_dict else None
-    spec_length = input_dict['target_tensors'][2] if 'target_tensors' in \
+      spec_length = input_dict['target_tensors'][2] if 'target_tensors' in \
                                                     input_dict else None
     _batch_size = encoder_outputs.get_shape().as_list()[0]
     # mean_pool = tf.reduce_mean(encoder_outputs, axis=1)
@@ -339,6 +342,7 @@ class Tacotron2Decoder(Decoder):
       attention_mechanism = self._build_attention(
         encoder_outputs,
         enc_src_lengths,
+        self.params.get("attention_bias", False)
       )
 
       attention_cell = self._decoder_cells
@@ -454,12 +458,12 @@ class Tacotron2Decoder(Decoder):
       # helper = tf.contrib.seq2seq.TrainingHelper(
       #   inputs=tgt_inputs,
       #   sequence_length=tgt_lengths)
-    elif self._mode == "eval":
+    elif self._mode == "eval" or self._mode == "infer":
       # embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(self._dec_emb_w, ids),
       #                         dtype=self.params['dtype'])
       inputs = tf.zeros((_batch_size, self.num_audio_features))
       helper = TacotronHelper(inputs=inputs,
-                              sequence_length=spec_length,
+                              # sequence_length=spec_length,
                               enable_prenet=enable_prenet,
                               prenet_units=prenet_units,
                               prenet_layers=prenet_layers,
@@ -469,16 +473,16 @@ class Tacotron2Decoder(Decoder):
       # helper = tf.contrib.seq2seq.TrainingHelper(
       #   inputs=encoder_outputs,
       #   sequence_length=enc_src_lengths)
-    elif self._mode == "infer":
-      inputs = tf.zeros((_batch_size, self.num_audio_features))
-      # tgt_lengths = None
-      helper = TacotronHelper(inputs=inputs,
-                              sequence_length=spec_length,
-                              enable_prenet=enable_prenet,
-                              prenet_units=prenet_units,
-                              prenet_layers=prenet_layers,
-                              prenet_activation=prenet_activation,
-                              mask_decoder_sequence=mask_decoder_sequence)
+    # elif self._mode == "infer":
+    #   inputs = tf.zeros((_batch_size, self.num_audio_features))
+    #   # tgt_lengths = None
+    #   helper = TacotronHelper(inputs=inputs,
+    #                           sequence_length=spec_length,
+    #                           enable_prenet=enable_prenet,
+    #                           prenet_units=prenet_units,
+    #                           prenet_layers=prenet_layers,
+    #                           prenet_activation=prenet_activation,
+    #                           mask_decoder_sequence=mask_decoder_sequence)
     else:
       raise ValueError(
         "Unknown mode for decoder: {}".format(self._mode)
@@ -506,11 +510,11 @@ class Tacotron2Decoder(Decoder):
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
-    # if self._mode == 'train' or self._mode == 'eval':
-    #   maximum_iterations = tf.reduce_max(tgt_lengths)
-    # else:
-    #   maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
-    maximum_iterations = tf.reduce_max(spec_length)
+    if self._mode == 'train' or self._mode == 'eval':
+      maximum_iterations = tf.reduce_max(spec_length)
+    else:
+      maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
+    # maximum_iterations = tf.reduce_max(spec_length)
 
     final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
     # final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(
