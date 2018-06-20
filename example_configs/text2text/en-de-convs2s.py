@@ -24,7 +24,7 @@ num_gpus = 8
 epoch_num = 10
 
 base_params = {
-  "use_horovod": True,
+  "use_horovod": False,
   "num_gpus": num_gpus,
   "max_steps": int((4500000 / (num_gpus * batch_size)) * epoch_num),
   "batch_size_per_gpu": batch_size,
