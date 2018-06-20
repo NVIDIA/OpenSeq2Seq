@@ -14,11 +14,11 @@ Models and recipes
 
 
 To train models you can use the following
-commands (don't forget to substitute valid config_file path there and number of GPUs if using Horovod).
+commands (don't forget to substitute valid config_file path there).
 
 With Horovod (highly recommended when using multiple GPUs)::
 
-    mpiexec --allow-run-as-root -np <num_gpus> python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
+    mpirun --allow-run-as-root --mca orte_base_help_aggregate 0 -mca btl ^openib -np 4 -H localhost:4 -bind-to none -map-by slot -x LD_LIBRARY_PATH python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
 
 Without Horovod::
 
@@ -68,7 +68,7 @@ The table below contains description and results of
 Deep Speech 2 based models available in OpenSeq2Seq.
 
 WER-512 and WER-2048 is word error rate obtained with beam width of 512 and 2048
-correspondingly on a dev-clean subset of LibriSpeech. For beam width of 2048 we also used ``batch_size_per_gpu = 1``
+correspondingly. For beam width of 2048 we also used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 For more details about model descriptions and training setup,
 have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/>`_.
