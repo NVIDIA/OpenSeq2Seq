@@ -257,6 +257,12 @@ allreduce the gradients before returning them.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="optimizers.optimizers._multiply_gradients_const">
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">_multiply_gradients_const</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_multiply_gradients_const"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._multiply_gradients_const" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multiply specified gradients.</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="optimizers.optimizers.adaptive_clipping_fn">
 <code class="descclassname">optimizers.optimizers.</code><code class="descname">adaptive_clipping_fn</code><span class="sig-paren">(</span><em>std_factor=2.0</em>, <em>decay=0.95</em>, <em>static_max_norm=None</em>, <em>global_step=None</em>, <em>report_summary=False</em>, <em>epsilon=1e-08</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#adaptive_clipping_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.adaptive_clipping_fn" title="Permalink to this definition">¶</a></dt>
 <dd><p>Adapt the clipping value using statistics on the norms.</p>
@@ -438,7 +444,7 @@ of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
 <span id="mp-wrapper"></span><h2>mp_wrapper<a class="headerlink" href="#module-optimizers.mp_wrapper" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">
-<em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>loss_scale=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>automatic_loss_scaler=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">
