@@ -13,24 +13,26 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 data_root = "/data/wmt16_s2s/"
 
 base_model = Text2Text
+pad_vocabs_2_eight = True
 
 base_params = {
   "use_horovod": True,
-  "num_gpus": 1,
+  "num_gpus": 1, # each Horovod process will occupy single GPU
   "max_steps": 34000,
-  "batch_size_per_gpu": 128,
+  "batch_size_per_gpu": 64,
+  "iter_size": 2, # This will make virtual batch_per_gpu = batch_size_per_gpu * iter_size
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-MP-cuDNN-enc",
+  "logdir": "GNMT-like-en-de",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
-    "learning_rate": 0.001,
+    "learning_rate": 0.0008,
     "begin_decay_at": 17000,
     "decay_steps": 1700,
     "decay_rate": 0.5,
@@ -39,7 +41,6 @@ base_params = {
   },
   #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-  #"max_grad_norm": 32768.0,
   #"dtype": tf.float32,
   "dtype": "mixed",
   "loss_scaling": "Backoff",
@@ -93,7 +94,7 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
@@ -110,7 +111,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2013.tok.bpe.32000.en",
@@ -125,7 +126,7 @@ eval_params = {
 }
 
 infer_params = {
-  "batch_size_per_gpu": 1,
+  "batch_size_per_gpu": 8,
   "decoder": BeamSearchRNNDecoderWithAttention,
   "decoder_params": {
     "beam_width": 10,
@@ -148,7 +149,7 @@ infer_params = {
 
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2014.tok.bpe.32000.en",

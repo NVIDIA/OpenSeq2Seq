@@ -60,6 +60,7 @@ class Model:
       'save_summaries_steps': None,  # could be int or None
       'print_loss_steps': None,  # could be int or None
       'print_samples_steps': None,  # could be int or None
+      'print_bench_info_steps': None,  # could be int or None
       'save_checkpoint_steps': None,  # could be int or None
       'eval_steps': int,
 
@@ -126,6 +127,11 @@ class Model:
     * **print_samples_steps** (int or None) --- how often to print training
       samples (input sequences, correct answers and model predictions).
       Setting it to None disables samples printing.
+    * **print_bench_info_steps** (int or None) --- how often to print training
+      benchmarking information (average number of objects processed per step).
+      Setting it to None disables intermediate benchmarking printing, but
+      the average information across the whole training will always be printed
+      after the last iteration.
     * **save_checkpoint_steps** (int or None) --- how often to save model
       checkpoints. Setting it to None disables checkpoint saving.
     * **eval_steps** (int) --- how often to run evaluation during training.
@@ -212,6 +218,8 @@ class Model:
       self._params['save_checkpoint_steps'] = None
     if 'save_summaries_steps' not in self._params:
       self._params['save_summaries_steps'] = None
+    if 'print_bench_info_steps' not in self._params:
+      self._params['print_bench_info_steps'] = None
 
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
