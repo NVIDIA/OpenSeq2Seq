@@ -11,3 +11,6 @@ from .rnn_encoders import UnidirectionalRNNEncoderWithEmbedding, \
 from .transformer_encoder import TransformerEncoder
 from .ds2_encoder import DeepSpeech2Encoder
 from .resnet_encoder import ResNetEncoder
+
+from .convs2s_encoder import ConvS2SEncoder
+#from .convs2s_encoder_old import ConvS2SEncoder
