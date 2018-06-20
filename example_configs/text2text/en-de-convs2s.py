@@ -40,8 +40,8 @@ base_params = {
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1e-3,
-    "begin_decay_at": 30000,
-    "decay_steps": 5000,
+    "begin_decay_at": 50000,
+    "decay_steps": 10000,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
@@ -156,9 +156,9 @@ infer_params = {
     "pad_vocab_to_eight": False,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
-    "source_file": data_root+"newstest2013.tok.bpe.32000.en",
+    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
     # this is intentional to be sure that model is not using target
-    "target_file": data_root+"newstest2013.tok.bpe.32000.en",
+    "target_file": data_root+"newstest2014.tok.bpe.32000.en",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
