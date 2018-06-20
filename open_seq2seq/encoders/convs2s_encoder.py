@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
+import math
 from .encoder import Encoder
 
 from open_seq2seq.parts.convs2s import embedding_layer
@@ -129,8 +130,8 @@ class ConvS2SEncoder(Encoder):
                                                                     dropout=1.0,
                                                                     var_scope_name="linear_mapping_after_cnn_layers"))
 
-      inputs_attention_bias = get_padding_bias(inputs)
       encoder_inputs = self.embedding_softmax_layer(inputs)
+      inputs_attention_bias = get_padding_bias(inputs, encoder_inputs.dtype)
 
       with tf.name_scope("add_pos_encoding"):
         pos_input = tf.range(0, tf.shape(encoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
@@ -172,7 +173,7 @@ class ConvS2SEncoder(Encoder):
         else:
           res_inputs = outputs
         outputs = conv_layer(outputs)
-        outputs = (outputs + res_inputs) * tf.sqrt(0.5)
+        outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
@@ -183,7 +184,7 @@ class ConvS2SEncoder(Encoder):
       scale = 1.0 / (2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
-      outputs_b = (outputs + encoder_inputs) * tf.sqrt(0.5)
+      outputs_b = (outputs + encoder_inputs) * math.sqrt(0.5)
 
       # Average of the encoder outputs is calculated as the final state of the encoder
       # it can be used for decoders which just accept the final state

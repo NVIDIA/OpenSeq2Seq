@@ -22,7 +22,7 @@ def get_padding(x, padding_value=0):
     return tf.equal(x, padding_value)
 
 
-def get_padding_bias(x):
+def get_padding_bias(x, dtype):
   """Calculate bias tensor from padding values in tensor.
 
   Bias tensor that is added to the pre-softmax logits,
@@ -36,7 +36,7 @@ def get_padding_bias(x):
     Attention bias tensor of shape [batch_size, 1, length].
   """
   with tf.name_scope("attention_bias"):
-    padding = tf.cast(get_padding(x), dtype=tf.float32)
+    padding = tf.cast(get_padding(x), dtype=dtype)
     attention_bias = padding * _NEG_INF
     attention_bias = tf.expand_dims(attention_bias, axis=1)
   return attention_bias

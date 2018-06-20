@@ -5,6 +5,7 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+import math
 
 
 class FeedFowardNetworkNormalized(tf.layers.Layer):
@@ -18,13 +19,11 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
 
     with tf.variable_scope(var_scope_name):
       # use weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
-      self.V = tf.get_variable('V', shape=[int(in_dim), out_dim], dtype=tf.float32,
-                            initializer=tf.random_normal_initializer(mean=0, stddev=tf.sqrt(
-                            dropout * 1.0 / int(in_dim))), trainable=True)
+      V_initializer = tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim))
+      self.V = tf.get_variable('V', shape=[int(in_dim), out_dim], initializer=V_initializer, trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=0)
-      self.g = tf.get_variable('g', dtype=tf.float32, initializer=self.V_norm, trainable=True)
-      self.b = tf.get_variable('b', shape=[out_dim], dtype=tf.float32,
-                               initializer=tf.zeros_initializer(), trainable=True)
+      self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
+      self.b = tf.get_variable('b', shape=[out_dim], initializer=tf.zeros_initializer(), trainable=True)
 
   def call(self, x):
 

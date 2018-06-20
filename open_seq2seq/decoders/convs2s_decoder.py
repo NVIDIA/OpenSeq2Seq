@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
+import math
 from .decoder import Decoder
 
 from open_seq2seq.parts.transformer import beam_search
@@ -194,7 +195,7 @@ class ConvS2SDecoder(Decoder):
 
     # mask the paddings in the target
     inputs_padding = get_padding(targets, self.params.get('PAD_SYMBOL', 0))
-    decoder_inputs = decoder_inputs * tf.to_float(tf.expand_dims(tf.logical_not(inputs_padding), 2))
+    decoder_inputs = decoder_inputs * tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), decoder_inputs.dtype)
 
     # do decode
     logits = self._call(decoder_inputs=decoder_inputs,
@@ -224,7 +225,7 @@ class ConvS2SDecoder(Decoder):
 
         with tf.variable_scope("attention_layer"):
             outputs = att_layer(outputs, target_embed, encoder_outputs_a, encoder_outputs_b, input_attention_bias)
-        outputs = (outputs + res_inputs) * tf.sqrt(0.5)
+        outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)

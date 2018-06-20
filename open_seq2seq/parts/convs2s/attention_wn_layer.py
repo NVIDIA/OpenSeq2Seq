@@ -5,7 +5,9 @@ from __future__ import division
 from __future__ import print_function
 
 import tensorflow as tf
+import math
 from open_seq2seq.parts.convs2s.ffn_wn_layer import FeedFowardNetworkNormalized
+
 
 class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
@@ -27,7 +29,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_c, input_attention_bias):
     h_proj = self.tgt_embed_proj(input)
-    d_proj = (h_proj + target_embed) * tf.sqrt(0.5)
+    d_proj = (h_proj + target_embed) * math.sqrt(0.5)
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
 
     # mask out the paddings
@@ -36,11 +38,12 @@ class AttentionLayerNormalized(tf.layers.Layer):
 
     att_score = tf.nn.softmax(att_score)
 
-    length = tf.cast(tf.shape(encoder_output_c), tf.float32)
-    output = tf.matmul(att_score, encoder_output_c) * length[1] * tf.sqrt(1.0 / length[1])
+    length = tf.cast(tf.shape(encoder_output_c), encoder_output_c.dtype)
+    output = tf.matmul(att_score, encoder_output_c) * \
+             length[1] * tf.cast(tf.sqrt(1.0 / length[1]), dtype=encoder_output_c.dtype)
     output = self.out_proj(output)
 
     if self.add_res:
-      output = (output + input) * tf.sqrt(0.5)
+      output = (output + input) * math.sqrt(0.5)
 
     return output
