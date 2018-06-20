@@ -10,7 +10,7 @@ from .encoder import Encoder
 def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strides,
                    padding, regularizer, training, data_format, bn_momentum,
                    bn_epsilon):
-	"""Helper function that applied convolution, batch norm and activation."""
+	"""Helper function that applies convolution, batch norm and activation."""
 	conv = layer(
 		name="{}".format(name),
 		inputs=inputs,
@@ -22,6 +22,7 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
 		use_bias=False,
 		data_format=data_format,
 		)
+	#trick to make batchnorm work for mixed precision training.
 	conv = tf.expand_dims(conv, axis=-1)
 	bn = tf.layers.batch_normalization(
     name="{}/bn".format(name),
@@ -36,27 +37,6 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
 	output = activation_fn(bn)
 	return output
 
-def conv_wn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strides,
-                   padding, regularizer, training, data_format, bn_momentum,
-                   bn_epsilon):
-	"""Helper functtion that applies weight normalization, convolution and activation."""
-	#To-Do how to process dtype = float32 as parameters
-	with tf.variable_scope(name):
-		in_size_index = -1 if data_format == 'channels_last' else 1
-		in_dim = int(inputs.get_shape()[in_size_index])
-		out_dim = filters
-		#V = tf.get_variable('_V', shape=kernel_size+[in_dim, out_dim], initializer=tf.random_normal_initializer(mean=0, stddev=tf.sqrt(4.0/((sum(kernel_size)/len(kernel_size))*in_dim))), trainable=True)
-		V = tf.get_variable('_V', shape=kernel_size+[in_dim, out_dim], initializer=tf.random_normal_initializer(mean=0, stddev=0.01), trainable=True)
-		V_norm = tf.norm(V.initialized_value(), axis=[i for i in range(len(V.get_shape()[:-1].as_list()))])  
-		g = tf.get_variable('_g', initializer=V_norm, trainable=True)
-		b = tf.get_variable('_b', shape=[out_dim], initializer=tf.zeros_initializer(), trainable=True)
-		
-		#To-Do change this to support all type of convolutions
-		W = tf.reshape(g, [1,1,out_dim])*tf.nn.l2_normalize(V,[0,1])
-		conv = tf.nn.bias_add(tf.nn.conv1d(name="{}".format(name), value=inputs, filters=W, stride=strides[0], padding=padding), b)
-		#conv = tf.nn.conv1d(name="{}".format(name), value=inputs, filters=W, stride=strides[0], padding=padding)
-		output = activation_fn(conv)
-	return output	
 
 class Wave2LetterEncoder(Encoder):
 	"""Wave2Letter like encoder."""
@@ -76,14 +56,45 @@ class Wave2LetterEncoder(Encoder):
       'data_format': ['channels_first', 'channels_last'],
       'bn_momentum': float,
       'bn_epsilon': float,
-      'gated_convolution': bool,
-      'weight_normalization' : bool,
 		})
 
 	def __init__(self, params, model, name="w2l_encoder", mode='train'):
-		"""
-		To-Do
+		"""Wave2Letter like encoder constructor.
 
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **convnet_layers** (list) --- list with the description of convolutional
+      layers. For example::
+        "convnet_layers": [
+          {
+            "type": "conv1d", "repeat" : 5,
+            "kernel_size": [7], "stride": [1],
+            "num_channels": 250, "padding": "SAME"
+          },
+          {
+            "type": "conv1d", "repeat" : 3,
+            "kernel_size": [11], "stride": [1],
+            "num_channels": 500, "padding": "SAME"
+          },
+          {
+            "type": "conv1d", "repeat" : 1,
+            "kernel_size": [32], "stride": [1],
+            "num_channels": 1000, "padding": "SAME"
+          },
+          {
+            "type": "conv1d", "repeat" : 1,
+            "kernel_size": [1], "stride": [1],
+            "num_channels": 1000, "padding": "SAME" 
+          },
+        ]
+    * **activation_fn** --- activation function to use.
+    * **data_format** (string) --- could be either "channels_first" or
+      "channels_last". Defaults to "channels_last".
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
+    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
 		"""
 		super(Wave2LetterEncoder, self).__init__(params, model, name, mode)
 
@@ -96,13 +107,24 @@ class Wave2LetterEncoder(Encoder):
 	def _encode(self, input_dict):
 		"""Creates TensorFlow graph for Wav2Letter like encoder.
 
-		Expects the following inputs::
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              "source_tensors": [
+                src_sequence (shape=[batch_size, sequence length, num features]),
+                src_length (shape=[batch_size])
+              ]
+            }
 
-      input_dict = {
-        "src_sequence": tensor of shape [batch_size, sequence length, num features]
-        "src_length": tensor of shape [batch_size]
-      }
-		"""
+    Returns:
+      dict: dictionary with the following tensors::
+
+        {
+          'outputs': hidden state, shape=[batch_size, sequence length, n_hidden]
+          'src_length': tensor, shape=[batch_size]
+        }
+    """
 
 		source_sequence, src_length = input_dict['source_tensors']
 
@@ -133,10 +155,7 @@ class Wave2LetterEncoder(Encoder):
 				layer_name, layer = self._get_layer(layer_type)
 				if layer_name == "conv":
 					ch_out = convnet_layers[idx_convnet]['num_channels']
-					conv_block = conv_bn_actv
-					if self.params['gated_convolution']: ch_out = 2*ch_out
-					if self.params['weight_normalization']: conv_block = conv_wn_actv
-
+					conv_block = conv_bn_actv #can add other type of convolutional blocks in future
 					kernel_size = convnet_layers[idx_convnet]['kernel_size']
 					strides = convnet_layers[idx_convnet]['stride']
 					padding = convnet_layers[idx_convnet]['padding']
@@ -157,19 +176,11 @@ class Wave2LetterEncoder(Encoder):
 						bn_epsilon=bn_epsilon,
 					)
 
-					conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
-					if self.params['gated_convolution']:
-						#conv_feats: B T F
-						preactivations, gate_inputs = tf.split(conv_feats, num_or_size_splits=2, axis=2)
-						gate_outputs = tf.sigmoid(gate_inputs)
-						conv_feats_out = tf.multiply(preactivations, gate_outputs)
-					else: conv_feats_out = conv_feats
-
+					outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
 
 		if data_format == 'channels_first':
-			conv_feats_out = tf.transpose(conv_feats_out, [0, 2, 1])
+			outputs = tf.transpose(outputs, [0, 2, 1])
 
-		outputs = conv_feats_out
 		return {
 			'outputs': outputs,
 			'src_length': src_length,
