@@ -13,8 +13,6 @@ from open_seq2seq.decoders import ConvS2SDecoder
 from open_seq2seq.losses import BasicSequenceLoss
 
 from open_seq2seq.optimizers.lr_policies import exp_decay
-from open_seq2seq.optimizers.lr_policies import fixed_lr
-from open_seq2seq.optimizers.lr_policies import transformer_policy
 
 data_root = "./wmt16_en_dt/"
 
@@ -49,27 +47,9 @@ base_params = {
     "min_lr": 0.0000005,
   },
 
-  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
-  # "optimizer_params": {
-  #   "beta1": 0.9,
-  #   "beta2": 0.997,
-  #   "epsilon": 1e-09,
-  # },
-  # "lr_policy": transformer_policy,
-  # "lr_policy_params": {
-  #   "learning_rate": 2.0,
-  #   "warmup_steps": 16000,
-  #   "d_model": d_model,
-  # },
-
-  # "optimizer": "SGD",
-  # "lr_policy": fixed_lr,
-  # "lr_policy_params": {
-  #   'learning_rate': 0.2
-  # },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
 
   "max_grad_norm": 0.1,
@@ -107,7 +87,6 @@ base_params = {
     "out_emb_size": d_model,
 
     "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
-    #"conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
     "conv_kwidth": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
 
     "embedding_dropout_keep_prob": 0.8,
@@ -143,7 +122,7 @@ train_params = {
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": False,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
@@ -178,7 +157,7 @@ infer_params = {
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2013.tok.bpe.32000.en",
-    # this is intentional
+    # this is intentional to be sure that model is not using target
     "target_file": data_root+"newstest2013.tok.bpe.32000.en",
     "delimiter": " ",
     "shuffle": False,

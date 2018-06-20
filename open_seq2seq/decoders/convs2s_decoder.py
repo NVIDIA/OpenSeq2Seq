@@ -298,25 +298,12 @@ class ConvS2SDecoder(Decoder):
            updated cache values)
       """
 
-      # Set decoder input to the last generated IDs
-      decoder_inputs = ids
-
-      # Preprocess decoder input by getting embeddings and adding timing signal.
-      decoder_inputs = self.embedding_softmax_layer(decoder_inputs)
-
-      with tf.name_scope("add_pos_encoding"):
-          pos_input = tf.range(0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
-          pos_encoding = self.position_embedding_layer(pos_input)
-          decoder_inputs = decoder_inputs + tf.cast(x=pos_encoding, dtype=decoder_inputs.dtype)
-
-      inputs_padding = get_padding(ids, self.params.get('PAD_SYMBOL', 0))
-      decoder_inputs = decoder_inputs * tf.to_float(tf.expand_dims(tf.logical_not(inputs_padding), 2))
-
-      decoder_outputs = self._call(decoder_inputs, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
-                                   cache.get("inputs_attention_bias"))
+      # pass the decoded ids from the beginneing up to the current into the decoder - not efficient
+      decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
+                                         cache.get("inputs_attention_bias"))
 
       logits = decoder_outputs[:, i, :]
-
       return tf.cast(logits, tf.float32), cache
+
     return symbols_to_logits_fn
 

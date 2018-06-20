@@ -138,9 +138,10 @@ class ConvS2SEncoder(Encoder):
 
       # mask the paddings in the input given to cnn layers
       inputs_padding = get_padding(inputs, self.params.get('PAD_SYMBOL', 0))
-      encoder_inputs = encoder_inputs * tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), encoder_inputs.dtype)
+      padding_mask = tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), encoder_inputs.dtype)
+      encoder_inputs = encoder_inputs * padding_mask
 
-      outputs, outputs_b, final_state = self._call(encoder_inputs)
+      outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
     return {'outputs': outputs,
             'outputs_b': outputs_b,
@@ -151,12 +152,14 @@ class ConvS2SEncoder(Encoder):
             #'position_embedding_layer': self.position_embedding_layer, # Should we share position embedding?
             'encoder_input': inputs}
 
-  def _call(self, encoder_inputs):
+  def _call(self, encoder_inputs, padding_mask=None):
     # Run inputs through the sublayers.
     with tf.variable_scope("linear_layer_before_cnn_layers"):
       outputs = self.layers[0](encoder_inputs)
 
     for i in range(1, len(self.layers) - 1):
+      if padding_mask is not None:
+        outputs = outputs * padding_mask
       linear_proj, conv_layer = self.layers[i]
 
       with tf.variable_scope("layer_%d" % i):
@@ -170,6 +173,8 @@ class ConvS2SEncoder(Encoder):
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
 
+      if padding_mask is not None:
+        outputs = outputs * padding_mask
       # Gradients are scaled as the gradients from all decoder attention layers enters the encoder
       scale = 1.0 / (2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
