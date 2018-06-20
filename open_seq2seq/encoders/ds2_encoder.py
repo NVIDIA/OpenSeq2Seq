@@ -7,34 +7,7 @@ import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 
 from .encoder import Encoder
-
-
-def conv2d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
-                   padding, regularizer, training, data_format, bn_momentum,
-                   bn_epsilon):
-  """Helper function that applies convolution, batch norm and activation."""
-  conv = tf.layers.conv2d(
-    name="{}".format(name),
-    inputs=inputs,
-    filters=filters,
-    kernel_size=kernel_size,
-    strides=strides,
-    padding=padding,
-    kernel_regularizer=regularizer,
-    use_bias=False,
-    data_format=data_format,
-  )
-  bn = tf.layers.batch_normalization(
-    name="{}/bn".format(name),
-    inputs=conv,
-    gamma_regularizer=regularizer,
-    training=training,
-    axis=-1 if data_format == 'channels_last' else 1,
-    momentum=bn_momentum,
-    epsilon=bn_epsilon,
-  )
-  output = activation_fn(bn)
-  return output
+from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv 
 
 
 def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
@@ -229,7 +202,8 @@ class DeepSpeech2Encoder(Encoder):
       else:
         src_length = (src_length + strides[0] - 1) // strides[0]
 
-      top_layer = conv2d_bn_actv(
+      top_layer = conv_bn_actv(
+        layer = tf.layers.conv2d,
         name="conv{}".format(idx_conv + 1),
         inputs=top_layer,
         filters=ch_out,
