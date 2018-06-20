@@ -24,7 +24,7 @@ num_layers = 2
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 2,
+  "num_gpus": 1,
   "batch_size_per_gpu": 64,
   "max_steps": 600,
   "save_summaries_steps": 10,

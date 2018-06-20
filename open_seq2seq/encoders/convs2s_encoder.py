@@ -38,9 +38,13 @@ class ConvS2SEncoder(Encoder):
     return dict(Encoder.get_optional_params(), **{
       "conv_knum": list,
       "conv_kwidth": list,
+
       "att_layer_num": int,
+
       'max_input_length': int,
       'PAD_SYMBOL': int,
+
+      'mask_paddings': bool
     })
 
   def __init__(self, params, model, name="convs2s_encoder_with_emb", mode='train'):
@@ -141,25 +145,25 @@ class ConvS2SEncoder(Encoder):
       padding_mask = tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), encoder_inputs.dtype)
       encoder_inputs = encoder_inputs * padding_mask
 
-      outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
+      outputs, outputs_b, final_state = self._call(encoder_inputs)
 
     return {'outputs': outputs,
             'outputs_b': outputs_b,
             'inputs_attention_bias_cs2s': inputs_attention_bias,
             'state': final_state,
-            'src_lengths': source_length,
+            'src_lengths': source_length, # should it include paddings or not?
             'embedding_softmax_layer': self.embedding_softmax_layer,
             #'position_embedding_layer': self.position_embedding_layer, # Should we share position embedding?
             'encoder_input': inputs}
 
-  def _call(self, encoder_inputs, padding_mask=None):
+  def _call(self, encoder_inputs):
     # Run inputs through the sublayers.
     with tf.variable_scope("linear_layer_before_cnn_layers"):
       outputs = self.layers[0](encoder_inputs)
 
     for i in range(1, len(self.layers) - 1):
-      if padding_mask is not None:
-        outputs = outputs * padding_mask
+      #if padding_mask is not None:
+      #  outputs = outputs * padding_mask
       linear_proj, conv_layer = self.layers[i]
 
       with tf.variable_scope("layer_%d" % i):
@@ -173,8 +177,8 @@ class ConvS2SEncoder(Encoder):
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
 
-      if padding_mask is not None:
-        outputs = outputs * padding_mask
+      #if padding_mask is not None:
+      #  outputs = outputs * padding_mask
       # Gradients are scaled as the gradients from all decoder attention layers enters the encoder
       scale = 1.0 / (2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs

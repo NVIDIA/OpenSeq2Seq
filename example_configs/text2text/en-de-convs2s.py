@@ -20,7 +20,7 @@ base_model = Text2Text
 num_layers = 15
 d_model = 512
 batch_size = 64
-num_gpus = 8
+num_gpus = 4
 epoch_num = 10
 
 base_params = {
