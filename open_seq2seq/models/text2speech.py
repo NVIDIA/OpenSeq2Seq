@@ -79,8 +79,8 @@ def plot_spectrogram_w_target(ground_truth, generated_sample, post_net_sample, a
 
   plt.close(fig)
 
-def save_audio(mag_spec, logdir, step, mode="train", number=0):
-  magnitudes = np.exp(mag_spec)
+def save_audio(magnitudes, logdir, step, mode="train", number=0):
+  # magnitudes = np.exp(mag_spec)
   signal = griffin_lim(magnitudes.T**1.2)
   file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
   if logdir[0] != '/':
@@ -199,6 +199,7 @@ class Text2Speech(EncoderDecoderModel):
                      append="train")
 
     if "spectrogram" in self.get_data_layer().params['output_type']:
+      predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
       save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
     elif "mel" in self.get_data_layer().params['output_type']:
       predicted_final_spectrogram_sample = inverse_mel(predicted_final_spectrogram_sample)
@@ -226,10 +227,11 @@ class Text2Speech(EncoderDecoderModel):
                      append="eval")
 
     if "spectrogram" in self.get_data_layer().params['output_type']:
+      predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
       save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
     elif "mel" in self.get_data_layer().params['output_type']:
       predicted_final_spectrogram_sample = inverse_mel(predicted_final_spectrogram_sample)
-      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step)
+      save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval")
 
     return {}
 

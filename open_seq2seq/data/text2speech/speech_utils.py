@@ -201,4 +201,5 @@ def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80):
   # print(mel_basis.shape)
   # spec = np.dot(mel_spec, mel_basis)
   # print(spec.shape)
+  mel_spec = np.exp(mel_spec)
   return np.dot(mel_spec, mel_basis)
