@@ -138,7 +138,7 @@ class Tacotron2Encoder(Encoder):
     Expects the following inputs::
 
       input_dict = {
-        "src_sequence": tensor of shape [batch_size, sequence length, num features]
+        "src_sequence": tensor of shape [batch_size, sequence length]
         "src_length": tensor of shape [batch_size]
       }
     """

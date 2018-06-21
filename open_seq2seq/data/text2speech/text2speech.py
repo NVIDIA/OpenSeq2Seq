@@ -24,8 +24,7 @@ class Text2SpeechDataLayer(DataLayer):
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
-      # 'input_type': ['spectrogram', 'mfcc'],
-      'output_type': ['spectrogram', 'mfcc', 'mel', 'test', 'spectrogram_disk', 'mel_disk'],
+      'output_type': ['magnitude', 'mel', 'magnitude_disk', 'mel_disk'],
       'vocab_file': str,
       'dataset_files': list,
       'dataset_location': str,
@@ -34,10 +33,8 @@ class Text2SpeechDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-      'augmentation': dict,
       'pad_to': int,
       'mag_power': int,
-      'feature_normalize': bool,
       'pad_EOS': bool
     })
 
@@ -49,25 +46,20 @@ class Text2SpeechDataLayer(DataLayer):
     Config parameters:
 
     * **num_audio_features** (int) --- number of audio features to extract.
-    * **output_type** (str) --- could be either "spectrogram" or "mfcc".
+    * **output_type** (str) --- could be either "magnitude", or "mel".
     * **vocab_file** (str) --- path to vocabulary file.
-    * **dataset_files** (list) --- list with paths to all dataset .csv files.
+    * **dataset_files** (list) --- list with paths to all dataset .csv files. File is assumed
+      to be separated by "|".
     * **dataset_location** (string) --- string with path to directory where wavs are stored.
-    * **augmentation** (dict) --- optional dictionary with data augmentation
-      parameters. Can contain "time_stretch_ratio", "noise_level_min" and
-      "noise_level_max" parameters, e.g.::
-        {
-          'time_stretch_ratio': 0.05,
-          'noise_level_min': -90,
-          'noise_level_max': -60,
-        }
-      For additional details on these parameters see
-      :func:`data.speech_utils.augment_audio_signal` function.
+    * **mag_power** (int) --- the power to which the magnitude spectrogram is scaled to
+      1 for energy spectrogram
+      2 for power spectrogram
+      Defaults to 2.
+    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and the speech signal.
+      Defaults to True.
     """
     super(Text2SpeechDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
-
-    # There is no vocab file atm
     # Character level vocab
     self.params['char2idx'] = load_pre_existing_vocabulary(
       self.params['vocab_file'], read_chars=True,
@@ -89,6 +81,7 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       self.mel = False
 
+    # Load csv files
     self._files = None
     for csvs in params['dataset_files']:
       files = pd.read_csv(csvs, encoding='utf-8', sep='\x7c', header=None, names=names, quoting=3)
@@ -101,7 +94,6 @@ class Text2SpeechDataLayer(DataLayer):
       cols = ['wav_filename', 'transcript_normalized']
     else:
       cols = 'transcript_normalized'
-    # cols = ['wav_filename', 'transcript_normalized']
 
     self.all_files = self._files.loc[:, cols].values
     self._files = self.split_data(self.all_files)
@@ -167,12 +159,12 @@ class Text2SpeechDataLayer(DataLayer):
     self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
 
     if self.params['mode'] != 'infer':
-      text, text_length, spec, target, spec_length = self._iterator.get_next()
+      text, text_length, spec, stop_token_target, spec_length = self._iterator.get_next()
       # need to explicitly set batch size dimension
       # (it is employed in the model)
       spec.set_shape([self.params['batch_size'], None,
                  self.params['num_audio_features']])
-      target.set_shape([self.params['batch_size'], None])
+      stop_token_target.set_shape([self.params['batch_size'], None])
       spec_length = tf.reshape(spec_length, [self.params['batch_size']])
     else:
       text, text_length = self._iterator.get_next()
@@ -182,17 +174,7 @@ class Text2SpeechDataLayer(DataLayer):
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [text, text_length]
     if self.params['mode'] != 'infer':
-      self._input_tensors['target_tensors'] = [spec, target, spec_length]
-
-
-    # text, text_length, spec, target, spec_length = self._iterator.get_next()
-    
-    # text.set_shape([self.params['batch_size'], None])
-    # text_length = tf.reshape(text_length, [self.params['batch_size']])
-
-    # self._input_tensors = {}
-    # self._input_tensors["source_tensors"] = [text, text_length]
-    # self._input_tensors['target_tensors'] = [spec, target, spec_length]
+      self._input_tensors['target_tensors'] = [spec, stop_token_target, spec_length]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
@@ -201,16 +183,17 @@ class Text2SpeechDataLayer(DataLayer):
       element: tf.data element from TextLineDataset.
 
     Returns:
-      tuple: source audio features as ``np.array``, length of source sequence,
-      text_input text as `np.array` of ids, text_input text length.
+      tuple: text_input text as `np.array` of ids, text_input text length,
+      source audio features as `np.array`, stop token targets as `np.array`,
+      length of source sequence,
+      .
     """
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
     transcript = transcript.lower()
-    # transcript = self._normalize_transcript(transcript)
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
-    if self.params.get("pad_EOS", False):
+    if self.params.get("pad_EOS", True):
       text_input = np.append(text_input, self.params['char2idx']["~"])
     pad_to = self.params.get('pad_to', 8)
     if self.load_from_disk:
@@ -221,36 +204,19 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".wav")
       spectrogram = get_speech_features_from_file(
-      file_path, self.params['num_audio_features'], pad_to,
-      features_type=self.params['output_type'],
-      augmentation=self.params.get('augmentation', None),
-      mag_power=self.params.get('mag_power', 2),
-      feature_normalize=self.params.get('feature_normalize', True),
+        file_path, self.params['num_audio_features'], pad_to,
+        features_type=self.params['output_type'],
+        mag_power=self.params.get('mag_power', 2),
       )
-    if self.params.get("pad_EOS", False):
+    if self.params.get("pad_EOS", True):
       spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
-    target = np.zeros([len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype())
-    target[-1] = 1.
+    stop_token_target = np.zeros([len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype())
+    stop_token_target[-1] = 1.
     return np.int32(text_input), \
            np.int32([len(text_input)]), \
            spectrogram.astype(self.params['dtype'].as_numpy_dtype()), \
-           target, \
+           stop_token_target.astype(self.params['dtype'].as_numpy_dtype()), \
            np.int32([len(spectrogram)])
-
-  # Might not be useful for actual text2speech applications
-  def _normalize_transcript(self, text):
-    """Parses the transcript to remove punctation, lowercase all characters, and all non-ascii characters
-
-    Args:
-      text: the string to parse
-
-    Returns:
-      text: the normalized text
-    """
-    text = text.decode('utf-8').encode('ascii', errors="ignore")
-    text = text.translate(None, string.punctuation)
-    text = text.lower()
-    return text
 
   def _parse_transcript_element(self, transcript):
     """Parses text from file and returns array of text features.
@@ -264,9 +230,8 @@ class Text2SpeechDataLayer(DataLayer):
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
     transcript = transcript.lower()
-    # transcript = self._normalize_transcript(transcript)
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
-    if self.params.get("pad_EOS", False):
+    if self.params.get("pad_EOS", True):
       text_input = np.append(text_input, self.params['char2idx']["~"])
 
     return np.int32(text_input), \

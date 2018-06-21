@@ -26,16 +26,25 @@ class TacotronDecoder(decoder.Decoder):
   def __init__(self, decoder_cell, attention_cell, helper,
               initial_decoder_state, initial_attention_state, 
               attention_type, spec_layer, target_layer,
-              use_prenet_output=False):
+              use_prenet_output=True):
     """Initialize BasicDecoder.
     Args:
-      cell: An `RNNCell` instance.
+      decoder_cell: An `RNNCell` instance.
+      attention_cell: An `RNNCell` instance.
       helper: A `Helper` instance.
-      initial_state: A (possibly nested tuple of...) tensors and TensorArrays.
+      initial_decoder_state: A (possibly nested tuple of...) tensors and TensorArrays.
         The initial state of the RNNCell.
-      output_layer: (Optional) An instance of `tf.layers.Layer`, i.e.,
-        `tf.layers.Dense`. Optional layer to apply to the RNN output prior
-        to storing the result or sampling.
+      initial_attention_state: A (possibly nested tuple of...) tensors and TensorArrays.
+        The initial state of the RNNCell.
+      attention_type: The type of attention used
+      target_layer: An instance of `tf.layers.Layer`, i.e.,
+        `tf.layers.Dense`. Stop token layer to apply to the RNN output to
+        predict when to stop the decoder
+      spec_layer: An instance of `tf.layers.Layer`, i.e.,
+        `tf.layers.Dense`. Output layer to apply to the RNN output to map
+        the ressult to a spectrogram
+      use_prenet_output: (Optional), whether to use the prenet output
+        in the attention mechanism
     Raises:
       TypeError: if `cell`, `helper` or `output_layer` have an incorrect type.
     """
@@ -153,7 +162,6 @@ class TacotronDecoder(decoder.Decoder):
       cell_outputs = array_ops.concat((cell_outputs, attention_context), axis=-1)
       cell_outputs = self.spec_layer(cell_outputs)
       target_outputs = self.target_layer(cell_outputs)
-      # print(target_outputs.get_shape())
       sample_ids = self.helper.sample(
           time=time, outputs=cell_outputs, state=cell_state)
       (finished, next_inputs, next_state) = self.helper.next_inputs(

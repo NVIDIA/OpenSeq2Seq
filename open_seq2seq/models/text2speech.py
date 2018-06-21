@@ -135,12 +135,6 @@ def griffin_lim(magnitudes, n_iters=50):
     signal = librosa.istft(complex_spec)
   return signal
 
-def sparse_tensor_to_chars(tensor, idx2char):
-  text = [''] * tensor.dense_shape[0]
-  for idx_tuple, value in zip(tensor.indices, tensor.values):
-    text[idx_tuple[0]] += idx2char[value]
-  return text
-
 class Text2Speech(EncoderDecoderModel):
   def _create_decoder(self):
     self.params['decoder_params']['num_audio_features'] = (
@@ -176,7 +170,6 @@ class Text2Speech(EncoderDecoderModel):
       if not isinstance(input_tensors['target_tensors'], list):
         raise ValueError('target_tensors should be a list')
       target_tensors = input_tensors['target_tensors']
-    # target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
       encoder_input = {"source_tensors": source_tensors}
