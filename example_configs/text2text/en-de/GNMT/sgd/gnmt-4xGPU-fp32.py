@@ -21,7 +21,7 @@ base_params = {
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 101,
-  "print_samples_steps": 99,
+  "print_samples_steps": 101,
   "eval_steps": 2000,
   "save_checkpoint_steps": 21250,
   "logdir": "GNMT-1xGPU-fp32",
