@@ -203,7 +203,7 @@ class DeepSpeech2Encoder(Encoder):
         src_length = (src_length + strides[0] - 1) // strides[0]
 
       top_layer = conv_bn_actv(
-          layer=tf.layers.conv2d,
+          type="conv2d",
           name="conv{}".format(idx_conv + 1),
           inputs=top_layer,
           filters=ch_out,

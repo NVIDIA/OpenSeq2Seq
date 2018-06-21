@@ -8,10 +8,20 @@ from six.moves import range
 import tensorflow as tf
 
 
-def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strides,
+def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
                  padding, regularizer, training, data_format, bn_momentum,
                  bn_epsilon):
-  """Helper function that applies convolution, batch norm and activation."""
+  """Helper function that applies convolution, batch norm and activation.
+    Accepts inputs in 'channels_last' format only.
+    Args:
+      type: the following types are supported
+        'conv1d', 'conv2d'
+  """
+  if type == "conv1d":
+    layer = tf.layers.conv1d
+  elif type == "conv2d":
+    layer = tf.layers.conv2d
+
   conv = layer(
       name="{}".format(name),
       inputs=inputs,
@@ -25,10 +35,10 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
   )
 
   # trick to make batchnorm work for mixed precision training.
-  # To-Do check if batchnorm works smoothly for >4 dimensional tensors
+  # To-Do check if batchnorm works smoothly for >4 dimensional tensors to support conv3d
   squeeze = False
-  if tf.rank(conv) == 3:
-    conv = tf.expand_dims(conv, axis=-1)
+  if type == "conv1d":
+    conv = tf.expand_dims(conv, axis=1)  # NWC --> NHWC
     squeeze = True
 
   bn = tf.layers.batch_normalization(
@@ -42,6 +52,6 @@ def conv_bn_actv(layer, name, inputs, filters, kernel_size, activation_fn, strid
   )
 
   if squeeze:
-    bn = tf.squeeze(bn, axis=-1)
+    bn = tf.squeeze(bn, axis=1)
   output = activation_fn(bn)
   return output

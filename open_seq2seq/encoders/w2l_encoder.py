@@ -70,9 +70,9 @@ class Wave2LetterEncoder(Encoder):
 
   def _get_layer(self, layer_type):
     if layer_type == "conv1d":
-      return "conv", tf.layers.conv1d
+      return "conv"
     elif layer_type == "conv2d":
-      return "conv", tf.layers.conv2d
+      return "conv"
 
   def _encode(self, input_dict):
     """Creates TensorFlow graph for Wav2Letter like encoder.
@@ -122,7 +122,7 @@ class Wave2LetterEncoder(Encoder):
 
       while layer_repeat_moving != 0:
         layer_repeat_moving = layer_repeat_moving - 1
-        layer_name, layer = self._get_layer(layer_type)
+        layer_name = self._get_layer(layer_type)
         if layer_name == "conv":
           ch_out = convnet_layers[idx_convnet]['num_channels']
           conv_block = conv_bn_actv  # can add other type of convolutional blocks in future
@@ -131,7 +131,7 @@ class Wave2LetterEncoder(Encoder):
           padding = convnet_layers[idx_convnet]['padding']
 
           conv_feats = conv_block(
-              layer=layer,
+              type=layer_type,
               name="conv{}{}".format(
                   idx_convnet + 1, layer_repeat_fixed + 1 - layer_repeat_moving),
               inputs=conv_feats,
