@@ -401,8 +401,6 @@ class Model:
           deco_print('{}'.format(var.name), offset=2)
           deco_print('shape: {}, {}'.format(var.get_shape(), var.dtype),
                      offset=4)
-          deco_print('init: {}'.format(var.initial_value), offset=4)
-
           if var.get_shape():
             for dim in var.get_shape():
               var_params *= dim.value

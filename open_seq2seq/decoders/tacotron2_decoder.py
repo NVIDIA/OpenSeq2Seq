@@ -357,7 +357,7 @@ class Tacotron2Decoder(Decoder):
         )
         attention_cell = self._attention_cells
 
-     if self.params['attention_type'] == "bahdanau":
+      if self.params['attention_type'] == "bahdanau":
         if self.params["attention_rnn_enable"]:
           output_attention = True
         else:
@@ -418,7 +418,7 @@ class Tacotron2Decoder(Decoder):
                                       prenet_layers=prenet_layers,
                                       prenet_activation=prenet_activation,
                                       sampling_prob=sampling_prob,
-                                      anneal_sampling_prob=self.params.get('anneal_sampling_prob', False),
+                                      anneal_teacher_forcing=self.params.get('anneal_teacher_forcing', False),
                                       anneal_teacher_forcing_stop_gradient=self.params.get("anneal_teacher_forcing_stop_gradient",False),
                                       mask_decoder_sequence=mask_decoder_sequence)
                                       # context=mean_pool)

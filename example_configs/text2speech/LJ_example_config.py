@@ -3,13 +3,21 @@ from open_seq2seq.models import Text2Speech
 from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
-from open_seq2seq.losses import MeanSquaredErrorLoss, BasicMeanSquaredErrorLoss
+from open_seq2seq.losses import TacotronLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 
 base_model = Text2Speech
 
-num_audio_features = 513
+output_type = "mel"
+
+if output_type == "spectrogram":
+  num_audio_features = 513
+  output_type = "spectrogram_disk"
+elif output_type == "mel":
+  num_audio_features = 80
+  output_type = "mel_disk"
+
 
 base_params = {
   "random_seed": 0,
@@ -91,6 +99,7 @@ base_params = {
     'attention_rnn_units': 1024,
     'attention_rnn_layers': 1,
     'attention_rnn_cell_type': 'lstm',
+    'attention_bias': False,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': 'lstm',
@@ -101,6 +110,8 @@ base_params = {
     'prenet_layers': 2,
     'prenet_units': 256,
 
+    "anneal_teacher_forcing": False,
+    "anneal_teacher_forcing_stop_gradient": False,
     'scheduled_sampling_prob': 0.,
 
     'enable_postnet': True,
@@ -134,33 +145,28 @@ base_params = {
         "activation_fn": None
       }
     ],
-    "anneal_sampling_prob": False,
-    "use_prenet_output": False,
+    "mask_decoder_sequence": True
   },
   
-  "loss": MeanSquaredErrorLoss,
+  "loss": TacotronLoss,
   "loss_params": {
     "use_mask": True
   },
-  # "loss": BasicMeanSquaredErrorLoss,
-  # "loss_params": {
-  #   "output_key": "post_net_output",
-  # },
 }
 
 train_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram_disk",
-    "vocab_file": "/data/speech/LJSpeech/vocab.txt",
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
     ],
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": True,
     "mag_power": 2,
-    "feature_normalize": False,
+    "pad_EOS": True
   },
 }
 
@@ -168,14 +174,30 @@ eval_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
-    "output_type": "spectrogram_disk",
-    "vocab_file": "/data/speech/LJSpeech/vocab.txt",
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/new_val.csv",
     ],
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
     "mag_power": 2,
-    "feature_normalize": False,
+    "pad_EOS": True
+  },
+}
+
+infer_params = {
+  "data_layer": Text2SpeechDataLayer,
+  "data_layer_params": {
+    "num_audio_features": num_audio_features,
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
+    "dataset_files": [
+      "/data/speech/LJSpeech/test.csv",
+    ],
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
+    "shuffle": False,
+    "mag_power": 2,
+    "pad_EOS": True
   },
 }

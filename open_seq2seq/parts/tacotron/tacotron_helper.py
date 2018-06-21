@@ -32,7 +32,7 @@ class TacotronTrainingHelper(Helper):
 
   def __init__(self, inputs, sequence_length, enable_prenet, 
               prenet_units=None, prenet_layers=None, prenet_activation=None,
-              sampling_prob=0., anneal_sampling_prob = False, sampling_test=False,
+              sampling_prob=0., anneal_teacher_forcing = False, anneal_teacher_forcing_stop_gradient=False,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None, mask_decoder_sequence=None):
     """Initializer.
@@ -50,9 +50,9 @@ class TacotronTrainingHelper(Helper):
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     self._batch_size = array_ops.size(sequence_length)
     self.seed = 0
-    self.anneal_sampling_prob = anneal_sampling_prob
     self.sampling_prob = sampling_prob
-    self.sampling_test = sampling_test
+    self.anneal_teacher_forcing = anneal_teacher_forcing
+    self.stop_gradient = anneal_teacher_forcing_stop_gradient
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
@@ -110,13 +110,13 @@ class TacotronTrainingHelper(Helper):
     all_finished = math_ops.reduce_all(finished)
     def get_next_input(inp, out):
       next_input = inp.read(time)
-      if self.sampling_test:
+      if self.stop_gradient:
         next_input = tf.stop_gradient(next_input)
         out = tf.stop_gradient(out)
       for layer in self.prenet_layers:
         next_input = tf.layers.dropout(layer(next_input), rate=0.5, training=True)
         out = tf.layers.dropout(layer(out), rate=0.5, training=True)
-      if self.anneal_sampling_prob or self.sampling_prob > 0:
+      if self.anneal_teacher_forcing or self.sampling_prob > 0:
         select_sampler = bernoulli.Bernoulli(
             probs=self.sampling_prob, dtype=dtypes.bool)
         select_sample = select_sampler.sample(
