@@ -20,8 +20,8 @@ base_params = {
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 3000,
-  "eval_steps": 3000,
+  "print_samples_steps": 4400,
+  "eval_steps": 4400,
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
