@@ -14,33 +14,35 @@ data_root = "/data/wmt16_s2s/"
 
 base_model = Text2Text
 
+pad_vocabs_2_eight = True
+
 base_params = {
-  "use_horovod": True,
+  "use_horovod": False,
   "num_gpus": 1,
-  "max_steps": 42500,
+  "max_steps": 340000,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 101,
   "print_samples_steps": 101,
   "eval_steps": 2000,
-  "save_checkpoint_steps": 10625,
-  "logdir": "GNMT-8xGPU-fp32",
+  "save_checkpoint_steps": 85000,
+  "logdir": "GNMT-1xGPU-mp",
   "optimizer": "SGD",
   "optimizer_params": {},
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1.0,
-    "begin_decay_at": 21250,
-    "decay_steps": 2125,
+    "begin_decay_at": 170000,
+    "decay_steps": 17000,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
   },
   "max_grad_norm": 5.0,
-  "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"loss_scaling": "Backoff",
+  #"dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding_cuDNN,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
@@ -91,7 +93,7 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": False,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
@@ -108,7 +110,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": False,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2013.tok.bpe.32000.en",
@@ -146,7 +148,7 @@ infer_params = {
 
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": False,
+    "pad_vocab_to_eight": pad_vocabs_2_eight,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
     "source_file": data_root+"newstest2014.tok.bpe.32000.en",

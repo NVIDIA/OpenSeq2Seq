@@ -24,7 +24,7 @@ base_params = {
   "print_samples_steps": 101,
   "eval_steps": 2000,
   "save_checkpoint_steps": 42500,
-  "logdir": "GNMT-1xGPU-fp32",
+  "logdir": "GNMT-2xGPU-fp32",
   "optimizer": "SGD",
   "optimizer_params": {},
   # luong10 decay scheme
