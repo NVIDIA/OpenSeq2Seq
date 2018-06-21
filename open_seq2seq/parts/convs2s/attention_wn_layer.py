@@ -1,8 +1,9 @@
-"""Implementation of the attention layer for convs2s."""
+"""Implementation of the attention layer for convs2s. Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+
 
 import tensorflow as tf
 import math
@@ -11,9 +12,17 @@ from open_seq2seq.parts.convs2s.ffn_wn_layer import FeedFowardNetworkNormalized
 
 class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
-  """ Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 
   def __init__(self, in_dim, embed_size, layer_id, add_res):
+    """initializes the attention layer.
+    It uses weight normalization for linear projections (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
+
+    Args:
+      in_dim: int last dimension of the inputs
+      embed_size: int target embedding size
+      layer_id: int the id of current convolution layer
+      add_res: bool whether residual connection should be added or not
+    """
     super(AttentionLayerNormalized, self).__init__()
 
     self.add_res = add_res
@@ -27,20 +36,33 @@ class AttentionLayerNormalized(tf.layers.Layer):
       self.out_proj = FeedFowardNetworkNormalized(embed_size, in_dim, dropout=1.0,
                                                     var_scope_name="att_linear_mapping_out")
 
-  def call(self, input, target_embed, encoder_output_a, encoder_output_c, input_attention_bias):
+  def call(self, input, target_embed, encoder_output_a, encoder_output_b, input_attention_bias):
+    """Calculates the attention vectors.
+
+    Args:
+      input: A float32 tensor with shape [batch_size, length, in_dim]
+      target_embed: A float32 tensor with shape [batch_size, length, in_dim] containing the target embeddings
+      encoder_output_a:
+      encoder_output_b:
+      input_attention_bias:
+    Returns:
+      float32 tensor with shape [batch_size, length, out_dim].
+    """
+
     h_proj = self.tgt_embed_proj(input)
     d_proj = (h_proj + target_embed) * math.sqrt(0.5)
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
 
+    att_score = tf.cast(x=att_score, dtype=tf.float32)
     # mask out the paddings
     if input_attention_bias is not None:
       att_score = att_score + input_attention_bias
-
     att_score = tf.nn.softmax(att_score)
+    att_score = tf.cast(x=att_score, dtype=encoder_output_b.dtype)
 
-    length = tf.cast(tf.shape(encoder_output_c), encoder_output_c.dtype)
-    output = tf.matmul(att_score, encoder_output_c) * \
-             length[1] * tf.cast(tf.sqrt(1.0 / length[1]), dtype=encoder_output_c.dtype)
+    length = tf.cast(tf.shape(encoder_output_b), encoder_output_b.dtype)
+    output = tf.matmul(att_score, encoder_output_b) * \
+             length[1] * tf.cast(tf.sqrt(1.0 / length[1]), dtype=encoder_output_b.dtype)
     output = self.out_proj(output)
 
     if self.add_res:

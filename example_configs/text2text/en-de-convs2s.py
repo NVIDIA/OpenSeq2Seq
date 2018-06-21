@@ -31,8 +31,8 @@ base_params = {
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 5000,
-  "save_checkpoint_steps": 1000,
+  "eval_steps": 250, #5000,
+  "save_checkpoint_steps": 500, #1000,
   "logdir": "ReadData-CC",
 
   "optimizer": "Adam",
@@ -53,9 +53,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -84,6 +84,7 @@ base_params = {
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
+    "pad_embeddings_2_eight": False,
     "out_emb_size": d_model,
 
     "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
@@ -119,10 +120,12 @@ train_params = {
     "pad_vocab_to_eight": False,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root+"train.tok.clean.bpe.32000.en",
-    "target_file": data_root+"train.tok.clean.bpe.32000.de",
+    # "source_file": data_root+"train.tok.clean.bpe.32000.en",
+    # "target_file": data_root+"train.tok.clean.bpe.32000.de",
+    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    "target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": False,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,

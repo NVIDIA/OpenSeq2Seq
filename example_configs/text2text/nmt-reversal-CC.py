@@ -56,14 +56,14 @@ base_params = {
     "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
-    "att_layer_num": num_layers,
     "embedding_dropout_keep_prob": 0.9,
-    "pad_embeddings_2_eight": True,
-
-    "hidden_dropout_keep_prob": 0.9,
+    "pad_embeddings_2_eight": False,
+    "att_layer_num": num_layers,
 
     "conv_knum": [d_model] * num_layers,
     "conv_kwidth": [3] * num_layers,
+
+    "hidden_dropout_keep_prob": 0.9,
 
     "max_input_length": 100,
 
@@ -76,11 +76,12 @@ base_params = {
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
+    "embedding_dropout_keep_prob": 0.9,
+    "pad_embeddings_2_eight": False,
 
     "conv_knum": [d_model] * num_layers,
     "conv_kwidth": [3] * num_layers,
 
-    "embedding_dropout_keep_prob": 0.9,
     "hidden_dropout_keep_prob": 0.9,
     "out_dropout_keep_prob": 0.9,
 

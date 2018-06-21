@@ -9,8 +9,8 @@ import tensorflow as tf
 import math
 from .encoder import Encoder
 
-from open_seq2seq.parts.convs2s import embedding_layer
-from open_seq2seq.parts.convs2s.utils import get_padding_bias, get_padding
+from open_seq2seq.parts.transformer import embedding_layer
+from open_seq2seq.parts.transformer.utils import get_padding_bias, get_padding
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
 
 # Default value used if max_input_length is not given
@@ -63,7 +63,8 @@ class ConvS2SEncoder(Encoder):
     self._src_emb_size = self.params['src_emb_size']
     self.layers = []
     self._mode = mode
-
+    self._pad_sym = self.params.get('PAD_SYMBOL', 0)
+    self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
   def _encode(self, input_dict):
     """
@@ -92,13 +93,13 @@ class ConvS2SEncoder(Encoder):
 
         with tf.variable_scope("embedding"):
           self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
-            self._src_vocab_size, self.params["src_emb_size"],
-            pad2eight=self.params.get('pad_embeddings_2_eight', False), init_var=0.1)
+            vocab_size=self._src_vocab_size, hidden_size=self._src_emb_size,
+            pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False, pad_sym=self._pad_sym)
 
         with tf.variable_scope("pos_embedding"):
           self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
-            self.params.get("max_input_length", MAX_INPUT_LENGTH), self._src_emb_size,
-            pad2eight=self.params.get('pad_embeddings_2_eight', False), init_var=0.1)
+            vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH), hidden_size=self._src_emb_size,
+            pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False, pad_sym=self._pad_sym)
 
         # linear projection before cnn layers
         self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(self._src_emb_size, knum_list[0],
@@ -131,7 +132,7 @@ class ConvS2SEncoder(Encoder):
                                                                     var_scope_name="linear_mapping_after_cnn_layers"))
 
       encoder_inputs = self.embedding_softmax_layer(inputs)
-      inputs_attention_bias = get_padding_bias(inputs, encoder_inputs.dtype)
+      inputs_attention_bias = get_padding_bias(inputs, res_rank=3, pad_sym=self._pad_sym)
 
       with tf.name_scope("add_pos_encoding"):
         pos_input = tf.range(0, tf.shape(encoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
@@ -142,8 +143,8 @@ class ConvS2SEncoder(Encoder):
         encoder_inputs = tf.nn.dropout(encoder_inputs, self.params["embedding_dropout_keep_prob"])
 
       # mask the paddings in the input given to cnn layers
-      inputs_padding = get_padding(inputs, self.params.get('PAD_SYMBOL', 0))
-      padding_mask = tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), encoder_inputs.dtype)
+      inputs_padding = get_padding(inputs, self._pad_sym, dtype=encoder_inputs.dtype)
+      padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs = encoder_inputs * padding_mask
 
       outputs, outputs_b, final_state = self._call(encoder_inputs)

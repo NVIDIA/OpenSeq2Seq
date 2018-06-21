@@ -1,4 +1,5 @@
-"""Implementation of a 1d convolutional layer with weight normalization."""
+"""Implementation of a 1d convolutional layer with weight normalization.
+Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -10,9 +11,23 @@ import math
 
 class Conv1DNetworkNormalized(tf.layers.Layer):
   """1D convolutional layer with weight normalization"""
-  """ Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 
   def __init__(self, in_dim, out_dim, kernel_width, mode, layer_id, hidden_dropout, conv_padding, decode_padding):
+    """initializes the 1D convolution layer. It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
+
+    Args:
+      in_dim: int last dimension of the inputs
+      out_dim: int new dimension for the output
+      kernel_width: int width of kernel
+      mode: str the current mode
+      layer_id: int the id of current convolution layer
+      hidden_dropout: float the keep-dropout value used on the input. Give 1.0 if no dropout.
+                  It is used to initialize the weights of convolution.
+      conv_padding: str the type of padding done for convolution
+      decode_padding: bool specifies if this convolution layer is in decoder or not
+                          in decoder padding is done explicitly before convolution
+    """
+
     super(Conv1DNetworkNormalized, self).__init__()
     self.mode = mode
     self.conv_padding = conv_padding
@@ -21,7 +36,6 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     self.kernel_width = kernel_width
 
     with tf.variable_scope("conv_layer_" + str(layer_id)):
-      # use weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
       V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
       self.V = tf.get_variable('V', shape=[kernel_width, in_dim, 2*out_dim],
                                      initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
@@ -32,8 +46,15 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
 
       self.W = tf.reshape(self.g, [1, 1, 2*out_dim]) * tf.nn.l2_normalize(self.V, [0, 1])
 
-  def call(self, input):
-    x = input
+  def call(self, x):
+    """Applies convolution with gated linear units on x.
+
+    Args:
+      x: A float32 tensor with shape [batch_size, length, in_dim]
+    Returns:
+      float32 tensor with shape [batch_size, length, out_dim].
+    """
+
     if self.mode == "train":
       x = tf.nn.dropout(x, self.hidden_dropout)
 
@@ -50,6 +71,14 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     return output
 
   def gated_linear_units(self, inputs):
+    """Gated Linear Units (GLU) on x.
+
+    Args:
+      x: A float32 tensor with shape [batch_size, length, 2*out_dim]
+    Returns:
+      float32 tensor with shape [batch_size, length, out_dim].
+    """
+
     input_shape = inputs.get_shape().as_list()
     assert len(input_shape) == 3
     input_pass = inputs[:, :, 0:int(input_shape[2] / 2)]

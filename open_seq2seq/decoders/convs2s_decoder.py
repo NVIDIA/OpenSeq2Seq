@@ -7,8 +7,8 @@ from .decoder import Decoder
 
 from open_seq2seq.parts.transformer import beam_search
 
-from open_seq2seq.parts.convs2s import embedding_layer
-from open_seq2seq.parts.convs2s.utils import get_padding
+from open_seq2seq.parts.transformer import embedding_layer
+from open_seq2seq.parts.transformer.utils import get_padding
 
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, attention_wn_layer
 
@@ -58,6 +58,7 @@ class ConvS2SDecoder(Decoder):
             class :meth:`__init__` method.
     """
     return dict(Decoder.get_optional_params(), **{
+      'pad_embeddings_2_eight': bool,
       'conv_knum': list,
       'conv_kwidth': list,
 
@@ -81,6 +82,9 @@ class ConvS2SDecoder(Decoder):
     self._tgt_vocab_size = self.params['tgt_vocab_size']
     self._tgt_emb_size = self.params['tgt_emb_size']
     self._mode = mode
+    self._pad_sym = self.params.get('PAD_SYMBOL', 0)
+    self._pad2eight = params.get('pad_embeddings_2_eight', False)
+
 
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] if 'target_tensors' in input_dict else None
@@ -102,16 +106,16 @@ class ConvS2SDecoder(Decoder):
             self.embedding_softmax_layer = input_dict['encoder_output']['embedding_softmax_layer']
           else:
             self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
-                self._tgt_vocab_size, self._tgt_emb_size,
-                pad2eight=self.params.get('pad_embeddings_2_eight', False), init_var=0.1)
+              vocab_size=self._tgt_vocab_size, hidden_size=self._tgt_emb_size,
+              pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False, pad_sym=self._pad_sym)
 
         with tf.variable_scope("pos_embedding"):
           if 'position_embedding_layer' in input_dict['encoder_output'] and self.params['shared_embed']:
             self.position_embedding_layer = input_dict['encoder_output']['position_embedding_layer']
           else:
             self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
-                self.params.get("max_input_length", MAX_INPUT_LENGTH), self._tgt_emb_size,
-                pad2eight=self.params.get('pad_embeddings_2_eight', False), init_var=0.1)
+              vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH), hidden_size=self._tgt_emb_size,
+              pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False, pad_sym=self._pad_sym)
 
         # linear projection before cnn layers
         self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(self._tgt_emb_size, knum_list[0],
@@ -194,8 +198,8 @@ class ConvS2SDecoder(Decoder):
         decoder_inputs = tf.nn.dropout(decoder_inputs, self.params["embedding_dropout_keep_prob"])
 
     # mask the paddings in the target
-    inputs_padding = get_padding(targets, self.params.get('PAD_SYMBOL', 0))
-    decoder_inputs = decoder_inputs * tf.cast(tf.expand_dims(tf.logical_not(inputs_padding), 2), decoder_inputs.dtype)
+    inputs_padding = get_padding(targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype)
+    decoder_inputs = decoder_inputs * tf.expand_dims(1.0 - inputs_padding, 2)
 
     # do decode
     logits = self._call(decoder_inputs=decoder_inputs,
@@ -233,12 +237,13 @@ class ConvS2SDecoder(Decoder):
     if self.mode == "train":
       outputs = tf.nn.dropout(outputs, self.params["out_dropout_keep_prob"])
 
-    with tf.variable_scope("softmax"):
+    with tf.variable_scope("pre_softmax_projection"):
       if self.layers[-1] is None:
         logits = self.embedding_softmax_layer.linear(outputs)
       else:
         logits = self.layers[-1](outputs)
 
+    #return tf.cast(logits, dtype=tf.float32)
     return logits
 
   def predict(self, encoder_outputs, encoder_outputs_b, inputs_attention_bias):
