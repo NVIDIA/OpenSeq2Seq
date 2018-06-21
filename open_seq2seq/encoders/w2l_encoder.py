@@ -6,26 +6,26 @@ from six.moves import range
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv 
+from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
+
 
 class Wave2LetterEncoder(Encoder):
-  """Wave2Letter like encoder."""
-  """Fully convolutional model"""
+  """Wave2Letter like encoder. Fully convolutional model"""
 
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
-      'dropout_keep_prob': float,
-      'convnet_layers': list,
-      'activation_fn': None,  # any valid callable
+        'dropout_keep_prob': float,
+        'convnet_layers': list,
+        'activation_fn': None,  # any valid callable
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      'data_format': ['channels_first', 'channels_last'],
-      'bn_momentum': float,
-      'bn_epsilon': float,
+        'data_format': ['channels_first', 'channels_last'],
+        'bn_momentum': float,
+        'bn_epsilon': float,
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -108,11 +108,11 @@ class Wave2LetterEncoder(Encoder):
     conv_inputs = source_sequence
     batch_size = conv_inputs.get_shape().as_list()[0]
     if data_format == 'channels_last':
-      conv_feats = conv_inputs #B T F
+      conv_feats = conv_inputs  # B T F
     else:
-      conv_feats = tf.transpose(conv_inputs, [0, 2, 1]) #B F T
+      conv_feats = tf.transpose(conv_inputs, [0, 2, 1])  # B F T
 
-    # ----- Convolutional layers -----------------------------------------------
+    # ----- Convolutional layers ---------------------------------------------
     convnet_layers = self.params['convnet_layers']
 
     for idx_convnet in range(len(convnet_layers)):
@@ -120,30 +120,31 @@ class Wave2LetterEncoder(Encoder):
       layer_repeat_fixed = convnet_layers[idx_convnet]['repeat']
       layer_repeat_moving = layer_repeat_fixed
 
-      while(layer_repeat_moving != 0):
-        layer_repeat_moving = layer_repeat_moving -1
+      while layer_repeat_moving != 0:
+        layer_repeat_moving = layer_repeat_moving - 1
         layer_name, layer = self._get_layer(layer_type)
         if layer_name == "conv":
           ch_out = convnet_layers[idx_convnet]['num_channels']
-          conv_block = conv_bn_actv #can add other type of convolutional blocks in future
+          conv_block = conv_bn_actv  # can add other type of convolutional blocks in future
           kernel_size = convnet_layers[idx_convnet]['kernel_size']
           strides = convnet_layers[idx_convnet]['stride']
           padding = convnet_layers[idx_convnet]['padding']
 
           conv_feats = conv_block(
-            layer = layer,
-            name="conv{}{}".format(idx_convnet + 1, layer_repeat_fixed + 1 - layer_repeat_moving),
-            inputs=conv_feats,
-            filters=ch_out,
-            kernel_size=kernel_size,
-            activation_fn=self.params['activation_fn'],
-            strides=strides,
-            padding=padding,
-            regularizer=regularizer,
-            training=training,
-            data_format=data_format,
-            bn_momentum=bn_momentum,
-            bn_epsilon=bn_epsilon,
+              layer=layer,
+              name="conv{}{}".format(
+                  idx_convnet + 1, layer_repeat_fixed + 1 - layer_repeat_moving),
+              inputs=conv_feats,
+              filters=ch_out,
+              kernel_size=kernel_size,
+              activation_fn=self.params['activation_fn'],
+              strides=strides,
+              padding=padding,
+              regularizer=regularizer,
+              training=training,
+              data_format=data_format,
+              bn_momentum=bn_momentum,
+              bn_epsilon=bn_epsilon,
           )
 
           outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
@@ -152,6 +153,6 @@ class Wave2LetterEncoder(Encoder):
       outputs = tf.transpose(outputs, [0, 2, 1])
 
     return {
-      'outputs': outputs,
-      'src_length': src_length,
+        'outputs': outputs,
+        'src_length': src_length,
     }
