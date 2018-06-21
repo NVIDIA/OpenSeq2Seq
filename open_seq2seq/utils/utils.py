@@ -250,10 +250,16 @@ def log_summaries_from_dict(dict_to_log, output_dir, step):
   # the first call to this function
   sm_writer = tf.summary.FileWriterCache.get(output_dir)
   for tag, value in dict_to_log.items():
-    sm_writer.add_summary(
-      tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
-      global_step=step,
-    )
+    if type(value) == type(tf.Summary.Value()):
+      sm_writer.add_summary(
+        tf.Summary(value=[value]),
+        global_step=step,
+      )
+    else:
+      sm_writer.add_summary(
+        tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
+        global_step=step,
+      )
     sm_writer.flush()
 
 

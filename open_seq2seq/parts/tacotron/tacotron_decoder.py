@@ -153,9 +153,9 @@ class TacotronDecoder(decoder.Decoder):
         # Do an attention rnn step with the decoder output and previous attention state
         attention_context, attention_state = self.attention_cell(state[1].h, state[0])
       # For the decoder rnn, the input is the (prenet) output + attention context + attention rnn state
-      # decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
+      decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
       # decoder_rnn_input = state[0].cell_state.h
-      decoder_rnn_input = array_ops.concat((inputs,attention_context, state[0].cell_state.h), axis=-1)
+      # decoder_rnn_input = array_ops.concat((inputs,attention_context, state[0].cell_state.h), axis=-1)
       cell_outputs, decoder_state = self.decoder_cell(decoder_rnn_input, state[1])
       cell_state = (attention_state, decoder_state)
       # Concatenate the decoder output and attention output and send it through a projection layer
