@@ -7,6 +7,7 @@ import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 from tensorflow.contrib.rnn import LSTMStateTuple
 from tensorflow.python.framework import ops
+from open_seq2seq.parts.rnns.utils import single_cell
 
 from .encoder import Encoder
 
@@ -41,26 +42,26 @@ def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
     output = activation_fn(output)
   return output
 
-def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
-  """Helper function that creates RNN cell."""
-  if layer_type == "layernorm_lstm":
-    cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
-      num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
-  else:
-    if layer_type == "lstm":
-      cell = tf.nn.rnn_cell.BasicLSTMCell(rnn_cell_dim)
-    elif layer_type == "gru":
-      cell = tf.nn.rnn_cell.GRUCell(rnn_cell_dim)
-    elif layer_type == "cudnn_gru":
-      cell = tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(rnn_cell_dim)
-    elif layer_type == "cudnn_lstm":
-      cell = tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(rnn_cell_dim)
-    else:
-      raise ValueError("Error: not supported rnn type:{}".format(layer_type))
+# def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
+#   """Helper function that creates RNN cell."""
+#   if layer_type == "layernorm_lstm":
+#     cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
+#       num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
+#   else:
+#     if layer_type == "lstm":
+#       cell = tf.nn.rnn_cell.BasicLSTMCell(rnn_cell_dim)
+#     elif layer_type == "gru":
+#       cell = tf.nn.rnn_cell.GRUCell(rnn_cell_dim)
+#     elif layer_type == "cudnn_gru":
+#       cell = tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(rnn_cell_dim)
+#     elif layer_type == "cudnn_lstm":
+#       cell = tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(rnn_cell_dim)
+#     else:
+#       raise ValueError("Error: not supported rnn type:{}".format(layer_type))
 
-    cell = tf.nn.rnn_cell.DropoutWrapper(
-      cell, output_keep_prob=dropout_keep_prob)
-  return cell
+#     cell = tf.nn.rnn_cell.DropoutWrapper(
+#       cell, output_keep_prob=dropout_keep_prob)
+#   return cell
 
 class Tacotron2Encoder(Encoder):
   """Tacotron-2 like encoder. 
@@ -78,7 +79,7 @@ class Tacotron2Encoder(Encoder):
       'num_rnn_layers': int,
       'rnn_cell_dim': int,
       'use_cudnn_rnn': bool,
-      'rnn_type': ['layernorm_lstm', 'lstm', 'gru', 'cudnn_gru', 'cudnn_lstm'],
+      'rnn_type': None,
       'rnn_unidirectional': bool,
     })
 
@@ -120,8 +121,7 @@ class Tacotron2Encoder(Encoder):
     * **enable_bn** (bool) --- whether to enable batch norm after each conv layer.
     * **num_rnn_layers** --- number of RNN layers to use.
     * **rnn_cell_dim** (int) --- dimension of RNN cells.
-    * **rnn_type** (string) --- could be "lstm", "gru", "cudnn_gru",
-      "cudnn_lstm" or "layernorm_lstm".
+    * **rnn_type** (callable) --- Any valid RNN Cell class. Suggested class is lstm
     * **rnn_unidirectional** (bool) --- whether to use uni-directional or
       bi-directional RNNs.
     * **use_bias** (bool) --- whether to enable a bias unit for the conv
@@ -219,81 +219,56 @@ class Tacotron2Encoder(Encoder):
     # Disable dropout for rnn layers, need to switch to zoneout
     dropout_keep_prob = 1.
     if num_rnn_layers > 0:
-      rnn_cell_dim = self.params['rnn_cell_dim']
+      cell_params = {}
+      cell_params["num_units"] = self.params['rnn_cell_dim']
       rnn_type = self.params['rnn_type']
-      if self.params['use_cudnn_rnn']:
-        # reshape to [B, T, C] --> [T, B, C]
-        rnn_input = tf.transpose(top_layer, [1, 0, 2])
-        if self.params['rnn_unidirectional']:
-          direction = cudnn_rnn_ops.CUDNN_RNN_UNIDIRECTION
-        else:
-          direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
+      rnn_input = top_layer
 
-        if rnn_type == "cudnn_gru" or rnn_type == "gru":
-          rnn_block = tf.contrib.cudnn_rnn.CudnnGRU(
-            num_layers=num_rnn_layers,
-            num_units=rnn_cell_dim,
-            direction=direction,
-            dropout=1.0 - dropout_keep_prob,
-            dtype=rnn_input.dtype,
-            name="cudnn_gru",
-          )
-        elif rnn_type == "cudnn_lstm" or rnn_type == "lstm":
-          rnn_block = tf.contrib.cudnn_rnn.CudnnLSTM(
-            num_layers=num_rnn_layers,
-            num_units=rnn_cell_dim,
-            direction=direction,
-            dropout=1.0 - dropout_keep_prob,
-            dtype=rnn_input.dtype,
-            name="cudnn_lstm",
-          )
-        else:
-          raise ValueError(
-            "{} is not a valid rnn_type for cudnn_rnn layers".format(rnn_type)
-          )
-        top_layer, state = rnn_block(rnn_input)
-        top_layer = tf.transpose(top_layer, [1, 0, 2])
+      multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
+        [single_cell(cell_class=rnn_type,
+                     cell_params=cell_params,
+                     dp_input_keep_prob=dropout_keep_prob,
+                     dp_output_keep_prob=dropout_keep_prob,
+                     residual_connections=False)
+         for _ in range(num_rnn_layers)]
+      )
+      if self.params['rnn_unidirectional']:
+        top_layer, state = tf.nn.dynamic_rnn(
+          cell=multirnn_cell_fw,
+          inputs=rnn_input,
+          sequence_length=src_length,
+          dtype=rnn_input.dtype,
+          time_major=False,
+        )
       else:
-        rnn_input = top_layer
-        multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
-          [rnn_cell(rnn_cell_dim=rnn_cell_dim, layer_type=rnn_type,
-                    dropout_keep_prob=dropout_keep_prob)
+        multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
+          [single_cell(cell_class=rnn_type,
+                       cell_params=cell_params,
+                       dp_input_keep_prob=dropout_keep_prob,
+                       dp_output_keep_prob=dropout_keep_prob,
+                       residual_connections=False)
            for _ in range(num_rnn_layers)]
         )
-        if self.params['rnn_unidirectional']:
-          top_layer, state = tf.nn.dynamic_rnn(
-            cell=multirnn_cell_fw,
-            inputs=rnn_input,
-            sequence_length=src_length,
-            dtype=rnn_input.dtype,
-            time_major=False,
-          )
-        else:
-          multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
-            [rnn_cell(rnn_cell_dim=rnn_cell_dim, layer_type=rnn_type,
-                      dropout_keep_prob=dropout_keep_prob)
-             for _ in range(num_rnn_layers)]
-          )
-          top_layer, state = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
-            inputs=rnn_input,
-            sequence_length=src_length,
-            dtype=rnn_input.dtype,
-            time_major=False
-          )
-          # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
-          top_layer = tf.concat(top_layer, 2)
+        top_layer, state = tf.nn.bidirectional_dynamic_rnn(
+          cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
+          inputs=rnn_input,
+          sequence_length=src_length,
+          dtype=rnn_input.dtype,
+          time_major=False
+        )
+        # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
+        top_layer = tf.concat(top_layer, 2)
 
-        if regularizer and training:
-          cell_weights = []
-          cell_weights += multirnn_cell_fw.trainable_variables
-          cell_weights += multirnn_cell_bw.trainable_variables
-          for weights in cell_weights:
-            if "bias" not in weights.name:
-              if weights.dtype.base_dtype == tf.float16:
-                tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
-              else:
-                tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+      if regularizer and training:
+        cell_weights = []
+        cell_weights += multirnn_cell_fw.trainable_variables
+        cell_weights += multirnn_cell_bw.trainable_variables
+        for weights in cell_weights:
+          if "bias" not in weights.name:
+            if weights.dtype.base_dtype == tf.float16:
+              tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+            else:
+              tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
 
     # -- end of rnn------------------------------------------------------------
 

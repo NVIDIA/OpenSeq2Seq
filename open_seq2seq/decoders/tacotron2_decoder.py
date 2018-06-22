@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 import copy
 import tensorflow as tf
 
-from open_seq2seq.parts.rnns.utils import create_rnn_cell
+from open_seq2seq.parts.rnns.utils import single_cell
 from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
                                                  LocationSensitiveAttention, \
                                                  AttentionWrapper
@@ -93,7 +93,7 @@ class Tacotron2Decoder(Decoder):
       'attention_type': ['bahdanau', 'location', None],
       'attention_rnn_enable': bool,
       'decoder_cell_units': int,
-      'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+      'decoder_cell_type': None,
       'decoder_layers': int,
       'num_audio_features': int,
       'scheduled_sampling_prob': float,
@@ -104,7 +104,7 @@ class Tacotron2Decoder(Decoder):
     return dict(Decoder.get_optional_params(), **{
       'attention_rnn_units': int,
       'attention_rnn_layers': int,
-      'attention_rnn_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+      'attention_rnn_cell_type': None,
       'bahdanau_normalize': bool,
       'luong_scale': bool,
       'decoder_use_skip_connections': bool,
@@ -151,13 +151,13 @@ class Tacotron2Decoder(Decoder):
       Defaults to 1024.
     * **attention_rnn_layers** (int) --- number of attention RNN layers to use if enabled.
       Defaults to 1.
-    * **attention_rnn_cell_type** (string) --- could be "lstm", "gru", "glstm", or "slstm".
+    * **attention_rnn_cell_type** (callable) --- Any valid RNN cell class.
       Currently, only 'lstm' has been tested. Defaults to 'lstm'.
     * **bahdanau_normalize** (bool) ---  Defaults to False.
     * **luong_scale** (bool) ---  Defaults to False.
     * **decoder_rnn_units** (int) --- dimension of decoder RNN cells.
     * **decoder_rnn_layers** (int) --- number of decoder RNN layers to use.
-    * **decoder_rnn_cell_type** (string) --- could be "lstm", "gru", "glstm", or "slstm".
+    * **decoder_rnn_cell_type** (callable) --- could be "lstm", "gru", "glstm", or "slstm".
       Currently, only 'lstm' has been tested. Defaults to 'lstm'.
     * **decoder_use_skip_connections** (bool) --- whether to use residual connections in the
       rnns. Defaults to False. True is not currently supported
@@ -367,15 +367,13 @@ class Tacotron2Decoder(Decoder):
 
     cell_params = {}
     cell_params["num_units"] = self.params['decoder_cell_units']
-    self._decoder_cells = create_rnn_cell(
-      cell_type=self.params['decoder_cell_type'],
-      cell_params=cell_params,
-      num_layers=self.params['decoder_layers'],
-      dp_input_keep_prob=dp_input_keep_prob,
-      dp_output_keep_prob=dp_output_keep_prob,
-      residual_connections=residual_connections,
-      wrap_to_multi_rnn=wrap_to_multi_rnn,
-    )
+    self._decoder_cells = [
+      single_cell(cell_class=self.params['decoder_cell_type'],
+                  cell_params=cell_params,
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  residual_connections=residual_connections
+                  ) for _ in range(self.params['decoder_layers'])]
 
     if self.params['attention_type'] is not None:
       attention_mechanism = self._build_attention(
@@ -384,23 +382,22 @@ class Tacotron2Decoder(Decoder):
         self.params.get("attention_bias", False)
       )
 
-      attention_cell = self._decoder_cells
       if self.params["attention_rnn_enable"]:
         attention_rnn_units = self.params.get('attention_rnn_units', 1024)
         attention_rnn_layers = self.params.get('attention_rnn_layers', 1)
-        cell_type = self.params.get('attention_rnn_cell_type', 'lstm')
+        cell_type = self.params.get('attention_rnn_cell_type', tf.nn.rnn_cell.LSTMCell)
         cell_params = {}
         cell_params["num_units"] = attention_rnn_units
-        self._attention_cells = create_rnn_cell(
-          cell_type=cell_type,
-          cell_params=cell_params,
-          num_layers=attention_rnn_layers,
-          dp_input_keep_prob=dp_input_keep_prob,
-          dp_output_keep_prob=dp_output_keep_prob,
-          residual_connections=residual_connections,
-          wrap_to_multi_rnn=wrap_to_multi_rnn,
-        )
-        attention_cell = self._attention_cells
+        self._attention_cells = [
+          single_cell(cell_class=cell_type,
+                      cell_params=cell_params,
+                      dp_input_keep_prob=dp_input_keep_prob,
+                      dp_output_keep_prob=dp_output_keep_prob,
+                      residual_connections=residual_connections
+                      ) for _ in range(attention_rnn_layers)]
+        attention_cell = tf.contrib.rnn.MultiRNNCell(self._attention_cells)
+      else:
+        attention_cell = tf.contrib.rnn.MultiRNNCell(self._decoder_cells)
 
       if self.params['attention_type'] == "bahdanau":
         if self.params["attention_rnn_enable"]:
@@ -430,14 +427,10 @@ class Tacotron2Decoder(Decoder):
         initial_state = decoder_cell.zero_state(
             _batch_size, dtype=encoder_outputs.dtype,
           )
-      else:
-        decoder_cell = self._decoder_cells
-        initial_state = self._decoder_cells.zero_state(
-            _batch_size, dtype=encoder_outputs.dtype,
-          )
-    else:
-      decoder_cell = self._decoder_cells
-      initial_state = self._decoder_cells.zero_state(_batch_size, tf.float32)
+
+    if self.params['attention_type'] is None or self.params["attention_rnn_enable"]:
+      decoder_cell = tf.contrib.rnn.MultiRNNCell(self._decoder_cells)
+      initial_state = decoder_cell.zero_state(_batch_size, dtype=encoder_outputs.dtype)
       # if self.params['decoder_layers'] == 1:
       #   initial_state = enc_state[0]
       # else:

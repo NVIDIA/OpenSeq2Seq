@@ -47,7 +47,7 @@ class SpeechUtilsTests(tf.test.TestCase):
       for num_features in [161, 120]:
         for window_stride in [10e-3, 5e-3, 40e-3]:
           for window_size in [20e-3, 30e-3]:
-            for features_type in ['spectrogram', 'mfcc']:
+            for features_type in ['spectrogram', 'mfcc', 'logfbank']:
               fs, signal = wave.read(filename)
               n_window_size = int(fs * window_size)
               n_window_stride = int(fs * window_stride)

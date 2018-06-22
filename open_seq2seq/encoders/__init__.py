@@ -12,3 +12,4 @@ from .transformer_encoder import TransformerEncoder
 from .ds2_encoder import DeepSpeech2Encoder
 from .resnet_encoder import ResNetEncoder
 from .tacotron2_encoder import Tacotron2Encoder
+from .w2l_encoder import Wave2LetterEncoder

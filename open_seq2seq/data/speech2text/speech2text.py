@@ -20,7 +20,7 @@ class Speech2TextDataLayer(DataLayer):
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
       'num_audio_features': int,
-      'input_type': ['spectrogram', 'mfcc'],
+      'input_type': ['spectrogram', 'mfcc', 'logfbank'],
       'vocab_file': str,
       'dataset_files': list,
     })
