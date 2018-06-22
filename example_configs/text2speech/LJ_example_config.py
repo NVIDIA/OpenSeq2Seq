@@ -11,9 +11,9 @@ base_model = Text2Speech
 
 output_type = "mel"
 
-if output_type == "spectrogram":
+if output_type == "magnitude":
   num_audio_features = 513
-  output_type = "spectrogram_disk"
+  output_type = "magnitude_disk"
 elif output_type == "mel":
   num_audio_features = 80
   output_type = "mel_disk"
@@ -153,52 +153,41 @@ base_params = {
   "loss_params": {
     "use_mask": True
   },
-}
 
-train_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
     "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
+    "mag_power": 2,
+    "pad_EOS": True
+  },
+}
+
+train_params = {
+  "data_layer_params": {
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
     ],
-    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": True,
-    "mag_power": 2,
-    "pad_EOS": True
   },
 }
 
 eval_params = {
-  "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
-    "num_audio_features": num_audio_features,
-    "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/new_val.csv",
     ],
-    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
-    "mag_power": 2,
-    "pad_EOS": True
   },
 }
 
 infer_params = {
-  "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
-    "num_audio_features": num_audio_features,
-    "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/test.csv",
     ],
-    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
-    "mag_power": 2,
-    "pad_EOS": True
   },
 }

@@ -10,10 +10,13 @@ import math
 
 
 def get_speech_features_from_file(filename, num_features, pad_to=8,
-                                  features_type='spectrogram',
+                                  features_type='magnitude',
                                   window_size=1024,
                                   window_stride=256,
-                                  mag_power=2):
+                                  mag_power=2,
+                                  feature_normalize=False,
+                                  mean = 0,
+                                  std = 1):
   """
   :param filename: WAVE filename
   :param num_features: number of speech features in frequency domain
@@ -27,18 +30,22 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
   :return: (num_time_steps, num_features) NumPy array
   """
   # load audio signal
-  if features_type == "mel" or features_type=='spectrogram':
+  if features_type == "mel" or features_type=='magnitude':
     signal, fs = librosa.core.load(filename, sr=None)
   return get_speech_features(
     signal, fs, num_features, pad_to, features_type,
-    window_size, window_stride, mag_power
+    window_size, window_stride, mag_power, 
+    feature_normalize, mean, std
   )
 
 def get_speech_features(signal, fs, num_features, pad_to=8,
-                        features_type='spectrogram',
+                        features_type='magnitude',
                         n_window_size=1024,
                         n_window_stride=256,
-                        mag_power=2):
+                        mag_power=2, 
+                        feature_normalize=False,
+                        mean = 0,
+                        std = 1):
   """
   :param signal: np.array containing raw audio signal
   :param fs: float, frames per second
@@ -67,7 +74,7 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
       # pad_size = (pad_to - length % pad_to) * n_window_stride
       # signal = np.pad(signal, (0, pad_size), mode='reflect')
 
-  if features_type == 'spectrogram':
+  if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal,
                                 n_fft=n_window_size)
     mag, _ = librosa.magphase(complex_spec, power=mag_power)
@@ -89,9 +96,13 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
+  if feature_normalize:
+    features = normalize(features, mean, std)
+
   return features
 
-def get_mel(log_mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
+def get_mel(log_mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.,
+            feature_normalize=False, mean=0, std=1):
   """
   Method to get mel spectrograms from saved energy spectrograms
   """
@@ -100,9 +111,12 @@ def get_mel(log_mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
   mag_spec = np.power(mag_spec, power)
   mel_spec = np.dot(mag_spec, mel_basis.T)
   mel_spec = np.log(np.clip(mel_spec, a_min=1e-5, a_max=None))
+  if feature_normalize:
+    mel_spec = normalize(mel_spec, mean, std)
   return mel_spec
 
-def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
+def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2., 
+               feature_normalize=False, mean=0, std=1):
   """
   Very hacky method to reconstruct mag spec from mel
   """
@@ -111,4 +125,12 @@ def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2.):
   mag_spec = np.dot(mel_spec, mel_basis)
   mag_spec = np.power(mag_spec, 1./power)
   mag_spec = mag_spec * 32
+  if feature_normalize:
+    mag_spec = normalize(mag_spec, mean, std)
   return mag_spec
+
+def normalize(features, mean, std):
+  return (features - mean) / std
+
+def denormalize(features, mean, std):
+  return features * std + mean

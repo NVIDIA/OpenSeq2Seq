@@ -12,7 +12,7 @@ import tensorflow as tf
 import pandas as pd
 
 from open_seq2seq.data.data_layer import DataLayer
-from .speech_utils import get_speech_features_from_file, get_mel
+from .speech_utils import get_speech_features_from_file, get_mel, inverse_mel, normalize, denormalize
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
@@ -28,6 +28,7 @@ class Text2SpeechDataLayer(DataLayer):
       'vocab_file': str,
       'dataset_files': list,
       'dataset_location': str,
+      'feature_normalize': bool,
     })
 
   @staticmethod
@@ -35,7 +36,9 @@ class Text2SpeechDataLayer(DataLayer):
     return dict(DataLayer.get_optional_params(), **{
       'pad_to': int,
       'mag_power': int,
-      'pad_EOS': bool
+      'pad_EOS': bool,
+      'feature_normalize_mean': float,
+      'feature_normalize_std': float
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -199,14 +202,30 @@ class Text2SpeechDataLayer(DataLayer):
     if self.load_from_disk:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
       spectrogram = np.load(file_path)
+      mag_power = self.params.get('mag_power', 2)
+      if mag_power != 1:
+        spectrogram = spectrogram * mag_power
+        spectrogram = np.clip(spectrogram, a_min=np.log(1e-5), a_max=None)
       if self.mel:
-        spectrogram = get_mel(spectrogram)
+        spectrogram = get_mel(spectrogram, power=mag_power,
+                              feature_normalize=self.params["feature_normalize"],
+                              mean=self.params.get("feature_normalize_mean", 0.),
+                              std=self.params.get("feature_normalize_std", 1.)
+                             )
+      # Else it is a magnitude spec, and we need to normalize
+      elif self.params["feature_normalize"]:
+        spectrogram = normalize(spectrogram,
+                                mean=self.params.get("feature_normalize_mean", 0.),
+                                std=self.params.get("feature_normalize_std", 0.))
     else:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".wav")
       spectrogram = get_speech_features_from_file(
         file_path, self.params['num_audio_features'], pad_to,
         features_type=self.params['output_type'],
         mag_power=self.params.get('mag_power', 2),
+        feature_normalize=self.params["feature_normalize"],
+        mean=self.params.get("feature_normalize_mean", 0.),
+        std=self.params.get("feature_normalize_std", 1.)
       )
     if self.params.get("pad_EOS", True):
       spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
@@ -244,3 +263,28 @@ class Text2SpeechDataLayer(DataLayer):
   def get_size_in_samples(self):
     """Returns the number of audio files."""
     return len(self._files)
+
+  def inverse_mel(self, spectrogram):
+    """Converts mel spectrogram to magnitude spectrogram
+
+    Args:
+      spectrogram: mel spec
+
+    Returns:
+      mag_spec: mag spec
+    """
+    return inverse_mel(spectrogram, 
+                       n_mels=self.params['num_audio_features'],
+                       power=self.params.get('mag_power', 2),
+                       feature_normalize=self.params["feature_normalize"],
+                       mean=self.params.get("feature_normalize_mean", 0.),
+                       std=self.params.get("feature_normalize_std", 1.))
+
+  def denormalize(self, spectrogram):
+    if self.params["feature_normalize"]:
+      return denormalize(spectrogram,
+                         mean=self.params.get("feature_normalize_mean", 0.),
+                         std=self.params.get("feature_normalize_std", 1.))
+    else:
+      return spectrogram
+
