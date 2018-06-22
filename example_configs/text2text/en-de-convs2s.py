@@ -31,8 +31,8 @@ base_params = {
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 250, #5000,
-  "save_checkpoint_steps": 500, #1000,
+  "eval_steps": 5000,
+  "save_checkpoint_steps": 1000,
   "logdir": "ReadData-CC",
 
   "optimizer": "Adam",
