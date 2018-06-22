@@ -22,7 +22,7 @@ elif output_type == "mel":
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 500,
+  "num_epochs": 1000,
 
   "num_gpus": 4,
   # 'gpu_ids': [1],
@@ -33,6 +33,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
+  "save_to_tensorboard": True,
   "logdir": "result/tacotron-LJ-example",
   "max_grad_norm":1.,
 

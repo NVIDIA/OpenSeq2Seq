@@ -6,6 +6,7 @@ from six.moves import range
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 from tensorflow.contrib.rnn import LSTMStateTuple
+from tensorflow.python.framework import ops
 
 from .encoder import Encoder
 
@@ -283,13 +284,17 @@ class Tacotron2Encoder(Encoder):
           # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
           top_layer = tf.concat(top_layer, 2)
 
-        if regularizer:
-          for weights in multirnn_cell_fw.trainable_weights:
+        if regularizer and training:
+          cell_weights = []
+          cell_weights += multirnn_cell_fw.trainable_variables
+          cell_weights += multirnn_cell_bw.trainable_variables
+          for weights in cell_weights:
             if "bias" not in weights.name:
               if weights.dtype.base_dtype == tf.float16:
                 tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
               else:
-                tf.add_to_collection('REGULARIZATION_LOSSES', regularizer(weights))
+                tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+
     # -- end of rnn------------------------------------------------------------
 
     outputs = top_layer

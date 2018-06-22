@@ -15,6 +15,7 @@ from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
 from .decoder import Decoder
 from open_seq2seq.parts.tacotron.tacotron_helper import TacotronHelper, TacotronTrainingHelper
 from open_seq2seq.parts.tacotron.tacotron_decoder import TacotronDecoder
+from tensorflow.python.framework import ops
 # from open_seq2seq.parts.tacotron.decoder import dynamic_decode
 # from tensorflow.contrib.rnn import LSTMStateTuple
 
@@ -50,7 +51,7 @@ def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
   return output
 
 class Prenet():
-  def __init__(self, num_units, num_layers, activation_fn=None, regularizer=None):
+  def __init__(self, num_units, num_layers, activation_fn=None):
     assert(num_layers > 0), "If the prenet is enabled, there must be at least 1 layer"
     self.prenet_layers=[]
     self._output_size = num_units
@@ -61,7 +62,6 @@ class Prenet():
         units=num_units,
         activation=activation_fn,
         use_bias=False,
-        kernel_regularizer=regularizer
       ))
   
   def __call__(self, inputs):
@@ -72,7 +72,15 @@ class Prenet():
   @property
   def output_size(self):
     return self._output_size
-  
+
+  def add_regularization(self, regularizer):
+    for layer in self.prenet_layers:
+      for weights in layer.trainable_variables:
+        if "bias" not in weights.name:
+          if weights.dtype.base_dtype == tf.float16:
+            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+          else:
+            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
 
 class Tacotron2Decoder(Decoder):
   """
@@ -342,10 +350,10 @@ class Tacotron2Decoder(Decoder):
     self.target_projection_layer = tf.layers.Dense(
       1, use_bias=True
     )
-
+    
     prenet = None
     if enable_prenet:
-      prenet = Prenet(prenet_units, prenet_layers, prenet_activation, None)
+      prenet = Prenet(prenet_units, prenet_layers, prenet_activation)
 
     if self._mode == "train":
       dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
@@ -542,6 +550,26 @@ class Tacotron2Decoder(Decoder):
 
     else:
       top_layer = tf.zeros([_batch_size, maximum_iterations, final_outputs.rnn_output.get_shape()[-1]])
+
+    if regularizer and training:
+      variables_to_regularize = []
+      variables_to_regularize += self.output_projection_layer.trainable_variables
+      variables_to_regularize += self.target_projection_layer.trainable_variables
+      variables_to_regularize += attentive_cell.trainable_variables
+      variables_to_regularize += attention_mechanism.memory_layer.trainable_variables
+      if self.params["attention_rnn_enable"]:
+        variables_to_regularize += decoder_cell.trainable_variables
+
+      for weights in variables_to_regularize:
+        if "bias" not in weights.name:
+          if weights.dtype.base_dtype == tf.float16:
+            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+          else:
+            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+      if enable_prenet:
+        prenet.add_regularization(regularizer)
+
+
     if self.params['attention_type'] is not None:
       if self.params['attention_rnn_enable']:
         alignments = tf.transpose(final_state[0].alignment_history.stack(), [1,0,2])
