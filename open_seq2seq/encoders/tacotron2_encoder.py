@@ -8,39 +8,41 @@ from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 from tensorflow.contrib.rnn import LSTMStateTuple
 from tensorflow.python.framework import ops
 from open_seq2seq.parts.rnns.utils import single_cell
+from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
+
 
 from .encoder import Encoder
 
-def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
-                   padding, regularizer, training, use_bias, data_format, 
-                   enable_bn, bn_momentum, bn_epsilon):
-  """Helper function that applies 1-D convolution, batch norm and activation."""
-  conv = tf.layers.conv1d(
-    name="{}".format(name),
-    inputs=inputs,
-    filters=filters,
-    kernel_size=kernel_size,
-    strides=strides,
-    padding=padding,
-    kernel_regularizer=regularizer,
-    use_bias=use_bias,
-    data_format=data_format,
-  )
-  output = conv
-  if enable_bn:
-    bn = tf.layers.batch_normalization(
-      name="{}/bn".format(name),
-      inputs=conv,
-      gamma_regularizer=regularizer,
-      training=training,
-      axis=-1 if data_format == 'channels_last' else 1,
-      momentum=bn_momentum,
-      epsilon=bn_epsilon,
-    )
-    output = bn
-  if activation_fn is not None:
-    output = activation_fn(output)
-  return output
+# def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
+#                    padding, regularizer, training, use_bias, data_format, 
+#                    enable_bn, bn_momentum, bn_epsilon):
+#   """Helper function that applies 1-D convolution, batch norm and activation."""
+#   conv = tf.layers.conv1d(
+#     name="{}".format(name),
+#     inputs=inputs,
+#     filters=filters,
+#     kernel_size=kernel_size,
+#     strides=strides,
+#     padding=padding,
+#     kernel_regularizer=regularizer,
+#     use_bias=use_bias,
+#     data_format=data_format,
+#   )
+#   output = conv
+#   if enable_bn:
+#     bn = tf.layers.batch_normalization(
+#       name="{}/bn".format(name),
+#       inputs=conv,
+#       gamma_regularizer=regularizer,
+#       training=training,
+#       axis=-1 if data_format == 'channels_last' else 1,
+#       momentum=bn_momentum,
+#       epsilon=bn_epsilon,
+#     )
+#     output = bn
+#   if activation_fn is not None:
+#     output = activation_fn(output)
+#   return output
 
 # def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
 #   """Helper function that creates RNN cell."""
@@ -149,7 +151,7 @@ class Tacotron2Encoder(Encoder):
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
-    use_bias = self.params.get('use_bias', True)
+    # use_bias = self.params.get('use_bias', True)
     data_format = self.params.get('data_format', 'channels_last')
     bn_momentum = self.params.get('bn_momentum', 0.1)
     bn_epsilon = self.params.get('bn_epsilon', 1e-5)
@@ -193,7 +195,8 @@ class Tacotron2Encoder(Encoder):
       else:
         src_length = (src_length + strides[0] - 1) // strides[0]
 
-      top_layer = conv1d_bn_actv(
+      top_layer = conv_bn_actv(
+        type="conv1d",
         name="conv{}".format(idx_conv + 1),
         inputs=top_layer,
         filters=ch_out,
@@ -204,8 +207,6 @@ class Tacotron2Encoder(Encoder):
         regularizer=regularizer,
         training=training,
         data_format=data_format,
-        use_bias=use_bias,
-        enable_bn = self.params['enable_bn'],
         bn_momentum=bn_momentum,
         bn_epsilon=bn_epsilon,
       )

@@ -15,40 +15,41 @@ from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
 from .decoder import Decoder
 from open_seq2seq.parts.tacotron.tacotron_helper import TacotronHelper, TacotronTrainingHelper
 from open_seq2seq.parts.tacotron.tacotron_decoder import TacotronDecoder
+from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
 from tensorflow.python.framework import ops
 # from open_seq2seq.parts.tacotron.decoder import dynamic_decode
 # from tensorflow.contrib.rnn import LSTMStateTuple
 
-def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
-                   padding, regularizer, training, use_bias, data_format, 
-                   enable_bn, bn_momentum, bn_epsilon):
-  """Helper function that applies 1-D convolution, batch norm and activation."""
-  conv = tf.layers.conv1d(
-    name="{}".format(name),
-    inputs=inputs,
-    filters=filters,
-    kernel_size=kernel_size,
-    strides=strides,
-    padding=padding,
-    kernel_regularizer=regularizer,
-    use_bias=use_bias,
-    data_format=data_format,
-  )
-  output = conv
-  if enable_bn:
-    bn = tf.layers.batch_normalization(
-      name="{}/bn".format(name),
-      inputs=conv,
-      gamma_regularizer=regularizer,
-      training=training,
-      axis=-1 if data_format == 'channels_last' else 1,
-      momentum=bn_momentum,
-      epsilon=bn_epsilon,
-    )
-    output = bn
-  if activation_fn is not None:
-    output = activation_fn(output)
-  return output
+# def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
+#                    padding, regularizer, training, use_bias, data_format, 
+#                    enable_bn, bn_momentum, bn_epsilon):
+#   """Helper function that applies 1-D convolution, batch norm and activation."""
+#   conv = tf.layers.conv1d(
+#     name="{}".format(name),
+#     inputs=inputs,
+#     filters=filters,
+#     kernel_size=kernel_size,
+#     strides=strides,
+#     padding=padding,
+#     kernel_regularizer=regularizer,
+#     use_bias=use_bias,
+#     data_format=data_format,
+#   )
+#   output = conv
+#   if enable_bn:
+#     bn = tf.layers.batch_normalization(
+#       name="{}/bn".format(name),
+#       inputs=conv,
+#       gamma_regularizer=regularizer,
+#       training=training,
+#       axis=-1 if data_format == 'channels_last' else 1,
+#       momentum=bn_momentum,
+#       epsilon=bn_epsilon,
+#     )
+#     output = bn
+#   if activation_fn is not None:
+#     output = activation_fn(output)
+#   return output
 
 class Prenet():
   def __init__(self, num_units, num_layers, activation_fn=None):
@@ -505,8 +506,8 @@ class Tacotron2Decoder(Decoder):
 
     ## Add the post net ##
     if self.params.get('enable_postnet', True):
-      enable_postnet_bn = self.params.get('enable_postnet_bn', True)
-      use_bias = self.params.get('postnet_use_bias', True)
+      # enable_postnet_bn = self.params.get('enable_postnet_bn', True)
+      # use_bias = self.params.get('postnet_use_bias', True)
       dropout_keep_prob = self.params.get('postnet_keep_dropout_prob', 0.5)
 
       conv_layers = self.params['postnet_conv_layers']
@@ -523,7 +524,8 @@ class Tacotron2Decoder(Decoder):
         else:
           final_sequence_lengths = (final_sequence_lengths + strides[0] - 1) // strides[0]
 
-        top_layer = conv1d_bn_actv(
+        top_layer = conv_bn_actv(
+          type="conv1d",
           name="conv{}".format(idx_conv + 1),
           inputs=top_layer,
           filters=ch_out,
@@ -533,9 +535,7 @@ class Tacotron2Decoder(Decoder):
           padding=padding,
           regularizer=regularizer,
           training=training,
-          use_bias=use_bias,
           data_format=data_format,
-          enable_bn=enable_postnet_bn,
           bn_momentum=bn_momentum,
           bn_epsilon=bn_epsilon,
         )

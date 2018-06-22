@@ -17,8 +17,7 @@ from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
 class Text2SpeechDataLayer(DataLayer):
-  """Text-to-speech data layer class, that uses ``tf.data`` API.
-  This is a recommended class to use in real experiments.
+  """Text-to-speech data layer class
   """
   @staticmethod
   def get_required_params():
@@ -42,7 +41,7 @@ class Text2SpeechDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
-    """Text-to-speech ``tf.data`` based data layer constructor.
+    """Text-to-speech data layer constructor.
 
     See parent class for arguments description.
 
@@ -123,7 +122,7 @@ class Text2SpeechDataLayer(DataLayer):
     return self._iterator
 
   def build_graph(self):
-    """Builds data reading graph using ``tf.data`` API."""
+    """Builds data reading graph."""
     self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle']:
       self._dataset = self._dataset.shuffle(self._size)

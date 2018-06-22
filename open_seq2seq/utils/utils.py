@@ -246,11 +246,23 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
 
 
 def log_summaries_from_dict(dict_to_log, output_dir, step):
-  # this returns the same writer as was created by
-  # the first call to this function
+  """
+  A function that writes values from dict_to_log to a tensorboard
+  log file inside output_dir.
+
+  Args:
+    dict_to_log (dict):
+      A dictiontary containing the tags and scalar values to log.
+      The dictionary values could also contain tf.Summary.Value objects
+      to support logging of image and audio data. In this mode, the
+      dictionary key is ignored, as tf.Summary.Value already contains a
+      tag.
+    output_dir (str)
+    step (int)
+  """
   sm_writer = tf.summary.FileWriterCache.get(output_dir)
   for tag, value in dict_to_log.items():
-    if type(value) == type(tf.Summary.Value()):
+    if isinstance(value, tf.Summary.Value):
       sm_writer.add_summary(
         tf.Summary(value=[value]),
         global_step=step,
