@@ -17,10 +17,10 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 7
+num_layers = 15
 d_model = 512
 batch_size = 64
-num_gpus = 1
+num_gpus = 4
 epoch_num = 10
 
 base_params = {
@@ -84,7 +84,7 @@ base_params = {
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
-    #"pad_embeddings_2_eight": False,
+    "pad_embeddings_2_eight": False,
     "out_emb_size": d_model,
 
     "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
@@ -120,10 +120,10 @@ train_params = {
     "pad_vocab_to_eight": False,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    # "source_file": data_root+"train.tok.clean.bpe.32000.en",
-    # "target_file": data_root+"train.tok.clean.bpe.32000.de",
-    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
-    "target_file": data_root+"newstest2014.tok.bpe.32000.de",
+    "source_file": data_root+"train.tok.clean.bpe.32000.en",
+    "target_file": data_root+"train.tok.clean.bpe.32000.de",
+    # "source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    # "target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
