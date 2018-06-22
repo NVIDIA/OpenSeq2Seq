@@ -35,7 +35,7 @@ def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn, stride
   )
 
   # trick to make batchnorm work for mixed precision training.
-  # To-Do check if batchnorm works smoothly for >4 dimensional tensors to support conv3d
+  # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
   if type == "conv1d":
     conv = tf.expand_dims(conv, axis=1)  # NWC --> NHWC
@@ -53,5 +53,8 @@ def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn, stride
 
   if squeeze:
     bn = tf.squeeze(bn, axis=1)
-  output = activation_fn(bn)
+
+  output = bn
+  if activation_fn is not None:
+    output = activation_fn(output)
   return output
