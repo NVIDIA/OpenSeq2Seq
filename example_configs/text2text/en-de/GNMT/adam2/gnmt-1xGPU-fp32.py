@@ -57,6 +57,7 @@ base_params = {
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": True,
     "src_emb_size": 1024,
+    "use_swap_memory": True,
   },
 
   "decoder": RNNDecoderWithAttention,
@@ -71,7 +72,7 @@ base_params = {
         "num_units": 1024,
         "forget_bias": 1.0,
     },
-
+    "use_swap_memory": True,
     "decoder_layers": 8,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
@@ -136,6 +137,7 @@ infer_params = {
     "core_cell_params": {
       "num_units": 1024,
     },
+    "use_swap_memory": True,
     "decoder_layers": 8,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
