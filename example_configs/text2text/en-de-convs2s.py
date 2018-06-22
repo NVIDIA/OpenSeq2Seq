@@ -125,7 +125,7 @@ train_params = {
     # "source_file": data_root+"newstest2014.tok.bpe.32000.en",
     # "target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False,
+    "shuffle": True,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
