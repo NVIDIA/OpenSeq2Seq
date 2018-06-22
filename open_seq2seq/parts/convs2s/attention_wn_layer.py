@@ -53,14 +53,18 @@ class AttentionLayerNormalized(tf.layers.Layer):
     d_proj = (h_proj + target_embed) * math.sqrt(0.5)
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
 
-    #att_score = tf.cast(x=att_score, dtype=tf.float32)
+
+    # Masking need to be done in float32. Added to support mixed-precision training.
+    att_score = tf.cast(x=att_score, dtype=tf.float32)
+
     # mask out the paddings
     if input_attention_bias is not None:
       att_score = att_score + input_attention_bias
 
     att_score = tf.nn.softmax(att_score)
 
-    #att_score = tf.cast(x=att_score, dtype=encoder_output_b.dtype)
+    # Cast back to original type
+    att_score = tf.cast(x=att_score, dtype=encoder_output_b.dtype)
 
     length = tf.cast(tf.shape(encoder_output_b), encoder_output_b.dtype)
     output = tf.matmul(att_score, encoder_output_b) * \

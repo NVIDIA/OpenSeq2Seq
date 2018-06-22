@@ -17,7 +17,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 15
+num_layers = 7
 d_model = 512
 batch_size = 64
 num_gpus = 4
@@ -32,7 +32,7 @@ base_params = {
   "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 5000,
-  "save_checkpoint_steps": 1000,
+  "save_checkpoint_steps": 100, #1000,
   "logdir": "ReadData-CC",
 
   "optimizer": "Adam",
@@ -55,7 +55,7 @@ base_params = {
   "max_grad_norm": 0.1,
   "dtype": tf.float32,
   #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -120,10 +120,10 @@ train_params = {
     "pad_vocab_to_eight": False,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root+"train.tok.clean.bpe.32000.en",
-    "target_file": data_root+"train.tok.clean.bpe.32000.de",
-    # "source_file": data_root+"newstest2014.tok.bpe.32000.en",
-    # "target_file": data_root+"newstest2014.tok.bpe.32000.de",
+    # "source_file": data_root+"train.tok.clean.bpe.32000.en",
+    # "target_file": data_root+"train.tok.clean.bpe.32000.de",
+    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    "target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
     "shuffle": True,
     "repeat": True,
