@@ -46,7 +46,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
 
       self.W = tf.reshape(self.g, [1, 1, 2*out_dim]) * tf.nn.l2_normalize(self.V, [0, 1])
 
-  def call(self, x):
+  def call(self, input):
     """Applies convolution with gated linear units on x.
 
     Args:
@@ -54,7 +54,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     Returns:
       float32 tensor with shape [batch_size, length, out_dim].
     """
-
+    x = input
     if self.mode == "train":
       x = tf.nn.dropout(x, self.hidden_dropout)
 

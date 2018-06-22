@@ -29,7 +29,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
 
     with tf.variable_scope(var_scope_name):
       V_initializer = tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim))
-      self.V = tf.get_variable('V', shape=[int(in_dim), out_dim], initializer=V_initializer, trainable=True)
+      self.V = tf.get_variable('V', shape=[in_dim , out_dim], initializer=V_initializer, trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=0)
       self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
       self.b = tf.get_variable('b', shape=[out_dim], initializer=tf.zeros_initializer(), trainable=True)

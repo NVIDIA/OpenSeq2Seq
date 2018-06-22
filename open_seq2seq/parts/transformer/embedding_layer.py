@@ -26,11 +26,14 @@ from . import utils as model_utils
 class EmbeddingSharedWeights(tf.layers.Layer):
   """Calculates input embeddings and pre-softmax linear with shared weights."""
 
-  def __init__(self, vocab_size, hidden_size, pad_vocab_to_eight=False, init_var=None, embed_scale=True, pad_sym=0):
+  def __init__(self, vocab_size, hidden_size, pad_vocab_to_eight=False, init_var=None,
+               embed_scale=True, pad_sym=0, mask_paddings=True):
     super(EmbeddingSharedWeights, self).__init__()
     self.hidden_size = hidden_size
     self.embed_scale = embed_scale
     self.pad_sym = pad_sym
+    self.mask_paddings = mask_paddings
+
     padf = lambda x: x if x % 8 == 0 else x + 8 - x % 8
     if pad_vocab_to_eight:
       self.vocab_size = padf(vocab_size)
@@ -67,13 +70,14 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         # Scale embedding by the sqrt of the hidden size
         embeddings *= self.hidden_size ** 0.5
 
-      # Create binary array of size [batch_size, length]
-      # where 1 = padding, 0 = not padding
-      padding = model_utils.get_padding(x, padding_value=self.pad_sym)
+      if self.mask_paddings:
+        # Create binary array of size [batch_size, length]
+        # where 1 = padding, 0 = not padding
+        padding = model_utils.get_padding(x, padding_value=self.pad_sym)
 
-      # Set all padding embedding values to 0
-      #embeddings *= tf.expand_dims(1 - padding, -1)
-      embeddings *= tf.cast(tf.expand_dims(1 - padding, -1), dtype=embeddings.dtype)
+        # Set all padding embedding values to 0
+        #embeddings *= tf.expand_dims(1 - padding, -1)
+        embeddings *= tf.cast(tf.expand_dims(1.0 - padding, -1), dtype=embeddings.dtype)
       return embeddings
 
   def linear(self, x):

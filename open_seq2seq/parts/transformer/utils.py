@@ -119,4 +119,3 @@ def get_padding_bias(x, res_rank=4, pad_sym=0):
     else:
       raise ValueError("res_rank should be 3 or 4 but got {}".format(res_rank))
   return attention_bias
-
