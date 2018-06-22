@@ -160,8 +160,11 @@ base_params = {
     "output_type": output_type,
     "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
-    "mag_power": 2,
+    "mag_power": 1.,
     "pad_EOS": True
+    "feature_normalize": False,
+    "feature_normalize_mean": 0.,
+    "feature_normalize_std": 1.,
   },
 }
 
