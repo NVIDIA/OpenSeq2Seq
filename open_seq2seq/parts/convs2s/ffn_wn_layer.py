@@ -53,4 +53,3 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     output = tf.reshape(scaler, [1, self.out_dim]) * output + tf.reshape(self.b, [1, self.out_dim])
 
     return output
-
