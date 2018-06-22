@@ -59,6 +59,7 @@ class Model:
       'save_summaries_steps': None,  # could be int or None
       'print_loss_steps': None,  # could be int or None
       'print_samples_steps': None,  # could be int or None
+      'print_bench_info_steps': None,  # could be int or None
       'save_checkpoint_steps': None,  # could be int or None
       'eval_steps': int,
 
@@ -81,6 +82,7 @@ class Model:
       'larc_params': dict,
       'loss_scaling': None,  # float, "Backoff" or "LogMax"
       'summaries': list,
+      'iter_size': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -124,6 +126,11 @@ class Model:
     * **print_samples_steps** (int or None) --- how often to print training
       samples (input sequences, correct answers and model predictions).
       Setting it to None disables samples printing.
+    * **print_bench_info_steps** (int or None) --- how often to print training
+      benchmarking information (average number of objects processed per step).
+      Setting it to None disables intermediate benchmarking printing, but
+      the average information across the whole training will always be printed
+      after the last iteration.
     * **save_checkpoint_steps** (int or None) --- how often to save model
       checkpoints. Setting it to None disables checkpoint saving.
     * **eval_steps** (int) --- how often to run evaluation during training.
@@ -167,6 +174,9 @@ class Model:
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
+    * **iter_size** (int) --- use this parameter to emulate large batches.
+      The gradients will be accumulated for ``iter_size`` number of steps before
+      applying update.
     * **larc_params** --- dictionary with parameters for LARC (or LARS)
       optimization algorithms. Can contain the following parameters:
 
@@ -182,6 +192,9 @@ class Model:
     check_params(params, self.get_required_params(), self.get_optional_params())
 
     self._params = copy.deepcopy(params)
+
+    if self._params.get('iter_size', 1) > 1 and hvd is None:
+      raise ValueError("iter_size is only supported in Horovod mode")
 
     # parameter checks
     self._mode = mode
@@ -204,6 +217,8 @@ class Model:
       self._params['save_checkpoint_steps'] = None
     if 'save_summaries_steps' not in self._params:
       self._params['save_summaries_steps'] = None
+    if 'print_bench_info_steps' not in self._params:
+      self._params['print_bench_info_steps'] = None
 
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
@@ -269,16 +284,21 @@ class Model:
           self._steps_in_epoch //= self._hvd.size()
         else:
           self._steps_in_epoch //= self.num_gpus
+        self._steps_in_epoch //= self._params.get('iter_size', 1)
+        if self._steps_in_epoch == 0:
+          raise ValueError("Overall batch size is too big for this dataset.")
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     if self.on_horovod:
       self._output = None
     else:
       self._outputs = [None] * self.num_gpus
+
     self.loss = None
     self.train_op = None
     self.eval_losses = None
     self._num_objects_per_step = None
+    self.skip_update_ph = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -365,6 +385,9 @@ class Model:
         lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,
                                                         **lr_params)
 
+      if self.params.get('iter_size', 1) > 1:
+        self.skip_update_ph = tf.placeholder(tf.bool)
+
       self.train_op = optimize_loss(
         loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
@@ -376,6 +399,8 @@ class Model:
         larc_params=self.params.get('larc_params', None),
         loss_scaling=self.params.get('loss_scaling', 1.0),
         on_horovod=self.on_horovod,
+        iter_size=self.params.get('iter_size', 1),
+        skip_update_ph=self.skip_update_ph,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:

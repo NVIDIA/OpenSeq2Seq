@@ -80,22 +80,23 @@ class Text2Text(EncoderDecoderModel):
     input_strings, output_strings = [], []
     input_values = input_values['source_tensors']
     for input_sample, output_sample in zip(input_values, output_values):
-      output_strings.append(text_ids_to_string(
-        output_sample[0],
-        self.get_data_layer().params['target_idx2seq'],
-        S_ID=self.decoder.params['GO_SYMBOL'],
-        EOS_ID=self.decoder.params['END_SYMBOL'],
-        PAD_ID=self.decoder.params['PAD_SYMBOL'],
-        ignore_special=True, delim=' ',
-      ))
-      input_strings.append(text_ids_to_string(
-        input_sample[0],
-        self.get_data_layer().params['source_idx2seq'],
-        S_ID=self.decoder.params['GO_SYMBOL'],
-        EOS_ID=self.decoder.params['END_SYMBOL'],
-        PAD_ID=self.decoder.params['PAD_SYMBOL'],
-        ignore_special=True, delim=' ',
-      ))
+      for i in range(0, input_sample.shape[0]): # iterate over batch dimension
+        output_strings.append(text_ids_to_string(
+          output_sample[i],
+          self.get_data_layer().params['target_idx2seq'],
+          S_ID=self.decoder.params['GO_SYMBOL'],
+          EOS_ID=self.decoder.params['END_SYMBOL'],
+          PAD_ID=self.decoder.params['PAD_SYMBOL'],
+          ignore_special=True, delim=' ',
+        ))
+        input_strings.append(text_ids_to_string(
+          input_sample[i],
+          self.get_data_layer().params['source_idx2seq'],
+          S_ID=self.decoder.params['GO_SYMBOL'],
+          EOS_ID=self.decoder.params['END_SYMBOL'],
+          PAD_ID=self.decoder.params['PAD_SYMBOL'],
+          ignore_special=True, delim=' ',
+        ))
     return input_strings, output_strings
 
   def finalize_inference(self, results_per_batch, output_file):

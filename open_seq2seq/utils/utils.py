@@ -180,20 +180,20 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       else:
         raise ValueError("Unknown mode: {}".format(mode))
 
-    if len(fetches_vals) == 0:
-      break
-
     if verbose:
       if size_defined:
         data_size = int(np.sum(np.ceil(np.array(dl_sizes) /
                                        model.params['batch_size_per_gpu'])))
-        if step == 0 or (data_size > 10 and
-                         processed_batches % (data_size // 10) == 0):
+        if step == 0 or len(fetches_vals) == 0 or \
+           (data_size > 10 and processed_batches % (data_size // 10) == 0):
           deco_print("Processed {}/{} batches{}".format(
             processed_batches, data_size, ending))
       else:
         deco_print("Processed {} batches{}".format(processed_batches, ending),
                    end='\r')
+
+    if len(fetches_vals) == 0:
+      break
     step += 1
 
   if verbose:

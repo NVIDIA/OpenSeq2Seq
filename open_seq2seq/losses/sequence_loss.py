@@ -252,11 +252,17 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
       'batch_size': int,
       'tgt_vocab_size': int,
       'label_smoothing': float,
+      'pad_embeddings_2_eight': bool,
     })
 
   def __init__(self, params, model, name="padded_cross_entropy_with_smoothing"):
     super(PaddedCrossEntropyLossWithSmoothing, self).__init__(params, model, name)
-    self._tgt_vocab_size = self.params["tgt_vocab_size"]
+    if self.params.get('pad_embeddings_2_eight', False):
+      self._tgt_vocab_size = self.params["tgt_vocab_size"] if self.params[
+                                                                "tgt_vocab_size"] % 8 == 0 else \
+      self.params["tgt_vocab_size"] + (8 - self.params["tgt_vocab_size"] % 8)
+    else:
+      self._tgt_vocab_size = self.params["tgt_vocab_size"]
     self._label_smoothing = self.params.get("label_smoothing", 0.0)
 
   def _compute_loss(self, input_dict):

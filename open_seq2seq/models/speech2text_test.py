@@ -27,11 +27,11 @@ class Speech2TextModelTests(tf.test.TestCase):
   def tearDown(self):
     pass
 
-  def run_model(self, train_config, eval_config):
+  def run_model(self, train_config, eval_config, hvd=None):
     with tf.Graph().as_default() as g:
-      train_model = base_model(params=train_config, mode="train", hvd=None)
+      train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
-      eval_model = base_model(params=eval_config, mode="eval", hvd=None)
+      eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile(force_var_reuse=True)
 
       train(train_model, eval_model)
@@ -94,6 +94,34 @@ class Speech2TextModelTests(tf.test.TestCase):
         "dtype": dtype,
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
+
+      self.assertLess(loss, 5.0)
+      self.assertLess(eval_loss, 200.0)
+      self.assertLess(eval_dict['Eval WER'], 0.1)
+
+  def test_convergence_with_iter_size(self):
+    try:
+      import horovod.tensorflow as hvd
+      hvd.init()
+    except ImportError:
+      print("Horovod not installed skipping test_convergence_with_iter_size")
+      return
+
+    for dtype in [tf.float32, "mixed"]:
+      train_config, eval_config = self.prepare_config()
+      train_config.update({
+        "dtype": dtype,
+        "iter_size": 5,
+        "batch_size_per_gpu": 2,
+        "use_horovod": True,
+      })
+      eval_config.update({
+        "dtype": dtype,
+        "iter_size": 5,
+        "batch_size_per_gpu": 2,
+        "use_horovod": True,
+      })
+      loss, eval_loss, eval_dict = self.run_model(train_config, eval_config, hvd)
 
       self.assertLess(loss, 5.0)
       self.assertLess(eval_loss, 200.0)
