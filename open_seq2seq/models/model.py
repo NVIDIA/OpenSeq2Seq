@@ -16,14 +16,8 @@ except ImportError:
     from funcsigs import signature
 
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
-# from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
-from open_seq2seq.optimizers import optimize_loss
+from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
-
-def get_regularization_loss(weight_decay):
-  return tf.cast(tf.add_n([tf.nn.l2_loss(v) for v in tf.trainable_variables()]) * weight_decay, tf.float32)
-
-
 
 @six.add_metaclass(abc.ABCMeta)
 class Model:
@@ -372,8 +366,7 @@ class Model:
                                                         **lr_params)
 
       self.train_op = optimize_loss(
-        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(self.params['regularizer_params']['scale']),
-        # loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
+        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),

@@ -30,8 +30,7 @@ def _unstack_ta(inp):
 class TacotronTrainingHelper(Helper):
   """Helper funciton for training. Can be used for teacher forcing or scheduled sampling"""
 
-  def __init__(self, inputs, sequence_length, enable_prenet, 
-              prenet_units=None, prenet_layers=None, prenet_activation=None,
+  def __init__(self, inputs, sequence_length, prenet=None,
               sampling_prob=0., anneal_teacher_forcing = False, anneal_teacher_forcing_stop_gradient=False,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None, mask_decoder_sequence=None):
@@ -56,22 +55,13 @@ class TacotronTrainingHelper(Helper):
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
-    ## Create dense pre_net
-    self.prenet_layers=[]
-    if enable_prenet:
-      for idx in range(prenet_layers):
-        self.prenet_layers.append(tf.layers.Dense(
-          name="prenet_{}".format(idx + 1),
-          units=prenet_units,
-          activation=prenet_activation,
-          use_bias=False,
-        ))
-
-      pre_net_output = tf.zeros([self._batch_size, prenet_units])
-      self._zero_inputs = pre_net_output
-    else:
+    self.prenet = prenet
+    if prenet is None:
       self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+    else:
+      pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
+      self._zero_inputs = pre_net_output
     self.last_dim = self._zero_inputs.get_shape()[-1]
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
     # self._zero_inputs = tf.concat([pre_net_output,self._zero_inputs], axis=-1)
@@ -113,9 +103,9 @@ class TacotronTrainingHelper(Helper):
       if self.stop_gradient:
         next_input = tf.stop_gradient(next_input)
         out = tf.stop_gradient(out)
-      for layer in self.prenet_layers:
-        next_input = tf.layers.dropout(layer(next_input), rate=0.5, training=True)
-        out = tf.layers.dropout(layer(out), rate=0.5, training=True)
+      if self.prenet is not None:
+        next_input = self.prenet(next_input)
+        out = self.prenet(out)
       if self.anneal_teacher_forcing or self.sampling_prob > 0:
         select_sampler = bernoulli.Bernoulli(
             probs=self.sampling_prob, dtype=dtypes.bool)
@@ -155,8 +145,7 @@ class TacotronTrainingHelper(Helper):
 class TacotronHelper(Helper):
   """Helper for use during eval and infer. Does not use teacher forcing"""
 
-  def __init__(self, inputs, enable_prenet=True, 
-              prenet_units=None, prenet_layers=None, prenet_activation=None,
+  def __init__(self, inputs, prenet=None,
               time_major=False, sample_ids_shape=None, sample_ids_dtype=None, name=None,
               context=None, mask_decoder_sequence=None):
     """Initializer.
@@ -170,20 +159,13 @@ class TacotronHelper(Helper):
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
-    self.prenet_layers=[]
-    if enable_prenet:
-      for idx in range(prenet_layers):
-        self.prenet_layers.append(tf.layers.Dense(
-          name="prenet_{}".format(idx + 1),
-          units=prenet_units,
-          activation=prenet_activation,
-          use_bias=False,
-        ))
-
-      pre_net_output = tf.zeros([self._batch_size, prenet_units])
-      self._zero_inputs = pre_net_output
-    else:
+    self.prenet = prenet
+    if prenet is None:
       self._zero_inputs = inputs
+    else:
+      pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
+      self._zero_inputs = pre_net_output
+    
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
 
   @property
@@ -223,8 +205,8 @@ class TacotronHelper(Helper):
 
     def get_next_input(out):
       # next_input = tf.concat([pre_net_result, outputs], axis=-1)
-      for layer in self.prenet_layers:
-        out = tf.layers.dropout(layer(out), rate=0.5, training=True)
+      if self.prenet is not None:
+        out = self.prenet(out)
       return out
     next_inputs = control_flow_ops.cond(
         all_finished, 

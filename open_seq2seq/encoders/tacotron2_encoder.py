@@ -282,6 +282,14 @@ class Tacotron2Encoder(Encoder):
           )
           # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
           top_layer = tf.concat(top_layer, 2)
+
+        if regularizer:
+          for weights in multirnn_cell_fw.trainable_weights:
+            if "bias" not in weights.name:
+              if weights.dtype.base_dtype == tf.float16:
+                tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+              else:
+                tf.add_to_collection('REGULARIZATION_LOSSES', regularizer(weights))
     # -- end of rnn------------------------------------------------------------
 
     outputs = top_layer

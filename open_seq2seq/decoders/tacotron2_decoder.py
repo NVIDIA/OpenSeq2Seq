@@ -49,6 +49,31 @@ def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
     output = activation_fn(output)
   return output
 
+class Prenet():
+  def __init__(self, num_units, num_layers, activation_fn=None, regularizer=None):
+    assert(num_layers > 0), "If the prenet is enabled, there must be at least 1 layer"
+    self.prenet_layers=[]
+    self._output_size = num_units
+
+    for idx in range(num_layers):
+      self.prenet_layers.append(tf.layers.Dense(
+        name="prenet_{}".format(idx + 1),
+        units=num_units,
+        activation=activation_fn,
+        use_bias=False,
+        kernel_regularizer=regularizer
+      ))
+  
+  def __call__(self, inputs):
+    for layer in self.prenet_layers:
+      inputs = tf.layers.dropout(layer(inputs), rate=0.5, training=True)
+    return inputs
+
+  @property
+  def output_size(self):
+    return self._output_size
+  
+
 class Tacotron2Decoder(Decoder):
   """
   Tacotron 2 Decoder
@@ -296,6 +321,7 @@ class Tacotron2Decoder(Decoder):
     enable_prenet = self.params.get('enable_prenet', True)
     prenet_layers = self.params.get('prenet_layers', 2)
     prenet_units = self.params.get('prenet_units', 256)
+    prenet_activation = self.params.get("prenet_activation", tf.nn.relu)
     
     if self.params.get('enable_postnet', True):
       if "postnet_conv_layers" not in self.params:
@@ -303,12 +329,23 @@ class Tacotron2Decoder(Decoder):
             "postnet_conv_layers must be passed from config file if postnet is enabled"
           )
 
+    # self.output_projection_layer = tf.layers.Dense(
+    #   self.num_audio_features, use_bias=True, kernel_regularizer=regularizer
+    # )
+    # self.target_projection_layer = tf.layers.Dense(
+    #   1, use_bias=True, kernel_regularizer=regularizer
+    # )
+
     self.output_projection_layer = tf.layers.Dense(
       self.num_audio_features, use_bias=True
     )
     self.target_projection_layer = tf.layers.Dense(
       1, use_bias=True
     )
+
+    prenet = None
+    if enable_prenet:
+      prenet = Prenet(prenet_units, prenet_layers, prenet_activation, None)
 
     if self._mode == "train":
       dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
@@ -398,7 +435,6 @@ class Tacotron2Decoder(Decoder):
       # else:
       #   initial_state = enc_state
 
-    prenet_activation = self.params.get("prenet_activation", tf.nn.relu)
     mask_decoder_sequence = self.params.get("mask_decoder_sequence", True)
     if self._mode == "train":
       if self.params.get('anneal_sampling_prob', False):
@@ -413,10 +449,7 @@ class Tacotron2Decoder(Decoder):
         sampling_prob = self.params['scheduled_sampling_prob']
       helper = TacotronTrainingHelper(inputs=spec,
                                       sequence_length=spec_length,
-                                      enable_prenet=enable_prenet,
-                                      prenet_units=prenet_units,
-                                      prenet_layers=prenet_layers,
-                                      prenet_activation=prenet_activation,
+                                      prenet=prenet,
                                       sampling_prob=sampling_prob,
                                       anneal_teacher_forcing=self.params.get('anneal_teacher_forcing', False),
                                       anneal_teacher_forcing_stop_gradient=self.params.get("anneal_teacher_forcing_stop_gradient",False),
@@ -426,10 +459,7 @@ class Tacotron2Decoder(Decoder):
       inputs = tf.zeros((_batch_size, self.num_audio_features))
       helper = TacotronHelper(inputs=inputs,
                               # sequence_length=spec_length,
-                              enable_prenet=enable_prenet,
-                              prenet_units=prenet_units,
-                              prenet_layers=prenet_layers,
-                              prenet_activation=prenet_activation,
+                              prenet=prenet,
                               mask_decoder_sequence=mask_decoder_sequence)
                               # context=mean_pool)
     else:
