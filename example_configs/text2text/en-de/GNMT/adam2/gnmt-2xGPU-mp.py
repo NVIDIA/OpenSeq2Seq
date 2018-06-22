@@ -54,7 +54,9 @@ base_params = {
         "forget_bias": 1.0,
     },
     "encoder_layers": 8,
+    "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
+    "encoder_use_skip_connections": True,
     "src_emb_size": 1024,
   },
 
