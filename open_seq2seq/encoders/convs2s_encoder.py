@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
+import math
 from .encoder import Encoder
 
 from open_seq2seq.parts.transformer import embedding_layer
@@ -43,6 +44,8 @@ class ConvS2SEncoder(Encoder):
 
       'max_input_length': int,
       'PAD_SYMBOL': int,
+
+      'mask_paddings': bool
     })
 
   def __init__(self, params, model, name="convs2s_encoder_with_emb", mode='train'):
@@ -62,7 +65,6 @@ class ConvS2SEncoder(Encoder):
     self._mode = mode
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
-
 
   def _encode(self, input_dict):
     """
@@ -93,14 +95,13 @@ class ConvS2SEncoder(Encoder):
           self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
             vocab_size=self._src_vocab_size, hidden_size=self._src_emb_size,
             pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False,
-            pad_sym=self._pad_sym, mask_paddings=True)
+            pad_sym=self._pad_sym, mask_paddings=False)
 
         with tf.variable_scope("pos_embedding"):
           self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
             vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH), hidden_size=self._src_emb_size,
             pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False,
             pad_sym=self._pad_sym, mask_paddings=False)
-
 
         # linear projection before cnn layers
         self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(self._src_emb_size, knum_list[0],
@@ -128,8 +129,8 @@ class ConvS2SEncoder(Encoder):
           self.layers.append([linear_proj, conv_layer])
 
         # linear projection after cnn layers
-        self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(knum_list[-1], self._src_emb_size,
-                                                                    dropout=1.0,
+        self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(knum_list[self.params['encoder_layers'] - 1],
+                                                                    self._src_emb_size, dropout=1.0,
                                                                     var_scope_name="linear_mapping_after_cnn_layers"))
 
       encoder_inputs = self.embedding_softmax_layer(inputs)
@@ -146,7 +147,7 @@ class ConvS2SEncoder(Encoder):
       # mask the paddings in the input given to cnn layers
       inputs_padding = get_padding(inputs, self._pad_sym, dtype=encoder_inputs.dtype)
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
-      encoder_inputs = encoder_inputs * padding_mask
+      encoder_inputs *= padding_mask
 
       outputs, outputs_b, final_state = self._call(encoder_inputs)
 
@@ -154,7 +155,7 @@ class ConvS2SEncoder(Encoder):
             'outputs_b': outputs_b,
             'inputs_attention_bias_cs2s': inputs_attention_bias,
             'state': final_state,
-            'src_lengths': source_length,
+            'src_lengths': source_length, # should it include paddings or not?
             'embedding_softmax_layer': self.embedding_softmax_layer,
             #'position_embedding_layer': self.position_embedding_layer, # Should we share position embedding?
             'encoder_input': inputs}
@@ -173,7 +174,7 @@ class ConvS2SEncoder(Encoder):
         else:
           res_inputs = outputs
         outputs = conv_layer(outputs)
-        outputs = (outputs + res_inputs) * tf.sqrt(0.5)
+        outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
@@ -182,7 +183,7 @@ class ConvS2SEncoder(Encoder):
       scale = 1.0 / (2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
-      outputs_b = (outputs + encoder_inputs) * tf.sqrt(0.5)
+      outputs_b = (outputs + encoder_inputs) * math.sqrt(0.5)
 
       # Average of the encoder outputs is calculated as the final state of the encoder
       # it can be used for decoders which just accept the final state

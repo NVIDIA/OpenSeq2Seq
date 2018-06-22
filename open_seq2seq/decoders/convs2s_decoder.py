@@ -2,6 +2,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
+import math
 from .decoder import Decoder
 
 from open_seq2seq.parts.transformer import beam_search
@@ -57,6 +58,7 @@ class ConvS2SDecoder(Decoder):
             class :meth:`__init__` method.
     """
     return dict(Decoder.get_optional_params(), **{
+      'pad_embeddings_2_eight': bool,
       'conv_knum': list,
       'conv_kwidth': list,
 
@@ -83,6 +85,7 @@ class ConvS2SDecoder(Decoder):
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
+
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] if 'target_tensors' in input_dict else None
 
@@ -105,7 +108,7 @@ class ConvS2SDecoder(Decoder):
             self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
               vocab_size=self._tgt_vocab_size, hidden_size=self._tgt_emb_size,
               pad_vocab_to_eight=self._pad2eight, init_var=0.1, embed_scale=False,
-              pad_sym=self._pad_sym, mask_paddings=True)
+              pad_sym=self._pad_sym, mask_paddings=False)
 
         with tf.variable_scope("pos_embedding"):
           if 'position_embedding_layer' in input_dict['encoder_output'] and self.params['shared_embed']:
@@ -118,8 +121,8 @@ class ConvS2SDecoder(Decoder):
 
         # linear projection before cnn layers
         self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(self._tgt_emb_size, knum_list[0],
-                                                                    dropout=self.params["embedding_dropout_keep_prob"],
-                                                                    var_scope_name="linear_mapping_before_cnn_layers"))
+                                                              dropout=self.params["embedding_dropout_keep_prob"],
+                                                              var_scope_name="linear_mapping_before_cnn_layers"))
 
         for i in range(self.params['decoder_layers']):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -145,7 +148,7 @@ class ConvS2SDecoder(Decoder):
           self.layers.append([linear_proj, conv_layer, att_layer])
 
         # linear projection after cnn layers
-        self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(knum_list[-1],
+        self.layers.append(ffn_wn_layer.FeedFowardNetworkNormalized(knum_list[self.params['decoder_layers'] - 1],
                                                                     self.params.get("out_emb_size", self._tgt_emb_size),
                                                                     dropout=1.0,
                                                                     var_scope_name="linear_mapping_after_cnn_layers"))
@@ -198,7 +201,7 @@ class ConvS2SDecoder(Decoder):
 
     # mask the paddings in the target
     inputs_padding = get_padding(targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype)
-    decoder_inputs = decoder_inputs * tf.expand_dims(1.0 - inputs_padding, 2)
+    decoder_inputs *= tf.expand_dims(1.0 - inputs_padding, 2)
 
     # do decode
     logits = self._call(decoder_inputs=decoder_inputs,
@@ -228,7 +231,7 @@ class ConvS2SDecoder(Decoder):
 
         with tf.variable_scope("attention_layer"):
             outputs = att_layer(outputs, target_embed, encoder_outputs_a, encoder_outputs_b, input_attention_bias)
-        outputs = (outputs + res_inputs) * tf.sqrt(0.5)
+        outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)
@@ -236,14 +239,14 @@ class ConvS2SDecoder(Decoder):
     if self.mode == "train":
       outputs = tf.nn.dropout(outputs, self.params["out_dropout_keep_prob"])
 
-    with tf.variable_scope("softmax"):
+    with tf.variable_scope("pre_softmax_projection"):
       if self.layers[-1] is None:
         logits = self.embedding_softmax_layer.linear(outputs)
       else:
         logits = self.layers[-1](outputs)
 
     return tf.cast(logits, dtype=tf.float32)
-
+    #return logits
 
   def predict(self, encoder_outputs, encoder_outputs_b, inputs_attention_bias):
     """Return predicted sequence."""
@@ -303,25 +306,13 @@ class ConvS2SDecoder(Decoder):
            updated cache values)
       """
 
-      # Set decoder input to the last generated IDs
-      decoder_inputs = ids
-
-      # Preprocess decoder input by getting embeddings and adding timing signal.
-      decoder_inputs = self.embedding_softmax_layer(decoder_inputs)
-
-      with tf.name_scope("add_pos_encoding"):
-          pos_input = tf.range(0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
-          pos_encoding = self.position_embedding_layer(pos_input)
-          decoder_inputs = decoder_inputs + tf.cast(x=pos_encoding, dtype=decoder_inputs.dtype)
-
-      inputs_padding = get_padding(ids, self.params.get('PAD_SYMBOL', 0))
-      decoder_inputs = decoder_inputs * tf.to_float(tf.expand_dims(tf.logical_not(inputs_padding), 2))
-
-      decoder_outputs = self._call(decoder_inputs, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
-                                   cache.get("inputs_attention_bias"))
+      # pass the decoded ids from the beginneing up to the current into the decoder - not efficient
+      decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
+                                         cache.get("inputs_attention_bias"))
 
       logits = decoder_outputs[:, i, :]
-
       return logits, cache
+      #return tf.cast(logits, tf.float32), cache
+
     return symbols_to_logits_fn
 

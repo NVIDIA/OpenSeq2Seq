@@ -17,7 +17,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 15
+num_layers = 7
 d_model = 512
 batch_size = 64
 num_gpus = 1
