@@ -37,17 +37,15 @@ base_params = {
     'learning_rate': 0.001
   },
   "max_grad_norm": 3.0,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
-    #"encoder_cell_type": "lstm",
-    #"encoder_cell_units": 128,
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 128,
-      #"forget_bias": 1.0,
+      "forget_bias": 1.0,
     },
     "encoder_layers": 1,
     "encoder_dp_input_keep_prob": 0.8,
@@ -58,10 +56,7 @@ base_params = {
 
   "decoder": RNNDecoderWithAttention,
   "decoder_params": {
-    #"decoder_cell_type": "lstm",
-    #"decoder_cell_units": 128,
     "core_cell": tf.nn.rnn_cell.LSTMCell,
-    # tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 128,
       # "forget_bias": 1.0,
@@ -121,11 +116,10 @@ infer_params = {
   "decoder_params": {
     #"decoder_cell_type": "lstm",
     #"decoder_cell_units": 128,
-    "core_cell": tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell,
-    # tf.nn.rnn_cell.LSTMCell,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
       "num_units": 128,
-      # "forget_bias": 1.0,
+      "forget_bias": 1.0,
     },
     "decoder_layers": 1,
     "decoder_dp_input_keep_prob": 0.8,
