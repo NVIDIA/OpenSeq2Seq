@@ -10,8 +10,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-#data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
-data_root = "/mnt/D1/Data/Translate/wmt16/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_model = Text2Text
 
