@@ -31,7 +31,7 @@ base_params = {
   "save_checkpoint_steps": 4000,
   "logdir": "Transformer-MP",
   "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "loss_scaling": "Backoff",
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
