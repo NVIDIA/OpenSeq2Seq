@@ -89,7 +89,7 @@ train_params = {
     "source_file": data_root + "train.tok.clean.bpe.32000.en",
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": False,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 2,
