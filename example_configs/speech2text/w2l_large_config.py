@@ -15,7 +15,7 @@ base_params = {
   "num_epochs": 60,
 
   "num_gpus": 8,
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 32,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
@@ -84,7 +84,7 @@ base_params = {
       },
     ],
 
-    "dropout_keep_prob": 0.8,
+    "dropout_keep_prob": 0.7,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
@@ -119,9 +119,6 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 40,
     "input_type": "logfbank",
-    "augmentation": {'time_stretch_ratio': 0.05,
-                     'noise_level_min': -90,
-                     'noise_level_max': -60},
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "/data/librispeech/librivox-train-clean-100.csv",
