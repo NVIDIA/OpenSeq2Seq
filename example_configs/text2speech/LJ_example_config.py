@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 base_model = Text2Speech
 
-output_type = "mel"
+output_type = "magnitude"
 
 if output_type == "magnitude":
   num_audio_features = 513
@@ -154,43 +154,95 @@ base_params = {
     "use_mask": True
   },
 
+  # "data_layer": Text2SpeechDataLayer,
+  # "data_layer_params": {
+  #   "num_audio_features": num_audio_features,
+  #   "output_type": output_type,
+  #   "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
+  #   'dataset_location':"/data/speech/LJSpeech/wavs/",
+  #   "mag_power": 1,
+  #   "pad_EOS": True,
+  #   "feature_normalize": False,
+  #   "feature_normalize_mean": 0.,
+  #   "feature_normalize_std": 1.,
+  # },
+}
+
+# train_params = {
+#   "data_layer_params": {
+#     "dataset_files": [
+#       "/data/speech/LJSpeech/train.csv",
+#     ],
+#     "shuffle": True,
+#   },
+# }
+
+# eval_params = {
+#   "data_layer_params": {
+#     "dataset_files": [
+#       "/data/speech/LJSpeech/new_val.csv",
+#     ],
+#     "shuffle": False,
+#   },
+# }
+
+# infer_params = {
+#   "data_layer_params": {
+#     "dataset_files": [
+#       "/data/speech/LJSpeech/test.csv",
+#     ],
+#     "shuffle": False,
+#   },
+# }
+
+
+train_params = {
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
     "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
-    'dataset_location':"/data/speech/LJSpeech/wavs/",
-    "mag_power": 1,
-    "pad_EOS": True,
-    "feature_normalize": False,
-    "feature_normalize_mean": 0.,
-    "feature_normalize_std": 1.,
-  },
-}
-
-train_params = {
-  "data_layer_params": {
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
     ],
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": True,
+    "mag_power": 1,
+    "feature_normalize": False,
+    "pad_EOS": True,
   },
 }
 
 eval_params = {
+  "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
+    "num_audio_features": num_audio_features,
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/new_val.csv",
     ],
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
+    "mag_power": 1,
+    "feature_normalize": False,
+    "pad_EOS": True,
   },
 }
 
 infer_params = {
+  "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
+    "num_audio_features": num_audio_features,
+    "output_type": output_type,
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     "dataset_files": [
       "/data/speech/LJSpeech/test.csv",
     ],
+    'dataset_location':"/data/speech/LJSpeech/wavs/",
     "shuffle": False,
+    "mag_power": 1,
+    "feature_normalize": False,
+    "pad_EOS": True,
   },
 }
