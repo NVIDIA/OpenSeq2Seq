@@ -86,7 +86,7 @@ base_params = {
     "num_rnn_layers": 1,
     "rnn_cell_dim": 256,
     "use_cudnn_rnn": False,
-    "rnn_type": "lstm",
+    "rnn_type": tf.nn.rnn_cell.LSTMCell,
     "rnn_unidirectional": False,
 
     "data_format": "channels_last",
@@ -99,11 +99,11 @@ base_params = {
     'attention_rnn_enable': True,
     'attention_rnn_units': 1024,
     'attention_rnn_layers': 1,
-    'attention_rnn_cell_type': 'lstm',
+    'attention_rnn_cell_type': tf.nn.rnn_cell.LSTMCell,
     'attention_bias': False,
 
     'decoder_cell_units': 1024,
-    'decoder_cell_type': 'lstm',
+    'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
     'decoder_layers': 1,
     'decoder_use_skip_connections': False,
     
