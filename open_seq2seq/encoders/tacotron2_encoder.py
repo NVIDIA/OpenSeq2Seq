@@ -264,8 +264,10 @@ class Tacotron2Encoder(Encoder):
         cell_weights = []
         cell_weights += multirnn_cell_fw.trainable_variables
         cell_weights += multirnn_cell_bw.trainable_variables
+        cell_weights += [enc_emb_w]
         for weights in cell_weights:
           if "bias" not in weights.name:
+            print("Added regularizer to {}".format(weights.name))
             if weights.dtype.base_dtype == tf.float16:
               tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
             else:
