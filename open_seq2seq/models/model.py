@@ -331,7 +331,7 @@ class Model:
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
-            raise ValueError('Decoder samples have to be either None or list')
+            raise ValueError('Decoder outputs have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
@@ -357,7 +357,7 @@ class Model:
         loss, self._output = self._build_forward_pass_graph(input_tensors,
                                                             gpu_id=0)
         if self._output is not None and not isinstance(self._output, list):
-          raise ValueError('Decoder samples have to be either None or list')
+          raise ValueError('Decoder outputs have to be either None or list')
 
         if self._mode == "train":
           self.loss = loss
@@ -442,7 +442,7 @@ class Model:
           is constructed. For Horovod this is always zero.
 
     Returns:
-      tuple: tuple containing loss tensor and samples tensor.
+      tuple: tuple containing loss tensor and list of outputs tensors.
 
       Loss tensor will be automatically provided to the optimizer and
       corresponding :attr:`train_op` will be created.
@@ -452,7 +452,7 @@ class Model:
       this happens inside :class:`utils.hooks.RunEvaluationHook`
       to fetch output values for evaluation.
 
-      Both loss and samples can be None when corresponding part of the graph
+      Both loss and outputs can be None when corresponding part of the graph
       is not built.
     """
     pass
