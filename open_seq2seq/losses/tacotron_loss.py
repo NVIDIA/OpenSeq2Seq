@@ -59,6 +59,7 @@ class TacotronLoss(Loss):
       decoder_loss = tf.losses.mean_squared_error(labels=spec, predictions=decoder_predictions)
       post_net_loss = tf.losses.mean_squared_error(labels=spec, predictions=post_net_predictions)
       stop_token_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=stop_token, logits=stop_token_predictions)
+      stop_token_loss = tf.reduce_mean(stop_token_loss)
 
     loss = decoder_loss + post_net_loss + stop_token_loss
     return loss
