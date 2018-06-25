@@ -92,6 +92,7 @@ class Tacotron2Encoder(Encoder):
       'data_format': ['channels_first', 'channels_last'],
       'bn_momentum': float,
       'bn_epsilon': float,
+      'zoneout_prob': float,
     })
 
   def __init__(self, params, model, name="tacotron2_encoder", mode='train'):
@@ -156,6 +157,7 @@ class Tacotron2Encoder(Encoder):
     bn_momentum = self.params.get('bn_momentum', 0.1)
     bn_epsilon = self.params.get('bn_epsilon', 1e-5)
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
+    zoneout_prob = self.params.get('zoneout_prob', 0.)
 
     # enable_bn = self.params.get('enable_bn', True)
     # src_emb_size = self.params.get('src_emb_size', 512)
@@ -230,6 +232,8 @@ class Tacotron2Encoder(Encoder):
                      cell_params=cell_params,
                      # dp_input_keep_prob=dropout_keep_prob,
                      # dp_output_keep_prob=dropout_keep_prob,
+                     zoneout_prob=zoneout_prob,
+                     training=training,
                      residual_connections=False)
          for _ in range(num_rnn_layers)]
       )
@@ -247,6 +251,8 @@ class Tacotron2Encoder(Encoder):
                        cell_params=cell_params,
                        # dp_input_keep_prob=dropout_keep_prob,
                        # dp_output_keep_prob=dropout_keep_prob,
+                       zoneout_prob=zoneout_prob,
+                       training=training,
                        residual_connections=False)
            for _ in range(num_rnn_layers)]
         )

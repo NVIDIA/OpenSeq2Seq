@@ -189,8 +189,8 @@ class Text2Speech(EncoderDecoderModel):
 
   def __init__(self, params, mode="train", hvd=None):
     super(Text2Speech, self).__init__(params, mode=mode, hvd=hvd)
-    self.eval_steps = -1
-    self.train_steps = -1
+    # self.eval_steps = -1
+    # self.train_steps = -1
     self.save_to_tensorboard = self.params["save_to_tensorboard"]
 
 
@@ -258,10 +258,10 @@ class Text2Speech(EncoderDecoderModel):
         loss = None
       return loss, [decoder_out, final_spectrogram, attention_mask, target_output, final_sequence_lengths]
 
-  def maybe_print_logs(self, input_values, output_values):
-    self.train_steps += 1
+  def maybe_print_logs(self, input_values, output_values, training_step):
+    # self.train_steps += 1
     dict_to_log = {}
-    step = self.train_steps * self.params["print_samples_steps"]
+    step = training_step
     spec, target, _ = input_values['target_tensors']
     predicted_decoder_spectrograms = output_values[0]
     predicted_final_spectrograms = output_values[1]
@@ -305,10 +305,10 @@ class Text2Speech(EncoderDecoderModel):
     else:
       return {}
 
-  def finalize_evaluation(self, results_per_batch):
-    self.eval_steps += 1
+  def finalize_evaluation(self, results_per_batch, training_step):
+    # self.eval_steps += 1
     dict_to_log = {}
-    step = self.eval_steps * self.params["eval_steps"]
+    step = training_step
     sample = results_per_batch[-1]
     input_values = sample[0]
     output_values = sample[1]
