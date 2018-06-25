@@ -95,6 +95,8 @@ base_params = {
 
   "decoder": Tacotron2Decoder,
   "decoder_params": {
+    "zoneout_prob": 0.1,
+    
     'attention_layer_size': 128,
     'attention_type': 'location',
     'attention_rnn_enable': True,

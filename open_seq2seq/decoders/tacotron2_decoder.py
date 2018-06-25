@@ -131,6 +131,7 @@ class Tacotron2Decoder(Decoder):
       "mask_decoder_sequence": bool,
       "use_prenet_output": bool,
       "attention_bias": bool,
+      'zoneout_prob': float,
     })
 
   def __init__(self, params, model,
@@ -332,6 +333,7 @@ class Tacotron2Decoder(Decoder):
     prenet_layers = self.params.get('prenet_layers', 2)
     prenet_units = self.params.get('prenet_units', 256)
     prenet_activation = self.params.get("prenet_activation", tf.nn.relu)
+    zoneout_prob = self.params.get("zoneout_prob", 0.)
     
     if self.params.get('enable_postnet', True):
       if "postnet_conv_layers" not in self.params:
@@ -357,12 +359,12 @@ class Tacotron2Decoder(Decoder):
     if enable_prenet:
       prenet = Prenet(prenet_units, prenet_layers, prenet_activation)
 
-    if self._mode == "train":
-      dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
-      dp_output_keep_prob = self.params.get('decoder_dp_output_keep_prob', 1.0)
-    else:
-      dp_input_keep_prob = 1.0
-      dp_output_keep_prob = 1.0
+    # if self._mode == "train":
+    #   dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
+    #   dp_output_keep_prob = self.params.get('decoder_dp_output_keep_prob', 1.0)
+    # else:
+    #   dp_input_keep_prob = 1.0
+    #   dp_output_keep_prob = 1.0
 
     residual_connections = self.params.get('decoder_use_skip_connections', False)
     wrap_to_multi_rnn = True
@@ -372,8 +374,10 @@ class Tacotron2Decoder(Decoder):
     self._decoder_cells = [
       single_cell(cell_class=self.params['decoder_cell_type'],
                   cell_params=cell_params,
-                  dp_input_keep_prob=dp_input_keep_prob,
-                  dp_output_keep_prob=dp_output_keep_prob,
+                  # dp_input_keep_prob=dp_input_keep_prob,
+                  # dp_output_keep_prob=dp_output_keep_prob,
+                  zoneout_prob = zoneout_prob,
+                  training = training,
                   residual_connections=residual_connections
                   ) for _ in range(self.params['decoder_layers'])]
 
@@ -393,8 +397,10 @@ class Tacotron2Decoder(Decoder):
         self._attention_cells = [
           single_cell(cell_class=cell_type,
                       cell_params=cell_params,
-                      dp_input_keep_prob=dp_input_keep_prob,
-                      dp_output_keep_prob=dp_output_keep_prob,
+                      # dp_input_keep_prob=dp_input_keep_prob,
+                      # dp_output_keep_prob=dp_output_keep_prob,
+                      zoneout_prob = zoneout_prob,
+                      training = training,
                       residual_connections=residual_connections
                       ) for _ in range(attention_rnn_layers)]
         attention_cell = tf.contrib.rnn.MultiRNNCell(self._attention_cells)
