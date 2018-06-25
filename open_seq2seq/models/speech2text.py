@@ -49,7 +49,7 @@ class Speech2Text(EncoderDecoderModel):
     )
     return super(Speech2Text, self)._create_decoder()
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     y, len_y = input_values['target_tensors']
     decoded_sequence = output_values
     y_one_sample = y[0]
@@ -74,7 +74,7 @@ class Speech2Text(EncoderDecoderModel):
       'Sample WER': sample_wer,
     }
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
     for word_lev, word_count in results_per_batch:

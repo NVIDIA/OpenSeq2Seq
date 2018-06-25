@@ -457,7 +457,7 @@ class Model:
     """
     pass
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     """This method can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
     predictions. This method will be called every ``print_samples_steps``
@@ -475,6 +475,7 @@ class Model:
       output_values: evaluation of
           :meth:`self.get_output_tensors(0) <get_output_tensors>`,
           that is, output tensors for one batch on the *first* GPU.
+      training_step (int): Current training step.
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
@@ -519,7 +520,7 @@ class Model:
     """
     return []
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     """This method can be used in conjunction with
     :meth:`self.evaluate()<evaluate>` to calculate
     evaluation metrics.
@@ -542,6 +543,8 @@ class Model:
       results_per_batch (list): aggregation of values returned from all calls
           to :meth:`self.evaluate()<evaluate>` method (number of calls will be
           equal to number of evaluation batches).
+      training_step (int): current training step. Will only be passed if mode
+          is "train_eval".
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
