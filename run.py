@@ -170,13 +170,13 @@ def main():
 
   if args.mode == 'train' or args.mode == 'train_eval':
     if 'train_params' in config_module:
-      train_config.update(copy.deepcopy(config_module['train_params']))
+      nested_update(train_config, copy.deepcopy(config_module['train_params']))
     if hvd is None or hvd.rank() == 0:
       deco_print("Training config:")
       pprint.pprint(train_config)
   if args.mode == 'eval' or args.mode == 'train_eval':
     if 'eval_params' in config_module:
-      eval_config.update(copy.deepcopy(config_module['eval_params']))
+      nested_update(eval_config, copy.deepcopy(config_module['eval_params']))
     if hvd is None or hvd.rank() == 0:
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
@@ -184,7 +184,8 @@ def main():
     if args.infer_output_file is None:
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
-    infer_config.update(copy.deepcopy(config_module['infer_params']))
+    if "infer_params" in config_module:
+      nested_update(infer_config, copy.deepcopy(config_module['infer_params']))
 
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
