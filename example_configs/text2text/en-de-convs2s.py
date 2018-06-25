@@ -21,7 +21,7 @@ num_layers = 15
 d_model = 512
 batch_size = 64
 num_gpus = 4
-epoch_num = 10
+epoch_num = 15
 
 base_params = {
   "use_horovod": False,
@@ -40,8 +40,8 @@ base_params = {
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1e-3,
-    "begin_decay_at": 50000,
-    "decay_steps": 10000,
+    "begin_decay_at": 70000,
+    "decay_steps": 40000,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
@@ -65,8 +65,8 @@ base_params = {
     "pad_embeddings_2_eight": False,
     "att_layer_num": num_layers,
 
-    "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
-    #"conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
+    #"conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
+    "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
     "conv_kwidth": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
 
     "embedding_dropout_keep_prob": 0.8,
@@ -87,7 +87,8 @@ base_params = {
     "pad_embeddings_2_eight": False,
     "out_emb_size": d_model,
 
-    "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
+    "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
+   # "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
     "conv_kwidth": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
 
     "embedding_dropout_keep_prob": 0.8,
