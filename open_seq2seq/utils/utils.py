@@ -315,7 +315,14 @@ def nest_dict(flat_dict):
 def nested_update(org_dict, upd_dict):
   for key, value in upd_dict.items():
     if isinstance(value, dict):
-      nested_update(org_dict[key], value)
+      if key in org_dict:
+        if not isinstance(org_dict[key], dict):
+          raise ValueError(
+            "Mismatch between org_dict and upd_dict at node {}".format(key)
+          )
+        nested_update(org_dict[key], value)
+      else:
+        org_dict[key] = value
     else:
       org_dict[key] = value
 
