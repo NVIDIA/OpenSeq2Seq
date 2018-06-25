@@ -295,5 +295,5 @@ class Speech2TextModelTests():
 
     inp_dict = {'source_tensors': [input_values[0][0], input_values[0][1]],
                 'target_tensors': [input_values[0][2], input_values[0][3]]}
-    output_dict = model.maybe_print_logs(inp_dict, output_values[0])
+    output_dict = model.maybe_print_logs(inp_dict, output_values[0], 0)
     self.assertEqual(output_dict['Sample WER'], 0.4)
