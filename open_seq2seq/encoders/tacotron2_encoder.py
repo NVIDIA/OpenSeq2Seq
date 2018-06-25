@@ -228,8 +228,8 @@ class Tacotron2Encoder(Encoder):
       multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
         [single_cell(cell_class=rnn_type,
                      cell_params=cell_params,
-                     dp_input_keep_prob=dropout_keep_prob,
-                     dp_output_keep_prob=dropout_keep_prob,
+                     # dp_input_keep_prob=dropout_keep_prob,
+                     # dp_output_keep_prob=dropout_keep_prob,
                      residual_connections=False)
          for _ in range(num_rnn_layers)]
       )
@@ -245,8 +245,8 @@ class Tacotron2Encoder(Encoder):
         multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
           [single_cell(cell_class=rnn_type,
                        cell_params=cell_params,
-                       dp_input_keep_prob=dropout_keep_prob,
-                       dp_output_keep_prob=dropout_keep_prob,
+                       # dp_input_keep_prob=dropout_keep_prob,
+                       # dp_output_keep_prob=dropout_keep_prob,
                        residual_connections=False)
            for _ in range(num_rnn_layers)]
         )
