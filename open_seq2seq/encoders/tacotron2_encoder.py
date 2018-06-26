@@ -168,7 +168,8 @@ class Tacotron2Encoder(Encoder):
     enc_emb_w = tf.get_variable(
       name="EncoderEmbeddingMatrix",
       shape=[src_vocab_size, self.params['src_emb_size']],
-      dtype=self.params['dtype']
+      dtype=self.params['dtype'],
+      initializer=tf.random_normal_initializer()
     )
 
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
