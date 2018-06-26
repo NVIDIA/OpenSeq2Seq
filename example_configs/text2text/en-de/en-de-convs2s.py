@@ -155,7 +155,8 @@ train_params = {
     "delimiter": " ",
     "shuffle": True, #True
     "repeat": True,
-    "prefetch_buffer_size": 2,
+    "map_parallel_calls": 16,
+    "prefetch_buffer_size": 4,
     "max_length": max_length,
   },
 }
