@@ -35,8 +35,6 @@ base_params = {
   "save_checkpoint_steps": 1001,
   "logdir": "ReadData-CC",
 
-  "optimizer": "Adam",
-  "optimizer_params": {},
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -52,6 +50,9 @@ base_params = {
     "d_model": d_model,
   },
 
+
+  #"optimizer": "Adam",
+  #"optimizer_params": {},
 
   # "lr_policy": exp_decay,
   # "lr_policy_params": {
