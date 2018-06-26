@@ -21,7 +21,7 @@ num_layers = 15
 d_model = 512
 batch_size = 64
 num_gpus = 4
-epoch_num = 10
+epoch_num = 15
 
 base_params = {
   "use_horovod": False,
