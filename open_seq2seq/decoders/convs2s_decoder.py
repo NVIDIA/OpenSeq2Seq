@@ -13,7 +13,7 @@ from open_seq2seq.parts.transformer.utils import get_padding
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, attention_wn_layer
 
 # Default value used if max_input_length is not given
-MAX_INPUT_LENGTH = 100
+MAX_INPUT_LENGTH = 128
 
 
 class ConvS2SDecoder(Decoder):

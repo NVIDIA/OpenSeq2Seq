@@ -18,21 +18,24 @@ data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
 num_layers = 15
-d_model = 512
-batch_size = 128 #64
+d_model = 768
+max_length = 128
+
+batch_size = 64
 num_gpus = 4
-epoch_num = 15
+epoch_num = 30
 
 base_params = {
   "use_horovod": False,
   "num_gpus": num_gpus,
+  # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": int((4500000 / (num_gpus * batch_size)) * epoch_num),
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": 100,
-  "print_loss_steps": 100,
-  "print_samples_steps": 100,
-  "eval_steps": 4000,
-  "save_checkpoint_steps": 1001,
+  "save_summaries_steps": 50,
+  "print_loss_steps": 50,
+  "print_samples_steps": 50,
+  "eval_steps": 4001,
+  "save_checkpoint_steps": 1000,
   "logdir": "ReadData-CC",
 
 
@@ -77,9 +80,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -96,7 +99,7 @@ base_params = {
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
 
-    "max_input_length": 200,
+    "max_input_length": max_length,
 
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
@@ -109,7 +112,7 @@ base_params = {
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": False,
-    "out_emb_size": d_model,
+    "out_emb_size": 512,
 
     "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
    # "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
@@ -119,8 +122,8 @@ base_params = {
     "hidden_dropout_keep_prob": 0.8,
     "out_dropout_keep_prob": 0.8,
 
-    "max_input_length": 200,
-    "extra_decode_length": 50,
+    "max_input_length": max_length,
+    "extra_decode_length": 56,
     "beam_size": 5,
     "alpha": 0.6,
 
@@ -150,11 +153,10 @@ train_params = {
     #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
     #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False, #True
+    "shuffle": True, #True
     "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 8,
-    "max_length": 56,
+    "prefetch_buffer_size": 2,
+    "max_length": max_length,
   },
 }
 
@@ -170,9 +172,9 @@ eval_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 1,
-    "max_length": 32,
+    #"map_parallel_calls": 16,
+    #"prefetch_buffer_size": 1,
+    "max_length": 64,
   },
 
 }
@@ -190,7 +192,7 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
-    "max_length": 256,
+    "max_length": max_length,
   },
 }
 
