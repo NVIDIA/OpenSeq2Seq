@@ -31,8 +31,8 @@ base_params = {
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 100, #4000,
-  "save_checkpoint_steps": 1001, #1000,
+  "eval_steps": 4000,
+  "save_checkpoint_steps": 1001,
   "logdir": "ReadData-CC",
 
   "optimizer": "Adam",
@@ -135,7 +135,7 @@ train_params = {
     #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
     #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False, #True
+    "shuffle": True,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
