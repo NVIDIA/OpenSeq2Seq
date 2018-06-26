@@ -6,6 +6,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import copy
+import math
 import tensorflow as tf
 
 from open_seq2seq.parts.rnns.utils import single_cell
@@ -553,12 +554,15 @@ class Tacotron2Decoder(Decoder):
 
     if regularizer and training:
       variables_to_regularize = []
+      rnn_vars = []
       variables_to_regularize += self.output_projection_layer.trainable_variables
       variables_to_regularize += self.target_projection_layer.trainable_variables
       variables_to_regularize += attentive_cell.trainable_variables
+      rnn_vars += attentive_cell.trainable_variables
       variables_to_regularize += attention_mechanism.memory_layer.trainable_variables
       if self.params["attention_rnn_enable"]:
         variables_to_regularize += decoder_cell.trainable_variables
+        rnn_vars += decoder_cell.trainable_variables
 
       for weights in variables_to_regularize:
         if "bias" not in weights.name:
@@ -567,6 +571,10 @@ class Tacotron2Decoder(Decoder):
             tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
           else:
             tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+      # for weights in rnn_vars:
+      #   if "bias" in weights.name:
+      #     std = 1.0 / math.sqrt(self.params['decoder_cell_units'])
+      #     weights.initializer = tf.random_uniform(weights.get_shape(), minval=-std, maxval=std)
       if enable_prenet:
         prenet.add_regularization(regularizer)
 

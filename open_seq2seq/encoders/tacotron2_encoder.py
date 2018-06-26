@@ -3,6 +3,8 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
+import math
+
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 from tensorflow.contrib.rnn import LSTMStateTuple
@@ -278,6 +280,10 @@ class Tacotron2Encoder(Encoder):
               tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
             else:
               tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+          # Want to change init for bias
+          # else:
+          #   std = 1.0 / math.sqrt(self.params['rnn_cell_dim'])
+          #   weights.initializer = tf.random_uniform(weights.get_shape(), minval=-std, maxval=std)
 
     # -- end of rnn------------------------------------------------------------
 
