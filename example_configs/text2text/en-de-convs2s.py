@@ -12,7 +12,7 @@ from open_seq2seq.decoders import ConvS2SDecoder
 
 from open_seq2seq.losses import BasicSequenceLoss
 
-from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
 
 data_root = "./wmt16_en_dt/"
 
@@ -21,7 +21,7 @@ num_layers = 15
 d_model = 512
 batch_size = 64
 num_gpus = 4
-epoch_num = 15
+epoch_num = 10
 
 base_params = {
   "use_horovod": False,
@@ -31,22 +31,31 @@ base_params = {
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 4000,
+  "eval_steps": 100, #4000,
   "save_checkpoint_steps": 1001, #1000,
   "logdir": "ReadData-CC",
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  "lr_policy": exp_decay,
-  "lr_policy_params": {
-    "learning_rate": 1e-3,
-    "begin_decay_at": 70000,
-    "decay_steps": 40000,
-    "decay_rate": 0.5,
-    "use_staircase_decay": True,
-    "min_lr": 0.0000005,
-  },
 
+
+  # "lr_policy": exp_decay,
+  # "lr_policy_params": {
+  #   "learning_rate": 1e-3,
+  #   "begin_decay_at": 70000,
+  #   "decay_steps": 40000,
+  #   "decay_rate": 0.5,
+  #   "use_staircase_decay": True,
+  #   "min_lr": 0.0000005,
+  # },
+
+  "lr_policy": transformer_policy,
+  "lr_policy_params": {
+    "learning_rate": 0.2,
+    "max_lr": 1e-3,
+    "warmup_steps": 2000,
+    "d_model": 1, #d_model,
+  },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -123,10 +132,10 @@ train_params = {
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
-    # "source_file": data_root+"newstest2014.tok.bpe.32000.en",
-    # "target_file": data_root+"newstest2014.tok.bpe.32000.de",
+    #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": False, #True
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,

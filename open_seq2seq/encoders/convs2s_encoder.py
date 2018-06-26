@@ -149,7 +149,8 @@ class ConvS2SEncoder(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
-      outputs, outputs_b, final_state = self._call(encoder_inputs)
+      padding_mask = None
+      outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
     return {'outputs': outputs,
             'outputs_b': outputs_b,
@@ -160,7 +161,7 @@ class ConvS2SEncoder(Encoder):
             #'position_embedding_layer': self.position_embedding_layer, # Should we share position embedding?
             'encoder_input': inputs}
 
-  def _call(self, encoder_inputs):
+  def _call(self, encoder_inputs, padding_mask):
     # Run inputs through the sublayers.
     with tf.variable_scope("linear_layer_before_cnn_layers"):
       outputs = self.layers[0](encoder_inputs)
@@ -169,6 +170,8 @@ class ConvS2SEncoder(Encoder):
       linear_proj, conv_layer = self.layers[i]
 
       with tf.variable_scope("layer_%d" % i):
+        if padding_mask is not None:
+          outputs *= padding_mask
         if linear_proj is not None:
           res_inputs = linear_proj(outputs)
         else:
@@ -179,11 +182,17 @@ class ConvS2SEncoder(Encoder):
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
 
+      if padding_mask is not None:
+        outputs *= padding_mask
+
       # Gradients are scaled as the gradients from all decoder attention layers enters the encoder
       scale = 1.0 / (2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
       outputs_b = (outputs + encoder_inputs) * math.sqrt(0.5)
+
+      if padding_mask is not None:
+        outputs_b *= padding_mask
 
       # Average of the encoder outputs is calculated as the final state of the encoder
       # it can be used for decoders which just accept the final state
