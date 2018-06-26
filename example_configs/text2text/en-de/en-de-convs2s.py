@@ -19,7 +19,7 @@ data_root = "./wmt16_en_dt/"
 base_model = Text2Text
 num_layers = 15
 d_model = 512
-batch_size = 64
+batch_size = 128 #64
 num_gpus = 4
 epoch_num = 15
 
