@@ -78,12 +78,12 @@ class Prenet():
   def add_regularization(self, regularizer):
     for layer in self.prenet_layers:
       for weights in layer.trainable_variables:
-        if "bias" not in weights.name:
-          print("Added regularizer to {}".format(weights.name))
-          if weights.dtype.base_dtype == tf.float16:
-            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
-          else:
-            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+        # if "bias" not in weights.name:
+        print("Added regularizer to {}".format(weights.name))
+        if weights.dtype.base_dtype == tf.float16:
+          tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+        else:
+          tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
 
 class Tacotron2Decoder(Decoder):
   """
@@ -575,8 +575,8 @@ class Tacotron2Decoder(Decoder):
       #   if "bias" in weights.name:
       #     std = 1.0 / math.sqrt(self.params['decoder_cell_units'])
       #     weights.initializer = tf.random_uniform(weights.get_shape(), minval=-std, maxval=std)
-      # if enable_prenet:
-      prenet.add_regularization(regularizer)
+      if enable_prenet:
+        prenet.add_regularization(regularizer)
 
 
     if self.params['attention_type'] is not None:
