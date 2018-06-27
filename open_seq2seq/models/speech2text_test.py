@@ -16,7 +16,7 @@ from open_seq2seq.utils import train, evaluate, infer
 from open_seq2seq.utils.utils import get_available_gpus
 
 
-class Speech2TextModelTests():
+class Speech2TextModelTests(tf.test.TestCase):
 
   def run_model(self, train_config, eval_config, hvd=None):
     with tf.Graph().as_default() as g:

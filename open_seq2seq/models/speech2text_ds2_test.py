@@ -18,7 +18,7 @@ from open_seq2seq.test_utils.test_speech_configs.ds2_test_config import base_par
     base_model
 
 
-class DS2ModelTests(tf.test.TestCase, Speech2TextModelTests):
+class DS2ModelTests(Speech2TextModelTests):
 
   def setUp(self):
     self.base_model = base_model
