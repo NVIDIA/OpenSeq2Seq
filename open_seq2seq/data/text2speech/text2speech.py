@@ -202,18 +202,19 @@ class Text2SpeechDataLayer(DataLayer):
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
       spectrogram = np.load(file_path)
       mag_power = self.params.get('mag_power', 2)
-      if mag_power != 1:
-        spectrogram = spectrogram * mag_power
-        spectrogram = np.clip(spectrogram, a_min=np.log(1e-5), a_max=None)
       if self.mel:
         spectrogram = get_mel(spectrogram, power=mag_power,
                               feature_normalize=self.params["feature_normalize"],
                               mean=self.params.get("feature_normalize_mean", 0.),
                               std=self.params.get("feature_normalize_std", 1.)
                              )
-      # Else it is a magnitude spec, and we need to normalize
-      elif self.params["feature_normalize"]:
-        spectrogram = normalize(spectrogram,
+      else:
+        if mag_power != 1:
+          spectrogram = spectrogram * mag_power
+          spectrogram = np.clip(spectrogram, a_min=np.log(1e-5), a_max=None)
+        # Else it is a magnitude spec, and we need to normalize
+        if self.params["feature_normalize"]:
+          spectrogram = normalize(spectrogram,
                                 mean=self.params.get("feature_normalize_mean", 0.),
                                 std=self.params.get("feature_normalize_std", 0.))
     else:

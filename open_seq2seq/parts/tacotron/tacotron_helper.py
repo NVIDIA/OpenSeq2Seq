@@ -56,12 +56,14 @@ class TacotronTrainingHelper(Helper):
     # self.context = context
 
     self.prenet = prenet
+    self._start_inputs = nest.map_structure(
+      lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     if prenet is None:
       self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     else:
-      pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
-      self._zero_inputs = pre_net_output
+      self._zero_inputs = tf.zeros([self._batch_size, prenet.output_size])
+      self._start_inputs = self.prenet(self._start_inputs)
     self.last_dim = self._zero_inputs.get_shape()[-1]
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
     # self._zero_inputs = tf.concat([pre_net_output,self._zero_inputs], axis=-1)
@@ -80,7 +82,8 @@ class TacotronTrainingHelper(Helper):
 
   def initialize(self, name=None):
     finished = array_ops.tile([False], [self._batch_size])
-    return (finished, self._zero_inputs )
+    # return (finished, self._zero_inputs )
+    return (finished, self._start_inputs )
 
   def sample(self, time, outputs, state, name=None):
     # Fully deterministic, output should already be projected
@@ -165,6 +168,7 @@ class TacotronHelper(Helper):
     else:
       pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
       self._zero_inputs = pre_net_output
+      self._start_inputs = self.prenet(inputs)
     
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
 
@@ -182,7 +186,7 @@ class TacotronHelper(Helper):
 
   def initialize(self, name=None):
     finished = array_ops.tile([False], [self._batch_size])
-    return (finished, self._zero_inputs)
+    return (finished, self._start_inputs)
 
   def sample(self, time, outputs, state, name=None):
     # Fully deterministic, output should already be projected

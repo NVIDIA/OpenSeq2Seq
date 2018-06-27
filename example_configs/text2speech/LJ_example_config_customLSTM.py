@@ -35,7 +35,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-example",
+  "logdir": "result/tacotron-LJ",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
@@ -66,7 +66,7 @@ base_params = {
   "encoder": Tacotron2Encoder,
   "encoder_params": {
     "dropout_keep_prob": 0.5,
-    "zoneout_prob": 0.1,
+    "zoneout_prob": 0.,
     'src_emb_size': 512,
     "conv_layers": [
       {
@@ -96,7 +96,7 @@ base_params = {
 
   "decoder": Tacotron2Decoder,
   "decoder_params": {
-    "zoneout_prob": 0.1,
+    "zoneout_prob": 0.,
     
     'attention_layer_size': 128,
     'attention_type': 'location',
