@@ -39,7 +39,7 @@ base_params = {
     'scale': 0.0005
   },
 
-  "max_grad_norm": 15.0,
+  #"max_grad_norm": 15.0,
   "dtype": tf.float32,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
