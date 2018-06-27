@@ -123,9 +123,9 @@ train_params = {
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "../librispeech/librivox-train-clean-100.csv",
-      "../librispeech/librivox-train-clean-360.csv",
-      "../librispeech/librivox-train-other-500.csv",
+      "/data/librispeech/librivox-train-clean-100.csv",
+      "/data/librispeech/librivox-train-clean-360.csv",
+      "/data/librispeech/librivox-train-other-500.csv",
     ],
     "shuffle": True,
   },

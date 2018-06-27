@@ -12,7 +12,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 30,
+  "num_epochs": 50,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
@@ -28,7 +28,7 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.0002,
-    "power": 2.0,
+    "power": 0.5,
   },
   "larc_params": {
     "larc_eta": 0.001,
@@ -124,9 +124,9 @@ train_params = {
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "../librispeech/librivox-train-clean-100.csv",
-      "../librispeech/librivox-train-clean-360.csv",
-      "../librispeech/librivox-train-other-500.csv",
+      "/data/librispeech/librivox-train-clean-100.csv",
+      "/data/librispeech/librivox-train-clean-360.csv",
+      "/data/librispeech/librivox-train-other-500.csv",
     ],
     "shuffle": True,
   },
