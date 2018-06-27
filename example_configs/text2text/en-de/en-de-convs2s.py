@@ -17,7 +17,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 3 #15
+num_layers = 15
 d_model = 768
 max_length = 128
 
@@ -80,9 +80,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"loss_scaling": "Backoff",
+  #"dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -153,10 +153,10 @@ train_params = {
     #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
     #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True, #True
+    "shuffle": False, #True
     "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 4,
+    "map_parallel_calls": 1,
+    "prefetch_buffer_size": 1,
     "max_length": max_length,
   },
 }
