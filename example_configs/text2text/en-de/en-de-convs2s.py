@@ -17,8 +17,8 @@ from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 15
-d_model = 768
+num_layers = 15 #1
+d_model = 768 #100
 max_length = 128
 
 batch_size = 64
@@ -34,7 +34,7 @@ base_params = {
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 50,
-  "eval_steps": 4001,
+  "eval_steps": 4000,
   "save_checkpoint_steps": 1000,
   "logdir": "ReadData-CC",
 
@@ -69,9 +69,9 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 0.2,
+    "learning_rate": 1.0,
     "max_lr": 1e-3,
-    "warmup_steps": 4000,
+    "warmup_steps": 2000,
     "d_model": d_model,
   },
 
@@ -80,8 +80,8 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  "dtype": tf.float32,
-  # "dtype": "mixed",
+  #"dtype": tf.float32,
+  "dtype": "mixed",
   "loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
@@ -153,10 +153,10 @@ train_params = {
     #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
     #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False, #True
+    "shuffle": True, #True
     "repeat": True,
-    "map_parallel_calls": 1,
-    "prefetch_buffer_size": 1,
+    "map_parallel_calls": 8,
+    "prefetch_buffer_size": 4,
     "max_length": max_length,
   },
 }
@@ -173,8 +173,6 @@ eval_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
-    #"map_parallel_calls": 16,
-    #"prefetch_buffer_size": 1,
     "max_length": 64,
   },
 
