@@ -107,7 +107,7 @@ class Wave2LetterEncoder(Encoder):
     elif normalization == "batch_norm":
       conv_block = conv_bn_actv
       normalization_params['bn_momentum'] = self.params.get(
-          'bn_momentum', 0.99)
+          'bn_momentum', 0.90)
       normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
 
     conv_inputs = source_sequence
