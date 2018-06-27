@@ -112,7 +112,7 @@ base_params = {
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": False,
-    "out_emb_size": 512,
+    "out_emb_size": d_model,
 
     "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
    # "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
