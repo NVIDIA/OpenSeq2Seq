@@ -6,7 +6,7 @@ from six.moves import range
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
+from open_seq2seq.parts.cnns.conv_blocks import *
 
 
 class Wave2LetterEncoder(Encoder):
@@ -24,6 +24,7 @@ class Wave2LetterEncoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
         'data_format': ['channels_first', 'channels_last'],
+        'normalization': [None, 'batch_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
     })
@@ -63,16 +64,12 @@ class Wave2LetterEncoder(Encoder):
     * **activation_fn** --- activation function to use.
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
+    * **normalization** --- normalization to use. Accepts [None, 'batch_norm'].
+      Use None if you don't want to use normalization. Defaults to 'batch_norm'.     
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
     super(Wave2LetterEncoder, self).__init__(params, model, name, mode)
-
-  def _get_layer(self, layer_type):
-    if layer_type == "conv1d":
-      return "conv"
-    elif layer_type == "conv2d":
-      return "conv"
 
   def _encode(self, input_dict):
     """Creates TensorFlow graph for Wav2Letter like encoder.
@@ -102,8 +99,16 @@ class Wave2LetterEncoder(Encoder):
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
-    bn_momentum = self.params.get('bn_momentum', 0.99)
-    bn_epsilon = self.params.get('bn_epsilon', 1e-3)
+    normalization = self.params.get('normalization', 'batch_norm')
+
+    normalization_params = {}
+    if normalization == None:
+      conv_block = conv_actv
+    elif normalization == "batch_norm":
+      conv_block = conv_bn_actv
+      normalization_params['bn_momentum'] = self.params.get(
+          'bn_momentum', 0.99)
+      normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
 
     conv_inputs = source_sequence
     batch_size = conv_inputs.get_shape().as_list()[0]
@@ -117,37 +122,29 @@ class Wave2LetterEncoder(Encoder):
 
     for idx_convnet in range(len(convnet_layers)):
       layer_type = convnet_layers[idx_convnet]['type']
-      layer_repeat_fixed = convnet_layers[idx_convnet]['repeat']
-      layer_repeat_moving = layer_repeat_fixed
+      layer_repeat = convnet_layers[idx_convnet]['repeat']
+      ch_out = convnet_layers[idx_convnet]['num_channels']
+      kernel_size = convnet_layers[idx_convnet]['kernel_size']
+      strides = convnet_layers[idx_convnet]['stride']
+      padding = convnet_layers[idx_convnet]['padding']
 
-      while layer_repeat_moving != 0:
-        layer_repeat_moving = layer_repeat_moving - 1
-        layer_name = self._get_layer(layer_type)
-        if layer_name == "conv":
-          ch_out = convnet_layers[idx_convnet]['num_channels']
-          conv_block = conv_bn_actv  # can add other type of convolutional blocks in future
-          kernel_size = convnet_layers[idx_convnet]['kernel_size']
-          strides = convnet_layers[idx_convnet]['stride']
-          padding = convnet_layers[idx_convnet]['padding']
-
-          conv_feats = conv_block(
-              type=layer_type,
-              name="conv{}{}".format(
-                  idx_convnet + 1, layer_repeat_fixed + 1 - layer_repeat_moving),
-              inputs=conv_feats,
-              filters=ch_out,
-              kernel_size=kernel_size,
-              activation_fn=self.params['activation_fn'],
-              strides=strides,
-              padding=padding,
-              regularizer=regularizer,
-              training=training,
-              data_format=data_format,
-              bn_momentum=bn_momentum,
-              bn_epsilon=bn_epsilon,
-          )
-
-          outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
+      for idx_layer in range(layer_repeat):
+        conv_feats = conv_block(
+            type=layer_type,
+            name="conv{}{}".format(
+                idx_convnet + 1, idx_layer + 1),
+            inputs=conv_feats,
+            filters=ch_out,
+            kernel_size=kernel_size,
+            activation_fn=self.params['activation_fn'],
+            strides=strides,
+            padding=padding,
+            regularizer=regularizer,
+            training=training,
+            data_format=data_format,
+            **normalization_params
+        )
+        outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
 
     if data_format == 'channels_first':
       outputs = tf.transpose(outputs, [0, 2, 1])
