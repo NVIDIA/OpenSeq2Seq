@@ -69,9 +69,9 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 1.0,
+    "learning_rate": 10,
     "max_lr": 1e-3,
-    "warmup_steps": 2000,
+    "warmup_steps": 4000,
     "d_model": d_model,
   },
 
@@ -80,9 +80,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -153,7 +153,7 @@ train_params = {
     #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
     #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True, #True
+    "shuffle": False, #True
     "repeat": True,
     "map_parallel_calls": 8,
     "prefetch_buffer_size": 4,
