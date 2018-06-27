@@ -39,23 +39,21 @@ base_params = {
   "logdir": "ReadData-CC",
 
 
-  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
-  "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.997,
-    "epsilon": 1e-09,
-  },
+  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  # "optimizer_params": {
+  #   "beta1": 0.9,
+  #   "beta2": 0.997,
+  #   "epsilon": 1e-09,
+  # },
+  #
+  # "lr_policy": transformer_policy,
+  # "lr_policy_params": {
+  #   "learning_rate": 2.0,
+  #   "warmup_steps": 8000,
+  #   "d_model": d_model,
+  # },
 
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "learning_rate": 2.0,
-    "warmup_steps": 8000,
-    "d_model": d_model,
-  },
 
-
-  #"optimizer": "Adam",
-  #"optimizer_params": {},
 
   # "lr_policy": exp_decay,
   # "lr_policy_params": {
@@ -67,13 +65,15 @@ base_params = {
   #   "min_lr": 0.0000005,
   # },
 
-  # "lr_policy": transformer_policy,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.2,
-  #   "max_lr": 1e-3,
-  #   "warmup_steps": 4000,
-  #   "d_model": d_model,
-  # },
+  "optimizer": "Adam",
+  "optimizer_params": {},
+  "lr_policy": transformer_policy,
+  "lr_policy_params": {
+    "learning_rate": 0.2,
+    "max_lr": 1e-3,
+    "warmup_steps": 4000,
+    "d_model": d_model,
+  },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
