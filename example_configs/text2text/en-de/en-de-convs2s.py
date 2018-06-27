@@ -17,7 +17,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 15
+num_layers = 3 #15
 d_model = 768
 max_length = 128
 
@@ -49,7 +49,7 @@ base_params = {
   "lr_policy": transformer_policy,
   "lr_policy_params": {
     "learning_rate": 2.0,
-    "warmup_steps": 16000,
+    "warmup_steps": 8000,
     "d_model": d_model,
   },
 
