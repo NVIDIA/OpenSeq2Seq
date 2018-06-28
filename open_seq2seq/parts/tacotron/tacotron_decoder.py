@@ -160,15 +160,15 @@ class TacotronDecoder(decoder.Decoder):
       cell_state = (attention_state, decoder_state)
       # Concatenate the decoder output and attention output and send it through a projection layer
       cell_outputs = array_ops.concat((cell_outputs, attention_context), axis=-1)
-      cell_outputs = self.spec_layer(cell_outputs)
+      spec_outputs = self.spec_layer(cell_outputs)
       target_outputs = self.target_layer(cell_outputs)
       sample_ids = self.helper.sample(
-          time=time, outputs=cell_outputs, state=cell_state)
+          time=time, outputs=spec_outputs, state=cell_state)
       (finished, next_inputs, next_state) = self.helper.next_inputs(
           time=time,
-          outputs=cell_outputs,
+          outputs=spec_outputs,
           state=cell_state,
           sample_ids=sample_ids,
           stop_token_predictions=target_outputs)
-    outputs = BasicDecoderOutput(cell_outputs, target_outputs, sample_ids)
+    outputs = BasicDecoderOutput(spec_outputs, target_outputs, sample_ids)
     return (outputs, next_state, next_inputs, finished)
