@@ -1,10 +1,10 @@
-"""Implementation of the attention layer for convs2s. Inspired from https://github.com/tobyyouup/conv_seq2seq"""
+"""Implementation of the attention layer for convs2s.
+Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-
 
 import tensorflow as tf
 import math
@@ -31,15 +31,25 @@ class AttentionLayerNormalized(tf.layers.Layer):
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
-      self.tgt_embed_proj = FeedFowardNetworkNormalized(in_dim, embed_size,
-                                                        dropout=1.0,
-                                                        var_scope_name="att_linear_mapping_tgt_embed")
+      self.tgt_embed_proj = FeedFowardNetworkNormalized(
+          in_dim,
+          embed_size,
+          dropout=1.0,
+          var_scope_name="att_linear_mapping_tgt_embed"
+      )
 
       # linear projection layer to project back to the input space
-      self.out_proj = FeedFowardNetworkNormalized(embed_size, in_dim, dropout=1.0,
-                                                  var_scope_name="att_linear_mapping_out")
+      self.out_proj = FeedFowardNetworkNormalized(
+          embed_size,
+          in_dim,
+          dropout=1.0,
+          var_scope_name="att_linear_mapping_out"
+      )
 
-  def call(self, input, target_embed, encoder_output_a, encoder_output_b, input_attention_bias):
+  def call(
+      self, input, target_embed, encoder_output_a, encoder_output_b,
+      input_attention_bias
+  ):
     """Calculates the attention vectors.
 
     Args:
@@ -57,7 +67,6 @@ class AttentionLayerNormalized(tf.layers.Layer):
     h_proj = self.tgt_embed_proj(input)
     d_proj = (h_proj + target_embed) * math.sqrt(0.5)
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
-
 
     # Masking need to be done in float32. Added to support mixed-precision training.
     att_score = tf.cast(x=att_score, dtype=tf.float32)
