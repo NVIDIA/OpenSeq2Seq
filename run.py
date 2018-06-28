@@ -16,6 +16,7 @@ import shutil
 
 import tensorflow as tf
 from six.moves import range
+from six import string_types
 
 
 from open_seq2seq.utils.utils import deco_print, flatten_dict, \
@@ -69,7 +70,7 @@ def main():
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
     if isinstance(value, int) or isinstance(value, float) or \
-       isinstance(value, str):
+       isinstance(value, string_types):
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
     elif isinstance(value, bool):
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
