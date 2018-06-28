@@ -1,14 +1,15 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import abc
+import copy
+
 import six
 import tensorflow as tf
-import copy
-from open_seq2seq.utils.utils import check_params, cast_types
+
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
+from open_seq2seq.utils.utils import check_params, cast_types
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -106,10 +107,10 @@ class Decoder:
       if 'regularizer' not in self._params:
         if self._model and 'regularizer' in self._model.params:
           self._params['regularizer'] = copy.deepcopy(
-            self._model.params['regularizer']
+              self._model.params['regularizer']
           )
           self._params['regularizer_params'] = copy.deepcopy(
-            self._model.params['regularizer_params']
+              self._model.params['regularizer_params']
           )
 
       if 'regularizer' in self._params:
@@ -117,7 +118,7 @@ class Decoder:
         self._params['regularizer'] = self._params['regularizer'](**init_dict)
         if self._params['dtype'] == 'mixed':
           self._params['regularizer'] = mp_regularizer_wrapper(
-            self._params['regularizer'],
+              self._params['regularizer'],
           )
 
       if self._params['dtype'] == 'mixed':
