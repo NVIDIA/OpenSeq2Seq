@@ -637,7 +637,7 @@ class LocationLayer(layers_base.Layer):
       kernel_size=kernel_size,
       strides=strides,
       padding="SAME",
-      use_bias=False,
+      use_bias=True,
       data_format=data_format,
     )
     self.location_dense = layers_core.Dense(
