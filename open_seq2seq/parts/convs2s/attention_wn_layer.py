@@ -52,9 +52,12 @@ class AttentionLayerNormalized(tf.layers.Layer):
       input: A float32 tensor with shape [batch_size, length, in_dim]
       target_embed: A float32 tensor with shape [batch_size, length, in_dim]
                     containing the target embeddings
-      encoder_output_a:
-      encoder_output_b:
-      input_attention_bias:
+      encoder_output_a: A float32 tensor with shape [batch_size, length, out_dim]
+                        containing the first encoder outputs, uses as the keys
+      encoder_output_b: A float32 tensor with shape [batch_size, length, src_emb_dim]
+                        containing the second encoder outputs, uses as the values
+      input_attention_bias: A float32 tensor with shape [batch_size, length, 1]
+                            containing the bias used to mask the paddings
 
     Returns:
       float32 tensor with shape [batch_size, length, out_dim].
