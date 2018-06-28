@@ -62,7 +62,7 @@ base_params = {
         "num_channels": 384, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [15], "stride": [1],
         "num_channels": 384, "padding": "SAME"
       },
