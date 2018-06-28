@@ -44,8 +44,7 @@ class ConvS2SDecoder(Decoder):
             'alpha': float,
             'extra_decode_length': int,
             'EOS_ID': int,
-        }
-    )
+        })
 
   @staticmethod
   def get_optional_params():
@@ -68,8 +67,7 @@ class ConvS2SDecoder(Decoder):
             'GO_SYMBOL': int,
             'PAD_SYMBOL': int,
             'END_SYMBOL': int,
-        }
-    )
+        })
 
   def _cast_types(self, input_dict):
     return input_dict
@@ -86,17 +84,15 @@ class ConvS2SDecoder(Decoder):
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
   def _decode(self, input_dict):
-    targets = input_dict['target_tensors'
-                        ][0] if 'target_tensors' in input_dict else None
+    targets = input_dict['target_tensors'][0] \
+              if 'target_tensors' in input_dict else None
 
     encoder_outputs = input_dict['encoder_output']['outputs']
     encoder_outputs_b = input_dict['encoder_output'].get(
-        'outputs_b', encoder_outputs
-    )
+        'outputs_b', encoder_outputs)
 
     inputs_attention_bias = input_dict['encoder_output'].get(
-        'inputs_attention_bias_cs2s', None
-    )
+        'inputs_attention_bias_cs2s', None)
 
     with tf.name_scope("decode"):
       # prepare decoder layers
@@ -106,12 +102,10 @@ class ConvS2SDecoder(Decoder):
 
         # preparing embedding layers
         with tf.variable_scope("embedding"):
-          if 'embedding_softmax_layer' in input_dict[
-              'encoder_output'
-          ] and self.params['shared_embed']:
-            self.embedding_softmax_layer = input_dict['encoder_output'][
-                'embedding_softmax_layer'
-            ]
+          if 'embedding_softmax_layer' in input_dict['encoder_output'] \
+                  and self.params['shared_embed']:
+            self.embedding_softmax_layer = \
+              input_dict['encoder_output']['embedding_softmax_layer']
           else:
             self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
                 vocab_size=self._tgt_vocab_size,
@@ -120,28 +114,23 @@ class ConvS2SDecoder(Decoder):
                 init_var=0.1,
                 embed_scale=False,
                 pad_sym=self._pad_sym,
-                mask_paddings=False
-            )
+                mask_paddings=False)
 
         with tf.variable_scope("pos_embedding"):
-          if 'position_embedding_layer' in input_dict[
-              'encoder_output'
-          ] and self.params['shared_embed']:
-            self.position_embedding_layer = input_dict['encoder_output'][
-                'position_embedding_layer'
-            ]
+          if 'position_embedding_layer' in input_dict['encoder_output'] \
+                  and self.params['shared_embed']:
+            self.position_embedding_layer = \
+              input_dict['encoder_output']['position_embedding_layer']
           else:
             self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
-                vocab_size=self.params.get(
-                    "max_input_length", MAX_INPUT_LENGTH
-                ),
+                vocab_size=self.params.get("max_input_length",
+                                           MAX_INPUT_LENGTH),
                 hidden_size=self._tgt_emb_size,
                 pad_vocab_to_eight=self._pad2eight,
                 init_var=0.1,
                 embed_scale=False,
                 pad_sym=self._pad_sym,
-                mask_paddings=False
-            )
+                mask_paddings=False)
 
         # linear projection before cnn layers
         self.layers.append(
@@ -149,9 +138,7 @@ class ConvS2SDecoder(Decoder):
                 self._tgt_emb_size,
                 knum_list[0],
                 dropout=self.params["embedding_dropout_keep_prob"],
-                var_scope_name="linear_mapping_before_cnn_layers"
-            )
-        )
+                var_scope_name="linear_mapping_before_cnn_layers"))
 
         for i in range(self.params['decoder_layers']):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -164,8 +151,7 @@ class ConvS2SDecoder(Decoder):
                 in_dim,
                 out_dim,
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
-                dropout=1.0
-            )
+                dropout=1.0)
           else:
             linear_proj = None
 
@@ -177,15 +163,13 @@ class ConvS2SDecoder(Decoder):
               layer_id=i + 1,
               hidden_dropout=self.params["hidden_dropout_keep_prob"],
               conv_padding="VALID",
-              decode_padding=True
-          )
+              decode_padding=True)
 
           att_layer = attention_wn_layer.AttentionLayerNormalized(
               out_dim,
               embed_size=self._tgt_emb_size,
               layer_id=i + 1,
-              add_res=True
-          )
+              add_res=True)
 
           self.layers.append([linear_proj, conv_layer, att_layer])
 
@@ -195,9 +179,7 @@ class ConvS2SDecoder(Decoder):
                 knum_list[self.params['decoder_layers'] - 1],
                 self.params.get("out_emb_size", self._tgt_emb_size),
                 dropout=1.0,
-                var_scope_name="linear_mapping_after_cnn_layers"
-            )
-        )
+                var_scope_name="linear_mapping_after_cnn_layers"))
 
         if not self.params['shared_embed']:
           self.layers.append(
@@ -205,32 +187,27 @@ class ConvS2SDecoder(Decoder):
                   self.params.get("out_emb_size", self._tgt_emb_size),
                   self._tgt_vocab_size,
                   dropout=self.params["out_dropout_keep_prob"],
-                  var_scope_name="linear_mapping_to_vocabspace"
-              )
-          )
+                  var_scope_name="linear_mapping_to_vocabspace"))
         else:
           # if embedding is shared,
           # the shared embedding is used as the final linear projection to vocab space
           self.layers.append(None)
 
       if targets is None:
-        return self.predict(
-            encoder_outputs, encoder_outputs_b, inputs_attention_bias
-        )
+        return self.predict(encoder_outputs, encoder_outputs_b,
+                            inputs_attention_bias)
       else:
-        logits = self.decode_pass(
-            targets, encoder_outputs, encoder_outputs_b, inputs_attention_bias
-        )
+        logits = self.decode_pass(targets, encoder_outputs, encoder_outputs_b,
+                                  inputs_attention_bias)
       return {
           "logits": logits,
-          "samples": [tf.argmax(logits, axis=-1)],
+          "outputs": [tf.argmax(logits, axis=-1)],
           "final_state": None,
           "final_sequence_lengths": None
       }
 
-  def decode_pass(
-      self, targets, encoder_outputs, encoder_outputs_b, inputs_attention_bias
-  ):
+  def decode_pass(self, targets, encoder_outputs, encoder_outputs_b,
+                  inputs_attention_bias):
     """Generate logits for each value in the target sequence.
 
     Args:
@@ -254,22 +231,18 @@ class ConvS2SDecoder(Decoder):
 
     with tf.name_scope("add_pos_encoding"):
       pos_input = tf.range(
-          0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range'
-      )
+          0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
       pos_encoding = self.position_embedding_layer(pos_input)
       decoder_inputs = decoder_inputs + tf.cast(
-          x=pos_encoding, dtype=decoder_inputs.dtype
-      )
+          x=pos_encoding, dtype=decoder_inputs.dtype)
 
     if self.mode == "train":
-      decoder_inputs = tf.nn.dropout(
-          decoder_inputs, self.params["embedding_dropout_keep_prob"]
-      )
+      decoder_inputs = tf.nn.dropout(decoder_inputs,
+                                     self.params["embedding_dropout_keep_prob"])
 
     # mask the paddings in the target
     inputs_padding = get_padding(
-        targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype
-    )
+        targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype)
     decoder_inputs *= tf.expand_dims(1.0 - inputs_padding, 2)
 
     # do decode
@@ -277,15 +250,12 @@ class ConvS2SDecoder(Decoder):
         decoder_inputs=decoder_inputs,
         encoder_outputs_a=encoder_outputs,
         encoder_outputs_b=encoder_outputs_b,
-        input_attention_bias=inputs_attention_bias
-    )
+        input_attention_bias=inputs_attention_bias)
 
     return logits
 
-  def _call(
-      self, decoder_inputs, encoder_outputs_a, encoder_outputs_b,
-      input_attention_bias
-  ):
+  def _call(self, decoder_inputs, encoder_outputs_a, encoder_outputs_b,
+            input_attention_bias):
     # run input into the decoder layers and returns the logits
     target_embed = decoder_inputs
     with tf.variable_scope("linear_layer_before_cnn_layers"):
@@ -304,10 +274,8 @@ class ConvS2SDecoder(Decoder):
           outputs = conv_layer(outputs)
 
         with tf.variable_scope("attention_layer"):
-          outputs = att_layer(
-              outputs, target_embed, encoder_outputs_a, encoder_outputs_b,
-              input_attention_bias
-          )
+          outputs = att_layer(outputs, target_embed, encoder_outputs_a,
+                              encoder_outputs_b, input_attention_bias)
         outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
@@ -334,8 +302,7 @@ class ConvS2SDecoder(Decoder):
 
     # Create initial set of IDs that will be passed into symbols_to_logits_fn.
     initial_ids = tf.zeros(
-        [batch_size], dtype=tf.int32
-    ) + self.params["GO_SYMBOL"]
+        [batch_size], dtype=tf.int32) + self.params["GO_SYMBOL"]
 
     cache = {}
     # Add encoder outputs and attention bias to the cache.
@@ -353,22 +320,19 @@ class ConvS2SDecoder(Decoder):
         beam_size=self.params["beam_size"],
         alpha=self.params["alpha"],
         max_decode_length=max_decode_length,
-        eos_id=self.params["EOS_ID"]
-    )
+        eos_id=self.params["EOS_ID"])
 
     # Get the top sequence for each batch element
     top_decoded_ids = decoded_ids[:, 0, :]
     top_scores = scores[:, 0]
 
     # this isn't particularly efficient
-    logits = self.decode_pass(
-        top_decoded_ids, encoder_outputs, encoder_outputs_b,
-        inputs_attention_bias
-    )
+    logits = self.decode_pass(top_decoded_ids, encoder_outputs,
+                              encoder_outputs_b, inputs_attention_bias)
 
     return {
         "logits": logits,
-        "samples": [top_decoded_ids],
+        "outputs": [top_decoded_ids],
         "final_state": None,
         "final_sequence_lengths": None
     }
@@ -394,10 +358,9 @@ class ConvS2SDecoder(Decoder):
 
       # pass the decoded ids from the beginneing up to the current into the decoder
       # not efficient
-      decoder_outputs = self.decode_pass(
-          ids, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
-          cache.get("inputs_attention_bias")
-      )
+      decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"),
+                                         cache.get("encoder_outputs_b"),
+                                         cache.get("inputs_attention_bias"))
 
       logits = decoder_outputs[:, i, :]
       return logits, cache

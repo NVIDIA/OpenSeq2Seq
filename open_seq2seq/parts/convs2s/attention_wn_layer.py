@@ -35,21 +35,17 @@ class AttentionLayerNormalized(tf.layers.Layer):
           in_dim,
           embed_size,
           dropout=1.0,
-          var_scope_name="att_linear_mapping_tgt_embed"
-      )
+          var_scope_name="att_linear_mapping_tgt_embed")
 
       # linear projection layer to project back to the input space
       self.out_proj = FeedFowardNetworkNormalized(
           embed_size,
           in_dim,
           dropout=1.0,
-          var_scope_name="att_linear_mapping_out"
-      )
+          var_scope_name="att_linear_mapping_out")
 
-  def call(
-      self, input, target_embed, encoder_output_a, encoder_output_b,
-      input_attention_bias
-  ):
+  def call(self, input, target_embed, encoder_output_a, encoder_output_b,
+           input_attention_bias):
     """Calculates the attention vectors.
 
     Args:

@@ -36,16 +36,14 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           'V',
           shape=[in_dim, out_dim],
           initializer=V_initializer,
-          trainable=True
-      )
+          trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=0)
       self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
       self.b = tf.get_variable(
           'b',
           shape=[out_dim],
           initializer=tf.zeros_initializer(),
-          trainable=True
-      )
+          trainable=True)
 
   def call(self, x):
     """Projects x with its linear transformation.

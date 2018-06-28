@@ -13,10 +13,8 @@ import math
 class Conv1DNetworkNormalized(tf.layers.Layer):
   """1D convolutional layer with weight normalization"""
 
-  def __init__(
-      self, in_dim, out_dim, kernel_width, mode, layer_id, hidden_dropout,
-      conv_padding, decode_padding
-  ):
+  def __init__(self, in_dim, out_dim, kernel_width, mode, layer_id,
+               hidden_dropout, conv_padding, decode_padding):
     """initializes the 1D convolution layer.
     It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
@@ -47,19 +45,17 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           'V',
           shape=[kernel_width, in_dim, 2 * out_dim],
           initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
-          trainable=True
-      )
+          trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=[0, 1])
       self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
       self.b = tf.get_variable(
           'b',
           shape=[2 * out_dim],
           initializer=tf.zeros_initializer(),
-          trainable=True
-      )
+          trainable=True)
 
-      self.W = tf.reshape(self.g, [1, 1, 2 * out_dim
-                                  ]) * tf.nn.l2_normalize(self.V, [0, 1])
+      self.W = tf.reshape(self.g, [1, 1, 2 * out_dim]) * tf.nn.l2_normalize(
+          self.V, [0, 1])
 
   def call(self, input):
     """Applies convolution with gated linear units on x.
@@ -77,14 +73,12 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     if self.decode_padding:
       x = tf.pad(
           x, [[0, 0], [self.kernel_width - 1, self.kernel_width - 1], [0, 0]],
-          "CONSTANT"
-      )
+          "CONSTANT")
 
     output = tf.nn.bias_add(
         tf.nn.conv1d(
-            value=x, filters=self.W, stride=1, padding=self.conv_padding
-        ), self.b
-    )
+            value=x, filters=self.W, stride=1, padding=self.conv_padding),
+        self.b)
 
     if self.decode_padding and self.kernel_width > 1:
       output = output[:, 0:-self.kernel_width + 1, :]
