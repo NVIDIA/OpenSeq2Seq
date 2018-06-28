@@ -58,7 +58,7 @@ base_params = {
   "max_grad_norm": 0.1,
   "dtype": tf.float32,
   #"dtype": "mixed",
-  #"loss_scaling": "Backoff",
+  "loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {

@@ -168,7 +168,7 @@ class ConvS2SDecoder(Decoder):
       else:
         logits = self.decode_pass(targets, encoder_outputs, encoder_outputs_b, inputs_attention_bias)
       return {"logits": logits,
-              "outputs": [tf.argmax(logits, axis=-1)],
+              "samples": [tf.argmax(logits, axis=-1)],
               "final_state": None,
               "final_sequence_lengths": None}
 
@@ -288,7 +288,7 @@ class ConvS2SDecoder(Decoder):
     logits = self.decode_pass(top_decoded_ids, encoder_outputs, encoder_outputs_b, inputs_attention_bias)
 
     return {"logits": logits,
-            "outputs": [top_decoded_ids],
+            "samples": [top_decoded_ids],
             "final_state": None,
             "final_sequence_lengths": None}
 
