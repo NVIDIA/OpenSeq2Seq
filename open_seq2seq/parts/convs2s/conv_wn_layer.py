@@ -53,6 +53,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
 
     Args:
       x: A float32 tensor with shape [batch_size, length, in_dim]
+
     Returns:
       float32 tensor with shape [batch_size, length, out_dim].
     """

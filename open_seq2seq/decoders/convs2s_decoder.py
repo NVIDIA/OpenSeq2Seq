@@ -168,7 +168,7 @@ class ConvS2SDecoder(Decoder):
       else:
         logits = self.decode_pass(targets, encoder_outputs, encoder_outputs_b, inputs_attention_bias)
       return {"logits": logits,
-              "samples": [tf.argmax(logits, axis=-1)],
+              "outputs": [tf.argmax(logits, axis=-1)],
               "final_state": None,
               "final_sequence_lengths": None}
 
@@ -179,6 +179,7 @@ class ConvS2SDecoder(Decoder):
       targets: target values for the output sequence.
         int tensor with shape [batch_size, target_length]
       encoder_outputs: continuous representation of input sequence.
+        float tensor with shape [batch_size, input_length, hidden_size]
         float tensor with shape [batch_size, input_length, hidden_size]
       encoder_outputs_b: continuous representation of input sequence
         which includes the source embeddings.
@@ -249,7 +250,6 @@ class ConvS2SDecoder(Decoder):
         logits = self.layers[-1](outputs)
 
     return tf.cast(logits, dtype=tf.float32)
-    #return logits
 
   def predict(self, encoder_outputs, encoder_outputs_b, inputs_attention_bias):
     """Return predicted sequence."""
@@ -288,7 +288,7 @@ class ConvS2SDecoder(Decoder):
     logits = self.decode_pass(top_decoded_ids, encoder_outputs, encoder_outputs_b, inputs_attention_bias)
 
     return {"logits": logits,
-            "samples": [top_decoded_ids],
+            "outputs": [top_decoded_ids],
             "final_state": None,
             "final_sequence_lengths": None}
 

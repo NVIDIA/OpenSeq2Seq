@@ -49,6 +49,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
       encoder_output_a:
       encoder_output_b:
       input_attention_bias:
+
     Returns:
       float32 tensor with shape [batch_size, length, out_dim].
     """

@@ -47,14 +47,6 @@ class ConvS2SEncoder(Encoder):
     })
 
   def __init__(self, params, model, name="convs2s_encoder_with_emb", mode='train'):
-    """
-    Initializes convolutional encoder with embeddings
-    :param params: dictionary with encoder parameters
-    Must define:
-      * src_vocab_size - data vocabulary size
-      * src_emb_size - size of embedding to use
-      * mode - train or infer
-    """
     super(ConvS2SEncoder, self).__init__(params, model, name=name, mode=mode)
 
     self._src_vocab_size = self.params['src_vocab_size']
@@ -65,21 +57,6 @@ class ConvS2SEncoder(Encoder):
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
   def _encode(self, input_dict):
-    """
-    Encodes data into representation
-    :param input_dict: a Python dictionary.
-    Must define:
-      * src_inputs - a Tensor of shape [batch_size, time] or [time, batch_size]
-                     (depending on time_major param)
-      * src_lengths - a Tensor of shape [batch_size]
-    :return: a Python dictionary with:
-      * encoder_outputs - a Tensor of shape
-                          [batch_size, time, representation_dim]
-      or [time, batch_size, representation_dim]
-      * encoder_state - a Tensor of shape [batch_size, dim]
-      * src_lengths - (copy ref from input) a Tensor of shape [batch_size]
-    """
-
     inputs = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
@@ -157,7 +134,8 @@ class ConvS2SEncoder(Encoder):
             'state': final_state,
             'src_lengths': source_length, # should it include paddings or not?
             'embedding_softmax_layer': self.embedding_softmax_layer,
-            #'position_embedding_layer': self.position_embedding_layer, # Should we share position embedding?
+            # Should we share position embedding?
+            #'position_embedding_layer': self.position_embedding_layer,
             'encoder_input': inputs}
 
   def _call(self, encoder_inputs, padding_mask):
