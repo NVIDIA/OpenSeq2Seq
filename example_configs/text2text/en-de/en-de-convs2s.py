@@ -14,7 +14,7 @@ from open_seq2seq.decoders import ConvS2SDecoder
 
 from open_seq2seq.losses import BasicSequenceLoss
 
-from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
+from open_seq2seq.optimizers.lr_policies import transformer_policy
 
 data_root = "./wmt16_en_dt/"
 
