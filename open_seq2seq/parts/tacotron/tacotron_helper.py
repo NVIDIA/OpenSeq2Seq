@@ -45,8 +45,8 @@ class TacotronTrainingHelper(Helper):
       inputs = nest.map_structure(_transpose_batch_time, inputs)
     self._input_tas = nest.map_structure(_unstack_ta, inputs)
     self._sequence_length = sequence_length
-    self._zero_inputs = nest.map_structure(
-        lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+    # self._zero_inputs = nest.map_structure(
+    #     lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     self._batch_size = array_ops.size(sequence_length)
     self.seed = 0
     self.sampling_prob = sampling_prob
@@ -56,15 +56,15 @@ class TacotronTrainingHelper(Helper):
     # self.context = context
 
     self.prenet = prenet
-    self._start_inputs = nest.map_structure(
+    self._zero_inputs = nest.map_structure(
       lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
-    if prenet is None:
-      self._zero_inputs = nest.map_structure(
-        lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
-    else:
-      self._zero_inputs = tf.zeros([self._batch_size, prenet.output_size])
-      self._start_inputs = self.prenet(self._start_inputs)
-    self.last_dim = self._zero_inputs.get_shape()[-1]
+    # if prenet is None:
+    #   self._zero_inputs = nest.map_structure(
+    #     lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+    if prenet is not None:
+      # self._zero_inputs = tf.zeros([self._batch_size, prenet.output_size])
+      self._start_inputs = self.prenet(self._zero_inputs)
+    self.last_dim = self._start_inputs.get_shape()[-1]
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
     # self._zero_inputs = tf.concat([pre_net_output,self._zero_inputs], axis=-1)
 
@@ -139,7 +139,7 @@ class TacotronTrainingHelper(Helper):
 
     next_inputs = control_flow_ops.cond(
           all_finished, 
-          lambda: self._zero_inputs,
+          lambda: self._start_inputs,
           lambda: get_next_input(self._input_tas, outputs))
 
     return (finished, next_inputs, state)
@@ -164,10 +164,10 @@ class TacotronHelper(Helper):
 
     self.prenet = prenet
     if prenet is None:
-      self._zero_inputs = inputs
+      self._start_inputs = inputs
     else:
-      pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
-      self._zero_inputs = pre_net_output
+      # pre_net_output = tf.zeros([self._batch_size, prenet.output_size])
+      # self._zero_inputs = pre_net_output
       self._start_inputs = self.prenet(inputs)
     
     # self._zero_inputs = tf.concat([self._zero_inputs, self.context],axis=-1)
@@ -214,6 +214,6 @@ class TacotronHelper(Helper):
       return out
     next_inputs = control_flow_ops.cond(
         all_finished, 
-        lambda: self._zero_inputs,
+        lambda: self._start_inputs,
         lambda: get_next_input(outputs))
     return (finished, next_inputs, state)

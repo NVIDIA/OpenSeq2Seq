@@ -78,12 +78,12 @@ class Prenet():
   def add_regularization(self, regularizer):
     for layer in self.prenet_layers:
       for weights in layer.trainable_variables:
-        # if "bias" not in weights.name:
-        print("Added regularizer to {}".format(weights.name))
-        if weights.dtype.base_dtype == tf.float16:
-          tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
-        else:
-          tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+        if "bias" not in weights.name:
+          print("Added regularizer to {}".format(weights.name))
+          if weights.dtype.base_dtype == tf.float16:
+            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+          else:
+            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
 
 class Tacotron2Decoder(Decoder):
   """
@@ -565,12 +565,12 @@ class Tacotron2Decoder(Decoder):
         rnn_vars += decoder_cell.trainable_variables
 
       for weights in variables_to_regularize:
-        # if "bias" not in weights.name:
-        print("Added regularizer to {}".format(weights.name))
-        if weights.dtype.base_dtype == tf.float16:
-          tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
-        else:
-          tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+        if "bias" not in weights.name:
+          print("Added regularizer to {}".format(weights.name))
+          if weights.dtype.base_dtype == tf.float16:
+            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+          else:
+            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
       # for weights in rnn_vars:
       #   if "bias" in weights.name:
       #     std = 1.0 / math.sqrt(self.params['decoder_cell_units'])

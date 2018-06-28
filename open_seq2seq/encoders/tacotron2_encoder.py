@@ -169,7 +169,7 @@ class Tacotron2Encoder(Encoder):
       name="EncoderEmbeddingMatrix",
       shape=[src_vocab_size, self.params['src_emb_size']],
       dtype=self.params['dtype'],
-      initializer=tf.random_normal_initializer()
+      # initializer=tf.random_normal_initializer()
     )
 
     embedded_inputs = tf.cast(tf.nn.embedding_lookup(
@@ -275,12 +275,12 @@ class Tacotron2Encoder(Encoder):
         cell_weights += multirnn_cell_bw.trainable_variables
         cell_weights += [enc_emb_w]
         for weights in cell_weights:
-          # if "bias" not in weights.name:
-          print("Added regularizer to {}".format(weights.name))
-          if weights.dtype.base_dtype == tf.float16:
-            tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
-          else:
-            tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
+          if "bias" not in weights.name:
+            print("Added regularizer to {}".format(weights.name))
+            if weights.dtype.base_dtype == tf.float16:
+              tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+            else:
+              tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
           # Want to change init for bias
           # else:
           #   std = 1.0 / math.sqrt(self.params['rnn_cell_dim'])
