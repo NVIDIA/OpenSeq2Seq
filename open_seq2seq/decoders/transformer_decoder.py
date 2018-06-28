@@ -10,7 +10,8 @@ from .decoder import Decoder
 from open_seq2seq.parts.transformer import utils, attention_layer, \
   ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
-  LayerNormalization
+                                                  LayerNormalization
+
 
 class TransformerDecoder(Decoder):
   @staticmethod
@@ -71,7 +72,7 @@ class TransformerDecoder(Decoder):
     self.layers = []
 
   def _decode(self, input_dict):
-    #targets = input_dict['tgt_sequence']
+    # targets = input_dict['tgt_sequence']
     targets = input_dict['target_tensors'][0] if 'target_tensors' \
                                                  in input_dict else None
     encoder_outputs = input_dict['encoder_output']['outputs']
@@ -110,13 +111,12 @@ class TransformerDecoder(Decoder):
       else:
         logits = self.decode_pass(targets, encoder_outputs, inputs_attention_bias)
         return {"logits": logits,
-                "samples": [tf.argmax(logits, axis=-1)],
+                "outputs": [tf.argmax(logits, axis=-1)],
                 "final_state": None,
                 "final_sequence_lengths": None}
 
-
   def _call(self, decoder_inputs, encoder_outputs, decoder_self_attention_bias,
-           attention_bias, cache=None):
+            attention_bias, cache=None):
     for n, layer in enumerate(self.layers):
       self_attention_layer = layer[0]
       enc_dec_attention_layer = layer[1]
@@ -128,7 +128,7 @@ class TransformerDecoder(Decoder):
       with tf.variable_scope(layer_name):
         with tf.variable_scope("self_attention"):
           # TODO: Figure out why this is needed
-          #decoder_self_attention_bias = tf.cast(x=decoder_self_attention_bias,
+          # decoder_self_attention_bias = tf.cast(x=decoder_self_attention_bias,
           #                                      dtype=decoder_inputs.dtype)
           decoder_inputs = self_attention_layer(
               decoder_inputs, decoder_self_attention_bias, cache=layer_cache)
@@ -139,7 +139,6 @@ class TransformerDecoder(Decoder):
           decoder_inputs = feed_forward_network(decoder_inputs)
 
     return self.output_normalization(decoder_inputs)
-
 
   def decode_pass(self, targets, encoder_outputs, inputs_attention_bias):
     """Generate logits for each value in the target sequence.
@@ -163,7 +162,7 @@ class TransformerDecoder(Decoder):
           decoder_inputs, [[0, 0], [1, 0], [0, 0]])[:, :-1, :]
     with tf.name_scope("add_pos_encoding"):
       length = tf.shape(decoder_inputs)[1]
-      #decoder_inputs += utils.get_position_encoding(
+      # decoder_inputs += utils.get_position_encoding(
       #    length, self.params["hidden_size"])
       decoder_inputs += tf.cast(utils.get_position_encoding(
          length, self.params["hidden_size"]), dtype=self.params['dtype'])
@@ -172,10 +171,9 @@ class TransformerDecoder(Decoder):
           decoder_inputs, 1 - self.params["layer_postprocess_dropout"])
 
     # Run values
-    #decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+    # decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
     #    length), dtype=decoder_inputs.dtype)
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
-
 
     # do decode
     outputs = self._call(decoder_inputs=decoder_inputs,
@@ -191,7 +189,7 @@ class TransformerDecoder(Decoder):
 
     timing_signal = utils.get_position_encoding(
         max_decode_length + 1, self.params["hidden_size"])
-    #decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
+    # decoder_self_attention_bias = tf.cast(x=utils.get_decoder_self_attention_bias(
     #    max_decode_length), dtype=self.params['dtype'])
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
       max_decode_length)
@@ -279,8 +277,6 @@ class TransformerDecoder(Decoder):
             #                         tf.shape(top_decoded_ids)[1],
             #                         self.params["tgt_vocab_size"]]),
             "logits": logits,
-            "samples": [top_decoded_ids],
+            "outputs": [top_decoded_ids],
             "final_state": None,
             "final_sequence_lengths": None}
-
-

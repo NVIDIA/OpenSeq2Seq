@@ -77,7 +77,8 @@ class ParallelTextDataLayer(DataLayer):
     self._delimiter = self.params.get('delimiter', ' ')
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
-    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size', 4)
+    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
+                                                 tf.contrib.data.AUTOTUNE)
     self._num_workers = num_workers
     self._worker_id = worker_id
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):

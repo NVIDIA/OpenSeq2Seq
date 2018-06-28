@@ -331,7 +331,7 @@ class Model:
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
-            raise ValueError('Decoder samples have to be either None or list')
+            raise ValueError('Decoder outputs have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
@@ -357,7 +357,7 @@ class Model:
         loss, self._output = self._build_forward_pass_graph(input_tensors,
                                                             gpu_id=0)
         if self._output is not None and not isinstance(self._output, list):
-          raise ValueError('Decoder samples have to be either None or list')
+          raise ValueError('Decoder outputs have to be either None or list')
 
         if self._mode == "train":
           self.loss = loss
@@ -442,7 +442,7 @@ class Model:
           is constructed. For Horovod this is always zero.
 
     Returns:
-      tuple: tuple containing loss tensor and samples tensor.
+      tuple: tuple containing loss tensor and list of outputs tensors.
 
       Loss tensor will be automatically provided to the optimizer and
       corresponding :attr:`train_op` will be created.
@@ -452,12 +452,12 @@ class Model:
       this happens inside :class:`utils.hooks.RunEvaluationHook`
       to fetch output values for evaluation.
 
-      Both loss and samples can be None when corresponding part of the graph
+      Both loss and outputs can be None when corresponding part of the graph
       is not built.
     """
     pass
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     """This method can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
     predictions. This method will be called every ``print_samples_steps``
@@ -475,6 +475,7 @@ class Model:
       output_values: evaluation of
           :meth:`self.get_output_tensors(0) <get_output_tensors>`,
           that is, output tensors for one batch on the *first* GPU.
+      training_step (int): Current training step.
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
@@ -519,7 +520,7 @@ class Model:
     """
     return []
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     """This method can be used in conjunction with
     :meth:`self.evaluate()<evaluate>` to calculate
     evaluation metrics.
@@ -542,6 +543,8 @@ class Model:
       results_per_batch (list): aggregation of values returned from all calls
           to :meth:`self.evaluate()<evaluate>` method (number of calls will be
           equal to number of evaluation batches).
+      training_step (int): current training step. Will only be passed if mode
+          is "train_eval".
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard

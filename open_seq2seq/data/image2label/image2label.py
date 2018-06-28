@@ -129,7 +129,7 @@ class CifarDataLayer(DataLayer):
     )
 
     dataset = dataset.batch(self.params['batch_size'])
-    dataset = dataset.prefetch(1)
+    dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
     self._iterator = dataset.make_initializable_iterator()
     inputs, labels = self.iterator.get_next()
@@ -231,7 +231,7 @@ class ImagenetDataLayer(DataLayer):
     )
 
     dataset = dataset.batch(self.params['batch_size'])
-    dataset = dataset.prefetch(1)
+    dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
     self._iterator = dataset.make_initializable_iterator()
     inputs, labels = self.iterator.get_next()
