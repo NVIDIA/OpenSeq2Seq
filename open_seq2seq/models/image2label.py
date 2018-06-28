@@ -2,13 +2,12 @@
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import numpy as np
 import tensorflow as tf
 
-from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
+from .encoder_decoder import EncoderDecoderModel
 
 
 class Image2Label(EncoderDecoderModel):
@@ -27,8 +26,8 @@ class Image2Label(EncoderDecoderModel):
     deco_print("Train batch top-1: {:.4f}".format(top1), offset=4)
     deco_print("Train batch top-5: {:.4f}".format(top5), offset=4)
     return {
-      "Train batch top-1": top1,
-      "Train batch top-5": top5,
+        "Train batch top-1": top1,
+        "Train batch top-5": top5,
     }
 
   def finalize_evaluation(self, results_per_batch, training_step=None):
@@ -46,8 +45,8 @@ class Image2Label(EncoderDecoderModel):
     deco_print("Validation top-1: {:.4f}".format(top1), offset=4)
     deco_print("Validation top-5: {:.4f}".format(top5), offset=4)
     return {
-      "Eval top-1": top1,
-      "Eval top-5": top5,
+        "Eval top-1": top1,
+        "Eval top-5": top5,
     }
 
   def evaluate(self, input_values, output_values):

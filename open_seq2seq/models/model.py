@@ -1,19 +1,20 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import abc
-import six
-import tensorflow as tf
-import numpy as np
 import copy
 import time
 
+import numpy as np
+import six
+import tensorflow as tf
+from six.moves import range
+
 try:
-    from inspect import signature
+  from inspect import signature
 except ImportError:
-    from funcsigs import signature
+  from funcsigs import signature
 
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
@@ -37,9 +38,9 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'use_horovod': bool,
-      'batch_size_per_gpu': int,
-      'data_layer': None,  # could be any user defined class
+        'use_horovod': bool,
+        'batch_size_per_gpu': int,
+        'data_layer': None,  # could be any user defined class
     }
 
   @staticmethod
@@ -53,37 +54,37 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'logdir': str,
-      'num_gpus': int,  # cannot be used when gpu_ids is specified
-      'gpu_ids': list,  # cannot be used when num_gpus is specified
+        'logdir': str,
+        'num_gpus': int,  # cannot be used when gpu_ids is specified
+        'gpu_ids': list,  # cannot be used when num_gpus is specified
 
-      'save_summaries_steps': None,  # could be int or None
-      'print_loss_steps': None,  # could be int or None
-      'print_samples_steps': None,  # could be int or None
-      'print_bench_info_steps': None,  # could be int or None
-      'save_checkpoint_steps': None,  # could be int or None
-      'eval_steps': int,
+        'save_summaries_steps': None,  # could be int or None
+        'print_loss_steps': None,  # could be int or None
+        'print_samples_steps': None,  # could be int or None
+        'print_bench_info_steps': None,  # could be int or None
+        'save_checkpoint_steps': None,  # could be int or None
+        'eval_steps': int,
 
-      'random_seed': int,
-      'num_epochs': int,
-      'max_steps': int,
-      'bench_start': int,
+        'random_seed': int,
+        'num_epochs': int,
+        'max_steps': int,
+        'bench_start': int,
 
-      'data_layer_params': dict,
-      'optimizer': None,  # could be class or string
-      'optimizer_params': dict,
-      'initializer': None,  # any valid TensorFlow initializer
-      'initializer_params': dict,
-      'regularizer': None,  # any valid TensorFlow regularizer
-      'regularizer_params': dict,
-      'dtype': [tf.float16, tf.float32, 'mixed'],
-      'lr_policy': None,  # any valid learning rate policy function
-      'lr_policy_params': dict,
-      'max_grad_norm': float,
-      'larc_params': dict,
-      'loss_scaling': None,  # float, "Backoff" or "LogMax"
-      'summaries': list,
-      'iter_size': int,
+        'data_layer_params': dict,
+        'optimizer': None,  # could be class or string
+        'optimizer_params': dict,
+        'initializer': None,  # any valid TensorFlow initializer
+        'initializer_params': dict,
+        'regularizer': None,  # any valid TensorFlow regularizer
+        'regularizer_params': dict,
+        'dtype': [tf.float16, tf.float32, 'mixed'],
+        'lr_policy': None,  # any valid learning rate policy function
+        'lr_policy_params': dict,
+        'max_grad_norm': float,
+        'larc_params': dict,
+        'loss_scaling': None,  # float, "Backoff" or "LogMax"
+        'summaries': list,
+        'iter_size': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -230,7 +231,7 @@ class Model:
 
     self._hvd = hvd
     if self._hvd:
-        self._gpu_ids = range(1)
+      self._gpu_ids = range(1)
     else:
       if 'gpu_ids' in self._params:
         self._gpu_ids = self._params['gpu_ids']
@@ -256,15 +257,15 @@ class Model:
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
-        params=dl_params, model=self,
-        num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
+          params=dl_params, model=self,
+          num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
       )
     else:
       self._data_layers = []
       for worker_id in range(self.num_gpus):
         self._data_layers.append(self._params['data_layer'](
-          params=dl_params, model=self,
-          num_workers=self.num_gpus, worker_id=worker_id,
+            params=dl_params, model=self,
+            num_workers=self.num_gpus, worker_id=worker_id,
         ))
 
     if self._mode == "train":
@@ -314,11 +315,11 @@ class Model:
       losses = []
       for gpu_cnt, gpu_id in enumerate(self._gpu_ids):
         with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
-          name_or_scope=tf.get_variable_scope(),
-          # re-using variables across GPUs.
-          reuse=force_var_reuse or (gpu_cnt > 0),
-          initializer=initializer,
-          dtype=self.get_tf_dtype(),
+            name_or_scope=tf.get_variable_scope(),
+            # re-using variables across GPUs.
+            reuse=force_var_reuse or (gpu_cnt > 0),
+            initializer=initializer,
+            dtype=self.get_tf_dtype(),
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
@@ -326,8 +327,8 @@ class Model:
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
-            input_tensors,
-            gpu_id=gpu_cnt,
+              input_tensors,
+              gpu_id=gpu_cnt,
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
@@ -349,7 +350,7 @@ class Model:
           dtype=self.get_tf_dtype(),
       ):
         deco_print(
-          "Building graph in Horovod rank: {}".format(self._hvd.rank())
+            "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
@@ -390,25 +391,25 @@ class Model:
         self.skip_update_ph = tf.placeholder(tf.bool)
 
       self.train_op = optimize_loss(
-        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
-        dtype=self.params['dtype'],
-        optimizer=self.params['optimizer'],
-        optimizer_params=self.params.get('optimizer_params', {}),
-        clip_gradients=self.params.get('max_grad_norm', None),
-        learning_rate_decay_fn=lr_policy,
-        summaries=self.params.get('summaries', None),
-        larc_params=self.params.get('larc_params', None),
-        loss_scaling=self.params.get('loss_scaling', 1.0),
-        on_horovod=self.on_horovod,
-        iter_size=self.params.get('iter_size', 1),
-        skip_update_ph=self.skip_update_ph,
+          loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
+          dtype=self.params['dtype'],
+          optimizer=self.params['optimizer'],
+          optimizer_params=self.params.get('optimizer_params', {}),
+          clip_gradients=self.params.get('max_grad_norm', None),
+          learning_rate_decay_fn=lr_policy,
+          summaries=self.params.get('summaries', None),
+          larc_params=self.params.get('larc_params', None),
+          loss_scaling=self.params.get('loss_scaling', 1.0),
+          on_horovod=self.on_horovod,
+          iter_size=self.params.get('iter_size', 1),
+          skip_update_ph=self.skip_update_ph,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:
         tf.summary.scalar(
-          name="epoch",
-          tensor=tf.floor(tf.train.get_global_step() /
-                          tf.constant(self.steps_in_epoch, dtype=tf.int64)),
+            name="epoch",
+            tensor=tf.floor(tf.train.get_global_step() /
+                            tf.constant(self.steps_in_epoch, dtype=tf.int64)),
         )
 
       if not self.on_horovod or self._hvd.rank() == 0:
@@ -434,7 +435,7 @@ class Model:
 
   @abc.abstractmethod
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-    """Abstract method. Should create the graph of the forward pass of the model.
+    """This method should create the graph of the forward pass of the model.
 
     Args:
       input_tensors: ``input_tensors`` defined by the data_layer class.

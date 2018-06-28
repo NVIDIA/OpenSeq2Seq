@@ -1,10 +1,10 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
+
+import runpy
 
 import tensorflow as tf
-import runpy
 
 from open_seq2seq.test_utils.create_reversed_examples import create_data, \
                                                              remove_data
@@ -21,16 +21,25 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
 
   def test_train(self):
     config_module = runpy.run_path(
-      "./example_configs/text2text/nmt-reversal-RR.py")
+        "./example_configs/text2text/nmt-reversal-RR.py"
+    )
     train_config = config_module['base_params']
     if 'train_params' in config_module:
       train_config.update(config_module['train_params'])
 
     # TODO: should we maybe have just a single directory parameter?
-    train_config['data_layer_params']['src_vocab_file'] = "./toy_data/vocab/source.txt"
-    train_config['data_layer_params']['tgt_vocab_file'] = "./toy_data/vocab/target.txt"
-    train_config['data_layer_params']['source_file'] = "./toy_data/train/source.txt"
-    train_config['data_layer_params']['target_file'] = "./toy_data/train/target.txt"
+    train_config['data_layer_params']['src_vocab_file'] = (
+        "./toy_data/vocab/source.txt"
+    )
+    train_config['data_layer_params']['tgt_vocab_file'] = (
+        "./toy_data/vocab/target.txt"
+    )
+    train_config['data_layer_params']['source_file'] = (
+        "./toy_data/train/source.txt"
+    )
+    train_config['data_layer_params']['target_file'] = (
+        "./toy_data/train/target.txt"
+    )
 
     step = 0
     with tf.Graph().as_default():
@@ -41,13 +50,11 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
         sess.run(model.get_data_layer().iterator.initializer)
         while True:
           try:
-            loss, _ = sess.run(
-              [model.loss, model.train_op]
-            )
+            loss, _ = sess.run([model.loss, model.train_op])
           except tf.errors.OutOfRangeError:
             break
           step += 1
-          if step >=25:
+          if step >= 25:
             break
 
 
@@ -70,18 +77,25 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
     print("Attempting BasicSeq2SeqWithAttention on Horovod")
     hvd.init()
     config_module = runpy.run_path(
-      "./example_configs/text2text/nmt-reversal-RR.py")
+        "./example_configs/text2text/nmt-reversal-RR.py"
+    )
     train_config = config_module['base_params']
     if 'train_params' in config_module:
       train_config.update(config_module['train_params'])
 
-    # TODO: should we maybe have just a single directory parameter?
-    train_config['data_layer_params']['src_vocab_file'] = "./toy_data/vocab/source.txt"
-    train_config['data_layer_params']['tgt_vocab_file'] = "./toy_data/vocab/target.txt"
-    train_config['data_layer_params']['source_file'] = "./toy_data/train/source.txt"
-    train_config['data_layer_params']['target_file'] = "./toy_data/train/target.txt"
+    train_config['data_layer_params']['src_vocab_file'] = (
+        "./toy_data/vocab/source.txt"
+    )
+    train_config['data_layer_params']['tgt_vocab_file'] = (
+        "./toy_data/vocab/target.txt"
+    )
+    train_config['data_layer_params']['source_file'] = (
+        "./toy_data/train/source.txt"
+    )
+    train_config['data_layer_params']['target_file'] = (
+        "./toy_data/train/target.txt"
+    )
     train_config["use_horovod"] = True
-    #train_config['data_layer_params']["repeat"] = False
     step = 0
     with tf.Graph().as_default():
       model = config_module['base_model'](train_config, "train", None)
@@ -92,13 +106,14 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
         while True:
           try:
             loss, _ = sess.run(
-              [model.loss, model.train_op]
+                [model.loss, model.train_op]
             )
           except tf.errors.OutOfRangeError:
             break
           step += 1
-          if step >=25:
+          if step >= 25:
             break
+
 
 if __name__ == '__main__':
   tf.test.main()

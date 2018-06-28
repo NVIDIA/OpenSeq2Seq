@@ -1,23 +1,24 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+
+import copy
+import os
+import tempfile
+
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+import tensorflow as tf
 from six.moves import range
 
-import tensorflow as tf
-import numpy as np
-import copy
-import numpy.testing as npt
-import tempfile
-import os
-import pandas as pd
-
-from .speech2text import levenshtein
 from open_seq2seq.test_utils.test_speech_config import base_params, \
                                                        train_params, \
                                                        eval_params, \
                                                        base_model
 from open_seq2seq.utils import train, evaluate, infer
 from open_seq2seq.utils.utils import get_available_gpus
+from .speech2text import levenshtein
 
 
 class Speech2TextModelTests(tf.test.TestCase):
@@ -69,14 +70,14 @@ class Speech2TextModelTests(tf.test.TestCase):
       train_config, eval_config = self.prepare_config()
       train_config['num_epochs'] = 60
       train_config.update({
-        "dtype": dtype,
-        "regularizer": tf.contrib.layers.l2_regularizer,
-        "regularizer_params": {
-          'scale': 1e4,
-        },
+          "dtype": dtype,
+          "regularizer": tf.contrib.layers.l2_regularizer,
+          "regularizer_params": {
+              'scale': 1e4,
+          },
       })
       eval_config.update({
-        "dtype": dtype,
+          "dtype": dtype,
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
 
@@ -88,10 +89,10 @@ class Speech2TextModelTests(tf.test.TestCase):
     for dtype in [tf.float32, "mixed"]:
       train_config, eval_config = self.prepare_config()
       train_config.update({
-        "dtype": dtype,
+          "dtype": dtype,
       })
       eval_config.update({
-        "dtype": dtype,
+          "dtype": dtype,
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
 
@@ -110,18 +111,20 @@ class Speech2TextModelTests(tf.test.TestCase):
     for dtype in [tf.float32, "mixed"]:
       train_config, eval_config = self.prepare_config()
       train_config.update({
-        "dtype": dtype,
-        "iter_size": 5,
-        "batch_size_per_gpu": 2,
-        "use_horovod": True,
+          "dtype": dtype,
+          "iter_size": 5,
+          "batch_size_per_gpu": 2,
+          "use_horovod": True,
       })
       eval_config.update({
-        "dtype": dtype,
-        "iter_size": 5,
-        "batch_size_per_gpu": 2,
-        "use_horovod": True,
+          "dtype": dtype,
+          "iter_size": 5,
+          "batch_size_per_gpu": 2,
+          "use_horovod": True,
       })
-      loss, eval_loss, eval_dict = self.run_model(train_config, eval_config, hvd)
+      loss, eval_loss, eval_dict = self.run_model(
+          train_config, eval_config, hvd,
+      )
 
       self.assertLess(loss, 5.0)
       self.assertLess(eval_loss, 200.0)
@@ -153,13 +156,13 @@ class Speech2TextModelTests(tf.test.TestCase):
       print(train_model.params['logdir'])
       output_file = os.path.join(train_model.params['logdir'], 'infer_out.csv')
       infer(
-        infer_model,
-        tf.train.latest_checkpoint(train_model.params['logdir']),
-        output_file,
+          infer_model,
+          tf.train.latest_checkpoint(train_model.params['logdir']),
+          output_file,
       )
       pred_csv = pd.read_csv(output_file)
       true_csv = pd.read_csv(
-        'open_seq2seq/test_utils/toy_speech_data/toy_data.csv',
+          'open_seq2seq/test_utils/toy_speech_data/toy_data.csv',
       )
       for pred_row, true_row in zip(pred_csv.as_matrix(), true_csv.as_matrix()):
         # checking file name
@@ -176,8 +179,8 @@ class Speech2TextModelTests(tf.test.TestCase):
       model.compile()
       self.assertEqual(len(tf.trainable_variables()), 14)
       self.assertEqual(
-        len(tf.get_collection('FP32_MASTER_COPIES')),
-        7,  # minus batch norm beta and gamma and row_conv vars
+          len(tf.get_collection('FP32_MASTER_COPIES')),
+          7,  # minus batch norm beta and gamma and row_conv vars
       )
 
   def test_levenshtein(self):
@@ -219,18 +222,18 @@ class Speech2TextModelTests(tf.test.TestCase):
     model.params['batch_size_per_gpu'] = 2
     char2idx = model.get_data_layer().params['char2idx']
     inputs = [
-      ['this is a great day', 'london is the capital of great britain'],
-      ['ooo', 'lll'],
-      ['a b c\' asdf', 'blah blah bblah'],
-      ['this is great day', 'london capital gret britain'],
-      ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah\' blah'],
+        ['this is a great day', 'london is the capital of great britain'],
+        ['ooo', 'lll'],
+        ['a b c\' asdf', 'blah blah bblah'],
+        ['this is great day', 'london capital gret britain'],
+        ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah\' blah'],
     ]
     outputs = [
-      ['this is great a day', 'london capital gret britain'],
-      ['ooo', 'lll'],
-      ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah blah'],
-      ['this is a great day', 'london is the capital of great britain'],
-      ['a b c\' asdf', 'blah blah\' bblah'],
+        ['this is great a day', 'london capital gret britain'],
+        ['ooo', 'lll'],
+        ['aaaaaaaasdfdasdf', 'df d sdf asd fd f sdf df blah blah'],
+        ['this is a great day', 'london is the capital of great britain'],
+        ['a b c\' asdf', 'blah blah\' bblah'],
     ]
     y = [None] * len(inputs)
     len_y = [None] * len(inputs)
@@ -247,7 +250,7 @@ class Speech2TextModelTests(tf.test.TestCase):
         len_y[gpu_id][sample_id] = num_letters
         for letter_id in range(num_letters):
           y[gpu_id][sample_id, letter_id] = char2idx[
-            inputs[gpu_id][sample_id][letter_id]
+              inputs[gpu_id][sample_id][letter_id]
           ]
 
     num_gpus = len(outputs)
@@ -261,7 +264,7 @@ class Speech2TextModelTests(tf.test.TestCase):
         num_letters = len(outputs[gpu_id][sample_id])
         for letter_id in range(num_letters):
           values[gpu_id].append(
-            char2idx[outputs[gpu_id][sample_id][letter_id]]
+              char2idx[outputs[gpu_id][sample_id][letter_id]]
           )
           indices[gpu_id].append(np.array([sample_id, letter_id]))
       values[gpu_id] = np.array(values[gpu_id], dtype=np.int)
@@ -271,8 +274,8 @@ class Speech2TextModelTests(tf.test.TestCase):
     len_x = [None] * len(y)
     input_values = list(zip(x, len_x, y, len_y))
     output_values = [
-      [tf.SparseTensorValue(indices[i], values[i], dense_shape[i])]
-      for i in range(num_gpus)
+        [tf.SparseTensorValue(indices[i], values[i], dense_shape[i])]
+        for i in range(num_gpus)
     ]
 
     results = []
