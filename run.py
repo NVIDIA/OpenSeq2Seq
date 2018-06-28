@@ -4,6 +4,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 from six.moves import range
+from six import string_types
 
 import tensorflow as tf
 import datetime
@@ -66,7 +67,7 @@ def main():
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
-    if type(value) is int or type(value) is float or type(value) is str:
+    if type(value) is int or type(value) is float or isinstance(value, string_types):
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
     elif type(value) is bool:
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
