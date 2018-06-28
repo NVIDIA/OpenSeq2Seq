@@ -3,9 +3,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import datetime
 import argparse
 import ast
@@ -15,6 +13,11 @@ import copy
 import os
 import sys
 import shutil
+
+import tensorflow as tf
+from six.moves import range
+from six import string_types
+
 
 from open_seq2seq.utils.utils import deco_print, flatten_dict, \
                                      nest_dict, nested_update, get_git_diff, \
@@ -66,9 +69,10 @@ def main():
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
-    if type(value) is int or type(value) is float or type(value) is str:
+    if isinstance(value, int) or isinstance(value, float) or \
+       isinstance(value, string_types):
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
-    elif type(value) is bool:
+    elif isinstance(value, bool):
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))
@@ -97,8 +101,8 @@ def main():
         checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
-            "There is no valid TensorFlow checkpoint in the "
-            "{} directory. Can't load model".format(ckpt_dir)
+              "There is no valid TensorFlow checkpoint in the "
+              "{} directory. Can't load model".format(ckpt_dir)
           )
       else:
         if args.continue_learning:
@@ -111,12 +115,14 @@ def main():
         checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
-            "There is no valid TensorFlow checkpoint in the "
-            "{} directory. Can't load model".format(ckpt_dir)
+              "There is no valid TensorFlow checkpoint in the "
+              "{} directory. Can't load model".format(ckpt_dir)
           )
       else:
         raise IOError(
-          "{} does not exist or is empty, can't restore model".format(ckpt_dir)
+            "{} does not exist or is empty, can't restore model".format(
+                ckpt_dir
+            )
         )
   except IOError as e:
     if args.no_dir_check:
@@ -140,24 +146,26 @@ def main():
 
       tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
       shutil.copy(
-        args.config_file,
-        os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
+          args.config_file,
+          os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
       )
 
-      with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)), 'w') as f:
+      with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)),
+                'w') as f:
         f.write(" ".join(sys.argv))
 
-      with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)), 'w') as f:
+      with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)),
+                'w') as f:
         f.write('commit hash: {}'.format(get_git_hash()))
         f.write(get_git_diff())
 
       old_stdout = sys.stdout
       old_stderr = sys.stderr
       stdout_log = open(
-        os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
+          os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
       )
       stderr_log = open(
-        os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
+          os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
       )
       sys.stdout = Logger(sys.stdout, stdout_log)
       sys.stderr = Logger(sys.stderr, stderr_log)
@@ -218,7 +226,7 @@ def main():
         deco_print("Starting training from scratch")
       else:
         deco_print(
-          "Restored checkpoint from {}. Resuming training".format(checkpoint),
+            "Restored checkpoint from {}. Resuming training".format(checkpoint),
         )
   elif args.mode == 'eval' or args.mode == 'infer':
     if hvd is None or hvd.rank() == 0:
