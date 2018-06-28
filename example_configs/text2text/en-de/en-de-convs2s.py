@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
@@ -17,8 +19,8 @@ from open_seq2seq.optimizers.lr_policies import exp_decay, transformer_policy
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
-num_layers = 15 #1
-d_model = 768 #100
+num_layers = 15
+d_model = 768
 max_length = 128
 
 batch_size = 64
@@ -39,32 +41,6 @@ base_params = {
   "logdir": "ReadData-CC",
 
 
-  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
-  # "optimizer_params": {
-  #   "beta1": 0.9,
-  #   "beta2": 0.997,
-  #   "epsilon": 1e-09,
-  # },
-  #
-  # "lr_policy": transformer_policy,
-  # "lr_policy_params": {
-  #   "learning_rate": 2.0,
-  #   "warmup_steps": 8000,
-  #   "d_model": d_model,
-  # },
-
-
-
-  # "lr_policy": exp_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 1e-3,
-  #   "begin_decay_at": 70000,
-  #   "decay_steps": 40000,
-  #   "decay_rate": 0.5,
-  #   "use_staircase_decay": True,
-  #   "min_lr": 0.0000005,
-  # },
-
   "optimizer": "Adam",
   "optimizer_params": {},
   "lr_policy": transformer_policy,
@@ -80,9 +56,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -150,10 +126,8 @@ train_params = {
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
-    #"source_file": data_root+"newstest2014.tok.bpe.32000.en",
-    #"target_file": data_root+"newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True, #True
+    "shuffle": False,
     "repeat": True,
     "map_parallel_calls": 8,
     "prefetch_buffer_size": 4,
@@ -185,13 +159,14 @@ infer_params = {
     "pad_vocab_to_eight": False,
     "src_vocab_file": data_root+"vocab.bpe.32000",
     "tgt_vocab_file": data_root+"vocab.bpe.32000",
-    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    "source_file": data_root+"newstest2013.tok.bpe.32000.en",
     # this is intentional to be sure that model is not using target
-    "target_file": data_root+"newstest2014.tok.bpe.32000.en",
+    "target_file": data_root+"newstest2013.tok.bpe.32000.en",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
     "max_length": max_length,
   },
 }
+
 

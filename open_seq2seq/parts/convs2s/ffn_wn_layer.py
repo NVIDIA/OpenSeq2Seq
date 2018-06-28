@@ -4,6 +4,7 @@ Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import tensorflow as tf
 import math
@@ -13,8 +14,9 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
   """Fully connected feedforward network with weight normalization"""
 
   def __init__(self, in_dim, out_dim, dropout, var_scope_name):
-    """initializes the linear layer. This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
-        It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
+    """initializes the linear layer.
+    This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
+    It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
     Args:
       in_dim: int last dimension of the inputs
@@ -28,11 +30,14 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     self.in_dim = in_dim
 
     with tf.variable_scope(var_scope_name):
-      V_initializer = tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim))
-      self.V = tf.get_variable('V', shape=[in_dim , out_dim], initializer=V_initializer, trainable=True)
+      V_initializer = \
+        tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim))
+      self.V = tf.get_variable('V', shape=[in_dim , out_dim],
+                               initializer=V_initializer, trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=0)
       self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
-      self.b = tf.get_variable('b', shape=[out_dim], initializer=tf.zeros_initializer(), trainable=True)
+      self.b = tf.get_variable('b', shape=[out_dim],
+                               initializer=tf.zeros_initializer(), trainable=True)
 
   def call(self, x):
     """Projects x with its linear transformation.
@@ -50,6 +55,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
 
     # x*(v*(g/2-norm(v))) + b
     scaler = tf.div(self.g, tf.norm(self.V, axis=0))
-    output = tf.reshape(scaler, [1, self.out_dim]) * output + tf.reshape(self.b, [1, self.out_dim])
+    output = tf.reshape(scaler, [1, self.out_dim]) * output + \
+             tf.reshape(self.b, [1, self.out_dim])
 
     return output

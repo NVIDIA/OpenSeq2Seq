@@ -1,4 +1,6 @@
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
@@ -26,7 +28,7 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 1,
   "batch_size_per_gpu": 64,
-  "max_steps": 600,
+  "max_steps": 1000,
   "save_summaries_steps": 10,
   "print_loss_steps": 10,
   "print_samples_steps": 20,
@@ -44,12 +46,9 @@ base_params = {
 
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"loss_scaling": "Backoff",
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -95,7 +94,6 @@ base_params = {
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
-
 
   "loss": BasicSequenceLoss,
   "loss_params": {

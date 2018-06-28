@@ -1,8 +1,9 @@
 from __future__ import absolute_import, division, print_function
+from __future__ import unicode_literals
+
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
-
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import ConvS2SDecoder
 
@@ -46,19 +47,21 @@ base_params = {
   "dtype": tf.float32,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
-    "encoder_cell_type": "lstm",
-    "encoder_cell_units": int(d_model/2),
-    "encoder_layers": 1,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+      "num_units": int(d_model/2),
+    },
+
+    "encoder_layers": num_layers,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": False,
-    "src_emb_size": 128,
+    "src_emb_size": d_model,
   },
-
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
@@ -84,7 +87,6 @@ base_params = {
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
   },
-
 
   "loss": BasicSequenceLoss,
   "loss_params": {
@@ -121,7 +123,6 @@ eval_params = {
     "delimiter": " ",
   },
 }
-
 
 infer_params = {
   "batch_size_per_gpu": 1,

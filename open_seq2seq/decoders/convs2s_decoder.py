@@ -36,6 +36,9 @@ class ConvS2SDecoder(Decoder):
       'shared_embed': bool,
       'embedding_dropout_keep_prob': float,
 
+      'conv_knum': list,
+      'conv_kwidth': list,
+
       'hidden_dropout_keep_prob': float,
       'out_dropout_keep_prob': float,
 
@@ -59,8 +62,6 @@ class ConvS2SDecoder(Decoder):
     """
     return dict(Decoder.get_optional_params(), **{
       'pad_embeddings_2_eight': bool,
-      'conv_knum': list,
-      'conv_kwidth': list,
 
       # if not provided, tgt_emb_size is used as the default value
       'out_emb_size': int,
@@ -84,7 +85,6 @@ class ConvS2SDecoder(Decoder):
     self._mode = mode
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
-
 
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] if 'target_tensors' in input_dict else None
@@ -180,7 +180,8 @@ class ConvS2SDecoder(Decoder):
         int tensor with shape [batch_size, target_length]
       encoder_outputs: continuous representation of input sequence.
         float tensor with shape [batch_size, input_length, hidden_size]
-      encoder_outputs_b: continuous representation of input sequence which includes the source embeddings.
+      encoder_outputs_b: continuous representation of input sequence
+        which includes the source embeddings.
         float tensor with shape [batch_size, input_length, hidden_size]
       inputs_attention_bias: float tensor with shape [batch_size, 1, input_length]
 
@@ -211,7 +212,8 @@ class ConvS2SDecoder(Decoder):
 
     return logits
 
-  def _call(self, decoder_inputs, encoder_outputs_a, encoder_outputs_b, input_attention_bias):
+  def _call(self, decoder_inputs, encoder_outputs_a,
+            encoder_outputs_b, input_attention_bias):
     # run input into the decoder layers and returns the logits
     target_embed = decoder_inputs
     with tf.variable_scope("linear_layer_before_cnn_layers"):
@@ -230,7 +232,8 @@ class ConvS2SDecoder(Decoder):
             outputs = conv_layer(outputs)
 
         with tf.variable_scope("attention_layer"):
-            outputs = att_layer(outputs, target_embed, encoder_outputs_a, encoder_outputs_b, input_attention_bias)
+            outputs = att_layer(outputs, target_embed, encoder_outputs_a,
+                                encoder_outputs_b, input_attention_bias)
         outputs = (outputs + res_inputs) * math.sqrt(0.5)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
@@ -267,14 +270,15 @@ class ConvS2SDecoder(Decoder):
         cache["inputs_attention_bias"] = inputs_attention_bias
 
     # Use beam search to find the top beam_size sequences and scores.
-    decoded_ids, scores = beam_search.sequence_beam_search(symbols_to_logits_fn=symbols_to_logits_fn,
-                                                            initial_ids=initial_ids,
-                                                            initial_cache=cache,
-                                                            vocab_size=self.params["tgt_vocab_size"],
-                                                            beam_size=self.params["beam_size"],
-                                                            alpha=self.params["alpha"],
-                                                            max_decode_length=max_decode_length,
-                                                            eos_id=self.params["EOS_ID"])
+    decoded_ids, scores = beam_search.sequence_beam_search(
+                                              symbols_to_logits_fn=symbols_to_logits_fn,
+                                              initial_ids=initial_ids,
+                                              initial_cache=cache,
+                                              vocab_size=self.params["tgt_vocab_size"],
+                                              beam_size=self.params["beam_size"],
+                                              alpha=self.params["alpha"],
+                                              max_decode_length=max_decode_length,
+                                              eos_id=self.params["EOS_ID"])
 
     # Get the top sequence for each batch element
     top_decoded_ids = decoded_ids[:, 0, :]
@@ -307,12 +311,11 @@ class ConvS2SDecoder(Decoder):
       """
 
       # pass the decoded ids from the beginneing up to the current into the decoder - not efficient
-      decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"), cache.get("encoder_outputs_b"),
-                                         cache.get("inputs_attention_bias"))
+      decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"),
+                                           cache.get("encoder_outputs_b"),
+                                           cache.get("inputs_attention_bias"))
 
       logits = decoder_outputs[:, i, :]
       return logits, cache
-      #return tf.cast(logits, tf.float32), cache
 
     return symbols_to_logits_fn
-

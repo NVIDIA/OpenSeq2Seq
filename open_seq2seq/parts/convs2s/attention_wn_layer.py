@@ -3,6 +3,7 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 
 import tensorflow as tf
@@ -15,7 +16,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
 
   def __init__(self, in_dim, embed_size, layer_id, add_res):
     """initializes the attention layer.
-    It uses weight normalization for linear projections (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
+    It uses weight normalization for linear projections
+    (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
     Args:
       in_dim: int last dimension of the inputs
@@ -29,19 +31,21 @@ class AttentionLayerNormalized(tf.layers.Layer):
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
-      self.tgt_embed_proj = FeedFowardNetworkNormalized(in_dim, embed_size, dropout=1.0,
-                                                          var_scope_name="att_linear_mapping_tgt_embed")
+      self.tgt_embed_proj = FeedFowardNetworkNormalized(in_dim, embed_size,
+                                                        dropout=1.0,
+                                                        var_scope_name="att_linear_mapping_tgt_embed")
 
       # linear projection layer to project back to the input space
       self.out_proj = FeedFowardNetworkNormalized(embed_size, in_dim, dropout=1.0,
-                                                    var_scope_name="att_linear_mapping_out")
+                                                  var_scope_name="att_linear_mapping_out")
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_b, input_attention_bias):
     """Calculates the attention vectors.
 
     Args:
       input: A float32 tensor with shape [batch_size, length, in_dim]
-      target_embed: A float32 tensor with shape [batch_size, length, in_dim] containing the target embeddings
+      target_embed: A float32 tensor with shape [batch_size, length, in_dim]
+                    containing the target embeddings
       encoder_output_a:
       encoder_output_b:
       input_attention_bias:

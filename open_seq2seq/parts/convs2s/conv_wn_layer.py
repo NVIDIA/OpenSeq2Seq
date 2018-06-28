@@ -4,6 +4,7 @@ Inspired from https://github.com/tobyyouup/conv_seq2seq"""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
+from __future__ import unicode_literals
 
 import tensorflow as tf
 import math
@@ -38,11 +39,12 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     with tf.variable_scope("conv_layer_" + str(layer_id)):
       V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
       self.V = tf.get_variable('V', shape=[kernel_width, in_dim, 2*out_dim],
-                                     initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
-                                     trainable=True)
+                           initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
+                           trainable=True)
       self.V_norm = tf.norm(self.V.initialized_value(), axis=[0, 1])
       self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
-      self.b = tf.get_variable('b', shape=[2*out_dim], initializer=tf.zeros_initializer(), trainable=True)
+      self.b = tf.get_variable('b', shape=[2*out_dim], initializer=tf.zeros_initializer(),
+                               trainable=True)
 
       self.W = tf.reshape(self.g, [1, 1, 2*out_dim]) * tf.nn.l2_normalize(self.V, [0, 1])
 

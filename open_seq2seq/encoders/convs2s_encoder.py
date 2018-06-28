@@ -30,6 +30,9 @@ class ConvS2SEncoder(Encoder):
       "src_vocab_size": int,
       "pad_embeddings_2_eight": bool,
 
+      "conv_knum": list,
+      "conv_kwidth": list,
+
       "embedding_dropout_keep_prob": float,
       "hidden_dropout_keep_prob": float,
     })
@@ -37,15 +40,10 @@ class ConvS2SEncoder(Encoder):
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      "conv_knum": list,
-      "conv_kwidth": list,
-
       "att_layer_num": int,
 
       'max_input_length': int,
       'PAD_SYMBOL': int,
-
-      'mask_paddings': bool
     })
 
   def __init__(self, params, model, name="convs2s_encoder_with_emb", mode='train'):
@@ -200,7 +198,6 @@ class ConvS2SEncoder(Encoder):
       final_state = tf.reduce_mean(outputs_b, 1)
     return outputs, outputs_b, final_state
 
-
   @property
   def src_vocab_size(self):
     return self._src_vocab_size
@@ -208,4 +205,3 @@ class ConvS2SEncoder(Encoder):
   @property
   def src_emb_size(self):
     return self._src_emb_size
-
