@@ -55,41 +55,46 @@ base_params = {
       {
         "type": "conv1d", "repeat" : 5,
         "kernel_size": [7], "stride": [1],
-        "num_channels": 200, "padding": "SAME"
+        "num_channels": 256, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 384, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [15], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 384, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [19], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 512, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [23], "stride": [1],
-        "num_channels": 600, "padding": "SAME"
+        "num_channels": 640, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 1,
+        "kernel_size": [27], "stride": [1],
+        "num_channels": 768, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [29], "stride": [1],
-        "num_channels": 800, "padding": "SAME"
+        "num_channels": 896, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 1000, "padding": "SAME" #n_hidden = num_channels
+        "num_channels": 1024, "padding": "SAME" #n_hidden = num_channels
       },
     ],
 
-    "dropout_keep_prob": 0.8,
+    "dropout_keep_prob": 0.6,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
