@@ -66,7 +66,7 @@ class Wave2LetterEncoder(Encoder):
       "channels_last". Defaults to "channels_last".
     * **normalization** --- normalization to use. Accepts [None, 'batch_norm'].
       Use None if you don't want to use normalization. Defaults to 'batch_norm'.     
-    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
+    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
     super(Wave2LetterEncoder, self).__init__(params, model, name, mode)
