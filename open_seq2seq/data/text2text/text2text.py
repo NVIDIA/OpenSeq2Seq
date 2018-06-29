@@ -77,7 +77,8 @@ class ParallelTextDataLayer(DataLayer):
     self._delimiter = self.params.get('delimiter', ' ')
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
-    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size', 4)
+    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
+                                                 tf.contrib.data.AUTOTUNE)
     self._num_workers = num_workers
     self._worker_id = worker_id
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
@@ -166,7 +167,7 @@ class ParallelTextDataLayer(DataLayer):
              [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
     _sources = tf.data.TextLineDataset(self.source_file)\
-      .map(lambda line: tf.py_func(func=src_token_to_id,inp=[line],
+      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
@@ -254,7 +255,8 @@ class TransformerDataLayer(DataLayer):
       'repeat': int,
       'num_cpu_cores': int,
       'tgt_vocab_file': str,
-      'm_padding': bool,
+      'pad_data_to_eight': bool,
+      'batch_in_tokens': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -301,37 +303,12 @@ class TransformerDataLayer(DataLayer):
       shuffle=self.params['shuffle'],
       repeat=self.params['repeat'],
       num_workers=self._num_workers,
-      worker_id=self._worker_id)
+      worker_id=self._worker_id,
+      batch_in_tokens=self.params.get('batch_in_tokens', True),
+      pad2eight=self.params.get('pad_data_to_eight', False))
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
     x, y = self.iterator.get_next()
-
-    if self.params.get('m_padding', False):
-      # MAGIC PADDING
-      x = tf.cond(tf.equal(tf.shape(x)[1] % 8, 0),
-                  true_fn = lambda: x,
-                  false_fn = lambda: tf.pad(x,
-                                            paddings=[[0, 0],
-                                                      [0, 8 - tf.shape(x)[1] % 8]]))
-
-      y = tf.cond(tf.equal(tf.shape(y)[1] % 8, 0),
-                  true_fn = lambda: y,
-                  false_fn = lambda: tf.pad(y,
-                                            paddings=[[0, 0],
-                                                      [0, 8 - tf.shape(y)[1] % 8]]))
-
-      x = tf.cond(tf.equal(tf.shape(x)[0] % 8, 0),
-                  true_fn = lambda: x,
-                  false_fn = lambda: tf.pad(x,
-                                            paddings=[[0, 8 - tf.shape(x)[0] % 8],
-                                                      [0, 0]]))
-
-      y = tf.cond(tf.equal(tf.shape(y)[0] % 8, 0),
-                  true_fn=lambda: y,
-                  false_fn=lambda: tf.pad(y,
-                                          paddings=[[0, 8 - tf.shape(y)[0] % 8],
-                                                    [0, 0]]))
-      # ENDOF MAGIC PADDING
 
     len_x = tf.count_nonzero(x, axis=1, dtype=tf.int32)
     len_y = tf.count_nonzero(y, axis=1, dtype=tf.int32)

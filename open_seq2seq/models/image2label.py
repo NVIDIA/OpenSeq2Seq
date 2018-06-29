@@ -12,7 +12,7 @@ from open_seq2seq.utils.utils import deco_print
 
 
 class Image2Label(EncoderDecoderModel):
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     labels = input_values['target_tensors'][0]
     logits = output_values[0]
 
@@ -31,7 +31,7 @@ class Image2Label(EncoderDecoderModel):
       "Train batch top-5": top5,
     }
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     top1 = 0.0
     top5 = 0.0
     total = 0.0
@@ -56,11 +56,12 @@ class Image2Label(EncoderDecoderModel):
     labels = np.where(labels == 1)[1]
 
     total = logits.shape[0]
-    top1 = np.sum(np.argmax(logits, axis=1) == labels)
-    top5 = np.sum(labels[:, np.newaxis] == np.argpartition(logits, -5)[:, -5:])
+    top1 = np.sum(np.equal(np.argmax(logits, axis=1), labels))
+    top5 = np.sum(np.equal(labels[:, np.newaxis],
+                           np.argpartition(logits, -5)[:, -5:]))
     return total, top1, top5
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of images in current batch, i.e. batch size."""
     data_layer = self.get_data_layer(worker_id)
     num_images = tf.shape(data_layer.input_tensors['source_tensors'][0])[0]

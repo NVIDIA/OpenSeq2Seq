@@ -49,7 +49,7 @@ class Speech2Text(EncoderDecoderModel):
     )
     return super(Speech2Text, self)._create_decoder()
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     y, len_y = input_values['target_tensors']
     decoded_sequence = output_values
     y_one_sample = y[0]
@@ -74,7 +74,7 @@ class Speech2Text(EncoderDecoderModel):
       'Sample WER': sample_wer,
     }
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
     for word_lev, word_count in results_per_batch:
@@ -120,13 +120,21 @@ class Speech2Text(EncoderDecoderModel):
     )
     for sample_id in range(len(decoded_texts)):
       preds.append("".join(decoded_texts[sample_id]))
-    return preds
+    return preds, input_values['source_ids']
 
   def finalize_inference(self, results_per_batch, output_file):
     preds = []
+    ids = []
 
-    for result in results_per_batch:
+    for result, idx in results_per_batch:
       preds.extend(result)
+      ids.extend(idx)
+
+    preds = np.array(preds)
+    ids = np.hstack(ids)
+    # restoring the correct order
+    preds = preds[np.argsort(ids)]
+
     pd.DataFrame(
       {
         'wav_filename': self.get_data_layer().all_files,
@@ -135,7 +143,7 @@ class Speech2Text(EncoderDecoderModel):
       columns=['wav_filename', 'predicted_transcript'],
     ).to_csv(output_file, index=False)
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of audio frames in current batch."""
     data_layer = self.get_data_layer(worker_id)
     num_frames = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])

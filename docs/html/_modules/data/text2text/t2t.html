@@ -200,8 +200,9 @@
 <span class="sd">   is the list of training files. Second, while reading records using</span>
 <span class="sd">   `parallel_interleave`, the `sloppy` argument is used to generate randomness</span>
 <span class="sd">   in the order of the examples.</span>
-<span class="sd">&quot;&quot;&quot;</span>
 
+<span class="sd">3. Modified slightly to fit OpenSeq2Seq needs</span>
+<span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
@@ -227,7 +228,7 @@
   <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">TFRecordDataset</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">buffer_size</span><span class="o">=</span><span class="n">_READ_RECORD_BUFFER</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="_parse_example"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._parse_example">[docs]</a><span class="k">def</span> <span class="nf">_parse_example</span><span class="p">(</span><span class="n">serialized_example</span><span class="p">):</span>
+<div class="viewcode-block" id="_parse_example"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._parse_example">[docs]</a><span class="k">def</span> <span class="nf">_parse_example</span><span class="p">(</span><span class="n">serialized_example</span><span class="p">,</span> <span class="n">pad_2_eight</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Return inputs and targets Tensors from a serialized tf.Example.&quot;&quot;&quot;</span>
   <span class="n">data_fields</span> <span class="o">=</span> <span class="p">{</span>
       <span class="s2">&quot;inputs&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">VarLenFeature</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">),</span>
@@ -236,6 +237,17 @@
   <span class="n">parsed</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">parse_single_example</span><span class="p">(</span><span class="n">serialized_example</span><span class="p">,</span> <span class="n">data_fields</span><span class="p">)</span>
   <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse_tensor_to_dense</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;inputs&quot;</span><span class="p">])</span>
   <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sparse_tensor_to_dense</span><span class="p">(</span><span class="n">parsed</span><span class="p">[</span><span class="s2">&quot;targets&quot;</span><span class="p">])</span>
+
+  <span class="k">if</span> <span class="n">pad_2_eight</span><span class="p">:</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                     <span class="n">true_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span>  <span class="n">inputs</span><span class="p">,</span>
+                     <span class="n">false_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span>
+                                      <span class="n">paddings</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inputs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">]]))</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">targets</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
+                     <span class="n">true_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span>  <span class="n">targets</span><span class="p">,</span>
+                     <span class="n">false_fn</span><span class="o">=</span><span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">targets</span><span class="p">,</span>
+                                      <span class="n">paddings</span><span class="o">=</span><span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">targets</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">]]))</span>
+
   <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">targets</span></div>
 
 
@@ -283,7 +295,7 @@
   <span class="k">return</span> <span class="n">buckets_min</span><span class="p">,</span> <span class="n">buckets_max</span></div>
 
 
-<div class="viewcode-block" id="_batch_examples"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._batch_examples">[docs]</a><span class="k">def</span> <span class="nf">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">):</span>
+<div class="viewcode-block" id="_batch_examples"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._batch_examples">[docs]</a><span class="k">def</span> <span class="nf">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">pad_2_eight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Group examples by similar lengths, and return batched dataset.</span>
 
 <span class="sd">  Each batch of similar-length examples are padded to the same length, and may</span>
@@ -309,7 +321,12 @@
 
   <span class="c1"># Create list of batch sizes for each bucket_id, so that</span>
   <span class="c1"># bucket_batch_size[bucket_id] * buckets_max[bucket_id] &lt;= batch_size</span>
-  <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">buckets_max</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">pad_2_eight</span><span class="p">:</span> <span class="c1"># pad to 8 for HMMA</span>
+    <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="k">if</span> <span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="o">+</span> <span class="p">(</span>
+            <span class="mi">8</span> <span class="o">-</span> <span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">buckets_max</span><span class="p">]</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="p">[</span><span class="n">batch_size</span> <span class="o">//</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">buckets_max</span><span class="p">]</span>
   <span class="c1"># bucket_id will be a tensor, so convert this list to a tensor as well.</span>
   <span class="n">bucket_batch_sizes</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="n">bucket_batch_sizes</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
 
@@ -331,7 +348,6 @@
   <span class="k">def</span> <span class="nf">batching_fn</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">,</span> <span class="n">grouped_dataset</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Batch and add padding to a dataset of elements with similar lengths.&quot;&quot;&quot;</span>
     <span class="n">bucket_batch_size</span> <span class="o">=</span> <span class="n">window_size_fn</span><span class="p">(</span><span class="n">bucket_id</span><span class="p">)</span>
-
     <span class="c1"># Batch the dataset and add padding so that all input sequences in the</span>
     <span class="c1"># examples have the same length, and all target sequences have the same</span>
     <span class="c1"># lengths as well. Resulting lengths of inputs and targets can differ.</span>
@@ -346,7 +362,7 @@
 
 <div class="viewcode-block" id="_read_and_batch_from_files"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.t2t._read_and_batch_from_files">[docs]</a><span class="k">def</span> <span class="nf">_read_and_batch_from_files</span><span class="p">(</span>
     <span class="n">file_pattern</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span> <span class="n">num_cpu_cores</span><span class="p">,</span> <span class="n">shuffle</span><span class="p">,</span> <span class="n">repeat</span><span class="p">,</span>
-    <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
+    <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">,</span> <span class="n">batch_in_tokens</span><span class="p">,</span> <span class="n">pad2eight</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Create dataset where each item is a dict of &quot;inputs&quot; and &quot;targets&quot;.</span>
 
 <span class="sd">  Args:</span>
@@ -359,6 +375,11 @@
 <span class="sd">      repeated forever.</span>
 <span class="sd">    num_workers: Number of workers or number of Horovod workers</span>
 <span class="sd">    worker_id: Worker id or Horovod rank</span>
+<span class="sd">    batch_in_tokens: whether to batch_size means amounts in tokens or sentence</span>
+<span class="sd">    pairs. batching in tokens is more efficient as it reduces PADs. batching in</span>
+<span class="sd">    sentences should be used in inference mode since order of</span>
+<span class="sd">    sentences is important</span>
+<span class="sd">    pad2eight: if True, it will pad both dimensions to be divisible by 8</span>
 
 <span class="sd">  Returns:</span>
 <span class="sd">    tf.data.Dataset object containing examples loaded from the files.</span>
@@ -379,14 +400,19 @@
 
   <span class="c1"># Parse each tf.Example into a dictionary</span>
   <span class="c1"># TODO: Look into prefetch_input_elements for performance optimization.</span>
-  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="n">_parse_example</span><span class="p">,</span>
+  <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">_parse_example</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">pad_2_eight</span><span class="o">=</span><span class="n">pad2eight</span><span class="p">),</span>
                         <span class="n">num_parallel_calls</span><span class="o">=</span><span class="n">num_cpu_cores</span><span class="p">)</span>
 
   <span class="c1"># Remove examples where the input or target length exceeds the maximum length,</span>
   <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span><span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="n">_filter_max_length</span><span class="p">((</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">),</span> <span class="n">max_length</span><span class="p">))</span>
 
-  <span class="c1"># Batch such that each batch has examples of similar length.</span>
-  <span class="n">dataset</span> <span class="o">=</span> <span class="n">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">batch_in_tokens</span><span class="p">:</span>
+    <span class="c1"># Batch such that each batch has examples of similar length.</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">_batch_examples</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span><span class="p">,</span>
+                              <span class="n">pad_2_eight</span><span class="o">=</span><span class="n">pad2eight</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="c1"># Examples can have different lenghts</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span><span class="n">batch_size</span><span class="p">,</span> <span class="p">([</span><span class="kc">None</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">]))</span>
   <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">repeat</span><span class="p">)</span>
 
   <span class="c1"># Prefetch the next element to improve speed of input pipeline.</span>

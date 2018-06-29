@@ -54,7 +54,7 @@ class FullyConnectedDecoder(Decoder):
 
         {
           'logits': logits with the shape=[batch_size, output_dim]
-          'samples': [logits] (same as logits but wrapped in list)
+          'outputs': [logits] (same as logits but wrapped in list)
         }
     """
     inputs = input_dict['encoder_output']['outputs']
@@ -67,7 +67,7 @@ class FullyConnectedDecoder(Decoder):
       kernel_regularizer=regularizer,
       name='fully_connected',
     )
-    return {'logits': logits, 'samples': [logits]}
+    return {'logits': logits, 'outputs': [logits]}
 
 
 class FullyConnectedTimeDecoder(Decoder):
@@ -97,7 +97,7 @@ class FullyConnectedTimeDecoder(Decoder):
     * **tgt_vocab_size** (int) --- target vocabulary size, i.e. number of
       output features.
     * **logits_to_outputs_func** --- function that maps produced logits to
-      decoder samples, i.e. actual text sequences.
+      decoder outputs, i.e. actual text sequences.
     """
     super(FullyConnectedTimeDecoder, self).__init__(params, model, name, mode)
 
@@ -119,7 +119,7 @@ class FullyConnectedTimeDecoder(Decoder):
 
         {
           'logits': logits with the shape=[time length, batch_size, tgt_vocab_size]
-          'samples': logits_to_outputs_func(logits, input_dict)
+          'outputs': logits_to_outputs_func(logits, input_dict)
         }
     """
     inputs = input_dict['encoder_output']['outputs']
@@ -146,9 +146,9 @@ class FullyConnectedTimeDecoder(Decoder):
     logits = tf.transpose(logits, [1, 0, 2])
 
     if 'logits_to_outputs_func' in self.params:
-      samples = self.params['logits_to_outputs_func'](logits, input_dict)
+      outputs = self.params['logits_to_outputs_func'](logits, input_dict)
       return {
-        'samples': samples,
+        'outputs': outputs,
         'logits': logits,
         'src_length': input_dict['encoder_output']['src_length'],
       }

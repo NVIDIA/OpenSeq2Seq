@@ -10,6 +10,11 @@ import numpy as np
 import copy
 import time
 
+try:
+    from inspect import signature
+except ImportError:
+    from funcsigs import signature
+
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
 from open_seq2seq.utils.utils import check_params
@@ -55,6 +60,7 @@ class Model:
       'save_summaries_steps': None,  # could be int or None
       'print_loss_steps': None,  # could be int or None
       'print_samples_steps': None,  # could be int or None
+      'print_bench_info_steps': None,  # could be int or None
       'save_checkpoint_steps': None,  # could be int or None
       'eval_steps': int,
 
@@ -75,9 +81,9 @@ class Model:
       'lr_policy_params': dict,
       'max_grad_norm': float,
       'larc_params': dict,
-      'loss_scale': float,
-      'automatic_loss_scaling': [None, 'Backoff', 'LogMax'],
+      'loss_scaling': None,  # float, "Backoff" or "LogMax"
       'summaries': list,
+      'iter_size': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -121,6 +127,11 @@ class Model:
     * **print_samples_steps** (int or None) --- how often to print training
       samples (input sequences, correct answers and model predictions).
       Setting it to None disables samples printing.
+    * **print_bench_info_steps** (int or None) --- how often to print training
+      benchmarking information (average number of objects processed per step).
+      Setting it to None disables intermediate benchmarking printing, but
+      the average information across the whole training will always be printed
+      after the last iteration.
     * **save_checkpoint_steps** (int or None) --- how often to save model
       checkpoints. Setting it to None disables checkpoint saving.
     * **eval_steps** (int) --- how often to run evaluation during training.
@@ -156,14 +167,17 @@ class Model:
     * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping
       will be performed if some gradients exceed this value (this is checked
       for each variable independently).
-    * **loss_scale** (float) --- static loss scale to use. For details see
-      :ref:`mixed precision training <mixed_precision>` section in docs.
-    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be
-      either None, "Backoff" or "Logmax". For details see
-      :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **loss_scaling** --- could be float or string. If float, static loss
+      scaling is applied. If string, the corresponding automatic
+      loss scaling algorithm is used. Must be one of 'Backoff'
+      of 'LogMax' (case insensitive). Only used when dtype="mixed". For details
+      see :ref:`mixed precision training <mixed_precision>` section in docs.
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
+    * **iter_size** (int) --- use this parameter to emulate large batches.
+      The gradients will be accumulated for ``iter_size`` number of steps before
+      applying update.
     * **larc_params** --- dictionary with parameters for LARC (or LARS)
       optimization algorithms. Can contain the following parameters:
 
@@ -179,6 +193,9 @@ class Model:
     check_params(params, self.get_required_params(), self.get_optional_params())
 
     self._params = copy.deepcopy(params)
+
+    if self._params.get('iter_size', 1) > 1 and hvd is None:
+      raise ValueError("iter_size is only supported in Horovod mode")
 
     # parameter checks
     self._mode = mode
@@ -201,6 +218,8 @@ class Model:
       self._params['save_checkpoint_steps'] = None
     if 'save_summaries_steps' not in self._params:
       self._params['save_summaries_steps'] = None
+    if 'print_bench_info_steps' not in self._params:
+      self._params['print_bench_info_steps'] = None
 
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
@@ -266,15 +285,21 @@ class Model:
           self._steps_in_epoch //= self._hvd.size()
         else:
           self._steps_in_epoch //= self.num_gpus
+        self._steps_in_epoch //= self._params.get('iter_size', 1)
+        if self._steps_in_epoch == 0:
+          raise ValueError("Overall batch size is too big for this dataset.")
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
 
     if self.on_horovod:
       self._output = None
     else:
       self._outputs = [None] * self.num_gpus
+
     self.loss = None
     self.train_op = None
     self.eval_losses = None
+    self._num_objects_per_step = None
+    self.skip_update_ph = None
 
   def compile(self, force_var_reuse=False):
     """TensorFlow graph is built here."""
@@ -306,7 +331,7 @@ class Model:
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
-            raise ValueError('Decoder samples have to be either None or list')
+            raise ValueError('Decoder outputs have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
       # end of for gpu_ind loop
@@ -332,12 +357,18 @@ class Model:
         loss, self._output = self._build_forward_pass_graph(input_tensors,
                                                             gpu_id=0)
         if self._output is not None and not isinstance(self._output, list):
-          raise ValueError('Decoder samples have to be either None or list')
+          raise ValueError('Decoder outputs have to be either None or list')
 
         if self._mode == "train":
           self.loss = loss
         if self._mode == "eval":
           self.eval_losses = [loss]
+
+    try:
+      self._num_objects_per_step = [self._get_num_objects_per_step(worker_id)
+                                    for worker_id in range(self.num_gpus)]
+    except NotImplementedError:
+      pass
 
     if self._mode == "train":
       if 'lr_policy' not in self.params:
@@ -346,34 +377,31 @@ class Model:
         lr_params = self.params.get('lr_policy_params', {})
         # adding default decay_steps = max_steps if lr_policy supports it and
         # different value is not provided
-        if 'decay_steps' in self.params['lr_policy'].__code__.co_varnames and \
-           'decay_steps' not in lr_params:
+        func_params = signature(self.params['lr_policy']).parameters
+        if 'decay_steps' in func_params and 'decay_steps' not in lr_params:
           lr_params['decay_steps'] = self._last_step
-        if 'steps_per_epoch' in self.params['lr_policy'].__code__.co_varnames and \
+        if 'steps_per_epoch' in func_params and \
            'steps_per_epoch' not in lr_params and 'num_epochs' in self.params:
           lr_params['steps_per_epoch'] = self.steps_in_epoch
         lr_policy = lambda gs: self.params['lr_policy'](global_step=gs,
                                                         **lr_params)
+
+      if self.params.get('iter_size', 1) > 1:
+        self.skip_update_ph = tf.placeholder(tf.bool)
 
       self.train_op = optimize_loss(
         loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
         dtype=self.params['dtype'],
         optimizer=self.params['optimizer'],
         optimizer_params=self.params.get('optimizer_params', {}),
-        gradient_noise_scale=None,
-        gradient_multipliers=None,
         clip_gradients=self.params.get('max_grad_norm', None),
         learning_rate_decay_fn=lr_policy,
-        update_ops=None,
-        variables=None,
-        name="Loss_Optimization",
         summaries=self.params.get('summaries', None),
-        colocate_gradients_with_ops=True,
-        increment_global_step=True,
         larc_params=self.params.get('larc_params', None),
-        loss_scale=self.params.get('loss_scale', 1.0),
-        automatic_loss_scaling=self.params.get('automatic_loss_scaling', None),
+        loss_scaling=self.params.get('loss_scaling', 1.0),
         on_horovod=self.on_horovod,
+        iter_size=self.params.get('iter_size', 1),
+        skip_update_ph=self.skip_update_ph,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:
@@ -414,7 +442,7 @@ class Model:
           is constructed. For Horovod this is always zero.
 
     Returns:
-      tuple: tuple containing loss tensor and samples tensor.
+      tuple: tuple containing loss tensor and list of outputs tensors.
 
       Loss tensor will be automatically provided to the optimizer and
       corresponding :attr:`train_op` will be created.
@@ -424,12 +452,12 @@ class Model:
       this happens inside :class:`utils.hooks.RunEvaluationHook`
       to fetch output values for evaluation.
 
-      Both loss and samples can be None when corresponding part of the graph
+      Both loss and outputs can be None when corresponding part of the graph
       is not built.
     """
     pass
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     """This method can be used to print logs that help to visualize training.
     For example, you can print sample input sequences and their corresponding
     predictions. This method will be called every ``print_samples_steps``
@@ -447,6 +475,7 @@ class Model:
       output_values: evaluation of
           :meth:`self.get_output_tensors(0) <get_output_tensors>`,
           that is, output tensors for one batch on the *first* GPU.
+      training_step (int): Current training step.
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
@@ -491,7 +520,7 @@ class Model:
     """
     return []
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     """This method can be used in conjunction with
     :meth:`self.evaluate()<evaluate>` to calculate
     evaluation metrics.
@@ -514,6 +543,8 @@ class Model:
       results_per_batch (list): aggregation of values returned from all calls
           to :meth:`self.evaluate()<evaluate>` method (number of calls will be
           equal to number of evaluation batches).
+      training_step (int): current training step. Will only be passed if mode
+          is "train_eval".
 
     Returns:
       dict: dictionary with values that need to be logged to TensorBoard
@@ -621,7 +652,7 @@ class Model:
     else:
       return self.params['dtype']
 
-  def get_num_objects_per_step(self, worker_id=0):
+  def _get_num_objects_per_step(self, worker_id=0):
     """Define this method if you need benchmarking functionality.
     For example, for translation models, this method should return number of
     tokens in current batch, for image recognition model should return number
@@ -635,6 +666,12 @@ class Model:
       tf.Tensor with number of objects in batch.
     """
     raise NotImplementedError()
+
+  def get_num_objects_per_step(self, worker_id=0):
+    if self._num_objects_per_step:
+      return self._num_objects_per_step[worker_id]
+    else:
+      raise NotImplementedError()
 
   @property
   def params(self):

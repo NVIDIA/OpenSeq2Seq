@@ -44,8 +44,10 @@ base_params = {
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
-    "encoder_cell_type": "lstm",
-    "encoder_cell_units": 128,
+    "core_cell_params": {
+        "num_units": 128,
+        "forget_bias": 1.0,
+    },
     "encoder_layers": 1,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,

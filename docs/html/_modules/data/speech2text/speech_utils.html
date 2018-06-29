@@ -197,6 +197,13 @@
   <span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="normalize_signal"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.normalize_signal">[docs]</a><span class="k">def</span> <span class="nf">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Normalize float32 signal to [-1, 1] range</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">signal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span></div>
+
+
 <div class="viewcode-block" id="augment_audio_signal"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.augment_audio_signal">[docs]</a><span class="k">def</span> <span class="nf">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Function that performs audio signal augmentation.</span>
 
@@ -208,7 +215,7 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    np.array: np.array with augmented audio signal.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">signal_float</span> <span class="o">=</span> <span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">/</span> <span class="mf">32768.0</span>
+  <span class="n">signal_float</span> <span class="o">=</span> <span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
 
   <span class="k">if</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
     <span class="c1"># time stretch (might be slow)</span>
@@ -227,7 +234,7 @@
   <span class="n">signal_float</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">signal_float</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> \
                   <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">noise_level_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">signal_float</span> <span class="o">*</span> <span class="mf">32768.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span></div>
+  <span class="k">return</span> <span class="p">(</span><span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal_float</span><span class="p">)</span> <span class="o">*</span> <span class="mf">32767.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="get_speech_features"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
@@ -273,7 +280,7 @@
   <span class="k">if</span> <span class="n">pad_to</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">length</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
       <span class="n">pad_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">pad_to</span> <span class="o">-</span> <span class="n">length</span> <span class="o">%</span> <span class="n">pad_to</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_window_stride</span>
-      <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_size</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;reflect&#39;</span><span class="p">)</span>
+      <span class="n">signal</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">pad_size</span><span class="p">),</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;constant&#39;</span><span class="p">)</span>
 
   <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;spectrogram&#39;</span><span class="p">:</span>
     <span class="n">frames</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">sigproc</span><span class="o">.</span><span class="n">framesig</span><span class="p">(</span><span class="n">sig</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
@@ -301,10 +308,22 @@
                         <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
                         <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">num_features</span><span class="p">,</span>
                         <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+  <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">:</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                            <span class="n">samplerate</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
+                            <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                            <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                            <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                            <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                            <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">fs</span><span class="o">/</span><span class="mi">2</span><span class="p">,</span>
+                            <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
+
   <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown features type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">features_type</span><span class="p">))</span>
 
-  <span class="k">assert</span> <span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">==</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="n">pad_to</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">assert</span> <span class="n">features</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">==</span> <span class="mi">0</span>
   <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span>

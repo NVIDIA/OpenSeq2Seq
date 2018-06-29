@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="transformer" href="parts.transformer.html" /> 
+    <link rel="prev" title="cnns" href="parts.cnns.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -506,6 +506,31 @@ graph, should not change the graph.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.collect_if_horovod">
+<code class="descclassname">utils.utils.</code><code class="descname">collect_if_horovod</code><span class="sig-paren">(</span><em>value</em>, <em>hvd</em>, <em>mode='sum'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#collect_if_horovod"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.collect_if_horovod" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collects values from all workers if run on Horovod.
+Note, that on all workers except first this function will return None.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>value</strong> – value to collect.</li>
+<li><strong>hvd</strong> – horovod.tensorflow module or None</li>
+<li><strong>mode</strong> – could be “sum”, “mean” or “gather”, indicating reduce_sum or gather.
+For “sum” and “mean” value has to be numerical, for “gather”, value has
+to be iterable.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">collected results if run on Horovod or value otherwise.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.deco_print">
 <code class="descclassname">utils.utils.</code><code class="descname">deco_print</code><span class="sig-paren">(</span><em>line</em>, <em>offset=0</em>, <em>start='*** '</em>, <em>end='\n'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#deco_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.deco_print" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -536,8 +561,8 @@ graph, should not change the graph.</p>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="utils.utils.iterate_data_layer">
-<code class="descclassname">utils.utils.</code><code class="descname">iterate_data_layer</code><span class="sig-paren">(</span><em>model</em>, <em>dl_id</em>, <em>sess</em>, <em>compute_loss</em>, <em>mode</em>, <em>verbose</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#iterate_data_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.iterate_data_layer" title="Permalink to this definition">¶</a></dt>
+<dt id="utils.utils.iterate_data">
+<code class="descclassname">utils.utils.</code><code class="descname">iterate_data</code><span class="sig-paren">(</span><em>model</em>, <em>sess</em>, <em>compute_loss</em>, <em>mode</em>, <em>verbose</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#iterate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.iterate_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -579,7 +604,7 @@ target vocabulary and prints it as a human-readable string</p>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="parts.transformer.html" class="btn btn-neutral" title="transformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="parts.cnns.html" class="btn btn-neutral" title="cnns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

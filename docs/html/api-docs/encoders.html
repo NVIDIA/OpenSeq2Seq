@@ -97,10 +97,13 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">encoders</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.encoder">encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.ds2_encoder">ds2_encoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.w2l_encoder">w2l_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.rnn_encoders">rnn_encoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#transformer-encoders">transformer_encoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.convs2s_encoder">convs2s_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.resnet_encoder">resnet_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.resnet_blocks">resnet_blocks</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.cnn_encoder">cnn_encoder</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
@@ -497,12 +500,6 @@ class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encod
 </dd></dl>
 
 <dl class="function">
-<dt id="encoders.ds2_encoder.conv2d_bn_actv">
-<code class="descclassname">encoders.ds2_encoder.</code><code class="descname">conv2d_bn_actv</code><span class="sig-paren">(</span><em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#conv2d_bn_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.conv2d_bn_actv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function that applies convolution, batch norm and activation.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="encoders.ds2_encoder.rnn_cell">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">rnn_cell</code><span class="sig-paren">(</span><em>rnn_cell_dim</em>, <em>layer_type</em>, <em>dropout_keep_prob=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#rnn_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.rnn_cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function that creates RNN cell.</p>
@@ -512,6 +509,137 @@ class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encod
 <dt id="encoders.ds2_encoder.row_conv">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">row_conv</code><span class="sig-paren">(</span><em>name</em>, <em>input_layer</em>, <em>batch</em>, <em>channels</em>, <em>width</em>, <em>activation_fn</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#row_conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.row_conv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function that applies “row” or “in plane” convolution.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-encoders.w2l_encoder">
+<span id="w2l-encoder"></span><h2>w2l_encoder<a class="headerlink" href="#module-encoders.w2l_encoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="encoders.w2l_encoder.Wave2LetterEncoder">
+<em class="property">class </em><code class="descclassname">encoders.w2l_encoder.</code><code class="descname">Wave2LetterEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='w2l_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>Wave2Letter like encoder. Fully convolutional model</p>
+<dl class="method">
+<dt id="encoders.w2l_encoder.Wave2LetterEncoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='w2l_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wave2Letter like encoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
+</li>
+<li><p class="first"><strong>convnet_layers</strong> (list) — list with the description of convolutional
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;convnet_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>activation_fn</strong> — activation function to use.</p>
+</li>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
+</li>
+<li><p class="first"><strong>normalization</strong> — normalization to use. Accepts [None, ‘batch_norm’].
+Use None if you don’t want to use normalization. Defaults to ‘batch_norm’.</p>
+</li>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.90.</p>
+</li>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-3.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="encoders.w2l_encoder.Wave2LetterEncoder._encode">
+<code class="descname">_encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder._encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder._encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates TensorFlow graph for Wav2Letter like encoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
+the following fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="n">src_sequence</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]),</span>
+    <span class="n">src_length</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">])</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">hidden</span> <span class="n">state</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">n_hidden</span><span class="p">]</span>
+  <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.w2l_encoder.Wave2LetterEncoder.__init__" title="encoders.w2l_encoder.Wave2LetterEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.w2l_encoder.Wave2LetterEncoder.__init__" title="encoders.w2l_encoder.Wave2LetterEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -734,6 +862,98 @@ class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoder
 </dd></dl>
 
 <dl class="class">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN">
+<em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">GNMTLikeEncoderWithEmbedding_cuDNN</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb_cudnn'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>Encoder similar to the one used in
+GNMT model: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.
+Must have at least 2 layers. Uses cuDNN RNN blocks for efficiency</p>
+<dl class="method">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb_cudnn'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes data into representation
+:param params: a Python dictionary.
+Must define:</p>
+<blockquote>
+<div><ul class="simple">
+<li><dl class="first docutils">
+<dt>src_inputs - a Tensor of shape [batch_size, time] or [time, batch_size]</dt>
+<dd>(depending on time_major param)</dd>
+</dl>
+</li>
+<li>src_lengths - a Tensor of shape [batch_size]</li>
+</ul>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Python dictionary with:
+* encoder_outputs - a Tensor of shape<blockquote>
+<div>[batch_size, time, representation_dim]</div></blockquote>
+<p>or [time, batch_size, representation_dim]
+* encoder_state - a Tensor of shape [batch_size, dim]
+* src_lengths - (copy ref from input) a Tensor of shape [batch_size]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.enc_emb_w">
+<code class="descname">enc_emb_w</code><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.enc_emb_w" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_emb_size">
+<code class="descname">src_emb_size</code><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_emb_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_vocab_size">
+<code class="descname">src_vocab_size</code><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding">
 <em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">UnidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
@@ -851,6 +1071,63 @@ class <a class="reference internal" href="#encoders.rnn_encoders.UnidirectionalR
 </div>
 <div class="section" id="transformer-encoders">
 <h2>transformer_encoders<a class="headerlink" href="#transformer-encoders" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-encoders.convs2s_encoder">
+<span id="convs2s-encoder"></span><h2>convs2s_encoder<a class="headerlink" href="#module-encoders.convs2s_encoder" title="Permalink to this headline">¶</a></h2>
+<p>Conv-based encoder</p>
+<dl class="class">
+<dt id="encoders.convs2s_encoder.ConvS2SEncoder">
+<em class="property">class </em><code class="descclassname">encoders.convs2s_encoder.</code><code class="descname">ConvS2SEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='convs2s_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>Fully convolutional Encoder of ConvS2S</p>
+<dl class="staticmethod">
+<dt id="encoders.convs2s_encoder.ConvS2SEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.convs2s_encoder.ConvS2SEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.convs2s_encoder.ConvS2SEncoder.src_emb_size">
+<code class="descname">src_emb_size</code><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.src_emb_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="encoders.convs2s_encoder.ConvS2SEncoder.src_vocab_size">
+<code class="descname">src_vocab_size</code><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.src_vocab_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-encoders.resnet_encoder">
 <span id="resnet-encoder"></span><h2>resnet_encoder<a class="headerlink" href="#module-encoders.resnet_encoder" title="Permalink to this headline">¶</a></h2>
@@ -1132,6 +1409,142 @@ Should be a positive integer.</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor with the same format as the input with the data either intact
 (if kernel_size == 1) or padded (if kernel_size &gt; 1).</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-encoders.cnn_encoder">
+<span id="cnn-encoder"></span><h2>cnn_encoder<a class="headerlink" href="#module-encoders.cnn_encoder" title="Permalink to this headline">¶</a></h2>
+<p>This module contains classes and functions to build “general” convolutional
+neural networks from the description of arbitrary “layers”.</p>
+<dl class="class">
+<dt id="encoders.cnn_encoder.CNNEncoder">
+<em class="property">class </em><code class="descclassname">encoders.cnn_encoder.</code><code class="descname">CNNEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cnn_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>General CNN encoder that can be used to construct various different models.</p>
+<dl class="method">
+<dt id="encoders.cnn_encoder.CNNEncoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cnn_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>CNN Encoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>cnn_layers</strong> (list) — list with the description of “convolutional”
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;kernel_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span>
+        <span class="s1">&#39;strides&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+    <span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">max_pooling2d</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;pool_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">),</span> <span class="s1">&#39;strides&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">,</span> <span class="p">{</span>
+        <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="mi">192</span><span class="p">,</span> <span class="s1">&#39;kernel_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">),</span>
+        <span class="s1">&#39;strides&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+    <span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;momentum&#39;</span><span class="p">:</span> <span class="mf">0.9</span><span class="p">,</span> <span class="s1">&#39;epsilon&#39;</span><span class="p">:</span> <span class="mf">0.0001</span><span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span> <span class="p">{}),</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+<p>Note that you don’t need to provide “regularizer”, “training” and
+“data_format” parameters since they will be automatically added.</p>
+</li>
+<li><p class="first"><strong>cnn_layers</strong> (list) — list with the description of “fully-connected”
+layers. The only different from convolutional layers is that the input
+will be automatically reshaped to 2D (batch size x num features).
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;fc_layers&#39;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">,</span> <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;rate&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">,</span> <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">}),</span>
+    <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;rate&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}),</span>
+<span class="p">],</span>
+</pre></div>
+</div>
+<p>Note that you don’t need to provide “regularizer”, “training” and
+“data_format” parameters since they will be automatically added.</p>
+</li>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_first”.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.cnn_encoder.CNNEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.cnn_encoder.CNNEncoder.__init__" title="encoders.cnn_encoder.CNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.cnn_encoder.CNNEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.cnn_encoder.CNNEncoder.__init__" title="encoders.cnn_encoder.CNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="encoders.cnn_encoder.build_layer">
+<code class="descclassname">encoders.cnn_encoder.</code><code class="descname">build_layer</code><span class="sig-paren">(</span><em>inputs</em>, <em>layer</em>, <em>layer_params</em>, <em>data_format</em>, <em>regularizer</em>, <em>training</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#build_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.build_layer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function builds a layer from the layer function and it’s parameters.</p>
+<p>It will automatically add regularizer parameter to the layer_params if the
+layer supports regularization. To check this, it will look for the
+“regularizer”, “kernel_regularizer” and “gamma_regularizer” names in this
+order in the <code class="docutils literal notranslate"><span class="pre">layer</span></code> call signature. If one of this parameters is supported
+it will pass regularizer object as a value for that parameter. Based on the
+same “checking signature” technique “data_format” and “training” parameters
+will try to be added.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> – input Tensor that will be passed to the layer. Note that layer has
+to accept input as the first parameter.</li>
+<li><strong>layer</strong> – layer function or class with <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method defined.</li>
+<li><strong>layer_params</strong> (<em>dict</em>) – parameters passed to the <code class="docutils literal notranslate"><span class="pre">layer</span></code>.</li>
+<li><strong>data_format</strong> (<em>string</em>) – data format (“channels_first” or “channels_last”)
+that will be tried to be passed as an additional argument.</li>
+<li><strong>regularizer</strong> – regularizer instance that will be tried to be passed as an
+additional argument.</li>
+<li><strong>training</strong> (<em>bool</em>) – whether layer is built in training mode. Will be tried to
+be passed as an additional argument.</li>
+<li><strong>verbose</strong> (<em>bool</em>) – whether to print information about built layers.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tensor with layer output.</p>
 </td>
 </tr>
 </tbody>

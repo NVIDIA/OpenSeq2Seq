@@ -110,6 +110,8 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parts.transformer.html">transformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -1521,16 +1523,29 @@ sum_i(args[i] * W[i]), where W[i]s are newly created matrices.</p>
 <div class="section" id="module-parts.rnns.utils">
 <span id="utils"></span><h2>utils<a class="headerlink" href="#module-parts.rnns.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
-<dt id="parts.rnns.utils.create_rnn_cell">
-<code class="descclassname">parts.rnns.utils.</code><code class="descname">create_rnn_cell</code><span class="sig-paren">(</span><em>cell_type</em>, <em>cell_params</em>, <em>num_layers=1</em>, <em>dp_input_keep_prob=1.0</em>, <em>dp_output_keep_prob=1.0</em>, <em>residual_connections=False</em>, <em>wrap_to_multi_rnn=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/utils.html#create_rnn_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.utils.create_rnn_cell" title="Permalink to this definition">¶</a></dt>
-<dd><p>TODO: MOVE THIS properly to utils. Write doc
-:param cell_type:
-:param cell_params:
-:param num_layers:
-:param dp_input_keep_prob:
-:param dp_output_keep_prob:
-:param residual_connections:
-:return:</p>
+<dt id="parts.rnns.utils.single_cell">
+<code class="descclassname">parts.rnns.utils.</code><code class="descname">single_cell</code><span class="sig-paren">(</span><em>cell_class</em>, <em>cell_params</em>, <em>dp_input_keep_prob=1.0</em>, <em>dp_output_keep_prob=1.0</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/utils.html#single_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.utils.single_cell" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an instance of the rnn cell.
+Such cell describes one step one layer and can include residual connection
+and/or dropout</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>cell_class</strong> – Tensorflow RNN cell class</li>
+<li><strong>cell_params</strong> (<em>dict</em>) – cell parameters</li>
+<li><strong>dp_input_keep_prob</strong> (<em>float</em>) – (default: 1.0) input dropout keep probability</li>
+<li><strong>dp_output_keep_prob</strong> (<em>float</em>) – (default: 1.0) output dropout keep probability</li>
+<li><strong>residual_connections</strong> (<em>bool</em>) – whether to add residual connection</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">TF RNN instance</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </div>

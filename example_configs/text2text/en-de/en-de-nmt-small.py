@@ -42,8 +42,11 @@ base_params = {
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.glorot_uniform_initializer,
-    "encoder_cell_type": "lstm",
-    "encoder_cell_units": 512,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 512,
+        "forget_bias": 1.0,
+    },
     "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
@@ -55,8 +58,11 @@ base_params = {
   "decoder": RNNDecoderWithAttention,
   "decoder_params": {
     "initializer": tf.glorot_uniform_initializer,
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": 512,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 512,
+        "forget_bias": 1.0,
+    },
     "decoder_layers": 2,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
@@ -116,8 +122,11 @@ infer_params = {
   "decoder_params": {
     "beam_width": 10,
     "length_penalty": 1.0,
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": 512,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 512,
+        "forget_bias": 1.0,
+    },
     "decoder_layers": 2,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,

@@ -10,7 +10,7 @@ import tensorflow as tf
 
 from open_seq2seq.parts.rnns.gnmt import GNMTAttentionMultiCell, \
                                                            gnmt_residual_fn
-from open_seq2seq.parts.rnns.utils import create_rnn_cell
+from open_seq2seq.parts.rnns.utils import single_cell
 from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
                                                  LuongAttention, \
                                                  AttentionWrapper
@@ -30,8 +30,7 @@ class RNNDecoderWithAttention(Decoder):
       'tgt_emb_size': int,
       'attention_layer_size': int,
       'attention_type': ['bahdanau', 'luong', 'gnmt', 'gnmt_v2'],
-      'decoder_cell_units': int,
-      'decoder_cell_type': ['lstm', 'gru', 'glstm', 'slstm'],
+      'core_cell': None,
       'decoder_layers': int,
       'decoder_use_skip_connections': bool,
       'batch_size': int,
@@ -40,6 +39,7 @@ class RNNDecoderWithAttention(Decoder):
   @staticmethod
   def get_optional_params():
     return dict(Decoder.get_optional_params(), **{
+      'core_cell_params': dict,
       'bahdanau_normalize': bool,
       'luong_scale': bool,
       'decoder_dp_input_keep_prob': float,
@@ -65,8 +65,8 @@ class RNNDecoderWithAttention(Decoder):
     * **END_SYMBOL** (int) --- END symbol id, must be the same as used in
       data layer.
     * **tgt_emb_size** (int) --- embedding size to use.
-    * **decoder_cell_units** (int) - number of units in RNN
-    * **decoder_cell_type** (string) - RNN type: lstm, gru, glstm, etc.
+    * **core_cell_params** (dict) - parameters for RNN class
+    * **core_cell** (string) - RNN class.
     * **decoder_dp_input_keep_prob** (float) - dropout input keep probability.
     * **decoder_dp_output_keep_prob** (float) - dropout output keep probability.
     * **decoder_use_skip_connections** (bool) - use residual connections or not.
@@ -184,8 +184,8 @@ class RNNDecoderWithAttention(Decoder):
       self._tgt_vocab_size, use_bias=False,
     )
 
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['decoder_cell_units']
+    #cell_params = copy.deepcopy(self.params)
+    #cell_params["num_units"] = self.params['decoder_cell_units']
 
     if self._mode == "train":
       dp_input_keep_prob = self.params['decoder_dp_input_keep_prob']
@@ -194,22 +194,17 @@ class RNNDecoderWithAttention(Decoder):
       dp_input_keep_prob = 1.0
       dp_output_keep_prob = 1.0
 
-    if self.params['attention_type'].startswith('gnmt'):
-      residual_connections = False
-      wrap_to_multi_rnn = False
-    else:
-      residual_connections = self.params['decoder_use_skip_connections']
-      wrap_to_multi_rnn = True
+    residual_connections = self.params['decoder_use_skip_connections']
 
-    self._decoder_cells = create_rnn_cell(
-      cell_type=self.params['decoder_cell_type'],
-      cell_params=cell_params,
-      num_layers=self.params['decoder_layers'],
-      dp_input_keep_prob=dp_input_keep_prob,
-      dp_output_keep_prob=dp_output_keep_prob,
-      residual_connections=residual_connections,
-      wrap_to_multi_rnn=wrap_to_multi_rnn,
-    )
+    # list of cells
+    self._decoder_cells = [
+      single_cell(cell_class=self.params['core_cell'],
+                  cell_params=self.params.get('core_cell_params', {}),
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  # residual connections are added a little differently for GNMT
+                  residual_connections=False if self.params['attention_type'].startswith('gnmt') else residual_connections,
+                  ) for _ in range(self.params['decoder_layers'])]
 
     attention_mechanism = self._build_attention(
       encoder_outputs,
@@ -217,7 +212,6 @@ class RNNDecoderWithAttention(Decoder):
     )
     if self.params['attention_type'].startswith('gnmt'):
       attention_cell = self._decoder_cells.pop(0)
-      # attention_cell = tf.contrib.seq2seq.AttentionWrapper(
       attention_cell = AttentionWrapper(
         attention_cell,
         attention_mechanism=attention_mechanism,
@@ -225,12 +219,12 @@ class RNNDecoderWithAttention(Decoder):
         output_attention=False,
         name="gnmt_attention")
       attentive_decoder_cell = GNMTAttentionMultiCell(
-        attention_cell, self._add_residual_wrapper(self._decoder_cells),
+        attention_cell, self._add_residual_wrapper(self._decoder_cells) if residual_connections else self._decoder_cells,
         use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
     else:
       # attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(
       attentive_decoder_cell = AttentionWrapper(
-        cell=self._decoder_cells,
+        cell=tf.contrib.rnn.MultiRNNCell(self._decoder_cells),
         attention_mechanism=attention_mechanism,
       )
     if self._mode == "train":
@@ -283,8 +277,9 @@ class RNNDecoderWithAttention(Decoder):
       output_time_major=time_major,
     )
 
-    return {'logits': final_outputs.rnn_output,
-            'samples': [tf.argmax(final_outputs.rnn_output, axis=-1)],
+    return {'logits': final_outputs.rnn_output if not time_major else
+            tf.transpose(final_outputs.rnn_output, perm=[1, 0, 2]),
+            'outputs': [tf.argmax(final_outputs.rnn_output, axis=-1)],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
 
@@ -371,8 +366,8 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       self._tgt_vocab_size, use_bias=False,
     )
 
-    cell_params = copy.deepcopy(self.params)
-    cell_params["num_units"] = self.params['decoder_cell_units']
+    #cell_params = copy.deepcopy(self.params)
+    #cell_params["num_units"] = self.params['decoder_cell_units']
 
     if self._mode == "train":
       dp_input_keep_prob = self.params['decoder_dp_input_keep_prob']
@@ -381,22 +376,34 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       dp_input_keep_prob = 1.0
       dp_output_keep_prob = 1.0
 
-    if self.params['attention_type'].startswith('gnmt'):
-      residual_connections = False
-      wrap_to_multi_rnn = False
-    else:
-      residual_connections = self.params['decoder_use_skip_connections']
-      wrap_to_multi_rnn = True
+    #if self.params['attention_type'].startswith('gnmt'):
+    #  residual_connections = False
+    #  wrap_to_multi_rnn = False
+    #else:
+    #  residual_connections = self.params['decoder_use_skip_connections']
+    #  wrap_to_multi_rnn = True
 
-    self._decoder_cells = create_rnn_cell(
-      cell_type=self.params['decoder_cell_type'],
-      cell_params=cell_params,
-      num_layers=self.params['decoder_layers'],
-      dp_input_keep_prob=dp_input_keep_prob,
-      dp_output_keep_prob=dp_output_keep_prob,
-      residual_connections=residual_connections,
-      wrap_to_multi_rnn=wrap_to_multi_rnn,
-    )
+    #self._decoder_cells = create_rnn_cell(
+    #  cell_type=self.params['decoder_cell_type'],
+    #  cell_params=cell_params,
+    #  num_layers=self.params['decoder_layers'],
+    #  dp_input_keep_prob=dp_input_keep_prob,
+    #  dp_output_keep_prob=dp_output_keep_prob,
+    #  residual_connections=residual_connections,
+    #  wrap_to_multi_rnn=wrap_to_multi_rnn,
+    #)
+    residual_connections = self.params['decoder_use_skip_connections']
+    # list of cells
+    self._decoder_cells = [
+      single_cell(cell_class=self.params['core_cell'],
+                  cell_params=self.params.get('core_cell_params', {}),
+                  dp_input_keep_prob=dp_input_keep_prob,
+                  dp_output_keep_prob=dp_output_keep_prob,
+                  # residual connections are added a little differently for GNMT
+                  residual_connections=False if self.params[
+                    'attention_type'].startswith(
+                    'gnmt') else residual_connections,
+                  ) for _ in range(self.params['decoder_layers'])]
 
     tiled_enc_outputs = tf.contrib.seq2seq.tile_batch(
       encoder_outputs,
@@ -420,18 +427,18 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
         output_attention=False,
         name="gnmt_attention")
       attentive_decoder_cell = GNMTAttentionMultiCell(
-        attention_cell, self._add_residual_wrapper(self._decoder_cells),
+        attention_cell, self._add_residual_wrapper(self._decoder_cells) if residual_connections else self._decoder_cells,
         use_new_attention=(self.params['attention_type'] == 'gnmt_v2'))
-    else:
+    else: # non-GNMT
       attentive_decoder_cell = AttentionWrapper(
-        cell=self._decoder_cells,
+        cell=tf.contrib.rnn.MultiRNNCell(self._decoder_cells),
         attention_mechanism=attention_mechanism,
       )
     batch_size_tensor = tf.constant(self._batch_size)
     embedding_fn = lambda ids: tf.cast(
       tf.nn.embedding_lookup(self._dec_emb_w, ids),
       dtype=self.params['dtype'])
-    #decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+    # decoder = tf.contrib.seq2seq.BeamSearchDecoder(
     decoder = BeamSearchDecoder(
       cell=attentive_decoder_cell,
       embedding=embedding_fn,
@@ -456,7 +463,8 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
       output_time_major=time_major,
     )
 
-    return {'logits': final_outputs.predicted_ids[:, :, 0],
-            'samples': [final_outputs.predicted_ids[:, :, 0]],
+    return {'logits': final_outputs.predicted_ids[:, :, 0] if not time_major else
+            tf.transpose(final_outputs.predicted_ids[:, :, 0], perm=[1, 0, 2]),
+            'outputs': [final_outputs.predicted_ids[:, :, 0]],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
