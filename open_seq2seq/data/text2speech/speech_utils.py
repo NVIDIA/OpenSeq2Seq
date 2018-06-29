@@ -102,31 +102,33 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   return features
 
 def get_mel(log_mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.,
-            feature_normalize=False, mean=0, std=1):
+            feature_normalize=False, mean=0, std=1, mel_basis=None):
   """
   Method to get mel spectrograms from saved energy spectrograms
   """
-  mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
+  if mel_basis == None:
+    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
+  log_mag_spec = log_mag_spec * power
   mag_spec = np.exp(log_mag_spec)
-  mag_spec = np.power(mag_spec, power)
   mel_spec = np.dot(mag_spec, mel_basis.T)
   mel_spec = np.log(np.clip(mel_spec, a_min=1e-5, a_max=None))
   if feature_normalize:
     mel_spec = normalize(mel_spec, mean, std)
   return mel_spec
 
-def inverse_mel(mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2., 
-               feature_normalize=False, mean=0, std=1):
+def inverse_mel(log_mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2., 
+               feature_normalize=False, mean=0, std=1, mel_basis=None):
   """
   Very hacky method to reconstruct mag spec from mel
   """
-  mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
-  mel_spec = np.exp(mel_spec)
-  mag_spec = np.dot(mel_spec, mel_basis)
-  mag_spec = np.power(mag_spec, 1./power)
-  mag_spec = mag_spec * 32
+  if mel_basis == None:
+    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
   if feature_normalize:
-    mag_spec = normalize(mag_spec, mean, std)
+    log_mel_spec = denormalize(log_mel_spec, mean, std)
+  mel_spec = np.exp(log_mel_spec)
+  mag_spec = np.dot(mel_spec, mel_basis)
+  mag_spec = mag_spec * 876
+  mag_spec = np.power(mag_spec, 1./power)
   return mag_spec
 
 def normalize(features, mean, std):

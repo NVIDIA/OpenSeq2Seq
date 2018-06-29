@@ -80,6 +80,7 @@ class Text2SpeechDataLayer(DataLayer):
 
     if "mel" in self.params["output_type"]:
       self.mel = True
+      self.mel_basis = librosa.filters.mel(22050, 1024, n_mels=80)
     else:
       self.mel = False
 
@@ -206,7 +207,8 @@ class Text2SpeechDataLayer(DataLayer):
         spectrogram = get_mel(spectrogram, power=mag_power,
                               feature_normalize=self.params["feature_normalize"],
                               mean=self.params.get("feature_normalize_mean", 0.),
-                              std=self.params.get("feature_normalize_std", 1.)
+                              std=self.params.get("feature_normalize_std", 1.),
+                              mel_basis=self.mel_basis
                              )
       else:
         if mag_power != 1:
@@ -264,27 +266,32 @@ class Text2SpeechDataLayer(DataLayer):
     """Returns the number of audio files."""
     return len(self._files)
 
-  def inverse_mel(self, spectrogram):
-    """Converts mel spectrogram to magnitude spectrogram
+  def get_magnitude_spec(self, spectrogram):
+    """Returns an energy magnitude spectrogram. The processing depends on the 
+    data leyer params.
 
     Args:
-      spectrogram: mel spec
+      spectrogram: output spec from model
 
     Returns:
       mag_spec: mag spec
     """
-    return inverse_mel(spectrogram, 
-                       n_mels=self.params['num_audio_features'],
-                       power=self.params.get('mag_power', 2),
-                       feature_normalize=self.params["feature_normalize"],
+    if self.mel:
+      return inverse_mel(spectrogram, 
+                         n_mels=self.params['num_audio_features'],
+                         power=self.params.get('mag_power', 2),
+                         feature_normalize=self.params["feature_normalize"],
+                         mean=self.params.get("feature_normalize_mean", 0.),
+                         std=self.params.get("feature_normalize_std", 1.),
+                         mel_basis=self.mel_basis)
+    else:
+      if self.params["feature_normalize"]:
+        spectrogram = self._denormalize(spectrogram)
+      spectrogram = spectrogram * 1.0/self.params.get('mag_power', 2)
+      mag_spec = np.exp(spectrogram)
+      return mag_spec
+
+  def _denormalize(self, spectrogram):
+    return denormalize(spectrogram,
                        mean=self.params.get("feature_normalize_mean", 0.),
                        std=self.params.get("feature_normalize_std", 1.))
-
-  def denormalize(self, spectrogram):
-    if self.params["feature_normalize"]:
-      return denormalize(spectrogram,
-                         mean=self.params.get("feature_normalize_mean", 0.),
-                         std=self.params.get("feature_normalize_std", 1.))
-    else:
-      return spectrogram
-

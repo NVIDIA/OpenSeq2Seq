@@ -139,10 +139,10 @@ def plot_spectrograms(specs, titles, target_sample, audio_length,
 def save_audio(magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False):
   # magnitudes = np.exp(mag_spec)
   signal = griffin_lim(magnitudes.T**1.2)
-  file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
-  if logdir[0] != '/':
-    file_name = "./"+file_name
-  write(file_name, 22050 ,signal)
+  # file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
+  # if logdir[0] != '/':
+  #   file_name = "./"+file_name
+  # write(file_name, 22050 ,signal)
   if save_to_tensorboard:
     tag = "{}_audio".format(mode)
     s = StringIO()
@@ -276,7 +276,8 @@ class Text2Speech(EncoderDecoderModel):
     target_output_sample = target_output[0]
     audio_length = output_values[4][0]
 
-    im_summary = plot_spectrogram_w_target(y_sample, predicted_spectrogram_sample,
+    predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(y_sample)
+    im_summary = plot_spectrogram_w_target(y_sample, y_sample,
                      predicted_final_spectrogram_sample,
                      attention_mask_sample,
                      target_output_sample,
@@ -288,18 +289,11 @@ class Text2Speech(EncoderDecoderModel):
     dict_to_log['image'] = im_summary
 
     predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
-    if "magnitude" in self.get_data_layer().params['output_type']:
-      predicted_final_spectrogram_sample = self.get_data_layer().denormalize(predicted_final_spectrogram_sample)
-      predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
-      wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step,
-        save_to_tensorboard = self.save_to_tensorboard)
-      dict_to_log['audio'] = wav_summary
-    elif "mel" in self.get_data_layer().params['output_type']:
-      predicted_final_spectrogram_sample = self.get_data_layer().inverse_mel(predicted_final_spectrogram_sample)
-      wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step,
-        save_to_tensorboard = self.save_to_tensorboard)
-      dict_to_log['audio'] = wav_summary
-    
+    predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(predicted_final_spectrogram_sample)
+    wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step,
+      save_to_tensorboard = self.save_to_tensorboard)
+    dict_to_log['audio'] = wav_summary
+
     if self.save_to_tensorboard:
       return dict_to_log
     else:
@@ -331,19 +325,13 @@ class Text2Speech(EncoderDecoderModel):
                      save_to_tensorboard = self.save_to_tensorboard)
     dict_to_log['image'] = im_summary
 
-    predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
     if audio_length > 2:
-      if "magnitude" in self.get_data_layer().params['output_type']:
-        predicted_final_spectrogram_sample = self.get_data_layer().denormalize(predicted_final_spectrogram_sample)
-        predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
-        wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval",
-          save_to_tensorboard = self.save_to_tensorboard)
-        dict_to_log['audio'] = wav_summary
-      elif "mel" in self.get_data_layer().params['output_type']:
-        predicted_final_spectrogram_sample = self.get_data_layer().inverse_mel(predicted_final_spectrogram_sample)
-        wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval",
-          save_to_tensorboard = self.save_to_tensorboard)
-        dict_to_log['audio'] = wav_summary
+      predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
+
+      predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(predicted_final_spectrogram_sample)
+      wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step, mode="eval",
+        save_to_tensorboard = self.save_to_tensorboard)
+      dict_to_log['audio'] = wav_summary
 
     if self.save_to_tensorboard:
       return dict_to_log
@@ -364,6 +352,7 @@ class Text2Speech(EncoderDecoderModel):
 
   def finalize_inference(self, results_per_batch, output_file):
     print("output_file is ignored for ts2")
+    print("results are logged to the logdir")
     batch_size = len(results_per_batch[0][0]['source_tensors'][0])
     for i, sample in enumerate(results_per_batch):
       input_values = sample[0]
@@ -403,13 +392,10 @@ class Text2Speech(EncoderDecoderModel):
         # print(predicted_final_spectrogram_sample.shape)
         if audio_length > 2:
           predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
-          if "magnitude" in self.get_data_layer().params['output_type']:
-            predicted_final_spectrogram_sample = self.get_data_layer().denormalize(predicted_final_spectrogram_sample)
-            predicted_final_spectrogram_sample = np.exp(predicted_final_spectrogram_sample)
-            save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer",number= i*batch_size+j)
-          elif "mel" in self.get_data_layer().params['output_type']:
-            save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer",number= i*batch_size+j)
-          # if "spectrogram" in self.get_data_layer().params['output_type']:
-          #   save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer", number=i*batch_size+j)
+          predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(predicted_final_spectrogram_sample)
+          wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], 0, mode="infer", 
+            number= i*batch_size+j, save_to_tensorboard = False)
+
+          dict_to_log['audio'] = wav_summary
 
     return {}
