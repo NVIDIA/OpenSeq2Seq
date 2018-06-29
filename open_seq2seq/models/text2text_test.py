@@ -21,7 +21,7 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
 
   def test_train(self):
     config_module = runpy.run_path(
-      "./example_configs/text2text/nmt-reversal-RR.py")
+      "./example_configs/text2text/toy-reversal/nmt-reversal-RR.py")
     train_config = config_module['base_params']
     if 'train_params' in config_module:
       train_config.update(config_module['train_params'])
@@ -70,7 +70,7 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
     print("Attempting BasicSeq2SeqWithAttention on Horovod")
     hvd.init()
     config_module = runpy.run_path(
-      "./example_configs/text2text/nmt-reversal-RR.py")
+      "./example_configs/text2text/toy-reversal/nmt-reversal-RR.py")
     train_config = config_module['base_params']
     if 'train_params' in config_module:
       train_config.update(config_module['train_params'])

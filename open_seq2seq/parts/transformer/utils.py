@@ -75,23 +75,23 @@ def get_decoder_self_attention_bias(length):
   return decoder_bias
 
 
-def get_padding(x, padding_value=0):
+def get_padding(x, padding_value=0, dtype=tf.float32):
   """Return float tensor representing the padding values in x.
 
   Args:
     x: int tensor with any shape
     padding_value: int value that
+    dtype: type of the output
 
   Returns:
     flaot tensor with same shape as x containing values 0 or 1.
       0 -> non-padding, 1 -> padding
   """
   with tf.name_scope("padding"):
-    return tf.to_float(tf.equal(x, padding_value))
-    #return tf.cast(tf.equal(x, padding_value), dtype=x.dtype)
+    return tf.cast(tf.equal(x, padding_value), dtype=dtype)
 
 
-def get_padding_bias(x):
+def get_padding_bias(x, res_rank=4, pad_sym=0):
   """Calculate bias tensor from padding values in tensor.
 
   Bias tensor that is added to the pre-softmax multi-headed attention logits,
@@ -100,14 +100,22 @@ def get_padding_bias(x):
 
   Args:
     x: int tensor with shape [batch_size, length]
+    res_rank: int indicates the rank of attention_bias.
+    dtype: type of the output attention_bias
+    pad_sym: int the symbol used for padding
 
   Returns:
-    Attention bias tensor of shape [batch_size, 1, 1, length].
+    Attention bias tensor of shape
+    [batch_size, 1, 1, length] if  res_rank = 4 - for Transformer
+    or [batch_size, 1, length] if res_rank = 3 - for ConvS2S
   """
   with tf.name_scope("attention_bias"):
-    padding = get_padding(x)
+    padding = get_padding(x, padding_value=pad_sym)
     attention_bias = padding * _NEG_INF
-    attention_bias = tf.expand_dims(
-        tf.expand_dims(attention_bias, axis=1), axis=1)
+    if res_rank == 4:
+      attention_bias = tf.expand_dims(tf.expand_dims(attention_bias, axis=1), axis=1)
+    elif res_rank == 3:
+      attention_bias = tf.expand_dims(attention_bias, axis=1)
+    else:
+      raise ValueError("res_rank should be 3 or 4 but got {}".format(res_rank))
   return attention_bias
-
