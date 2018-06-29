@@ -118,7 +118,7 @@ class SpeechUtilsTests(tf.test.TestCase):
     fs = 16000.0
     t = np.arange(0, 0.5, 1.0 / fs)
     signal = np.sin(2 * np.pi * 4000 * t)
-    features = get_speech_features(signal, fs, 161)
+    features = get_speech_features(signal, fs, 161, pad_to=0)
     npt.assert_allclose(
       np.abs(features - features[0]),
       np.zeros_like(features),

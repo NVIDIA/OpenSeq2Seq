@@ -96,7 +96,7 @@ class Speech2TextModelTests(tf.test.TestCase):
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
 
       self.assertLess(loss, 5.0)
-      self.assertLess(eval_loss, 200.0)
+      self.assertLess(eval_loss, 30.0)
       self.assertLess(eval_dict['Eval WER'], 0.1)
 
   def test_convergence_with_iter_size(self):
@@ -114,6 +114,7 @@ class Speech2TextModelTests(tf.test.TestCase):
         "iter_size": 5,
         "batch_size_per_gpu": 2,
         "use_horovod": True,
+        "num_epochs": 200,
       })
       eval_config.update({
         "dtype": dtype,
@@ -123,13 +124,13 @@ class Speech2TextModelTests(tf.test.TestCase):
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config, hvd)
 
-      self.assertLess(loss, 5.0)
-      self.assertLess(eval_loss, 200.0)
+      self.assertLess(loss, 10.0)
+      self.assertLess(eval_loss, 30.0)
       self.assertLess(eval_dict['Eval WER'], 0.1)
 
   def test_infer(self):
     train_config, infer_config = self.prepare_config()
-    train_config['num_epochs'] = 200
+    train_config['num_epochs'] = 250
     infer_config['batch_size_per_gpu'] = 4
 
     with tf.Graph().as_default() as g:
