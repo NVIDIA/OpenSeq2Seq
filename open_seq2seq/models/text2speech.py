@@ -276,8 +276,7 @@ class Text2Speech(EncoderDecoderModel):
     target_output_sample = target_output[0]
     audio_length = output_values[4][0]
 
-    predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(y_sample)
-    im_summary = plot_spectrogram_w_target(y_sample, y_sample,
+    im_summary = plot_spectrogram_w_target(y_sample, predicted_spectrogram_sample,
                      predicted_final_spectrogram_sample,
                      attention_mask_sample,
                      target_output_sample,
