@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from six.moves import range
 from six import string_types
 
+import six
 import tensorflow as tf
 import subprocess
 import numpy as np
@@ -333,7 +334,14 @@ def nest_dict(flat_dict):
 def nested_update(org_dict, upd_dict):
   for key, value in upd_dict.items():
     if isinstance(value, dict):
-      nested_update(org_dict[key], value)
+      if key in org_dict:
+        if not isinstance(org_dict[key], dict):
+          raise ValueError(
+            "Mismatch between org_dict and upd_dict at node {}".format(key)
+          )
+        nested_update(org_dict[key], value)
+      else:
+        org_dict[key] = value
     else:
       org_dict[key] = value
 
@@ -346,7 +354,10 @@ def mask_nans(x):
 
 
 def deco_print(line, offset=0, start="*** ", end='\n'):
-  print(start + " " * offset + line, end=end)
+  if six.PY2:
+    print((start + " " * offset + line).encode('utf-8'), end=end)
+  else:
+    print(start + " " * offset + line, end=end)
 
 
 def array_to_string(row, vocab, delim=' '):

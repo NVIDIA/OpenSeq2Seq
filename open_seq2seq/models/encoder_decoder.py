@@ -130,8 +130,8 @@ class EncoderDecoderModel(Model):
 
     Returns:
       tuple: tuple containing loss tensor as returned from
-      ``loss.compute_loss()`` and samples tensor, which is taken from
-      ``decoder.decode()['samples']``. When ``mode == 'infer'``, loss will
+      ``loss.compute_loss()`` and list of outputs tensors, which is taken from
+      ``decoder.decode()['outputs']``. When ``mode == 'infer'``, loss will
       be None.
     """
     if not isinstance(input_tensors, dict) or \
@@ -159,7 +159,7 @@ class EncoderDecoderModel(Model):
       if self.mode == "train":
         decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
-      decoder_samples = decoder_output.get("samples", None)
+      model_outputs = decoder_output.get("outputs", None)
 
       if self.mode == "train" or self.mode == "eval":
         with tf.variable_scope("Loss"):
@@ -171,7 +171,7 @@ class EncoderDecoderModel(Model):
       else:
         deco_print("Inference Mode. Loss part of graph isn't built.")
         loss = None
-      return loss, decoder_samples
+      return loss, model_outputs
 
   @property
   def encoder(self):

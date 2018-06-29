@@ -9,14 +9,15 @@ import copy
 import numpy as np
 import numpy.testing as npt
 
-from open_seq2seq.test_utils.test_speech_config import base_params, \
-                                                       train_params, \
-                                                       eval_params, \
-                                                       base_model
+from open_seq2seq.test_utils.test_speech_configs.ds2_test_config import base_params, \
+                                                                        train_params, \
+                                                                        eval_params, \
+                                                                        base_model
 from open_seq2seq.utils.utils import get_results_for_epoch, get_available_gpus
 
 
 class UtilsTests(tf.test.TestCase):
+
   def setUp(self):
     base_params['logdir'] = tempfile.mktemp()
     self.train_config = copy.deepcopy(base_params)
@@ -47,7 +48,8 @@ class UtilsTests(tf.test.TestCase):
 
           with self.test_session(g, use_gpu=True) as sess:
             sess.run(tf.global_variables_initializer())
-            inputs_per_batch = get_results_for_epoch(model, sess, False, "infer")
+            inputs_per_batch = get_results_for_epoch(
+                model, sess, False, "infer")
             length = np.hstack([inp['source_tensors'][1]
                                 for inp in inputs_per_batch])
             ids = np.hstack([inp['source_ids'] for inp in inputs_per_batch])

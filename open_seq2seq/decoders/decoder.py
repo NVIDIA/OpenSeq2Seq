@@ -168,7 +168,8 @@ class Decoder:
 
           {
             "logits": logits that will be passed to Loss
-            "samples": actual decoded output, e.g. characters instead of logits
+            "outputs": list with actual decoded outputs, e.g. characters
+                       instead of logits
           }
     """
     pass

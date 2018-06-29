@@ -64,7 +64,7 @@ base_params = {
     },
     "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
     "data_format": "channels_last",
-    "bn_momentum": 0.1,
+    "bn_momentum": 0.001,
   },
 
   "decoder": FullyConnectedCTCDecoder,

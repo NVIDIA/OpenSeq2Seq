@@ -278,8 +278,8 @@ class RNNDecoderWithAttention(Decoder):
     )
 
     return {'logits': final_outputs.rnn_output if not time_major else
-    tf.transpose(final_outputs.rnn_output, perm=[1, 0, 2]),
-            'samples': [tf.argmax(final_outputs.rnn_output, axis=-1)],
+            tf.transpose(final_outputs.rnn_output, perm=[1, 0, 2]),
+            'outputs': [tf.argmax(final_outputs.rnn_output, axis=-1)],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
 
@@ -438,7 +438,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
     embedding_fn = lambda ids: tf.cast(
       tf.nn.embedding_lookup(self._dec_emb_w, ids),
       dtype=self.params['dtype'])
-    #decoder = tf.contrib.seq2seq.BeamSearchDecoder(
+    # decoder = tf.contrib.seq2seq.BeamSearchDecoder(
     decoder = BeamSearchDecoder(
       cell=attentive_decoder_cell,
       embedding=embedding_fn,
@@ -464,7 +464,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
     )
 
     return {'logits': final_outputs.predicted_ids[:, :, 0] if not time_major else
-      tf.transpose(final_outputs.predicted_ids[:, :, 0], perm=[1, 0, 2]),
-            'samples': [final_outputs.predicted_ids[:, :, 0]],
+            tf.transpose(final_outputs.predicted_ids[:, :, 0], perm=[1, 0, 2]),
+            'outputs': [final_outputs.predicted_ids[:, :, 0]],
             'final_state': final_state,
             'final_sequence_lengths': final_sequence_lengths}
