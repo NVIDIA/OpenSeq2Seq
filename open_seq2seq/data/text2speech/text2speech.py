@@ -7,6 +7,7 @@ from six.moves import range
 import string
 import os
 import six
+import librosa
 import numpy as np
 import tensorflow as tf
 import pandas as pd
