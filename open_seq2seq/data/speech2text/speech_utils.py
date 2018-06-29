@@ -156,7 +156,8 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
-  assert features.shape[0] % pad_to == 0
+  if pad_to > 0:
+    assert features.shape[0] % pad_to == 0
   m = np.mean(features)
   s = np.std(features)
   features = (features - m) / s
