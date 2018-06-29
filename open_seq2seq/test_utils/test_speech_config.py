@@ -13,7 +13,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 111,
+  "num_epochs": 150,
 
   "num_gpus": 1,
   "batch_size_per_gpu": 10,
@@ -32,7 +32,6 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 0.001,
     "power": 2,
-    "decay_steps": 500,
   },
   "larc_params": {
     "larc_eta": 0.001,
@@ -71,7 +70,7 @@ base_params = {
     },
     "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
     "data_format": "channels_first",
-    "bn_momentum": 0.1,
+    "bn_momentum": 0.001,
   },
 
   "decoder": FullyConnectedCTCDecoder,
