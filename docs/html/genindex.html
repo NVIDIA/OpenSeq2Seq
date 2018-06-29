@@ -202,6 +202,8 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.__init__">(decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.__init__">(encoders.cnn_encoder.CNNEncoder method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.__init__">(encoders.ds2_encoder.DeepSpeech2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.__init__">(encoders.encoder.Encoder method)</a>
@@ -210,7 +212,11 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.__init__">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.__init__">(losses.ctc_loss.CTCLoss method)</a>
 </li>
@@ -224,7 +230,11 @@
 </li>
         <li><a href="api-docs/models.html#models.model.Model.__init__">(models.model.Model method)</a>
 </li>
-        <li><a href="api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.__init__">(optimizers.optimizers.DistributedOptimizer method)</a>
+        <li><a href="api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__">(parts.convs2s.attention_wn_layer.AttentionLayerNormalized method)</a>
+</li>
+        <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.__init__">(parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized method)</a>
+</li>
+        <li><a href="api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__">(parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized method)</a>
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.__init__">(parts.rnns.attention_wrapper.AttentionWrapper method)</a>
 </li>
@@ -249,10 +259,6 @@
         <li><a href="api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.__init__">(utils.hooks.BroadcastGlobalVariablesHook method)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers._adaptive_max_norm">_adaptive_max_norm() (in module optimizers.optimizers)</a>
-</li>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers._add_scaled_noise_to_gradients">_add_scaled_noise_to_gradients() (in module optimizers.optimizers)</a>
-</li>
       <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._aspect_preserving_resize">_aspect_preserving_resize() (in module data.image2label.imagenet_preprocessing)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t._batch_examples">_batch_examples() (in module data.text2text.t2t)</a>
@@ -328,6 +334,8 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder._encode">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._escape_token">_escape_token() (in module data.text2text.tokenizer)</a>
 </li>
@@ -359,6 +367,18 @@
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._get_new_finished_state">_get_new_finished_state() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
+      <li><a href="api-docs/models.html#models.image2label.Image2Label._get_num_objects_per_step">_get_num_objects_per_step() (models.image2label.Image2Label method)</a>
+
+      <ul>
+        <li><a href="api-docs/models.html#models.model.Model._get_num_objects_per_step">(models.model.Model method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.speech2text.Speech2Text._get_num_objects_per_step">(models.speech2text.Speech2Text method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2text.Text2Text._get_num_objects_per_step">(models.text2text.Text2Text method)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder._get_symbols_to_logits_fn">_get_symbols_to_logits_fn() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+</li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._grow_alive_seq">_grow_alive_seq() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper._item_or_tuple">_item_or_tuple() (parts.rnns.attention_wrapper.AttentionWrapper method)</a>
@@ -379,13 +399,9 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder._maybe_split_batch_beams">_maybe_split_batch_beams() (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder method)</a>
 </li>
-      <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._mean_image_subtraction">_mean_image_subtraction() (in module data.image2label.imagenet_preprocessing)</a>
+      <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._mean_image_subtraction_and_normalization">_mean_image_subtraction_and_normalization() (in module data.image2label.imagenet_preprocessing)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder._merge_batch_beams">_merge_batch_beams() (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder method)</a>
-</li>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers._multiply_gradients">_multiply_gradients() (in module optimizers.optimizers)</a>
-</li>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers._multiply_gradients_const">_multiply_gradients_const() (in module optimizers.optimizers)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._native_to_unicode">_native_to_unicode() (in module data.text2text.tokenizer)</a>
 </li>
@@ -433,8 +449,6 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers.adaptive_clipping_fn">adaptive_clipping_fn() (in module optimizers.optimizers)</a>
-</li>
       <li><a href="api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.after_create_session">after_create_session() (utils.hooks.BroadcastGlobalVariablesHook method)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.hooks.PrintLossAndTimeHook.after_run">after_run() (utils.hooks.PrintLossAndTimeHook method)</a>
@@ -456,14 +470,12 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">apply_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
-
-      <ul>
-        <li><a href="api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.apply_gradients">(optimizers.optimizers.DistributedOptimizer method)</a>
 </li>
-      </ul></li>
       <li><a href="api-docs/utils.html#utils.utils.array_to_string">array_to_string() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.Attention">Attention (class in parts.transformer.attention_layer)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized">AttentionLayerNormalized (class in parts.convs2s.attention_wn_layer)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionMechanism">AttentionMechanism (class in parts.rnns.attention_wrapper)</a>
 </li>
@@ -500,8 +512,6 @@
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput">BeamSearchDecoderOutput (class in parts.rnns.rnn_beam_search_decoder)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState">BeamSearchDecoderState (class in parts.rnns.rnn_beam_search_decoder)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests">BeamSearchHelperTests (class in parts.transformer.beam_search_test)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention">BeamSearchRNNDecoderWithAttention (class in decoders.rnn_decoders)</a>
 </li>
@@ -544,6 +554,8 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.build_graph">build_graph() (data.data_layer.DataLayer method)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.build_graph">(data.image2label.image2label.CifarDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.build_graph">(data.image2label.image2label.ImagenetDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.build_graph">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
@@ -553,6 +565,8 @@
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.build_graph">(data.text2text.text2text.TransformerDataLayer method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/encoders.html#encoders.cnn_encoder.build_layer">build_layer() (in module encoders.cnn_encoder)</a>
+</li>
       <li><a href="api-docs/encoders.html#encoders.resnet_blocks.building_block_v1">building_block_v1() (in module encoders.resnet_blocks)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.resnet_blocks.building_block_v2">building_block_v2() (in module encoders.resnet_blocks)</a>
@@ -565,9 +579,15 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.text2text.calculate_bleu">calculate_bleu() (in module models.text2text)</a>
 </li>
-      <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.call">call() (parts.rnns.attention_wrapper.AttentionWrapper method)</a>
+      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.call">call() (parts.convs2s.attention_wn_layer.AttentionLayerNormalized method)</a>
 
       <ul>
+        <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.call">(parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized method)</a>
+</li>
+        <li><a href="api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.call">(parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized method)</a>
+</li>
+        <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.call">(parts.rnns.attention_wrapper.AttentionWrapper method)</a>
+</li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.flstm.FLSTMCell.call">(parts.rnns.flstm.FLSTMCell method)</a>
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.glstm.GLSTMCell.call">(parts.rnns.glstm.GLSTMCell method)</a>
@@ -591,6 +611,8 @@
 </li>
       <li><a href="api-docs/utils.html#utils.utils.check_params">check_params() (in module utils.utils)</a>
 </li>
+      <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer">CifarDataLayer (class in data.image2label.image2label)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.clip_last_batch">clip_last_batch() (in module utils.utils)</a>
 
       <ul>
@@ -603,23 +625,29 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapperState.clone">clone() (parts.rnns.attention_wrapper.AttentionWrapperState method)</a>
 </li>
+      <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder">CNNEncoder (class in encoders.cnn_encoder)</a>
+</li>
+      <li><a href="api-docs/utils.html#utils.utils.collect_if_horovod">collect_if_horovod() (in module utils.utils)</a>
+</li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.Attention.combine_heads">combine_heads() (parts.transformer.attention_layer.Attention method)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model.compile">compile() (models.model.Model method)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">compute_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
-
-      <ul>
-        <li><a href="api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer.compute_gradients">(optimizers.optimizers.DistributedOptimizer method)</a>
 </li>
-      </ul></li>
       <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">compute_loss() (losses.loss.Loss method)</a>
 </li>
-      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">conv2d_bn_actv() (in module encoders.ds2_encoder)</a>
+      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized">Conv1DNetworkNormalized (class in parts.convs2s.conv_wn_layer)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.resnet_blocks.conv2d_fixed_padding">conv2d_fixed_padding() (in module encoders.resnet_blocks)</a>
 </li>
-      <li><a href="api-docs/parts.rnns.html#parts.rnns.utils.create_rnn_cell">create_rnn_cell() (in module parts.rnns.utils)</a>
+      <li><a href="api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_actv">conv_actv() (in module parts.cnns.conv_blocks)</a>
+</li>
+      <li><a href="api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_bn_actv">conv_bn_actv() (in module parts.cnns.conv_blocks)</a>
+</li>
+      <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder">ConvS2SDecoder (class in decoders.convs2s_decoder)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder">ConvS2SEncoder (class in encoders.convs2s_encoder)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.cross_entropy_loss.CrossEntropyLoss">CrossEntropyLoss (class in losses.cross_entropy_loss)</a>
 </li>
@@ -673,11 +701,15 @@
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.decode">(decoders.decoder.Decoder method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.decode_pass">decode_pass() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+</li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder">Decoder (class in decoders.decoder)</a>
 </li>
       <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.decoder">decoder (models.encoder_decoder.EncoderDecoderModel attribute)</a>
 </li>
       <li><a href="api-docs/decoders.html#module-decoders">decoders (module)</a>
+</li>
+      <li><a href="api-docs/decoders.html#module-decoders.convs2s_decoder">decoders.convs2s_decoder (module)</a>
 </li>
       <li><a href="api-docs/decoders.html#module-decoders.decoder">decoders.decoder (module)</a>
 </li>
@@ -688,8 +720,6 @@
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder">DeepSpeech2Encoder (class in encoders.ds2_encoder)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.ctc_loss.dense_to_sparse">dense_to_sparse() (in module losses.ctc_loss)</a>
-</li>
-      <li><a href="api-docs/optimizers.html#optimizers.optimizers.DistributedOptimizer">DistributedOptimizer (class in optimizers.optimizers)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -703,6 +733,8 @@
 
       <ul>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.enc_emb_w">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding attribute)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.enc_emb_w">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN attribute)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.enc_emb_w">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding attribute)</a>
 </li>
@@ -721,17 +753,23 @@
 </li>
       <li><a href="api-docs/encoders.html#module-encoders">encoders (module)</a>
 </li>
-      <li><a href="api-docs/encoders.html#module-encoders.ds2_encoder">encoders.ds2_encoder (module)</a>
+      <li><a href="api-docs/encoders.html#module-encoders.cnn_encoder">encoders.cnn_encoder (module)</a>
 </li>
-      <li><a href="api-docs/encoders.html#module-encoders.encoder">encoders.encoder (module)</a>
+      <li><a href="api-docs/encoders.html#module-encoders.convs2s_encoder">encoders.convs2s_encoder (module)</a>
+</li>
+      <li><a href="api-docs/encoders.html#module-encoders.ds2_encoder">encoders.ds2_encoder (module)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/encoders.html#module-encoders.encoder">encoders.encoder (module)</a>
+</li>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_blocks">encoders.resnet_blocks (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_encoder">encoders.resnet_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.rnn_encoders">encoders.rnn_encoders (module)</a>
+</li>
+      <li><a href="api-docs/encoders.html#module-encoders.w2l_encoder">encoders.w2l_encoder (module)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.END_OF_CHOICE">END_OF_CHOICE (data.text2text.text2text.SpecialTextTokens attribute)</a>
 </li>
@@ -760,6 +798,8 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.ffn_layer.FeedFowardNetwork">FeedFowardNetwork (class in parts.transformer.ffn_layer)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized">FeedFowardNetworkNormalized (class in parts.convs2s.ffn_wn_layer)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.FinalBeamSearchDecoderOutput">FinalBeamSearchDecoderOutput (class in parts.rnns.rnn_beam_search_decoder)</a>
 </li>
@@ -813,6 +853,8 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.gated_linear_units">gated_linear_units() (parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized method)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.get_available_gpus">get_available_gpus() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model.get_data_layer">get_data_layer() (models.model.Model method)</a>
@@ -823,19 +865,13 @@
 </li>
       <li><a href="api-docs/utils.html#utils.utils.get_git_hash">get_git_hash() (in module utils.utils)</a>
 </li>
-      <li><a href="api-docs/models.html#models.image2label.Image2Label.get_num_objects_per_step">get_num_objects_per_step() (models.image2label.Image2Label method)</a>
-
-      <ul>
-        <li><a href="api-docs/models.html#models.model.Model.get_num_objects_per_step">(models.model.Model method)</a>
+      <li><a href="api-docs/models.html#models.model.Model.get_num_objects_per_step">get_num_objects_per_step() (models.model.Model method)</a>
 </li>
-        <li><a href="api-docs/models.html#models.speech2text.Speech2Text.get_num_objects_per_step">(models.speech2text.Speech2Text method)</a>
-</li>
-        <li><a href="api-docs/models.html#models.text2text.Text2Text.get_num_objects_per_step">(models.text2text.Text2Text method)</a>
-</li>
-      </ul></li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_optional_params">get_optional_params() (data.data_layer.DataLayer static method)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_optional_params">(data.image2label.image2label.CifarDataLayer static method)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_optional_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_optional_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
@@ -843,6 +879,8 @@
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_optional_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.get_optional_params">(data.text2text.text2text.TransformerDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.get_optional_params">(decoders.convs2s_decoder.ConvS2SDecoder static method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.get_optional_params">(decoders.decoder.Decoder static method)</a>
 </li>
@@ -854,6 +892,10 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">(decoders.rnn_decoders.RNNDecoderWithAttention static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_optional_params">(encoders.cnn_encoder.CNNEncoder static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.get_optional_params">(encoders.convs2s_encoder.ConvS2SEncoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">(encoders.ds2_encoder.DeepSpeech2Encoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.get_optional_params">(encoders.encoder.Encoder static method)</a>
@@ -864,7 +906,11 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_optional_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">(losses.ctc_loss.CTCLoss static method)</a>
 </li>
@@ -887,15 +933,17 @@
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.utils.get_padding_bias">get_padding_bias() (in module parts.transformer.utils)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.utils.get_position_encoding">get_position_encoding() (in module parts.transformer.utils)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers.get_regularization_loss">get_regularization_loss() (in module optimizers.optimizers)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_required_params">get_required_params() (data.data_layer.DataLayer static method)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_required_params">(data.image2label.image2label.CifarDataLayer static method)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_required_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_required_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
@@ -903,6 +951,8 @@
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_required_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.get_required_params">(data.text2text.text2text.TransformerDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.get_required_params">(decoders.convs2s_decoder.ConvS2SDecoder static method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.get_required_params">(decoders.decoder.Decoder static method)</a>
 </li>
@@ -914,6 +964,10 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params">(decoders.rnn_decoders.RNNDecoderWithAttention static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_required_params">(encoders.cnn_encoder.CNNEncoder static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.get_required_params">(encoders.convs2s_encoder.ConvS2SEncoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">(encoders.ds2_encoder.DeepSpeech2Encoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.get_required_params">(encoders.encoder.Encoder static method)</a>
@@ -924,7 +978,11 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.loss.Loss.get_required_params">(losses.loss.Loss static method)</a>
 </li>
@@ -942,6 +1000,8 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">get_size_in_samples() (data.data_layer.DataLayer method)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_size_in_samples">(data.image2label.image2label.CifarDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_size_in_samples">(data.image2label.image2label.ImagenetDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
@@ -962,6 +1022,8 @@
       <li><a href="api-docs/parts.rnns.html#parts.rnns.gnmt.GNMTAttentionMultiCell">GNMTAttentionMultiCell (class in parts.rnns.gnmt)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding">GNMTLikeEncoderWithEmbedding (class in encoders.rnn_encoders)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN">GNMTLikeEncoderWithEmbedding_cuDNN (class in encoders.rnn_encoders)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1002,6 +1064,8 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.input_tensors">input_tensors (data.data_layer.DataLayer attribute)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.input_tensors">(data.image2label.image2label.CifarDataLayer attribute)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.input_tensors">(data.image2label.image2label.ImagenetDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.input_tensors">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
@@ -1013,11 +1077,13 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/utils.html#utils.utils.iterate_data_layer">iterate_data_layer() (in module utils.utils)</a>
+      <li><a href="api-docs/utils.html#utils.utils.iterate_data">iterate_data() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.iterator">iterator (data.data_layer.DataLayer attribute)</a>
 
       <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.iterator">(data.image2label.image2label.CifarDataLayer attribute)</a>
+</li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.iterator">(data.image2label.image2label.ImagenetDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.iterator">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
@@ -1145,6 +1211,8 @@
 </li>
       <li><a href="api-docs/utils.html#utils.utils.nested_update">nested_update() (in module utils.utils)</a>
 </li>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.normalize_signal">normalize_signal() (in module data.speech2text.speech_utils)</a>
+</li>
       <li><a href="api-docs/models.html#models.model.Model.num_gpus">num_gpus (models.model.Model attribute)</a>
 </li>
   </ul></td>
@@ -1211,9 +1279,25 @@
         <li><a href="api-docs/models.html#models.model.Model.params">(models.model.Model attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing.parse_record">parse_record() (in module data.image2label.imagenet_preprocessing)</a>
+      <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.parse_record">parse_record() (data.image2label.image2label.CifarDataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing.parse_record">(in module data.image2label.imagenet_preprocessing)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/parts.html#module-parts">parts (module)</a>
+</li>
+      <li><a href="api-docs/parts.cnns.html#module-parts.cnns">parts.cnns (module)</a>
+</li>
+      <li><a href="api-docs/parts.cnns.html#module-parts.cnns.conv_blocks">parts.cnns.conv_blocks (module)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#module-parts.convs2s">parts.convs2s (module)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#module-parts.convs2s.attention_wn_layer">parts.convs2s.attention_wn_layer (module)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#module-parts.convs2s.conv_wn_layer">parts.convs2s.conv_wn_layer (module)</a>
+</li>
+      <li><a href="api-docs/parts.convs2s.html#module-parts.convs2s.ffn_wn_layer">parts.convs2s.ffn_wn_layer (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns">parts.rnns (module)</a>
 </li>
@@ -1221,12 +1305,12 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.flstm">parts.rnns.flstm (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.glstm">parts.rnns.glstm (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.gnmt">parts.rnns.gnmt (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.rnn_beam_search_decoder">parts.rnns.rnn_beam_search_decoder (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.slstm">parts.rnns.slstm (module)</a>
@@ -1238,8 +1322,6 @@
       <li><a href="api-docs/parts.transformer.html#module-parts.transformer.attention_layer">parts.transformer.attention_layer (module)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#module-parts.transformer.beam_search">parts.transformer.beam_search (module)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#module-parts.transformer.beam_search_test">parts.transformer.beam_search_test (module)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#module-parts.transformer.common">parts.transformer.common (module)</a>
 </li>
@@ -1253,10 +1335,18 @@
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.lr_policies.poly_decay">poly_decay() (in module optimizers.lr_policies)</a>
 </li>
+      <li><a href="api-docs/optimizers.html#optimizers.optimizers.post_process_gradients">post_process_gradients() (in module optimizers.optimizers)</a>
+</li>
+      <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.predict">predict() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+</li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.common.PrePostProcessingWrapper">PrePostProcessingWrapper (class in parts.transformer.common)</a>
 </li>
-      <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing.preprocess_image">preprocess_image() (in module data.image2label.imagenet_preprocessing)</a>
+      <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.preprocess_image">preprocess_image() (data.image2label.image2label.CifarDataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing.preprocess_image">(in module data.image2label.imagenet_preprocessing)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/utils.html#utils.hooks.PrintLossAndTimeHook">PrintLossAndTimeHook (class in utils.hooks)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.hooks.PrintSamplesHook">PrintSamplesHook (class in utils.hooks)</a>
@@ -1267,14 +1357,16 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/optimizers.html#optimizers.optimizers.reduce_gradients">reduce_gradients() (in module optimizers.optimizers)</a>
+</li>
       <li><a href="api-docs/encoders.html#encoders.resnet_encoder.ResNetEncoder">ResNetEncoder (class in encoders.resnet_encoder)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.funcs.restore_and_get_results">restore_and_get_results() (in module utils.funcs)</a>
 </li>
-      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.rnn_cell">rnn_cell() (in module encoders.ds2_encoder)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/encoders.html#encoders.ds2_encoder.rnn_cell">rnn_cell() (in module encoders.ds2_encoder)</a>
+</li>
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention">RNNDecoderWithAttention (class in decoders.rnn_decoders)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.row_conv">row_conv() (in module encoders.ds2_encoder)</a>
@@ -1299,6 +1391,8 @@
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch">SequenceBeamSearch (class in parts.transformer.beam_search)</a>
 </li>
+      <li><a href="api-docs/parts.rnns.html#parts.rnns.utils.single_cell">single_cell() (in module parts.rnns.utils)</a>
+</li>
       <li><a href="api-docs/models.html#models.speech2text.sparse_tensor_to_chars">sparse_tensor_to_chars() (in module models.speech2text)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens">SpecialTextTokens (class in data.text2text.text2text)</a>
@@ -1315,20 +1409,28 @@
       </ul></li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.Attention.split_heads">split_heads() (parts.transformer.attention_layer.Attention method)</a>
 </li>
-      <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_emb_size">src_emb_size (encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding attribute)</a>
+      <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.src_emb_size">src_emb_size (encoders.convs2s_encoder.ConvS2SEncoder attribute)</a>
 
       <ul>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_emb_size">(encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding attribute)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.src_emb_size">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding attribute)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_emb_size">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN attribute)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.src_emb_size">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding attribute)</a>
 </li>
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_vocab_size">src_vocab_size (encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding attribute)</a>
+      <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.src_vocab_size">src_vocab_size (encoders.convs2s_encoder.ConvS2SEncoder attribute)</a>
 
       <ul>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_vocab_size">(encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding attribute)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.src_vocab_size">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding attribute)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_vocab_size">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN attribute)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.src_vocab_size">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding attribute)</a>
 </li>
@@ -1359,30 +1461,16 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_expand_to_beam_size">test_expand_to_beam_size() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_flatten_beam_dim">test_flatten_beam_dim() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_beams">test_gather_beams() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_topk_beams">test_gather_topk_beams() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_get_shape_keep_last_dim">test_get_shape_keep_last_dim() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_shape_list">test_shape_list() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
-      <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search_test.BeamSearchHelperTests.test_unflatten_beam_dim">test_unflatten_beam_dim() (parts.transformer.beam_search_test.BeamSearchHelperTests method)</a>
-</li>
       <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.text_ids_to_string">text_ids_to_string() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.tile_batch">tile_batch() (in module parts.rnns.rnn_beam_search_decoder)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.tracks_own_finished">tracks_own_finished (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.funcs.train">train() (in module utils.funcs)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t.train_input_fn">train_input_fn() (in module data.text2text.t2t)</a>
@@ -1426,6 +1514,10 @@
 
 <h2 id="W">W</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder">Wave2LetterEncoder (class in encoders.w2l_encoder)</a>
+</li>
+  </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.Logger.write">write() (utils.utils.Logger method)</a>
 </li>

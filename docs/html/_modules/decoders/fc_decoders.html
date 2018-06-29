@@ -209,7 +209,7 @@
 
 <span class="sd">        {</span>
 <span class="sd">          &#39;logits&#39;: logits with the shape=[batch_size, output_dim]</span>
-<span class="sd">          &#39;samples&#39;: [logits] (same as logits but wrapped in list)</span>
+<span class="sd">          &#39;outputs&#39;: [logits] (same as logits but wrapped in list)</span>
 <span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
@@ -222,7 +222,7 @@
       <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
       <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fully_connected&#39;</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span> <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">logits</span><span class="p">]}</span></div></div>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span> <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">logits</span><span class="p">]}</span></div></div>
 
 
 <div class="viewcode-block" id="FullyConnectedTimeDecoder"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder">[docs]</a><span class="k">class</span> <span class="nc">FullyConnectedTimeDecoder</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
@@ -252,7 +252,7 @@
 <span class="sd">    * **tgt_vocab_size** (int) --- target vocabulary size, i.e. number of</span>
 <span class="sd">      output features.</span>
 <span class="sd">    * **logits_to_outputs_func** --- function that maps produced logits to</span>
-<span class="sd">      decoder samples, i.e. actual text sequences.</span>
+<span class="sd">      decoder outputs, i.e. actual text sequences.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
 
@@ -274,7 +274,7 @@
 
 <span class="sd">        {</span>
 <span class="sd">          &#39;logits&#39;: logits with the shape=[time length, batch_size, tgt_vocab_size]</span>
-<span class="sd">          &#39;samples&#39;: logits_to_outputs_func(logits, input_dict)</span>
+<span class="sd">          &#39;outputs&#39;: logits_to_outputs_func(logits, input_dict)</span>
 <span class="sd">        }</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
@@ -301,9 +301,9 @@
     <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
     <span class="k">if</span> <span class="s1">&#39;logits_to_outputs_func&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
-      <span class="n">samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">](</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">](</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
       <span class="k">return</span> <span class="p">{</span>
-        <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="n">samples</span><span class="p">,</span>
+        <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
         <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span>
         <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">],</span>
       <span class="p">}</span>

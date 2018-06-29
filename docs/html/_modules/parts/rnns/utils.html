@@ -166,137 +166,32 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 
-<div class="viewcode-block" id="create_rnn_cell"><a class="viewcode-back" href="../../../api-docs/parts.rnns.html#parts.rnns.utils.create_rnn_cell">[docs]</a><span class="k">def</span> <span class="nf">create_rnn_cell</span><span class="p">(</span><span class="n">cell_type</span><span class="p">,</span>
-                    <span class="n">cell_params</span><span class="p">,</span>
-                    <span class="n">num_layers</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
-                    <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                    <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                    <span class="n">residual_connections</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                    <span class="n">wrap_to_multi_rnn</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  TODO: MOVE THIS properly to utils. Write doc</span>
-<span class="sd">  :param cell_type:</span>
-<span class="sd">  :param cell_params:</span>
-<span class="sd">  :param num_layers:</span>
-<span class="sd">  :param dp_input_keep_prob:</span>
-<span class="sd">  :param dp_output_keep_prob:</span>
-<span class="sd">  :param residual_connections:</span>
-<span class="sd">  :return:</span>
-<span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">def</span> <span class="nf">single_cell</span><span class="p">(</span><span class="n">cell_params</span><span class="p">):</span>
-    <span class="c1"># TODO: This method is ugly - redo</span>
-    <span class="n">size</span> <span class="o">=</span> <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">]</span>
-    <span class="n">proj_size</span> <span class="o">=</span> <span class="kc">None</span> <span class="k">if</span> <span class="s2">&quot;proj_size&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">cell_params</span> <span class="k">else</span> <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;proj_size&quot;</span><span class="p">]</span>
+<div class="viewcode-block" id="single_cell"><a class="viewcode-back" href="../../../api-docs/parts.rnns.html#parts.rnns.utils.single_cell">[docs]</a><span class="k">def</span> <span class="nf">single_cell</span><span class="p">(</span><span class="n">cell_class</span><span class="p">,</span>
+                 <span class="n">cell_params</span><span class="p">,</span>
+                 <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                 <span class="n">residual_connections</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Creates an instance of the rnn cell.</span>
+<span class="sd">     Such cell describes one step one layer and can include residual connection</span>
+<span class="sd">     and/or dropout</span>
 
-    <span class="k">if</span> <span class="n">cell_type</span> <span class="o">==</span> <span class="s2">&quot;lstm&quot;</span><span class="p">:</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">residual_connections</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                                         <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                                         <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                                                        <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                                                        <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
-                                <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-                                <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>  <span class="c1"># residual connection required</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                                                         <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                                                         <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">DropoutWrapper</span><span class="p">(</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">LSTMCell</span><span class="p">(</span>
-              <span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-              <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-              <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-            <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-          <span class="p">))</span>
-    <span class="k">elif</span> <span class="n">cell_type</span> <span class="o">==</span> <span class="s2">&quot;gru&quot;</span><span class="p">:</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">residual_connections</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">DropoutWrapper</span><span class="p">(</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">),</span>
-            <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-            <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-          <span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>  <span class="c1"># residual connection required</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">DropoutWrapper</span><span class="p">(</span>
-            <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">),</span>
-            <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-            <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">),</span>
-          <span class="p">)</span>
-    <span class="k">elif</span> <span class="n">cell_type</span> <span class="o">==</span> <span class="s2">&quot;glstm&quot;</span><span class="p">:</span>
-      <span class="n">num_groups</span> <span class="o">=</span> <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_groups&quot;</span><span class="p">]</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">residual_connections</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">GLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                           <span class="n">number_of_groups</span><span class="o">=</span><span class="n">num_groups</span><span class="p">,</span>
-                           <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                           <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">GLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                                          <span class="n">number_of_groups</span><span class="o">=</span><span class="n">num_groups</span><span class="p">,</span>
-                                          <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                                          <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">),</span>
-                                <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-                                <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>  <span class="c1"># residual connection required</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">GLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-                                           <span class="n">number_of_groups</span><span class="o">=</span><span class="n">num_groups</span><span class="p">,</span>
-                                           <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-                                           <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">DropoutWrapper</span><span class="p">(</span>
-            <span class="n">GLSTMCell</span><span class="p">(</span>
-              <span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">,</span>
-              <span class="n">number_of_groups</span><span class="o">=</span><span class="n">num_groups</span><span class="p">,</span>
-              <span class="n">num_proj</span><span class="o">=</span><span class="n">proj_size</span><span class="p">,</span>
-              <span class="n">forget_bias</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-            <span class="p">),</span>
-            <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-            <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-          <span class="p">))</span>
-    <span class="k">elif</span> <span class="n">cell_type</span> <span class="o">==</span> <span class="s2">&quot;slstm&quot;</span><span class="p">:</span>
-      <span class="k">if</span> <span class="ow">not</span> <span class="n">residual_connections</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">BasicSLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">BasicSLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">),</span>
-                                <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-                                <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span>
-                                <span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>  <span class="c1"># residual connection required</span>
-        <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span> <span class="ow">and</span> <span class="n">dp_output_keep_prob</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">BasicSLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">))</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="k">return</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">DropoutWrapper</span><span class="p">(</span>
-            <span class="n">BasicSLSTMCell</span><span class="p">(</span><span class="n">num_units</span><span class="o">=</span><span class="n">size</span><span class="p">),</span>
-            <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-            <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-          <span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown RNN cell class: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cell_type</span><span class="p">))</span>
+<span class="sd">     Args:</span>
+<span class="sd">       cell_class: Tensorflow RNN cell class</span>
+<span class="sd">       cell_params (dict): cell parameters</span>
+<span class="sd">       dp_input_keep_prob (float): (default: 1.0) input dropout keep probability</span>
+<span class="sd">       dp_output_keep_prob (float): (default: 1.0) output dropout keep probability</span>
+<span class="sd">       residual_connections (bool): whether to add residual connection</span>
 
-  <span class="k">if</span> <span class="n">num_layers</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">wrap_to_multi_rnn</span><span class="p">:</span>
-      <span class="k">return</span> <span class="n">MultiRNNCell</span><span class="p">([</span><span class="n">single_cell</span><span class="p">(</span><span class="n">cell_params</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">)])</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">cells</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># for GNMT-like attention in decoder</span>
-      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
-        <span class="n">cells</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">single_cell</span><span class="p">(</span><span class="n">cell_params</span><span class="p">))</span>
-      <span class="k">return</span> <span class="n">cells</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">single_cell</span><span class="p">(</span><span class="n">cell_params</span><span class="p">)</span></div>
+<span class="sd">     Returns:</span>
+<span class="sd">       TF RNN instance</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+  <span class="n">cell</span> <span class="o">=</span> <span class="n">cell_class</span><span class="p">(</span><span class="o">**</span><span class="n">cell_params</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">residual_connections</span><span class="p">:</span>
+    <span class="n">cell</span> <span class="o">=</span> <span class="n">ResidualWrapper</span><span class="p">(</span><span class="n">cell</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">dp_input_keep_prob</span> <span class="o">!=</span> <span class="mf">1.0</span> <span class="ow">or</span> <span class="n">dp_output_keep_prob</span> <span class="o">!=</span> <span class="mf">1.0</span><span class="p">:</span>
+    <span class="n">cell</span> <span class="o">=</span> <span class="n">DropoutWrapper</span><span class="p">(</span><span class="n">cell</span><span class="p">,</span> <span class="n">input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
+                          <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">cell</span></div>
 </pre></div>
 
            </div>

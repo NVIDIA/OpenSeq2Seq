@@ -304,6 +304,11 @@ training. Setting it to None disables loss printing.</li>
 <li><strong>print_samples_steps</strong> (int or None) — how often to print training
 samples (input sequences, correct answers and model predictions).
 Setting it to None disables samples printing.</li>
+<li><strong>print_bench_info_steps</strong> (int or None) — how often to print training
+benchmarking information (average number of objects processed per step).
+Setting it to None disables intermediate benchmarking printing, but
+the average information across the whole training will always be printed
+after the last iteration.</li>
 <li><strong>save_checkpoint_steps</strong> (int or None) — how often to save model
 checkpoints. Setting it to None disables checkpoint saving.</li>
 <li><strong>eval_steps</strong> (int) — how often to run evaluation during training.
@@ -339,14 +344,17 @@ parameters.</li>
 <li><strong>max_grad_norm</strong> (float) — maximum value of gradient norm. Clipping
 will be performed if some gradients exceed this value (this is checked
 for each variable independently).</li>
-<li><strong>loss_scale</strong> (float) — static loss scale to use. For details see
-<a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>automatic_loss_scaling</strong> — automatic loss scaling mode. Could be
-either None, “Backoff” or “Logmax”. For details see
-<a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
+<li><strong>loss_scaling</strong> — could be float or string. If float, static loss
+scaling is applied. If string, the corresponding automatic
+loss scaling algorithm is used. Must be one of ‘Backoff’
+of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
+see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
 <li><strong>summaries</strong> (list) — which summaries to log. Could contain
 “learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
 “variables”, “variable_norm”.</li>
+<li><strong>iter_size</strong> (int) — use this parameter to emulate large batches.
+The gradients will be accumulated for <code class="docutils literal notranslate"><span class="pre">iter_size</span></code> number of steps before
+applying update.</li>
 <li><strong>larc_params</strong> — dictionary with parameters for LARC (or LARS)
 optimization algorithms. Can contain the following parameters:<ul>
 <li><strong>larc_mode</strong> — Could be either “scale” (LARS) or “clip” (LARC).
