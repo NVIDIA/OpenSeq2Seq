@@ -200,63 +200,64 @@ class Text2Speech(EncoderDecoderModel):
     )
     return super(Text2Speech, self)._create_decoder()
 
-  def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-    """TensorFlow graph for sequence-to-sequence model is created here.
-    This function connects encoder, decoder and loss together. As an input for
-    encoder it will specify source sequence and source length (as returned from
-    the data layer). As an input for decoder it will specify target sequence
-    and target length as well as all output returned from encoder. For loss it
-    will also specify target sequence and length and all output returned from
-    decoder. Note that loss will only be built for mode == "train" or "eval".
+  # def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
+  #   """TensorFlow graph for sequence-to-sequence model is created here.
+  #   This function connects encoder, decoder and loss together. As an input for
+  #   encoder it will specify source sequence and source length (as returned from
+  #   the data layer). As an input for decoder it will specify target sequence
+  #   and target length as well as all output returned from encoder. For loss it
+  #   will also specify target sequence and length and all output returned from
+  #   decoder. Note that loss will only be built for mode == "train" or "eval".
 
-    See :meth:`models.model.Model._build_forward_pass_graph` for description of
-    arguments and return values.
-    """
-    if not isinstance(input_tensors, dict) or \
-       'source_tensors' not in input_tensors:
-      raise ValueError('Input tensors should be a dict containing '
-                       '"source_tensors" key')
+  #   See :meth:`models.model.Model._build_forward_pass_graph` for description of
+  #   arguments and return values.
+  #   """
+  #   if not isinstance(input_tensors, dict) or \
+  #      'source_tensors' not in input_tensors:
+  #     raise ValueError('Input tensors should be a dict containing '
+  #                      '"source_tensors" key')
 
-    if not isinstance(input_tensors['source_tensors'], list):
-      raise ValueError('source_tensors should be a list')
+  #   if not isinstance(input_tensors['source_tensors'], list):
+  #     raise ValueError('source_tensors should be a list')
 
-    source_tensors = input_tensors['source_tensors']
-    if self.mode == "train" or self.mode == "eval":
-      if 'target_tensors' not in input_tensors:
-        raise ValueError('Input tensors should contain "target_tensors" key'
-                         'when mode != "infer"')
-      if not isinstance(input_tensors['target_tensors'], list):
-        raise ValueError('target_tensors should be a list')
-      target_tensors = input_tensors['target_tensors']
+  #   source_tensors = input_tensors['source_tensors']
+  #   if self.mode == "train" or self.mode == "eval":
+  #     if 'target_tensors' not in input_tensors:
+  #       raise ValueError('Input tensors should contain "target_tensors" key'
+  #                        'when mode != "infer"')
+  #     if not isinstance(input_tensors['target_tensors'], list):
+  #       raise ValueError('target_tensors should be a list')
+  #     target_tensors = input_tensors['target_tensors']
 
-    with tf.variable_scope("ForwardPass"):
-      encoder_input = {"source_tensors": source_tensors}
-      encoder_output = self.encoder.encode(input_dict=encoder_input)
+  #   with tf.variable_scope("ForwardPass"):
+  #     encoder_input = {"source_tensors": source_tensors}
+  #     encoder_output = self.encoder.encode(input_dict=encoder_input)
 
-      decoder_input = {"encoder_output": encoder_output}
-      if self.mode != "infer":
-        decoder_input['target_tensors'] = target_tensors
-      decoder_output = self.decoder.decode(input_dict=decoder_input)
-      decoder_out = decoder_output.get("decoder_output", 0.)
-      decoder_post_net_outupt = decoder_output.get("post_net_output", 0.)
-      attention_mask = decoder_output.get("alignments", 0.)
-      target_output = decoder_output.get("target_output", 0.)
-      final_sequence_lengths = decoder_output.get("final_sequence_lengths", 0.)
-      target_output = tf.sigmoid(target_output)
+  #     decoder_input = {"encoder_output": encoder_output}
+  #     if self.mode != "infer":
+  #       decoder_input['target_tensors'] = target_tensors
+  #     decoder_output = self.decoder.decode(input_dict=decoder_input)
+  #     decoder_out = decoder_output.get("decoder_output", 0.)
+  #     decoder_post_net_outupt = decoder_output.get("post_net_output", 0.)
+  #     # attention_mask = decoder_output.get("alignments", 0.)
+  #     target_output = decoder_output.get("stop_token_prediction", 0.)
+  #     # final_sequence_lengths = decoder_output.get("final_sequence_lengths", 0.)
+  #     target_output = tf.sigmoid(target_output)
 
-      final_spectrogram = decoder_out + decoder_post_net_outupt
+  #     final_spectrogram = decoder_out + decoder_post_net_outupt
 
-      if self.mode == "train" or self.mode == "eval":
-        with tf.variable_scope("Loss"):
-          loss_input_dict = {
-            "decoder_output": decoder_output,
-            "target_tensors": target_tensors,
-          }
-          loss = self.loss_computator.compute_loss(loss_input_dict)
-      else:
-        deco_print("Inference Mode. Loss part of graph isn't built.")
-        loss = None
-      return loss, [decoder_out, final_spectrogram, attention_mask, target_output, final_sequence_lengths]
+  #     if self.mode == "train" or self.mode == "eval":
+  #       with tf.variable_scope("Loss"):
+  #         loss_input_dict = {
+  #           "decoder_output": decoder_output,
+  #           "target_tensors": target_tensors,
+  #         }
+  #         loss = self.loss_computator.compute_loss(loss_input_dict)
+  #     else:
+  #       deco_print("Inference Mode. Loss part of graph isn't built.")
+  #       loss = None
+  #     # return loss, [decoder_out, final_spectrogram, attention_mask, target_output, final_sequence_lengths]
+  #     return loss, [decoder_out, final_spectrogram, target_output]
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     # self.train_steps += 1

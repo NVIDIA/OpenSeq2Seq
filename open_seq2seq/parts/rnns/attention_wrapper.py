@@ -628,11 +628,11 @@ def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
 class LocationLayer(layers_base.Layer):
   def __init__(self, filters, kernel_size, attention_units,
                 strides=1, data_format="channels_last",
-                name=None, **kwargs):
+                name="location", **kwargs):
     super(LocationLayer, self).__init__(name=name, **kwargs)
     # padding = int((kernel_size - 1) / 2)
     self.conv_layer = Conv1D(
-      name="{}".format(name),
+      name="{}_conv".format(name),
       filters=filters,
       kernel_size=kernel_size,
       strides=strides,
@@ -641,7 +641,10 @@ class LocationLayer(layers_base.Layer):
       data_format=data_format,
     )
     self.location_dense = layers_core.Dense(
-      attention_units, use_bias=False)
+      name="{}_dense".format(name),
+      units=attention_units,
+      use_bias=False
+    )
 
   def __call__(self, prev_attention):
     # prev_attention = array_ops.expand_dims(prev_attention, axis=-1)

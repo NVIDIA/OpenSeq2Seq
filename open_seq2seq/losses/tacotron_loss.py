@@ -26,9 +26,9 @@ class TacotronLoss(Loss):
     }
 
   def _compute_loss(self, input_dict):
-    decoder_predictions = input_dict['decoder_output']['decoder_output']
-    post_net_predictions = input_dict['decoder_output']['post_net_output']
-    stop_token_predictions = input_dict['decoder_output']['target_output']
+    decoder_predictions = input_dict['decoder_output']['outputs'][0]
+    post_net_predictions = input_dict['decoder_output']['outputs'][1]
+    stop_token_predictions = input_dict['decoder_output']['stop_token_prediction']
     spec = input_dict['target_tensors'][0]
     stop_token = input_dict['target_tensors'][1]
     stop_token = tf.expand_dims(stop_token, -1)
@@ -36,8 +36,6 @@ class TacotronLoss(Loss):
 
     batch_size = tf.shape(spec)[0]
     num_feats = tf.shape(spec)[2]
-
-    post_net_predictions = decoder_predictions + post_net_predictions
 
     predictions_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],num_feats])
     stop_token_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],1])

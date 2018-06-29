@@ -9,7 +9,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 base_model = Text2Speech
 
-output_type = "mel"
+output_type = "magnitude"
 
 if output_type == "magnitude":
   num_audio_features = 513
@@ -34,7 +34,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-example",
+  "logdir": "result/tacotron-LJ-june29-merge",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",

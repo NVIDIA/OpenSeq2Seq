@@ -350,10 +350,14 @@ class Tacotron2Decoder(Decoder):
     # )
 
     self.output_projection_layer = tf.layers.Dense(
-      self.num_audio_features, use_bias=True
+      name="output_proj",
+      units=self.num_audio_features,
+      use_bias=True
     )
     self.target_projection_layer = tf.layers.Dense(
-      1, use_bias=True
+      name="stop_token_proj",
+      units = 1,
+      use_bias=True
     )
     
     prenet = None
@@ -498,7 +502,7 @@ class Tacotron2Decoder(Decoder):
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
-    if self._mode == 'train' or self._mode == 'eval':
+    if self._mode != 'infer':
       maximum_iterations = tf.reduce_max(spec_length)
     else:
       maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
@@ -506,7 +510,7 @@ class Tacotron2Decoder(Decoder):
     final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
     # final_outputs, final_state, final_sequence_lengths, final_inputs = dynamic_decode(
       decoder=decoder,
-      impute_finished=True,
+      impute_finished=False,
       maximum_iterations=maximum_iterations,
       swap_memory=use_swap_memory,
       output_time_major=time_major,
@@ -587,8 +591,15 @@ class Tacotron2Decoder(Decoder):
     else:
       alignments = tf.zeros([_batch_size,_batch_size,_batch_size])
 
-    return {'decoder_output': final_outputs.rnn_output,
-            'post_net_output': top_layer,
-            'alignments': alignments,
-            'final_sequence_lengths': final_sequence_lengths,
-            'target_output': final_outputs.target_output}
+    decoder_output = final_outputs.rnn_output
+    # post_net_output = top_layer
+    spectrogram_prediction = decoder_output + top_layer
+    stop_token_prediction = tf.sigmoid(final_outputs.target_output)
+
+    outputs = [decoder_output, spectrogram_prediction, alignments, 
+      stop_token_prediction, final_sequence_lengths]
+
+
+    return {'outputs': outputs,
+            'stop_token_prediction': final_outputs.target_output,
+           }
