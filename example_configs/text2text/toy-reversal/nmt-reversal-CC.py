@@ -59,8 +59,7 @@ base_params = {
     "pad_embeddings_2_eight": False,
     "att_layer_num": num_layers,
 
-    "conv_knum": [d_model] * num_layers,
-    "conv_kwidth": [3] * num_layers,
+    "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 
     "hidden_dropout_keep_prob": 0.9,
 
@@ -78,8 +77,7 @@ base_params = {
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
 
-    "conv_knum": [d_model] * num_layers,
-    "conv_kwidth": [3] * num_layers,
+    "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 
     "hidden_dropout_keep_prob": 0.9,
     "out_dropout_keep_prob": 0.9,

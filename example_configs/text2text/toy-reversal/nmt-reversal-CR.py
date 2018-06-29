@@ -4,18 +4,17 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
-from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
-from open_seq2seq.decoders import ConvS2SDecoder
+from open_seq2seq.decoders import RNNDecoderWithAttention, BeamSearchRNNDecoderWithAttention
+from open_seq2seq.encoders import ConvS2SEncoder
 
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 
-from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 """
-This configuration file describes bidirectional rnn based encoder and convolutional decoder
+This configuration file describes convolutional encoder and rnn decoder with attention
 on the toy task of reversing sequences
 """
 
@@ -34,7 +33,7 @@ base_params = {
   "eval_steps": 50,
   "save_checkpoint_steps": 200,
 
-  "logdir": "ReversalTask-RC",
+  "logdir": "ReversalTask-CR",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-9},
@@ -49,43 +48,44 @@ base_params = {
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-  "encoder": BidirectionalRNNEncoderWithEmbedding,
+  "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "core_cell": tf.nn.rnn_cell.LSTMCell,
-    "core_cell_params": {
-      "num_units": int(d_model/2),
-    },
-
     "encoder_layers": num_layers,
-    "encoder_dp_input_keep_prob": 0.8,
-    "encoder_dp_output_keep_prob": 1.0,
-    "encoder_use_skip_connections": False,
+
     "src_emb_size": d_model,
-  },
-
-  "decoder": ConvS2SDecoder,
-  "decoder_params": {
-    "decoder_layers": num_layers,
-
-    "shared_embed": True,
-    "tgt_emb_size": d_model,
-
-    "conv_knum": [d_model] * num_layers,
-    "conv_kwidth": [3] * num_layers,
-
+    "att_layer_num": num_layers,
     "embedding_dropout_keep_prob": 0.9,
+    "pad_embeddings_2_eight": True,
+
     "hidden_dropout_keep_prob": 0.9,
-    "out_dropout_keep_prob": 0.9,
+
+    "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 
     "max_input_length": 100,
-    "extra_decode_length": 10,
-    "beam_size": 5,
-    "alpha": 0.6,
 
-    "EOS_ID": EOS_ID,
+    "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
+  },
+
+  "decoder": RNNDecoderWithAttention,
+  "decoder_params": {
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+      "num_units": d_model,
+    },
+    "decoder_layers": num_layers,
+
+    "decoder_dp_input_keep_prob": 0.8,
+    "decoder_dp_output_keep_prob": 1.0,
+    "decoder_use_skip_connections": False,
+
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
+
+    "tgt_emb_size": d_model,
+    "attention_type": "luong",
+    "luong_scale": False,
+    "attention_layer_size": 128,
   },
 
   "loss": BasicSequenceLoss,
@@ -126,16 +126,35 @@ eval_params = {
 
 infer_params = {
   "batch_size_per_gpu": 1,
+  "decoder": BeamSearchRNNDecoderWithAttention,
+  "decoder_params": {
+    "decoder_cell_type": "lstm",
+    "decoder_cell_units": d_model,
+    "decoder_layers": num_layers,
+    "decoder_dp_input_keep_prob": 0.8,
+    "decoder_dp_output_keep_prob": 1.0,
+    "decoder_use_skip_connections": False,
+    "GO_SYMBOL": SpecialTextTokens.S_ID.value,
+    "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
+    "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
+    "tgt_emb_size": d_model,
+    "attention_type": "luong",
+    "luong_scale": False,
+    "attention_layer_size": d_model,
+    "beam_width": 5,
+    "length_penalty": 1.0,
+  },
+
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "src_vocab_file": "toy_text_data/vocab/source.txt",
     "tgt_vocab_file": "toy_text_data/vocab/source.txt",
     "source_file": "toy_text_data/test/source.txt",
-    # this is intentional to be sure model is not using ground truth
     "target_file": "toy_text_data/test/source.txt",
     "shuffle": False,
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
   },
+
 }

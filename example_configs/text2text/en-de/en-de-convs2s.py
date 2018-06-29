@@ -12,7 +12,7 @@ from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.encoders import ConvS2SEncoder
 from open_seq2seq.decoders import ConvS2SDecoder
 
-from open_seq2seq.losses import BasicSequenceLoss
+from open_seq2seq.losses import BasicSequenceLoss, PaddedCrossEntropyLossWithSmoothing
 
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 
@@ -24,7 +24,7 @@ d_model = 768
 max_length = 128
 
 batch_size = 64
-num_gpus = 4
+num_gpus = 1 #4
 epoch_num = 30
 
 base_params = {
@@ -68,9 +68,11 @@ base_params = {
     "pad_embeddings_2_eight": False,
     "att_layer_num": num_layers,
 
-    #"conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
-    "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
-    "conv_kwidth": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
+    # original paper
+    #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
+
+    # fairseq config
+    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -90,9 +92,11 @@ base_params = {
     "pad_embeddings_2_eight": False,
     "out_emb_size": d_model,
 
-    "conv_knum": [512,512,512,512,512,512,512,512,512,1024,1024,1024,1024,2048,2048], # fairseq config
-   # "conv_knum": [512, 512, 512, 512, 512, 512, 512, 512, 512, 512, 768, 768, 768, 2048, 2048], # original paper
-    "conv_kwidth": [3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 1, 1],
+    # original paper
+    #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
+
+    # fairseq config
+    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -110,12 +114,18 @@ base_params = {
 
   },
 
-  "loss": BasicSequenceLoss,
+  # "loss": BasicSequenceLoss,
+  # "loss_params": {
+  #   "offset_target_by_one": True,
+  #   "average_across_timestep": True,
+  #   "do_mask": True
+  # }
+
+  "loss": PaddedCrossEntropyLossWithSmoothing,
   "loss_params": {
-    "offset_target_by_one": True,
-    "average_across_timestep": True,
-    "do_mask": True
+    "label_smoothing": 0.1,
   }
+
 }
 
 train_params = {

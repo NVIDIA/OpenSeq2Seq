@@ -30,8 +30,7 @@ class ConvS2SEncoder(Encoder):
             "src_emb_size": int,
             "src_vocab_size": int,
             "pad_embeddings_2_eight": bool,
-            "conv_knum": list,
-            "conv_kwidth": list,
+            "conv_nchannels_kwidth": list,
             "embedding_dropout_keep_prob": float,
             "hidden_dropout_keep_prob": float,
         })
@@ -66,8 +65,8 @@ class ConvS2SEncoder(Encoder):
     with tf.variable_scope("encode"):
       # prepare encoder graph
       if len(self.layers) == 0:
-        knum_list = self.params.get("conv_knum")
-        kwidth_list = self.params.get("conv_kwidth")
+        knum_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[0]
+        kwidth_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[1]
 
         with tf.variable_scope("embedding"):
           self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(

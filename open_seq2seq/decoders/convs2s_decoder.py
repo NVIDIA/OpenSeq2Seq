@@ -36,8 +36,7 @@ class ConvS2SDecoder(Decoder):
             'tgt_vocab_size': int,
             'shared_embed': bool,
             'embedding_dropout_keep_prob': float,
-            'conv_knum': list,
-            'conv_kwidth': list,
+            'conv_nchannels_kwidth': list,
             'hidden_dropout_keep_prob': float,
             'out_dropout_keep_prob': float,
             'beam_size': int,
@@ -97,8 +96,8 @@ class ConvS2SDecoder(Decoder):
     with tf.name_scope("decode"):
       # prepare decoder layers
       if len(self.layers) == 0:
-        knum_list = self.params.get("conv_knum")
-        kwidth_list = self.params.get("conv_kwidth")
+        knum_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[0]
+        kwidth_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[1]
 
         # preparing embedding layers
         with tf.variable_scope("embedding"):
