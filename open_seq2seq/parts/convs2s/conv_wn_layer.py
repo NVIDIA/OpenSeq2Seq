@@ -95,7 +95,6 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     Returns:
       float32 tensor with shape [batch_size, length, out_dim].
     """
-
     input_shape = inputs.get_shape().as_list()
     assert len(input_shape) == 3
     input_pass = inputs[:, :, 0:int(input_shape[2] / 2)]

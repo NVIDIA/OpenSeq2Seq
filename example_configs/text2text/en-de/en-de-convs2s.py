@@ -16,6 +16,7 @@ from open_seq2seq.losses import BasicSequenceLoss, PaddedCrossEntropyLossWithSmo
 
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 
+# REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
