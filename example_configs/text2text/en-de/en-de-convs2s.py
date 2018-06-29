@@ -159,7 +159,7 @@ eval_params = {
 }
 
 infer_params = {
-  "batch_size_per_gpu": 1,
+  "batch_size_per_gpu": 32,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "pad_vocab_to_eight": False,
