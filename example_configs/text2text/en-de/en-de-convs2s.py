@@ -24,7 +24,7 @@ d_model = 768
 max_length = 128
 
 batch_size = 64
-num_gpus = 1 #4
+num_gpus = 4
 epoch_num = 30
 
 base_params = {
@@ -38,7 +38,7 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 4000,
   "save_checkpoint_steps": 1000,
-  "logdir": "ReadData-CC",
+  "logdir": "RealData-CC",
 
 
   "optimizer": "Adam",
@@ -114,16 +114,11 @@ base_params = {
 
   },
 
-  # "loss": BasicSequenceLoss,
-  # "loss_params": {
-  #   "offset_target_by_one": True,
-  #   "average_across_timestep": True,
-  #   "do_mask": True
-  # }
-
-  "loss": PaddedCrossEntropyLossWithSmoothing,
+  "loss": BasicSequenceLoss,
   "loss_params": {
-    "label_smoothing": 0.1,
+    "offset_target_by_one": True,
+    "average_across_timestep": True,
+    "do_mask": True
   }
 
 }
