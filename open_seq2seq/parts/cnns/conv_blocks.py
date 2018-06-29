@@ -11,6 +11,7 @@ import tensorflow as tf
 def conv_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
               padding, regularizer, training, data_format):
   """Helper function that applies convolution and activation.
+
     Args:
       type: the following types are supported
         'conv1d', 'conv2d'
@@ -38,11 +39,12 @@ def conv_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
   return output
 
 
-def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, regularizer, training, data_format, bn_momentum,
-                 bn_epsilon):
+def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn,
+                 strides, padding, regularizer, training, data_format,
+                 bn_momentum, bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
     Accepts inputs in 'channels_last' format only.
+
     Args:
       type: the following types are supported
         'conv1d', 'conv2d'

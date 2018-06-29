@@ -1,21 +1,13 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
-import numpy as np
-import copy
-import numpy.testing as npt
-import tempfile
-import os
-import pandas as pd
+
+from open_seq2seq.test_utils.test_speech_configs.ds2_test_config import \
+  base_params, train_params, eval_params, base_model
 
 from .speech2text_test import Speech2TextModelTests
-from open_seq2seq.test_utils.test_speech_configs.ds2_test_config import base_params, \
-                                                                        train_params, \
-                                                                        eval_params, \
-                                                                        base_model
 
 
 class DS2ModelTests(Speech2TextModelTests):

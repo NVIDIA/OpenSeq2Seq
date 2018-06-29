@@ -22,6 +22,14 @@ ds2\_encoder
     :undoc-members:
     :show-inheritance:
 
+w2l\_encoder
+----------------------------
+
+.. automodule:: encoders.w2l_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 rnn\_encoders
 -----------------------------
 
