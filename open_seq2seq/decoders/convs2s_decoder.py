@@ -122,7 +122,7 @@ class ConvS2SDecoder(Decoder):
               input_dict['encoder_output']['position_embedding_layer']
           else:
             longest_decoding = self.params.get("max_input_length", MAX_INPUT_LENGTH) \
-                               #+ self.params.get("extra_decode_length")
+                               + self.params.get("extra_decode_length")
             self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
                 vocab_size=longest_decoding,
                 hidden_size=self._tgt_emb_size,
