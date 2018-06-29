@@ -35,7 +35,7 @@ ConvS2S-based models.
 
 We measure BLEU score on newstest2014.tok.de file using ``multi-bleu.perl`` script from Mosses.
 For more details about model descriptions and training setup,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/>`_.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de>`_.
 
 
 .. list-table::
@@ -86,7 +86,7 @@ greedy decoder (``decoder_params/use_language_model = False``).
 For the final evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 For more details about model descriptions and training setup,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/en-de>`_.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_.
 
 .. list-table::
    :widths: 1 1 1 1 1
