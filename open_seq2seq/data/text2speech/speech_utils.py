@@ -106,7 +106,7 @@ def get_mel(log_mag_spec, fs=22050, n_fft=1024, n_mels=80, power=2.,
   """
   Method to get mel spectrograms from saved energy spectrograms
   """
-  if mel_basis == None:
+  if mel_basis is None:
     mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
   log_mag_spec = log_mag_spec * power
   mag_spec = np.exp(log_mag_spec)
@@ -121,7 +121,7 @@ def inverse_mel(log_mel_spec, fs=22050, n_fft=1024, n_mels=80, power=2.,
   """
   Very hacky method to reconstruct mag spec from mel
   """
-  if mel_basis == None:
+  if mel_basis is None:
     mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
   if feature_normalize:
     log_mel_spec = denormalize(log_mel_spec, mean, std)
