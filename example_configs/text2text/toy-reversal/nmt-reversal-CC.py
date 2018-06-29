@@ -141,7 +141,7 @@ infer_params = {
     "target_file": "toy_text_data/test/source.txt",
     "shuffle": False,
     "repeat": False,
-    "max_length": 256,
+    "max_length": 56,
     "delimiter": " ",
   },
 }

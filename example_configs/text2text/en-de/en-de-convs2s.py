@@ -12,7 +12,7 @@ from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.encoders import ConvS2SEncoder
 from open_seq2seq.decoders import ConvS2SDecoder
 
-from open_seq2seq.losses import BasicSequenceLoss, PaddedCrossEntropyLossWithSmoothing
+from open_seq2seq.losses import BasicSequenceLoss
 
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 
@@ -57,9 +57,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -133,7 +133,7 @@ train_params = {
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False,
+    "shuffle": True,
     "repeat": True,
     "map_parallel_calls": 8,
     "prefetch_buffer_size": 4,
@@ -159,7 +159,7 @@ eval_params = {
 }
 
 infer_params = {
-  "batch_size_per_gpu": 1,
+  "batch_size_per_gpu": 10,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "pad_vocab_to_eight": False,
