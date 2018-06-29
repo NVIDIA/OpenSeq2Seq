@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from six.moves import range
 from six import string_types
 
+import six
 import tensorflow as tf
 import subprocess
 import numpy as np
@@ -335,7 +336,10 @@ def mask_nans(x):
 
 
 def deco_print(line, offset=0, start="*** ", end='\n'):
-  print(start + " " * offset + line, end=end)
+  if six.PY2:
+    print((start + " " * offset + line).encode('utf-8'), end=end)
+  else:
+    print(start + " " * offset + line, end=end)
 
 
 def array_to_string(row, vocab, delim=' '):
