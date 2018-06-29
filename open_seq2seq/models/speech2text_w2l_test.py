@@ -13,9 +13,9 @@ import pandas as pd
 
 from .speech2text_test import Speech2TextModelTests
 from open_seq2seq.test_utils.test_speech_configs.w2l_test_config import base_params, \
-    train_params, \
-    eval_params, \
-    base_model
+                                                                        train_params, \
+                                                                        eval_params, \
+                                                                        base_model
 
 
 class DS2ModelTests(Speech2TextModelTests):
@@ -30,7 +30,7 @@ class DS2ModelTests(Speech2TextModelTests):
     pass
 
   def test_convergence(self):
-    return self.convergence_test(5.0, 200.0, 0.1)
+    return self.convergence_test(5.0, 30.0, 0.1)
 
   def test_convergence_with_iter_size(self):
     return self.convergence_with_iter_size_test()

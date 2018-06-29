@@ -89,7 +89,7 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     self._timer.update_last_triggered_step(self._iter_count - 1)
 
     input_values, output_values = results
-    dict_to_log = self._model.maybe_print_logs(input_values, output_values)
+    dict_to_log = self._model.maybe_print_logs(input_values, output_values, step)
     # optionally logging to tensorboard any values
     # returned from maybe_print_logs
     if self._model.params['save_summaries_steps'] and dict_to_log:
@@ -193,7 +193,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
       deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
 
-      dict_to_log = self._model.finalize_evaluation(results_per_batch)
+      dict_to_log = self._model.finalize_evaluation(results_per_batch, step)
       dict_to_log['eval_loss'] = total_loss
 
       # saving the best validation model

@@ -111,7 +111,7 @@ class Text2Text(EncoderDecoderModel):
             deco_print("")
           step += 1
 
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     x, len_x = input_values['source_tensors']
     y, len_y = input_values['target_tensors']
     samples = output_values[0]
@@ -201,7 +201,7 @@ class Text2Text(EncoderDecoderModel):
 
     return preds, targets
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     preds, targets = [], []
     for preds_cur, targets_cur in results_per_batch:
       if self.params.get('eval_using_bleu', True):

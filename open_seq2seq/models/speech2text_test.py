@@ -106,6 +106,7 @@ class Speech2TextModelTests(tf.test.TestCase):
           "iter_size": 5,
           "batch_size_per_gpu": 2,
           "use_horovod": True,
+          "num_epochs": 200,
       })
       eval_config.update({
           "dtype": dtype,
@@ -116,13 +117,13 @@ class Speech2TextModelTests(tf.test.TestCase):
       loss, eval_loss, eval_dict = self.run_model(
           train_config, eval_config, hvd)
 
-      self.assertLess(loss, 5.0)
-      self.assertLess(eval_loss, 200.0)
+      self.assertLess(loss, 10.0)
+      self.assertLess(eval_loss, 30.0)
       self.assertLess(eval_dict['Eval WER'], 0.1)
 
   def infer_test(self):
     train_config, infer_config = self.prepare_config()
-    train_config['num_epochs'] = 200
+    train_config['num_epochs'] = 250
     infer_config['batch_size_per_gpu'] = 4
 
     with tf.Graph().as_default() as g:
@@ -295,5 +296,5 @@ class Speech2TextModelTests(tf.test.TestCase):
 
     inp_dict = {'source_tensors': [input_values[0][0], input_values[0][1]],
                 'target_tensors': [input_values[0][2], input_values[0][3]]}
-    output_dict = model.maybe_print_logs(inp_dict, output_values[0])
+    output_dict = model.maybe_print_logs(inp_dict, output_values[0], 0)
     self.assertEqual(output_dict['Sample WER'], 0.4)

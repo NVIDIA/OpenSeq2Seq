@@ -12,7 +12,7 @@ from open_seq2seq.utils.utils import deco_print
 
 
 class Image2Label(EncoderDecoderModel):
-  def maybe_print_logs(self, input_values, output_values):
+  def maybe_print_logs(self, input_values, output_values, training_step):
     labels = input_values['target_tensors'][0]
     logits = output_values[0]
 
@@ -31,7 +31,7 @@ class Image2Label(EncoderDecoderModel):
       "Train batch top-5": top5,
     }
 
-  def finalize_evaluation(self, results_per_batch):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     top1 = 0.0
     top5 = 0.0
     total = 0.0
