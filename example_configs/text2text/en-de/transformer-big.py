@@ -18,7 +18,8 @@ base_model = Text2Text
 d_model = 512
 num_layers = 6
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+# REPLACE THIS TO THE PATH WITH YOUR WMT DATA
+data_root = "./wmt16_en_dt/"
 
 base_params = {
   "use_horovod": False,
@@ -31,9 +32,10 @@ base_params = {
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
   "logdir": "Transformer-FP32",
-  "dtype": tf.float32,
-  # "dtype": "mixed",
-  # "automatic_loss_scaling": "Backoff",
+  #"dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
+
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
