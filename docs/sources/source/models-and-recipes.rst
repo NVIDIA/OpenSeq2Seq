@@ -98,12 +98,12 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - Short description of the model
      - Checkpoint
    * - `ds2_large_8gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py>`_
-     - 14.89%
+     - 9.28%
      - This model was trained for 50 epochs using SGD with Momentum and LARC on
        the full LibriSpeech in a few days using Horovod on eight GPUs.
      - This model has 2 convolutional layers and 5 bidirectional
        GRU layers with 800 units.
-     - `link <https://drive.google.com/file/d/1gfGg3DzXviNhYlIyxl12gWp47R8Uz-Bf/view?usp=sharing>`_
+     - `link <https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX>`_
    * - `ds2_medium_4gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py>`_
      - 22.60%
      - This model was trained for 50 epochs using Adam on the full
@@ -119,13 +119,13 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
        GRU layers with 512 units.
      - `link <https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing>`_
    * - `w2l_large_8gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus.py>`_
-     - 15.38%
+     - 15.44%
      - This model was trained for 18 epochs (with early stopping based on
        validation loss) using SGD with Momentum and LARC on
        the full LibriSpeech in a few days on eight GPUs.
      - The model has 19 convolutional layers (200--1000 units, 7--21 kernel size).
        We use batch norm between all layers.
-     - Coming soon.
+     - `link <https://drive.google.com/open?id=1gVdi8am_a3bNUQo4SZGItqNrIeV8MSqA>`_
 
 
 Deep Speech 2 model description: https://arxiv.org/abs/1512.02595.
