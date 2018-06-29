@@ -28,7 +28,7 @@ num_gpus = 4
 epoch_num = 30
 
 base_params = {
-  "use_horovod": False,
+  "use_horovod": True,
   "num_gpus": num_gpus,
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": int((4500000 / (num_gpus * batch_size)) * epoch_num),
@@ -45,7 +45,7 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 8,
+    "learning_rate": 10,
     "max_lr": 1e-3,
     "warmup_steps": 4000,
     "d_model": d_model,
@@ -56,9 +56,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {

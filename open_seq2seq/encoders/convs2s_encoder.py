@@ -168,7 +168,7 @@ class ConvS2SEncoder(Encoder):
         'state': final_state,
         'src_lengths': source_length,  # should it include paddings or not?
         'embedding_softmax_layer': self.embedding_softmax_layer,
-        # Should we share position embedding?
+        # TODO: Should we share position embedding?
         # 'position_embedding_layer': self.position_embedding_layer,
         'encoder_input': inputs
     }
