@@ -54,42 +54,37 @@ base_params = {
       {
         "type": "conv1d", "repeat" : 5,
         "kernel_size": [7], "stride": [1],
-        "num_channels": 256, "padding": "SAME"
+        "num_channels": 200, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 384, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 2,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [15], "stride": [1],
-        "num_channels": 384, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 2,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [19], "stride": [1],
-        "num_channels": 512, "padding": "SAME"
+        "num_channels": 400, "padding": "SAME"
       },
       {
-        "type": "conv1d", "repeat" : 2,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [23], "stride": [1],
-        "num_channels": 640, "padding": "SAME"
-      },
-      {
-        "type": "conv1d", "repeat" : 1,
-        "kernel_size": [27], "stride": [1],
-        "num_channels": 768, "padding": "SAME"
+        "num_channels": 600, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [29], "stride": [1],
-        "num_channels": 896, "padding": "SAME"
+        "num_channels": 800, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 1024, "padding": "SAME" #n_hidden = num_channels
+        "num_channels": 1000, "padding": "SAME"
       },
     ],
 
@@ -111,7 +106,7 @@ base_params = {
 
     # params for decoding the sequence with language model
     "beam_width": 512,
-    "lm_weight": 2.0,
+    "lm_weight": 1.0,
     "word_count_weight": 1.5,
     "valid_word_count_weight": 2.5,
 
