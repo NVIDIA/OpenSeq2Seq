@@ -6,8 +6,10 @@ Models and recipes
 
 .. note::
     Currently OpenSeq2Seq has model implementations for machine translation and
-    automatic speech recognition. All models work both in float32 and mixed precision.
-    We recommend you use :ref:`mixed precision training <mixed_precision>` when training on Volta GPUs.
+    automatic speech recognition.
+    All models work both in float32 and mixed precision.
+    We recommend you use :ref:`mixed precision training <mixed_precision>`
+    when training on Volta GPUs.
 
 
 To train models you can use the following commands (don't forget to substitute
@@ -25,6 +27,16 @@ The description of implemented models is available in the next sections:
 
 Machine translation
 -------------------
+
+The table below contains description and results of
+machine translation models available in OpenSeq2Seq.
+Currently, we have GNMT-based model, Transformer-based models and
+ConvS2S-based models.
+
+We measure BLEU score on newstest2014.tok.de file using ``multi-bleu.perl`` script from Mosses.
+For more details about model descriptions and training setup,
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/>`_.
+
 
 .. list-table::
    :widths: 1 1 1 1 1
@@ -50,23 +62,31 @@ Machine translation
      - This model was trained on 4 GPUs with Adam optimizer and learning rate decay.
      - Transformer "big" model. This model does not have any RNN layers
      - `link <https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing>`_
+   * - `en-de-convs2s.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s.py>`_
+     - xx.xx
+     - This model was trained on 4 GPUs with Adam optimizer, learning rate decay and warm-up.
+     - This is an implementation of the ConvS2S model proposed in https://arxiv.org/abs/1705.03122.
+     - Coming soon.
 
-GNMT model description can be found `here <https://arxiv.org/abs/1609.08144>`_.
-Transformer model description can be found `here <https://arxiv.org/abs/1706.03762>`_.
-We measure BLEU score on newstest2014.tok.de file using ``multi-bleu.perl`` script from Mosses.
+GNMT model description: https://arxiv.org/abs/1609.08144.
+
+Transformer model description: https://arxiv.org/abs/1706.03762.
+
+ConvS2S model description: https://arxiv.org/abs/1705.03122.
 
 Speech recognition
 ------------------
 
 The table below contains description and results of
 speech recognition models available in OpenSeq2Seq.
+Currently, we have DeepSpeech2-based models and Wav2Letter-based models.
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (``decoder_params/use_language_model = False``).
 For the final evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 For more details about model descriptions and training setup,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/>`_.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/en-de>`_.
 
 .. list-table::
    :widths: 1 1 1 1 1
@@ -98,7 +118,16 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - This model has 2 convolutional layers and 2 bidirectional
        GRU layers with 512 units.
      - `link <https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing>`_
+   * - `w2l_large_8gpus.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus.py>`_
+     - 15.38%
+     - This model was trained for 18 epochs (with early stopping based on
+       validation loss) using SGD with Momentum and LARC on
+       the full LibriSpeech in a few days on eight GPUs.
+     - The model has 19 convolutional layers (200--1000 units, 7--21 kernel size).
+       We use batch norm between all layers.
+     - Coming soon.
 
-Original Deep Speech 2 model description: https://arxiv.org/abs/1512.02595 .
 
-Original Wav2Letter model description: https://arxiv.org/abs/1609.03193 .
+Deep Speech 2 model description: https://arxiv.org/abs/1512.02595.
+
+Wav2Letter model description: https://arxiv.org/abs/1609.03193, https://arxiv.org/abs/1712.09444.
