@@ -38,6 +38,14 @@ transformer\_encoders
     :undoc-members:
     :show-inheritance:
 
+convs2s\_encoder
+-------------------------------------
+
+.. automodule:: encoders.convs2s_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 resnet\_encoder
 ----------------------------------
 

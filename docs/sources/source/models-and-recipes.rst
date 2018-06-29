@@ -3,9 +3,6 @@
 Models and recipes
 ==================
 
-.. This section will contain information about different models that OpenSeq2Seq
-.. supports, exact config parameters to train them, final training/validation/test
-.. metrics and links to checkpoints (tensorboards also?) of trained models.
 
 .. note::
     Currently OpenSeq2Seq has model implementations for machine translation and
@@ -13,12 +10,12 @@ Models and recipes
     We recommend you use :ref:`mixed precision training <mixed_precision>` when training on Volta GPUs.
 
 
-To train models you can use the following
-commands (don't forget to substitute valid config_file path there).
+To train models you can use the following commands (don't forget to substitute
+valid config_file path there and number of GPUs if using Horovod).
 
 With Horovod (highly recommended when using multiple GPUs)::
 
-    mpirun --allow-run-as-root --mca orte_base_help_aggregate 0 -mca btl ^openib -np 4 -H localhost:4 -bind-to none -map-by slot -x LD_LIBRARY_PATH python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
+    mpiexec --allow-run-as-root -np <num_gpus> python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
 
 Without Horovod::
 
@@ -38,17 +35,17 @@ Machine translation
      - Training setup and additional comments
      - Short description of the model
      - Checkpoint
-   * - `en-de-nmt-small.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-nmt-small.py>`_
+   * - `en-de-nmt-small.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-nmt-small.py>`_
      - 20.23
      - This model should train on a single GPU such as 1080Ti. It is trained using Adam optimizer.
      - RNN-based. Bi-directional encoder with 2 layers and. GNMT-like decoder with 2 layers and attention. Uses LSTM cells of size 512.
      - `link <https://drive.google.com/file/d/1Ty9hiOQx4V28jJmIbj7FWUyw7LVA39SF/view?usp=sharing>`_
-   * - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-gnmt-like-4GPUs.py>`_
+   * - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
      - 23.89
      - This model was trained on 4 GPUs with Adam optimizer and learning rate decay.
      - RNN-based. This is GNMT-like model which tries to match the one described in https://arxiv.org/abs/1609.08144 as close as possible.
      - `link <https://drive.google.com/file/d/1HVc4S8-wv1-AZK1JeWgn6YNITSFAMes_/view?usp=sharing>`_
-   * - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/transformer-big.py>`_
+   * - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py>`_
      - 26.17
      - This model was trained on 4 GPUs with Adam optimizer and learning rate decay.
      - Transformer "big" model. This model does not have any RNN layers
@@ -61,11 +58,8 @@ We measure BLEU score on newstest2014.tok.de file using ``multi-bleu.perl`` scri
 Speech recognition
 ------------------
 
-Deep Speech 2 based models
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-Original Deep Speech 2 model description: https://arxiv.org/abs/1512.02595.
 The table below contains description and results of
-Deep Speech 2 based models available in OpenSeq2Seq.
+speech recognition models available in OpenSeq2Seq.
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (``decoder_params/use_language_model = False``).
@@ -104,3 +98,7 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
      - This model has 2 convolutional layers and 2 bidirectional
        GRU layers with 512 units.
      - `link <https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing>`_
+
+Original Deep Speech 2 model description: https://arxiv.org/abs/1512.02595 .
+
+Original Wav2Letter model description: https://arxiv.org/abs/1609.03193 .
