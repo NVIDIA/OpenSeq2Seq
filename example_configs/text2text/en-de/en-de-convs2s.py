@@ -28,7 +28,7 @@ num_gpus = 4
 epoch_num = 30
 
 base_params = {
-  "use_horovod": True,
+  "use_horovod": False,
   "num_gpus": num_gpus,
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": int((4500000 / (num_gpus * batch_size)) * epoch_num),
