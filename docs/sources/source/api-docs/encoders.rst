@@ -53,3 +53,12 @@ resnet\_blocks
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+cnn\_encoder
+--------------------------------
+
+.. automodule:: encoders.cnn_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
