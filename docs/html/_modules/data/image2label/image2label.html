@@ -162,9 +162,152 @@
 
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
 <span class="kn">from</span> <span class="nn">.imagenet_preprocessing</span> <span class="k">import</span> <span class="n">parse_record</span>
+
+
+<div class="viewcode-block" id="CifarDataLayer"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer">[docs]</a><span class="k">class</span> <span class="nc">CifarDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
+  <span class="n">_HEIGHT</span> <span class="o">=</span> <span class="mi">28</span>
+  <span class="n">_WIDTH</span> <span class="o">=</span> <span class="mi">28</span>
+  <span class="n">_NUM_CHANNELS</span> <span class="o">=</span> <span class="mi">3</span>
+  <span class="n">_DEFAULT_IMAGE_BYTES</span> <span class="o">=</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">32</span> <span class="o">*</span> <span class="mi">3</span>
+  <span class="c1"># The record is the image plus a one-byte label</span>
+  <span class="n">_RECORD_BYTES</span> <span class="o">=</span> <span class="n">_DEFAULT_IMAGE_BYTES</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">_NUM_CLASSES</span> <span class="o">=</span> <span class="mi">10</span>
+  <span class="n">_NUM_DATA_FILES</span> <span class="o">=</span> <span class="mi">5</span>
+
+  <span class="n">_NUM_IMAGES</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;train&#39;</span><span class="p">:</span> <span class="mi">50000</span><span class="p">,</span>
+    <span class="s1">&#39;validation&#39;</span><span class="p">:</span> <span class="mi">10000</span><span class="p">,</span>
+  <span class="p">}</span>
+
+<div class="viewcode-block" id="CifarDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;data_dir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="CifarDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;num_parallel_calls&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;shuffle_buffer&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;image_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;num_classes&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">CifarDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
+                                         <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Inference is not supported on CifarDataLayer&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+      <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span>
+          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;data_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;data_batch_</span><span class="si">{}</span><span class="s1">.bin&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span><span class="p">))</span>
+          <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_NUM_DATA_FILES</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">filenames</span> <span class="o">=</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;data_dir&#39;</span><span class="p">],</span> <span class="s1">&#39;test_batch.bin&#39;</span><span class="p">)]</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">file_names</span> <span class="o">=</span> <span class="n">filenames</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_train_size</span> <span class="o">=</span> <span class="mi">50000</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_valid_size</span> <span class="o">=</span> <span class="mi">10000</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span>
+
+<div class="viewcode-block" id="CifarDataLayer.preprocess_image"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.preprocess_image">[docs]</a>  <span class="k">def</span> <span class="nf">preprocess_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">,</span> <span class="n">is_training</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Preprocess a single image of layout [height, width, depth].&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">is_training</span><span class="p">:</span>
+      <span class="c1"># Resize the image to add four extra pixels on each side.</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">resize_image_with_crop_or_pad</span><span class="p">(</span>
+        <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEIGHT</span> <span class="o">+</span> <span class="mi">8</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_WIDTH</span> <span class="o">+</span> <span class="mi">8</span><span class="p">)</span>
+
+      <span class="c1"># Randomly crop a [_HEIGHT, _WIDTH] section of the image.</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_crop</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_HEIGHT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_WIDTH</span><span class="p">,</span>
+                                     <span class="bp">self</span><span class="o">.</span><span class="n">_NUM_CHANNELS</span><span class="p">])</span>
+
+      <span class="c1"># Randomly flip the image horizontally.</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">random_flip_left_right</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">resize_image_with_crop_or_pad</span><span class="p">(</span>
+        <span class="n">image</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_HEIGHT</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_WIDTH</span><span class="p">)</span>
+
+    <span class="c1"># Subtract off the mean and divide by the variance of the pixels.</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">per_image_standardization</span><span class="p">(</span><span class="n">image</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image</span></div>
+
+<div class="viewcode-block" id="CifarDataLayer.parse_record"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.parse_record">[docs]</a>  <span class="k">def</span> <span class="nf">parse_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">raw_record</span><span class="p">,</span> <span class="n">is_training</span><span class="p">,</span> <span class="n">num_classes</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parse CIFAR-10 image and label from a raw record.&quot;&quot;&quot;</span>
+    <span class="c1"># Convert bytes to a vector of uint8 that is record_bytes long.</span>
+    <span class="n">record_vector</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">decode_raw</span><span class="p">(</span><span class="n">raw_record</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">uint8</span><span class="p">)</span>
+
+    <span class="c1"># The first byte represents the label, which we convert from uint8 to int32</span>
+    <span class="c1"># and then to one-hot.</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">record_vector</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+
+    <span class="c1"># The remaining bytes after the label represent the image, which we reshape</span>
+    <span class="c1"># from [depth * height * width] to [depth, height, width].</span>
+    <span class="n">depth_major</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">record_vector</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">_RECORD_BYTES</span><span class="p">],</span>
+                             <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">])</span>
+
+    <span class="c1"># Convert from [depth, height, width] to [height, width, depth], and cast as</span>
+    <span class="c1"># float32.</span>
+    <span class="n">image</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">depth_major</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_image</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="n">is_training</span><span class="p">)</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[]),</span> <span class="n">num_classes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">image</span><span class="p">,</span> <span class="n">label</span></div>
+
+<div class="viewcode-block" id="CifarDataLayer.build_graph"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">FixedLengthRecordDataset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_names</span><span class="p">,</span>
+                                               <span class="bp">self</span><span class="o">.</span><span class="n">_RECORD_BYTES</span><span class="p">)</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]:</span>
+      <span class="c1"># shuffling images</span>
+      <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="n">buffer_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;shuffle_buffer&#39;</span><span class="p">,</span>
+                                                            <span class="mi">1500</span><span class="p">))</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+      <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_record</span><span class="p">(</span>
+        <span class="n">raw_record</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">is_training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span>
+      <span class="p">),</span>
+      <span class="n">num_parallel_calls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_parallel_calls&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
+    <span class="p">)</span>
+
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
+    <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s1">&#39;augmented_images&#39;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{</span>
+      <span class="s1">&#39;source_tensors&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">inputs</span><span class="p">],</span>
+      <span class="s1">&#39;target_tensors&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">labels</span><span class="p">],</span>
+    <span class="p">}</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span>
+
+<div class="viewcode-block" id="CifarDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_train_size</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_valid_size</span><span class="p">)[</span><span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span><span class="p">::</span><span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span><span class="p">])</span></div></div>
 
 
 <div class="viewcode-block" id="ImagenetDataLayer"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer">[docs]</a><span class="k">class</span> <span class="nc">ImagenetDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
@@ -179,6 +322,8 @@
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
       <span class="s1">&#39;num_parallel_calls&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;shuffle_buffer&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;image_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+      <span class="s1">&#39;num_classes&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
@@ -231,12 +376,17 @@
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
 
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-      <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="n">parse_record</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">),</span>
+      <span class="k">lambda</span> <span class="n">value</span><span class="p">:</span> <span class="n">parse_record</span><span class="p">(</span>
+        <span class="n">raw_record</span><span class="o">=</span><span class="n">value</span><span class="p">,</span>
+        <span class="n">is_training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span>
+        <span class="n">image_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;image_size&#39;</span><span class="p">,</span> <span class="mi">224</span><span class="p">),</span>
+        <span class="n">num_classes</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_classes&#39;</span><span class="p">,</span> <span class="mi">1000</span><span class="p">),</span>
+      <span class="p">),</span>
       <span class="n">num_parallel_calls</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_parallel_calls&#39;</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span>
     <span class="p">)</span>
 
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">batch</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">])</span>
-    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
     <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>

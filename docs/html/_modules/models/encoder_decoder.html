@@ -285,8 +285,8 @@
 
 <span class="sd">    Returns:</span>
 <span class="sd">      tuple: tuple containing loss tensor as returned from</span>
-<span class="sd">      ``loss.compute_loss()`` and samples tensor, which is taken from</span>
-<span class="sd">      ``decoder.decode()[&#39;samples&#39;]``. When ``mode == &#39;infer&#39;``, loss will</span>
+<span class="sd">      ``loss.compute_loss()`` and list of outputs tensors, which is taken from</span>
+<span class="sd">      ``decoder.decode()[&#39;outputs&#39;]``. When ``mode == &#39;infer&#39;``, loss will</span>
 <span class="sd">      be None.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> \
@@ -314,7 +314,7 @@
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
         <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_tensors</span>
       <span class="n">decoder_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">input_dict</span><span class="o">=</span><span class="n">decoder_input</span><span class="p">)</span>
-      <span class="n">decoder_samples</span> <span class="o">=</span> <span class="n">decoder_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;samples&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+      <span class="n">model_outputs</span> <span class="o">=</span> <span class="n">decoder_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
         <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;Loss&quot;</span><span class="p">):</span>
@@ -326,7 +326,7 @@
       <span class="k">else</span><span class="p">:</span>
         <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Inference Mode. Loss part of graph isn&#39;t built.&quot;</span><span class="p">)</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
-      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">decoder_samples</span></div>
+      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">model_outputs</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">encoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

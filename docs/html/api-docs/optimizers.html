@@ -179,121 +179,10 @@
 <div class="section" id="id1">
 <h2>optimizers<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-optimizers.optimizers"></span><p>Optimizer ops for use in layers and tf.learn.</p>
-<dl class="class">
-<dt id="optimizers.optimizers.DistributedOptimizer">
-<em class="property">class </em><code class="descclassname">optimizers.optimizers.</code><code class="descname">DistributedOptimizer</code><span class="sig-paren">(</span><em>optimizer</em>, <em>name=None</em>, <em>use_locking=False</em>, <em>device_dense=''</em>, <em>device_sparse=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
-<p>An optimizer that wraps another tf.Optimizer, using an allreduce to
-average gradient values before applying gradients to model weights.</p>
-<dl class="method">
-<dt id="optimizers.optimizers.DistributedOptimizer.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>optimizer</em>, <em>name=None</em>, <em>use_locking=False</em>, <em>device_dense=''</em>, <em>device_sparse=''</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Construct a new DistributedOptimizer, which uses another optimizer
-under the hood for computing single-process gradient values and
-applying gradient updates after the gradient values have been averaged
-across all the Horovod ranks.
-:param optimizer: Optimizer to use for computing gradients and applying updates.
-:param name: Optional name prefix for the operations created when applying</p>
-<blockquote>
-<div>gradients. Defaults to “Distributed” followed by the provided
-optimizer type.</div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>use_locking</strong> – Whether to use locking when updating variables.
-See Optimizer.__init__ for more info.</li>
-<li><strong>device_dense</strong> – Device to be used for dense tensors. Uses GPU by default
-if Horovod was build with HOROVOD_GPU_ALLREDUCE.</li>
-<li><strong>device_sparse</strong> – Device to be used for sparse tensors. Uses GPU by default
-if Horovod was build with HOROVOD_GPU_ALLGATHER.</li>
-</ul>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="optimizers.optimizers.DistributedOptimizer.apply_gradients">
-<code class="descname">apply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>global_step=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.apply_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.apply_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calls this same method on the underlying optimizer.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="optimizers.optimizers.DistributedOptimizer.compute_gradients">
-<code class="descname">compute_gradients</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#DistributedOptimizer.compute_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.DistributedOptimizer.compute_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Compute gradients of all trainable variables.
-See Optimizer.compute_gradients() for more info.
-In DistributedOptimizer, compute_gradients() is overriden to also
-allreduce the gradients before returning them.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="optimizers.optimizers._adaptive_max_norm">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">_adaptive_max_norm</code><span class="sig-paren">(</span><em>norm</em>, <em>std_factor</em>, <em>decay</em>, <em>global_step</em>, <em>epsilon</em>, <em>name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_adaptive_max_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._adaptive_max_norm" title="Permalink to this definition">¶</a></dt>
-<dd><p>Find max_norm given norm and previous average.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="optimizers.optimizers._add_scaled_noise_to_gradients">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">_add_scaled_noise_to_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>gradient_noise_scale</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_add_scaled_noise_to_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._add_scaled_noise_to_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adds scaled noise from a 0-mean normal distribution to gradients.</p>
-</dd></dl>
-
 <dl class="function">
 <dt id="optimizers.optimizers._clip_gradients_by_norm">
 <code class="descclassname">optimizers.optimizers.</code><code class="descname">_clip_gradients_by_norm</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>clip_gradients</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_clip_gradients_by_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._clip_gradients_by_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clips gradients by global norm.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="optimizers.optimizers._multiply_gradients">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">_multiply_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>gradient_multipliers</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_multiply_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._multiply_gradients" title="Permalink to this definition">¶</a></dt>
-<dd><p>Multiply specified gradients.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="optimizers.optimizers._multiply_gradients_const">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">_multiply_gradients_const</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>multiplier</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_multiply_gradients_const"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._multiply_gradients_const" title="Permalink to this definition">¶</a></dt>
-<dd><p>Multiply specified gradients.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="optimizers.optimizers.adaptive_clipping_fn">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">adaptive_clipping_fn</code><span class="sig-paren">(</span><em>std_factor=2.0</em>, <em>decay=0.95</em>, <em>static_max_norm=None</em>, <em>global_step=None</em>, <em>report_summary=False</em>, <em>epsilon=1e-08</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#adaptive_clipping_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.adaptive_clipping_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Adapt the clipping value using statistics on the norms.</p>
-<p>Implement adaptive gradient as presented in section 3.2.1 of
-<a class="reference external" href="https://arxiv.org/abs/1412.1602">https://arxiv.org/abs/1412.1602</a>.</p>
-<p>Keeps a moving average of the mean and std of the log(norm) of the gradient.
-If the norm exceeds <cite>exp(mean + std_factor*std)</cite> then all gradients will be
-rescaled such that the global norm becomes <cite>exp(mean)</cite>.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>std_factor</strong> – Python scaler (or tensor).
-<cite>max_norm = exp(mean + std_factor*std)</cite></li>
-<li><strong>decay</strong> – The smoothing factor of the moving averages.</li>
-<li><strong>static_max_norm</strong> – If provided, will threshold the norm to this value as an
-extra safety.</li>
-<li><strong>global_step</strong> – Optional global_step. If provided, <cite>decay = decay*n/(n+1)</cite>.
-This provides a quicker adaptation of the mean for the first steps.</li>
-<li><strong>report_summary</strong> – If <cite>True</cite>, will add histogram summaries of the <cite>max_norm</cite>.</li>
-<li><strong>epsilon</strong> – Small value chosen to avoid zero variance.</li>
-<li><strong>name</strong> – The name for this operation is used to scope operations and summaries.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A function for applying gradient clipping.</p>
-</td>
-</tr>
-</tbody>
-</table>
 </dd></dl>
 
 <dl class="function">
@@ -314,137 +203,65 @@ This provides a quicker adaptation of the mean for the first steps.</li>
 
 <dl class="function">
 <dt id="optimizers.optimizers.optimize_loss">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>global_step=None</em>, <em>dtype=tf.float32</em>, <em>gradient_noise_scale=None</em>, <em>gradient_multipliers=None</em>, <em>clip_gradients=None</em>, <em>update_ops=None</em>, <em>variables=None</em>, <em>name=None</em>, <em>summaries=None</em>, <em>colocate_gradients_with_ops=False</em>, <em>increment_global_step=True</em>, <em>larc_params=None</em>, <em>loss_scale=1.0</em>, <em>automatic_loss_scaling=None</em>, <em>on_horovod=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>dtype=tf.float32</em>, <em>clip_gradients=None</em>, <em>summaries=None</em>, <em>larc_params=None</em>, <em>loss_scaling=1.0</em>, <em>on_horovod=False</em>, <em>iter_size=1</em>, <em>skip_update_ph=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given loss and parameters for optimizer, returns a training op.</p>
-<p>Various ways of passing optimizers include:</p>
-<ul>
-<li><dl class="first docutils">
-<dt>by string specifying the name of the optimizer. See OPTIMIZER_CLS_NAMES</dt>
-<dd><p class="first last">for full list. E.g. <cite>optimize_loss(…, optimizer=’Adam’)</cite>.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>by function taking learning rate <cite>Tensor</cite> as argument and returning an</dt>
-<dd><p class="first last"><cite>Optimizer</cite> instance. E.g. <cite>optimize_loss(…,
-optimizer=lambda lr: tf.train.MomentumOptimizer(lr, momentum=0.5))</cite>.</p>
-</dd>
-</dl>
-<p>Alternatively, if <cite>learning_rate</cite> is <cite>None</cite>, the function takes no
-arguments. E.g. <a href="#id2"><span class="problematic" id="id3">`</span></a>optimize_loss(…, learning_rate=None,</p>
-<blockquote>
-<div><p>optimizer=lambda: tf.train.MomentumOptimizer(0.5, momentum=0.5))`.</p>
-</div></blockquote>
-</li>
-<li><dl class="first docutils">
-<dt>by a subclass of <cite>Optimizer</cite> having a single-argument constructor</dt>
-<dd><p class="first last">(the argument is the learning rate), such as AdamOptimizer or
-AdagradOptimizer. E.g. <cite>optimize_loss(…,
-optimizer=tf.train.AdagradOptimizer)</cite>.</p>
-</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>by an instance of a subclass of <cite>Optimizer</cite>.</dt>
-<dd><p class="first last">E.g., <cite>optimize_loss(…, optimizer=tf.train.AdagradOptimizer(0.5))</cite>.</p>
-</dd>
-</dl>
-</li>
-</ul>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>loss</strong> – Scalar <cite>Tensor</cite>.</li>
-<li><strong>global_step</strong> – Scalar int <cite>Tensor</cite>, step counter to update on each step
-unless <cite>increment_global_step</cite> is <cite>False</cite>. If not supplied,
-it will be fetched from the default graph (see
-<cite>tf.train.get_global_step</cite> for details). If it has
-not been created, no step will be incremented with each weight
-update. <cite>learning_rate_decay_fn</cite> requires <cite>global_step</cite>.</li>
-<li><strong>learning_rate</strong> – float or <cite>Tensor</cite>, magnitude of update per each training
-step. Can be <cite>None</cite>.</li>
-<li><strong>optimizer</strong> – <p>string, class or optimizer instance, used as trainer.
-string should be name of optimizer, like ‘SGD’,</p>
-<blockquote>
-<div>’Adam’, ‘Adagrad’. Full list in OPTIMIZER_CLS_NAMES constant.</div></blockquote>
-<dl class="docutils">
-<dt>class should be sub-class of <cite>tf.Optimizer</cite> that implements</dt>
-<dd><cite>compute_gradients</cite> and <cite>apply_gradients</cite> functions.</dd>
-<dt>optimizer instance should be instantiation of <cite>tf.Optimizer</cite></dt>
-<dd>sub-class and have <cite>compute_gradients</cite> and <cite>apply_gradients</cite>
-functions.</dd>
-</dl>
-</li>
-<li><strong>gradient_noise_scale</strong> – float or None, adds 0-mean normal noise scaled by this
-value.</li>
-<li><strong>gradient_multipliers</strong> – dict of variables or variable names to floats.
-If present, gradients for specified
-variables will be multiplied by given constant.</li>
-<li><strong>clip_gradients</strong> – float, callable or <cite>None</cite>. If float, is provided, a global
-clipping is applied to prevent the norm of the gradient to exceed this
-value. Alternatively, a callable can be provided e.g.: adaptive_clipping.
-This callable takes a <cite>list</cite> of <cite>(gradients, variables)</cite> <a href="#id4"><span class="problematic" id="id5">`</span></a>tuple`s and
-returns the same thing with the gradients modified.</li>
-<li><strong>learning_rate_decay_fn</strong> – function, takes <cite>learning_rate</cite> and <cite>global_step</cite>
+<li><strong>optimizer</strong> – string or class of optimizer, used as trainer.
+string should be name of optimizer, like ‘SGD’,
+‘Adam’, ‘Adagrad’. Full list in OPTIMIZER_CLS_NAMES constant.
+class should be sub-class of <cite>tf.Optimizer</cite> that implements
+<cite>compute_gradients</cite> and <cite>apply_gradients</cite> functions.</li>
+<li><strong>optimizer_params</strong> – parameters of the optimizer.</li>
+<li><strong>dtype</strong> – model dtype (tf.float16, tf.float32 or “mixed”).</li>
+<li><strong>learning_rate_decay_fn</strong> – function, takes <cite>global_step</cite>
 <cite>Tensor`s, returns `Tensor</cite>.
 Can be used to implement any learning rate decay
 functions.
 For example: <cite>tf.train.exponential_decay</cite>.
 Ignored if <cite>learning_rate</cite> is not supplied.</li>
-<li><strong>update_ops</strong> – list of update <cite>Operation`s to execute at each step. If `None</cite>,
-uses elements of UPDATE_OPS collection. The order of execution
-between <cite>update_ops</cite> and <cite>loss</cite> is non-deterministic.</li>
-<li><strong>variables</strong> – list of variables to optimize or
-<cite>None</cite> to use all trainable variables.</li>
-<li><strong>name</strong> – The name for this operation is used to scope operations and summaries.</li>
+<li><strong>clip_gradients</strong> – float, max gradient norm to clip to.</li>
 <li><strong>summaries</strong> – List of internal quantities to visualize on tensorboard. If not
 set only the loss and the learning rate will be reported. The
 complete list is in OPTIMIZER_SUMMARIES.</li>
-<li><strong>colocate_gradients_with_ops</strong> – If True, try colocating gradients with the
-corresponding op.</li>
-<li><strong>increment_global_step</strong> – Whether to increment <cite>global_step</cite>. If your model
-calls <cite>optimize_loss</cite> multiple times per training step (e.g. to optimize
-different parts of the model), use this arg to avoid incrementing
-<cite>global_step</cite> more times than necessary.</li>
-<li><strong>LARC_mode</strong> – ‘scale’ or ‘clip’</li>
-<li><strong>LARC_nu</strong> – If not None, LARC re-scaling will be
-applied <a class="reference external" href="https://arxiv.org/pdf/1708.03888.pdf">https://arxiv.org/pdf/1708.03888.pdf</a> with nu=LARC_nu</li>
-<li><strong>automatic_loss_scaling</strong> – if not None, use the corresponding automatic
-loss scaling algorithm. Must be one of ‘Backoff’
-of ‘LogMax’. <cite>dtype</cite> must be “mixed” to use ALS.</li>
+<li><strong>larc_params</strong> – If not None, LARC re-scaling will
+be applied with corresponding parameters.</li>
+<li><strong>loss_scaling</strong> – could be float or string. If float, static loss scaling
+is applied. If string, the corresponding automatic
+loss scaling algorithm is used. Must be one of ‘Backoff’
+of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”.</li>
+<li><strong>on_horovod</strong> – whether the model is run on horovod.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Training op.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if:
-* <cite>loss</cite> is an invalid type or shape.
-* <cite>global_step</cite> is an invalid type or shape.
-* <cite>learning_rate</cite> is an invalid type or value.
-* <cite>optimizer</cite> has the wrong type.
-* <cite>clip_gradients</cite> is neither float nor callable.
-* <cite>learning_rate</cite> and <cite>learning_rate_decay_fn</cite> are supplied, but no</p>
-<blockquote>
-<div><p><cite>global_step</cite> is available.</p>
-</div></blockquote>
-<ul class="last simple">
-<li><cite>gradients</cite> is empty.</li>
-</ul>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">training op.</p>
 </td>
 </tr>
 </tbody>
 </table>
 </dd></dl>
 
+<dl class="function">
+<dt id="optimizers.optimizers.post_process_gradients">
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">post_process_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>summaries</em>, <em>lr</em>, <em>clip_gradients</em>, <em>larc_params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#post_process_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.post_process_gradients" title="Permalink to this definition">¶</a></dt>
+<dd><p>Applies post processing to gradients, i.e. clipping, LARC, summaries.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="optimizers.optimizers.reduce_gradients">
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">reduce_gradients</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>on_horovod</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#reduce_gradients"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.reduce_gradients" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-optimizers.mp_wrapper">
 <span id="mp-wrapper"></span><h2>mp_wrapper<a class="headerlink" href="#module-optimizers.mp_wrapper" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">
-<em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>automatic_loss_scaler=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">optimizers.mp_wrapper.</code><code class="descname">MixedPrecisionOptimizerWrapper</code><span class="sig-paren">(</span><em>optimizer</em>, <em>loss_scale=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/mp_wrapper.html#MixedPrecisionOptimizerWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.optimizer.Optimizer</span></code></p>
 <dl class="method">
 <dt id="optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">
@@ -547,7 +364,7 @@ and <cite>colocate_gradients_with_ops</cite> are ignored.
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS">
-<code class="descname">SUPPORTED_ALGOS</code><em class="property"> = ['Backoff', 'LogMax']</em><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS" title="Permalink to this definition">¶</a></dt>
+<code class="descname">SUPPORTED_ALGOS</code><em class="property"> = ['backoff', 'logmax']</em><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="staticmethod">

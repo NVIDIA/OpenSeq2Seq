@@ -244,10 +244,10 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_timer</span><span class="o">.</span><span class="n">update_last_triggered_step</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_iter_count</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span> <span class="o">=</span> <span class="n">results</span>
-    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">maybe_print_logs</span><span class="p">(</span><span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">)</span>
+    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">maybe_print_logs</span><span class="p">(</span><span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
     <span class="c1"># optionally logging to tensorboard any values</span>
     <span class="c1"># returned from maybe_print_logs</span>
-    <span class="k">if</span> <span class="n">dict_to_log</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dict_to_log</span><span class="p">:</span>
       <span class="n">log_summaries_from_dict</span><span class="p">(</span>
         <span class="n">dict_to_log</span><span class="p">,</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
@@ -348,11 +348,12 @@
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation loss: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
 
-      <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">finalize_evaluation</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">)</span>
+      <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">finalize_evaluation</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
       <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;eval_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_loss</span>
 
       <span class="c1"># saving the best validation model</span>
-      <span class="k">if</span> <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="ow">and</span> \
+         <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="n">total_loss</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
           <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
@@ -363,7 +364,7 @@
 
       <span class="c1"># optionally logging to tensorboard any values</span>
       <span class="c1"># returned from maybe_print_logs</span>
-      <span class="k">if</span> <span class="n">dict_to_log</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]:</span>
         <span class="n">log_summaries_from_dict</span><span class="p">(</span>
           <span class="n">dict_to_log</span><span class="p">,</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
