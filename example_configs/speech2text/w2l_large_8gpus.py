@@ -106,7 +106,7 @@ base_params = {
 
     # params for decoding the sequence with language model
     "beam_width": 512,
-    "lm_weight": 1.0,
+    "lm_weight": 2.0,
     "word_count_weight": 1.5,
     "valid_word_count_weight": 2.5,
 
