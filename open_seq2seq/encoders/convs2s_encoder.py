@@ -156,8 +156,6 @@ class ConvS2SEncoder(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
-      # disables padding masks in middle layers
-      # padding_mask = None
       outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
     return {
