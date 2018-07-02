@@ -5,13 +5,15 @@ Conv-based encoder
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import tensorflow as tf
 import math
-from .encoder import Encoder
 
+import tensorflow as tf
+
+from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
 from open_seq2seq.parts.transformer import embedding_layer
 from open_seq2seq.parts.transformer.utils import get_padding_bias, get_padding
-from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
+from .encoder import Encoder
+
 
 # Default value used if max_input_length is not given
 MAX_INPUT_LENGTH = 128
@@ -57,6 +59,9 @@ class ConvS2SEncoder(Encoder):
     self._mode = mode
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
+
+    self.position_embedding_layer = None
+    self.embedding_softmax_layer = None
 
   def _encode(self, input_dict):
     inputs = input_dict['source_tensors'][0]
@@ -205,7 +210,8 @@ class ConvS2SEncoder(Encoder):
       if padding_mask is not None:
         outputs_b *= padding_mask
 
-      # Average of the encoder outputs is calculated as the final state of the encoder
+      # Average of the encoder outputs is calculated
+      # as the final state of the encoder
       # it can be used for decoders which just accept the final state
       final_state = tf.reduce_mean(outputs_b, 1)
     return outputs, outputs_b, final_state

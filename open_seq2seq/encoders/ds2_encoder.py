@@ -1,18 +1,19 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
+from six.moves import range
 
-from .encoder import Encoder
 from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
+from .encoder import Encoder
 
 
 def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
   """Helper function that creates RNN cell."""
   if layer_type == "layernorm_lstm":
+    # pylint: disable=no-member
     cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
         num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
   else:
@@ -21,8 +22,10 @@ def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
     elif layer_type == "gru":
       cell = tf.nn.rnn_cell.GRUCell(rnn_cell_dim)
     elif layer_type == "cudnn_gru":
+      # pylint: disable=no-member
       cell = tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(rnn_cell_dim)
     elif layer_type == "cudnn_lstm":
+      # pylint: disable=no-member
       cell = tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(rnn_cell_dim)
     else:
       raise ValueError("Error: not supported rnn type:{}".format(layer_type))
@@ -93,7 +96,8 @@ class DeepSpeech2Encoder(Encoder):
         'n_hidden': int,
         'use_cudnn_rnn': bool,
         'rnn_cell_dim': int,
-        'rnn_type': ['layernorm_lstm', 'lstm', 'gru', 'cudnn_gru', 'cudnn_lstm'],
+        'rnn_type': ['layernorm_lstm', 'lstm', 'gru',
+                     'cudnn_gru', 'cudnn_lstm'],
         'rnn_unidirectional': bool,
     })
 
@@ -240,6 +244,7 @@ class DeepSpeech2Encoder(Encoder):
           direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
 
         if rnn_type == "cudnn_gru" or rnn_type == "gru":
+          # pylint: disable=no-member
           rnn_block = tf.contrib.cudnn_rnn.CudnnGRU(
               num_layers=num_rnn_layers,
               num_units=rnn_cell_dim,
@@ -249,6 +254,7 @@ class DeepSpeech2Encoder(Encoder):
               name="cudnn_gru",
           )
         elif rnn_type == "cudnn_lstm" or rnn_type == "lstm":
+          # pylint: disable=no-member
           rnn_block = tf.contrib.cudnn_rnn.CudnnLSTM(
               num_layers=num_rnn_layers,
               num_units=rnn_cell_dim,
