@@ -81,7 +81,8 @@ class Text2SpeechDataLayer(DataLayer):
 
     if "mel" in self.params["output_type"]:
       self.mel = True
-      self.mel_basis = librosa.filters.mel(22050, 1024, n_mels=80)
+      self.mel_basis = librosa.filters.mel(22050, 1024,
+       n_mels=self.params['num_audio_features'])
     else:
       self.mel = False
 
@@ -209,7 +210,8 @@ class Text2SpeechDataLayer(DataLayer):
                               feature_normalize=self.params["feature_normalize"],
                               mean=self.params.get("feature_normalize_mean", 0.),
                               std=self.params.get("feature_normalize_std", 1.),
-                              mel_basis=self.mel_basis
+                              mel_basis=self.mel_basis,
+                              n_mels=self.params['num_audio_features']
                              )
       else:
         if mag_power != 1:
