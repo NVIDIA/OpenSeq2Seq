@@ -4,7 +4,7 @@ from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
 from open_seq2seq.losses import TacotronLoss
-from open_seq2seq.optimizers.lr_policies import fixed_lr
+from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy
 
 
 base_model = Text2Speech
@@ -34,7 +34,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-june29-merge",
+  "logdir": "result/tacotron-LJ-lrpolicy",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
@@ -43,13 +43,13 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 1e-3,
   },
-  # "lr_policy": exp_decay,
+  # "lr_policy": transformer_policy,
   # "lr_policy_params": {
-  #   "begin_decay_at": 0,
-  #   "decay_steps": 500,
-  #   "decay_rate": 0.9,
-  #   "use_staircase_decay": True,
-  #   "min_lr": 0.0,
+  #   "learning_rate": 1.8,
+  #   "max_lr": 1e-3,
+  #   "warmup_steps": 5000,
+  #   "d_model": 64,
+  #   "coefficient": 1
   # },
   "dtype": tf.float32,
   # weight decay
