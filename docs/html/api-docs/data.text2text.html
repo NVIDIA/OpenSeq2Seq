@@ -227,10 +227,12 @@ is the list of training files. Second, while reading records using
 <cite>parallel_interleave</cite>, the <cite>sloppy</cite> argument is used to generate randomness
 in the order of the examples.</p>
 </li>
+<li><p class="first">Modified slightly to fit OpenSeq2Seq needs</p>
+</li>
 </ol>
 <dl class="function">
 <dt id="data.text2text.t2t._batch_examples">
-<code class="descclassname">data.text2text.t2t.</code><code class="descname">_batch_examples</code><span class="sig-paren">(</span><em>dataset</em>, <em>batch_size</em>, <em>max_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_batch_examples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._batch_examples" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2text.t2t.</code><code class="descname">_batch_examples</code><span class="sig-paren">(</span><em>dataset</em>, <em>batch_size</em>, <em>max_length</em>, <em>pad_2_eight=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_batch_examples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._batch_examples" title="Permalink to this definition">¶</a></dt>
 <dd><p>Group examples by similar lengths, and return batched dataset.</p>
 <p>Each batch of similar-length examples are padded to the same length, and may
 have different number of elements in each batch, such that:</p>
@@ -303,13 +305,13 @@ buckets_max = [4, 8, 16, 24, 25]</div></blockquote>
 
 <dl class="function">
 <dt id="data.text2text.t2t._parse_example">
-<code class="descclassname">data.text2text.t2t.</code><code class="descname">_parse_example</code><span class="sig-paren">(</span><em>serialized_example</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_parse_example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._parse_example" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2text.t2t.</code><code class="descname">_parse_example</code><span class="sig-paren">(</span><em>serialized_example</em>, <em>pad_2_eight=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_parse_example"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._parse_example" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return inputs and targets Tensors from a serialized tf.Example.</p>
 </dd></dl>
 
 <dl class="function">
 <dt id="data.text2text.t2t._read_and_batch_from_files">
-<code class="descclassname">data.text2text.t2t.</code><code class="descname">_read_and_batch_from_files</code><span class="sig-paren">(</span><em>file_pattern</em>, <em>batch_size</em>, <em>max_length</em>, <em>num_cpu_cores</em>, <em>shuffle</em>, <em>repeat</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_read_and_batch_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._read_and_batch_from_files" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2text.t2t.</code><code class="descname">_read_and_batch_from_files</code><span class="sig-paren">(</span><em>file_pattern</em>, <em>batch_size</em>, <em>max_length</em>, <em>num_cpu_cores</em>, <em>shuffle</em>, <em>repeat</em>, <em>num_workers</em>, <em>worker_id</em>, <em>batch_in_tokens</em>, <em>pad2eight=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_read_and_batch_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._read_and_batch_from_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create dataset where each item is a dict of “inputs” and “targets”.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -325,6 +327,11 @@ buckets_max = [4, 8, 16, 24, 25]</div></blockquote>
 repeated forever.</li>
 <li><strong>num_workers</strong> – Number of workers or number of Horovod workers</li>
 <li><strong>worker_id</strong> – Worker id or Horovod rank</li>
+<li><strong>batch_in_tokens</strong> – whether to batch_size means amounts in tokens or sentence</li>
+<li><strong>batching in tokens is more efficient as it reduces PADs. batching in</strong> (<em>pairs.</em>) – </li>
+<li><strong>should be used in inference mode since order of</strong> (<em>sentences</em>) – </li>
+<li><strong>is important</strong> (<em>sentences</em>) – </li>
+<li><strong>pad2eight</strong> – if True, it will pad both dimensions to be divisible by 8</li>
 </ul>
 </td>
 </tr>

@@ -204,7 +204,7 @@
     <span class="p">)</span>
     <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Speech2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Speech2Text.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2Text.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">training_step</span><span class="p">):</span>
     <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
     <span class="n">decoded_sequence</span> <span class="o">=</span> <span class="n">output_values</span>
     <span class="n">y_one_sample</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -229,7 +229,7 @@
       <span class="s1">&#39;Sample WER&#39;</span><span class="p">:</span> <span class="n">sample_wer</span><span class="p">,</span>
     <span class="p">}</span></div>
 
-<div class="viewcode-block" id="Speech2Text.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2Text.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">training_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">total_word_lev</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">total_word_count</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="k">for</span> <span class="n">word_lev</span><span class="p">,</span> <span class="n">word_count</span> <span class="ow">in</span> <span class="n">results_per_batch</span><span class="p">:</span>
@@ -275,13 +275,21 @@
     <span class="p">)</span>
     <span class="k">for</span> <span class="n">sample_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">)):</span>
       <span class="n">preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">[</span><span class="n">sample_id</span><span class="p">]))</span>
-    <span class="k">return</span> <span class="n">preds</span></div>
+    <span class="k">return</span> <span class="n">preds</span><span class="p">,</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_ids&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Speech2Text.finalize_inference"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.finalize_inference">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
     <span class="n">preds</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="p">[]</span>
 
-    <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results_per_batch</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">result</span><span class="p">,</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">results_per_batch</span><span class="p">:</span>
       <span class="n">preds</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+      <span class="n">ids</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">idx</span><span class="p">)</span>
+
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">preds</span><span class="p">)</span>
+    <span class="n">ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
+    <span class="c1"># restoring the correct order</span>
+    <span class="n">preds</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">ids</span><span class="p">)]</span>
+
     <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
       <span class="p">{</span>
         <span class="s1">&#39;wav_filename&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">all_files</span><span class="p">,</span>
@@ -290,7 +298,7 @@
       <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">],</span>
     <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Speech2Text.get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Speech2Text._get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text._get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">_get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns number of audio frames in current batch.&quot;&quot;&quot;</span>
     <span class="n">data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
     <span class="n">num_frames</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>

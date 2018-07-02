@@ -10,3 +10,5 @@ parts
 
     parts.rnns
     parts.transformer
+    parts.convs2s
+    parts.cnns

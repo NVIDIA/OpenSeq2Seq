@@ -32,7 +32,7 @@ run unittests::
 
    python -m unittest discover -s open_seq2seq -p '*_test.py'
 
-It might take up to 10 minutes. You should see a lot of output, but no errors
+It might take up to 30 minutes. You should see a lot of output, but no errors
 in the end.
 
 .. _installation_speech:

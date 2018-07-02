@@ -165,23 +165,28 @@
 
 
 <div class="viewcode-block" id="MixedPrecisionOptimizerWrapper"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper">[docs]</a><span class="k">class</span> <span class="nc">MixedPrecisionOptimizerWrapper</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Optimizer</span><span class="p">):</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">automatic_loss_scaler</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">optimizer</span><span class="p">,</span> <span class="n">loss_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">MixedPrecisionOptimizerWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
       <span class="n">optimizer</span><span class="o">.</span><span class="n">_use_locking</span><span class="p">,</span>
       <span class="n">optimizer</span><span class="o">.</span><span class="n">_name</span> <span class="o">+</span> <span class="s1">&#39;-MP&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span> <span class="o">=</span> <span class="n">optimizer</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_fp32_to_fp16</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span> <span class="o">=</span> <span class="n">automatic_loss_scaler</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">loss_scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span> <span class="o">=</span> <span class="mf">1.0</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss_scale</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span> <span class="o">=</span> <span class="n">loss_scale</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">loss_scale</span><span class="p">,</span> <span class="n">AutomaticLossScaler</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span> <span class="o">=</span> <span class="n">loss_scale</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="o">.</span><span class="n">loss_scale</span>
 
 <div class="viewcode-block" id="MixedPrecisionOptimizerWrapper.compute_gradients"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">[docs]</a>  <span class="k">def</span> <span class="nf">compute_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">loss</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">gate_gradients</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Optimizer</span><span class="o">.</span><span class="n">GATE_OP</span><span class="p">,</span>
                         <span class="n">aggregation_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                         <span class="n">grad_loss</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="p">:</span>
-      <span class="n">loss</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="o">.</span><span class="n">loss_scale</span>
-
+    <span class="n">loss</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span>
     <span class="n">grads_and_vars_fp16</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span>
       <span class="n">loss</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">var_list</span><span class="p">,</span>
       <span class="n">gate_gradients</span><span class="o">=</span><span class="n">gate_gradients</span><span class="p">,</span>
@@ -214,7 +219,7 @@
           <span class="n">fp32_grad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">grad</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
           <span class="c1"># adding regularization part with respect to fp32 copy</span>
           <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">reg_funcs</span><span class="p">:</span>
-            <span class="n">fp32_grad</span> <span class="o">+=</span> <span class="n">tf</span><span class="o">.</span><span class="n">gradients</span><span class="p">(</span>
+            <span class="n">fp32_grad</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">gradients</span><span class="p">(</span>
               <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">apply_regularization</span><span class="p">(</span>
                 <span class="n">reg_funcs</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">],</span>
                 <span class="p">[</span><span class="n">fp32_var</span><span class="p">],</span>
@@ -225,15 +230,11 @@
         <span class="k">else</span><span class="p">:</span>
           <span class="n">grads_and_vars_fp32</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">grad</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
 
-    <span class="c1"># Unscale gradients if necessary</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="p">:</span>
-      <span class="n">grads_and_vars_fp32</span> <span class="o">=</span> <span class="n">_scale_grads</span><span class="p">(</span><span class="n">grads_and_vars_fp32</span><span class="p">,</span>
-                                         <span class="mf">1.</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="o">.</span><span class="n">loss_scale</span><span class="p">)</span>
-
+    <span class="n">grads_and_vars_fp32</span> <span class="o">=</span> <span class="n">_scale_grads</span><span class="p">(</span><span class="n">grads_and_vars_fp32</span><span class="p">,</span>
+                                       <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scale</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">grads_and_vars_fp32</span></div>
 
 <div class="viewcode-block" id="MixedPrecisionOptimizerWrapper.apply_gradients"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.apply_gradients">[docs]</a>  <span class="k">def</span> <span class="nf">apply_gradients</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">grads_and_vars</span><span class="p">,</span> <span class="n">global_step</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
-
     <span class="k">def</span> <span class="nf">apply_ops_wrapper</span><span class="p">():</span>
       <span class="n">update_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_optimizer</span><span class="o">.</span><span class="n">apply_gradients</span><span class="p">(</span><span class="n">grads_and_vars</span><span class="p">,</span>
                                                   <span class="n">global_step</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
@@ -243,7 +244,7 @@
           <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fp32_to_fp16</span><span class="p">:</span>
             <span class="n">dst_var</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_fp32_to_fp16</span><span class="p">[</span><span class="n">var</span><span class="o">.</span><span class="n">name</span><span class="p">]</span>
             <span class="n">apply_ops</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-              <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dst_var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">)))</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="n">dst_var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span><span class="n">var</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">)))</span>
       <span class="k">if</span> <span class="n">apply_ops</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">apply_ops</span><span class="p">)</span>
       <span class="k">return</span> <span class="n">update_op</span>
@@ -254,9 +255,7 @@
       <span class="n">loss_scale_update_op</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_loss_scaler</span><span class="o">.</span><span class="n">update_op</span><span class="p">(</span><span class="n">grad_has_nans</span><span class="p">,</span>
                                                          <span class="n">grad_amax</span><span class="p">)</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span><span class="n">loss_scale_update_op</span><span class="p">]):</span>
-        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span><span class="n">should_skip_update</span><span class="p">,</span>
-                       <span class="n">tf</span><span class="o">.</span><span class="n">no_op</span><span class="p">,</span>
-                       <span class="n">apply_ops_wrapper</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span><span class="n">should_skip_update</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">no_op</span><span class="p">,</span> <span class="n">apply_ops_wrapper</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">return</span> <span class="n">apply_ops_wrapper</span><span class="p">()</span></div></div>
 
@@ -284,6 +283,7 @@
         <span class="n">grad</span> <span class="o">*=</span> <span class="n">scale</span>
     <span class="n">scaled_grads_and_vars</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">grad</span><span class="p">,</span> <span class="n">var</span><span class="p">))</span>
   <span class="k">return</span> <span class="n">scaled_grads_and_vars</span>
+
 </pre></div>
 
            </div>

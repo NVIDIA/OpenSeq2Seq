@@ -163,25 +163,25 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 
-<div class="viewcode-block" id="AutomaticLossScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler">[docs]</a><span class="k">class</span> <span class="nc">AutomaticLossScaler</span><span class="p">:</span>
-  <span class="n">SUPPORTED_ALGOS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMax&#39;</span><span class="p">]</span>
+<div class="viewcode-block" id="AutomaticLossScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler">[docs]</a><span class="k">class</span> <span class="nc">AutomaticLossScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+  <span class="n">SUPPORTED_ALGOS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;backoff&#39;</span><span class="p">,</span> <span class="s1">&#39;logmax&#39;</span><span class="p">]</span>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="n">scale_min</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale_max</span><span class="o">=</span><span class="mf">2.</span><span class="o">**</span><span class="mi">24</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;Backoff&#39;</span><span class="p">:</span>
+    <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;backoff&#39;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">BackoffScaler</span><span class="p">(</span><span class="n">scale_min</span><span class="o">=</span><span class="n">scale_min</span><span class="p">,</span>
                                   <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
                                   <span class="n">step_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
                                   <span class="n">step_window</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
-    <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;LogMax&#39;</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;logmax&#39;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">LogMaxScaler</span><span class="p">(</span><span class="n">scale_min</span><span class="o">=</span><span class="n">scale_min</span><span class="p">,</span>
                                  <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
                                  <span class="n">log_max</span><span class="o">=</span><span class="mf">16.</span><span class="p">,</span>
                                  <span class="n">beta1</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
                                  <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                                 <span class="n">overflow_std_dev</span><span class="o">=</span><span class="mf">3.09</span><span class="p">)</span> <span class="c1"># ppf(.999)</span>
+                                 <span class="n">overflow_std_dev</span><span class="o">=</span><span class="mf">3.09</span><span class="p">)</span>  <span class="c1"># ppf(.999)</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown dynamic scaling algorithm: </span><span class="si">%s</span><span class="s1">&#39;</span>
-                       <span class="o">%</span> <span class="n">algorithm_name</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown scaling algorithm: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span>
 
 <div class="viewcode-block" id="AutomaticLossScaler.update_op"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.update_op">[docs]</a>  <span class="k">def</span> <span class="nf">update_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_nan</span><span class="p">,</span> <span class="n">amax</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span><span class="o">.</span><span class="n">update_op</span><span class="p">(</span><span class="n">has_nan</span><span class="p">,</span> <span class="n">amax</span><span class="p">)</span></div>
@@ -210,7 +210,7 @@
     <span class="k">return</span> <span class="n">has_nan</span><span class="p">,</span> <span class="n">amax</span></div></div>
 
 
-<div class="viewcode-block" id="BackoffScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.BackoffScaler">[docs]</a><span class="k">class</span> <span class="nc">BackoffScaler</span><span class="p">:</span>
+<div class="viewcode-block" id="BackoffScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.BackoffScaler">[docs]</a><span class="k">class</span> <span class="nc">BackoffScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">step_factor</span><span class="p">,</span> <span class="n">step_window</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">scale_min</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">scale_max</span>
@@ -260,7 +260,7 @@
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span></div>
 
 
-<div class="viewcode-block" id="LogMaxScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.LogMaxScaler">[docs]</a><span class="k">class</span> <span class="nc">LogMaxScaler</span><span class="p">:</span>
+<div class="viewcode-block" id="LogMaxScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.LogMaxScaler">[docs]</a><span class="k">class</span> <span class="nc">LogMaxScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">log_max</span><span class="p">,</span> <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">overflow_std_dev</span><span class="p">):</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">scale_min</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">scale_max</span>

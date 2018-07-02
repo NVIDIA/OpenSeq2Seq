@@ -165,7 +165,7 @@
 
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.gnmt</span> <span class="k">import</span> <span class="n">GNMTAttentionMultiCell</span><span class="p">,</span> \
                                                            <span class="n">gnmt_residual_fn</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.utils</span> <span class="k">import</span> <span class="n">create_rnn_cell</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.utils</span> <span class="k">import</span> <span class="n">single_cell</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.attention_wrapper</span> <span class="k">import</span> <span class="n">BahdanauAttention</span><span class="p">,</span> \
                                                  <span class="n">LuongAttention</span><span class="p">,</span> \
                                                  <span class="n">AttentionWrapper</span>
@@ -185,8 +185,7 @@
       <span class="s1">&#39;tgt_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;attention_layer_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;attention_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;bahdanau&#39;</span><span class="p">,</span> <span class="s1">&#39;luong&#39;</span><span class="p">,</span> <span class="s1">&#39;gnmt&#39;</span><span class="p">,</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">],</span>
-      <span class="s1">&#39;decoder_cell_units&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span> <span class="s1">&#39;glstm&#39;</span><span class="p">,</span> <span class="s1">&#39;slstm&#39;</span><span class="p">],</span>
+      <span class="s1">&#39;core_cell&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
       <span class="s1">&#39;decoder_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
       <span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -195,6 +194,7 @@
 <div class="viewcode-block" id="RNNDecoderWithAttention.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;core_cell_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
       <span class="s1">&#39;bahdanau_normalize&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;luong_scale&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
       <span class="s1">&#39;decoder_dp_input_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
@@ -220,8 +220,8 @@
 <span class="sd">    * **END_SYMBOL** (int) --- END symbol id, must be the same as used in</span>
 <span class="sd">      data layer.</span>
 <span class="sd">    * **tgt_emb_size** (int) --- embedding size to use.</span>
-<span class="sd">    * **decoder_cell_units** (int) - number of units in RNN</span>
-<span class="sd">    * **decoder_cell_type** (string) - RNN type: lstm, gru, glstm, etc.</span>
+<span class="sd">    * **core_cell_params** (dict) - parameters for RNN class</span>
+<span class="sd">    * **core_cell** (string) - RNN class.</span>
 <span class="sd">    * **decoder_dp_input_keep_prob** (float) - dropout input keep probability.</span>
 <span class="sd">    * **decoder_dp_output_keep_prob** (float) - dropout output keep probability.</span>
 <span class="sd">    * **decoder_use_skip_connections** (bool) - use residual connections or not.</span>
@@ -339,8 +339,8 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">cell_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-    <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_units&#39;</span><span class="p">]</span>
+    <span class="c1">#cell_params = copy.deepcopy(self.params)</span>
+    <span class="c1">#cell_params[&quot;num_units&quot;] = self.params[&#39;decoder_cell_units&#39;]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="n">dp_input_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_dp_input_keep_prob&#39;</span><span class="p">]</span>
@@ -349,22 +349,17 @@
       <span class="n">dp_input_keep_prob</span> <span class="o">=</span> <span class="mf">1.0</span>
       <span class="n">dp_output_keep_prob</span> <span class="o">=</span> <span class="mf">1.0</span>
 
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
-      <span class="n">residual_connections</span> <span class="o">=</span> <span class="kc">False</span>
-      <span class="n">wrap_to_multi_rnn</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">residual_connections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">]</span>
-      <span class="n">wrap_to_multi_rnn</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">residual_connections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">]</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span> <span class="o">=</span> <span class="n">create_rnn_cell</span><span class="p">(</span>
-      <span class="n">cell_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">],</span>
-      <span class="n">cell_params</span><span class="o">=</span><span class="n">cell_params</span><span class="p">,</span>
-      <span class="n">num_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">],</span>
-      <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-      <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-      <span class="n">residual_connections</span><span class="o">=</span><span class="n">residual_connections</span><span class="p">,</span>
-      <span class="n">wrap_to_multi_rnn</span><span class="o">=</span><span class="n">wrap_to_multi_rnn</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="c1"># list of cells</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">single_cell</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;core_cell&#39;</span><span class="p">],</span>
+                  <span class="n">cell_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core_cell_params&#39;</span><span class="p">,</span> <span class="p">{}),</span>
+                  <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
+                  <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
+                  <span class="c1"># residual connections are added a little differently for GNMT</span>
+                  <span class="n">residual_connections</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">residual_connections</span><span class="p">,</span>
+                  <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">])]</span>
 
     <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_attention</span><span class="p">(</span>
       <span class="n">encoder_outputs</span><span class="p">,</span>
@@ -372,7 +367,6 @@
     <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
-      <span class="c1"># attention_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attention_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
         <span class="n">attention_cell</span><span class="p">,</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
@@ -380,12 +374,12 @@
         <span class="n">output_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gnmt_attention&quot;</span><span class="p">)</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">GNMTAttentionMultiCell</span><span class="p">(</span>
-        <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
+        <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">)</span> <span class="k">if</span> <span class="n">residual_connections</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
         <span class="n">use_new_attention</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="c1"># attentive_decoder_cell = tf.contrib.seq2seq.AttentionWrapper(</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
-        <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
+        <span class="n">cell</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
       <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
@@ -438,8 +432,9 @@
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span>
-            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">time_major</span> <span class="k">else</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+            <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)],</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 
@@ -526,8 +521,8 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="n">cell_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">)</span>
-    <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_units&#39;</span><span class="p">]</span>
+    <span class="c1">#cell_params = copy.deepcopy(self.params)</span>
+    <span class="c1">#cell_params[&quot;num_units&quot;] = self.params[&#39;decoder_cell_units&#39;]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="n">dp_input_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_dp_input_keep_prob&#39;</span><span class="p">]</span>
@@ -536,22 +531,34 @@
       <span class="n">dp_input_keep_prob</span> <span class="o">=</span> <span class="mf">1.0</span>
       <span class="n">dp_output_keep_prob</span> <span class="o">=</span> <span class="mf">1.0</span>
 
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;gnmt&#39;</span><span class="p">):</span>
-      <span class="n">residual_connections</span> <span class="o">=</span> <span class="kc">False</span>
-      <span class="n">wrap_to_multi_rnn</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">residual_connections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">]</span>
-      <span class="n">wrap_to_multi_rnn</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="c1">#if self.params[&#39;attention_type&#39;].startswith(&#39;gnmt&#39;):</span>
+    <span class="c1">#  residual_connections = False</span>
+    <span class="c1">#  wrap_to_multi_rnn = False</span>
+    <span class="c1">#else:</span>
+    <span class="c1">#  residual_connections = self.params[&#39;decoder_use_skip_connections&#39;]</span>
+    <span class="c1">#  wrap_to_multi_rnn = True</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span> <span class="o">=</span> <span class="n">create_rnn_cell</span><span class="p">(</span>
-      <span class="n">cell_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">],</span>
-      <span class="n">cell_params</span><span class="o">=</span><span class="n">cell_params</span><span class="p">,</span>
-      <span class="n">num_layers</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">],</span>
-      <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
-      <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
-      <span class="n">residual_connections</span><span class="o">=</span><span class="n">residual_connections</span><span class="p">,</span>
-      <span class="n">wrap_to_multi_rnn</span><span class="o">=</span><span class="n">wrap_to_multi_rnn</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="c1">#self._decoder_cells = create_rnn_cell(</span>
+    <span class="c1">#  cell_type=self.params[&#39;decoder_cell_type&#39;],</span>
+    <span class="c1">#  cell_params=cell_params,</span>
+    <span class="c1">#  num_layers=self.params[&#39;decoder_layers&#39;],</span>
+    <span class="c1">#  dp_input_keep_prob=dp_input_keep_prob,</span>
+    <span class="c1">#  dp_output_keep_prob=dp_output_keep_prob,</span>
+    <span class="c1">#  residual_connections=residual_connections,</span>
+    <span class="c1">#  wrap_to_multi_rnn=wrap_to_multi_rnn,</span>
+    <span class="c1">#)</span>
+    <span class="n">residual_connections</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_use_skip_connections&#39;</span><span class="p">]</span>
+    <span class="c1"># list of cells</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">single_cell</span><span class="p">(</span><span class="n">cell_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;core_cell&#39;</span><span class="p">],</span>
+                  <span class="n">cell_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;core_cell_params&#39;</span><span class="p">,</span> <span class="p">{}),</span>
+                  <span class="n">dp_input_keep_prob</span><span class="o">=</span><span class="n">dp_input_keep_prob</span><span class="p">,</span>
+                  <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="n">dp_output_keep_prob</span><span class="p">,</span>
+                  <span class="c1"># residual connections are added a little differently for GNMT</span>
+                  <span class="n">residual_connections</span><span class="o">=</span><span class="kc">False</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span>
+                    <span class="s1">&#39;attention_type&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span>
+                    <span class="s1">&#39;gnmt&#39;</span><span class="p">)</span> <span class="k">else</span> <span class="n">residual_connections</span><span class="p">,</span>
+                  <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">])]</span>
 
     <span class="n">tiled_enc_outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">tile_batch</span><span class="p">(</span>
       <span class="n">encoder_outputs</span><span class="p">,</span>
@@ -575,18 +582,18 @@
         <span class="n">output_attention</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gnmt_attention&quot;</span><span class="p">)</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">GNMTAttentionMultiCell</span><span class="p">(</span>
-        <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
+        <span class="n">attention_cell</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_add_residual_wrapper</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">)</span> <span class="k">if</span> <span class="n">residual_connections</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
         <span class="n">use_new_attention</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;gnmt_v2&#39;</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># non-GNMT</span>
       <span class="n">attentive_decoder_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
-        <span class="n">cell</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">,</span>
+        <span class="n">cell</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cells</span><span class="p">),</span>
         <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
       <span class="p">)</span>
     <span class="n">batch_size_tensor</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">)</span>
     <span class="n">embedding_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">ids</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
       <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dec_emb_w</span><span class="p">,</span> <span class="n">ids</span><span class="p">),</span>
       <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span>
-    <span class="c1">#decoder = tf.contrib.seq2seq.BeamSearchDecoder(</span>
+    <span class="c1"># decoder = tf.contrib.seq2seq.BeamSearchDecoder(</span>
     <span class="n">decoder</span> <span class="o">=</span> <span class="n">BeamSearchDecoder</span><span class="p">(</span>
       <span class="n">cell</span><span class="o">=</span><span class="n">attentive_decoder_cell</span><span class="p">,</span>
       <span class="n">embedding</span><span class="o">=</span><span class="n">embedding_fn</span><span class="p">,</span>
@@ -611,8 +618,9 @@
       <span class="n">output_time_major</span><span class="o">=</span><span class="n">time_major</span><span class="p">,</span>
     <span class="p">)</span>
 
-    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span>
-            <span class="s1">&#39;samples&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]],</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">time_major</span> <span class="k">else</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">perm</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+            <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">final_outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]],</span>
             <span class="s1">&#39;final_state&#39;</span><span class="p">:</span> <span class="n">final_state</span><span class="p">,</span>
             <span class="s1">&#39;final_sequence_lengths&#39;</span><span class="p">:</span> <span class="n">final_sequence_lengths</span><span class="p">}</span></div></div>
 </pre></div>

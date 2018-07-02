@@ -1,7 +1,7 @@
 from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import DeepSpeech2Encoder
+from open_seq2seq.encoders import Wave2LetterEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
@@ -13,7 +13,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 111,
+  "num_epochs": 200,
 
   "num_gpus": 1,
   "batch_size_per_gpu": 10,
@@ -41,27 +41,20 @@ base_params = {
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-  "encoder": DeepSpeech2Encoder,
+  "encoder": Wave2LetterEncoder,
   "encoder_params": {
-    "conv_layers": [
+    "convnet_layers": [
       {
-        "kernel_size": [5, 11], "stride": [2, 2],
-        "num_channels": 32, "padding": "SAME"
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [7], "stride": [1],
+        "num_channels": 200, "padding": "SAME"
       },
       {
-        "kernel_size": [5, 11], "stride": [1, 2],
-        "num_channels": 64, "padding": "SAME"
+        "type": "conv1d", "repeat" : 1,
+        "kernel_size": [1], "stride": [1],
+        "num_channels": 400, "padding": "SAME" #n_hidden = num_channels
       },
     ],
-    "n_hidden": 128,
-
-    "rnn_cell_dim": 128,
-    "rnn_type": "gru",
-    "num_rnn_layers": 1,
-    "rnn_unidirectional": False,
-    "row_conv": True,
-    "row_conv_width": 8,
-    "use_cudnn_rnn": True,
 
     "dropout_keep_prob": 0.9,
 
@@ -70,8 +63,8 @@ base_params = {
       'uniform': False,
     },
     "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
-    "data_format": "channels_first",
-    "bn_momentum": 0.1,
+    "data_format": "channels_last",
+    "bn_momentum": 0.001,
   },
 
   "decoder": FullyConnectedCTCDecoder,
@@ -86,8 +79,8 @@ base_params = {
 train_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
+    "num_audio_features": 40,
+    "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "open_seq2seq/test_utils/toy_speech_data/toy_data.csv",
@@ -99,8 +92,8 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 160,
-    "input_type": "spectrogram",
+    "num_audio_features": 40,
+    "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "open_seq2seq/test_utils/toy_speech_data/toy_data.csv",

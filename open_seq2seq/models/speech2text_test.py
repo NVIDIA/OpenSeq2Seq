@@ -12,27 +12,17 @@ import pandas as pd
 import tensorflow as tf
 from six.moves import range
 
-from open_seq2seq.test_utils.test_speech_config import base_params, \
-                                                       train_params, \
-                                                       eval_params, \
-                                                       base_model
 from open_seq2seq.utils import train, evaluate, infer
 from open_seq2seq.utils.utils import get_available_gpus
 from .speech2text import levenshtein
 
 
 class Speech2TextModelTests(tf.test.TestCase):
-  def setUp(self):
-    pass
-
-  def tearDown(self):
-    pass
-
   def run_model(self, train_config, eval_config, hvd=None):
     with tf.Graph().as_default() as g:
-      train_model = base_model(params=train_config, mode="train", hvd=hvd)
+      train_model = self.base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
-      eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+      eval_model = self.base_model(params=eval_config, mode="eval", hvd=hvd)
       eval_model.compile(force_var_reuse=True)
 
       train(train_model, eval_model)
@@ -51,21 +41,22 @@ class Speech2TextModelTests(tf.test.TestCase):
         eval_loss = np.mean(eval_losses)
         weights_new = sess.run(tf.trainable_variables())
 
-        # checking that the weights has not changed from just computing the loss
+        # checking that the weights has not changed from
+        # just computing the loss
         for w, w_new in zip(weights, weights_new):
           npt.assert_allclose(w, w_new)
       eval_dict = evaluate(eval_model, checkpoint)
     return loss, eval_loss, eval_dict
 
   def prepare_config(self):
-    base_params['logdir'] = tempfile.mktemp()
-    train_config = copy.deepcopy(base_params)
-    eval_config = copy.deepcopy(base_params)
-    train_config.update(copy.deepcopy(train_params))
-    eval_config.update(copy.deepcopy(eval_params))
+    self.base_params['logdir'] = tempfile.mktemp()
+    train_config = copy.deepcopy(self.base_params)
+    eval_config = copy.deepcopy(self.base_params)
+    train_config.update(copy.deepcopy(self.train_params))
+    eval_config.update(copy.deepcopy(self.eval_params))
     return train_config, eval_config
 
-  def test_regularizer(self):
+  def regularizer_test(self):
     for dtype in [tf.float16, tf.float32, 'mixed']:
       train_config, eval_config = self.prepare_config()
       train_config['num_epochs'] = 60
@@ -85,7 +76,8 @@ class Speech2TextModelTests(tf.test.TestCase):
       self.assertGreaterEqual(eval_loss, 500.0)
       self.assertGreaterEqual(eval_dict['Eval WER'], 0.95)
 
-  def test_convergence(self):
+  def convergence_test(self, train_loss_threshold,
+                       eval_loss_threshold, eval_wer_threshold):
     for dtype in [tf.float32, "mixed"]:
       train_config, eval_config = self.prepare_config()
       train_config.update({
@@ -96,11 +88,11 @@ class Speech2TextModelTests(tf.test.TestCase):
       })
       loss, eval_loss, eval_dict = self.run_model(train_config, eval_config)
 
-      self.assertLess(loss, 5.0)
-      self.assertLess(eval_loss, 200.0)
-      self.assertLess(eval_dict['Eval WER'], 0.1)
+      self.assertLess(loss, train_loss_threshold)
+      self.assertLess(eval_loss, eval_loss_threshold)
+      self.assertLess(eval_dict['Eval WER'], eval_wer_threshold)
 
-  def test_convergence_with_iter_size(self):
+  def convergence_with_iter_size_test(self):
     try:
       import horovod.tensorflow as hvd
       hvd.init()
@@ -115,6 +107,7 @@ class Speech2TextModelTests(tf.test.TestCase):
           "iter_size": 5,
           "batch_size_per_gpu": 2,
           "use_horovod": True,
+          "num_epochs": 200,
       })
       eval_config.update({
           "dtype": dtype,
@@ -126,13 +119,13 @@ class Speech2TextModelTests(tf.test.TestCase):
           train_config, eval_config, hvd,
       )
 
-      self.assertLess(loss, 5.0)
-      self.assertLess(eval_loss, 200.0)
+      self.assertLess(loss, 10.0)
+      self.assertLess(eval_loss, 30.0)
       self.assertLess(eval_dict['Eval WER'], 0.1)
 
-  def test_infer(self):
+  def infer_test(self):
     train_config, infer_config = self.prepare_config()
-    train_config['num_epochs'] = 200
+    train_config['num_epochs'] = 250
     infer_config['batch_size_per_gpu'] = 4
 
     with tf.Graph().as_default() as g:
@@ -145,12 +138,14 @@ class Speech2TextModelTests(tf.test.TestCase):
       infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():
-      train_model = base_model(params=train_config, mode="train", hvd=None)
+      train_model = self.base_model(
+          params=train_config, mode="train", hvd=None)
       train_model.compile()
       train(train_model, None)
 
     with tf.Graph().as_default():
-      infer_model = base_model(params=infer_config, mode="infer", hvd=None)
+      infer_model = self.base_model(
+          params=infer_config, mode="infer", hvd=None)
       infer_model.compile()
 
       print(train_model.params['logdir'])
@@ -170,20 +165,20 @@ class Speech2TextModelTests(tf.test.TestCase):
         # checking prediction
         self.assertEqual(pred_row[-1], true_row[-1])
 
-  def test_mp_collection(self):
+  def mp_collection_test(self, num_train_vars, num_master_copies):
     train_config, eval_config = self.prepare_config()
     train_config['dtype'] = 'mixed'
 
     with tf.Graph().as_default():
-      model = base_model(params=train_config, mode="train", hvd=None)
+      model = self.base_model(params=train_config, mode="train", hvd=None)
       model.compile()
-      self.assertEqual(len(tf.trainable_variables()), 14)
+      self.assertEqual(len(tf.trainable_variables()), num_train_vars)
       self.assertEqual(
           len(tf.get_collection('FP32_MASTER_COPIES')),
-          7,  # minus batch norm beta and gamma and row_conv vars
+          num_master_copies,  # exclude batch norm beta, gamma and row_conv vars
       )
 
-  def test_levenshtein(self):
+  def levenshtein_test(self):
     s1 = 'this is a great day'
     s2 = 'this is great day'
     self.assertEqual(levenshtein(s1.split(), s2.split()), 1)
@@ -212,11 +207,11 @@ class Speech2TextModelTests(tf.test.TestCase):
     self.assertEqual(levenshtein(s1, s2), 11)
     self.assertEqual(levenshtein(s2, s1), 11)
 
-  def test_maybe_functions(self):
+  def maybe_functions_test(self):
     train_config, eval_config = self.prepare_config()
 
     with tf.Graph().as_default():
-      model = base_model(params=train_config, mode="train", hvd=None)
+      model = self.base_model(params=train_config, mode="train", hvd=None)
       model.compile()
     model._gpu_ids = range(5)
     model.params['batch_size_per_gpu'] = 2
@@ -305,7 +300,3 @@ class Speech2TextModelTests(tf.test.TestCase):
                 'target_tensors': [input_values[0][2], input_values[0][3]]}
     output_dict = model.maybe_print_logs(inp_dict, output_values[0], 0)
     self.assertEqual(output_dict['Sample WER'], 0.4)
-
-
-if __name__ == '__main__':
-  tf.test.main()

@@ -37,3 +37,11 @@ transformer\_decoders
     :members:
     :undoc-members:
     :show-inheritance:
+
+convs2s\_decoder
+-------------------------------------
+
+.. automodule:: decoders.convs2s_decoder
+    :members:
+    :undoc-members:
+    :show-inheritance:

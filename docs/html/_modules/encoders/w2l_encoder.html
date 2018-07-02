@@ -1,0 +1,390 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>encoders.w2l_encoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>encoders.w2l_encoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for encoders.w2l_encoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.cnns.conv_blocks</span> <span class="k">import</span> <span class="o">*</span>
+
+
+<div class="viewcode-block" id="Wave2LetterEncoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder">[docs]</a><span class="k">class</span> <span class="nc">Wave2LetterEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Wave2Letter like encoder. Fully convolutional model&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Wave2LetterEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;convnet_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s1">&#39;activation_fn&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid callable</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="Wave2LetterEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;normalization&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;batch_norm&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="Wave2LetterEncoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;w2l_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wave2Letter like encoder constructor.</span>
+
+<span class="sd">    See parent class for arguments description.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **dropout_keep_prop** (float) --- keep probability for dropout.</span>
+<span class="sd">    * **convnet_layers** (list) --- list with the description of convolutional</span>
+<span class="sd">      layers. For example::</span>
+<span class="sd">        &quot;convnet_layers&quot;: [</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;type&quot;: &quot;conv1d&quot;, &quot;repeat&quot; : 5,</span>
+<span class="sd">            &quot;kernel_size&quot;: [7], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 250, &quot;padding&quot;: &quot;SAME&quot;</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;type&quot;: &quot;conv1d&quot;, &quot;repeat&quot; : 3,</span>
+<span class="sd">            &quot;kernel_size&quot;: [11], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 500, &quot;padding&quot;: &quot;SAME&quot;</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;type&quot;: &quot;conv1d&quot;, &quot;repeat&quot; : 1,</span>
+<span class="sd">            &quot;kernel_size&quot;: [32], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 1000, &quot;padding&quot;: &quot;SAME&quot;</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;type&quot;: &quot;conv1d&quot;, &quot;repeat&quot; : 1,</span>
+<span class="sd">            &quot;kernel_size&quot;: [1], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 1000, &quot;padding&quot;: &quot;SAME&quot; </span>
+<span class="sd">          },</span>
+<span class="sd">        ]</span>
+<span class="sd">    * **activation_fn** --- activation function to use.</span>
+<span class="sd">    * **data_format** (string) --- could be either &quot;channels_first&quot; or</span>
+<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_last&quot;.</span>
+<span class="sd">    * **normalization** --- normalization to use. Accepts [None, &#39;batch_norm&#39;].</span>
+<span class="sd">      Use None if you don&#39;t want to use normalization. Defaults to &#39;batch_norm&#39;.     </span>
+<span class="sd">    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.</span>
+<span class="sd">    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Wave2LetterEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Wave2LetterEncoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder._encode">[docs]</a>  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Creates TensorFlow graph for Wav2Letter like encoder.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): input dictionary that has to contain</span>
+<span class="sd">          the following fields::</span>
+<span class="sd">            input_dict = {</span>
+<span class="sd">              &quot;source_tensors&quot;: [</span>
+<span class="sd">                src_sequence (shape=[batch_size, sequence length, num features]),</span>
+<span class="sd">                src_length (shape=[batch_size])</span>
+<span class="sd">              ]</span>
+<span class="sd">            }</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict: dictionary with the following tensors::</span>
+
+<span class="sd">        {</span>
+<span class="sd">          &#39;outputs&#39;: hidden state, shape=[batch_size, sequence length, n_hidden]</span>
+<span class="sd">          &#39;src_length&#39;: tensor, shape=[batch_size]</span>
+<span class="sd">        }</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">source_sequence</span><span class="p">,</span> <span class="n">src_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
+
+    <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+    <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">training</span> <span class="k">else</span> <span class="mf">1.0</span>
+    <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">data_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_format&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">)</span>
+    <span class="n">normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;normalization&#39;</span><span class="p">,</span> <span class="s1">&#39;batch_norm&#39;</span><span class="p">)</span>
+
+    <span class="n">normalization_params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">normalization</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">conv_block</span> <span class="o">=</span> <span class="n">conv_actv</span>
+    <span class="k">elif</span> <span class="n">normalization</span> <span class="o">==</span> <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span>
+      <span class="n">conv_block</span> <span class="o">=</span> <span class="n">conv_bn_actv</span>
+      <span class="n">normalization_params</span><span class="p">[</span><span class="s1">&#39;bn_momentum&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+          <span class="s1">&#39;bn_momentum&#39;</span><span class="p">,</span> <span class="mf">0.90</span><span class="p">)</span>
+      <span class="n">normalization_params</span><span class="p">[</span><span class="s1">&#39;bn_epsilon&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
+
+    <span class="n">conv_inputs</span> <span class="o">=</span> <span class="n">source_sequence</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">conv_inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">:</span>
+      <span class="n">conv_feats</span> <span class="o">=</span> <span class="n">conv_inputs</span>  <span class="c1"># B T F</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">conv_feats</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">conv_inputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>  <span class="c1"># B F T</span>
+
+    <span class="c1"># ----- Convolutional layers ---------------------------------------------</span>
+    <span class="n">convnet_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;convnet_layers&#39;</span><span class="p">]</span>
+
+    <span class="k">for</span> <span class="n">idx_convnet</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">convnet_layers</span><span class="p">)):</span>
+      <span class="n">layer_type</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;type&#39;</span><span class="p">]</span>
+      <span class="n">layer_repeat</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;repeat&#39;</span><span class="p">]</span>
+      <span class="n">ch_out</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;num_channels&#39;</span><span class="p">]</span>
+      <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;kernel_size&#39;</span><span class="p">]</span>
+      <span class="n">strides</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;stride&#39;</span><span class="p">]</span>
+      <span class="n">padding</span> <span class="o">=</span> <span class="n">convnet_layers</span><span class="p">[</span><span class="n">idx_convnet</span><span class="p">][</span><span class="s1">&#39;padding&#39;</span><span class="p">]</span>
+
+      <span class="k">for</span> <span class="n">idx_layer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">layer_repeat</span><span class="p">):</span>
+        <span class="n">conv_feats</span> <span class="o">=</span> <span class="n">conv_block</span><span class="p">(</span>
+            <span class="nb">type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">idx_convnet</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">idx_layer</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">conv_feats</span><span class="p">,</span>
+            <span class="n">filters</span><span class="o">=</span><span class="n">ch_out</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
+            <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">normalization_params</span>
+        <span class="p">)</span>
+        <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">conv_feats</span><span class="p">,</span> <span class="n">keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
+      <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+        <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">src_length</span><span class="p">,</span>
+    <span class="p">}</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>
