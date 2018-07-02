@@ -22,7 +22,7 @@ elif output_type == "mel":
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 1000,
+  "num_epochs": 501,
 
   "num_gpus": 4,
   # 'gpu_ids': [1],

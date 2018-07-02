@@ -353,6 +353,7 @@ class Text2Speech(EncoderDecoderModel):
   def finalize_inference(self, results_per_batch, output_file):
     print("output_file is ignored for ts2")
     print("results are logged to the logdir")
+    dict_to_log = {}
     batch_size = len(results_per_batch[0][0]['source_tensors'][0])
     for i, sample in enumerate(results_per_batch):
       input_values = sample[0]
@@ -381,13 +382,14 @@ class Text2Speech(EncoderDecoderModel):
           specs.append(log_mag_spec)
           titles.append("linear spectrogram")
 
-        plot_spectrograms(specs,
+        im_summary = plot_spectrograms(specs,
                           titles,
                           stop_tokens_sample,
                           audio_length,
                           self.params["logdir"], 0,
                           number= i*batch_size+j,
                           append="infer")
+        dict_to_log['image'] = im_summary
 
         # print(predicted_final_spectrogram_sample.shape)
         if audio_length > 2:
