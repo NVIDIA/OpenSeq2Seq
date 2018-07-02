@@ -39,11 +39,11 @@ class Decoder:
             class :meth:`__init__` method.
     """
     return {
-      'regularizer': None,  # any valid TensorFlow regularizer
-      'regularizer_params': dict,
-      'initializer': None,  # any valid TensorFlow initializer
-      'initializer_params': dict,
-      'dtype': [tf.float32, tf.float16, 'mixed'],
+        'regularizer': None,  # any valid TensorFlow regularizer
+        'regularizer_params': dict,
+        'initializer': None,  # any valid TensorFlow initializer
+        'initializer_params': dict,
+        'dtype': [tf.float32, tf.float16, 'mixed'],
     }
 
   def __init__(self, params, model, name="decoder", mode='train'):

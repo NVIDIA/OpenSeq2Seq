@@ -223,16 +223,16 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         if logits.dtype.base_dtype != tf.float32:
           logits = tf.cast(logits, tf.float32)
         decoded_ixs, decoded_vals, decoded_shapes, log_probabilities = (
-          custom_op_module.ctc_beam_search_decoder_with_lm(
-              logits, sequence_length, beam_width=beam_width,
-              model_path=self.params['lm_binary_path'],
-              trie_path=self.params['lm_trie_path'],
-              alphabet_path=self.params['alphabet_config_path'],
-              lm_weight=self.params['lm_weight'],
-              word_count_weight=self.params['word_count_weight'],
-              valid_word_count_weight=self.params['valid_word_count_weight'],
-              top_paths=top_paths, merge_repeated=merge_repeated,
-          )
+            custom_op_module.ctc_beam_search_decoder_with_lm(
+                logits, sequence_length, beam_width=beam_width,
+                model_path=self.params['lm_binary_path'],
+                trie_path=self.params['lm_trie_path'],
+                alphabet_path=self.params['alphabet_config_path'],
+                lm_weight=self.params['lm_weight'],
+                word_count_weight=self.params['word_count_weight'],
+                valid_word_count_weight=self.params['valid_word_count_weight'],
+                top_paths=top_paths, merge_repeated=merge_repeated,
+            )
         )
         return [tf.SparseTensor(decoded_ixs[0], decoded_vals[0],
                                 decoded_shapes[0])]
