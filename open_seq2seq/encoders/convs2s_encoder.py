@@ -95,7 +95,7 @@ class ConvS2SEncoder(Encoder):
 
         # linear projection before cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 self._src_emb_size,
                 knum_list[0],
                 dropout=self.params["embedding_dropout_keep_prob"],
@@ -108,7 +108,7 @@ class ConvS2SEncoder(Encoder):
           # linear projection is needed for residual connections if
           # input and output of a cnn layer do not match
           if in_dim != out_dim:
-            linear_proj = ffn_wn_layer.FeedFowardNetworkNormalized(
+            linear_proj = ffn_wn_layer.FeedForwardNetworkNormalized(
                 in_dim,
                 out_dim,
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
@@ -130,7 +130,7 @@ class ConvS2SEncoder(Encoder):
 
         # linear projection after cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 knum_list[self.params['encoder_layers'] - 1],
                 self._src_emb_size,
                 dropout=1.0,
