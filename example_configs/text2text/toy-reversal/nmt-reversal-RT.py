@@ -1,3 +1,4 @@
+# pylint: skip-file
 from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding

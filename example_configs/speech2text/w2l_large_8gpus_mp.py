@@ -1,3 +1,4 @@
+# pylint: skip-file
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import Wave2LetterEncoder
