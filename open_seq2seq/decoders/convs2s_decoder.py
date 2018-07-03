@@ -1,23 +1,23 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import tensorflow as tf
 import math
-from .decoder import Decoder
 
+import tensorflow as tf
+
+from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, \
+                                       attention_wn_layer
 from open_seq2seq.parts.transformer import beam_search
-
 from open_seq2seq.parts.transformer import embedding_layer
 from open_seq2seq.parts.transformer.utils import get_padding
+from .decoder import Decoder
 
-from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, attention_wn_layer
 
 # Default value used if max_input_length is not given
 MAX_INPUT_LENGTH = 128
 
 
 class ConvS2SDecoder(Decoder):
-
   @staticmethod
   def get_required_params():
     """Static method with description of required parameters.
@@ -28,22 +28,21 @@ class ConvS2SDecoder(Decoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return dict(
-        Decoder.get_required_params(), **{
-            'batch_size': int,
-            'decoder_layers': int,
-            'tgt_emb_size': int,
-            'tgt_vocab_size': int,
-            'shared_embed': bool,
-            'embedding_dropout_keep_prob': float,
-            'conv_nchannels_kwidth': list,
-            'hidden_dropout_keep_prob': float,
-            'out_dropout_keep_prob': float,
-            'beam_size': int,
-            'alpha': float,
-            'extra_decode_length': int,
-            'EOS_ID': int,
-        })
+    return dict(Decoder.get_required_params(), **{
+        'batch_size': int,
+        'decoder_layers': int,
+        'tgt_emb_size': int,
+        'tgt_vocab_size': int,
+        'shared_embed': bool,
+        'embedding_dropout_keep_prob': float,
+        'conv_nchannels_kwidth': list,
+        'hidden_dropout_keep_prob': float,
+        'out_dropout_keep_prob': float,
+        'beam_size': int,
+        'alpha': float,
+        'extra_decode_length': int,
+        'EOS_ID': int,
+    })
 
   @staticmethod
   def get_optional_params():
@@ -55,21 +54,16 @@ class ConvS2SDecoder(Decoder):
             included into the ``params`` parameter of the
             class :meth:`__init__` method.
     """
-    return dict(
-        Decoder.get_optional_params(),
-        **{
-            'pad_embeddings_2_eight': bool,
+    return dict(Decoder.get_optional_params(), **{
+        'pad_embeddings_2_eight': bool,
 
-            # if not provided, tgt_emb_size is used as the default value
-            'out_emb_size': int,
-            'max_input_length': int,
-            'GO_SYMBOL': int,
-            'PAD_SYMBOL': int,
-            'END_SYMBOL': int,
-        })
-
-  def _cast_types(self, input_dict):
-    return input_dict
+        # if not provided, tgt_emb_size is used as the default value
+        'out_emb_size': int,
+        'max_input_length': int,
+        'GO_SYMBOL': int,
+        'PAD_SYMBOL': int,
+        'END_SYMBOL': int,
+    })
 
   def __init__(self, params, model, name="convs2s_decoder", mode='train'):
     super(ConvS2SDecoder, self).__init__(params, model, name, mode)
@@ -82,16 +76,23 @@ class ConvS2SDecoder(Decoder):
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
+  def _cast_types(self, input_dict):
+    return input_dict
+
   def _decode(self, input_dict):
-    targets = input_dict['target_tensors'][0] \
-              if 'target_tensors' in input_dict else None
+    if 'target_tensors' in input_dict:
+      targets = input_dict['target_tensors'][0]
+    else:
+      targets = None
 
     encoder_outputs = input_dict['encoder_output']['outputs']
     encoder_outputs_b = input_dict['encoder_output'].get(
-        'outputs_b', encoder_outputs)
+        'outputs_b', encoder_outputs,
+    )
 
     inputs_attention_bias = input_dict['encoder_output'].get(
-        'inputs_attention_bias_cs2s', None)
+        'inputs_attention_bias_cs2s', None
+    )
 
     with tf.name_scope("decode"):
       # prepare decoder layers
@@ -101,44 +102,56 @@ class ConvS2SDecoder(Decoder):
 
         # preparing embedding layers
         with tf.variable_scope("embedding"):
-          if 'embedding_softmax_layer' in input_dict['encoder_output'] \
-                  and self.params['shared_embed']:
-            self.embedding_softmax_layer = \
-              input_dict['encoder_output']['embedding_softmax_layer']
+          if 'embedding_softmax_layer' in input_dict['encoder_output'] and \
+             self.params['shared_embed']:
+            self.embedding_softmax_layer = (
+                input_dict['encoder_output']['embedding_softmax_layer']
+            )
           else:
-            self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
-                vocab_size=self._tgt_vocab_size,
-                hidden_size=self._tgt_emb_size,
-                pad_vocab_to_eight=self._pad2eight,
-                init_var=0.1,
-                embed_scale=False,
-                pad_sym=self._pad_sym,
-                mask_paddings=False)
+            self.embedding_softmax_layer = (
+                embedding_layer.EmbeddingSharedWeights(
+                    vocab_size=self._tgt_vocab_size,
+                    hidden_size=self._tgt_emb_size,
+                    pad_vocab_to_eight=self._pad2eight,
+                    init_var=0.1,
+                    embed_scale=False,
+                    pad_sym=self._pad_sym,
+                    mask_paddings=False,
+                )
+            )
 
         with tf.variable_scope("pos_embedding"):
-          if 'position_embedding_layer' in input_dict['encoder_output'] \
-                  and self.params['shared_embed']:
-            self.position_embedding_layer = \
-              input_dict['encoder_output']['position_embedding_layer']
+          if 'position_embedding_layer' in input_dict['encoder_output'] and \
+             self.params['shared_embed']:
+            self.position_embedding_layer = (
+                input_dict['encoder_output']['position_embedding_layer']
+            )
           else:
-            longest_decoding = self.params.get("max_input_length", MAX_INPUT_LENGTH) \
-                               + self.params.get("extra_decode_length") + 1
-            self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
-                vocab_size=longest_decoding,
-                hidden_size=self._tgt_emb_size,
-                pad_vocab_to_eight=self._pad2eight,
-                init_var=0.1,
-                embed_scale=False,
-                pad_sym=self._pad_sym,
-                mask_paddings=False)
+            longest_decoding = (
+                self.params.get("max_input_length", MAX_INPUT_LENGTH) +
+                self.params.get("extra_decode_length") + 1
+            )
+            self.position_embedding_layer = (
+                embedding_layer.EmbeddingSharedWeights(
+                    vocab_size=longest_decoding,
+                    hidden_size=self._tgt_emb_size,
+                    pad_vocab_to_eight=self._pad2eight,
+                    init_var=0.1,
+                    embed_scale=False,
+                    pad_sym=self._pad_sym,
+                    mask_paddings=False,
+                )
+            )
 
         # linear projection before cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 self._tgt_emb_size,
                 knum_list[0],
                 dropout=self.params["embedding_dropout_keep_prob"],
-                var_scope_name="linear_mapping_before_cnn_layers"))
+                var_scope_name="linear_mapping_before_cnn_layers",
+            )
+        )
 
         for i in range(self.params['decoder_layers']):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -147,11 +160,12 @@ class ConvS2SDecoder(Decoder):
           # linear projection is needed for residual connections if
           # input and output of a cnn layer do not match
           if in_dim != out_dim:
-            linear_proj = ffn_wn_layer.FeedFowardNetworkNormalized(
+            linear_proj = ffn_wn_layer.FeedForwardNetworkNormalized(
                 in_dim,
                 out_dim,
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
-                dropout=1.0)
+                dropout=1.0,
+            )
           else:
             linear_proj = None
 
@@ -163,34 +177,40 @@ class ConvS2SDecoder(Decoder):
               layer_id=i + 1,
               hidden_dropout=self.params["hidden_dropout_keep_prob"],
               conv_padding="VALID",
-              decode_padding=True)
+              decode_padding=True,
+          )
 
           att_layer = attention_wn_layer.AttentionLayerNormalized(
               out_dim,
               embed_size=self._tgt_emb_size,
               layer_id=i + 1,
-              add_res=True)
+              add_res=True,
+          )
 
           self.layers.append([linear_proj, conv_layer, att_layer])
 
         # linear projection after cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 knum_list[self.params['decoder_layers'] - 1],
                 self.params.get("out_emb_size", self._tgt_emb_size),
                 dropout=1.0,
-                var_scope_name="linear_mapping_after_cnn_layers"))
+                var_scope_name="linear_mapping_after_cnn_layers",
+            )
+        )
 
         if not self.params['shared_embed']:
           self.layers.append(
-              ffn_wn_layer.FeedFowardNetworkNormalized(
+              ffn_wn_layer.FeedForwardNetworkNormalized(
                   self.params.get("out_emb_size", self._tgt_emb_size),
                   self._tgt_vocab_size,
                   dropout=self.params["out_dropout_keep_prob"],
-                  var_scope_name="linear_mapping_to_vocabspace"))
+                  var_scope_name="linear_mapping_to_vocabspace",
+              )
+          )
         else:
-          # if embedding is shared,
-          # the shared embedding is used as the final linear projection to vocab space
+          # if embedding is shared, the shared embedding is
+          # used as the final linear projection to vocab space
           self.layers.append(None)
 
       if targets is None:
@@ -231,7 +251,9 @@ class ConvS2SDecoder(Decoder):
 
     with tf.name_scope("add_pos_encoding"):
       pos_input = tf.range(
-          0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
+          0, tf.shape(decoder_inputs)[1], delta=1,
+          dtype=tf.int32, name='range',
+      )
       pos_encoding = self.position_embedding_layer(pos_input)
       decoder_inputs = decoder_inputs + tf.cast(
           x=pos_encoding, dtype=decoder_inputs.dtype)
@@ -324,7 +346,6 @@ class ConvS2SDecoder(Decoder):
 
     # Get the top sequence for each batch element
     top_decoded_ids = decoded_ids[:, 0, :]
-    top_scores = scores[:, 0]
 
     # this isn't particularly efficient
     logits = self.decode_pass(top_decoded_ids, encoder_outputs,
@@ -356,8 +377,8 @@ class ConvS2SDecoder(Decoder):
            updated cache values)
       """
 
-      # pass the decoded ids from the beginneing up to the current into the decoder
-      # not efficient
+      # pass the decoded ids from the beginneing up to the
+      # current into the decoder not efficient
       decoder_outputs = self.decode_pass(ids, cache.get("encoder_outputs"),
                                          cache.get("encoder_outputs_b"),
                                          cache.get("inputs_attention_bias"))

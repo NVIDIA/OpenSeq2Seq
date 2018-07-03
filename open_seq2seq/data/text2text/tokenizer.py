@@ -159,7 +159,7 @@ class Subtokenizer(object):
         "Subtokens argument passed into decode() must be a list of integers.")
 
     return _unicode_to_native(
-        _join_tokens_to_string(self._subtoken_ids_to_tokens(subtokens)))
+        join_tokens_to_string(self._subtoken_ids_to_tokens(subtokens)))
 
   def _subtoken_ids_to_tokens(self, subtokens):
     """Convert list of int subtoken ids to a list of string tokens."""
@@ -173,7 +173,7 @@ class Subtokenizer(object):
     ret = []
     for token in escaped_tokens:
       if token:
-        ret.append(_unescape_token(token))
+        ret.append(unescape_token(token))
     return ret
 
 
@@ -235,7 +235,7 @@ def _split_string_to_tokens(text):
   return ret
 
 
-def _join_tokens_to_string(tokens):
+def join_tokens_to_string(tokens):
   """Join a list of string tokens into a single string."""
   token_is_alnum = [t[0] in _ALPHANUMERIC_CHAR_SET for t in tokens]
   ret = []
@@ -267,7 +267,7 @@ def _escape_token(token, alphabet):
   return u"".join(ret) + "_"
 
 
-def _unescape_token(token):
+def unescape_token(token):
   r"""Replaces escaped characters in the token with their unescaped versions.
 
   Applies inverse transformations as _escape_token():

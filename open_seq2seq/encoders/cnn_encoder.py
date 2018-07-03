@@ -5,18 +5,18 @@ neural networks from the description of arbitrary "layers".
 """
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import copy
 
-try:
-    from inspect import signature
-except ImportError:
-    from funcsigs import signature
+import tensorflow as tf
 
-from .encoder import Encoder
+try:
+  from inspect import signature
+except ImportError:
+  from funcsigs import signature
+
 from open_seq2seq.utils.utils import deco_print
+from .encoder import Encoder
 
 
 def build_layer(inputs, layer, layer_params, data_format,
@@ -69,9 +69,9 @@ def build_layer(inputs, layer, layer_params, data_format,
     else:
       layer_name = layer
     deco_print("Building layer: {}(inputs, {})".format(
-      layer_name,
-      ", ".join("{}={}".format(key, value)
-                for key, value in layer_params_cp.items())
+        layer_name,
+        ", ".join("{}={}".format(key, value)
+                  for key, value in layer_params_cp.items())
     ))
   return outputs
 
@@ -82,14 +82,14 @@ class CNNEncoder(Encoder):
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
-      'cnn_layers': list,
+        'cnn_layers': list,
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      'data_format': ['channels_first', 'channels_last'],
-      'fc_layers': list,
+        'data_format': ['channels_first', 'channels_last'],
+        'fc_layers': list,
     })
 
   def __init__(self, params, model, name="cnn_encoder", mode='train'):

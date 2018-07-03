@@ -1,25 +1,33 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+
+import copy
+import os
+import tempfile
+
+import numpy as np
+import numpy.testing as npt
+import pandas as pd
+import tensorflow as tf
 from six.moves import range
 
-import tensorflow as tf
-import numpy as np
-import copy
-import numpy.testing as npt
-import tempfile
-import os
-import pandas as pd
-
-from .speech2text import levenshtein
 from open_seq2seq.utils import train, evaluate, infer
 from open_seq2seq.utils.utils import get_available_gpus
+from .speech2text import levenshtein
 
 
 class Speech2TextModelTests(tf.test.TestCase):
+  def setUp(self):
+    # define this values in subclasses
+    self.base_params = None
+    self.train_params = None
+    self.eval_params = None
+    self.base_model = None
 
   def run_model(self, train_config, eval_config, hvd=None):
     with tf.Graph().as_default() as g:
+      # pylint: disable=not-callable
       train_model = self.base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
       eval_model = self.base_model(params=eval_config, mode="eval", hvd=hvd)
@@ -41,8 +49,8 @@ class Speech2TextModelTests(tf.test.TestCase):
         eval_loss = np.mean(eval_losses)
         weights_new = sess.run(tf.trainable_variables())
 
-        # checking that the weights has not changed from just computing the
-        # loss
+        # checking that the weights has not changed from
+        # just computing the loss
         for w, w_new in zip(weights, weights_new):
           npt.assert_allclose(w, w_new)
       eval_dict = evaluate(eval_model, checkpoint)
@@ -62,6 +70,7 @@ class Speech2TextModelTests(tf.test.TestCase):
       train_config['num_epochs'] = 60
       train_config.update({
           "dtype": dtype,
+          # pylint: disable=no-member
           "regularizer": tf.contrib.layers.l2_regularizer,
           "regularizer_params": {
               'scale': 1e4,
@@ -76,7 +85,8 @@ class Speech2TextModelTests(tf.test.TestCase):
       self.assertGreaterEqual(eval_loss, 500.0)
       self.assertGreaterEqual(eval_dict['Eval WER'], 0.95)
 
-  def convergence_test(self, train_loss_threshold, eval_loss_threshold, eval_wer_threshold):
+  def convergence_test(self, train_loss_threshold,
+                       eval_loss_threshold, eval_wer_threshold):
     for dtype in [tf.float32, "mixed"]:
       train_config, eval_config = self.prepare_config()
       train_config.update({
@@ -115,7 +125,8 @@ class Speech2TextModelTests(tf.test.TestCase):
           "use_horovod": True,
       })
       loss, eval_loss, eval_dict = self.run_model(
-          train_config, eval_config, hvd)
+          train_config, eval_config, hvd,
+      )
 
       self.assertLess(loss, 10.0)
       self.assertLess(eval_loss, 30.0)
@@ -136,14 +147,14 @@ class Speech2TextModelTests(tf.test.TestCase):
       infer_config['num_gpus'] = 1
 
     with tf.Graph().as_default():
-      train_model = self.base_model(
-          params=train_config, mode="train", hvd=None)
+      # pylint: disable=not-callable
+      train_model = self.base_model(params=train_config, mode="train", hvd=None)
       train_model.compile()
       train(train_model, None)
 
     with tf.Graph().as_default():
-      infer_model = self.base_model(
-          params=infer_config, mode="infer", hvd=None)
+      # pylint: disable=not-callable
+      infer_model = self.base_model(params=infer_config, mode="infer", hvd=None)
       infer_model.compile()
 
       print(train_model.params['logdir'])
@@ -168,47 +179,49 @@ class Speech2TextModelTests(tf.test.TestCase):
     train_config['dtype'] = 'mixed'
 
     with tf.Graph().as_default():
+      # pylint: disable=not-callable
       model = self.base_model(params=train_config, mode="train", hvd=None)
       model.compile()
       self.assertEqual(len(tf.trainable_variables()), num_train_vars)
       self.assertEqual(
           len(tf.get_collection('FP32_MASTER_COPIES')),
-          num_master_copies,  # minus batch norm beta and gamma and row_conv vars
+          num_master_copies,  # exclude batch norm beta, gamma and row_conv vars
       )
 
   def levenshtein_test(self):
-    s1 = 'this is a great day'
-    s2 = 'this is great day'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 1)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 1)
-    s1 = 'this is a great day'
-    s2 = 'this great day'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 2)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 2)
-    s1 = 'this is a great day'
-    s2 = 'this great day'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 2)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 2)
-    s1 = 'this is a great day'
-    s2 = 'this day is a great'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 2)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 2)
-    s1 = 'this is a great day'
-    s2 = 'this day is great'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 3)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 3)
+    sample1 = 'this is a great day'
+    sample2 = 'this is great day'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 1)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 1)
+    sample1 = 'this is a great day'
+    sample2 = 'this great day'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 2)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 2)
+    sample1 = 'this is a great day'
+    sample2 = 'this great day'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 2)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 2)
+    sample1 = 'this is a great day'
+    sample2 = 'this day is a great'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 2)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 2)
+    sample1 = 'this is a great day'
+    sample2 = 'this day is great'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 3)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 3)
 
-    s1 = 'london is the capital of great britain'
-    s2 = 'london capital gret britain'
-    self.assertEqual(levenshtein(s1.split(), s2.split()), 4)
-    self.assertEqual(levenshtein(s2.split(), s1.split()), 4)
-    self.assertEqual(levenshtein(s1, s2), 11)
-    self.assertEqual(levenshtein(s2, s1), 11)
+    sample1 = 'london is the capital of great britain'
+    sample2 = 'london capital gret britain'
+    self.assertEqual(levenshtein(sample1.split(), sample2.split()), 4)
+    self.assertEqual(levenshtein(sample2.split(), sample1.split()), 4)
+    self.assertEqual(levenshtein(sample1, sample2), 11)
+    self.assertEqual(levenshtein(sample2, sample1), 11)
 
   def maybe_functions_test(self):
     train_config, eval_config = self.prepare_config()
 
     with tf.Graph().as_default():
+      # pylint: disable=not-callable
       model = self.base_model(params=train_config, mode="train", hvd=None)
       model.compile()
     model._gpu_ids = range(5)

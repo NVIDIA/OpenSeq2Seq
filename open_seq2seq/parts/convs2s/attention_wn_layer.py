@@ -6,16 +6,18 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
-import tensorflow as tf
 import math
-from open_seq2seq.parts.convs2s.ffn_wn_layer import FeedFowardNetworkNormalized
+
+import tensorflow as tf
+
+from open_seq2seq.parts.convs2s.ffn_wn_layer import FeedForwardNetworkNormalized
 
 
 class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
 
   def __init__(self, in_dim, embed_size, layer_id, add_res):
-    """initializes the attention layer.
+    """Initializes the attention layer.
     It uses weight normalization for linear projections
     (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
@@ -31,25 +33,25 @@ class AttentionLayerNormalized(tf.layers.Layer):
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
-      self.tgt_embed_proj = FeedFowardNetworkNormalized(
+      self.tgt_embed_proj = FeedForwardNetworkNormalized(
           in_dim,
           embed_size,
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed")
 
       # linear projection layer to project back to the input space
-      self.out_proj = FeedFowardNetworkNormalized(
+      self.out_proj = FeedForwardNetworkNormalized(
           embed_size,
           in_dim,
           dropout=1.0,
           var_scope_name="att_linear_mapping_out")
 
-  def call(self, input, target_embed, encoder_output_a, encoder_output_b,
+  def call(self, inputs, target_embed, encoder_output_a, encoder_output_b,
            input_attention_bias):
     """Calculates the attention vectors.
 
     Args:
-      input: A float32 tensor with shape [batch_size, length, in_dim]
+      inputs: A float32 tensor with shape [batch_size, length, in_dim]
       target_embed: A float32 tensor with shape [batch_size, length, in_dim]
                     containing the target embeddings
       encoder_output_a: A float32 tensor with shape [batch_size, length, out_dim]
@@ -63,11 +65,12 @@ class AttentionLayerNormalized(tf.layers.Layer):
       float32 tensor with shape [batch_size, length, out_dim].
     """
 
-    h_proj = self.tgt_embed_proj(input)
+    h_proj = self.tgt_embed_proj(inputs)
     d_proj = (h_proj + target_embed) * math.sqrt(0.5)
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
 
-    # Masking need to be done in float32. Added to support mixed-precision training.
+    # Masking need to be done in float32.
+    # Added to support mixed-precision training.
     att_score = tf.cast(x=att_score, dtype=tf.float32)
 
     # mask out the paddings
@@ -81,7 +84,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
 
     length = tf.cast(tf.shape(encoder_output_b), encoder_output_b.dtype)
     output = tf.matmul(att_score, encoder_output_b) * \
-             length[1] * tf.cast(tf.sqrt(1.0 / length[1]), dtype=encoder_output_b.dtype)
+             length[1] * \
+             tf.cast(tf.sqrt(1.0 / length[1]), dtype=encoder_output_b.dtype)
     output = self.out_proj(output)
 
     if self.add_res:

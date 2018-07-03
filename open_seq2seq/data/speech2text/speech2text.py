@@ -2,16 +2,16 @@
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+import six
 from six.moves import range
 
-import six
-import numpy as np
-import tensorflow as tf
-import pandas as pd
-
 from open_seq2seq.data.data_layer import DataLayer
-from .speech_utils import get_speech_features_from_file
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
+from .speech_utils import get_speech_features_from_file
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -19,17 +19,17 @@ class Speech2TextDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
-      'num_audio_features': int,
-      'input_type': ['spectrogram', 'mfcc', 'logfbank'],
-      'vocab_file': str,
-      'dataset_files': list,
+        'num_audio_features': int,
+        'input_type': ['spectrogram', 'mfcc', 'logfbank'],
+        'vocab_file': str,
+        'dataset_files': list,
     })
 
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-      'augmentation': dict,
-      'pad_to': int,
+        'augmentation': dict,
+        'pad_to': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -58,7 +58,7 @@ class Speech2TextDataLayer(DataLayer):
                                                num_workers, worker_id)
 
     self.params['char2idx'] = load_pre_existing_vocabulary(
-      self.params['vocab_file'], read_chars=True,
+        self.params['vocab_file'], read_chars=True,
     )
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     # add one for implied blank token
@@ -111,38 +111,39 @@ class Speech2TextDataLayer(DataLayer):
       self._dataset = self._dataset.repeat()
 
       self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-          self._parse_audio_transcript_element,
-          [line],
-          [self.params['dtype'], tf.int32, tf.int32, tf.int32],
-          stateful=False,
-        ),
-        num_parallel_calls=8,
+          lambda line: tf.py_func(
+              self._parse_audio_transcript_element,
+              [line],
+              [self.params['dtype'], tf.int32, tf.int32, tf.int32],
+              stateful=False,
+          ),
+          num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
-        self.params['batch_size'],
-        padded_shapes=([None, self.params['num_audio_features']], 1, [None], 1)
+          self.params['batch_size'],
+          padded_shapes=([None, self.params['num_audio_features']],
+                         1, [None], 1)
       )
     else:
       indices = self.split_data(
-        np.array(list(map(lambda num: str(num), range(len(self.all_files)))))
+          np.array(list(map(str, range(len(self.all_files)))))
       )
       self._dataset = tf.data.Dataset.from_tensor_slices(
-        np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
+          np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
       )
       self._dataset = self._dataset.repeat()
       self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-          self._parse_audio_element,
-          [line],
-          [self.params['dtype'], tf.int32, tf.int32],
-          stateful=False,
-        ),
-        num_parallel_calls=8,
+          lambda line: tf.py_func(
+              self._parse_audio_element,
+              [line],
+              [self.params['dtype'], tf.int32, tf.int32],
+              stateful=False,
+          ),
+          num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
-        self.params['batch_size'],
-        padded_shapes=([None, self.params['num_audio_features']], 1, 1)
+          self.params['batch_size'],
+          padded_shapes=([None, self.params['num_audio_features']], 1, 1)
       )
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
@@ -185,9 +186,9 @@ class Speech2TextDataLayer(DataLayer):
     target = np.array([self.params['char2idx'][c] for c in transcript])
     pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'], pad_to,
-      features_type=self.params['input_type'],
-      augmentation=self.params.get('augmentation', None),
+        audio_filename, self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
            np.int32([len(source)]), \
@@ -198,7 +199,8 @@ class Speech2TextDataLayer(DataLayer):
     """Parses audio from file and returns array of audio features.
 
     Args:
-      id_and_audio_filename: tuple of sample id and corresponding audio file name.
+      id_and_audio_filename: tuple of sample id and corresponding
+          audio file name.
 
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
@@ -207,9 +209,9 @@ class Speech2TextDataLayer(DataLayer):
     idx, audio_filename = id_and_audio_filename
     pad_to = self.params.get('pad_to', 8)
     source = get_speech_features_from_file(
-      audio_filename, self.params['num_audio_features'], pad_to,
-      features_type=self.params['input_type'],
-      augmentation=self.params.get('augmentation', None),
+        audio_filename, self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
            np.int32([len(source)]), np.int32([idx])

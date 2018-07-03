@@ -1,24 +1,25 @@
 # Copyright (c) 2018 NVIDIA Corporation
+"""Convenient block for building convolutional neural networks."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 
 
-def conv_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
+def conv_actv(layer_type, name, inputs, filters, kernel_size,
+              activation_fn, strides,
               padding, regularizer, training, data_format):
   """Helper function that applies convolution and activation.
 
-    Args:
-      type: the following types are supported
-        'conv1d', 'conv2d'
+  Args:
+    layer_type: the following types are supported
+      'conv1d', 'conv2d'
   """
-  if type == "conv1d":
+  if layer_type == "conv1d":
     layer = tf.layers.conv1d
-  elif type == "conv2d":
+  elif layer_type == "conv2d":
     layer = tf.layers.conv2d
 
   conv = layer(
@@ -39,19 +40,19 @@ def conv_actv(type, name, inputs, filters, kernel_size, activation_fn, strides,
   return output
 
 
-def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn,
+def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
                  strides, padding, regularizer, training, data_format,
                  bn_momentum, bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
-    Accepts inputs in 'channels_last' format only.
+  Accepts inputs in 'channels_last' format only.
 
-    Args:
-      type: the following types are supported
-        'conv1d', 'conv2d'
+  Args:
+    layer_type: the following types are supported
+      'conv1d', 'conv2d'
   """
-  if type == "conv1d":
+  if layer_type == "conv1d":
     layer = tf.layers.conv1d
-  elif type == "conv2d":
+  elif layer_type == "conv2d":
     layer = tf.layers.conv2d
 
   conv = layer(
@@ -67,9 +68,9 @@ def conv_bn_actv(type, name, inputs, filters, kernel_size, activation_fn,
   )
 
   # trick to make batchnorm work for mixed precision training.
-  # To-Do check if batchnorm works smoothly for >4 dimensional tensors
+  # TODO: check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
-  if type == "conv1d":
+  if layer_type == "conv1d":
     conv = tf.expand_dims(conv, axis=1)  # NWC --> NHWC
     squeeze = True
 
