@@ -456,7 +456,8 @@ class Tacotron2Decoder(Decoder):
           train_size = 128.
         else:
           train_size = 10480.
-        curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),tf.float32), tf.constant(train_size/_batch_size, tf.float32))
+        curr_epoch = tf.div(tf.cast(tf.train.get_or_create_global_step(),self.params["dtype"]),
+         tf.constant(train_size/_batch_size, self.params["dtype"]))
         curr_step = tf.floor(tf.div(curr_epoch,tf.constant(self.model.params["num_epochs"]/20.)))
         sampling_prob = tf.div(curr_step,tf.constant(20.))
       else:
@@ -470,7 +471,7 @@ class Tacotron2Decoder(Decoder):
                                       mask_decoder_sequence=mask_decoder_sequence)
                                       # context=mean_pool)
     elif self._mode == "eval" or self._mode == "infer":
-      inputs = tf.zeros((_batch_size, self.num_audio_features))
+      inputs = tf.zeros((_batch_size, self.num_audio_features), dtype=self.params["dtype"])
       helper = TacotronHelper(inputs=inputs,
                               # sequence_length=spec_length,
                               prenet=prenet,
@@ -493,7 +494,8 @@ class Tacotron2Decoder(Decoder):
         attention_cell=attentive_cell,
         helper=helper,
         initial_decoder_state=initial_state,
-        initial_attention_state=attentive_cell.zero_state(_batch_size, tf.float32),
+        initial_attention_state=attentive_cell.zero_state(_batch_size,
+          self.params["dtype"]),
         attention_type = self.params["attention_type"],
         spec_layer=self.output_projection_layer,
         target_layer=self.target_projection_layer,

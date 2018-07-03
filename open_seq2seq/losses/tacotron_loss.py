@@ -26,6 +26,7 @@ class TacotronLoss(Loss):
     }
 
   def _compute_loss(self, input_dict):
+    # Compute loss in fp32
     decoder_predictions = input_dict['decoder_output']['outputs'][0]
     post_net_predictions = input_dict['decoder_output']['outputs'][1]
     stop_token_predictions = input_dict['decoder_output']['stop_token_prediction']
@@ -37,6 +38,12 @@ class TacotronLoss(Loss):
     batch_size = tf.shape(spec)[0]
     num_feats = tf.shape(spec)[2]
 
+    decoder_predictions = tf.cast(decoder_predictions, dtype=tf.float32)
+    post_net_predictions = tf.cast(post_net_predictions, dtype=tf.float32)
+    stop_token_predictions = tf.cast(stop_token_predictions, dtype=tf.float32)
+    spec = tf.cast(spec, dtype=tf.float32)
+    stop_token = tf.cast(stop_token, dtype=tf.float32)
+
     predictions_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],num_feats])
     stop_token_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],1])
     decoder_predictions = tf.concat([decoder_predictions, predictions_pad], axis=1)
@@ -44,8 +51,7 @@ class TacotronLoss(Loss):
     stop_token_predictions = tf.concat([stop_token_predictions, stop_token_pad], axis=1)
 
     if self.params.get("use_mask", True):
-      mask = tf.sequence_mask(lengths=spec_lengths,
-                              dtype=tf.float32)
+      mask = tf.sequence_mask(lengths=spec_lengths, dtype=tf.float32)
       mask = tf.expand_dims(mask, axis=-1)
       decoder_loss = tf.losses.mean_squared_error(labels=spec, predictions=decoder_predictions, weights=mask)
       post_net_loss = tf.losses.mean_squared_error(labels=spec, predictions=post_net_predictions, weights=mask)

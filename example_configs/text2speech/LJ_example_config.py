@@ -28,13 +28,13 @@ base_params = {
   # 'gpu_ids': [1],
   "batch_size_per_gpu": 48,
 
-  "save_summaries_steps": 500,
-  "print_loss_steps": 50,
+  "save_summaries_steps": 1,
+  "print_loss_steps": 1,
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-mel",
+  "logdir": "result/tacotron-LJ-example",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
@@ -51,6 +51,7 @@ base_params = {
   #   "d_model": 64,
   #   "coefficient": 1
   # },
+  # "dtype": tf.float32, "mixed", tf.float16
   "dtype": tf.float32,
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
@@ -161,7 +162,7 @@ base_params = {
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_EOS_additional.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,

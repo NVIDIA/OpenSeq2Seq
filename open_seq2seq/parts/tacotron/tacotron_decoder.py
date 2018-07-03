@@ -65,6 +65,7 @@ class TacotronDecoder(decoder.Decoder):
     self.target_layer = target_layer
     self.attention_type = attention_type
     self.use_prenet_output = use_prenet_output
+    self._dtype = initial_decoder_state[0].h.dtype
 
   @property
   def batch_size(self):
@@ -133,7 +134,7 @@ class TacotronDecoder(decoder.Decoder):
       `(finished, first_inputs, initial_state)`.
     """
     if self.attention_type == "location":
-      self.attention_cell._attention_mechanisms[0].initialize_location()
+      self.attention_cell._attention_mechanisms[0].initialize_location(self._dtype)
     return self.helper.initialize() + ((self.attention_initial_state,self.decoder_initial_state,),)
 
   def step(self, time, inputs, state, name=None):

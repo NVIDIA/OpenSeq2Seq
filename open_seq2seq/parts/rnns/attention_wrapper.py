@@ -752,8 +752,8 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     next_state = alignments
     return alignments, next_state
 
-  def initialize_location(self):
-    self.cumulative_location_weights = self.initial_state(self._batch_size, dtype=dtypes.float32)
+  def initialize_location(self, dtype):
+    self.cumulative_location_weights = self.initial_state(self._batch_size, dtype)
 
 
 def safe_cumprod(x, *args, **kwargs):
