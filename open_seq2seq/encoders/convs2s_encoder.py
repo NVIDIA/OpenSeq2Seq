@@ -20,9 +20,7 @@ MAX_INPUT_LENGTH = 128
 
 
 class ConvS2SEncoder(Encoder):
-  """
-  Fully convolutional Encoder of ConvS2S
-  """
+  """Fully convolutional Encoder of ConvS2S."""
 
   @staticmethod
   def get_required_params():

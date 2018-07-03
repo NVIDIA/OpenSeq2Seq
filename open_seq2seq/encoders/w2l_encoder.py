@@ -129,7 +129,7 @@ class Wave2LetterEncoder(Encoder):
 
       for idx_layer in range(layer_repeat):
         conv_feats = conv_block(
-            type=layer_type,
+            layer_type=layer_type,
             name="conv{}{}".format(
                 idx_convnet + 1, idx_layer + 1),
             inputs=conv_feats,
