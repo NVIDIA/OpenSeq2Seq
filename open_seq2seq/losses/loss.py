@@ -1,11 +1,11 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import abc
-import six
 import copy
+
+import six
 import tensorflow as tf
 
 from open_seq2seq.utils.utils import check_params, cast_types
@@ -38,7 +38,7 @@ class Loss:
             class :meth:`__init__` method.
     """
     return {
-      'dtype': [tf.float16, tf.float32],
+        'dtype': [tf.float16, tf.float32],
     }
 
   def __init__(self, params, model, name="loss"):
