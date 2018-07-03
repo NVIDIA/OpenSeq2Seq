@@ -57,7 +57,7 @@ class SpeechUtilsTests(tf.test.TestCase):
               if length % 8 != 0:
                 length += 8 - length % 8
               right_shape = (length, num_features)
-              input_features = get_speech_features_from_file(
+              input_features, _ = get_speech_features_from_file(
                 filename,
                 num_features,
                 features_type=features_type,
@@ -87,10 +87,10 @@ class SpeechUtilsTests(tf.test.TestCase):
     }
     filename = 'open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav'
     num_features = 161
-    input_features_clean = get_speech_features_from_file(
+    input_features_clean, _ = get_speech_features_from_file(
       filename, num_features, augmentation=None,
     )
-    input_features_augm = get_speech_features_from_file(
+    input_features_augm, _ = get_speech_features_from_file(
       filename, num_features, augmentation=augmentation,
     )
     # just checking that result is different with and without augmentation
@@ -102,7 +102,7 @@ class SpeechUtilsTests(tf.test.TestCase):
       'noise_level_min': -90,
       'noise_level_max': -46,
     }
-    input_features_augm = get_speech_features_from_file(
+    input_features_augm, _ = get_speech_features_from_file(
       filename, num_features, augmentation=augmentation,
     )
     self.assertNotEqual(
@@ -118,7 +118,7 @@ class SpeechUtilsTests(tf.test.TestCase):
     fs = 16000.0
     t = np.arange(0, 0.5, 1.0 / fs)
     signal = np.sin(2 * np.pi * 4000 * t)
-    features = get_speech_features(signal, fs, 161)
+    features, _ = get_speech_features(signal, fs, 161, pad_to=0)
     npt.assert_allclose(
       np.abs(features - features[0]),
       np.zeros_like(features),
