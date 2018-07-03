@@ -15,7 +15,7 @@ if output_type == "magnitude":
   num_audio_features = 513
   output_type = "magnitude_disk"
 elif output_type == "mel":
-  num_audio_features = 80
+  num_audio_features = 311
   output_type = "mel_disk"
 
 
@@ -34,14 +34,16 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-mel",
+  "logdir": "result/tacotron-LJ-momentum",
   "max_grad_norm":1.,
 
-  "optimizer": "Adam",
-  "optimizer_params": {},
+  "optimizer": "Momentum",
+  "optimizer_params": {
+    "momentum": 0.9
+  },
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 1e-3,
+    "learning_rate": 0.7,
   },
   # "lr_policy": transformer_policy,
   # "lr_policy_params": {

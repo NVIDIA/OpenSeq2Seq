@@ -48,7 +48,7 @@ class TacotronTrainingHelper(Helper):
     # self._zero_inputs = nest.map_structure(
     #     lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
     self._batch_size = array_ops.size(sequence_length)
-    self.seed = 0
+    self.seed = None
     self.sampling_prob = sampling_prob
     self.anneal_teacher_forcing = anneal_teacher_forcing
     self.stop_gradient = anneal_teacher_forcing_stop_gradient
