@@ -8,8 +8,8 @@ import time
 
 import numpy as np
 import six
-import tensorflow as tf
 from six.moves import range
+import tensorflow as tf
 
 try:
   from inspect import signature
