@@ -11,7 +11,7 @@ base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
+  "use_horovod": True,
   "num_epochs": 50,
 
   "num_gpus": 8,
@@ -19,8 +19,8 @@ base_params = {
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 2200,
-  "eval_steps": 2200,
+  "print_samples_steps": 1100,
+  "eval_steps": 1100,
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
@@ -103,7 +103,7 @@ base_params = {
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
     "initializer": tf.contrib.layers.xavier_initializer,
-    "use_language_model": True,
+    "use_language_model": False,
 
     # params for decoding the sequence with language model
     "beam_width": 512,
@@ -131,6 +131,7 @@ train_params = {
       "/data/librispeech/librivox-train-clean-360.csv",
       "/data/librispeech/librivox-train-other-500.csv",
     ],
+    "max_duration": 16.7,
     "shuffle": True,
   },
 }

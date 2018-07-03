@@ -47,7 +47,7 @@ class SpeechUtilsTests(tf.test.TestCase):
       for num_features in [161, 120]:
         for window_stride in [10e-3, 5e-3, 40e-3]:
           for window_size in [20e-3, 30e-3]:
-            for features_type in ['spectrogram', 'mfcc', 'logfbank']:
+            for features_type in ['spectrogram', 'mfcc']:
               fs, signal = wave.read(filename)
               n_window_size = int(fs * window_size)
               n_window_stride = int(fs * window_stride)
@@ -118,7 +118,7 @@ class SpeechUtilsTests(tf.test.TestCase):
     fs = 16000.0
     t = np.arange(0, 0.5, 1.0 / fs)
     signal = np.sin(2 * np.pi * 4000 * t)
-    features = get_speech_features(signal, fs, 161, pad_to=0)
+    features = get_speech_features(signal, fs, 161)
     npt.assert_allclose(
       np.abs(features - features[0]),
       np.zeros_like(features),
