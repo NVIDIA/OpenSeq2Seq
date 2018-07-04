@@ -280,6 +280,7 @@ class Text2SpeechDataLayer(DataLayer):
     Returns:
       mag_spec: mag spec
     """
+    spectrogram = spectrogram.astype(float)
     if self.mel:
       return inverse_mel(spectrogram, 
                          n_mels=self.params['num_audio_features'],

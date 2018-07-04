@@ -22,6 +22,14 @@ from StringIO import StringIO
 
 def plot_spectrogram_w_target(ground_truth, generated_sample, post_net_sample, attention, target_sample, target,
   audio_length, logdir, train_step, number=0, append=False, vmin=None, vmax=None, save_to_tensorboard=False):
+
+  ground_truth = ground_truth.astype(float)
+  generated_sample = generated_sample.astype(float)
+  post_net_sample = post_net_sample.astype(float)
+  attention = attention.astype(float)
+  target_sample = target_sample.astype(float)
+  target = target.astype(float)
+
   fig, (ax1, ax2, ax3, ax4, ax5) = plt.subplots(nrows=5, figsize=(8,15))
   
   if vmin is None:
@@ -101,12 +109,14 @@ def plot_spectrograms(specs, titles, target_sample, audio_length,
   
   figures = []
   for i, (spec, title) in enumerate(zip(specs,titles)):
+    spec = spec.astype(float)
     colour = ax[i].imshow(spec.T, cmap='viridis', interpolation=None, aspect='auto')
     figures.append(colour)
     ax[i].invert_yaxis()
     ax[i].set_title(title)
     ax[i].axis('off')
     fig.colorbar(colour, ax=ax[i])
+  target_sample = target_sample.astype(float)
   target_fig = ax[-1].plot(target_sample, 'g.')
   ax[-1].axvline(x=audio_length)
   
