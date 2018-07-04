@@ -16,6 +16,7 @@ base_params = {
 
   "num_gpus": 8,
   "batch_size_per_gpu": 64,
+  "iter_size": 4
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
@@ -30,11 +31,11 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.002,
+    "learning_rate": 0.008,
     "power": 0.5,
   },
   "larc_params": {
-    "larc_eta": 0.002,
+    "larc_eta": 0.008,
   },
 
   "regularizer": tf.contrib.layers.l2_regularizer,
