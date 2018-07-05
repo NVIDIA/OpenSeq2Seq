@@ -58,6 +58,7 @@ class TacotronTrainingHelper(Helper):
     self.prenet = prenet
     self._zero_inputs = nest.map_structure(
       lambda inp: array_ops.zeros_like(inp[0, :]), inputs)
+    self._start_inputs = self._zero_inputs
     # if prenet is None:
     #   self._zero_inputs = nest.map_structure(
     #     lambda inp: array_ops.zeros_like(inp[0, :]), inputs)

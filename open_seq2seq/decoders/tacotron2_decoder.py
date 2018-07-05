@@ -53,10 +53,11 @@ from tensorflow.python.framework import ops
 #   return output
 
 class Prenet():
-  def __init__(self, num_units, num_layers, activation_fn=None):
+  def __init__(self, num_units, num_layers, activation_fn=None, dtype=None):
     assert(num_layers > 0), "If the prenet is enabled, there must be at least 1 layer"
     self.prenet_layers=[]
     self._output_size = num_units
+    self._dtype = dtype
 
     for idx in range(num_layers):
       self.prenet_layers.append(tf.layers.Dense(
@@ -64,11 +65,14 @@ class Prenet():
         units=num_units,
         activation=activation_fn,
         use_bias=True,
+        dtype=tf.float32
       ))
   
   def __call__(self, inputs):
+    inputs = tf.cast(inputs, dtype=tf.float32)
     for layer in self.prenet_layers:
       inputs = tf.layers.dropout(layer(inputs), rate=0.5, training=True)
+    inputs = tf.cast(inputs, self._dtype)
     return inputs
 
   @property
@@ -362,7 +366,7 @@ class Tacotron2Decoder(Decoder):
     
     prenet = None
     if enable_prenet:
-      prenet = Prenet(prenet_units, prenet_layers, prenet_activation)
+      prenet = Prenet(prenet_units, prenet_layers, prenet_activation, self.params["dtype"])
 
     # if self._mode == "train":
     #   dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
@@ -591,17 +595,22 @@ class Tacotron2Decoder(Decoder):
       else:
         alignments = tf.transpose(final_state.alignment_history.stack(), [1,0,2])
     else:
-      alignments = tf.zeros([_batch_size,_batch_size,_batch_size])
+      alignments = tf.zeros([_batch_size,_batch_size,_batch_size], dtype=self.params["dtype"])
 
     decoder_output = final_outputs.rnn_output
     # post_net_output = top_layer
     spectrogram_prediction = decoder_output + top_layer
-    stop_token_prediction = tf.sigmoid(final_outputs.target_output)
+    if self.params['attention_rnn_enable']:
+      stop_token_logits = final_outputs.target_output
+    else:
+      stop_token_logits = self.target_projection_layer(spectrogram_prediction)
+    stop_token_prediction = tf.sigmoid(stop_token_logits)
+
 
     outputs = [decoder_output, spectrogram_prediction, alignments, 
       stop_token_prediction, final_sequence_lengths]
 
 
     return {'outputs': outputs,
-            'stop_token_prediction': final_outputs.target_output,
+            'stop_token_prediction': stop_token_logits,
            }
