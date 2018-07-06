@@ -28,8 +28,8 @@ base_params = {
   # 'gpu_ids': [1],
   "batch_size_per_gpu": 48,
 
-  "save_summaries_steps": 50,
-  "print_loss_steps": 50,
+  "save_summaries_steps": 500,
+  "print_loss_steps": 500,
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 5000,
@@ -179,7 +179,7 @@ train_params = {
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
     ],
-    "shuffle": True,
+    "shuffle": False,
   },
 }
 
