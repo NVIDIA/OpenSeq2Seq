@@ -138,7 +138,7 @@ class Tacotron2Decoder(Decoder):
       "attention_bias": bool,
       'zoneout_prob': float,
       'stop_token_full': bool,
-      'parallel_iterations': bool,
+      'parallel_iterations': int,
     })
 
   def __init__(self, params, model,
