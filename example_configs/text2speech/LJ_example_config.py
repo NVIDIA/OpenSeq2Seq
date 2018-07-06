@@ -104,7 +104,7 @@ base_params = {
     'attention_rnn_units': 1024,
     'attention_rnn_layers': 1,
     'attention_rnn_cell_type': tf.nn.rnn_cell.LSTMCell,
-    'attention_bias': False,
+    'attention_bias': True,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
@@ -150,7 +150,8 @@ base_params = {
         "activation_fn": None
       }
     ],
-    "mask_decoder_sequence": True
+    "mask_decoder_sequence": True,
+    "paralletl_iterations": 48,
   },
   
   "loss": TacotronLoss,

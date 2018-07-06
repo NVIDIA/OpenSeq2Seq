@@ -137,6 +137,8 @@ class Tacotron2Decoder(Decoder):
       "use_prenet_output": bool,
       "attention_bias": bool,
       'zoneout_prob': float,
+      'stop_token_full': bool,
+      'parallel_iterations': bool,
     })
 
   def __init__(self, params, model,
@@ -503,7 +505,8 @@ class Tacotron2Decoder(Decoder):
         attention_type = self.params["attention_type"],
         spec_layer=self.output_projection_layer,
         target_layer=self.target_projection_layer,
-        use_prenet_output = self.params.get("use_prenet_output", True)
+        use_prenet_output = self.params.get("use_prenet_output", True),
+        stop_token_full = self.params.get("stop_token_full", True)
       )
 
     time_major = self.params.get("time_major", False)
@@ -520,6 +523,7 @@ class Tacotron2Decoder(Decoder):
       maximum_iterations=maximum_iterations,
       swap_memory=use_swap_memory,
       output_time_major=time_major,
+      parallel_iterations=self.params.get("parallel_iterations", 32)
     )
 
     ## Add the post net ##
@@ -560,7 +564,7 @@ class Tacotron2Decoder(Decoder):
         top_layer = tf.layers.dropout(top_layer, rate=1.-dropout_keep_prob, training=training)
 
     else:
-      top_layer = tf.zeros([_batch_size, maximum_iterations, final_outputs.rnn_output.get_shape()[-1]])
+      top_layer = tf.zeros([_batch_size, maximum_iterations, final_outputs.rnn_output.get_shape()[-1]], dtype=self.params["dtype"])
 
     if regularizer and training:
       variables_to_regularize = []
@@ -595,7 +599,7 @@ class Tacotron2Decoder(Decoder):
       else:
         alignments = tf.transpose(final_state.alignment_history.stack(), [1,0,2])
     else:
-      alignments = tf.zeros([_batch_size,_batch_size,_batch_size], dtype=self.params["dtype"])
+      alignments = tf.zeros([_batch_size,_batch_size,_batch_size])
 
     decoder_output = final_outputs.rnn_output
     # post_net_output = top_layer
