@@ -65,14 +65,14 @@ class Prenet():
         units=num_units,
         activation=activation_fn,
         use_bias=True,
-        dtype=tf.float32
+        dtype=dtype
       ))
   
   def __call__(self, inputs):
-    inputs = tf.cast(inputs, dtype=tf.float32)
+    # inputs = tf.cast(inputs, dtype=tf.float32)
     for layer in self.prenet_layers:
       inputs = tf.layers.dropout(layer(inputs), rate=0.5, training=True)
-    inputs = tf.cast(inputs, self._dtype)
+    # inputs = tf.cast(inputs, self._dtype)
     return inputs
 
   @property
@@ -470,7 +470,7 @@ class Tacotron2Decoder(Decoder):
         sampling_prob = self.params['scheduled_sampling_prob']
       helper = TacotronTrainingHelper(inputs=spec,
                                       sequence_length=spec_length,
-                                      prenet=prenet,
+                                      prenet=None,
                                       sampling_prob=sampling_prob,
                                       anneal_teacher_forcing=self.params.get('anneal_teacher_forcing', False),
                                       anneal_teacher_forcing_stop_gradient=self.params.get("anneal_teacher_forcing_stop_gradient",False),
@@ -480,7 +480,7 @@ class Tacotron2Decoder(Decoder):
       inputs = tf.zeros((_batch_size, self.num_audio_features), dtype=self.params["dtype"])
       helper = TacotronHelper(inputs=inputs,
                               # sequence_length=spec_length,
-                              prenet=prenet,
+                              prenet=None,
                               mask_decoder_sequence=mask_decoder_sequence)
                               # context=mean_pool)
     else:
@@ -506,7 +506,8 @@ class Tacotron2Decoder(Decoder):
         spec_layer=self.output_projection_layer,
         target_layer=self.target_projection_layer,
         use_prenet_output = self.params.get("use_prenet_output", True),
-        stop_token_full = self.params.get("stop_token_full", True)
+        stop_token_full = self.params.get("stop_token_full", True),
+        prenet = prenet
       )
 
     time_major = self.params.get("time_major", False)

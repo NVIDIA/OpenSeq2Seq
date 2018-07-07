@@ -27,7 +27,7 @@ class TacotronDecoder(decoder.Decoder):
               initial_decoder_state, initial_attention_state, 
               attention_type, spec_layer, target_layer,
               use_prenet_output=True,
-              stop_token_full=True):
+              stop_token_full=True, prenet=None):
     """Initialize BasicDecoder.
     Args:
       decoder_cell: An `RNNCell` instance.
@@ -68,6 +68,7 @@ class TacotronDecoder(decoder.Decoder):
     self.use_prenet_output = use_prenet_output
     self._dtype = initial_decoder_state[0].h.dtype
     self.stop_token_full = stop_token_full
+    self.prenet = prenet
 
   @property
   def batch_size(self):
@@ -150,6 +151,9 @@ class TacotronDecoder(decoder.Decoder):
       `(outputs, next_state, next_inputs, finished)`.
     """
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
+      if self.prenet is not None:
+        inputs = self.prenet(inputs)
+
       if self.use_prenet_output:
         attention_context, attention_state = self.attention_cell(inputs, state[0])
       else:
