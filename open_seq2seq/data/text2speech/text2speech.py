@@ -145,7 +145,7 @@ class Text2SpeechDataLayer(DataLayer):
         self.params['batch_size'],
         padded_shapes=([None], 1, [None, self.params['num_audio_features']], [None], 1),
         padding_values=(0,0,tf.cast(0.,dtype=self.params['dtype']),
-          tf.cast(0.,dtype=self.params['dtype']),0)
+          tf.cast(1.,dtype=self.params['dtype']),0)
       )
     else:
       self._dataset = self._dataset.map(
