@@ -12,15 +12,15 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "num_epochs": 50,
+  "max_steps": 32000,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 2200,
-  "eval_steps": 2200,
+  "print_samples_steps": 2000,
+  "eval_steps": 2000,
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
@@ -52,7 +52,7 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 5,
+        "type": "conv1d", "repeat" : 4,
         "kernel_size": [7], "stride": [1],
         "num_channels": 200, "padding": "SAME"
       },
