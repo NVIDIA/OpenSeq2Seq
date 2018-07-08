@@ -53,7 +53,7 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 4,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [7], "stride": [1],
         "num_channels": 200, "padding": "SAME"
       },
