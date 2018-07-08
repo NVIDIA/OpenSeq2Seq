@@ -103,7 +103,7 @@ base_params = {
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
     "initializer": tf.contrib.layers.xavier_initializer,
-    "use_language_model": True,
+    "use_language_model": False,
 
     # params for decoding the sequence with language model
     "beam_width": 512,
