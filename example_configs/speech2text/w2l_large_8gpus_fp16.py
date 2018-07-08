@@ -16,7 +16,8 @@ base_params = {
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
-
+  "iter_size": 1,
+  
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
   "print_samples_steps": 2000,
