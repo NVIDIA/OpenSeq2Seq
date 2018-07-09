@@ -22,7 +22,7 @@ elif output_type == "mel":
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 1,
+  "num_epochs": 501,
 
   "num_gpus": 4,
   # 'gpu_ids': [1],
@@ -34,7 +34,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-example",
+  "logdir": "result/tacotron-LJ-float32-cudnn",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",
@@ -66,7 +66,6 @@ base_params = {
   "encoder": Tacotron2Encoder,
   "encoder_params": {
     "dropout_keep_prob": 0.5,
-    "zoneout_prob": 0.1,
     'src_emb_size': 512,
     "conv_layers": [
       {
@@ -87,9 +86,13 @@ base_params = {
 
     "num_rnn_layers": 1,
     "rnn_cell_dim": 256,
-    "use_cudnn_rnn": False,
-    "rnn_type": tf.nn.rnn_cell.LSTMCell,
     "rnn_unidirectional": False,
+    # "use_cudnn_rnn": False,
+    # "rnn_type": tf.nn.rnn_cell.LSTMCell,
+    # "zoneout_prob": 0.1,
+    "use_cudnn_rnn": True,
+    "rnn_type": tf.contrib.cudnn_rnn.CudnnLSTM,
+    "zoneout_prob": 0.,
 
     "data_format": "channels_last",
   },
@@ -151,7 +154,7 @@ base_params = {
       }
     ],
     "mask_decoder_sequence": True,
-    "parallel_iterations": 1,
+    "parallel_iterations": 48,
   },
   
   "loss": TacotronLoss,
@@ -178,7 +181,7 @@ train_params = {
     "dataset_files": [
       "/data/speech/LJSpeech/train.csv",
     ],
-    "shuffle": False,
+    "shuffle": True,
   },
 }
 

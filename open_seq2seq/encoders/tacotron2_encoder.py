@@ -4,6 +4,7 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import math
+import inspect
 
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
@@ -229,27 +230,34 @@ class Tacotron2Encoder(Encoder):
       cell_params["num_units"] = self.params['rnn_cell_dim']
       rnn_type = self.params['rnn_type']
       rnn_input = top_layer
+      rnn_vars = []
 
-      multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
-        [single_cell(cell_class=rnn_type,
-                     cell_params=cell_params,
-                     # dp_input_keep_prob=dropout_keep_prob,
-                     # dp_output_keep_prob=dropout_keep_prob,
-                     zoneout_prob=zoneout_prob,
-                     training=training,
-                     residual_connections=False)
-         for _ in range(num_rnn_layers)]
-      )
-      if self.params['rnn_unidirectional']:
-        top_layer, state = tf.nn.dynamic_rnn(
-          cell=multirnn_cell_fw,
-          inputs=rnn_input,
-          sequence_length=src_length,
+      if self.params["use_cudnn_rnn"]:
+        all_cudnn_classes = [i[1] for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)]
+        if not rnn_type in all_cudnn_classes:
+          raise TypeError("rnn_type must be a Cudnn RNN class")
+        if zoneout_prob != 0.:
+          raise ValueError("Zoneout is currently not supported for cudnn rnn classes")
+
+        rnn_input = tf.transpose(top_layer, [1, 0, 2])
+        if self.params['rnn_unidirectional']:
+          direction = cudnn_rnn_ops.CUDNN_RNN_UNIDIRECTION
+        else:
+          direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
+
+        rnn_block = rnn_type(
+          num_layers = num_rnn_layers,
+          num_units = cell_params["num_units"],
+          direction = direction,
           dtype=rnn_input.dtype,
-          time_major=False,
-        )
+          name="cudnn_rnn"
+          )
+        top_layer, state = rnn_block(rnn_input)
+        top_layer = tf.transpose(top_layer, [1, 0, 2])
+        rnn_vars += rnn_block.trainable_variables
+
       else:
-        multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
+        multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
           [single_cell(cell_class=rnn_type,
                        cell_params=cell_params,
                        # dp_input_keep_prob=dropout_keep_prob,
@@ -259,20 +267,40 @@ class Tacotron2Encoder(Encoder):
                        residual_connections=False)
            for _ in range(num_rnn_layers)]
         )
-        top_layer, state = tf.nn.bidirectional_dynamic_rnn(
-          cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
-          inputs=rnn_input,
-          sequence_length=src_length,
-          dtype=rnn_input.dtype,
-          time_major=False
-        )
-        # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
-        top_layer = tf.concat(top_layer, 2)
+        rnn_vars += multirnn_cell_fw.trainable_variables
+        if self.params['rnn_unidirectional']:
+          top_layer, state = tf.nn.dynamic_rnn(
+            cell=multirnn_cell_fw,
+            inputs=rnn_input,
+            sequence_length=src_length,
+            dtype=rnn_input.dtype,
+            time_major=False,
+          )
+        else:
+          multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
+            [single_cell(cell_class=rnn_type,
+                         cell_params=cell_params,
+                         # dp_input_keep_prob=dropout_keep_prob,
+                         # dp_output_keep_prob=dropout_keep_prob,
+                         zoneout_prob=zoneout_prob,
+                         training=training,
+                         residual_connections=False)
+             for _ in range(num_rnn_layers)]
+          )
+          top_layer, state = tf.nn.bidirectional_dynamic_rnn(
+            cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
+            inputs=rnn_input,
+            sequence_length=src_length,
+            dtype=rnn_input.dtype,
+            time_major=False
+          )
+          # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
+          top_layer = tf.concat(top_layer, 2)
+          rnn_vars += multirnn_cell_bw.trainable_variables
 
       if regularizer and training:
         cell_weights = []
-        cell_weights += multirnn_cell_fw.trainable_variables
-        cell_weights += multirnn_cell_bw.trainable_variables
+        cell_weights += rnn_vars
         cell_weights += [enc_emb_w]
         for weights in cell_weights:
           if "bias" not in weights.name:
