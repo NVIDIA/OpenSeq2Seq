@@ -11,16 +11,17 @@ base_model = Speech2Text
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  "num_epochs": 50,
+  "use_horovod": True,
+  "num_epochs": 20,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 64,
+  "iter_size": 4,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 1100,
-  "eval_steps": 1100,
+  "print_samples_steps": 2000,
+  "eval_steps": 2000,
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
@@ -30,11 +31,11 @@ base_params = {
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.002,
+    "learning_rate": 0.008,
     "power": 0.5,
   },
   "larc_params": {
-    "larc_eta": 0.002,
+    "larc_eta": 0.008,
   },
 
   "regularizer": tf.contrib.layers.l2_regularizer,
@@ -52,14 +53,14 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 5,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [7], "stride": [1],
         "num_channels": 200, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 300, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
@@ -84,7 +85,7 @@ base_params = {
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 1000, "padding": "SAME"
+        "num_channels": 800, "padding": "SAME"
       },
     ],
 

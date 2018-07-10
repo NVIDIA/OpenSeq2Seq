@@ -12,15 +12,16 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "num_epochs": 50,
+  "max_steps": 32000,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
-
+  "iter_size": 1,
+  
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 2200,
-  "eval_steps": 2200,
+  "print_samples_steps": 2000,
+  "eval_steps": 2000,
   "save_checkpoint_steps": 1000,
   "logdir": "w2l_log_folder",
 
@@ -52,14 +53,14 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 5,
+        "type": "conv1d", "repeat" : 3,
         "kernel_size": [7], "stride": [1],
         "num_channels": 200, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 300, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
@@ -84,7 +85,7 @@ base_params = {
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 1000, "padding": "SAME"
+        "num_channels": 800, "padding": "SAME"
       },
     ],
 
@@ -102,7 +103,7 @@ base_params = {
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
     "initializer": tf.contrib.layers.xavier_initializer,
-    "use_language_model": True,
+    "use_language_model": False,
 
     # params for decoding the sequence with language model
     "beam_width": 512,
