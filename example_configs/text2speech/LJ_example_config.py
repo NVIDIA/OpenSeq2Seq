@@ -58,7 +58,7 @@ base_params = {
     "decay_steps": 20000,
     "decay_rate": 0.1,
     "use_staircase_decay": False,
-    "begin_decay_at": 50000,
+    "begin_decay_at": 45000,
     "min_lr": 1e-5,
   },
   # "dtype": tf.float32, "mixed", tf.float16
