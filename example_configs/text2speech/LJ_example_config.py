@@ -4,7 +4,7 @@ from open_seq2seq.encoders import Tacotron2Encoder
 from open_seq2seq.decoders import Tacotron2Decoder
 from open_seq2seq.data import Text2SpeechDataLayer
 from open_seq2seq.losses import TacotronLoss
-from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy
+from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy, exp_decay
 
 
 base_model = Text2Speech
