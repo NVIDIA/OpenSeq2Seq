@@ -22,7 +22,8 @@ elif output_type == "mel":
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  "num_epochs": 501,
+  # "num_epochs": 501,
+  "max_steps": 100000,
 
   "num_gpus": 4,
   # 'gpu_ids': [1],
@@ -39,10 +40,10 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  "lr_policy": fixed_lr,
-  "lr_policy_params": {
-    "learning_rate": 1e-3,
-  },
+  # "lr_policy": fixed_lr,
+  # "lr_policy_params": {
+  #   "learning_rate": 1e-3,
+  # },
   # "lr_policy": transformer_policy,
   # "lr_policy_params": {
   #   "learning_rate": 1.8,
@@ -51,6 +52,15 @@ base_params = {
   #   "d_model": 64,
   #   "coefficient": 1
   # },
+  "lr_policy": exp_decay,
+  "lr_policy_params": {
+    "learning_rate": 1e-3,
+    "decay_steps": 20000,
+    "decay_rate": 0.1,
+    "use_staircase_decay": False,
+    "begin_decay_at": 50000,
+    "min_lr": 1e-5,
+  },
   # "dtype": tf.float32, "mixed", tf.float16
   "dtype": tf.float32,
   # weight decay
