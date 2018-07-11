@@ -55,7 +55,7 @@ class TacotronTrainingHelper(Helper):
       prenet=None,
       sampling_prob=0.,
       anneal_teacher_forcing=False,
-      anneal_teacher_forcing_stop_gradient=False,
+      stop_gradient=False,
       time_major=False,
       sample_ids_shape=None,
       sample_ids_dtype=None,
@@ -80,7 +80,7 @@ class TacotronTrainingHelper(Helper):
     self.seed = None
     self.sampling_prob = sampling_prob
     self.anneal_teacher_forcing = anneal_teacher_forcing
-    self.stop_gradient = anneal_teacher_forcing_stop_gradient
+    self.stop_gradient = stop_gradient
     self.mask_decoder_sequence = mask_decoder_sequence
     # self.context = context
 
