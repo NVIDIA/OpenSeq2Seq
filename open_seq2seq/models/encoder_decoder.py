@@ -156,7 +156,7 @@ class EncoderDecoderModel(Model):
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
       decoder_input = {"encoder_output": encoder_output}
-      if self.mode != "infer":
+      if self.mode == "train":
         decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       model_outputs = decoder_output.get("outputs", None)

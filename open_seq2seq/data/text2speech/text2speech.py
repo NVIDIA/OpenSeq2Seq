@@ -199,9 +199,10 @@ class Text2SpeechDataLayer(DataLayer):
       transcript = str(transcript, 'utf-8')
     transcript = transcript.lower()
     text_input = np.array([self.params['char2idx'][c] for c in unicode(transcript,"utf-8")])
-    if self.params.get("pad_EOS", True):
-      text_input = np.append(text_input, self.params['char2idx']["~"])
     pad_to = self.params.get('pad_to', 8)
+    if self.params.get("pad_EOS", True):
+      num_pad = pad_to - ((len(text_input) + 1) % pad_to) + 1
+      text_input = np.pad(text_input, ((0, num_pad)), "constant", constant_values=self.params['char2idx']["~"])
     if self.load_from_disk:
       file_path = os.path.join(self.params['dataset_location'],audio_filename+".npy")
       spectrogram = np.load(file_path)
@@ -233,10 +234,15 @@ class Text2SpeechDataLayer(DataLayer):
         mean=self.params.get("feature_normalize_mean", 0.),
         std=self.params.get("feature_normalize_std", 1.)
       )
-    if self.params.get("pad_EOS", True):
-      spectrogram = np.pad(spectrogram, ((0,1),(0,0)), "constant", constant_values=0)
     stop_token_target = np.zeros([len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype())
-    stop_token_target[-1] = 1.
+    # stop_token_target[-1] = 1.
+    if self.params.get("pad_EOS", True):
+      num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
+      spectrogram = np.pad(spectrogram, ((0,num_pad),(0,0)), "constant", constant_values=0)
+      stop_token_target = np.pad(stop_token_target, ((0,num_pad)), "constant", constant_values=1)
+
+    assert len(text_input) % pad_to == 0
+    assert len(spectrogram) % pad_to == 0
     return np.int32(text_input), \
            np.int32([len(text_input)]), \
            spectrogram.astype(self.params['dtype'].as_numpy_dtype()), \

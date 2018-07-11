@@ -320,7 +320,7 @@ class Tacotron2Decoder(Decoder):
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']
-    if self._mode != "infer":
+    if self._mode == "train":
       spec = input_dict['target_tensors'][0] if 'target_tensors' in \
                                                     input_dict else None
       target = input_dict['target_tensors'][1] if 'target_tensors' in \
@@ -512,7 +512,7 @@ class Tacotron2Decoder(Decoder):
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
-    if self._mode != 'infer':
+    if self._mode == 'train':
       maximum_iterations = tf.reduce_max(spec_length)
     else:
       maximum_iterations = tf.reduce_max(enc_src_lengths) * 5

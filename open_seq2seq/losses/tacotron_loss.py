@@ -9,7 +9,7 @@ import tensorflow as tf
 from .loss import Loss
 
 class TacotronLoss(Loss):
-  def __init__(self, params, model, name="cross_entropy_loss"):
+  def __init__(self, params, model, name="tacotron_loss"):
     super(TacotronLoss, self).__init__(params, model, name)
 
   def get_optional_params(self):
@@ -44,11 +44,18 @@ class TacotronLoss(Loss):
     spec = tf.cast(spec, dtype=tf.float32)
     stop_token = tf.cast(stop_token, dtype=tf.float32)
 
-    predictions_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],num_feats])
-    stop_token_pad = tf.zeros([batch_size, tf.shape(spec)[1]-tf.shape(decoder_predictions)[1],1])
+    max_length = tf.to_int32(tf.maximum(
+        tf.shape(spec)[1],
+        tf.shape(decoder_predictions)[1],
+    ))
+
+    predictions_pad = tf.zeros([batch_size, max_length-tf.shape(decoder_predictions)[1],num_feats])
+    stop_token_pad = tf.zeros([batch_size, max_length-tf.shape(decoder_predictions)[1],1])
+    spec_pad = tf.zeros([batch_size, max_length-tf.shape(spec)[1],num_feats])
     decoder_predictions = tf.concat([decoder_predictions, predictions_pad], axis=1)
     post_net_predictions = tf.concat([post_net_predictions, predictions_pad], axis=1)
     stop_token_predictions = tf.concat([stop_token_predictions, stop_token_pad], axis=1)
+    spec = tf.concat([spec, spec_pad], axis=1)
 
     if self.params.get("use_mask", True):
       mask = tf.sequence_mask(lengths=spec_lengths, dtype=tf.float32)
