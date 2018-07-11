@@ -32,9 +32,9 @@ base_params = {
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
   "logdir": "Transformer-FP32",
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
