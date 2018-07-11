@@ -41,7 +41,7 @@ rnn\_encoders
 transformer\_encoders
 -------------------------------------
 
-.. automodule:: encoders.transformer_encoders
+.. automodule:: encoders.transformer_encoder
     :members:
     :undoc-members:
     :show-inheritance:
