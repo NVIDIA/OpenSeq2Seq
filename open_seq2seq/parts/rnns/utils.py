@@ -1,7 +1,6 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-<<<<<<< HEAD
 from six.moves import range
 
 from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\

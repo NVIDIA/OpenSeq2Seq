@@ -35,7 +35,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-float32-cudnn",
+  "logdir": "result/tacotron-LJ-float32",
   "max_grad_norm":1.,
 
   "optimizer": "Adam",

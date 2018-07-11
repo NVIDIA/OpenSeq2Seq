@@ -473,7 +473,7 @@ class Tacotron2Decoder(Decoder):
                                       prenet=None,
                                       sampling_prob=sampling_prob,
                                       anneal_teacher_forcing=self.params.get('anneal_teacher_forcing', False),
-                                      anneal_teacher_forcing_stop_gradient=self.params.get("anneal_teacher_forcing_stop_gradient",False),
+                                      stop_gradient=self.params.get("anneal_teacher_forcing_stop_gradient",False),
                                       mask_decoder_sequence=mask_decoder_sequence)
                                       # context=mean_pool)
     elif self._mode == "eval" or self._mode == "infer":
@@ -548,7 +548,7 @@ class Tacotron2Decoder(Decoder):
           final_sequence_lengths = (final_sequence_lengths + strides[0] - 1) // strides[0]
 
         top_layer = conv_bn_actv(
-          type="conv1d",
+          layer_type="conv1d",
           name="conv{}".format(idx_conv + 1),
           inputs=top_layer,
           filters=ch_out,

@@ -281,16 +281,16 @@ class Text2Speech(EncoderDecoderModel):
     y_sample = spec[0]
     target = target[0]
     # y_length_sample = y_length[0]
-    predicted_spectrogram_sample = predicted_decoder_spectrograms[0]
-    predicted_final_spectrogram_sample = predicted_final_spectrograms[0]
-    attention_mask_sample = attention_mask[0]
-    target_output_sample = target_output[0]
+    predicted_spectrogram = predicted_decoder_spectrograms[0]
+    predicted_final_spectrogram = predicted_final_spectrograms[0]
+    attention_mask = attention_mask[0]
+    target_output = target_output[0]
     audio_length = output_values[4][0]
 
-    im_summary = plot_spectrogram_w_target(y_sample, predicted_spectrogram_sample,
-                     predicted_final_spectrogram_sample,
-                     attention_mask_sample,
-                     target_output_sample,
+    im_summary = plot_spectrogram_w_target(y_sample, predicted_spectrogram,
+                     predicted_final_spectrogram,
+                     attention_mask,
+                     target_output,
                      target,
                      audio_length,
                      self.params["logdir"], step,
@@ -298,9 +298,9 @@ class Text2Speech(EncoderDecoderModel):
                      save_to_tensorboard = self.save_to_tensorboard)
     dict_to_log['image'] = im_summary
 
-    predicted_final_spectrogram_sample = predicted_final_spectrogram_sample[:audio_length-1,:]
-    predicted_final_spectrogram_sample = self.get_data_layer().get_magnitude_spec(predicted_final_spectrogram_sample)
-    wav_summary = save_audio(predicted_final_spectrogram_sample, self.params["logdir"], step,
+    predicted_final_spectrogram = predicted_final_spectrogram[:audio_length-1,:]
+    predicted_final_spectrogram = self.get_data_layer().get_magnitude_spec(predicted_final_spectrogram)
+    wav_summary = save_audio(predicted_final_spectrogram, self.params["logdir"], step,
       save_to_tensorboard = self.save_to_tensorboard)
     dict_to_log['audio'] = wav_summary
 
