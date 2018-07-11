@@ -12,17 +12,17 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "max_steps": 32000,
+  "num_epochs": 20,
 
   "num_gpus": 8,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 64,
   "iter_size": 1,
   
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 2000,
-  "eval_steps": 2000,
-  "save_checkpoint_steps": 1000,
+  "print_samples_steps": 2200,
+  "eval_steps": 2200,
+  "save_checkpoint_steps": 1100,
   "logdir": "w2l_log_folder",
 
   "optimizer": "Momentum",
@@ -32,7 +32,7 @@ base_params = {
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 0.5,
+    "power": 2.0,
   },
   "larc_params": {
     "larc_eta": 0.001,
@@ -54,38 +54,38 @@ base_params = {
     "convnet_layers": [
       {
         "type": "conv1d", "repeat" : 3,
-        "kernel_size": [7], "stride": [1],
-        "num_channels": 200, "padding": "SAME"
-      },
-      {
-        "type": "conv1d", "repeat" : 3,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 300, "padding": "SAME"
+        "num_channels": 256, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
-        "kernel_size": [15], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "kernel_size": [13], "stride": [1],
+        "num_channels": 384, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
-        "kernel_size": [19], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "kernel_size": [17], "stride": [1],
+        "num_channels": 512, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 3,
-        "kernel_size": [23], "stride": [1],
-        "num_channels": 600, "padding": "SAME"
+        "kernel_size": [21], "stride": [1],
+        "num_channels": 640, "padding": "SAME"
+      },
+      {
+        "type": "conv1d", "repeat" : 3,
+        "kernel_size": [25], "stride": [1],
+        "num_channels": 768, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [29], "stride": [1],
-        "num_channels": 800, "padding": "SAME"
+        "num_channels": 896, "padding": "SAME"
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 800, "padding": "SAME"
+        "num_channels": 1024, "padding": "SAME"
       },
     ],
 
@@ -123,7 +123,7 @@ base_params = {
 train_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
@@ -138,7 +138,7 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
@@ -151,7 +151,7 @@ eval_params = {
 infer_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
