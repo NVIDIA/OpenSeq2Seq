@@ -4,7 +4,7 @@ from open_seq2seq.encoders import Wave2LetterEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.lr_policies import *
 
 
 base_model = Speech2Text
@@ -29,10 +29,11 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  "lr_policy": poly_decay,
+  #"lr_policy": poly_decay,
+  "lr_policy": fixed_lr,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    "power": 2.0,
+    #"power": 2.0,
   },
   "larc_params": {
     "larc_eta": 0.001,
