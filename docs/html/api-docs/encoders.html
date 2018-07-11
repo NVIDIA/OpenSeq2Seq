@@ -99,7 +99,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.ds2_encoder">ds2_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.w2l_encoder">w2l_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.rnn_encoders">rnn_encoders</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#transformer-encoders">transformer_encoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.transformer_encoder">transformer_encoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.convs2s_encoder">convs2s_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.resnet_encoder">resnet_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.resnet_blocks">resnet_blocks</a></li>
@@ -1069,8 +1069,51 @@ class <a class="reference internal" href="#encoders.rnn_encoders.UnidirectionalR
 </dd></dl>
 
 </div>
-<div class="section" id="transformer-encoders">
-<h2>transformer_encoders<a class="headerlink" href="#transformer-encoders" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-encoders.transformer_encoder">
+<span id="transformer-encoders"></span><h2>transformer_encoders<a class="headerlink" href="#module-encoders.transformer_encoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="encoders.transformer_encoder.TransformerEncoder">
+<em class="property">class </em><code class="descclassname">encoders.transformer_encoder.</code><code class="descname">TransformerEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoder.html#TransformerEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoder.TransformerEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.encoders.encoder.Encoder</span></code></p>
+<p>Transformer model encoder</p>
+<dl class="staticmethod">
+<dt id="encoders.transformer_encoder.TransformerEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoder.html#TransformerEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoder.TransformerEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.transformer_encoder.TransformerEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoder.html#TransformerEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoder.TransformerEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-encoders.convs2s_encoder">
 <span id="convs2s-encoder"></span><h2>convs2s_encoder<a class="headerlink" href="#module-encoders.convs2s_encoder" title="Permalink to this headline">¶</a></h2>

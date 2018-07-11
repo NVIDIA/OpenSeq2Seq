@@ -33,7 +33,7 @@ rnn\_decoders
 transformer\_decoders
 -------------------------------------
 
-.. automodule:: decoders.transformer_decoders
+.. automodule:: decoders.transformer_decoder
     :members:
     :undoc-members:
     :show-inheritance:

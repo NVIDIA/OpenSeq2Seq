@@ -268,6 +268,7 @@
     <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
   <span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
     <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">num_bench_updates</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">sess</span><span class="o">.</span><span class="n">should_stop</span><span class="p">():</span>
         <span class="k">break</span>
@@ -278,6 +279,8 @@
         <span class="k">if</span> <span class="n">iter_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
           <span class="n">feed_dict</span><span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">skip_update_ph</span><span class="p">]</span> <span class="o">=</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">!=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
+            <span class="n">num_bench_updates</span> <span class="o">+=</span> <span class="mi">1</span>
           <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="c1"># necessary to skip &quot;no-update&quot; steps when iter_size &gt; 1</span>
@@ -307,7 +310,7 @@
   <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
-      <span class="n">avg_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)</span>
+      <span class="n">avg_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="n">num_bench_updates</span>
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg time per step: </span><span class="si">{:.3f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_time</span><span class="p">))</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span>

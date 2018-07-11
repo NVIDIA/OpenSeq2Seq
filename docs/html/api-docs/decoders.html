@@ -99,7 +99,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.decoder">decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.fc_decoders">fc_decoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.rnn_decoders">rnn_decoders</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#transformer-decoders">transformer_decoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.transformer_decoder">transformer_decoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.convs2s_decoder">convs2s_decoder</a></li>
 </ul>
 </li>
@@ -814,8 +814,86 @@ class <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithA
 </dd></dl>
 
 </div>
-<div class="section" id="transformer-decoders">
-<h2>transformer_decoders<a class="headerlink" href="#transformer-decoders" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-decoders.transformer_decoder">
+<span id="transformer-decoders"></span><h2>transformer_decoders<a class="headerlink" href="#module-decoders.transformer_decoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="decoders.transformer_decoder.TransformerDecoder">
+<em class="property">class </em><code class="descclassname">decoders.transformer_decoder.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder._get_symbols_to_logits_fn">
+<code class="descname">_get_symbols_to_logits_fn</code><span class="sig-paren">(</span><em>max_decode_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder._get_symbols_to_logits_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder._get_symbols_to_logits_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a decoding function that calculates logits of the next tokens.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder.decode_pass">
+<code class="descname">decode_pass</code><span class="sig-paren">(</span><em>targets</em>, <em>encoder_outputs</em>, <em>inputs_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.decode_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.decode_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate logits for each value in the target sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>targets</strong> – target values for the output sequence.
+int tensor with shape [batch_size, target_length]</li>
+<li><strong>encoder_outputs</strong> – continuous representation of input sequence.
+float tensor with shape [batch_size, input_length, hidden_size]</li>
+<li><strong>inputs_attention_bias</strong> – float tensor with shape [batch_size, 1, 1, input_length]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float32 tensor with shape [batch_size, target_length, vocab_size]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoder.TransformerDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoder.TransformerDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_decoder_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return predicted sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-decoders.convs2s_decoder">
 <span id="convs2s-decoder"></span><h2>convs2s_decoder<a class="headerlink" href="#module-decoders.convs2s_decoder" title="Permalink to this headline">¶</a></h2>
