@@ -1,12 +1,11 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
+
+import os
+import time
 
 import tensorflow as tf
-import time
-import os
-
 
 from open_seq2seq.utils.utils import deco_print, log_summaries_from_dict, \
                                      get_results_for_epoch
@@ -67,8 +66,8 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     # using only first GPU
     output_tensors = model.get_output_tensors(0)
     self._fetches = [
-      model.get_data_layer(0).input_tensors,
-      output_tensors,
+        model.get_data_layer(0).input_tensors,
+        output_tensors,
     ]
 
   def begin(self):
@@ -94,9 +93,9 @@ class PrintSamplesHook(tf.train.SessionRunHook):
     # returned from maybe_print_logs
     if self._model.params['save_summaries_steps'] and dict_to_log:
       log_summaries_from_dict(
-        dict_to_log,
-        self._model.params['logdir'],
-        step,
+          dict_to_log,
+          self._model.params['logdir'],
+          step,
       )
 
 
@@ -134,9 +133,9 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       deco_print("Global step {}:".format(step), end=" ")
     else:
       deco_print(
-        "Epoch {}, global step {}:".format(
-          step // self._model.steps_in_epoch, step),
-        end=" ",
+          "Epoch {}, global step {}:".format(
+              step // self._model.steps_in_epoch, step),
+          end=" ",
       )
 
     loss = results[0]
@@ -147,8 +146,8 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
     h, m = divmod(m, 60)
 
     deco_print(
-      "time per step = {}:{:02}:{:.3f}".format(int(h), int(m), s),
-      start="",
+        "time per step = {}:{:02}:{:.3f}".format(int(h), int(m), s),
+        start="",
     )
     self._last_time = time.time()
 
@@ -187,7 +186,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       deco_print("Running evaluation on a validation set:")
 
     results_per_batch, total_loss = get_results_for_epoch(
-      self._model, run_context.session, mode="eval", compute_loss=True,
+        self._model, run_context.session, mode="eval", compute_loss=True,
     )
 
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
@@ -201,17 +200,17 @@ class RunEvaluationHook(tf.train.SessionRunHook):
          total_loss < self._best_eval_loss:
         self._best_eval_loss = total_loss
         self._eval_saver.save(
-          run_context.session,
-          os.path.join(self._model.params['logdir'], 'best_models',
-                       'val_loss={:.4f}-step'.format(total_loss)),
-          global_step=step + 1,
+            run_context.session,
+            os.path.join(self._model.params['logdir'], 'best_models',
+                         'val_loss={:.4f}-step'.format(total_loss)),
+            global_step=step + 1,
         )
 
       # optionally logging to tensorboard any values
       # returned from maybe_print_logs
       if self._model.params['save_summaries_steps']:
         log_summaries_from_dict(
-          dict_to_log,
-          self._model.params['logdir'],
-          step,
+            dict_to_log,
+            self._model.params['logdir'],
+            step,
         )

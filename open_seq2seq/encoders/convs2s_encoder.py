@@ -5,22 +5,22 @@ Conv-based encoder
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import tensorflow as tf
 import math
-from .encoder import Encoder
 
+import tensorflow as tf
+
+from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
 from open_seq2seq.parts.transformer import embedding_layer
 from open_seq2seq.parts.transformer.utils import get_padding_bias, get_padding
-from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
+from .encoder import Encoder
+
 
 # Default value used if max_input_length is not given
 MAX_INPUT_LENGTH = 128
 
 
 class ConvS2SEncoder(Encoder):
-  """
-  Fully convolutional Encoder of ConvS2S
-  """
+  """Fully convolutional Encoder of ConvS2S."""
 
   @staticmethod
   def get_required_params():
@@ -58,6 +58,9 @@ class ConvS2SEncoder(Encoder):
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
 
+    self.position_embedding_layer = None
+    self.embedding_softmax_layer = None
+
   def _encode(self, input_dict):
     inputs = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
@@ -90,7 +93,7 @@ class ConvS2SEncoder(Encoder):
 
         # linear projection before cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 self._src_emb_size,
                 knum_list[0],
                 dropout=self.params["embedding_dropout_keep_prob"],
@@ -103,7 +106,7 @@ class ConvS2SEncoder(Encoder):
           # linear projection is needed for residual connections if
           # input and output of a cnn layer do not match
           if in_dim != out_dim:
-            linear_proj = ffn_wn_layer.FeedFowardNetworkNormalized(
+            linear_proj = ffn_wn_layer.FeedForwardNetworkNormalized(
                 in_dim,
                 out_dim,
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
@@ -125,7 +128,7 @@ class ConvS2SEncoder(Encoder):
 
         # linear projection after cnn layers
         self.layers.append(
-            ffn_wn_layer.FeedFowardNetworkNormalized(
+            ffn_wn_layer.FeedForwardNetworkNormalized(
                 knum_list[self.params['encoder_layers'] - 1],
                 self._src_emb_size,
                 dropout=1.0,
@@ -156,8 +159,6 @@ class ConvS2SEncoder(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
-      # disables padding masks in middle layers
-      # padding_mask = None
       outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
     return {
@@ -207,7 +208,8 @@ class ConvS2SEncoder(Encoder):
       if padding_mask is not None:
         outputs_b *= padding_mask
 
-      # Average of the encoder outputs is calculated as the final state of the encoder
+      # Average of the encoder outputs is calculated
+      # as the final state of the encoder
       # it can be used for decoders which just accept the final state
       final_state = tf.reduce_mean(outputs_b, 1)
     return outputs, outputs_b, final_state

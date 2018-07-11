@@ -1,21 +1,21 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
+
 from open_seq2seq.losses.sequence_loss import CrossEntropyWithSmoothing, \
   BasicSequenceLoss
 
 
 class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
   def setUp(self):
-    print("Setting Up  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
+    print("Setting Up  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")
 
   def tearDown(self):
-    print("Tear down  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")    
-    
+    print("Tear down  CrossEntropyWithSmoothingEqualsBasicSequenceLoss Test")
+
   def test_compute_loss(self):
     seq_length = 13
     tgt_vocab_size = 12
@@ -42,16 +42,19 @@ class CrossEntropyWithSmoothingEqualsBasicSequenceLossTest(tf.test.TestCase):
             loss_input_dict = {
                 "decoder_output": {"logits": logits},
                 "target_tensors": [targets, tgt_lengths],
-                }
+            }
             l1 = sparse_xentropy.compute_loss(input_dict=loss_input_dict)
             l2 = xentropy.compute_loss(input_dict=loss_input_dict)
             with self.test_session(use_gpu=True) as sess:
-              t = np.random.randint(tgt_vocab_size,
-                                    size=(batch_size, seq_length))
-              l = np.random.random(size=[batch_size,
-                                         seq_length, tgt_vocab_size])
-              feed_dict = {targets: t, logits: l,
-                           tgt_lengths: np.array([seq_length-offset]*batch_size)}
+              tgts = np.random.randint(tgt_vocab_size,
+                                       size=(batch_size, seq_length))
+              lgts = np.random.random(size=[batch_size,
+                                            seq_length, tgt_vocab_size])
+              feed_dict = {
+                  targets: tgts,
+                  logits: lgts,
+                  tgt_lengths: np.array([seq_length-offset]*batch_size)
+              }
               loss1 = sess.run(l1, feed_dict=feed_dict)
               loss2 = sess.run(l2, feed_dict=feed_dict)
               self.assertEqual(loss1, loss2)

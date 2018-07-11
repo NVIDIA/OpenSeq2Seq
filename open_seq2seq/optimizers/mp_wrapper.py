@@ -3,17 +3,18 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
+
 from .automatic_loss_scaler import AutomaticLossScaler
 
 
+# pylint: disable=abstract-method
 class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
   def __init__(self, optimizer, loss_scale=None):
     super(MixedPrecisionOptimizerWrapper, self).__init__(
-      optimizer._use_locking,
-      optimizer._name + '-MP',
+        optimizer._use_locking,
+        optimizer._name + '-MP',
     )
     self._optimizer = optimizer
     self._fp32_to_fp16 = {}
@@ -33,11 +34,11 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
                         grad_loss=None):
     loss *= self._loss_scale
     grads_and_vars_fp16 = self._optimizer.compute_gradients(
-      loss, var_list=var_list,
-      gate_gradients=gate_gradients,
-      aggregation_method=aggregation_method,
-      colocate_gradients_with_ops=colocate_gradients_with_ops,
-      grad_loss=grad_loss,
+        loss, var_list=var_list,
+        gate_gradients=gate_gradients,
+        aggregation_method=aggregation_method,
+        colocate_gradients_with_ops=colocate_gradients_with_ops,
+        grad_loss=grad_loss,
     )
 
     # collecting regularization functions
@@ -50,26 +51,27 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
       for grad, var in grads_and_vars_fp16:
         if var.dtype.base_dtype == tf.float16:
           fp32_var = tf.Variable(
-            initial_value=tf.cast(var.initialized_value(), tf.float32),
-            name=var.name.split(':')[0],
-            expected_shape=var.shape,
-            dtype=tf.float32,
-            trainable=False,
-            # necessary for cudnn_rnn layers which have unknown shape
-            validate_shape=bool(var.get_shape()),
-            collections=[tf.GraphKeys.GLOBAL_VARIABLES,
-                         "FP32_MASTER_COPIES"],
+              initial_value=tf.cast(var.initialized_value(), tf.float32),
+              name=var.name.split(':')[0],
+              expected_shape=var.shape,
+              dtype=tf.float32,
+              trainable=False,
+              # necessary for cudnn_rnn layers which have unknown shape
+              validate_shape=bool(var.get_shape()),
+              collections=[tf.GraphKeys.GLOBAL_VARIABLES,
+                           "FP32_MASTER_COPIES"],
           )
           self._fp32_to_fp16[fp32_var.name] = var
           fp32_grad = tf.cast(grad, tf.float32)
           # adding regularization part with respect to fp32 copy
           if var.name in reg_funcs:
             fp32_grad += self._loss_scale * tf.gradients(
-              tf.contrib.layers.apply_regularization(
-                reg_funcs[var.name],
-                [fp32_var],
-              ),
-              fp32_var,
+                # pylint: disable=no-member
+                tf.contrib.layers.apply_regularization(
+                    reg_funcs[var.name],
+                    [fp32_var],
+                ),
+                fp32_var,
             )[0]
           grads_and_vars_fp32.append((fp32_grad, fp32_var))
         else:
@@ -89,7 +91,8 @@ class MixedPrecisionOptimizerWrapper(tf.train.Optimizer):
           if var.name in self._fp32_to_fp16:
             dst_var = self._fp32_to_fp16[var.name]
             apply_ops.append(
-              tf.assign(dst_var, tf.saturate_cast(var, tf.float16)))
+                tf.assign(dst_var, tf.saturate_cast(var, tf.float16))
+            )
       if apply_ops:
         return tf.group(apply_ops)
       return update_op
@@ -111,8 +114,7 @@ def mp_regularizer_wrapper(regularizer):
       tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
       # disabling the inner regularizer
       return None
-    else:
-      return regularizer(weights)
+    return regularizer(weights)
 
   return func_wrapper
 
@@ -128,4 +130,3 @@ def _scale_grads(grads_and_vars, scale):
         grad *= scale
     scaled_grads_and_vars.append((grad, var))
   return scaled_grads_and_vars
-

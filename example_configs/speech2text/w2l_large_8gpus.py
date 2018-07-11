@@ -1,3 +1,4 @@
+# pylint: skip-file
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import Wave2LetterEncoder
@@ -126,9 +127,9 @@ train_params = {
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "/data/librispeech/librivox-train-clean-100.csv",
-      "/data/librispeech/librivox-train-clean-360.csv",
-      "/data/librispeech/librivox-train-other-500.csv",
+      "data/librispeech/librivox-train-clean-100.csv",
+      "data/librispeech/librivox-train-clean-360.csv",
+      "data/librispeech/librivox-train-other-500.csv",
     ],
     "shuffle": True,
   },
@@ -141,7 +142,7 @@ eval_params = {
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "/data/librispeech/librivox-dev-clean.csv",
+      "data/librispeech/librivox-dev-clean.csv",
     ],
     "shuffle": False,
   },
@@ -154,7 +155,7 @@ infer_params = {
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "/data/librispeech/librivox-test-clean.csv",
+      "data/librispeech/librivox-test-clean.csv",
     ],
     "shuffle": False,
   },

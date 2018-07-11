@@ -1,9 +1,10 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import io
+
+from six.moves import range
 
 
 def pad_vocab_to_eight(vocab):

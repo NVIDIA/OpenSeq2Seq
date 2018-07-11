@@ -7,7 +7,6 @@ value for the current step.
 """
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 
@@ -77,15 +76,15 @@ def exp_decay(global_step, learning_rate, decay_steps, decay_rate,
     learning rate at step ``global_step``.
   """
   new_lr = tf.cond(
-    global_step < begin_decay_at,
-    lambda: learning_rate,
-    lambda: tf.train.exponential_decay(
-      learning_rate,
-      global_step - begin_decay_at,
-      decay_steps,
-      decay_rate,
-      staircase=use_staircase_decay),
-    name="learning_rate",
+      global_step < begin_decay_at,
+      lambda: learning_rate,
+      lambda: tf.train.exponential_decay(
+          learning_rate,
+          global_step - begin_decay_at,
+          decay_steps,
+          decay_rate,
+          staircase=use_staircase_decay),
+      name="learning_rate",
   )
   final_lr = tf.maximum(min_lr, new_lr)
   return final_lr
@@ -111,22 +110,23 @@ def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
     learning rate at step ``global_step``.
   """
   lr = tf.cond(
-    global_step < begin_decay_at,
-    lambda: learning_rate,
-    lambda: tf.train.polynomial_decay(
-      learning_rate,
-      global_step=global_step-begin_decay_at,
-      decay_steps=decay_steps,
-      end_learning_rate=min_lr,
-      power=power),
-    name="learning_rate"
+      global_step < begin_decay_at,
+      lambda: learning_rate,
+      lambda: tf.train.polynomial_decay(
+          learning_rate,
+          global_step=global_step-begin_decay_at,
+          decay_steps=decay_steps,
+          end_learning_rate=min_lr,
+          power=power),
+      name="learning_rate"
   )
   return lr
 
 
 def transformer_policy(global_step, learning_rate, d_model, warmup_steps,
                        max_lr=None, coefficient=1.0, dtype=tf.float32):
-  """Transformer's learning rate policy from https://arxiv.org/pdf/1706.03762.pdf
+  """Transformer's learning rate policy from
+  https://arxiv.org/pdf/1706.03762.pdf
   with a hat (max_lr) (also called "noam" learning rate decay scheme).
 
   Args:
@@ -146,10 +146,10 @@ def transformer_policy(global_step, learning_rate, d_model, warmup_steps,
   ws = tf.cast(warmup_steps, dtype=dtype)
 
   decay = coefficient * d_model ** -0.5 * tf.minimum(
-    (step_num + 1) * ws ** -1.5, (step_num + 1) ** -0.5)
+      (step_num + 1) * ws ** -1.5, (step_num + 1) ** -0.5
+  )
 
   new_lr = decay * learning_rate
   if max_lr is not None:
     return tf.minimum(max_lr, new_lr)
-  else:
-    return new_lr
+  return new_lr

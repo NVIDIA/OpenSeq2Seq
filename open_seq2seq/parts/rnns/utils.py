@@ -1,6 +1,7 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+<<<<<<< HEAD
 from six.moves import range
 
 from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
@@ -8,9 +9,6 @@ from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
 from open_seq2seq.parts.rnns.slstm import BasicSLSTMCell
 from open_seq2seq.parts.rnns.glstm import GLSTMCell
 from open_seq2seq.parts.rnns.zoneout import ZoneoutWrapper
-
-import tensorflow as tf
-
 
 def single_cell(cell_class,
                  cell_params,
@@ -26,8 +24,10 @@ def single_cell(cell_class,
      Args:
        cell_class: Tensorflow RNN cell class
        cell_params (dict): cell parameters
-       dp_input_keep_prob (float): (default: 1.0) input dropout keep probability
-       dp_output_keep_prob (float): (default: 1.0) output dropout keep probability
+       dp_input_keep_prob (float): (default: 1.0) input dropout keep
+          probability.
+       dp_output_keep_prob (float): (default: 1.0) output dropout keep
+          probability.
        residual_connections (bool): whether to add residual connection
 
      Returns:

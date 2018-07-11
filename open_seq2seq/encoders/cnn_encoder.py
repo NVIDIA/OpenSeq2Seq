@@ -1,22 +1,52 @@
 # Copyright (c) 2018 NVIDIA Corporation
+"""
+This module contains classes and functions to build "general" convolutional
+neural networks from the description of arbitrary "layers".
+"""
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import copy
 
-try:
-    from inspect import signature
-except ImportError:
-    from funcsigs import signature
+import tensorflow as tf
 
-from .encoder import Encoder
+try:
+  from inspect import signature
+except ImportError:
+  from funcsigs import signature
+
 from open_seq2seq.utils.utils import deco_print
+from .encoder import Encoder
 
 
 def build_layer(inputs, layer, layer_params, data_format,
                 regularizer, training, verbose=True):
+  """This function builds a layer from the layer function and it's parameters.
+
+  It will automatically add regularizer parameter to the layer_params if the
+  layer supports regularization. To check this, it will look for the
+  "regularizer", "kernel_regularizer" and "gamma_regularizer" names in this
+  order in the ``layer`` call signature. If one of this parameters is supported
+  it will pass regularizer object as a value for that parameter. Based on the
+  same "checking signature" technique "data_format" and "training" parameters
+  will try to be added.
+
+  Args:
+    inputs: input Tensor that will be passed to the layer. Note that layer has
+        to accept input as the first parameter.
+    layer: layer function or class with ``__call__`` method defined.
+    layer_params (dict): parameters passed to the ``layer``.
+    data_format (string): data format ("channels_first" or "channels_last")
+        that will be tried to be passed as an additional argument.
+    regularizer: regularizer instance that will be tried to be passed as an
+        additional argument.
+    training (bool): whether layer is built in training mode. Will be tried to
+        be passed as an additional argument.
+    verbose (bool): whether to print information about built layers.
+
+  Returns:
+    Tensor with layer output.
+  """
   layer_params_cp = copy.deepcopy(layer_params)
   for reg_name in ['regularizer', 'kernel_regularizer', 'gamma_regularizer']:
     if reg_name not in layer_params_cp and \
@@ -39,28 +69,73 @@ def build_layer(inputs, layer, layer_params, data_format,
     else:
       layer_name = layer
     deco_print("Building layer: {}(inputs, {})".format(
-      layer_name,
-      ", ".join("{}={}".format(key, value)
-                for key, value in layer_params_cp.items())
+        layer_name,
+        ", ".join("{}={}".format(key, value)
+                  for key, value in layer_params_cp.items())
     ))
   return outputs
 
 
 class CNNEncoder(Encoder):
+  """General CNN encoder that can be used to construct various different models.
+  """
   @staticmethod
   def get_required_params():
     return dict(Encoder.get_required_params(), **{
-      'cnn_layers': list,
+        'cnn_layers': list,
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      'data_format': ['channels_first', 'channels_last'],
-      'fc_layers': list,
+        'data_format': ['channels_first', 'channels_last'],
+        'fc_layers': list,
     })
 
   def __init__(self, params, model, name="cnn_encoder", mode='train'):
+    """CNN Encoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **cnn_layers** (list) --- list with the description of "convolutional"
+      layers. For example::
+        "conv_layers": [
+            (tf.layers.conv2d, {
+                'filters': 64, 'kernel_size': (11, 11),
+                'strides': (4, 4), 'padding': 'VALID',
+                'activation': tf.nn.relu,
+            }),
+            (tf.layers.max_pooling2d, {
+                'pool_size': (3, 3), 'strides': (2, 2),
+            }),
+            (tf.layers.conv2d, {
+                'filters': 192, 'kernel_size': (5, 5),
+                'strides': (1, 1), 'padding': 'SAME',
+            }),
+            (tf.layers.batch_normalization, {'momentum': 0.9, 'epsilon': 0.0001}),
+            (tf.nn.relu, {}),
+        ]
+      Note that you don't need to provide "regularizer", "training" and
+      "data_format" parameters since they will be automatically added.
+
+    * **cnn_layers** (list) --- list with the description of "fully-connected"
+      layers. The only different from convolutional layers is that the input
+      will be automatically reshaped to 2D (batch size x num features).
+      For example::
+        'fc_layers': [
+            (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+            (tf.layers.dropout, {'rate': 0.5}),
+            (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
+            (tf.layers.dropout, {'rate': 0.5}),
+        ],
+      Note that you don't need to provide "regularizer", "training" and
+      "data_format" parameters since they will be automatically added.
+
+    * **data_format** (string) --- could be either "channels_first" or
+      "channels_last". Defaults to "channels_first".
+    """
     super(CNNEncoder, self).__init__(params, model, name, mode)
 
   def _encode(self, input_dict):
