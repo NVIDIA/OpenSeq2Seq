@@ -29,9 +29,9 @@ def clip_sparse(value, size):
     if idx_tuple[0] < size:
       indices_clipped.append(idx_tuple)
       values_clipped.append(val)
-  return tf.SparseTensorValue(np.array(indices_clipped),
-                              np.array(values_clipped),
-                              dense_shape_clipped)
+  return tf.SparseTensorValue(
+      np.array(indices_clipped), np.array(values_clipped), dense_shape_clipped
+  )
 
 
 def collect_if_horovod(value, hvd, mode='sum'):
@@ -112,13 +112,19 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       cur_fetches.append(model.get_num_objects_per_step(worker_id))
     except NotImplementedError:
       total_objects = None
-      deco_print("WARNING: Can't compute number of objects per step, since "
-                 "train model does not define get_num_objects_per_step method.")
+      deco_print(
+          "WARNING: Can't compute number of objects per step, since "
+          "train model does not define get_num_objects_per_step method."
+      )
     fetches.append(cur_fetches)
     total_samples.append(0.0)
 
-  sess.run([model.get_data_layer(i).iterator.initializer
-            for i in range(model.num_gpus)])
+  sess.run(
+      [
+          model.get_data_layer(i).iterator.initializer
+          for i in range(model.num_gpus)
+      ]
+  )
 
   step = 0
   processed_batches = 0
@@ -187,16 +193,25 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 
     if verbose:
       if size_defined:
-        data_size = int(np.sum(np.ceil(np.array(dl_sizes) /
-                                       model.params['batch_size_per_gpu'])))
+        data_size = int(
+            np.sum(
+                np.ceil(
+                    np.array(dl_sizes) / model.params['batch_size_per_gpu']
+                )
+            )
+        )
         if step == 0 or len(fetches_vals) == 0 or \
            (data_size > 10 and processed_batches % (data_size // 10) == 0):
-          deco_print("Processed {}/{} batches{}".format(
-              processed_batches, data_size, ending
-          ))
+          deco_print(
+              "Processed {}/{} batches{}".format(
+                  processed_batches, data_size, ending
+              )
+          )
       else:
-        deco_print("Processed {} batches{}".format(processed_batches, ending),
-                   end='\r')
+        deco_print(
+            "Processed {} batches{}".format(processed_batches, ending),
+            end='\r'
+        )
 
     if len(fetches_vals) == 0:
       break
@@ -211,8 +226,9 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       )
       if total_objects is not None:
         avg_objects = 1.0 * total_objects / total_time
-        deco_print("Avg objects per second{}: {:.3f}".format(ending,
-                                                             avg_objects))
+        deco_print(
+            "Avg objects per second{}: {:.3f}".format(ending, avg_objects)
+        )
     else:
       deco_print("Not enough steps for benchmarking{}".format(ending))
 
@@ -225,11 +241,19 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-        model, sess, compute_loss, mode, verbose,
+        model,
+        sess,
+        compute_loss,
+        mode,
+        verbose,
     )
   else:
     results_per_batch = iterate_data(
-        model, sess, compute_loss, mode, verbose,
+        model,
+        sess,
+        compute_loss,
+        mode,
+        verbose,
     )
 
   if compute_loss:
@@ -269,34 +293,37 @@ def log_summaries_from_dict(dict_to_log, output_dir, step):
   for tag, value in dict_to_log.items():
     if isinstance(value, tf.Summary.Value):
       sm_writer.add_summary(
-        tf.Summary(value=[value]),
-        global_step=step,
+          tf.Summary(value=[value]),
+          global_step=step,
       )
     else:
       sm_writer.add_summary(
-        tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
-        global_step=step,
+          tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
+          global_step=step,
       )
     sm_writer.flush()
 
 
 def get_git_hash():
   try:
-    return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
-                                   stderr=subprocess.STDOUT).decode()
+    return subprocess.check_output(
+        ['git', 'rev-parse', 'HEAD'], stderr=subprocess.STDOUT
+    ).decode()
   except subprocess.CalledProcessError as e:
     return "{}\n".format(e.output.decode("utf-8"))
 
 
 def get_git_diff():
   try:
-    return subprocess.check_output(['git', 'diff'],
-                                   stderr=subprocess.STDOUT).decode()
+    return subprocess.check_output(
+        ['git', 'diff'], stderr=subprocess.STDOUT
+    ).decode()
   except subprocess.CalledProcessError as e:
     return "{}\n".format(e.output.decode("utf-8"))
 
 
 class Logger(object):
+
   def __init__(self, stream, log_file):
     self.stream = stream
     self.log = log_file
@@ -369,8 +396,9 @@ def array_to_string(row, vocab, delim=' '):
   return delim.join(map(lambda x: vocab[x], [r for r in row if 0 <= r < n]))
 
 
-def text_ids_to_string(row, vocab, S_ID, EOS_ID, PAD_ID,
-                       ignore_special=False, delim=' '):
+def text_ids_to_string(
+    row, vocab, S_ID, EOS_ID, PAD_ID, ignore_special=False, delim=' '
+):
   """For _-to-text outputs this function takes a row with ids,
   target vocabulary and prints it as a human-readable string
   """
@@ -399,7 +427,8 @@ def check_params(config, required_dict, optional_dict):
         vals = string_types
       if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
+      if vals and not isinstance(vals,
+                                 list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm, vals in optional_dict.items():
@@ -408,7 +437,8 @@ def check_params(config, required_dict, optional_dict):
     if pm in config:
       if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
+      if vals and not isinstance(vals,
+                                 list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm in config:

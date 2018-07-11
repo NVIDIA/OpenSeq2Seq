@@ -16,18 +16,30 @@ from tensorflow.python.ops import array_ops
 
 
 class BasicDecoderOutput(
-    collections.namedtuple("BasicDecoderOutput", ("rnn_output", "target_output", "sample_id"))):
+    collections.namedtuple(
+        "BasicDecoderOutput", ("rnn_output", "target_output", "sample_id")
+    )
+):
   pass
 
 
 class TacotronDecoder(decoder.Decoder):
   """Basic sampling decoder."""
 
-  def __init__(self, decoder_cell, attention_cell, helper,
-              initial_decoder_state, initial_attention_state, 
-              attention_type, spec_layer, target_layer,
-              use_prenet_output=True,
-              stop_token_full=True, prenet=None):
+  def __init__(
+      self,
+      decoder_cell,
+      attention_cell,
+      helper,
+      initial_decoder_state,
+      initial_attention_state,
+      attention_type,
+      spec_layer,
+      target_layer,
+      use_prenet_output=True,
+      stop_token_full=True,
+      prenet=None
+  ):
     """Initialize BasicDecoder.
     Args:
       decoder_cell: An `RNNCell` instance.
@@ -53,10 +65,13 @@ class TacotronDecoder(decoder.Decoder):
     rnn_cell_impl.assert_like_rnncell("cell", attention_cell)
     if not isinstance(helper, helper_py.Helper):
       raise TypeError("helper must be a Helper, received: %s" % type(helper))
-    if (spec_layer is not None
-        and not isinstance(spec_layer, layers_base.Layer)):
+    if (
+        spec_layer is not None and
+        not isinstance(spec_layer, layers_base.Layer)
+    ):
       raise TypeError(
-          "spec_layer must be a Layer, received: %s" % type(spec_layer))
+          "spec_layer must be a Layer, received: %s" % type(spec_layer)
+      )
     self.decoder_cell = decoder_cell
     self.attention_cell = attention_cell
     self.helper = helper
@@ -86,10 +101,11 @@ class TacotronDecoder(decoder.Decoder):
       # dimensions to get the output size of the rnn with the layer
       # applied to the top.
       output_shape_with_unknown_batch = nest.map_structure(
-          lambda s: tensor_shape.TensorShape([None]).concatenate(s),
-          size)
+          lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
+      )
       layer_output_shape = self.spec_layer.compute_output_shape(
-          output_shape_with_unknown_batch)
+          output_shape_with_unknown_batch
+      )
       return nest.map_structure(lambda s: s[1:], layer_output_shape)
 
   def _stop_token_output_size(self):
@@ -104,10 +120,11 @@ class TacotronDecoder(decoder.Decoder):
       # dimensions to get the output size of the rnn with the layer
       # applied to the top.
       output_shape_with_unknown_batch = nest.map_structure(
-          lambda s: tensor_shape.TensorShape([None]).concatenate(s),
-          size)
+          lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
+      )
       layer_output_shape = self.target_layer.compute_output_shape(
-          output_shape_with_unknown_batch)
+          output_shape_with_unknown_batch
+      )
       return nest.map_structure(lambda s: s[1:], layer_output_shape)
 
   @property
@@ -116,7 +133,8 @@ class TacotronDecoder(decoder.Decoder):
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
         target_output=self._stop_token_output_size(),
-        sample_id=self.helper.sample_ids_shape)
+        sample_id=self.helper.sample_ids_shape
+    )
 
   @property
   def output_dtype(self):
@@ -127,7 +145,8 @@ class TacotronDecoder(decoder.Decoder):
     return BasicDecoderOutput(
         nest.map_structure(lambda _: dtype, self._rnn_output_size()),
         nest.map_structure(lambda _: dtype, self._stop_token_output_size()),
-        self.helper.sample_ids_dtype)
+        self.helper.sample_ids_dtype
+    )
 
   def initialize(self, name=None):
     """Initialize the decoder.
@@ -137,8 +156,14 @@ class TacotronDecoder(decoder.Decoder):
       `(finished, first_inputs, initial_state)`.
     """
     if self.attention_type == "location":
-      self.attention_cell._attention_mechanisms[0].initialize_location(self._dtype)
-    return self.helper.initialize() + ((self.attention_initial_state,self.decoder_initial_state,),)
+      self.attention_cell._attention_mechanisms[0].initialize_location(
+          self._dtype
+      )
+    return self.helper.initialize(
+    ) + ((
+        self.attention_initial_state,
+        self.decoder_initial_state,
+    ),)
 
   def step(self, time, inputs, state, name=None):
     """Perform a decoding step.
@@ -155,18 +180,28 @@ class TacotronDecoder(decoder.Decoder):
         inputs = self.prenet(inputs)
 
       if self.use_prenet_output:
-        attention_context, attention_state = self.attention_cell(inputs, state[0])
+        attention_context, attention_state = self.attention_cell(
+            inputs, state[0]
+        )
       else:
         # Do an attention rnn step with the decoder output and previous attention state
-        attention_context, attention_state = self.attention_cell(state[1].h, state[0])
+        attention_context, attention_state = self.attention_cell(
+            state[1].h, state[0]
+        )
       # For the decoder rnn, the input is the (prenet) output + attention context + attention rnn state
-      decoder_rnn_input = array_ops.concat((inputs,attention_context), axis=-1)
+      decoder_rnn_input = array_ops.concat((inputs, attention_context), axis=-1)
       # decoder_rnn_input = state[0].cell_state.h
-      # decoder_rnn_input = array_ops.concat((inputs,attention_context, state[0].cell_state.h), axis=-1)
-      cell_outputs, decoder_state = self.decoder_cell(decoder_rnn_input, state[1])
+      # decoder_rnn_input = array_ops.concat(
+      #     (inputs, attention_context, state[0].cell_state.h), axis=-1
+      # )
+      cell_outputs, decoder_state = self.decoder_cell(
+          decoder_rnn_input, state[1]
+      )
       cell_state = (attention_state, decoder_state)
       # Concatenate the decoder output and attention output and send it through a projection layer
-      cell_outputs = array_ops.concat((cell_outputs, attention_context), axis=-1)
+      cell_outputs = array_ops.concat(
+          (cell_outputs, attention_context), axis=-1
+      )
       spec_outputs = self.spec_layer(cell_outputs)
       # test removing the cell outputs fix
       if self.stop_token_full:
@@ -174,12 +209,14 @@ class TacotronDecoder(decoder.Decoder):
       else:
         target_outputs = self.target_layer(cell_outputs)
       sample_ids = self.helper.sample(
-          time=time, outputs=spec_outputs, state=cell_state)
+          time=time, outputs=spec_outputs, state=cell_state
+      )
       (finished, next_inputs, next_state) = self.helper.next_inputs(
           time=time,
           outputs=spec_outputs,
           state=cell_state,
           sample_ids=sample_ids,
-          stop_token_predictions=target_outputs)
+          stop_token_predictions=target_outputs
+      )
     outputs = BasicDecoderOutput(spec_outputs, target_outputs, sample_ids)
     return (outputs, next_state, next_inputs, finished)

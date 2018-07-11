@@ -13,90 +13,44 @@ from tensorflow.python.framework import ops
 from open_seq2seq.parts.rnns.utils import single_cell
 from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
 
-
 from .encoder import Encoder
 
-# def conv1d_bn_actv(name, inputs, filters, kernel_size, activation_fn, strides,
-#                    padding, regularizer, training, use_bias, data_format, 
-#                    enable_bn, bn_momentum, bn_epsilon):
-#   """Helper function that applies 1-D convolution, batch norm and activation."""
-#   conv = tf.layers.conv1d(
-#     name="{}".format(name),
-#     inputs=inputs,
-#     filters=filters,
-#     kernel_size=kernel_size,
-#     strides=strides,
-#     padding=padding,
-#     kernel_regularizer=regularizer,
-#     use_bias=use_bias,
-#     data_format=data_format,
-#   )
-#   output = conv
-#   if enable_bn:
-#     bn = tf.layers.batch_normalization(
-#       name="{}/bn".format(name),
-#       inputs=conv,
-#       gamma_regularizer=regularizer,
-#       training=training,
-#       axis=-1 if data_format == 'channels_last' else 1,
-#       momentum=bn_momentum,
-#       epsilon=bn_epsilon,
-#     )
-#     output = bn
-#   if activation_fn is not None:
-#     output = activation_fn(output)
-#   return output
-
-# def rnn_cell(rnn_cell_dim, layer_type, dropout_keep_prob=1.0):
-#   """Helper function that creates RNN cell."""
-#   if layer_type == "layernorm_lstm":
-#     cell = tf.contrib.rnn.LayerNormBasicLSTMCell(
-#       num_units=rnn_cell_dim, dropout_keep_prob=dropout_keep_prob)
-#   else:
-#     if layer_type == "lstm":
-#       cell = tf.nn.rnn_cell.BasicLSTMCell(rnn_cell_dim)
-#     elif layer_type == "gru":
-#       cell = tf.nn.rnn_cell.GRUCell(rnn_cell_dim)
-#     elif layer_type == "cudnn_gru":
-#       cell = tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(rnn_cell_dim)
-#     elif layer_type == "cudnn_lstm":
-#       cell = tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(rnn_cell_dim)
-#     else:
-#       raise ValueError("Error: not supported rnn type:{}".format(layer_type))
-
-#     cell = tf.nn.rnn_cell.DropoutWrapper(
-#       cell, output_keep_prob=dropout_keep_prob)
-#   return cell
 
 class Tacotron2Encoder(Encoder):
   """Tacotron-2 like encoder. 
 
   Consists of an embedding layer followed by a convolutional layer followed by a recurrent layer.
   """
+
   @staticmethod
   def get_required_params():
-    return dict(Encoder.get_required_params(), **{
-      'dropout_keep_prob': float,
-      'src_emb_size': int,
-      'conv_layers': list,
-      'activation_fn': None,  # any valid callable
-      'enable_bn': bool,
-      'num_rnn_layers': int,
-      'rnn_cell_dim': int,
-      'use_cudnn_rnn': bool,
-      'rnn_type': None,
-      'rnn_unidirectional': bool,
-    })
+    return dict(
+        Encoder.get_required_params(),
+        **{
+            'dropout_keep_prob': float,
+            'src_emb_size': int,
+            'conv_layers': list,
+            'activation_fn': None,  # any valid callable
+            'enable_bn': bool,
+            'num_rnn_layers': int,
+            'rnn_cell_dim': int,
+            'use_cudnn_rnn': bool,
+            'rnn_type': None,
+            'rnn_unidirectional': bool,
+        }
+    )
 
   @staticmethod
   def get_optional_params():
-    return dict(Encoder.get_optional_params(), **{
-      'use_bias': bool,
-      'data_format': ['channels_first', 'channels_last'],
-      'bn_momentum': float,
-      'bn_epsilon': float,
-      'zoneout_prob': float,
-    })
+    return dict(
+        Encoder.get_optional_params(), **{
+            'use_bias': bool,
+            'data_format': ['channels_first', 'channels_last'],
+            'bn_momentum': float,
+            'bn_epsilon': float,
+            'zoneout_prob': float,
+        }
+    )
 
   def __init__(self, params, model, name="tacotron2_encoder", mode='train'):
     """Tacotron-2 like encoder constructor.
@@ -167,16 +121,18 @@ class Tacotron2Encoder(Encoder):
 
     # ----- Embedding layer -----------------------------------------------
     enc_emb_w = tf.get_variable(
-      name="EncoderEmbeddingMatrix",
-      shape=[src_vocab_size, self.params['src_emb_size']],
-      dtype=self.params['dtype'],
-      # initializer=tf.random_normal_initializer()
+        name="EncoderEmbeddingMatrix",
+        shape=[src_vocab_size, self.params['src_emb_size']],
+        dtype=self.params['dtype'],
+        # initializer=tf.random_normal_initializer()
     )
 
-    embedded_inputs = tf.cast(tf.nn.embedding_lookup(
-      enc_emb_w,
-      source_sequence,
-    ), self.params['dtype'])
+    embedded_inputs = tf.cast(
+        tf.nn.embedding_lookup(
+            enc_emb_w,
+            source_sequence,
+        ), self.params['dtype']
+    )
 
     # ----- Convolutional layers -----------------------------------------------
     input_layer = embedded_inputs
@@ -202,21 +158,23 @@ class Tacotron2Encoder(Encoder):
         src_length = (src_length + strides[0] - 1) // strides[0]
 
       top_layer = conv_bn_actv(
-        layer_type="conv1d",
-        name="conv{}".format(idx_conv + 1),
-        inputs=top_layer,
-        filters=ch_out,
-        kernel_size=kernel_size,
-        activation_fn=self.params['activation_fn'],
-        strides=strides,
-        padding=padding,
-        regularizer=regularizer,
-        training=training,
-        data_format=data_format,
-        bn_momentum=bn_momentum,
-        bn_epsilon=bn_epsilon,
+          layer_type="conv1d",
+          name="conv{}".format(idx_conv + 1),
+          inputs=top_layer,
+          filters=ch_out,
+          kernel_size=kernel_size,
+          activation_fn=self.params['activation_fn'],
+          strides=strides,
+          padding=padding,
+          regularizer=regularizer,
+          training=training,
+          data_format=data_format,
+          bn_momentum=bn_momentum,
+          bn_epsilon=bn_epsilon,
       )
-      top_layer = tf.layers.dropout(top_layer, rate=1.-dropout_keep_prob, training=training)
+      top_layer = tf.layers.dropout(
+          top_layer, rate=1. - dropout_keep_prob, training=training
+      )
 
     if data_format == 'channels_first':
       top_layer = tf.transpose(top_layer, [0, 2, 1])
@@ -233,11 +191,16 @@ class Tacotron2Encoder(Encoder):
       rnn_vars = []
 
       if self.params["use_cudnn_rnn"]:
-        all_cudnn_classes = [i[1] for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)]
+        all_cudnn_classes = [
+            i[1]
+            for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)
+        ]
         if not rnn_type in all_cudnn_classes:
           raise TypeError("rnn_type must be a Cudnn RNN class")
         if zoneout_prob != 0.:
-          raise ValueError("Zoneout is currently not supported for cudnn rnn classes")
+          raise ValueError(
+              "Zoneout is currently not supported for cudnn rnn classes"
+          )
 
         rnn_input = tf.transpose(top_layer, [1, 0, 2])
         if self.params['rnn_unidirectional']:
@@ -246,53 +209,60 @@ class Tacotron2Encoder(Encoder):
           direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
 
         rnn_block = rnn_type(
-          num_layers = num_rnn_layers,
-          num_units = cell_params["num_units"],
-          direction = direction,
-          dtype=rnn_input.dtype,
-          name="cudnn_rnn"
-          )
+            num_layers=num_rnn_layers,
+            num_units=cell_params["num_units"],
+            direction=direction,
+            dtype=rnn_input.dtype,
+            name="cudnn_rnn"
+        )
         top_layer, state = rnn_block(rnn_input)
         top_layer = tf.transpose(top_layer, [1, 0, 2])
         rnn_vars += rnn_block.trainable_variables
 
       else:
         multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
-          [single_cell(cell_class=rnn_type,
-                       cell_params=cell_params,
-                       # dp_input_keep_prob=dropout_keep_prob,
-                       # dp_output_keep_prob=dropout_keep_prob,
-                       zoneout_prob=zoneout_prob,
-                       training=training,
-                       residual_connections=False)
-           for _ in range(num_rnn_layers)]
+            [
+                single_cell(
+                    cell_class=rnn_type,
+                    cell_params=cell_params,
+                    # dp_input_keep_prob=dropout_keep_prob,
+                    # dp_output_keep_prob=dropout_keep_prob,
+                    zoneout_prob=zoneout_prob,
+                    training=training,
+                    residual_connections=False
+                ) for _ in range(num_rnn_layers)
+            ]
         )
         rnn_vars += multirnn_cell_fw.trainable_variables
         if self.params['rnn_unidirectional']:
           top_layer, state = tf.nn.dynamic_rnn(
-            cell=multirnn_cell_fw,
-            inputs=rnn_input,
-            sequence_length=src_length,
-            dtype=rnn_input.dtype,
-            time_major=False,
+              cell=multirnn_cell_fw,
+              inputs=rnn_input,
+              sequence_length=src_length,
+              dtype=rnn_input.dtype,
+              time_major=False,
           )
         else:
           multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
-            [single_cell(cell_class=rnn_type,
-                         cell_params=cell_params,
-                         # dp_input_keep_prob=dropout_keep_prob,
-                         # dp_output_keep_prob=dropout_keep_prob,
-                         zoneout_prob=zoneout_prob,
-                         training=training,
-                         residual_connections=False)
-             for _ in range(num_rnn_layers)]
+              [
+                  single_cell(
+                      cell_class=rnn_type,
+                      cell_params=cell_params,
+                      # dp_input_keep_prob=dropout_keep_prob,
+                      # dp_output_keep_prob=dropout_keep_prob,
+                      zoneout_prob=zoneout_prob,
+                      training=training,
+                      residual_connections=False
+                  ) for _ in range(num_rnn_layers)
+              ]
           )
           top_layer, state = tf.nn.bidirectional_dynamic_rnn(
-            cell_fw=multirnn_cell_fw, cell_bw=multirnn_cell_bw,
-            inputs=rnn_input,
-            sequence_length=src_length,
-            dtype=rnn_input.dtype,
-            time_major=False
+              cell_fw=multirnn_cell_fw,
+              cell_bw=multirnn_cell_bw,
+              inputs=rnn_input,
+              sequence_length=src_length,
+              dtype=rnn_input.dtype,
+              time_major=False
           )
           # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
           top_layer = tf.concat(top_layer, 2)
@@ -306,20 +276,20 @@ class Tacotron2Encoder(Encoder):
           if "bias" not in weights.name:
             print("Added regularizer to {}".format(weights.name))
             if weights.dtype.base_dtype == tf.float16:
-              tf.add_to_collection('REGULARIZATION_FUNCTIONS', (weights, regularizer))
+              tf.add_to_collection(
+                  'REGULARIZATION_FUNCTIONS', (weights, regularizer)
+              )
             else:
-              tf.add_to_collection(ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights))
-          # Want to change init for bias
-          # else:
-          #   std = 1.0 / math.sqrt(self.params['rnn_cell_dim'])
-          #   weights.initializer = tf.random_uniform(weights.get_shape(), minval=-std, maxval=std)
+              tf.add_to_collection(
+                  ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights)
+              )
 
     # -- end of rnn------------------------------------------------------------
 
     outputs = top_layer
-    
+
     return {
-      'outputs': outputs,
-      'src_length': src_length,
-      # 'state': state
+        'outputs': outputs,
+        'src_length': src_length,
+        # 'state': state
     }
