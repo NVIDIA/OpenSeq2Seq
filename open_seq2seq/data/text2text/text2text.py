@@ -56,7 +56,6 @@ class ParallelTextDataLayer(DataLayer):
         'delimiter': str,
         'target_file': str,
         'map_parallel_calls': int,
-        'prefetch_buffer_size': int,
         'pad_lengths_to_eight': bool,
         'pad_vocab_to_eight': bool,
     })
@@ -80,10 +79,6 @@ class ParallelTextDataLayer(DataLayer):
     self._delimiter = self.params.get('delimiter', ' ')
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
-    self._prefetch_buffer_size = self.params.get(
-        'prefetch_buffer_size',
-        tf.contrib.data.AUTOTUNE,  # pylint: disable=no-member
-    )
     self._num_workers = num_workers
     self._worker_id = worker_id
     if self._pad_lengths_to_eight and self.params['max_length'] % 8 != 0:
@@ -202,11 +197,16 @@ class ParallelTextDataLayer(DataLayer):
       _src_tgt_dataset = _src_tgt_dataset\
           .shard(num_shards=self._num_workers, index=self._worker_id)
 
+    shuffle_buffer_size = 1000 * self._batch_size
+
     if self.params['shuffle']:
       _src_tgt_dataset = _src_tgt_dataset\
-          .shuffle(buffer_size=self.get_size_in_samples())
+          .shuffle(buffer_size=shuffle_buffer_size,
+                   reshuffle_each_iteration=True)
     else:
       _src_tgt_dataset = _src_tgt_dataset
+
+    _src_tgt_dataset = _src_tgt_dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
     if self.params['repeat']:
       _src_tgt_dataset = _src_tgt_dataset.repeat()
@@ -219,7 +219,7 @@ class ParallelTextDataLayer(DataLayer):
                         tf.TensorShape([]))),
         padding_values=((SpecialTextTokens.PAD_ID.value, 0),
                         (SpecialTextTokens.PAD_ID.value, 0))
-    ).prefetch(buffer_size=self._prefetch_buffer_size)
+    )
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
 
