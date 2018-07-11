@@ -75,7 +75,9 @@ class TacotronLoss(Loss):
     stop_token = tf.concat([stop_token, stop_token_pad], axis=1)
 
     if self.params.get("use_mask", True):
-      mask = tf.sequence_mask(lengths=spec_lengths, dtype=tf.float32)
+      mask = tf.sequence_mask(
+          lengths=spec_lengths, maxlen=max_length, dtype=tf.float32
+      )
       mask = tf.expand_dims(mask, axis=-1)
       decoder_loss = tf.losses.mean_squared_error(
           labels=spec, predictions=decoder_predictions, weights=mask
