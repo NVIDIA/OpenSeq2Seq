@@ -117,6 +117,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks=hooks,
   ) as sess:
     step = 0
+    num_bench_updates = 0
     while True:
       if sess.should_stop():
         break
@@ -127,6 +128,8 @@ def train(train_model, eval_model=None, debug_port=None):
         if iter_size > 1:
           feed_dict[train_model.skip_update_ph] = step % iter_size != 0
         if step % iter_size == 0:
+          if step >= bench_start:
+            num_bench_updates += 1
           fetches_vals = sess.run(fetches, feed_dict)
         else:
           # necessary to skip "no-update" steps when iter_size > 1
@@ -156,7 +159,7 @@ def train(train_model, eval_model=None, debug_port=None):
   if master_worker:
     deco_print("Finished training")
     if step > bench_start:
-      avg_time = 1.0 * total_time / (step - bench_start)
+      avg_time = 1.0 * total_time / num_bench_updates
       deco_print("Avg time per step: {:.3f}s".format(avg_time))
       if len(fetches) > 1:
         avg_objects = 1.0 * total_objects / total_time

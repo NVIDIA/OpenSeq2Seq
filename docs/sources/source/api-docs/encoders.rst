@@ -38,10 +38,10 @@ rnn\_encoders
     :undoc-members:
     :show-inheritance:
 
-transformer\_encoders
+transformer\_encoder
 -------------------------------------
 
-.. automodule:: encoders.transformer_encoders
+.. automodule:: encoders.transformer_encoder
     :members:
     :undoc-members:
     :show-inheritance:

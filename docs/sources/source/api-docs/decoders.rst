@@ -30,10 +30,10 @@ rnn\_decoders
     :undoc-members:
     :show-inheritance:
 
-transformer\_decoders
+transformer\_decoder
 -------------------------------------
 
-.. automodule:: decoders.transformer_decoders
+.. automodule:: decoders.transformer_decoder
     :members:
     :undoc-members:
     :show-inheritance:
