@@ -186,6 +186,108 @@
 <div class="section" id="id1">
 <h2>image2label<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-data.image2label.image2label"></span><dl class="class">
+<dt id="data.image2label.image2label.CifarDataLayer">
+<em class="property">class </em><code class="descclassname">data.image2label.image2label.</code><code class="descname">CifarDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<dl class="method">
+<dt id="data.image2label.image2label.CifarDataLayer.build_graph">
+<code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Here all TensorFlow graph construction should happen.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.image2label.image2label.CifarDataLayer.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.image2label.image2label.CifarDataLayer.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.image2label.image2label.CifarDataLayer.get_size_in_samples">
+<code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should return the dataset size in samples.
+That is, the number of objects in the dataset. This method is used to
+calculate a valid epoch size. If this method is not defined, you will need
+to make sure that your dataset for evaluation is created only for
+one epoch. You will also not be able to use <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> parameter in the
+base config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.image2label.image2label.CifarDataLayer.input_tensors">
+<code class="descname">input_tensors</code><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary containing input tensors.
+This dictionary has to define the following keys: <cite>source_tensors</cite>,
+which should contain all tensors describing the input object (i.e. tensors
+that are passed to the encoder, e.g. input sequence and input length). And
+when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+<cite>target_tensors</cite> which is the list of all tensors related to the
+corresponding target object (i.e. tensors taht are passed to the decoder and
+loss, e.g. target sequence and target length). Note that all tensors have
+to be created inside <a class="reference internal" href="#data.image2label.image2label.CifarDataLayer.build_graph" title="data.image2label.image2label.CifarDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.image2label.image2label.CifarDataLayer.iterator">
+<code class="descname">iterator</code><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.image2label.image2label.CifarDataLayer.build_graph" title="data.image2label.image2label.CifarDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.image2label.image2label.CifarDataLayer.parse_record">
+<code class="descname">parse_record</code><span class="sig-paren">(</span><em>raw_record</em>, <em>is_training</em>, <em>num_classes=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.parse_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.parse_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parse CIFAR-10 image and label from a raw record.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.image2label.image2label.CifarDataLayer.preprocess_image">
+<code class="descname">preprocess_image</code><span class="sig-paren">(</span><em>image</em>, <em>is_training</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#CifarDataLayer.preprocess_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.CifarDataLayer.preprocess_image" title="Permalink to this definition">¶</a></dt>
+<dd><p>Preprocess a single image of layout [height, width, depth].</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="data.image2label.image2label.ImagenetDataLayer">
 <em class="property">class </em><code class="descclassname">data.image2label.image2label.</code><code class="descname">ImagenetDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/image2label.html#ImagenetDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.image2label.ImagenetDataLayer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
@@ -283,14 +385,14 @@ Should be created by <a class="reference internal" href="#data.image2label.image
 </div>
 <div class="section" id="module-data.image2label.imagenet_preprocessing">
 <span id="imagenet-preprocessing"></span><h2>imagenet_preprocessing<a class="headerlink" href="#module-data.image2label.imagenet_preprocessing" title="Permalink to this headline">¶</a></h2>
-<p>Provides utilities to preprocess images.</p>
-<p>Training images are sampled using the provided bounding boxes, and subsequently
+<p>Provides utilities to preprocess images.
+Training images are sampled using the provided bounding boxes, and subsequently
 cropped to the sampled bounding box. Images are additionally flipped randomly,
-then resized to the target output size (without aspect-ratio preservation).</p>
-<p>Images used during evaluation are resized (with aspect-ratio preservation) and
-centrally cropped.</p>
-<p>All images undergo mean color subtraction.</p>
-<p>Note that these steps are colloquially referred to as “ResNet preprocessing,”
+then resized to the target output size (without aspect-ratio preservation).
+Images used during evaluation are resized (with aspect-ratio preservation) and
+centrally cropped.
+All images undergo mean color subtraction.
+Note that these steps are colloquially referred to as “ResNet preprocessing,”
 and they differ from “VGG preprocessing,” which does not use bounding boxes
 and instead does an aspect-preserving resize followed by random crop during
 training. (These both differ from “Inception preprocessing,” which introduces
@@ -345,8 +447,8 @@ the smallest side after resize.</li>
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing._decode_crop_and_flip">
 <code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_decode_crop_and_flip</code><span class="sig-paren">(</span><em>image_buffer</em>, <em>bbox</em>, <em>num_channels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_decode_crop_and_flip"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._decode_crop_and_flip" title="Permalink to this definition">¶</a></dt>
-<dd><p>Crops the given image to a random part of the image, and randomly flips.</p>
-<p>We use the fused decode_and_crop op, which performs better than the two ops
+<dd><p>Crops the given image to a random part of the image, and randomly flips.
+We use the fused decode_and_crop op, which performs better than the two ops
 used separately in series, but note that this requires that the image be
 passed in as an un-decoded string Tensor.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -370,13 +472,13 @@ where each coordinate is [0, 1) and the coordinates are arranged as
 </dd></dl>
 
 <dl class="function">
-<dt id="data.image2label.imagenet_preprocessing._mean_image_subtraction">
-<code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_mean_image_subtraction</code><span class="sig-paren">(</span><em>image</em>, <em>means</em>, <em>num_channels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_mean_image_subtraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._mean_image_subtraction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Subtracts the given means from each image channel.</p>
+<dt id="data.image2label.imagenet_preprocessing._mean_image_subtraction_and_normalization">
+<code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_mean_image_subtraction_and_normalization</code><span class="sig-paren">(</span><em>image</em>, <em>means</em>, <em>num_channels</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_mean_image_subtraction_and_normalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._mean_image_subtraction_and_normalization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Subtracts the given means from each image channel and divides by 127.5.</p>
 <dl class="docutils">
 <dt>For example:</dt>
 <dd>means = [123.68, 116.779, 103.939]
-image = _mean_image_subtraction(image, means)</dd>
+image = _mean_image_subtraction_and_normalization(image, means)</dd>
 </dl>
 <p>Note that the rank of <cite>image</cite> must be known.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -390,7 +492,7 @@ image = _mean_image_subtraction(image, means)</dd>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the centered image.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">the centered image and normalized image.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the rank of <cite>image</cite> is unknown, if <cite>image</cite> has a rank other
@@ -405,8 +507,8 @@ number of values in <cite>means</cite>.</p>
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing._parse_example_proto">
 <code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_parse_example_proto</code><span class="sig-paren">(</span><em>example_serialized</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_parse_example_proto"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._parse_example_proto" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parses an Example proto containing a training example of an image.</p>
-<p>The output of the build_image_data.py image preprocessing script is a dataset
+<dd><p>Parses an Example proto containing a training example of an image.
+The output of the build_image_data.py image preprocessing script is a dataset
 containing serialized Example protocol buffers. Each Example proto contains
 the following fields (values are included as examples):</p>
 <blockquote>
@@ -448,8 +550,8 @@ bbox: 3-D float Tensor of bounding boxes arranged [1, num_boxes, coords]<blockqu
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing._resize_image">
 <code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_resize_image</code><span class="sig-paren">(</span><em>image</em>, <em>height</em>, <em>width</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_resize_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._resize_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Simple wrapper around tf.resize_images.</p>
-<p>This is primarily to make sure we use the same <cite>ResizeMethod</cite> and other
+<dd><p>Simple wrapper around tf.resize_images.
+This is primarily to make sure we use the same <cite>ResizeMethod</cite> and other
 details each time.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -480,8 +582,8 @@ details each time.</p>
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing._smallest_size_at_least">
 <code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">_smallest_size_at_least</code><span class="sig-paren">(</span><em>height</em>, <em>width</em>, <em>resize_min</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#_smallest_size_at_least"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing._smallest_size_at_least" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes new shape with the smallest side equal to <cite>smallest_side</cite>.</p>
-<p>Computes new shape with the smallest side equal to <cite>smallest_side</cite> while
+<dd><p>Computes new shape with the smallest side equal to <cite>smallest_side</cite>.
+Computes new shape with the smallest side equal to <cite>smallest_side</cite> while
 preserving the original aspect ratio.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -508,9 +610,9 @@ new_width: an int32 scalar tensor indicating the new width.</p>
 
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing.parse_record">
-<code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">parse_record</code><span class="sig-paren">(</span><em>raw_record</em>, <em>is_training</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#parse_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing.parse_record" title="Permalink to this definition">¶</a></dt>
-<dd><p>Parses a record containing a training example of an image.</p>
-<p>The input record is parsed into a label and image, and the image is passed
+<code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">parse_record</code><span class="sig-paren">(</span><em>raw_record</em>, <em>is_training</em>, <em>image_size=224</em>, <em>num_classes=1000</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#parse_record"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing.parse_record" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses a record containing a training example of an image.
+The input record is parsed into a label and image, and the image is passed
 through preprocessing steps (cropping, flipping, and so on).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -520,6 +622,8 @@ through preprocessing steps (cropping, flipping, and so on).</p>
 <li><strong>raw_record</strong> – scalar Tensor tf.string containing a serialized
 Example protocol buffer.</li>
 <li><strong>is_training</strong> – A boolean denoting whether the input is for training.</li>
+<li><strong>image_size</strong> (<em>int</em>) – size that images should be resized to.</li>
+<li><strong>num_classes</strong> (<em>int</em>) – number of output classes.</li>
 </ul>
 </td>
 </tr>
@@ -533,8 +637,8 @@ Example protocol buffer.</li>
 <dl class="function">
 <dt id="data.image2label.imagenet_preprocessing.preprocess_image">
 <code class="descclassname">data.image2label.imagenet_preprocessing.</code><code class="descname">preprocess_image</code><span class="sig-paren">(</span><em>image_buffer</em>, <em>bbox</em>, <em>output_height</em>, <em>output_width</em>, <em>num_channels</em>, <em>is_training=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/image2label/imagenet_preprocessing.html#preprocess_image"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.image2label.imagenet_preprocessing.preprocess_image" title="Permalink to this definition">¶</a></dt>
-<dd><p>Preprocesses the given image.</p>
-<p>Preprocessing includes decoding, cropping, and resizing for both training
+<dd><p>Preprocesses the given image.
+Preprocessing includes decoding, cropping, and resizing for both training
 and eval images. Training preprocessing, however, introduces some random
 distortion of the image to improve accuracy.</p>
 <table class="docutils field-list" frame="void" rules="none">

@@ -1,0 +1,405 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>encoders.cnn_encoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>encoders.cnn_encoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for encoders.cnn_encoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module contains classes and functions to build &quot;general&quot; convolutional</span>
+<span class="sd">neural networks from the description of arbitrary &quot;layers&quot;.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">funcsigs</span> <span class="k">import</span> <span class="n">signature</span>
+
+<span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
+
+
+<div class="viewcode-block" id="build_layer"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.cnn_encoder.build_layer">[docs]</a><span class="k">def</span> <span class="nf">build_layer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">layer_params</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span>
+                <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;This function builds a layer from the layer function and it&#39;s parameters.</span>
+
+<span class="sd">  It will automatically add regularizer parameter to the layer_params if the</span>
+<span class="sd">  layer supports regularization. To check this, it will look for the</span>
+<span class="sd">  &quot;regularizer&quot;, &quot;kernel_regularizer&quot; and &quot;gamma_regularizer&quot; names in this</span>
+<span class="sd">  order in the ``layer`` call signature. If one of this parameters is supported</span>
+<span class="sd">  it will pass regularizer object as a value for that parameter. Based on the</span>
+<span class="sd">  same &quot;checking signature&quot; technique &quot;data_format&quot; and &quot;training&quot; parameters</span>
+<span class="sd">  will try to be added.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    inputs: input Tensor that will be passed to the layer. Note that layer has</span>
+<span class="sd">        to accept input as the first parameter.</span>
+<span class="sd">    layer: layer function or class with ``__call__`` method defined.</span>
+<span class="sd">    layer_params (dict): parameters passed to the ``layer``.</span>
+<span class="sd">    data_format (string): data format (&quot;channels_first&quot; or &quot;channels_last&quot;)</span>
+<span class="sd">        that will be tried to be passed as an additional argument.</span>
+<span class="sd">    regularizer: regularizer instance that will be tried to be passed as an</span>
+<span class="sd">        additional argument.</span>
+<span class="sd">    training (bool): whether layer is built in training mode. Will be tried to</span>
+<span class="sd">        be passed as an additional argument.</span>
+<span class="sd">    verbose (bool): whether to print information about built layers.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    Tensor with layer output.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">layer_params_cp</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">layer_params</span><span class="p">)</span>
+  <span class="k">for</span> <span class="n">reg_name</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="s1">&#39;kernel_regularizer&#39;</span><span class="p">,</span> <span class="s1">&#39;gamma_regularizer&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="n">reg_name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layer_params_cp</span> <span class="ow">and</span> \
+       <span class="n">reg_name</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+      <span class="n">layer_params_cp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">reg_name</span><span class="p">:</span> <span class="n">regularizer</span><span class="p">})</span>
+
+  <span class="k">if</span> <span class="s1">&#39;data_format&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layer_params_cp</span> <span class="ow">and</span> \
+     <span class="s1">&#39;data_format&#39;</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+    <span class="n">layer_params_cp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="n">data_format</span><span class="p">})</span>
+
+  <span class="k">if</span> <span class="s1">&#39;training&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">layer_params_cp</span> <span class="ow">and</span> \
+     <span class="s1">&#39;training&#39;</span> <span class="ow">in</span> <span class="n">signature</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="p">:</span>
+    <span class="n">layer_params_cp</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;training&#39;</span><span class="p">:</span> <span class="n">training</span><span class="p">})</span>
+
+  <span class="n">outputs</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="o">**</span><span class="n">layer_params_cp</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">layer</span><span class="p">,</span> <span class="s1">&#39;_tf_api_names&#39;</span><span class="p">):</span>
+      <span class="n">layer_name</span> <span class="o">=</span> <span class="n">layer</span><span class="o">.</span><span class="n">_tf_api_names</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">layer_name</span> <span class="o">=</span> <span class="n">layer</span>
+    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Building layer: </span><span class="si">{}</span><span class="s2">(inputs, </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+      <span class="n">layer_name</span><span class="p">,</span>
+      <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">=</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">layer_params_cp</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="p">))</span>
+  <span class="k">return</span> <span class="n">outputs</span></div>
+
+
+<div class="viewcode-block" id="CNNEncoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder">[docs]</a><span class="k">class</span> <span class="nc">CNNEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;General CNN encoder that can be used to construct various different models.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="CNNEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;cnn_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="CNNEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+      <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+      <span class="s1">&#39;fc_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="CNNEncoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cnn_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;CNN Encoder constructor.</span>
+
+<span class="sd">    See parent class for arguments description.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **cnn_layers** (list) --- list with the description of &quot;convolutional&quot;</span>
+<span class="sd">      layers. For example::</span>
+<span class="sd">        &quot;conv_layers&quot;: [</span>
+<span class="sd">            (tf.layers.conv2d, {</span>
+<span class="sd">                &#39;filters&#39;: 64, &#39;kernel_size&#39;: (11, 11),</span>
+<span class="sd">                &#39;strides&#39;: (4, 4), &#39;padding&#39;: &#39;VALID&#39;,</span>
+<span class="sd">                &#39;activation&#39;: tf.nn.relu,</span>
+<span class="sd">            }),</span>
+<span class="sd">            (tf.layers.max_pooling2d, {</span>
+<span class="sd">                &#39;pool_size&#39;: (3, 3), &#39;strides&#39;: (2, 2),</span>
+<span class="sd">            }),</span>
+<span class="sd">            (tf.layers.conv2d, {</span>
+<span class="sd">                &#39;filters&#39;: 192, &#39;kernel_size&#39;: (5, 5),</span>
+<span class="sd">                &#39;strides&#39;: (1, 1), &#39;padding&#39;: &#39;SAME&#39;,</span>
+<span class="sd">            }),</span>
+<span class="sd">            (tf.layers.batch_normalization, {&#39;momentum&#39;: 0.9, &#39;epsilon&#39;: 0.0001}),</span>
+<span class="sd">            (tf.nn.relu, {}),</span>
+<span class="sd">        ]</span>
+<span class="sd">      Note that you don&#39;t need to provide &quot;regularizer&quot;, &quot;training&quot; and</span>
+<span class="sd">      &quot;data_format&quot; parameters since they will be automatically added.</span>
+
+<span class="sd">    * **cnn_layers** (list) --- list with the description of &quot;fully-connected&quot;</span>
+<span class="sd">      layers. The only different from convolutional layers is that the input</span>
+<span class="sd">      will be automatically reshaped to 2D (batch size x num features).</span>
+<span class="sd">      For example::</span>
+<span class="sd">        &#39;fc_layers&#39;: [</span>
+<span class="sd">            (tf.layers.dense, {&#39;units&#39;: 4096, &#39;activation&#39;: tf.nn.relu}),</span>
+<span class="sd">            (tf.layers.dropout, {&#39;rate&#39;: 0.5}),</span>
+<span class="sd">            (tf.layers.dense, {&#39;units&#39;: 4096, &#39;activation&#39;: tf.nn.relu}),</span>
+<span class="sd">            (tf.layers.dropout, {&#39;rate&#39;: 0.5}),</span>
+<span class="sd">        ],</span>
+<span class="sd">      Note that you don&#39;t need to provide &quot;regularizer&quot;, &quot;training&quot; and</span>
+<span class="sd">      &quot;data_format&quot; parameters since they will be automatically added.</span>
+
+<span class="sd">    * **data_format** (string) --- could be either &quot;channels_first&quot; or</span>
+<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_first&quot;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">CNNEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
+
+  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">data_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_format&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">)</span>
+
+    <span class="n">x</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">layer_params</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;cnn_layers&#39;</span><span class="p">]:</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">build_layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">layer_params</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span>
+                      <span class="n">regularizer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">fc_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;fc_layers&#39;</span><span class="p">,</span> <span class="p">[])</span>
+
+    <span class="c1"># if fully connected layers exist, flattening the output and applying them</span>
+    <span class="k">if</span> <span class="n">fc_layers</span><span class="p">:</span>
+      <span class="n">input_shape</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+      <span class="n">num_inputs</span> <span class="o">=</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">*</span> <span class="n">input_shape</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">num_inputs</span><span class="p">])</span>
+      <span class="k">for</span> <span class="n">layer</span><span class="p">,</span> <span class="n">layer_params</span> <span class="ow">in</span> <span class="n">fc_layers</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">build_layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">layer</span><span class="p">,</span> <span class="n">layer_params</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># if there are no fully connected layers, doing average pooling</span>
+      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">x</span><span class="p">}</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -22,14 +22,6 @@ beam\_search
     :undoc-members:
     :show-inheritance:
 
-beam\_search\_test
----------------------------------------------------------
-
-.. automodule:: parts.transformer.beam_search_test
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 common
 ---------------------------------------------
 

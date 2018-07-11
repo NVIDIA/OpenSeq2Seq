@@ -159,6 +159,7 @@
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
+<span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -186,6 +187,42 @@
                               <span class="n">dense_shape_clipped</span><span class="p">)</span></div>
 
 
+<div class="viewcode-block" id="collect_if_horovod"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.collect_if_horovod">[docs]</a><span class="k">def</span> <span class="nf">collect_if_horovod</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">hvd</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sum&#39;</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Collects values from all workers if run on Horovod.</span>
+<span class="sd">  Note, that on all workers except first this function will return None.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    value: value to collect.</span>
+<span class="sd">    hvd: horovod.tensorflow module or None</span>
+<span class="sd">    mode: could be &quot;sum&quot;, &quot;mean&quot; or &quot;gather&quot;, indicating reduce_sum or gather.</span>
+<span class="sd">        For &quot;sum&quot; and &quot;mean&quot; value has to be numerical, for &quot;gather&quot;, value has</span>
+<span class="sd">        to be iterable.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    collected results if run on Horovod or value otherwise.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">value</span>
+
+  <span class="kn">import</span> <span class="nn">mpi4py.rc</span>
+  <span class="n">mpi4py</span><span class="o">.</span><span class="n">rc</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="kc">False</span>
+  <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+
+  <span class="n">values</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+  <span class="c1"># synchronize all workers</span>
+  <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
+
+  <span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">return</span> <span class="kc">None</span>
+
+  <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sum&#39;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;gather&#39;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sl</span><span class="p">]</span></div>
+
+
 <div class="viewcode-block" id="clip_last_batch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.clip_last_batch">[docs]</a><span class="k">def</span> <span class="nf">clip_last_batch</span><span class="p">(</span><span class="n">last_batch</span><span class="p">,</span> <span class="n">true_size</span><span class="p">):</span>
   <span class="n">last_batch_clipped</span> <span class="o">=</span> <span class="p">[]</span>
   <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">last_batch</span><span class="p">:</span>
@@ -196,179 +233,172 @@
   <span class="k">return</span> <span class="n">last_batch_clipped</span></div>
 
 
-<div class="viewcode-block" id="iterate_data_layer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.iterate_data_layer">[docs]</a><span class="k">def</span> <span class="nf">iterate_data_layer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">dl_id</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+<div class="viewcode-block" id="iterate_data"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.iterate_data">[docs]</a><span class="k">def</span> <span class="nf">iterate_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
   <span class="n">total_time</span> <span class="o">=</span> <span class="mf">0.0</span>
   <span class="n">bench_start</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
   <span class="n">results_per_batch</span> <span class="o">=</span> <span class="p">[]</span>
 
-  <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-    <span class="n">data_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-      <span class="n">loss_tensor</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eval_losses</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">output_tensors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">()</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">data_layer</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">dl_id</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-      <span class="n">loss_tensor</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">eval_losses</span><span class="p">[</span><span class="n">dl_id</span><span class="p">]</span>
-    <span class="n">output_tensors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="n">dl_id</span><span class="p">)</span>
-
-  <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">data_layer</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span><span class="p">)</span>
-
-  <span class="n">fetches</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
-    <span class="n">output_tensors</span><span class="p">,</span>
-  <span class="p">]</span>
+  <span class="n">size_defined</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+  <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
+    <span class="n">dl_sizes</span> <span class="o">=</span> <span class="p">[]</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-    <span class="n">fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss_tensor</span><span class="p">)</span>
     <span class="n">total_loss</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">total_samples</span> <span class="o">=</span> <span class="mf">0.0</span>
 
-  <span class="n">size_defined</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+  <span class="n">total_samples</span> <span class="o">=</span> <span class="p">[]</span>
+  <span class="n">fetches</span> <span class="o">=</span> <span class="p">[]</span>
 
-  <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
-    <span class="n">data_size</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="o">//</span> \
-                <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
-    <span class="n">last_batch_size</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span> <span class="o">%</span> \
-                      <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
-
-  <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-    <span class="n">worker_id</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">worker_id</span> <span class="o">=</span> <span class="n">dl_id</span>
-
-  <span class="n">cross_over</span> <span class="o">=</span> <span class="mi">0</span>
-  <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">data_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-        <span class="s2">&quot;Batch size is bigger than dataset size: </span><span class="si">{}</span><span class="s2"> &gt; </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span>
-        <span class="p">)</span>
-      <span class="p">)</span>
-    <span class="k">if</span> <span class="n">last_batch_size</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="n">cross_over</span> <span class="o">=</span> <span class="mi">1</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="c1"># setting data_size to be infinity and assume</span>
-    <span class="c1"># that tf.errors.OutOfRangeError will be raised</span>
-    <span class="n">data_size</span> <span class="o">=</span> <span class="mi">1000000000000</span>
-
-  <span class="k">for</span> <span class="n">step</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data_size</span> <span class="o">+</span> <span class="n">cross_over</span><span class="p">):</span>
-    <span class="n">tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+  <span class="c1"># on horovod num_gpus is 1</span>
+  <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
+    <span class="n">cur_fetches</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
+      <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="n">worker_id</span><span class="p">),</span>
+    <span class="p">]</span>
+    <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
+      <span class="n">cur_fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">eval_losses</span><span class="p">[</span><span class="n">worker_id</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
+      <span class="n">dl_sizes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">())</span>
     <span class="k">try</span><span class="p">:</span>
-      <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-        <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span>
-    <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
-      <span class="k">break</span>
+      <span class="n">total_objects</span> <span class="o">=</span> <span class="mf">0.0</span>
+      <span class="n">cur_fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">get_num_objects_per_step</span><span class="p">(</span><span class="n">worker_id</span><span class="p">))</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+      <span class="n">total_objects</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;WARNING: Can&#39;t compute number of objects per step, since &quot;</span>
+                 <span class="s2">&quot;train model does not define get_num_objects_per_step method.&quot;</span><span class="p">)</span>
+    <span class="n">fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_fetches</span><span class="p">)</span>
+    <span class="n">total_samples</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="mf">0.0</span><span class="p">)</span>
+
+  <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">([</span><span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)])</span>
+
+  <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="n">processed_batches</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot; on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+  <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+    <span class="n">tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+    <span class="n">fetches_vals</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
+      <span class="n">fetches_to_run</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="c1"># removing finished data layers</span>
+      <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">total_samples</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">dl_sizes</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]:</span>
+          <span class="n">fetches_to_run</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">fetches</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span>
+      <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches_to_run</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># if size is not defined we have to process fetches sequentially, so not</span>
+      <span class="c1"># to lose data when exception is thrown on one data layer</span>
+      <span class="k">for</span> <span class="n">worker_id</span><span class="p">,</span> <span class="n">one_fetch</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">fetches</span><span class="p">):</span>
+        <span class="k">try</span><span class="p">:</span>
+          <span class="n">fetches_vals</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">one_fetch</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
+          <span class="k">continue</span>
+
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
       <span class="n">total_time</span> <span class="o">+=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span> <span class="o">-</span> <span class="n">tm</span>
 
-    <span class="c1"># assuming any element of inputs[&quot;source_tensors&quot;][ shape[0] is batch size</span>
-    <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="c1"># looping over num_gpus. In Horovod case this loop is &quot;dummy&quot;,</span>
+    <span class="c1"># since num_gpus = 1</span>
+    <span class="k">for</span> <span class="n">worker_id</span><span class="p">,</span> <span class="n">fetches_val</span> <span class="ow">in</span> <span class="n">fetches_vals</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+      <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
+        <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">loss</span> <span class="o">=</span> <span class="n">fetches_val</span><span class="p">[:</span><span class="mi">3</span><span class="p">]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">fetches_val</span><span class="p">[:</span><span class="mi">2</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-      <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span> <span class="o">*</span> <span class="n">batch_size</span>
-      <span class="n">total_samples</span> <span class="o">+=</span> <span class="n">batch_size</span>
+      <span class="k">if</span> <span class="n">total_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">total_objects</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fetches_val</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
-    <span class="k">if</span> <span class="n">size_defined</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">==</span> <span class="n">data_size</span><span class="p">:</span>
-      <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">clip_last_batch</span><span class="p">(</span>
-        <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">],</span> <span class="n">last_batch_size</span><span class="p">,</span>
-      <span class="p">)</span>
-      <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">in</span> <span class="n">inputs</span><span class="p">:</span>
-        <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">clip_last_batch</span><span class="p">(</span>
-          <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">],</span> <span class="n">last_batch_size</span><span class="p">,</span>
-        <span class="p">)</span>
-      <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">clip_last_batch</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">last_batch_size</span><span class="p">)</span>
+      <span class="c1"># assuming any element of inputs[&quot;source_tensors&quot;] .shape[0] is batch size</span>
+      <span class="n">batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">total_samples</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">+=</span> <span class="n">batch_size</span>
 
-    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
-      <span class="n">results_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">))</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
-      <span class="n">results_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown mode: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
+      <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
+        <span class="c1"># this data_layer is at the last batch with few more elements, cutting</span>
+        <span class="k">if</span> <span class="n">total_samples</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">dl_sizes</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]:</span>
+          <span class="n">last_batch_size</span> <span class="o">=</span> <span class="n">dl_sizes</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span> <span class="o">%</span> <span class="n">batch_size</span>
+          <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">inputs</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="n">inputs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">clip_last_batch</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">last_batch_size</span><span class="p">)</span>
+          <span class="n">outputs</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">clip_last_batch</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">last_batch_size</span><span class="p">)</span>
+
+      <span class="n">processed_batches</span> <span class="o">+=</span> <span class="mi">1</span>
+
+      <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
+        <span class="n">total_loss</span> <span class="o">+=</span> <span class="n">loss</span> <span class="o">*</span> <span class="n">batch_size</span>
+
+      <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+        <span class="n">results_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">))</span>
+      <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+        <span class="n">results_per_batch</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown mode: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span>
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
-        <span class="k">if</span> <span class="n">data_size</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> batches on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">))</span>
+        <span class="n">data_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dl_sizes</span><span class="p">)</span> <span class="o">/</span>
+                                       <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">])))</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> \
+           <span class="p">(</span><span class="n">data_size</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">processed_batches</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> batches</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">processed_batches</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">ending</span><span class="p">))</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2"> batches&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2"> batches</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">processed_batches</span><span class="p">,</span> <span class="n">ending</span><span class="p">),</span>
+                   <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="k">break</span>
+    <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
 
   <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Avg time per step: </span><span class="si">{:.3}</span><span class="s2">s on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">),</span> <span class="n">worker_id</span><span class="p">),</span>
+        <span class="s2">&quot;Avg time per step</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+          <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)),</span>
       <span class="p">)</span>
+      <span class="k">if</span> <span class="n">total_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span>
+        <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg objects per second</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">,</span>
+                                                             <span class="n">avg_objects</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Not enough steps for benchmarking on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+        <span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">)</span>
       <span class="p">)</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span>
+    <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_samples</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">results_per_batch</span></div>
 
 
 <div class="viewcode-block" id="get_results_for_epoch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.get_results_for_epoch">[docs]</a><span class="k">def</span> <span class="nf">get_results_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-  <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-      <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span> <span class="o">=</span> <span class="n">iterate_data_layer</span><span class="p">(</span>
-        <span class="n">model</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
-      <span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">iterate_data_layer</span><span class="p">(</span>
-        <span class="n">model</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
-      <span class="p">)</span>
+  <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
+    <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span> <span class="o">=</span> <span class="n">iterate_data</span><span class="p">(</span>
+      <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
-    <span class="n">results_per_batch_all</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">total_loss_all</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="n">total_samples_all</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">dl_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
-      <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-        <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span> <span class="o">=</span> <span class="n">iterate_data_layer</span><span class="p">(</span>
-          <span class="n">model</span><span class="p">,</span> <span class="n">dl_id</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
-        <span class="p">)</span>
-        <span class="n">total_loss_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span>
-        <span class="n">total_samples_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">total_samples</span><span class="p">)</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">iterate_data_layer</span><span class="p">(</span>
-          <span class="n">model</span><span class="p">,</span> <span class="n">dl_id</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
-        <span class="p">)</span>
-      <span class="n">results_per_batch_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">)</span>
+    <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">iterate_data</span><span class="p">(</span>
+      <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+    <span class="p">)</span>
 
-  <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-    <span class="kn">import</span> <span class="nn">mpi4py.rc</span>
-    <span class="n">mpi4py</span><span class="o">.</span><span class="n">rc</span><span class="o">.</span><span class="n">initialize</span> <span class="o">=</span> <span class="kc">False</span>
-    <span class="kn">from</span> <span class="nn">mpi4py</span> <span class="k">import</span> <span class="n">MPI</span>
+  <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
+    <span class="n">total_samples</span> <span class="o">=</span> <span class="n">collect_if_horovod</span><span class="p">(</span><span class="n">total_samples</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">collect_if_horovod</span><span class="p">(</span><span class="n">total_loss</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="p">,</span> <span class="s1">&#39;sum&#39;</span><span class="p">)</span>
+  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">collect_if_horovod</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="p">,</span> <span class="s1">&#39;gather&#39;</span><span class="p">)</span>
 
+  <span class="k">if</span> <span class="n">results_per_batch</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># returning dummy tuple of correct shape if not in master worker</span>
     <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-      <span class="n">total_samples_all</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">total_samples</span><span class="p">)</span>
-      <span class="n">total_loss_all</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span>
-    <span class="n">results_per_batch_all</span> <span class="o">=</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">gather</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">)</span>
-
-    <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Barrier</span><span class="p">()</span>
-    <span class="k">if</span> <span class="n">MPI</span><span class="o">.</span><span class="n">COMM_WORLD</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="c1"># returning dummy tuple of correct shape</span>
-      <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-      <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="kc">None</span>
+      <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="kc">None</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-    <span class="n">total_loss</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_loss_all</span><span class="p">)</span>
-    <span class="n">total_samples</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_samples_all</span><span class="p">)</span>
-  <span class="c1"># moving GPU dimension into the batch dimension</span>
-  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">results_per_batch_all</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sl</span><span class="p">]</span>
-
-  <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
-    <span class="n">total_loss</span> <span class="o">/=</span> <span class="n">total_samples</span>
-    <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span>
-
-  <span class="k">return</span> <span class="n">results_per_batch</span></div>
+    <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span> <span class="o">/</span> <span class="n">total_samples</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">results_per_batch</span></div>
 
 
 <div class="viewcode-block" id="log_summaries_from_dict"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.log_summaries_from_dict">[docs]</a><span class="k">def</span> <span class="nf">log_summaries_from_dict</span><span class="p">(</span><span class="n">dict_to_log</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
@@ -441,7 +471,14 @@
 <div class="viewcode-block" id="nested_update"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.nested_update">[docs]</a><span class="k">def</span> <span class="nf">nested_update</span><span class="p">(</span><span class="n">org_dict</span><span class="p">,</span> <span class="n">upd_dict</span><span class="p">):</span>
   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">upd_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
-      <span class="n">nested_update</span><span class="p">(</span><span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">org_dict</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;Mismatch between org_dict and upd_dict at node </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+          <span class="p">)</span>
+        <span class="n">nested_update</span><span class="p">(</span><span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span></div>
 
@@ -454,7 +491,10 @@
 
 
 <div class="viewcode-block" id="deco_print"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.deco_print">[docs]</a><span class="k">def</span> <span class="nf">deco_print</span><span class="p">(</span><span class="n">line</span><span class="p">,</span> <span class="n">offset</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="s2">&quot;*** &quot;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">):</span>
-  <span class="nb">print</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">line</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span></div>
+  <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">((</span><span class="n">start</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">line</span><span class="p">)</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="n">start</span> <span class="o">+</span> <span class="s2">&quot; &quot;</span> <span class="o">*</span> <span class="n">offset</span> <span class="o">+</span> <span class="n">line</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="n">end</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="array_to_string"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.array_to_string">[docs]</a><span class="k">def</span> <span class="nf">array_to_string</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">vocab</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">):</span>

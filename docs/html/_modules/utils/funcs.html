@@ -164,7 +164,8 @@
 
 <span class="kn">from</span> <span class="nn">.hooks</span> <span class="k">import</span> <span class="n">PrintSamplesHook</span><span class="p">,</span> <span class="n">RunEvaluationHook</span><span class="p">,</span> <span class="n">PrintLossAndTimeHook</span><span class="p">,</span> \
                    <span class="n">BroadcastGlobalVariablesHook</span>
-<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">get_results_for_epoch</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">get_results_for_epoch</span><span class="p">,</span> \
+                                     <span class="n">collect_if_horovod</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python</span> <span class="k">import</span> <span class="n">debug</span> <span class="k">as</span> <span class="n">tf_debug</span>
 
 
@@ -272,7 +273,17 @@
         <span class="k">break</span>
       <span class="n">tm</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
       <span class="k">try</span><span class="p">:</span>
-        <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span>
+        <span class="n">feed_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">iter_size</span> <span class="o">=</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">iter_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+          <span class="n">feed_dict</span><span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">skip_update_ph</span><span class="p">]</span> <span class="o">=</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">!=</span> <span class="mi">0</span>
+        <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="c1"># necessary to skip &quot;no-update&quot; steps when iter_size &gt; 1</span>
+          <span class="k">def</span> <span class="nf">run_with_no_hooks</span><span class="p">(</span><span class="n">step_context</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">step_context</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">)</span>
+          <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run_step_fn</span><span class="p">(</span><span class="n">run_with_no_hooks</span><span class="p">)</span>
       <span class="k">except</span> <span class="n">tf</span><span class="o">.</span><span class="n">errors</span><span class="o">.</span><span class="n">OutOfRangeError</span><span class="p">:</span>
         <span class="k">break</span>
       <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
@@ -280,29 +291,29 @@
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
           <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
             <span class="n">total_objects</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+          <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+              <span class="n">total_objects_cur</span> <span class="o">=</span> <span class="n">collect_if_horovod</span><span class="p">(</span><span class="n">total_objects</span><span class="p">,</span> <span class="n">hvd</span><span class="p">,</span>
+                                                     <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
+              <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
+                <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects_cur</span> <span class="o">/</span> <span class="n">total_time</span>
+                <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg objects per second: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_objects</span><span class="p">))</span>
+
       <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
 
-  <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training on rank </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()))</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+    <span class="n">total_objects</span> <span class="o">=</span> <span class="n">collect_if_horovod</span><span class="p">(</span><span class="n">total_objects</span><span class="p">,</span> <span class="n">hvd</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;sum&quot;</span><span class="p">)</span>
 
-  <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
-    <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot; on worker </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">())</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">ending</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
-  <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
-    <span class="n">deco_print</span><span class="p">(</span>
-      <span class="s2">&quot;Avg time per step</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-        <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">))</span>
-    <span class="p">)</span>
-    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-      <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Avg objects per second</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span><span class="p">)</span>
-      <span class="p">)</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">))</span></div>
+  <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
+    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
+      <span class="n">avg_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg time per step: </span><span class="si">{:.3f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_time</span><span class="p">))</span>
+      <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span>
+        <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg objects per second: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_objects</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking&quot;</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
