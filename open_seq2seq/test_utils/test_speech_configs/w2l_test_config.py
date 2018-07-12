@@ -12,7 +12,6 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 base_model = Speech2Text
 
 base_params = {
-    "random_seed": 0,
     "use_horovod": False,
     "num_epochs": 200,
 
@@ -31,9 +30,8 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.001,
+        "learning_rate": 0.01,
         "power": 2,
-        "decay_steps": 500,
     },
     "larc_params": {
         "larc_eta": 0.001,
