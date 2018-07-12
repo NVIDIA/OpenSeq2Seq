@@ -80,6 +80,7 @@ def plot_spectrograms(
   stop_token_pred = stop_token_pred.astype(float)
   ax[-1].plot(stop_token_pred, 'g.')
   ax[-1].axvline(x=audio_length)
+  ax[-1].set_xlim(0, len(specs[0]))
   cb = fig.colorbar(colour, ax=ax[-1])
   cb.remove()
 
