@@ -109,6 +109,7 @@ train_params = {
       "data/librispeech/librivox-train-clean-360.csv",
       "data/librispeech/librivox-train-other-500.csv",
     ],
+    "max_duration": None,
     "shuffle": True,
   },
 }
