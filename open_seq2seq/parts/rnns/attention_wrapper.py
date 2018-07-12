@@ -683,7 +683,6 @@ class LocationLayer(layers_base.Layer):
       **kwargs
   ):
     super(LocationLayer, self).__init__(name=name, **kwargs)
-    # padding = int((kernel_size - 1) / 2)
     self.conv_layer = Conv1D(
         name="{}_conv".format(name),
         filters=filters,
@@ -698,7 +697,6 @@ class LocationLayer(layers_base.Layer):
     )
 
   def __call__(self, prev_attention):
-    # prev_attention = array_ops.expand_dims(prev_attention, axis=-1)
     location_attention = self.conv_layer(prev_attention)
     location_attention = self.location_dense(location_attention)
     return location_attention
@@ -776,8 +774,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
-    # self.cumulative_location = self.initial_state(self._batch_size, dtype=dtype)
-    # print(self.cumulative_location.shape)
     self.location_layer = LocationLayer(32, 31, num_units)
     self._num_units = num_units
     self._name = name
@@ -803,7 +799,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       location = array_ops.stack(
           (state, self.cumulative_location), axis=-1
       )
-      # location = array_ops.expand_dims(state, -1)
       processed_location = self.location_layer(location)
       self.cumulative_location = processed_location + self.cumulative_location
       score = _bahdanau_score_with_location(

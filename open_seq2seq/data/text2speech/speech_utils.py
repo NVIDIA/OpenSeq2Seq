@@ -68,21 +68,6 @@ def get_speech_features(
       Defaults to 2.
   :return: (num_time_steps, num_features) NumPy array
   """
-  # Padding and fp16 is not currently implemented
-  # making sure length of the audio is divisible by 8 (fp16 optimization)
-  # length = 1 + float(math.ceil(
-  #   (1.0 * signal.shape[0] - n_window_size) / n_window_stride)
-  # )
-  # length = 1 + int(math.ceil(
-  # (1.0 * signal.shape[0] - n_window_size) / n_window_stride)
-  # )
-  # if pad_to > 0:
-  # if int(length) % pad_to != 0:
-  # if length % pad_to != 0:
-  # pad_size = int(math.ceil((pad_to - length % pad_to) * n_window_stride))
-  # pad_size = (pad_to - length % pad_to) * n_window_stride
-  # signal = np.pad(signal, (0, pad_size), mode='reflect')
-
   if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal, n_fft=n_window_size)
     mag, _ = librosa.magphase(complex_spec, power=mag_power)
@@ -102,7 +87,6 @@ def get_speech_features(
         power=mag_power
     )
     features = np.log(np.clip(features, a_min=1e-5, a_max=None)).T
-    # features = features.T
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 

@@ -212,21 +212,11 @@ def plot_spectrograms(
 def save_audio(
     magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False
 ):
-  # magnitudes = np.exp(mag_spec)
   signal = griffin_lim(magnitudes.T**1.2)
-  # file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
-  # if logdir[0] != '/':
-  #   file_name = "./"+file_name
-  # write(file_name, 22050 ,signal)
   if save_to_tensorboard:
     tag = "{}_audio".format(mode)
     s = StringIO()
     write(s, 22050, signal)
-    # summary = tf.Summary.Audio(sample_rate = 22050,
-    # num_channels = 1,
-    # length_frames = len(signal),
-    # encoded_audio_string=s.getvalue(),
-    # content_type="audio/wav")
     summary = tf.Summary.Audio(encoded_audio_string=s.getvalue())
     summary = tf.Summary.Value(tag=tag, audio=summary)
     return summary
@@ -269,8 +259,6 @@ class Text2Speech(EncoderDecoderModel):
 
   def __init__(self, params, mode="train", hvd=None):
     super(Text2Speech, self).__init__(params, mode=mode, hvd=hvd)
-    # self.eval_steps = -1
-    # self.train_steps = -1
     self.save_to_tensorboard = self.params["save_to_tensorboard"]
 
   def _create_decoder(self):
@@ -280,7 +268,6 @@ class Text2Speech(EncoderDecoderModel):
     return super(Text2Speech, self)._create_decoder()
 
   def maybe_print_logs(self, input_values, output_values, training_step):
-    # self.train_steps += 1
     dict_to_log = {}
     step = training_step
     spec, target, _ = input_values['target_tensors']
@@ -290,7 +277,6 @@ class Text2Speech(EncoderDecoderModel):
     target_output = output_values[3]
     y_sample = spec[0]
     target = target[0]
-    # y_length_sample = y_length[0]
     predicted_spectrogram = predicted_decoder_spectrograms[0]
     predicted_final_spectrogram = predicted_final_spectrograms[0]
     attention_mask = attention_mask[0]
@@ -330,13 +316,11 @@ class Text2Speech(EncoderDecoderModel):
       return {}
 
   def finalize_evaluation(self, results_per_batch, training_step):
-    # self.eval_steps += 1
     dict_to_log = {}
     step = training_step
     sample = results_per_batch[-1]
     input_values = sample[0]
     output_values = sample[1]
-    # y, y_length = input_values['target_tensors']
     y_sample, target = input_values['target_tensors']
     predicted_spectrogram = output_values[0]
     predicted_final_spectrogram = output_values[1]
@@ -400,16 +384,12 @@ class Text2Speech(EncoderDecoderModel):
     for i, sample in enumerate(results_per_batch):
       input_values = sample[0]
       output_values = sample[1]
-      # y, y_length = input_values['target_tensors']
-      # predicted_decoder_spectrograms = output_values[0]
       predicted_final_spectrograms = output_values[1]
       attention_mask = output_values[2]
       stop_tokens = output_values[3]
       sequence_lengths = output_values[4]
 
       for j in range(len(predicted_final_spectrograms)):
-        # y_sample = y[j]
-        # predicted_spectrogram = predicted_decoder_spectrograms[j]
         predicted_final_spectrogram = predicted_final_spectrograms[j]
         attention_mask_sample = attention_mask[j]
         stop_tokens_sample = stop_tokens[j]
@@ -437,7 +417,6 @@ class Text2Speech(EncoderDecoderModel):
         )
         dict_to_log['image'] = im_summary
 
-        # print(predicted_final_spectrogram.shape)
         if audio_length > 2:
           predicted_final_spectrogram = predicted_final_spectrogram[:
                                                                     audio_length

@@ -109,15 +109,11 @@ class Tacotron2Encoder(Encoder):
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
-    # use_bias = self.params.get('use_bias', True)
     data_format = self.params.get('data_format', 'channels_last')
     bn_momentum = self.params.get('bn_momentum', 0.1)
     bn_epsilon = self.params.get('bn_epsilon', 1e-5)
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
     zoneout_prob = self.params.get('zoneout_prob', 0.)
-
-    # enable_bn = self.params.get('enable_bn', True)
-    # src_emb_size = self.params.get('src_emb_size', 512)
 
     # ----- Embedding layer -----------------------------------------------
     enc_emb_w = tf.get_variable(
@@ -225,8 +221,6 @@ class Tacotron2Encoder(Encoder):
                 single_cell(
                     cell_class=rnn_type,
                     cell_params=cell_params,
-                    # dp_input_keep_prob=dropout_keep_prob,
-                    # dp_output_keep_prob=dropout_keep_prob,
                     zoneout_prob=zoneout_prob,
                     training=training,
                     residual_connections=False
@@ -248,8 +242,6 @@ class Tacotron2Encoder(Encoder):
                   single_cell(
                       cell_class=rnn_type,
                       cell_params=cell_params,
-                      # dp_input_keep_prob=dropout_keep_prob,
-                      # dp_output_keep_prob=dropout_keep_prob,
                       zoneout_prob=zoneout_prob,
                       training=training,
                       residual_connections=False
@@ -291,5 +283,4 @@ class Tacotron2Encoder(Encoder):
     return {
         'outputs': outputs,
         'src_length': src_length,
-        # 'state': state
     }

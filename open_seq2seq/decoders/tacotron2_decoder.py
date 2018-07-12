@@ -42,10 +42,8 @@ class Prenet():
       )
 
   def __call__(self, inputs):
-    # inputs = tf.cast(inputs, dtype=tf.float32)
     for layer in self.prenet_layers:
       inputs = tf.layers.dropout(layer(inputs), rate=0.5, training=True)
-    # inputs = tf.cast(inputs, self._dtype)
     return inputs
 
   @property
@@ -248,7 +246,6 @@ class Tacotron2Decoder(Decoder):
         )
       elif self.params['attention_type'] == 'bahdanau':
         bah_normalize = self.params.get('bahdanau_normalize', False)
-        # attention_mechanism = tf.contrib.seq2seq.BahdanauAttention(
         attention_mechanism = BahdanauAttention(
             num_units=attention_depth,
             memory=encoder_outputs,
@@ -309,8 +306,6 @@ class Tacotron2Decoder(Decoder):
       spec_length = input_dict['target_tensors'][2] if 'target_tensors' in \
                                                     input_dict else None
     _batch_size = encoder_outputs.get_shape().as_list()[0]
-    # enc_state = input_dict['encoder_output']['state']
-    # mean_pool = tf.reduce_mean(encoder_outputs, axis=1)
 
     training = (self._mode == "train")
     regularizer = self.params.get('regularizer', None)
@@ -329,13 +324,6 @@ class Tacotron2Decoder(Decoder):
             "postnet_conv_layers must be passed from config file if postnet is enabled"
         )
 
-    # self.output_projection_layer = tf.layers.Dense(
-    #   self.num_audio_features, use_bias=True, kernel_regularizer=regularizer
-    # )
-    # self.target_projection_layer = tf.layers.Dense(
-    #   1, use_bias=True, kernel_regularizer=regularizer
-    # )
-
     self.output_projection_layer = tf.layers.Dense(
         name="output_proj", units=self.num_audio_features, use_bias=True
     )
@@ -349,13 +337,6 @@ class Tacotron2Decoder(Decoder):
           prenet_units, prenet_layers, prenet_activation, self.params["dtype"]
       )
 
-    # if self._mode == "train":
-    #   dp_input_keep_prob = self.params.get('decoder_dp_input_keep_prob', 1.0)
-    #   dp_output_keep_prob = self.params.get('decoder_dp_output_keep_prob', 1.0)
-    # else:
-    #   dp_input_keep_prob = 1.0
-    #   dp_output_keep_prob = 1.0
-
     residual_connections = self.params.get(
         'decoder_use_skip_connections', False
     )
@@ -367,8 +348,6 @@ class Tacotron2Decoder(Decoder):
         single_cell(
             cell_class=self.params['decoder_cell_type'],
             cell_params=cell_params,
-            # dp_input_keep_prob=dp_input_keep_prob,
-            # dp_output_keep_prob=dp_output_keep_prob,
             zoneout_prob=zoneout_prob,
             training=training,
             residual_connections=residual_connections
@@ -393,8 +372,6 @@ class Tacotron2Decoder(Decoder):
             single_cell(
                 cell_class=cell_type,
                 cell_params=cell_params,
-                # dp_input_keep_prob=dp_input_keep_prob,
-                # dp_output_keep_prob=dp_output_keep_prob,
                 zoneout_prob=zoneout_prob,
                 training=training,
                 residual_connections=residual_connections
@@ -440,10 +417,6 @@ class Tacotron2Decoder(Decoder):
       initial_state = decoder_cell.zero_state(
           _batch_size, dtype=encoder_outputs.dtype
       )
-      # if self.params['decoder_layers'] == 1:
-      #   initial_state = enc_state[0]
-      # else:
-      #   initial_state = enc_state
 
     mask_decoder_sequence = self.params.get("mask_decoder_sequence", True)
     if self._mode == "train":
@@ -477,18 +450,15 @@ class Tacotron2Decoder(Decoder):
           ),
           mask_decoder_sequence=mask_decoder_sequence
       )
-      # context=mean_pool)
     elif self._mode == "eval" or self._mode == "infer":
       inputs = tf.zeros(
           (_batch_size, self.num_audio_features), dtype=self.params["dtype"]
       )
       helper = TacotronHelper(
           inputs=inputs,
-          # sequence_length=spec_length,
           prenet=None,
           mask_decoder_sequence=mask_decoder_sequence
       )
-      # context=mean_pool)
     else:
       raise ValueError("Unknown mode for decoder: {}".format(self._mode))
     if not self.params["attention_rnn_enable"]:
@@ -534,8 +504,6 @@ class Tacotron2Decoder(Decoder):
 
     ## Add the post net ##
     if self.params.get('enable_postnet', True):
-      # enable_postnet_bn = self.params.get('enable_postnet_bn', True)
-      # use_bias = self.params.get('postnet_use_bias', True)
       dropout_keep_prob = self.params.get('postnet_keep_dropout_prob', 0.5)
 
       conv_layers = self.params['postnet_conv_layers']
@@ -622,7 +590,6 @@ class Tacotron2Decoder(Decoder):
       alignments = tf.zeros([_batch_size, _batch_size, _batch_size])
 
     decoder_output = final_outputs.rnn_output
-    # post_net_output = top_layer
     spectrogram_prediction = decoder_output + top_layer
     if self.params['attention_rnn_enable']:
       stop_token_logits = final_outputs.target_output

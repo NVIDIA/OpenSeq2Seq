@@ -274,7 +274,6 @@ class Text2SpeechDataLayer(DataLayer):
     stop_token_target = np.zeros(
         [len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype()
     )
-    # stop_token_target[-1] = 1.
     if self.params.get("pad_EOS", True):
       num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
       spectrogram = np.pad(
