@@ -29,11 +29,11 @@ base_params = {
   "optimizer_params": {
     "momentum": 0.90,
   },
-  #"lr_policy": poly_decay,
-  "lr_policy": fixed_lr,
+  "lr_policy": poly_decay,
+  #"lr_policy": fixed_lr,
   "lr_policy_params": {
     "learning_rate": 0.001,
-    #"power": 2.0,
+    "power": 3.0,
   },
   "larc_params": {
     "larc_eta": 0.001,
