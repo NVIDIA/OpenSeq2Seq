@@ -24,7 +24,6 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
         'repeat': False,
         'delimiter': ' ',
         'map_parallel_calls': 1,
-        'prefetch_buffer_size': 1,
         'mode': 'train',
     }
 
