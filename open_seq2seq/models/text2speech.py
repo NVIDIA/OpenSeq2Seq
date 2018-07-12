@@ -80,6 +80,8 @@ def plot_spectrograms(
   stop_token_pred = stop_token_pred.astype(float)
   ax[-1].plot(stop_token_pred, 'g.')
   ax[-1].axvline(x=audio_length)
+  cb = fig.colorbar(colour, ax=ax[-1])
+  cb.remove()
 
   plt.xlabel('time')
 
@@ -259,8 +261,18 @@ class Text2Speech(EncoderDecoderModel):
     stop_token_pred = output_values[3]
     audio_length = output_values[4]
 
-    specs = [predicted_spectrogram, predicted_final_spectrogram, attention_mask]
-    titles = ["decoder results", "post net results", "alignments"]
+    specs = [
+        y_sample,
+        predicted_spectrogram, 
+        predicted_final_spectrogram, 
+        attention_mask
+    ]
+    titles = [
+        "training data",
+        "decoder results", 
+        "post net results", 
+        "alignments"
+    ]
 
     im_summary = plot_spectrograms(
         specs,

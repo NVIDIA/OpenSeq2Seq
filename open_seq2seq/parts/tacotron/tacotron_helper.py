@@ -90,7 +90,6 @@ class TacotronTrainingHelper(Helper):
     self.anneal_teacher_forcing = anneal_teacher_forcing
     self.stop_gradient = stop_gradient
     self.mask_decoder_sequence = mask_decoder_sequence
-mask_decoder_sequence
     self.prenet = prenet
     self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs
