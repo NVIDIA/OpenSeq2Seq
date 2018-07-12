@@ -12,7 +12,6 @@ import math
 def get_speech_features_from_file(
     filename,
     num_features,
-    pad_to=8,
     features_type='magnitude',
     window_size=1024,
     window_stride=256,
@@ -21,23 +20,31 @@ def get_speech_features_from_file(
     mean=0,
     std=1
 ):
-  """
-  :param filename: WAVE filename
-  :param num_features: number of speech features in frequency domain
-  :param features_type: 'mel' or 'magnitude'
-  :param window_size: size of analysis window, in samples
-  :param window_stride: stride of analysis window, in samples
-  :param mag_power: the power to which the magnitude spectrogram is scaled to
-      1 for energy spectrogram
-      2 for power spectrogram
-      Defaults to 2.
-  :return: (num_time_steps, num_features) NumPy array
+  """ Helper function to retrieve spectrograms from wav files
+
+
+  Args:
+    filename (string): WAVE filename.
+    num_features (int): number of speech features in frequency domain.
+    features_type (string): 'magnitude' or 'mel'.
+    window_size (int): size of analysis window in samples.
+    window_stride (int): stride of analysis window in samples.
+    mag_power (int): power to raise magnitude spectrograms (prior to dot product
+      with mel basis)
+      1 for energy spectrograms
+      2 fot power spectrograms
+    feature_normalize(bool): whether to normalize the data with mean and std
+    mean(float): if normalize is enabled, the mean to normalize to
+    std(float): if normalize is enabled, the deviation to normalize to
+
+  Returns:
+    np.array: np.array of audio features with shape=[num_time_steps, num_features].
   """
   # load audio signal
   if features_type == "mel" or features_type == 'magnitude':
     signal, fs = librosa.core.load(filename, sr=None)
   return get_speech_features(
-      signal, fs, num_features, pad_to, features_type, window_size,
+      signal, fs, num_features, features_type, window_size,
       window_stride, mag_power, feature_normalize, mean, std
   )
 
@@ -46,7 +53,6 @@ def get_speech_features(
     signal,
     fs,
     num_features,
-    pad_to=8,
     features_type='magnitude',
     n_window_size=1024,
     n_window_stride=256,
@@ -55,18 +61,26 @@ def get_speech_features(
     mean=0,
     std=1
 ):
-  """
-  :param signal: np.array containing raw audio signal
-  :param fs: float, frames per second
-  :param num_features: number of speech features in frequency domain
-  :param features_type: 'mel' or 'spectrogram'
-  :param n_window_size: size of analysis window, in samples
-  :param n_window_stride: stride of analysis window, in samples
-  :param mag_power: the power to which the magnitude spectrogram is scaled to
-      1 for energy spectrogram
-      2 for power spectrogram
-      Defaults to 2.
-  :return: (num_time_steps, num_features) NumPy array
+  """ Helper function to retrieve spectrograms from loaded wav
+
+
+  Args:
+    signal: signal loaded with librosa.
+    fs (int): sampling frequency in Hz.
+    num_features (int): number of speech features in frequency domain.
+    features_type (string): 'magnitude' or 'mel'.
+    window_size (int): size of analysis window in samples.
+    window_stride (int): stride of analysis window in samples.
+    mag_power (int): power to raise magnitude spectrograms (prior to dot product
+      with mel basis)
+      1 for energy spectrograms
+      2 fot power spectrograms
+    feature_normalize(bool): whether to normalize the data with mean and std
+    mean(float): if normalize is enabled, the mean to normalize to
+    std(float): if normalize is enabled, the deviation to normalize to
+
+  Returns:
+    np.array: np.array of audio features with shape=[num_time_steps, num_features].
   """
   if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal, n_fft=n_window_size)
@@ -108,7 +122,22 @@ def get_mel(
     mel_basis=None
 ):
   """
-  Method to get mel spectrograms from saved energy spectrograms
+  Method to get mel spectrograms from magnitude spectrograms
+
+  Args:
+    log_mag_spec (np.array): log of the magnitude spec
+    fs (int): sampling frequency in Hz
+    n_fft (int): size of fft window in samples
+    n_mels (int): number of mel features
+    power (float): power of the mag spectrogram
+    feature_normalize (bool): whether the mag spec was normalized
+    mean (float): normalization param of mag spec 
+    std (float): normalization param of mag spec
+    mel_basis (np.array): optional pre-computed mel basis to save computational
+      time if passed. If not passed, it will call librosa to construct one
+
+  Returns:
+    np.array: mel_spec with shape [time, n_mels]
   """
   if mel_basis is None:
     mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
@@ -134,6 +163,22 @@ def inverse_mel(
 ):
   """
   Very hacky method to reconstruct mag spec from mel
+
+  Args:
+    log_mel_spec (np.array): log of the mel spec
+    fs (int): sampling frequency in Hz
+    n_fft (int): size of fft window in samples
+    n_mels (int): number of mel features
+    power (float): power of the mag spectrogram that was used to generate the
+      mel spec
+    feature_normalize (bool): whether the mel spec was normalized
+    mean (float): normalization param of mel spec 
+    std (float): normalization param of mel spec
+    mel_basis (np.array): optional pre-computed mel basis to save computational
+      time if passed. If not passed, it will call librosa to construct one
+
+  Returns:
+    np.array: mag_spec with shape [time, n_fft/2 + 1]
   """
   if mel_basis is None:
     mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
@@ -147,8 +192,14 @@ def inverse_mel(
 
 
 def normalize(features, mean, std):
+  """
+  Normalizes features with the specificed mean and std
+  """
   return (features - mean) / std
 
 
 def denormalize(features, mean, std):
+  """
+  Normalizes features with the specificed mean and std
+  """
   return features * std + mean

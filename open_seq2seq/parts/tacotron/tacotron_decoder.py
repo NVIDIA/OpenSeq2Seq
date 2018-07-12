@@ -53,7 +53,8 @@ class TacotronDecoder(decoder.Decoder):
       stop_token_full=True,
       prenet=None
   ):
-    """Initialize BasicDecoder.
+    """Initialize TacotronDecoder.
+
     Args:
       decoder_cell: An `RNNCell` instance.
       attention_cell: An `RNNCell` instance.
@@ -71,6 +72,10 @@ class TacotronDecoder(decoder.Decoder):
         the ressult to a spectrogram
       use_prenet_output: (Optional), whether to use the prenet output
         in the attention mechanism
+      stop_token_full: decides the inputs of the stop token projection layer. 
+        See tacotron 2 decoder for more details.
+      prenet: The prenet to apply to inputs
+
     Raises:
       TypeError: if `cell`, `helper` or `output_layer` have an incorrect type.
     """
@@ -107,12 +112,6 @@ class TacotronDecoder(decoder.Decoder):
     if self.spec_layer is None:
       return size
     else:
-      # To use layer's compute_output_shape, we need to convert the
-      # RNNCell's output_size entries into shapes with an unknown
-      # batch size.  We then pass this through the layer's
-      # compute_output_shape and read off all but the first (batch)
-      # dimensions to get the output size of the rnn with the layer
-      # applied to the top.
       output_shape_with_unknown_batch = nest.map_structure(
           lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
       )
@@ -126,12 +125,6 @@ class TacotronDecoder(decoder.Decoder):
     if self.target_layer is None:
       return size
     else:
-      # To use layer's compute_output_shape, we need to convert the
-      # RNNCell's output_size entries into shapes with an unknown
-      # batch size.  We then pass this through the layer's
-      # compute_output_shape and read off all but the first (batch)
-      # dimensions to get the output size of the rnn with the layer
-      # applied to the top.
       output_shape_with_unknown_batch = nest.map_structure(
           lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
       )
@@ -142,7 +135,6 @@ class TacotronDecoder(decoder.Decoder):
 
   @property
   def output_size(self):
-    # Return the cell output and the id
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
         target_output=self._stop_token_output_size(),
@@ -151,9 +143,6 @@ class TacotronDecoder(decoder.Decoder):
 
   @property
   def output_dtype(self):
-    # Assume the dtype of the cell is the output_size structure
-    # containing the input_state's first component's dtype.
-    # Return that structure and the sample_ids_dtype from the helper.
     dtype = nest.flatten(self.decoder_initial_state)[0].dtype
     return BasicDecoderOutput(
         nest.map_structure(lambda _: dtype, self._rnn_output_size()),
@@ -163,10 +152,9 @@ class TacotronDecoder(decoder.Decoder):
 
   def initialize(self, name=None):
     """Initialize the decoder.
+    
     Args:
       name: Name scope for any created operations.
-    Returns:
-      `(finished, first_inputs, initial_state)`.
     """
     if self.attention_type == "location":
       self.attention_cell._attention_mechanisms[0].initialize_location(
@@ -180,11 +168,13 @@ class TacotronDecoder(decoder.Decoder):
 
   def step(self, time, inputs, state, name=None):
     """Perform a decoding step.
+
     Args:
       time: scalar `int32` tensor.
       inputs: A (structure of) input tensors.
       state: A (structure of) state tensors and TensorArrays.
       name: Name scope for any created operations.
+
     Returns:
       `(outputs, next_state, next_inputs, finished)`.
     """

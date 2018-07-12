@@ -57,15 +57,28 @@ class Text2SpeechDataLayer(DataLayer):
     * **num_audio_features** (int) --- number of audio features to extract.
     * **output_type** (str) --- could be either "magnitude", or "mel".
     * **vocab_file** (str) --- path to vocabulary file.
-    * **dataset_files** (list) --- list with paths to all dataset .csv files. File is assumed
-      to be separated by "|".
-    * **dataset_location** (string) --- string with path to directory where wavs are stored.
-    * **mag_power** (int) --- the power to which the magnitude spectrogram is scaled to
+    * **dataset_files** (list) --- list with paths to all dataset .csv files. 
+      File is assumed to be separated by "|".
+    * **dataset_location** (string) --- string with path to directory where wavs
+      are stored.
+    * **feature_normalize** (bool) --- whether to normlize the data with a 
+      preset mean and std
+    * **feature_normalize_mean** (bool) --- used for feature normalize.
+      Defaults to 0.
+    * **feature_normalize_std** (bool) --- used for feature normalize.
+      Defaults to 1.
+    * **mag_power** (int) --- the power to which the magnitude spectrogram is 
+      scaled to:
       1 for energy spectrogram
       2 for power spectrogram
       Defaults to 2.
-    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and the speech signal.
+    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and 
+      the speech signal. Will pad at least 1 token regardless of pad_to value.
       Defaults to True.
+    * **pad_to** (int) --- we pad such that the resulting datapoint is a multiple
+      of pad_to.
+      Defaults to 8.
+
     """
     super(Text2SpeechDataLayer,
           self).__init__(params, model, num_workers, worker_id)
@@ -210,9 +223,9 @@ class Text2SpeechDataLayer(DataLayer):
       element: tf.data element from TextLineDataset.
 
     Returns:
-      tuple: text_input text as `np.array` of ids, text_input text length,
-      source audio features as `np.array`, stop token targets as `np.array`,
-      length of source sequence,
+      tuple: text_input text as `np.array` of ids, text_input length,
+      target audio features as `np.array`, stop token targets as `np.array`,
+      length of target sequence,
       .
     """
     audio_filename, transcript = element
@@ -295,7 +308,7 @@ class Text2SpeechDataLayer(DataLayer):
     """Parses text from file and returns array of text features.
 
     Args:
-      text: the string to parse.
+      transcript: the string to parse.
 
     Returns:
       tuple: target text as `np.array` of ids, target text length.

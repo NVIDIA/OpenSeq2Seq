@@ -31,7 +31,6 @@ class Tacotron2Encoder(Encoder):
             'src_emb_size': int,
             'conv_layers': list,
             'activation_fn': None,  # any valid callable
-            'enable_bn': bool,
             'num_rnn_layers': int,
             'rnn_cell_dim': int,
             'use_cudnn_rnn': bool,
@@ -44,7 +43,6 @@ class Tacotron2Encoder(Encoder):
   def get_optional_params():
     return dict(
         Encoder.get_optional_params(), **{
-            'use_bias': bool,
             'data_format': ['channels_first', 'channels_last'],
             'bn_momentum': float,
             'bn_epsilon': float,
@@ -78,14 +76,14 @@ class Tacotron2Encoder(Encoder):
           }
         ]
     * **activation_fn** (callable) --- activation function to use for conv layers.
-    * **enable_bn** (bool) --- whether to enable batch norm after each conv layer.
     * **num_rnn_layers** --- number of RNN layers to use.
     * **rnn_cell_dim** (int) --- dimension of RNN cells.
     * **rnn_type** (callable) --- Any valid RNN Cell class. Suggested class is lstm
     * **rnn_unidirectional** (bool) --- whether to use uni-directional or
       bi-directional RNNs.
-    * **use_bias** (bool) --- whether to enable a bias unit for the conv
-      layers. Defaults to True
+    * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.
+    * **use_cudnn_rnn** (bool) --- need to be enabled in rnn_type is a Cudnn
+      class.
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.1.
@@ -96,12 +94,20 @@ class Tacotron2Encoder(Encoder):
   def _encode(self, input_dict):
     """Creates TensorFlow graph for Tacotron-2 like encoder.
 
-    Expects the following inputs::
+    Args:
+      input_dict (dict): dictionary with inputs
 
-      input_dict = {
-        "src_sequence": tensor of shape [batch_size, sequence length]
-        "src_length": tensor of shape [batch_size]
-      }
+      Must define:
+        *source_tensors - array containing [
+          source_sequence: tensor of shape [batch_size, sequence length],
+          src_length: tensor of shape [batch_size]
+        ]
+
+    Returns:
+      a Python dictionary with:
+        * outputs - tensor containing the encoded text to be passed to the 
+          attention layer
+        * src_length - the length of the encoded text
     """
 
     source_sequence, src_length = input_dict['source_tensors']

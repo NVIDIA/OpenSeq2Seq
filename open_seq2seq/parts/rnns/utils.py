@@ -24,13 +24,15 @@ def single_cell(
      and/or dropout
 
      Args:
-       cell_class: Tensorflow RNN cell class
-       cell_params (dict): cell parameters
-       dp_input_keep_prob (float): (default: 1.0) input dropout keep
-          probability.
-       dp_output_keep_prob (float): (default: 1.0) output dropout keep
-          probability.
-       residual_connections (bool): whether to add residual connection
+      cell_class: Tensorflow RNN cell class
+      cell_params (dict): cell parameters
+      dp_input_keep_prob (float): (default: 1.0) input dropout keep
+        probability.
+      dp_output_keep_prob (float): (default: 1.0) output dropout keep
+        probability.
+      zoneout_prob(float): zoneout probability. Applying both zoneout and
+        droupout is currently not supported
+      residual_connections (bool): whether to add residual connection
 
      Returns:
        TF RNN instance

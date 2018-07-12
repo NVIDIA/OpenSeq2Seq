@@ -286,8 +286,8 @@ def log_summaries_from_dict(dict_to_log, output_dir, step):
       to support logging of image and audio data. In this mode, the
       dictionary key is ignored, as tf.Summary.Value already contains a
       tag.
-    output_dir (str)
-    step (int)
+    output_dir (str): dir containing the tensorboard file
+    step (int): current training step
   """
   sm_writer = tf.summary.FileWriterCache.get(output_dir)
   for tag, value in dict_to_log.items():

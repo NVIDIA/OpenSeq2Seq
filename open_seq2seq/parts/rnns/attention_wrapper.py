@@ -627,29 +627,20 @@ class BahdanauAttention(_BaseAttentionMechanism):
 
 
 def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
-  """Implements Bahdanau-style (additive) scoring function.
+  """Implements Bahdanau-style (additive) scoring function with location 
+  information.
 
-  This attention has two forms.  The first is Bhandanau attention,
-  as described in:
+  The implementation is described in 
 
-  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
-  "Neural Machine Translation by Jointly Learning to Align and Translate."
-  ICLR 2015. https://arxiv.org/abs/1409.0473
-
-  The second is the normalized form.  This form is inspired by the
-  weight normalization article:
-
-  Tim Salimans, Diederik P. Kingma.
-  "Weight Normalization: A Simple Reparameterization to Accelerate
-   Training of Deep Neural Networks."
-  https://arxiv.org/abs/1602.07868
-
-  To enable the second form, set `normalize=True`.
+  Jan Chorowski, Dzmitry Bahdanau, Dmitriy Serdyuk, KyungHyun Cho, Yoshua Bengio
+  "Attention-Based Models for Speech Recognition"
+  https://arxiv.org/abs/1506.07503
 
   Args:
     processed_query: Tensor, shape `[batch_size, num_units]` to compare to keys.
     keys: Processed memory, shape `[batch_size, max_time, num_units]`.
-    normalize: Whether to normalize the score function.
+    location: Tensor, shape `[batch_size, max_time, num_units]`
+    use_bias (bool): Whether to use a bias when computing alignments
 
   Returns:
     A `[batch_size, max_time]` tensor of unnormalized score values.
@@ -671,6 +662,9 @@ def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
 
 
 class LocationLayer(layers_base.Layer):
+  """
+  The layer that processed the location information
+  """
 
   def __init__(
       self,
@@ -703,25 +697,20 @@ class LocationLayer(layers_base.Layer):
 
 
 class LocationSensitiveAttention(_BaseAttentionMechanism):
-  """Implements Bahdanau-style (additive) attention.
+  """Implements Bahdanau-style (additive) scoring function with cumulative
+  location information.
 
-  This attention has two forms.  The first is Bahdanau attention,
-  as described in:
+  The implementation is described in:
 
-  Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
-  "Neural Machine Translation by Jointly Learning to Align and Translate."
-  ICLR 2015. https://arxiv.org/abs/1409.0473
+  Jan Chorowski, Dzmitry Bahdanau, Dmitriy Serdyuk, KyungHyun Cho, Yoshua Bengio
+  "Attention-Based Models for Speech Recognition"
+  https://arxiv.org/abs/1506.07503
 
-  The second is the normalized form.  This form is inspired by the
-  weight normalization article:
-
-  Tim Salimans, Diederik P. Kingma.
-  "Weight Normalization: A Simple Reparameterization to Accelerate
-   Training of Deep Neural Networks."
-  https://arxiv.org/abs/1602.07868
-
-  To enable the second form, construct the object with parameter
-  `normalize=True`.
+  Jonathan Shen, Ruoming Pang, Ron J. Weiss, Mike Schuster, Navdeep Jaitly, 
+  Zongheng Yang, Zhifeng Chen, Yu Zhang, Yuxuan Wang, RJ Skerry-Ryan, 
+  Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
+  "Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions"
+  https://arxiv.org/abs/1712.05884
   """
 
   def __init__(
@@ -754,6 +743,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         `memory_sequence_length` is not None.
       dtype: The data type for the query and memory layers of the attention
         mechanism.
+      use_bias (bool): Whether to use a bias when computing alignments
       name: Name to use when creating ops.
     """
     if probability_fn is None:
@@ -780,7 +770,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     self.use_bias = use_bias
 
   def __call__(self, query, state):
-    """Score the query based on the keys and values.
+    """Score the query based on the keys, values, and location.
 
     Args:
       query: Tensor of dtype matching `self.values` and shape
@@ -809,6 +799,9 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     return alignments, next_state
 
   def initialize_location(self, dtype):
+    """
+    Used to initialize the cumulative location information to 0 
+    """
     self.cumulative_location = self.initial_state(
         self._batch_size, dtype
     )
@@ -1413,14 +1406,16 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         time major `TensorArray` on which you must call `stack()`).
       cell_input_fn: (optional) A `callable`.  The default is:
         `lambda inputs, attention: array_ops.concat([inputs, attention], -1)`.
-      output_attention: Python bool.  If `True` (default), the output at each
+      output_attention: bool or "both".  If `True` (default), the output at each
         time step is the attention value.  This is the behavior of Luong-style
         attention mechanisms.  If `False`, the output at each time step is
         the output of `cell`.  This is the beahvior of Bhadanau-style
-        attention mechanisms.  In both cases, the `attention` tensor is
-        propagated to the next time step via the state and is used there.
-        This flag only controls whether the attention mechanism is propagated
-        up to the next cell in an RNN stack or to the top RNN output.
+        attention mechanisms.  If "both", the attention value and cell output
+        are concatenated together and set as the output. In all cases, the
+        `attention` tensor is propagated to the next time step via the state and
+        is used there. This flag only controls whether the attention mechanism
+        is propagated up to the next cell in an RNN stack or to the top RNN 
+        output.
       initial_cell_state: The initial state value to use for the cell when
         the user calls `zero_state()`.  Note that if this value is provided
         now, and the user uses a `batch_size` argument of `zero_state` which

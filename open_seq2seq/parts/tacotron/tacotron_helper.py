@@ -60,12 +60,22 @@ class TacotronTrainingHelper(Helper):
       sample_ids_shape=None,
       sample_ids_dtype=None,
       name=None,
-      context=None,
       mask_decoder_sequence=None
   ):
     """Initializer.
+
     Args:
-      To-Do
+      inputs (Tensor): inputs of shape [batch, time, n_feats]
+      sequence_length (Tensor): length of each input. shape [batch]
+      prenet: prenet to use, currently disabled and used in tacotron decoder
+        instead.
+      sampling_prob (float): see tacotron 2 decoder
+      anneal_teacher_forcing (float): see tacotron 2 decoder
+      stop_gradient (float): see tacotron 2 decoder
+      time_major (bool): (float): see tacotron 2 decoder
+      name (str): name for layer
+      mask_decoder_sequence (bool): whether to pass finished when the decoder
+        passed the sequence_length input or to pass unfinished to dynamic_decode
     """
     self._sample_ids_shape = tensor_shape.TensorShape(sample_ids_shape or [])
     self._sample_ids_dtype = sample_ids_dtype or dtypes.int32
@@ -80,7 +90,7 @@ class TacotronTrainingHelper(Helper):
     self.anneal_teacher_forcing = anneal_teacher_forcing
     self.stop_gradient = stop_gradient
     self.mask_decoder_sequence = mask_decoder_sequence
-
+mask_decoder_sequence
     self.prenet = prenet
     self._zero_inputs = nest.map_structure(
         lambda inp: array_ops.zeros_like(inp[0, :]), inputs
@@ -187,12 +197,21 @@ class TacotronHelper(Helper):
       sample_ids_shape=None,
       sample_ids_dtype=None,
       name=None,
-      context=None,
       mask_decoder_sequence=None
   ):
     """Initializer.
+
     Args:
-      To-Do
+      inputs (Tensor): inputs of shape [batch, time, n_feats]
+      prenet: prenet to use, currently disabled and used in tacotron decoder
+        instead.
+      sampling_prob (float): see tacotron 2 decoder
+      anneal_teacher_forcing (float): see tacotron 2 decoder
+      stop_gradient (float): see tacotron 2 decoder
+      time_major (bool): (float): see tacotron 2 decoder
+      name (str): name for layer
+      mask_decoder_sequence (bool): whether to pass finished when the decoder
+        passed the sequence_length input or to pass unfinished to dynamic_decode
     """
     self._sample_ids_shape = tensor_shape.TensorShape(sample_ids_shape or [])
     self._sample_ids_dtype = sample_ids_dtype or dtypes.int32

@@ -21,14 +21,23 @@ from tensorflow.python.framework import ops
 
 
 class Prenet():
-
+  """
+  Fully connected prenet used in the decoder
+  """
   def __init__(self, num_units, num_layers, activation_fn=None, dtype=None):
+    """Prenet initializer
+
+    Args:
+      num_units (int): number of units in the fully connected layer
+      num_layers (int): number of fully connected layers
+      activation_fn (callable): any valid activation function
+      dtype (dtype): the data format for this layer
+    """
     assert (
         num_layers > 0
     ), "If the prenet is enabled, there must be at least 1 layer"
     self.prenet_layers = []
     self._output_size = num_units
-    self._dtype = dtype
 
     for idx in range(num_layers):
       self.prenet_layers.append(
@@ -42,6 +51,9 @@ class Prenet():
       )
 
   def __call__(self, inputs):
+    """
+    Applies the prenet to the inputs
+    """
     for layer in self.prenet_layers:
       inputs = tf.layers.dropout(layer(inputs), rate=0.5, training=True)
     return inputs
@@ -51,6 +63,9 @@ class Prenet():
     return self._output_size
 
   def add_regularization(self, regularizer):
+    """
+    Adds regularization to all prenet kernels
+    """
     for layer in self.prenet_layers:
       for weights in layer.trainable_variables:
         if "bias" not in weights.name:
@@ -93,7 +108,6 @@ class Tacotron2Decoder(Decoder):
             'attention_rnn_layers': int,
             'attention_rnn_cell_type': None,
             'bahdanau_normalize': bool,
-            'luong_scale': bool,
             'decoder_use_skip_connections': bool,
             'decoder_dp_input_keep_prob': float,
             'decoder_dp_output_keep_prob': float,
@@ -105,17 +119,15 @@ class Tacotron2Decoder(Decoder):
             'prenet_activation': None,
             'enable_postnet': bool,
             'postnet_conv_layers': list,
-            'postnet_enable_bn': bool,
-            'postnet_use_bias': bool,
             'postnet_bn_momentum': float,
             'postnet_bn_epsilon': float,
             'postnet_data_format': ['channels_first', 'channels_last'],
             'postnet_keep_dropout_prob': float,
-            "anneal_teacher_forcing": bool,
-            "anneal_teacher_forcing_stop_gradient": bool,
-            "mask_decoder_sequence": bool,
-            "use_prenet_output": bool,
-            "attention_bias": bool,
+            'anneal_teacher_forcing': bool,
+            'anneal_teacher_forcing_stop_gradient': bool,
+            'mask_decoder_sequence': bool,
+            'use_prenet_output': bool,
+            'attention_bias': bool,
             'zoneout_prob': float,
             'stop_token_full': bool,
             'parallel_iterations': int,
@@ -123,49 +135,50 @@ class Tacotron2Decoder(Decoder):
     )
 
   def __init__(self, params, model, name='tacotron_2_decoder', mode='train'):
-    """Tacotron-2 like decoder constructor. A lot of optional configurations are currently
-    for testing. Not all configurations are supported. Use of the default config id reccommended.
+    """Tacotron-2 like decoder constructor. A lot of optional configurations are
+    currently for testing. Not all configurations are supported. Use of thed
+    efault config is reccommended.
 
     See parent class for arguments description.
 
     Config parameters:
 
     * **attention_layer_size** (int) --- size of attention layer.
-    * **attention_type** (string) --- Determines whether attention mechanism to use,
-      should be one of 'bahdanau', 'location', or None.
+    * **attention_type** (string) --- Determines whether attention mechanism to 
+      use, should be one of 'bahdanau', 'location', or None.
       Use of 'location'-sensitive attention is strongly recommended.
     * **attention_rnn_enable** (bool) --- Whether to create a rnn layer for the
-      attention mechanism. If false, the attention mechanism is wrapped around the
-      decoder rnn
-    * **attention_rnn_units** (int) --- dimension of attention RNN cells if enabled.
-      Defaults to 1024.
-    * **attention_rnn_layers** (int) --- number of attention RNN layers to use if enabled.
-      Defaults to 1.
+      attention mechanism. If false, the attention mechanism is wrapped around 
+      the decoder rnn
+    * **attention_rnn_units** (int) --- dimension of attention RNN cells if 
+      enabled. Defaults to 1024.
+    * **attention_rnn_layers** (int) --- number of attention RNN layers to use 
+      if enabled. Defaults to 1.
     * **attention_rnn_cell_type** (callable) --- Any valid RNN cell class.
       Currently, only 'lstm' has been tested. Defaults to 'lstm'.
     * **bahdanau_normalize** (bool) ---  Defaults to False.
-    * **luong_scale** (bool) ---  Defaults to False.
-    * **decoder_rnn_units** (int) --- dimension of decoder RNN cells.
-    * **decoder_rnn_layers** (int) --- number of decoder RNN layers to use.
-    * **decoder_rnn_cell_type** (callable) --- could be "lstm", "gru", "glstm", or "slstm".
-      Currently, only 'lstm' has been tested. Defaults to 'lstm'.
-    * **decoder_use_skip_connections** (bool) --- whether to use residual connections in the
-      rnns. Defaults to False. True is not currently supported
+    * **decoder_cell_units** (int) --- dimension of decoder RNN cells.
+    * **decoder_layers** (int) --- number of decoder RNN layers to use.
+    * **decoder_cell_type** (callable) --- could be "lstm", "gru", "glstm", or 
+      "slstm". Currently, only 'lstm' has been tested. Defaults to 'lstm'.
+    * **decoder_use_skip_connections** (bool) --- whether to use residual 
+      connections in the rnns. Defaults to False. True is not currently supported
     * **decoder_dp_input_keep_prob** (float)
     * **decoder_dp_output_keep_prob** (float)
-    * **scheduled_sampling_prob** (float) --- probability for scheduled sampling. Set to 0 for
-      teacher forcing.
-    * **time_major** (bool) --- whether to output as time major or batch major. Default is False
-      for batch major.
+    * **scheduled_sampling_prob** (float) --- probability for scheduled sampling.
+      Set to 0 for teacher forcing.
+    * **time_major** (bool) --- whether to output as time major or batch major. 
+      Default is False for batch major.
     * **use_swap_memory** (bool) --- default is False.
-    * **enable_prenet** (bool) --- whether to use the fully-connected prenet in the decoder.
-      Defaults to True
-    * **prenet_layers** (int) --- number of fully-connected layers to use. Defaults to 2.
+    * **enable_prenet** (bool) --- whether to use the fully-connected prenet in 
+      the decoder. Defaults to True
+    * **prenet_layers** (int) --- number of fully-connected layers to use. 
+      Defaults to 2.
     * **prenet_units** (int) --- number of units in each layer. Defaults to 256.
-    * **prenet_activation** (callable) --- activation function to use for the prenet lyaers.
-      Defaults to tanh
-    * **enable_postnet** (bool) --- whether to use the convolutional postnet in the decoder.
-      Defaults to True
+    * **prenet_activation** (callable) --- activation function to use for the 
+      prenet lyaers. Defaults to relu
+    * **enable_postnet** (bool) --- whether to use the convolutional postnet in 
+      the decoder. Defaults to True
     * **postnet_conv_layers** (bool) --- list with the description of convolutional
       layers. Must be passed if postnet is enabled
       For example::
@@ -196,26 +209,33 @@ class Tacotron2Decoder(Decoder):
             "activation_fn": None
           }
         ]
-    * **postnet_bn_momentum** (float) --- momentum for batch norm. Defaults to 0.1.
-    * **postnet_bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-5.
-    * **postnet_enable_bn** (bool) --- whether to enable batch norm after each postnet conv layer.
-      Defaults to True
-    * **postnet_use_bias** (bool) --- whether to enable a bias unit for the postnet conv layers
-      Defaults to True
+    * **postnet_bn_momentum** (float) --- momentum for batch norm. 
+      Defaults to 0.1.
+    * **postnet_bn_epsilon** (float) --- epsilon for batch norm. 
+      Defaults to 1e-5.
     * **postnet_data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
-    * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in the postnet conv layers.
-      Default to 0.5.
-    * **anneal_teacher_forcing** (bool) --- Whether to use scheduled sampling and increase the probability
-      / anneal the use of teacher forcing as training progresses. Currently only a fixed staircase increase
-      is supported. If True, it will override the scheduled_sampling_prob parameter. Defaults to False.
-    * **anneal_teacher_forcing_stop_gradient** (bool) --- If anneal_teacher_forcing is True, tf.stop_gradient
-      is called on the inputs to the decoder to prevent back propogation through the scheduled sampler. 
-      Defaults to False
+    * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in 
+      the postnet conv layers. Default to 0.5.
+    * **anneal_teacher_forcing** (bool) --- Whether to use scheduled sampling 
+      and increase the probability / anneal the use of teacher forcing as 
+      training progresses. Currently only a fixed staircase increase is 
+      supported. If True, it will override the scheduled_sampling_prob parameter.
+      Defaults to False.
+    * **anneal_teacher_forcing_stop_gradient** (bool) --- If anneal_teacher_forcing
+      is True, tf.stop_gradient is called on the inputs to the decoder to 
+      prevent back propogation through the scheduled sampler. Defaults to False
     * **mask_decoder_sequence** (bool) --- Defaults to True
-    * **use_prenet_output** (bool) --- Wether to pass the prenet output to the attention rnn. Defaults to True.
-    * **attention_bias** (bool) --- Wether to use a bias term when calculating the attention. Only
-      works for "location" attention. Defaults to False.
+    * **use_prenet_output** (bool) --- Wether to pass the prenet output to the
+      attention rnn. Defaults to True.
+    * **attention_bias** (bool) --- Wether to use a bias term when calculating
+      the attention. Only works for "location" attention. Defaults to False.
+    * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.
+    * **stop_token_full** (bool) --- Set to False to use the linear projection
+      presented in the tacotron 2 paper. Set to True to do the linear projection
+      after the spectrogram linear projection.
+    * **parallel_iterations** (int) --- Number of parallel_iterations for
+      tf.while loop inside dynamic_decode. Defaults to 32.
     """
 
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
@@ -228,10 +248,6 @@ class Tacotron2Decoder(Decoder):
     """
     Builds Attention part of the graph.
     Currently supports "bahdanau", and "location"
-    :param encoder_outputs: the memory for the attention mechanism
-    :param encoder_sequence_length: the length of the memory
-    :param attention_bias: whether to enable bias, only works for "location"
-    :return: an attention mechanism to pass to attention_wrapper()
     """
     with tf.variable_scope("AttentionMechanism"):
       attention_depth = self.params['attention_layer_size']
@@ -271,7 +287,10 @@ class Tacotron2Decoder(Decoder):
   def _decode(self, input_dict):
     """
     Decodes representation into data
-    :param input_dict: Python dictionary with inputs to decoder
+
+    Args:
+      input_dict (dict): Python dictionary with inputs to decoder
+
     Must define:
       * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
                      or [time, batch_size, dim]
@@ -283,18 +302,26 @@ class Tacotron2Decoder(Decoder):
                      shape [batch_size, time, 1] or [time, batch_size, 1]
       * tgt_lengths - Only during training. labels lengths
                       Tensor of the shape [batch_size]
-    :return: a Python dictionary with:
-      * decoder_output - tensor of shape [batch_size, time, num_features]
-                        or [time, batch_size, num_features]. Spectrogram representation
-                        learned by the decoder rnn
-      * post_net_output - tensor of shape [batch_size, time, num_features]
-                        or [time, batch_size, num_features]. Spectrogram correction
-                        learned by the postnet if enabled
-      * alignments - tensor of shape [batch_size, time, memory_size]
-                     or [time, batch_size, memory_size]
-      * final_sequence_lengths - tensor of shape [batch_size]
-      * target_output - tensor of shape [batch_size, time, 1]
-                        or [time, batch_size, 1]. The stop token predictions
+
+    Returns:
+      a Python dictionary with:
+        * outputs - array containing
+          * decoder_output - tensor of shape [batch_size, time, num_features]
+            or [time, batch_size, num_features]. Spectrogram representation
+            learned by the decoder rnn
+          * spectrogram_prediction - tensor of shape [batch_size, time, num_features]
+            or [time, batch_size, num_features]. Spectrogram containing the 
+            residual corrections from the postnet if enabled
+          * alignments - tensor of shape [batch_size, time, memory_size]
+            or [time, batch_size, memory_size]. The alignments learned by the
+            attention layer
+          * stop_token_prediction - tensor of shape [batch_size, time, 1]
+            or [time, batch_size, 1]. The stop token predictions
+          * final_sequence_lengths - tensor of shape [batch_size]
+
+        * stop_token_predictions - tensor of shape [batch_size, time, 1]
+          or [time, batch_size, 1]. The stop token predictions for use inside
+          the loss function.
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']

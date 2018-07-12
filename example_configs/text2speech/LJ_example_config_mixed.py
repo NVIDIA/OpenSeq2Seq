@@ -95,7 +95,6 @@ base_params = {
       }
     ],
     "activation_fn": tf.nn.relu,
-    "enable_bn" : True,
 
     "num_rnn_layers": 1,
     "rnn_cell_dim": 256,
@@ -138,7 +137,6 @@ base_params = {
     'enable_postnet': True,
     "postnet_keep_dropout_prob": 0.5,
     "postnet_data_format": "channels_last",
-    "postnet_enable_bn": True,
     "postnet_conv_layers": [
       {
         "kernel_size": [5], "stride": [1],
