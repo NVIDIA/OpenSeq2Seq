@@ -44,8 +44,8 @@ def collect_if_horovod(value, hvd, mode='sum'):
     mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
+        
   Returns:
-  
     collected results if run on Horovod or value otherwise.
   """
   if hvd is None:
