@@ -1,16 +1,14 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-
-import subprocess
-import time
-
-import numpy as np
-import six
-from six import string_types
 from six.moves import range
+from six import string_types
+
+import six
 import tensorflow as tf
-# pylint: disable=no-name-in-module
+import subprocess
+import numpy as np
+import time
 from tensorflow.python.client import device_lib
 
 
@@ -29,22 +27,20 @@ def clip_sparse(value, size):
     if idx_tuple[0] < size:
       indices_clipped.append(idx_tuple)
       values_clipped.append(val)
-  return tf.SparseTensorValue(
-      np.array(indices_clipped), np.array(values_clipped), dense_shape_clipped
-  )
+  return tf.SparseTensorValue(np.array(indices_clipped),
+                              np.array(values_clipped),
+                              dense_shape_clipped)
 
 
 def collect_if_horovod(value, hvd, mode='sum'):
   """Collects values from all workers if run on Horovod.
   Note, that on all workers except first this function will return None.
-
   Args:
     value: value to collect.
     hvd: horovod.tensorflow module or None
     mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
-
   Returns:
     collected results if run on Horovod or value otherwise.
   """
@@ -68,8 +64,6 @@ def collect_if_horovod(value, hvd, mode='sum'):
     return np.mean(values)
   elif mode == 'gather':
     return [item for sl in values for item in sl]
-  else:
-    raise ValueError("Incorrect mode: {}".format(mode))
 
 
 def clip_last_batch(last_batch, true_size):
@@ -100,8 +94,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
   # on horovod num_gpus is 1
   for worker_id in range(model.num_gpus):
     cur_fetches = [
-        model.get_data_layer(worker_id).input_tensors,
-        model.get_output_tensors(worker_id),
+      model.get_data_layer(worker_id).input_tensors,
+      model.get_output_tensors(worker_id),
     ]
     if compute_loss:
       cur_fetches.append(model.eval_losses[worker_id])
@@ -112,19 +106,13 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
       cur_fetches.append(model.get_num_objects_per_step(worker_id))
     except NotImplementedError:
       total_objects = None
-      deco_print(
-          "WARNING: Can't compute number of objects per step, since "
-          "train model does not define get_num_objects_per_step method."
-      )
+      deco_print("WARNING: Can't compute number of objects per step, since "
+                 "train model does not define get_num_objects_per_step method.")
     fetches.append(cur_fetches)
     total_samples.append(0.0)
 
-  sess.run(
-      [
-          model.get_data_layer(i).iterator.initializer
-          for i in range(model.num_gpus)
-      ]
-  )
+  sess.run([model.get_data_layer(i).iterator.initializer
+            for i in range(model.num_gpus)])
 
   step = 0
   processed_batches = 0
@@ -193,25 +181,15 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 
     if verbose:
       if size_defined:
-        data_size = int(
-            np.sum(
-                np.ceil(
-                    np.array(dl_sizes) / model.params['batch_size_per_gpu']
-                )
-            )
-        )
+        data_size = int(np.sum(np.ceil(np.array(dl_sizes) /
+                                       model.params['batch_size_per_gpu'])))
         if step == 0 or len(fetches_vals) == 0 or \
            (data_size > 10 and processed_batches % (data_size // 10) == 0):
-          deco_print(
-              "Processed {}/{} batches{}".format(
-                  processed_batches, data_size, ending
-              )
-          )
+          deco_print("Processed {}/{} batches{}".format(
+            processed_batches, data_size, ending))
       else:
-        deco_print(
-            "Processed {} batches{}".format(processed_batches, ending),
-            end='\r'
-        )
+        deco_print("Processed {} batches{}".format(processed_batches, ending),
+                   end='\r')
 
     if len(fetches_vals) == 0:
       break
@@ -220,17 +198,17 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
   if verbose:
     if step > bench_start:
       deco_print(
-          "Avg time per step{}: {:.3}s".format(
-              ending, 1.0 * total_time / (step - bench_start)
-          ),
+        "Avg time per step{}: {:.3}s".format(
+          ending, 1.0 * total_time / (step - bench_start)),
       )
       if total_objects is not None:
         avg_objects = 1.0 * total_objects / total_time
-        deco_print(
-            "Avg objects per second{}: {:.3f}".format(ending, avg_objects)
-        )
+        deco_print("Avg objects per second{}: {:.3f}".format(ending,
+                                                             avg_objects))
     else:
-      deco_print("Not enough steps for benchmarking{}".format(ending))
+      deco_print(
+        "Not enough steps for benchmarking{}".format(ending)
+      )
 
   if compute_loss:
     return results_per_batch, total_loss, np.sum(total_samples)
@@ -241,19 +219,11 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-        model,
-        sess,
-        compute_loss,
-        mode,
-        verbose,
+      model, sess, compute_loss, mode, verbose,
     )
   else:
     results_per_batch = iterate_data(
-        model,
-        sess,
-        compute_loss,
-        mode,
-        verbose,
+      model, sess, compute_loss, mode, verbose,
     )
 
   if compute_loss:
@@ -306,24 +276,21 @@ def log_summaries_from_dict(dict_to_log, output_dir, step):
 
 def get_git_hash():
   try:
-    return subprocess.check_output(
-        ['git', 'rev-parse', 'HEAD'], stderr=subprocess.STDOUT
-    ).decode()
+    return subprocess.check_output(['git', 'rev-parse', 'HEAD'],
+                                   stderr=subprocess.STDOUT).decode()
   except subprocess.CalledProcessError as e:
     return "{}\n".format(e.output.decode("utf-8"))
 
 
 def get_git_diff():
   try:
-    return subprocess.check_output(
-        ['git', 'diff'], stderr=subprocess.STDOUT
-    ).decode()
+    return subprocess.check_output(['git', 'diff'],
+                                   stderr=subprocess.STDOUT).decode()
   except subprocess.CalledProcessError as e:
     return "{}\n".format(e.output.decode("utf-8"))
 
 
 class Logger(object):
-
   def __init__(self, stream, log_file):
     self.stream = stream
     self.log = log_file
@@ -340,12 +307,12 @@ class Logger(object):
 def flatten_dict(dct):
   flat_dict = {}
   for key, value in dct.items():
-    if isinstance(value, (int, float, string_types, bool)):
+    if isinstance(value, int) or isinstance(value, float) or \
+       isinstance(value, string_types) or isinstance(value, bool):
       flat_dict.update({key: value})
     elif isinstance(value, dict):
       flat_dict.update(
-          {key + '/' + k: v for k, v in flatten_dict(dct[key]).items()}
-      )
+        {key + '/' + k: v for k, v in flatten_dict(dct[key]).items()})
   return flat_dict
 
 
@@ -368,7 +335,7 @@ def nested_update(org_dict, upd_dict):
       if key in org_dict:
         if not isinstance(org_dict[key], dict):
           raise ValueError(
-              "Mismatch between org_dict and upd_dict at node {}".format(key)
+            "Mismatch between org_dict and upd_dict at node {}".format(key)
           )
         nested_update(org_dict[key], value)
       else:
@@ -396,16 +363,16 @@ def array_to_string(row, vocab, delim=' '):
   return delim.join(map(lambda x: vocab[x], [r for r in row if 0 <= r < n]))
 
 
-def text_ids_to_string(
-    row, vocab, S_ID, EOS_ID, PAD_ID, ignore_special=False, delim=' '
-):
+def text_ids_to_string(row, vocab, S_ID, EOS_ID, PAD_ID,
+                       ignore_special=False, delim=' '):
   """For _-to-text outputs this function takes a row with ids,
   target vocabulary and prints it as a human-readable string
   """
   n = len(vocab)
   if ignore_special:
     f_row = []
-    for char_id in row:
+    for i in range(0, len(row)):
+      char_id = row[i]
       if char_id == EOS_ID:
         break
       if char_id != PAD_ID and char_id != S_ID:
@@ -427,8 +394,7 @@ def check_params(config, required_dict, optional_dict):
         vals = string_types
       if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and not isinstance(vals,
-                                 list) and not isinstance(config[pm], vals):
+      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm, vals in optional_dict.items():
@@ -437,8 +403,7 @@ def check_params(config, required_dict, optional_dict):
     if pm in config:
       if vals and isinstance(vals, list) and config[pm] not in vals:
         raise ValueError("{} has to be one of {}".format(pm, vals))
-      if vals and not isinstance(vals,
-                                 list) and not isinstance(config[pm], vals):
+      if vals and not isinstance(vals, list) and not isinstance(config[pm], vals):
         raise ValueError("{} has to be of type {}".format(pm, vals))
 
   for pm in config:
@@ -469,4 +434,4 @@ def cast_types(input_dict, dtype):
       cast_input_dict[key] = cur_list
       continue
     cast_input_dict[key] = input_dict[key]
-  return cast_input_dict
+return cast_input_dict
