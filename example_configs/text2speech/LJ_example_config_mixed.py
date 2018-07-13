@@ -25,8 +25,7 @@ base_params = {
   # "num_epochs": 501,
   "max_steps": 100000,
 
-
-  "num_gpus": 4,
+  "num_gpus": 1,
   # 'gpu_ids': [1],
   "batch_size_per_gpu": 48,
 
