@@ -2,7 +2,8 @@
 """
 Losses to be used in seq2seq models
 """
-from .cross_entropy_loss import CrossEntropyLoss
-from .ctc_loss import CTCLoss
 from .sequence_loss import BasicSequenceLoss, CrossEntropyWithSmoothing, \
-                           PaddedCrossEntropyLossWithSmoothing
+  PaddedCrossEntropyLossWithSmoothing
+from .ctc_loss import CTCLoss
+from .cross_entropy_loss import CrossEntropyLoss
+from .tacotron_loss import TacotronLoss

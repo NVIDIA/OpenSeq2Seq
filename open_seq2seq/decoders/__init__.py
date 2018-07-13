@@ -9,3 +9,5 @@ from .fc_decoders import FullyConnectedCTCDecoder, FullyConnectedDecoder
 from .rnn_decoders import RNNDecoderWithAttention, \
                           BeamSearchRNNDecoderWithAttention
 from .transformer_decoder import TransformerDecoder
+from .tacotron2_decoder import Tacotron2Decoder
+from .convs2s_decoder import ConvS2SDecoder
