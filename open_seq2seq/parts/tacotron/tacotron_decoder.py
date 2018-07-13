@@ -22,6 +22,7 @@ from tensorflow.contrib.seq2seq.python.ops import decoder
 from tensorflow.contrib.seq2seq.python.ops import helper as helper_py
 from tensorflow.python.framework import ops
 from tensorflow.python.framework import tensor_shape
+from tensorflow.python.framework import dtypes
 from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
@@ -51,7 +52,9 @@ class TacotronDecoder(decoder.Decoder):
       target_layer,
       use_prenet_output=True,
       stop_token_full=True,
-      prenet=None
+      attention_rnn_enable=True,
+      prenet=None,
+      dtype=dtypes.float32
   ):
     """Initialize TacotronDecoder.
 
@@ -74,6 +77,7 @@ class TacotronDecoder(decoder.Decoder):
         in the attention mechanism
       stop_token_full: decides the inputs of the stop token projection layer. 
         See tacotron 2 decoder for more details.
+      stop_token_full: See tacotron 2 decoder for more details.
       prenet: The prenet to apply to inputs
 
     Raises:
@@ -99,9 +103,10 @@ class TacotronDecoder(decoder.Decoder):
     self.target_layer = target_layer
     self.attention_type = attention_type
     self.use_prenet_output = use_prenet_output
-    self._dtype = initial_decoder_state[0].h.dtype
+    self._dtype = dtype
     self.stop_token_full = stop_token_full
     self.prenet = prenet
+    self.attention_rnn_enable = attention_rnn_enable
 
   @property
   def batch_size(self):
@@ -143,10 +148,10 @@ class TacotronDecoder(decoder.Decoder):
 
   @property
   def output_dtype(self):
-    dtype = nest.flatten(self.decoder_initial_state)[0].dtype
+    # dtype = nest.flatten(self.decoder_initial_state)[0].dtype
     return BasicDecoderOutput(
-        nest.map_structure(lambda _: dtype, self._rnn_output_size()),
-        nest.map_structure(lambda _: dtype, self._stop_token_output_size()),
+        nest.map_structure(lambda _: self._dtype, self._rnn_output_size()),
+        nest.map_structure(lambda _: self._dtype, self._stop_token_output_size()),
         self.helper.sample_ids_dtype
     )
 
@@ -160,11 +165,11 @@ class TacotronDecoder(decoder.Decoder):
       self.attention_cell._attention_mechanisms[0].initialize_location(
           self._dtype
       )
-    return self.helper.initialize(
-    ) + ((
-        self.attention_initial_state,
-        self.decoder_initial_state,
-    ),)
+    if self.attention_rnn_enable:
+      state = ((self.attention_initial_state,self.decoder_initial_state,),)
+    else:
+      state = (self.attention_initial_state,)
+    return self.helper.initialize() + state
 
   def step(self, time, inputs, state, name=None):
     """Perform a decoding step.
@@ -182,26 +187,29 @@ class TacotronDecoder(decoder.Decoder):
       if self.prenet is not None:
         inputs = self.prenet(inputs)
 
-      if self.use_prenet_output:
-        # Do an attention rnn step with the prenet output and previous attention state
-        attention_context, attention_state = self.attention_cell(
-            inputs, state[0]
+      if self.attention_rnn_enable:
+        if self.use_prenet_output:
+          # Do an attention rnn step with the prenet output and previous attention state
+          attention_context, attention_state = self.attention_cell(
+              inputs, state[0]
+          )
+        else:
+          # Do an attention rnn step with the decoder output and previous attention state
+          attention_context, attention_state = self.attention_cell(
+              state[1].h, state[0]
+          )
+        # For the decoder rnn, the input is the prenet output + attention context
+        decoder_rnn_input = array_ops.concat((inputs, attention_context), axis=-1)
+        cell_outputs, decoder_state = self.decoder_cell(
+            decoder_rnn_input, state[1]
+        )
+        cell_state = (attention_state, decoder_state)
+        # Concatenate the decoder output and attention output and send it through a projection layer
+        cell_outputs = array_ops.concat(
+            (cell_outputs, attention_context), axis=-1
         )
       else:
-        # Do an attention rnn step with the decoder output and previous attention state
-        attention_context, attention_state = self.attention_cell(
-            state[1].h, state[0]
-        )
-      # For the decoder rnn, the input is the prenet output + attention context
-      decoder_rnn_input = array_ops.concat((inputs, attention_context), axis=-1)
-      cell_outputs, decoder_state = self.decoder_cell(
-          decoder_rnn_input, state[1]
-      )
-      cell_state = (attention_state, decoder_state)
-      # Concatenate the decoder output and attention output and send it through a projection layer
-      cell_outputs = array_ops.concat(
-          (cell_outputs, attention_context), axis=-1
-      )
+        cell_outputs, cell_state = self.decoder_cell(inputs, state)
       spec_outputs = self.spec_layer(cell_outputs)
       # test removing the cell outputs fix
       if self.stop_token_full:

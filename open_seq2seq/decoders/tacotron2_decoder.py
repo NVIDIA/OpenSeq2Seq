@@ -488,29 +488,23 @@ class Tacotron2Decoder(Decoder):
       )
     else:
       raise ValueError("Unknown mode for decoder: {}".format(self._mode))
-    if not self.params["attention_rnn_enable"]:
-      decoder = tf.contrib.seq2seq.BasicDecoder(
-          cell=decoder_cell,
-          helper=helper,
-          initial_state=initial_state,
-          output_layer=self.output_projection_layer,
-      )
-    else:
-      decoder = TacotronDecoder(
-          decoder_cell=decoder_cell,
-          attention_cell=attentive_cell,
-          helper=helper,
-          initial_decoder_state=initial_state,
-          initial_attention_state=attentive_cell.zero_state(
-              _batch_size, self.params["dtype"]
-          ),
-          attention_type=self.params["attention_type"],
-          spec_layer=self.output_projection_layer,
-          target_layer=self.target_projection_layer,
-          use_prenet_output=self.params.get("use_prenet_output", True),
-          stop_token_full=self.params.get("stop_token_full", True),
-          prenet=prenet
-      )
+    decoder = TacotronDecoder(
+        decoder_cell=decoder_cell,
+        attention_cell=attentive_cell,
+        helper=helper,
+        initial_decoder_state=initial_state,
+        initial_attention_state=attentive_cell.zero_state(
+            _batch_size, self.params["dtype"]
+        ),
+        attention_type=self.params["attention_type"],
+        spec_layer=self.output_projection_layer,
+        target_layer=self.target_projection_layer,
+        use_prenet_output=self.params.get("use_prenet_output", True),
+        stop_token_full=self.params.get("stop_token_full", True),
+        attention_rnn_enable=self.params["attention_rnn_enable"],
+        prenet=prenet,
+        dtype=self.params["dtype"]
+    )
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
