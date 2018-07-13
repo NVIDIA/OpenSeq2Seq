@@ -37,6 +37,7 @@ def clip_sparse(value, size):
 def collect_if_horovod(value, hvd, mode='sum'):
   """Collects values from all workers if run on Horovod.
   Note, that on all workers except first this function will return None.
+
   Args:
     value: value to collect.
     hvd: horovod.tensorflow module or None
@@ -44,6 +45,7 @@ def collect_if_horovod(value, hvd, mode='sum'):
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
   Returns:
+  
     collected results if run on Horovod or value otherwise.
   """
   if hvd is None:
