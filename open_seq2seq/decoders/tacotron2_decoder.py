@@ -525,12 +525,12 @@ class Tacotron2Decoder(Decoder):
 
       conv_layers = self.params['postnet_conv_layers']
       top_layer = outputs.rnn_output
-      for idx_conv in enumerate(conv_layers):
-        ch_out = conv_layers[idx_conv]['num_channels']
-        kernel_size = conv_layers[idx_conv]['kernel_size']  # [time, freq]
-        strides = conv_layers[idx_conv]['stride']
-        padding = conv_layers[idx_conv]['padding']
-        activation_fn = conv_layers[idx_conv]['activation_fn']
+      for i, conv_params in enumerate(conv_layers):
+        ch_out = conv_params['num_channels']
+        kernel_size = conv_params['kernel_size']  # [time, freq]
+        strides = conv_params['stride']
+        padding = conv_params['padding']
+        activation_fn = conv_params['activation_fn']
 
         if padding == "VALID":
           sequence_lengths = (sequence_lengths - kernel_size[0] + strides[0]) \
@@ -540,7 +540,7 @@ class Tacotron2Decoder(Decoder):
 
         top_layer = conv_bn_actv(
             layer_type="conv1d",
-            name="conv{}".format(idx_conv + 1),
+            name="conv{}".format(i + 1),
             inputs=top_layer,
             filters=ch_out,
             kernel_size=kernel_size,
