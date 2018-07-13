@@ -127,6 +127,7 @@ class Wave2LetterEncoder(Encoder):
       kernel_size = convnet_layers[idx_convnet]['kernel_size']
       strides = convnet_layers[idx_convnet]['stride']
       padding = convnet_layers[idx_convnet]['padding']
+      dropout_keep = convnet_layers[idx_convnet].get('dropout_keep_prob', dropout_keep_prob) if training else 1.0
 
       for idx_layer in range(layer_repeat):
         conv_feats = conv_block(
@@ -144,8 +145,9 @@ class Wave2LetterEncoder(Encoder):
             data_format=data_format,
             **normalization_params
         )
-        outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
+        conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
 
+    outputs = conv_feats
     if data_format == 'channels_first':
       outputs = tf.transpose(outputs, [0, 2, 1])
 
