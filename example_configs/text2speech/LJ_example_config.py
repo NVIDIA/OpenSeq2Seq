@@ -26,7 +26,7 @@ base_params = {
 
   "num_gpus": 1,
   # 'gpu_ids': [1],
-  "batch_size_per_gpu": 48,
+  "batch_size_per_gpu": 32,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
@@ -111,15 +111,16 @@ base_params = {
     
     'attention_layer_size': 128,
     'attention_type': 'location',
-    'attention_rnn_enable': True,
+    'attention_rnn_enable': False,
     'attention_rnn_units': 1024,
     'attention_rnn_layers': 1,
     'attention_rnn_cell_type': tf.nn.rnn_cell.LSTMCell,
     'attention_bias': True,
+    'use_state_for_location': True,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
-    'decoder_layers': 1,
+    'decoder_layers': 2,
     'decoder_use_skip_connections': False,
     
     'enable_prenet': True,
@@ -161,7 +162,7 @@ base_params = {
       }
     ],
     "mask_decoder_sequence": True,
-    "parallel_iterations": 48,
+    "parallel_iterations": 32,
   },
   
   "loss": TacotronLoss,
