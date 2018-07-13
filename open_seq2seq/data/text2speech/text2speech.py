@@ -1,10 +1,8 @@
 # Copyright (c) 2018 NVIDIA Corporation
-
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
-import string
 import os
 import six
 import librosa
@@ -13,9 +11,9 @@ import tensorflow as tf
 import pandas as pd
 
 from open_seq2seq.data.data_layer import DataLayer
+from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_mel,\
                           inverse_mel, normalize, denormalize
-from open_seq2seq.data.utils import load_pre_existing_vocabulary
 
 
 class Text2SpeechDataLayer(DataLayer):
@@ -57,26 +55,26 @@ class Text2SpeechDataLayer(DataLayer):
     * **num_audio_features** (int) --- number of audio features to extract.
     * **output_type** (str) --- could be either "magnitude", or "mel".
     * **vocab_file** (str) --- path to vocabulary file.
-    * **dataset_files** (list) --- list with paths to all dataset .csv files. 
+    * **dataset_files** (list) --- list with paths to all dataset .csv files.
       File is assumed to be separated by "|".
     * **dataset_location** (string) --- string with path to directory where wavs
       are stored.
-    * **feature_normalize** (bool) --- whether to normlize the data with a 
+    * **feature_normalize** (bool) --- whether to normlize the data with a
       preset mean and std
     * **feature_normalize_mean** (bool) --- used for feature normalize.
       Defaults to 0.
     * **feature_normalize_std** (bool) --- used for feature normalize.
       Defaults to 1.
-    * **mag_power** (int) --- the power to which the magnitude spectrogram is 
+    * **mag_power** (int) --- the power to which the magnitude spectrogram is
       scaled to:
       1 for energy spectrogram
       2 for power spectrogram
       Defaults to 2.
-    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and 
+    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and
       the speech signal. Will pad at least 1 token regardless of pad_to value.
       Defaults to True.
-    * **pad_to** (int) --- we pad such that the resulting datapoint is a multiple
-      of pad_to.
+    * **pad_to** (int) --- we pad such that the resulting datapoint is a
+      multiple of pad_to.
       Defaults to 8.
 
     """
@@ -161,13 +159,14 @@ class Text2SpeechDataLayer(DataLayer):
 
     if self.params['mode'] != 'infer':
       self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-          self._parse_audio_transcript_element,
-          [line],
-          [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'], tf.int32],
-          stateful=False,
-        ),
-        num_parallel_calls=8,
+          lambda line: tf.py_func(
+              self._parse_audio_transcript_element,
+              [line],
+              [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'],\
+               tf.int32],
+              stateful=False,
+          ),
+          num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
           self.params['batch_size'],
@@ -181,22 +180,24 @@ class Text2SpeechDataLayer(DataLayer):
       )
     else:
       self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-          self._parse_transcript_element,
-          [line],
-          [tf.int32, tf.int32],
-          stateful=False,
-        ),
-        num_parallel_calls=8,
+          lambda line: tf.py_func(
+              self._parse_transcript_element,
+              [line],
+              [tf.int32, tf.int32],
+              stateful=False,
+          ),
+          num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
           self.params['batch_size'], padded_shapes=([None], 1)
       )
 
-    self._iterator = self._dataset.prefetch(8).make_initializable_iterator()
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                                  .make_initializable_iterator()
 
     if self.params['mode'] != 'infer':
-      text, text_length, spec, stop_token_target, spec_length = self._iterator.get_next()
+      text, text_length, spec, stop_token_target, spec_length = self._iterator\
+                                                                    .get_next()
       # need to explicitly set batch size dimension
       # (it is employed in the model)
       spec.set_shape(
@@ -277,7 +278,6 @@ class Text2SpeechDataLayer(DataLayer):
       spectrogram = get_speech_features_from_file(
           file_path,
           self.params['num_audio_features'],
-          pad_to,
           features_type=self.params['output_type'],
           mag_power=self.params.get('mag_power', 2),
           feature_normalize=self.params["feature_normalize"],
@@ -334,7 +334,7 @@ class Text2SpeechDataLayer(DataLayer):
     return len(self._files)
 
   def get_magnitude_spec(self, spectrogram):
-    """Returns an energy magnitude spectrogram. The processing depends on the 
+    """Returns an energy magnitude spectrogram. The processing depends on the
     data leyer params.
 
     Args:
