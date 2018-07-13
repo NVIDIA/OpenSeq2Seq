@@ -6,8 +6,6 @@ from six.moves import range
 import numpy as np
 import librosa
 import librosa.filters
-import math
-
 
 def get_speech_features_from_file(
     filename,
@@ -38,11 +36,11 @@ def get_speech_features_from_file(
     std(float): if normalize is enabled, the deviation to normalize to
 
   Returns:
-    np.array: np.array of audio features with shape=[num_time_steps, num_features].
+    np.array: np.array of audio features with shape=[num_time_steps,
+      num_features].
   """
   # load audio signal
-  if features_type == "mel" or features_type == 'magnitude':
-    signal, fs = librosa.core.load(filename, sr=None)
+  signal, fs = librosa.core.load(filename, sr=None)
   return get_speech_features(
       signal, fs, num_features, features_type, window_size,
       window_stride, mag_power, feature_normalize, mean, std
@@ -80,7 +78,8 @@ def get_speech_features(
     std(float): if normalize is enabled, the deviation to normalize to
 
   Returns:
-    np.array: np.array of audio features with shape=[num_time_steps, num_features].
+    np.array: np.array of audio features with shape=[num_time_steps,
+      num_features].
   """
   if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal, n_fft=n_window_size)
@@ -131,7 +130,7 @@ def get_mel(
     n_mels (int): number of mel features
     power (float): power of the mag spectrogram
     feature_normalize (bool): whether the mag spec was normalized
-    mean (float): normalization param of mag spec 
+    mean (float): normalization param of mag spec
     std (float): normalization param of mag spec
     mel_basis (np.array): optional pre-computed mel basis to save computational
       time if passed. If not passed, it will call librosa to construct one
@@ -172,7 +171,7 @@ def inverse_mel(
     power (float): power of the mag spectrogram that was used to generate the
       mel spec
     feature_normalize (bool): whether the mel spec was normalized
-    mean (float): normalization param of mel spec 
+    mean (float): normalization param of mel spec
     std (float): normalization param of mel spec
     mel_basis (np.array): optional pre-computed mel basis to save computational
       time if passed. If not passed, it will call librosa to construct one
