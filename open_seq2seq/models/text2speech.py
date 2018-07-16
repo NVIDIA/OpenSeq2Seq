@@ -6,17 +6,14 @@ from six.moves import range
 import librosa
 
 import numpy as np
-import pandas as pd
 import tensorflow as tf
 
 import matplotlib as mpl
 mpl.use('Agg')
-import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
 
 from .encoder_decoder import EncoderDecoderModel
-from open_seq2seq.utils.utils import deco_print
 from StringIO import StringIO
 
 
@@ -320,7 +317,6 @@ class Text2Speech(EncoderDecoderModel):
     dict_to_log = {}
     batch_size = len(results_per_batch[0][0]['source_tensors'][0])
     for i, sample in enumerate(results_per_batch):
-      input_values = sample[0]
       output_values = sample[1]
       predicted_final_specs = output_values[1]
       attention_mask = output_values[2]
