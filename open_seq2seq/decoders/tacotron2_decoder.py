@@ -244,8 +244,8 @@ class Tacotron2Decoder(Decoder):
     """
 
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
-    self.num_audio_features = self.params['num_audio_features']
-    self.model = model
+    self._num_audio_features = self.params['num_audio_features']
+    self._model = model
 
   def _build_attention(
       self,
@@ -342,7 +342,7 @@ class Tacotron2Decoder(Decoder):
 
     output_projection_layer = tf.layers.Dense(
         name="output_proj",
-        units=self.num_audio_features,
+        units=self._num_audio_features,
         use_bias=True,
         kernel_regularizer=regularizer
     )
@@ -419,7 +419,7 @@ class Tacotron2Decoder(Decoder):
 
     if self._mode == "train":
       if self.params.get('anneal_sampling_prob', False):
-        if "128" in self.model.get_data_layer().params['dataset_files'][0]:
+        if "128" in self._model.get_data_layer().params['dataset_files'][0]:
           train_size = 128.
         else:
           train_size = 10480.
@@ -429,7 +429,7 @@ class Tacotron2Decoder(Decoder):
         )
         curr_step = tf.floor(
             tf.div(
-                curr_epoch, tf.constant(self.model.params["num_epochs"] / 20.)
+                curr_epoch, tf.constant(self._model.params["num_epochs"] / 20.)
             )
         )
         sampling_prob = tf.div(curr_step, tf.constant(20.))
@@ -450,7 +450,7 @@ class Tacotron2Decoder(Decoder):
       )
     elif self._mode == "eval" or self._mode == "infer":
       inputs = tf.zeros(
-          (_batch_size, self.num_audio_features), dtype=self.params["dtype"]
+          (_batch_size, self._num_audio_features), dtype=self.params["dtype"]
       )
       helper = TacotronHelper(
           inputs=inputs,
