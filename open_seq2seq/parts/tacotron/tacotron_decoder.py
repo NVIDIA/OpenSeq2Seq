@@ -62,10 +62,10 @@ class TacotronDecoder(decoder.Decoder):
       decoder_cell: An `RNNCell` instance.
       attention_cell: An `RNNCell` instance.
       helper: A `Helper` instance.
-      initial_decoder_state: A (possibly nested tuple of...) tensors and TensorArrays.
-        The initial state of the RNNCell.
-      initial_attention_state: A (possibly nested tuple of...) tensors and TensorArrays.
-        The initial state of the RNNCell.
+      initial_decoder_state: A (possibly nested tuple of...) tensors and
+        TensorArrays. The initial state of the RNNCell.
+      initial_attention_state: A (possibly nested tuple of...) tensors and
+        TensorArrays. The initial state of the RNNCell.
       attention_type: The type of attention used
       stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
