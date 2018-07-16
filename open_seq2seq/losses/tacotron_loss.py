@@ -1,5 +1,4 @@
 # Copyright (c) 2018 NVIDIA Corporation
-
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
@@ -37,9 +36,9 @@ class TacotronLoss(Loss):
             "outputs": array containing [
               decoder_predictions: spectrogram predicted by the decoder rnn
                 of shape [batch, time, feats]
-              post_net_predictions: spectrogram after adding the residual 
+              post_net_predictions: spectrogram after adding the residual
                 corrections from the post net of shape [batch, time, feats]
-              stop_token_predictions: stop_token predictions of shape 
+              stop_token_predictions: stop_token predictions of shape
               [batch, time, 1]
             ]
           }
