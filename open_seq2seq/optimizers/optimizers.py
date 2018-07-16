@@ -24,6 +24,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 
+import collections
 import six
 import tensorflow as tf
 from tensorflow.python.ops import control_flow_ops
@@ -361,5 +362,95 @@ def _global_norm_with_cast(grads_and_vars):
 def _clip_gradients_by_norm(grads_and_vars, clip_gradients):
   """Clips gradients by global norm."""
   gradients, variables = zip(*grads_and_vars)
-  clipped_gradients, _ = tf.clip_by_global_norm(gradients, clip_gradients)
+  dtypes = [var.dtype for var in variables]
+
+  # Clip gradients in float32
+  clipped_gradients, _ = _clip_by_global_norm(
+      gradients,
+      clip_gradients,
+      use_norm=_global_norm_with_cast(grads_and_vars)
+  )
+
+  # Convert gradients back to the proper dtype
+  clipped_gradients = [
+      tf.cast(grad, dtype)
+      for grad, dtype in zip(gradients, dtypes)
+  ]
+
   return list(zip(clipped_gradients, variables))
+
+def _clip_by_global_norm(t_list, clip_norm, use_norm, name=None):
+  """Clips values of multiple tensors by the ratio of the sum of their norms.
+  Given a tuple or list of tensors `t_list`, and a clipping ratio `clip_norm`,
+  this operation returns a list of clipped tensors `list_clipped`
+  and the global norm (`global_norm`) of all tensors in `t_list`. The global
+  norm is expected to be pre-computed and passed as use_norm.
+  To perform the clipping, the values `t_list[i]` are set to:
+      t_list[i] * clip_norm / max(global_norm, clip_norm)
+  where:
+      global_norm = sqrt(sum([l2norm(t)**2 for t in t_list]))
+  If `clip_norm > global_norm` then the entries in `t_list` remain as they are,
+  otherwise they're all shrunk by the global ratio.
+  Any of the entries of `t_list` that are of type `None` are ignored.
+  This is the correct way to perform gradient clipping (for example, see
+  [Pascanu et al., 2012](http://arxiv.org/abs/1211.5063)
+  ([pdf](http://arxiv.org/pdf/1211.5063.pdf))).
+  However, it is slower than `clip_by_norm()` because all the parameters must be
+  ready before the clipping operation can be performed.
+
+  Args:
+    t_list: A tuple or list of mixed `Tensors`, `IndexedSlices`, or None.
+    clip_norm: A 0-D (scalar) `Tensor` > 0. The clipping ratio.
+    use_norm: A 0-D (scalar) `Tensor` of type `float` (optional). The global
+      norm to use. If not provided, `global_norm()` is used to compute the norm.
+    name: A name for the operation (optional).
+
+  Returns:
+    list_clipped: A list of `Tensors` of the same type as `list_t`.
+    global_norm: A 0-D (scalar) `Tensor` representing the global norm.
+
+  Raises:
+    TypeError: If `t_list` is not a sequence.
+  """
+  if (not isinstance(t_list, collections.Sequence)
+      or isinstance(t_list, six.string_types)):
+    raise TypeError("t_list should be a sequence")
+  t_list = list(t_list)
+
+  # Removed as use_norm should always be passed
+  # if use_norm is None:
+  #   use_norm = global_norm(t_list, name)
+
+  with tf.name_scope(name, "clip_by_global_norm",
+                      t_list + [clip_norm]) as name:
+    # Calculate L2-norm, clip elements by ratio of clip_norm to L2-norm
+    scale = clip_norm * tf.minimum(
+        1.0 / use_norm,
+        tf.ones([1], dtype=use_norm.dtype) / clip_norm)
+
+    values = [
+        tf.cast(
+            tf.convert_to_tensor(
+                t.values if isinstance(t, tf.IndexedSlices) else t,
+                name="t_%d" % i),
+            dtype=tf.float32
+        )
+        if t is not None else t
+        for i, t in enumerate(t_list)]
+
+    values_clipped = []
+    for i, v in enumerate(values):
+      if v is None:
+        values_clipped.append(None)
+      else:
+        with tf.colocate_with(v):
+          values_clipped.append(
+              tf.identity(v * scale, name="%s_%d" % (name, i)))
+
+    list_clipped = [
+        tf.IndexedSlices(c_v, t.indices, t.dense_shape)
+        if isinstance(t, tf.IndexedSlices)
+        else c_v
+        for (c_v, t) in zip(values_clipped, t_list)]
+
+  return list_clipped, use_norm
