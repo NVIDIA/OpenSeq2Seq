@@ -174,7 +174,7 @@ class Text2Speech(EncoderDecoderModel):
 
   def __init__(self, params, mode="train", hvd=None):
     super(Text2Speech, self).__init__(params, mode=mode, hvd=hvd)
-    self.save_to_tensorboard = self.params["save_to_tensorboard"]
+    self._save_to_tensorboard = self.params["save_to_tensorboard"]
 
   def _create_decoder(self):
     self.params['decoder_params']['num_audio_features'] = (
@@ -219,7 +219,7 @@ class Text2Speech(EncoderDecoderModel):
         self.params["logdir"],
         step,
         append="train",
-        save_to_tensorboard=self.save_to_tensorboard,
+        save_to_tensorboard=self._save_to_tensorboard,
         stop_token_target=stop_target
     )
 
@@ -232,11 +232,11 @@ class Text2Speech(EncoderDecoderModel):
         predicted_final_spec,
         self.params["logdir"],
         step,
-        save_to_tensorboard=self.save_to_tensorboard
+        save_to_tensorboard=self._save_to_tensorboard
     )
     dict_to_log['audio'] = wav_summary
 
-    if self.save_to_tensorboard:
+    if self._save_to_tensorboard:
       return dict_to_log
     return {}
 
@@ -274,7 +274,7 @@ class Text2Speech(EncoderDecoderModel):
         self.params["logdir"],
         step,
         append="eval",
-        save_to_tensorboard=self.save_to_tensorboard,
+        save_to_tensorboard=self._save_to_tensorboard,
         stop_token_target=stop_target
     )
 
@@ -290,11 +290,11 @@ class Text2Speech(EncoderDecoderModel):
           self.params["logdir"],
           step,
           mode="eval",
-          save_to_tensorboard=self.save_to_tensorboard
+          save_to_tensorboard=self._save_to_tensorboard
       )
       dict_to_log['audio'] = wav_summary
 
-    if self.save_to_tensorboard:
+    if self._save_to_tensorboard:
       return dict_to_log
     return {}
 
