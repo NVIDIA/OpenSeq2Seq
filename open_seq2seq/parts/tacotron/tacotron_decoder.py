@@ -65,7 +65,7 @@ class TacotronDecoder(decoder.Decoder):
       initial_decoder_state: A (possibly nested tuple of...) tensors and
         TensorArrays. The initial state of the RNNCell.
       initial_attention_state: A (possibly nested tuple of...) tensors and
-        TensorArrays. The initial state of the RNNCell.
+        TensorArrays.The initial state of the RNNCell.
       attention_type: The type of attention used
       stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
@@ -75,7 +75,7 @@ class TacotronDecoder(decoder.Decoder):
         the ressult to a spectrogram
       use_prenet_output: (Optional), whether to use the prenet output
         in the attention mechanism
-      stop_token_full: decides the inputs of the stop token projection layer. 
+      stop_token_full: decides the inputs of the stop token projection layer.
         See tacotron 2 decoder for more details.
       stop_token_full: See tacotron 2 decoder for more details.
       prenet: The prenet to apply to inputs
@@ -94,82 +94,82 @@ class TacotronDecoder(decoder.Decoder):
       raise TypeError(
           "spec_layer must be a Layer, received: %s" % type(spec_layer)
       )
-    self.decoder_cell = decoder_cell
-    self.attention_cell = attention_cell
-    self.helper = helper
-    self.decoder_initial_state = initial_decoder_state
-    self.attention_initial_state = initial_attention_state
-    self.spec_layer = spec_layer
-    self.stop_token_layer = stop_token_layer
-    self.attention_type = attention_type
-    self.use_prenet_output = use_prenet_output
+    self._decoder_cell = decoder_cell
+    self._attention_cell = attention_cell
+    self._helper = helper
+    self._decoder_initial_state = initial_decoder_state
+    self._attention_initial_state = initial_attention_state
+    self._spec_layer = spec_layer
+    self._stop_token_layer = stop_token_layer
+    self._attention_type = attention_type
+    self._use_prenet_output = use_prenet_output
     self._dtype = dtype
-    self.stop_token_full = stop_token_full
-    self.prenet = prenet
-    self.attention_rnn_enable = attention_rnn_enable
+    self._stop_token_full = stop_token_full
+    self._prenet = prenet
+    self._attention_rnn_enable = attention_rnn_enable
 
   @property
   def batch_size(self):
-    return self.helper.batch_size
+    return self._helper.batch_size
 
   def _rnn_output_size(self):
-    size = self.decoder_cell.output_size
-    if self.spec_layer is None:
+    size = self._decoder_cell.output_size
+    if self._spec_layer is None:
       return size
-    else:
-      output_shape_with_unknown_batch = nest.map_structure(
-          lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
-      )
-      layer_output_shape = self.spec_layer.compute_output_shape(
-          output_shape_with_unknown_batch
-      )
-      return nest.map_structure(lambda s: s[1:], layer_output_shape)
+
+    output_shape_with_unknown_batch = nest.map_structure(
+        lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
+    )
+    layer_output_shape = self._spec_layer.compute_output_shape(
+        output_shape_with_unknown_batch
+    )
+    return nest.map_structure(lambda s: s[1:], layer_output_shape)
 
   def _stop_token_output_size(self):
-    size = self.decoder_cell.output_size
-    if self.stop_token_layer is None:
+    size = self._decoder_cell.output_size
+    if self._stop_token_layer is None:
       return size
-    else:
-      output_shape_with_unknown_batch = nest.map_structure(
-          lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
-      )
-      layer_output_shape = self.stop_token_layer.compute_output_shape(
-          output_shape_with_unknown_batch
-      )
-      return nest.map_structure(lambda s: s[1:], layer_output_shape)
+
+    output_shape_with_unknown_batch = nest.map_structure(
+        lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
+    )
+    layer_output_shape = self._stop_token_layer.compute_output_shape(
+        output_shape_with_unknown_batch
+    )
+    return nest.map_structure(lambda s: s[1:], layer_output_shape)
 
   @property
   def output_size(self):
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
         stop_token_output=self._stop_token_output_size(),
-        sample_id=self.helper.sample_ids_shape
+        sample_id=self._helper.sample_ids_shape
     )
 
   @property
   def output_dtype(self):
-    # dtype = nest.flatten(self.decoder_initial_state)[0].dtype
+    # dtype = nest.flatten(self._decoder_initial_state)[0].dtype
     return BasicDecoderOutput(
         nest.map_structure(lambda _: self._dtype, self._rnn_output_size()),
         nest.map_structure(lambda _: self._dtype, self._stop_token_output_size()),
-        self.helper.sample_ids_dtype
+        self._helper.sample_ids_dtype
     )
 
   def initialize(self, name=None):
     """Initialize the decoder.
-    
+
     Args:
       name: Name scope for any created operations.
     """
-    if self.attention_type == "location":
-      self.attention_cell._attention_mechanisms[0].initialize_location(
+    if self._attention_type == "location":
+      self._attention_cell._attention_mechanisms[0].initialize_location(
           self._dtype
       )
-    if self.attention_rnn_enable:
-      state = ((self.attention_initial_state,self.decoder_initial_state,),)
+    if self._attention_rnn_enable:
+      state = ((self._attention_initial_state, self._decoder_initial_state, ), )
     else:
-      state = (self.attention_initial_state,)
-    return self.helper.initialize() + state
+      state = (self._attention_initial_state, )
+    return self._helper.initialize() + state
 
   def step(self, time, inputs, state, name=None):
     """Perform a decoding step.
@@ -184,42 +184,49 @@ class TacotronDecoder(decoder.Decoder):
       `(outputs, next_state, next_inputs, finished)`.
     """
     with ops.name_scope(name, "BasicDecoderStep", (time, inputs, state)):
-      if self.prenet is not None:
-        inputs = self.prenet(inputs)
+      if self._prenet is not None:
+        inputs = self._prenet(inputs)
 
-      if self.attention_rnn_enable:
-        if self.use_prenet_output:
-          # Do an attention rnn step with the prenet output and previous attention state
-          attention_context, attention_state = self.attention_cell(
+      if self._attention_rnn_enable:
+        if self._use_prenet_output:
+          # Do an attention rnn step with the prenet output and
+          # previous attention state
+          attention_context, attention_state = self._attention_cell(
               inputs, state[0]
           )
         else:
-          # Do an attention rnn step with the decoder output and previous attention state
-          attention_context, attention_state = self.attention_cell(
+          # Do an attention rnn step with the decoder output and
+          # previous attention state
+          attention_context, attention_state = self._attention_cell(
               state[1].h, state[0]
           )
-        # For the decoder rnn, the input is the prenet output + attention context
-        decoder_rnn_input = array_ops.concat((inputs, attention_context), axis=-1)
-        cell_outputs, decoder_state = self.decoder_cell(
+        # For the decoder rnn, the input is the prenet output and
+        # attention context
+        decoder_rnn_input = array_ops.concat(
+            (inputs, attention_context), axis=-1
+        )
+        cell_outputs, decoder_state = self._decoder_cell(
             decoder_rnn_input, state[1]
         )
         cell_state = (attention_state, decoder_state)
-        # Concatenate the decoder output and attention output and send it through a projection layer
+        # Concatenate the decoder output and attention output and send it
+        # through a projection layer
         cell_outputs = array_ops.concat(
             (cell_outputs, attention_context), axis=-1
         )
       else:
-        cell_outputs, cell_state = self.decoder_cell(inputs, state)
-      spec_outputs = self.spec_layer(cell_outputs)
-      # test removing the cell outputs fix
-      if self.stop_token_full:
-        stop_token_output = self.stop_token_layer(spec_outputs)
+        # If not using the attention rnn, cell output is obtained from a
+        # simple decoder rnn step
+        cell_outputs, cell_state = self._decoder_cell(inputs, state)
+      spec_outputs = self._spec_layer(cell_outputs)
+      if self._stop_token_full:
+        stop_token_output = self._stop_token_layer(spec_outputs)
       else:
-        stop_token_output = self.stop_token_layer(cell_outputs)
-      sample_ids = self.helper.sample(
+        stop_token_output = self._stop_token_layer(cell_outputs)
+      sample_ids = self._helper.sample(
           time=time, outputs=spec_outputs, state=cell_state
       )
-      (finished, next_inputs, next_state) = self.helper.next_inputs(
+      (finished, next_inputs, next_state) = self._helper.next_inputs(
           time=time,
           outputs=spec_outputs,
           state=cell_state,
