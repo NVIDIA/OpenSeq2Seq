@@ -143,7 +143,7 @@ class Tacotron2Encoder(Encoder):
     else:
       top_layer = tf.transpose(input_layer, [0, 2, 1])
 
-    for i, conv_params in range(len(self.params['conv_layers'])):
+    for i, conv_params in enumerate(self.params['conv_layers']):
       ch_out = conv_params['num_channels']
       kernel_size = conv_params['kernel_size']  # [time, freq]
       strides = conv_params['stride']
@@ -265,7 +265,7 @@ class Tacotron2Encoder(Encoder):
         cell_weights += [enc_emb_w]
         for weights in cell_weights:
           if "bias" not in weights.name:
-            print("Added regularizer to {}".format(weights.name))
+            # print("Added regularizer to {}".format(weights.name))
             if weights.dtype.base_dtype == tf.float16:
               tf.add_to_collection(
                   'REGULARIZATION_FUNCTIONS', (weights, regularizer)

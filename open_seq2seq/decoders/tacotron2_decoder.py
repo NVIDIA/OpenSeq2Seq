@@ -27,7 +27,6 @@ class Prenet():
       self,
       num_units,
       num_layers,
-      regularizer,
       activation_fn=None,
       dtype=None
   ):
@@ -36,7 +35,6 @@ class Prenet():
     Args:
       num_units (int): number of units in the fully connected layer
       num_layers (int): number of fully connected layers
-      regularizer (callable): regularizer to use for prenet layer
       activation_fn (callable): any valid activation function
       dtype (dtype): the data format for this layer
     """
@@ -53,8 +51,7 @@ class Prenet():
               units=num_units,
               activation=activation_fn,
               use_bias=True,
-              dtype=dtype,
-              kernel_regularizer=regularizer
+              dtype=dtype
           )
       )
 
@@ -70,22 +67,22 @@ class Prenet():
   def output_size(self):
     return self._output_size
 
-  # def add_regularization(self, regularizer):
-  #   """
-  #   Adds regularization to all prenet kernels
-  #   """
-  #   for layer in self.prenet_layers:
-  #     for weights in layer.trainable_variables:
-  #       if "bias" not in weights.name:
-  #         print("Added regularizer to {}".format(weights.name))
-  #         if weights.dtype.base_dtype == tf.float16:
-  #           tf.add_to_collection(
-  #               'REGULARIZATION_FUNCTIONS', (weights, regularizer)
-  #           )
-  #         else:
-  #           tf.add_to_collection(
-  #               ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights)
-  #           )
+  def add_regularization(self, regularizer):
+    """
+    Adds regularization to all prenet kernels
+    """
+    for layer in self.prenet_layers:
+      for weights in layer.trainable_variables:
+        if "bias" not in weights.name:
+          # print("Added regularizer to {}".format(weights.name))
+          if weights.dtype.base_dtype == tf.float16:
+            tf.add_to_collection(
+                'REGULARIZATION_FUNCTIONS', (weights, regularizer)
+            )
+          else:
+            tf.add_to_collection(
+                ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights)
+            )
 
 
 class Tacotron2Decoder(Decoder):
@@ -344,13 +341,11 @@ class Tacotron2Decoder(Decoder):
         name="output_proj",
         units=self._num_audio_features,
         use_bias=True,
-        kernel_regularizer=regularizer
     )
     stop_token_projection_layer = tf.layers.Dense(
         name="stop_token_proj",
         units=1,
         use_bias=True,
-        kernel_regularizer=regularizer
     )
 
     prenet = None
@@ -358,7 +353,6 @@ class Tacotron2Decoder(Decoder):
       prenet = Prenet(
           self.params.get('prenet_units', 256),
           self.params.get('prenet_layers', 2),
-          regularizer,
           self.params.get("prenet_activation", tf.nn.relu),
           self.params["dtype"]
       )
@@ -450,7 +444,7 @@ class Tacotron2Decoder(Decoder):
       )
     elif self._mode == "eval" or self._mode == "infer":
       inputs = tf.zeros(
-          (_batch_size, self._num_audio_features), dtype=self.params["dtype"]
+          (_batch_size, 1, self._num_audio_features), dtype=self.params["dtype"]
       )
       helper = TacotronHelper(
           inputs=inputs,
@@ -538,12 +532,14 @@ class Tacotron2Decoder(Decoder):
       vars_to_regularize = []
       vars_to_regularize += attentive_cell.trainable_variables
       vars_to_regularize += attention_mechanism.memory_layer.trainable_variables
+      vars_to_regularize += output_projection_layer.trainable_variables
+      vars_to_regularize += stop_token_projection_layer.trainable_variables
       if self.params["attention_rnn_enable"]:
         vars_to_regularize += decoder_cell.trainable_variables
 
       for weights in vars_to_regularize:
         if "bias" not in weights.name:
-          print("Added regularizer to {}".format(weights.name))
+          # print("Added regularizer to {}".format(weights.name))
           if weights.dtype.base_dtype == tf.float16:
             tf.add_to_collection(
                 'REGULARIZATION_FUNCTIONS', (weights, regularizer)
@@ -552,6 +548,9 @@ class Tacotron2Decoder(Decoder):
             tf.add_to_collection(
                 ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights)
             )
+
+      if self.params.get('enable_prenet', True):
+        prenet.add_regularization(regularizer)
 
     if self.params['attention_type'] is not None:
       if self.params['attention_rnn_enable']:

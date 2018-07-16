@@ -216,7 +216,7 @@ class TacotronHelper(Helper):
     if not time_major:
       inputs = nest.map_structure(_transpose_batch_time, inputs)
 
-
+    inputs = inputs[0, :, :]
     self._prenet = prenet
     if prenet is None:
       self._start_inputs = inputs

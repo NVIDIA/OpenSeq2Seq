@@ -123,7 +123,6 @@ base_params = {
     'decoder_cell_units': 1024,
     'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
     'decoder_layers': 2,
-    'decoder_use_skip_connections': False,
     
     'enable_prenet': True,
     'prenet_layers': 2,
