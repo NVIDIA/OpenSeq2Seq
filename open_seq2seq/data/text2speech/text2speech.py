@@ -96,18 +96,18 @@ class Text2SpeechDataLayer(DataLayer):
     names = ['wav_filename', 'transcript', 'transcript_normalized']
 
     if "disk" in self.params["output_type"]:
-      self.load_from_disk = True
+      self._load_from_disk = True
     else:
-      self.load_from_disk = False
+      self._load_from_disk = False
 
     # This assumes that the LJSpeech dataset is used
     if "mel" in self.params["output_type"]:
-      self.mel = True
-      self.mel_basis = librosa.filters.mel(
+      self._mel = True
+      self._mel_basis = librosa.filters.mel(
           sr=22050, n_fft=1024, n_mels=self.params['num_audio_features']
       )
     else:
-      self.mel = False
+      self._mel = False
 
     # Load csv files
     self._files = None
@@ -130,8 +130,8 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       cols = 'transcript_normalized'
 
-    self.all_files = self._files.loc[:, cols].values
-    self._files = self.split_data(self.all_files)
+    all_files = self._files.loc[:, cols].values
+    self._files = self.split_data(all_files)
 
     self._size = self.get_size_in_samples()
     self._dataset = None
@@ -248,20 +248,20 @@ class Text2SpeechDataLayer(DataLayer):
           "constant",
           constant_values=self.params['char2idx']["~"]
       )
-    if self.load_from_disk:
+    if self._load_from_disk:
       file_path = os.path.join(
           self.params['dataset_location'], audio_filename + ".npy"
       )
       spectrogram = np.load(file_path)
       mag_power = self.params.get('mag_power', 2)
-      if self.mel:
+      if self._mel:
         spectrogram = get_mel(
             spectrogram,
             power=mag_power,
             feature_normalize=self.params["feature_normalize"],
             mean=self.params.get("feature_normalize_mean", 0.),
             std=self.params.get("feature_normalize_std", 1.),
-            mel_basis=self.mel_basis,
+            mel_basis=self._mel_basis,
             n_mels=self.params['num_audio_features']
         )
       else:
@@ -356,7 +356,7 @@ class Text2SpeechDataLayer(DataLayer):
       mag_spec: mag spec
     """
     spectrogram = spectrogram.astype(float)
-    if self.mel:
+    if self._mel:
       return inverse_mel(
           spectrogram,
           n_mels=self.params['num_audio_features'],
@@ -364,7 +364,7 @@ class Text2SpeechDataLayer(DataLayer):
           feature_normalize=self.params["feature_normalize"],
           mean=self.params.get("feature_normalize_mean", 0.),
           std=self.params.get("feature_normalize_std", 1.),
-          mel_basis=self.mel_basis
+          mel_basis=self._mel_basis
       )
     else:
       if self.params["feature_normalize"]:
