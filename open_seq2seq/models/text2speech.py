@@ -17,8 +17,11 @@ import librosa
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
-from StringIO import StringIO
-
+#from StringIO import StringIO
+try:
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
 
 def plot_spectrograms(
     specs,
