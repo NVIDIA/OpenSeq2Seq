@@ -1,19 +1,19 @@
 # Copyright (c) 2018 NVIDIA Corporation
-
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
+import librosa
+
+import numpy as np
 import pandas as pd
 import tensorflow as tf
-import numpy as np
 
 import matplotlib as mpl
 mpl.use('Agg')
-import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
-import librosa
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print
@@ -30,14 +30,12 @@ def plot_spectrograms(
     stop_token_target=None,
     number=0,
     append=False,
-    vmin=None,
-    vmax=None,
     save_to_tensorboard=False
 ):
   """
   Helper function to create a image to be logged to disk or a tf.Summary to be
   logged to tensorboard.
-  
+
   Args:
     specs (array): array of images to show
     titles (array): array of titles. Must match lengths of specs array
@@ -51,8 +49,6 @@ def plot_spectrograms(
     number (int): Current sample number (used if evaluating more than 1 sample
       from a batch)
     append (str): Optional string to append to file name eg. train, eval, infer
-    vmin (float): min value for matplotlib image
-    vmax (float): max value for matplotlib image
     save_to_tensorboard (bool): If False, the created image is saved to the
       logdir as a png file. If True, the function returns a tf.Summary object
       containing the image and will be logged to the current tensorboard file.
@@ -65,7 +61,7 @@ def plot_spectrograms(
 
   figures = []
   for i, (spec, title) in enumerate(zip(specs, titles)):
-    spec = np.pad(spec,((1,1),(1,1)), "constant", constant_values=0.)
+    spec = np.pad(spec, ((1, 1), (1, 1)), "constant", constant_values=0.)
     spec = spec.astype(float)
     colour = ax[i].imshow(
         spec.T, cmap='viridis', interpolation=None, aspect='auto'
@@ -119,11 +115,11 @@ def save_audio(
     magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False
 ):
   """
-  Helper function to create a wav file to be logged to disk or a tf.Summary to 
+  Helper function to create a wav file to be logged to disk or a tf.Summary to
   be logged to tensorboard.
-  
+
   Args:
-    magnitudes (np.array): np.array of size [time, n_fft/2 + 1] containing the 
+    magnitudes (np.array): np.array of size [time, n_fft/2 + 1] containing the
       energy spectrogram.
     logdir (str): dir to save image file is save_to_tensorboard is disabled.
     step (int): current training step
@@ -162,7 +158,7 @@ def griffin_lim(magnitudes, n_iters=50):
   complex_spec = magnitudes * phase
   signal = librosa.istft(complex_spec)
 
-  for i in range(n_iters):
+  for _ in range(n_iters):
     _, phase = librosa.magphase(librosa.stft(signal, n_fft=1024))
     complex_spec = magnitudes * phase
     signal = librosa.istft(complex_spec)
@@ -192,29 +188,29 @@ class Text2Speech(EncoderDecoderModel):
   def maybe_print_logs(self, input_values, output_values, training_step):
     dict_to_log = {}
     step = training_step
-    spec, target, _ = input_values['target_tensors']
-    predicted_decoder_spectrograms = output_values[0]
-    predicted_final_spectrograms = output_values[1]
+    spec, stop_target, _ = input_values['target_tensors']
+    predicted_decoder_spec = output_values[0]
+    predicted_final_spec = output_values[1]
     attention_mask = output_values[2]
     stop_token_pred = output_values[3]
     y_sample = spec[0]
-    target = target[0]
-    predicted_spectrogram = predicted_decoder_spectrograms[0]
-    predicted_final_spectrogram = predicted_final_spectrograms[0]
+    stop_target = stop_target[0]
+    predicted_spec = predicted_decoder_spec[0]
+    predicted_final_spec = predicted_final_spec[0]
     attention_mask = attention_mask[0]
     stop_token_pred = stop_token_pred[0]
     audio_length = output_values[4][0]
 
     specs = [
         y_sample,
-        predicted_spectrogram, 
-        predicted_final_spectrogram, 
+        predicted_spec,
+        predicted_final_spec,
         attention_mask
     ]
     titles = [
         "training data",
-        "decoder results", 
-        "post net results", 
+        "decoder results",
+        "post net results",
         "alignments"
     ]
 
@@ -227,17 +223,16 @@ class Text2Speech(EncoderDecoderModel):
         step,
         append="train",
         save_to_tensorboard=self.save_to_tensorboard,
-        stop_token_target=target
+        stop_token_target=stop_target
     )
 
     dict_to_log['image'] = im_summary
 
-    predicted_final_spectrogram = predicted_final_spectrogram[:audio_length -
-                                                              1, :]
-    predicted_final_spectrogram = self.get_data_layer(
-    ).get_magnitude_spec(predicted_final_spectrogram)
+    predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
+    predicted_final_spec = self.get_data_layer(
+    ).get_magnitude_spec(predicted_final_spec)
     wav_summary = save_audio(
-        predicted_final_spectrogram,
+        predicted_final_spec,
         self.params["logdir"],
         step,
         save_to_tensorboard=self.save_to_tensorboard
@@ -246,32 +241,31 @@ class Text2Speech(EncoderDecoderModel):
 
     if self.save_to_tensorboard:
       return dict_to_log
-    else:
-      return {}
+    return {}
 
-  def finalize_evaluation(self, results_per_batch, training_step):
+  def finalize_evaluation(self, results_per_batch, training_step=None):
     dict_to_log = {}
     step = training_step
     sample = results_per_batch[-1]
     input_values = sample[0]
     output_values = sample[1]
-    y_sample, target = input_values['target_tensors']
-    predicted_spectrogram = output_values[0]
-    predicted_final_spectrogram = output_values[1]
+    y_sample, stop_target = input_values['target_tensors']
+    predicted_spec = output_values[0]
+    predicted_final_spec = output_values[1]
     attention_mask = output_values[2]
     stop_token_pred = output_values[3]
     audio_length = output_values[4]
 
     specs = [
         y_sample,
-        predicted_spectrogram, 
-        predicted_final_spectrogram, 
+        predicted_spec,
+        predicted_final_spec,
         attention_mask
     ]
     titles = [
         "training data",
-        "decoder results", 
-        "post net results", 
+        "decoder results",
+        "post net results",
         "alignments"
     ]
 
@@ -284,19 +278,18 @@ class Text2Speech(EncoderDecoderModel):
         step,
         append="eval",
         save_to_tensorboard=self.save_to_tensorboard,
-        stop_token_target=target
+        stop_token_target=stop_target
     )
 
     dict_to_log['image'] = im_summary
 
     if audio_length > 2:
-      predicted_final_spectrogram = predicted_final_spectrogram[:audio_length -
-                                                                1, :]
+      predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
 
-      predicted_final_spectrogram = self.get_data_layer(
-      ).get_magnitude_spec(predicted_final_spectrogram)
+      predicted_final_spec = self.get_data_layer(
+      ).get_magnitude_spec(predicted_final_spec)
       wav_summary = save_audio(
-          predicted_final_spectrogram,
+          predicted_final_spec,
           self.params["logdir"],
           step,
           mode="eval",
@@ -306,8 +299,7 @@ class Text2Speech(EncoderDecoderModel):
 
     if self.save_to_tensorboard:
       return dict_to_log
-    else:
-      return {}
+    return {}
 
   def evaluate(self, input_values, output_values):
     # Need to reduce amount of data sent for horovod
@@ -330,23 +322,23 @@ class Text2Speech(EncoderDecoderModel):
     for i, sample in enumerate(results_per_batch):
       input_values = sample[0]
       output_values = sample[1]
-      predicted_final_spectrograms = output_values[1]
+      predicted_final_specs = output_values[1]
       attention_mask = output_values[2]
       stop_tokens = output_values[3]
       sequence_lengths = output_values[4]
 
-      for j in range(len(predicted_final_spectrograms)):
-        predicted_final_spectrogram = predicted_final_spectrograms[j]
+      for j in range(len(predicted_final_specs)):
+        predicted_final_spec = predicted_final_specs[j]
         attention_mask_sample = attention_mask[j]
         stop_tokens_sample = stop_tokens[j]
 
-        specs = [predicted_final_spectrogram, attention_mask_sample]
+        specs = [predicted_final_spec, attention_mask_sample]
         titles = ["final spectrogram", "attention"]
         audio_length = sequence_lengths[j]
 
         if "mel" in self.get_data_layer().params['output_type']:
           mag_spec = self.get_data_layer(
-          ).inverse_mel(predicted_final_spectrogram)
+          ).inverse_mel(predicted_final_spec)
           log_mag_spec = np.log(np.clip(mag_spec, a_min=1e-5, a_max=None))
           specs.append(log_mag_spec)
           titles.append("linear spectrogram")
@@ -364,13 +356,11 @@ class Text2Speech(EncoderDecoderModel):
         dict_to_log['image'] = im_summary
 
         if audio_length > 2:
-          predicted_final_spectrogram = predicted_final_spectrogram[:
-                                                                    audio_length
-                                                                    - 1, :]
-          predicted_final_spectrogram = self.get_data_layer(
-          ).get_magnitude_spec(predicted_final_spectrogram)
+          predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
+          predicted_final_spec = self.get_data_layer(
+          ).get_magnitude_spec(predicted_final_spec)
           wav_summary = save_audio(
-              predicted_final_spectrogram,
+              predicted_final_spec,
               self.params["logdir"],
               0,
               mode="infer",
