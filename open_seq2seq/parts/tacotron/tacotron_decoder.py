@@ -31,7 +31,7 @@ from tensorflow.python.ops import array_ops
 
 class BasicDecoderOutput(
     collections.namedtuple(
-        "BasicDecoderOutput", ("rnn_output", "target_output", "sample_id")
+        "BasicDecoderOutput", ("rnn_output", "stop_token_output", "sample_id")
     )
 ):
   pass
@@ -49,7 +49,7 @@ class TacotronDecoder(decoder.Decoder):
       initial_attention_state,
       attention_type,
       spec_layer,
-      target_layer,
+      stop_token_layer,
       use_prenet_output=True,
       stop_token_full=True,
       attention_rnn_enable=True,
@@ -67,7 +67,7 @@ class TacotronDecoder(decoder.Decoder):
       initial_attention_state: A (possibly nested tuple of...) tensors and TensorArrays.
         The initial state of the RNNCell.
       attention_type: The type of attention used
-      target_layer: An instance of `tf.layers.Layer`, i.e.,
+      stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
         predict when to stop the decoder
       spec_layer: An instance of `tf.layers.Layer`, i.e.,
@@ -100,7 +100,7 @@ class TacotronDecoder(decoder.Decoder):
     self.decoder_initial_state = initial_decoder_state
     self.attention_initial_state = initial_attention_state
     self.spec_layer = spec_layer
-    self.target_layer = target_layer
+    self.stop_token_layer = stop_token_layer
     self.attention_type = attention_type
     self.use_prenet_output = use_prenet_output
     self._dtype = dtype
@@ -127,13 +127,13 @@ class TacotronDecoder(decoder.Decoder):
 
   def _stop_token_output_size(self):
     size = self.decoder_cell.output_size
-    if self.target_layer is None:
+    if self.stop_token_layer is None:
       return size
     else:
       output_shape_with_unknown_batch = nest.map_structure(
           lambda s: tensor_shape.TensorShape([None]).concatenate(s), size
       )
-      layer_output_shape = self.target_layer.compute_output_shape(
+      layer_output_shape = self.stop_token_layer.compute_output_shape(
           output_shape_with_unknown_batch
       )
       return nest.map_structure(lambda s: s[1:], layer_output_shape)
@@ -142,7 +142,7 @@ class TacotronDecoder(decoder.Decoder):
   def output_size(self):
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
-        target_output=self._stop_token_output_size(),
+        stop_token_output=self._stop_token_output_size(),
         sample_id=self.helper.sample_ids_shape
     )
 
@@ -213,9 +213,9 @@ class TacotronDecoder(decoder.Decoder):
       spec_outputs = self.spec_layer(cell_outputs)
       # test removing the cell outputs fix
       if self.stop_token_full:
-        target_outputs = self.target_layer(spec_outputs)
+        stop_token_output = self.stop_token_layer(spec_outputs)
       else:
-        target_outputs = self.target_layer(cell_outputs)
+        stop_token_output = self.stop_token_layer(cell_outputs)
       sample_ids = self.helper.sample(
           time=time, outputs=spec_outputs, state=cell_state
       )
@@ -224,7 +224,7 @@ class TacotronDecoder(decoder.Decoder):
           outputs=spec_outputs,
           state=cell_state,
           sample_ids=sample_ids,
-          stop_token_predictions=target_outputs
+          stop_token_predictions=stop_token_output
       )
-    outputs = BasicDecoderOutput(spec_outputs, target_outputs, sample_ids)
+    outputs = BasicDecoderOutput(spec_outputs, stop_token_output, sample_ids)
     return (outputs, next_state, next_inputs, finished)

@@ -78,8 +78,12 @@ class Text2SpeechDataLayer(DataLayer):
       Defaults to 8.
 
     """
-    super(Text2SpeechDataLayer,
-          self).__init__(params, model, num_workers, worker_id)
+    super(Text2SpeechDataLayer, self).__init__(
+        params,
+        model,
+        num_workers,
+        worker_id
+    )
     # Character level vocab
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'],
@@ -88,7 +92,6 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     # add one for implied blank token
     self.params['src_vocab_size'] = len(self.params['char2idx']) + 1
-    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     names = ['wav_filename', 'transcript', 'transcript_normalized']
 
@@ -97,10 +100,11 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       self.load_from_disk = False
 
+    # This assumes that the LJSpeech dataset is used
     if "mel" in self.params["output_type"]:
       self.mel = True
       self.mel_basis = librosa.filters.mel(
-          22050, 1024, n_mels=self.params['num_audio_features']
+          sr=22050, n_fft=1024, n_mels=self.params['num_audio_features']
       )
     else:
       self.mel = False
@@ -238,7 +242,7 @@ class Text2SpeechDataLayer(DataLayer):
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
-      num_pad = pad_to - ((len(text_input) + 1) % pad_to) + 1
+      num_pad = pad_to - (len(text_input) % pad_to)
       text_input = np.pad(
           text_input, ((0, num_pad)),
           "constant",
@@ -288,13 +292,15 @@ class Text2SpeechDataLayer(DataLayer):
         [len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype()
     )
     if self.params.get("pad_EOS", True):
-      num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
+      num_pad = pad_to - (len(spectrogram) % pad_to)
       spectrogram = np.pad(
           spectrogram, ((0, num_pad), (0, 0)), "constant", constant_values=0
       )
       stop_token_target = np.pad(
           stop_token_target, ((0, num_pad)), "constant", constant_values=1
       )
+    else:
+      stop_token_target[-1] = 1.
 
     assert len(text_input) % pad_to == 0
     assert len(spectrogram) % pad_to == 0
@@ -319,8 +325,14 @@ class Text2SpeechDataLayer(DataLayer):
     text_input = np.array(
         [self.params['char2idx'][c] for c in unicode(transcript, "utf-8")]
     )
+    pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
-      text_input = np.append(text_input, self.params['char2idx']["~"])
+      num_pad = pad_to - (len(text_input) % pad_to)
+      text_input = np.pad(
+          text_input, ((0, num_pad)),
+          "constant",
+          constant_values=self.params['char2idx']["~"]
+      )
 
     return np.int32(text_input), \
            np.int32([len(text_input)])
