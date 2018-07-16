@@ -14,8 +14,10 @@ output_type = "magnitude"
 
 if output_type == "magnitude":
   num_audio_features = 513
+  output_type = "magnitude_disk"
 elif output_type == "mel":
   num_audio_features = 80
+  output_type = "mel_disk"
 
 
 base_params = {
