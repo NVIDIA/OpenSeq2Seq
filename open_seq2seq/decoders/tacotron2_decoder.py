@@ -131,7 +131,7 @@ class Tacotron2Decoder(Decoder):
             'use_prenet_output': bool,
             'attention_bias': bool,
             'zoneout_prob': float,
-            'stop_token_full': bool,
+            'stop_token_choice': [1, 2, 3],
             'parallel_iterations': int,
             'use_state_for_location': bool,
         }
@@ -231,9 +231,8 @@ class Tacotron2Decoder(Decoder):
     * **attention_bias** (bool) --- Wether to use a bias term when calculating
       the attention. Only works for "location" attention. Defaults to False.
     * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.1
-    * **stop_token_full** (bool) --- Set to False to use the linear projection
-      presented in the tacotron 2 paper. Set to True to do the linear projection
-      after the spectrogram linear projection.
+    * **stop_token_choice** (int) --- 1 for paper, 2 for post decrnn, 3 for post
+      postnet. **DOCUMENTATION NEEDS TO BE UPDATED**
     * **parallel_iterations** (int) --- Number of parallel_iterations for
       tf.while loop inside dynamic_decode. Defaults to 32.
     * **use_state_for_location** (bool) --- Use attention state to store
@@ -411,7 +410,9 @@ class Tacotron2Decoder(Decoder):
         self.params["attention_rnn_enable"]):
       decoder_cell = tf.contrib.rnn.MultiRNNCell(decoder_cells)
 
+
     if self._mode == "train":
+      train_and_not_sampling = True
       if self.params.get('anneal_sampling_prob', False):
         if "128" in self._model.get_data_layer().params['dataset_files'][0]:
           train_size = 128.
@@ -427,8 +428,11 @@ class Tacotron2Decoder(Decoder):
             )
         )
         sampling_prob = tf.div(curr_step, tf.constant(20.))
+        train_and_not_sampling = False
       else:
         sampling_prob = self.params['scheduled_sampling_prob']
+        if sampling_prob > 0.:
+          train_and_not_sampling = False
       helper = TacotronTrainingHelper(
           inputs=spec,
           sequence_length=spec_length,
@@ -443,6 +447,7 @@ class Tacotron2Decoder(Decoder):
           mask_decoder_sequence=self.params.get("mask_decoder_sequence", True)
       )
     elif self._mode == "eval" or self._mode == "infer":
+      train_and_not_sampling = False
       inputs = tf.zeros(
           (_batch_size, 1, self._num_audio_features), dtype=self.params["dtype"]
       )
@@ -467,10 +472,11 @@ class Tacotron2Decoder(Decoder):
         spec_layer=output_projection_layer,
         stop_token_layer=stop_token_projection_layer,
         use_prenet_output=self.params.get("use_prenet_output", True),
-        stop_token_full=self.params.get("stop_token_full", True),
+        stop_token_choice=self.params.get("stop_token_choice", 1),
         attention_rnn_enable=self.params["attention_rnn_enable"],
         prenet=prenet,
-        dtype=self.params["dtype"]
+        dtype=self.params["dtype"],
+        train=train_and_not_sampling
     )
 
     if self._mode == 'train':
@@ -488,11 +494,24 @@ class Tacotron2Decoder(Decoder):
         parallel_iterations=self.params.get("parallel_iterations", 32)
     )
 
+    decoder_output = outputs.rnn_output
+    stop_token_logits = outputs.stop_token_output
+
+    with tf.variable_scope("decoder"):
+      # If we are in train and doing sampling, we need to do the projections
+      if train_and_not_sampling:
+        decoder_spec_output = output_projection_layer(decoder_output)
+        if self.params.get("stop_token_choice", 1) == 1:
+          stop_token_logits = stop_token_projection_layer(decoder_output)
+        elif self.params.get("stop_token_choice", 1) == 2:
+          stop_token_logits = stop_token_projection_layer(decoder_spec_output)
+        decoder_output = decoder_spec_output
+
     ## Add the post net ##
     if self.params.get('enable_postnet', True):
       dropout_keep_prob = self.params.get('postnet_keep_dropout_prob', 0.5)
 
-      top_layer = outputs.rnn_output
+      top_layer = decoder_output
       for i, conv_params in enumerate(self.params['postnet_conv_layers']):
         ch_out = conv_params['num_channels']
         kernel_size = conv_params['kernel_size']  # [time, freq]
@@ -564,9 +583,12 @@ class Tacotron2Decoder(Decoder):
     else:
       alignments = tf.zeros([_batch_size, _batch_size, _batch_size])
 
-    decoder_output = outputs.rnn_output
     spectrogram_prediction = decoder_output + top_layer
-    stop_token_logits = outputs.stop_token_output
+
+    with tf.variable_scope("decoder"):
+      if self.params.get("stop_token_choice", 1) == 3:
+        stop_token_logits = stop_token_projection_layer(spectrogram_prediction)
+
     stop_token_prediction = tf.sigmoid(stop_token_logits)
 
     outputs = [

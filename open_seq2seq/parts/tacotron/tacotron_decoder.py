@@ -51,10 +51,11 @@ class TacotronDecoder(decoder.Decoder):
       spec_layer,
       stop_token_layer,
       use_prenet_output=True,
-      stop_token_full=True,
+      stop_token_choice=1,
       attention_rnn_enable=True,
       prenet=None,
-      dtype=dtypes.float32
+      dtype=dtypes.float32,
+      train=True
   ):
     """Initialize TacotronDecoder.
 
@@ -75,8 +76,8 @@ class TacotronDecoder(decoder.Decoder):
         the ressult to a spectrogram
       use_prenet_output: (Optional), whether to use the prenet output
         in the attention mechanism
-      stop_token_full: decides the inputs of the stop token projection layer.
-        See tacotron 2 decoder for more details.
+      stop_token_choice (int): Current debug parameter to experiment with stop
+        token projection. **DOCUMENTATION NEEDS TO BE UPDATED**
       stop_token_full: See tacotron 2 decoder for more details.
       prenet: The prenet to apply to inputs
 
@@ -104,9 +105,13 @@ class TacotronDecoder(decoder.Decoder):
     self._attention_type = attention_type
     self._use_prenet_output = use_prenet_output
     self._dtype = dtype
-    self._stop_token_full = stop_token_full
+    self._stop_token_choice = stop_token_choice
     self._prenet = prenet
     self._attention_rnn_enable = attention_rnn_enable
+
+    if train:
+      self._spec_layer = None
+      self._stop_token_layer = None
 
   @property
   def batch_size(self):
@@ -218,11 +223,23 @@ class TacotronDecoder(decoder.Decoder):
         # If not using the attention rnn, cell output is obtained from a
         # simple decoder rnn step
         cell_outputs, cell_state = self._decoder_cell(inputs, state)
-      spec_outputs = self._spec_layer(cell_outputs)
-      if self._stop_token_full:
-        stop_token_output = self._stop_token_layer(spec_outputs)
+
+      # If we are training and not using scheduled sampling, we can move
+      # all projection layers outside decoder, should be faster?
+      # else we must project inside decoder
+      if self._spec_layer is not None:
+        spec_outputs = self._spec_layer(cell_outputs)
       else:
-        stop_token_output = self._stop_token_layer(cell_outputs)
+        spec_outputs = cell_outputs
+      if self._stop_token_layer is not None:
+        if self._stop_token_choice == 1:
+          stop_token_output = self._stop_token_layer(cell_outputs)
+        elif self._stop_token_choice > 1:
+          stop_token_output = self._stop_token_layer(spec_outputs)
+      else:
+        stop_token_output = cell_outputs
+
+
       sample_ids = self._helper.sample(
           time=time, outputs=spec_outputs, state=cell_state
       )

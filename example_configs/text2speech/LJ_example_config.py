@@ -164,6 +164,7 @@ base_params = {
     ],
     "mask_decoder_sequence": True,
     "parallel_iterations": 32,
+    "stop_token_choice": 1,
   },
   
   "loss": TacotronLoss,
