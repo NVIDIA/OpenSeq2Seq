@@ -4,7 +4,7 @@ from open_seq2seq.encoders import Wave2LetterEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.lr_policies import *
 
 
 base_model = Speech2Text
@@ -12,7 +12,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "num_epochs": 50,
+  "num_epochs": 40,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
@@ -20,9 +20,9 @@ base_params = {
 
   "save_summaries_steps": 100,
   "print_loss_steps": 10,
-  "print_samples_steps": 1100,
-  "eval_steps": 1100,
-  "save_checkpoint_steps": 1000,
+  "print_samples_steps": 2200,
+  "eval_steps": 2200,
+  "save_checkpoint_steps": 1100,
   "logdir": "w2l_log_folder",
 
   "optimizer": "Momentum",
@@ -30,12 +30,13 @@ base_params = {
     "momentum": 0.90,
   },
   "lr_policy": poly_decay,
+  #"lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.001,
-    "power": 0.5,
+    "learning_rate": 0.1,
+    "power": 2.0,
   },
   "larc_params": {
-    "larc_eta": 0.001,
+    "larc_eta": 0.004,
   },
 
   "regularizer": tf.contrib.layers.l2_regularizer,
@@ -54,48 +55,74 @@ base_params = {
   "encoder_params": {
     "convnet_layers": [
       {
-        "type": "conv1d", "repeat" : 5,
-        "kernel_size": [7], "stride": [1],
-        "num_channels": 200, "padding": "SAME"
-      },
-      {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [11], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 512, "padding": "SAME",
+        "dropout_keep_prob": 0.8,
       },
       {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
+        "kernel_size": [13], "stride": [1],
+        "num_channels": 512, "padding": "SAME",
+        "dropout_keep_prob": 0.8,
+      },
+      {
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [15], "stride": [1],
-        "num_channels": 400, "padding": "SAME"
+        "num_channels": 512, "padding": "SAME",
+        "dropout_keep_prob": 0.7,
       },
       {
-        "type": "conv1d", "repeat" : 3,
+        "type": "conv1d", "repeat" : 2,
+        "kernel_size": [17], "stride": [1],
+        "num_channels": 640, "padding": "SAME",
+        "dropout_keep_prob": 0.7,
+      },
+      {
+        "type": "conv1d", "repeat" : 2,
         "kernel_size": [19], "stride": [1],
-        "num_channels": 600, "padding": "SAME"
+        "num_channels": 640, "padding": "SAME",
+        "dropout_keep_prob": 0.6,
+      },
+      {
+        "type": "conv1d", "repeat" : 2,
+        "kernel_size": [21], "stride": [1],
+        "num_channels": 768, "padding": "SAME",
+        "dropout_keep_prob": 0.6,
       },
       {
         "type": "conv1d", "repeat" : 2,
         "kernel_size": [23], "stride": [1],
-        "num_channels": 600, "padding": "SAME"
+        "num_channels": 768, "padding": "SAME",
+        "dropout_keep_prob": 0.6,
+      },
+      {
+        "type": "conv1d", "repeat" : 2,
+        "kernel_size": [25], "stride": [1],
+        "num_channels": 896, "padding": "SAME",
+        "dropout_keep_prob": 0.6,
       },
       {
         "type": "conv1d", "repeat" : 2,
         "kernel_size": [27], "stride": [1],
-        "num_channels": 800, "padding": "SAME"
+        "num_channels": 896, "padding": "SAME",
+        "dropout_keep_prob": 0.5,
       },
       {
         "type": "conv1d", "repeat" : 1,
-        "kernel_size": [31], "stride": [1],
-        "num_channels": 1200, "padding": "SAME"
+        "kernel_size": [29], "stride": [1],
+        "num_channels": 1024, "padding": "SAME",
+        "dropout_keep_prob": 0.5,
       },
       {
         "type": "conv1d", "repeat" : 1,
         "kernel_size": [1], "stride": [1],
-        "num_channels": 1600, "padding": "SAME"
+        "num_channels": 1024, "padding": "SAME",
+        "dropout_keep_prob": 0.4,
       },
     ],
 
-    "dropout_keep_prob": 0.6,
+    "dropout_keep_prob": 0.8,
 
     "initializer": tf.contrib.layers.xavier_initializer,
     "initializer_params": {
@@ -129,7 +156,7 @@ base_params = {
 train_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
@@ -145,7 +172,7 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
@@ -158,7 +185,7 @@ eval_params = {
 infer_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 40,
+    "num_audio_features": 64,
     "input_type": "logfbank",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
