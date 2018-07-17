@@ -294,7 +294,7 @@ class Text2SpeechDataLayer(DataLayer):
     )
     if self.params.get("pad_EOS", True):
       # num_pad = pad_to - (len(spectrogram) % pad_to)
-      num_pad = pad_to - ((len(text_input) + 1) % pad_to) + 1
+      num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
       spectrogram = np.pad(
           spectrogram, ((0, num_pad), (0, 0)), "constant", constant_values=0
       )
