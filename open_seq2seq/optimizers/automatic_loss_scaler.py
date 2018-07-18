@@ -72,7 +72,7 @@ class BackoffScaler(object):
     self.last_overflow_iteration = tf.Variable(initial_value=-1,
                                                trainable=False,
                                                dtype=tf.int64)
-    self.scale = tf.Variable(initial_value=2.**24,
+    self.scale = tf.Variable(initial_value=self.scale_max,
                              trainable=False)
 
   def update_op(self, has_nan, amax):
