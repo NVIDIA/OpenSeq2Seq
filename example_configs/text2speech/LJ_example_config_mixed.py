@@ -36,8 +36,11 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-mixed",
-  "max_grad_norm":1.,
+  "logdir": "result/tacotron-LJ-mixed-new",
+  # "max_grad_norm":1.,
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -73,7 +76,8 @@ base_params = {
   "initializer": tf.contrib.layers.xavier_initializer,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+                'variable_norm', 'gradient_norm', 'global_gradient_norm',
+                'loss_scale'],
 
   "encoder": Tacotron2Encoder,
   "encoder_params": {
