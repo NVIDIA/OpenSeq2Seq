@@ -62,7 +62,7 @@ class BackoffScaler(object):
         },
     )
     self.scale_min = params.get('scale_min', 1.0)
-    self.scale_max = params.get('scale_max', 2**.24)
+    self.scale_max = params.get('scale_max', 2.**24)
     self.step_factor = params.get('step_factor', 2.0)
     self.step_window = params.get('step_window', 2000)
 
