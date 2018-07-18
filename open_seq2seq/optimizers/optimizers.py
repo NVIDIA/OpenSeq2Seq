@@ -102,6 +102,7 @@ def optimize_loss(loss,
                   summaries=None,
                   larc_params=None,
                   loss_scaling=1.0,
+                  loss_scaling_params=None,
                   on_horovod=False,
                   iter_size=1,
                   skip_update_ph=None):
@@ -173,7 +174,10 @@ def optimize_loss(loss,
     opt = optimizer(learning_rate=lr, **optimizer_params)
 
     if isinstance(loss_scaling, six.string_types):
-      loss_scaling = AutomaticLossScaler(algorithm=loss_scaling)
+      loss_scaling = AutomaticLossScaler(
+          algorithm=loss_scaling,
+          params=loss_scaling_params
+      )
 
     if dtype == 'mixed':
       opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scaling)

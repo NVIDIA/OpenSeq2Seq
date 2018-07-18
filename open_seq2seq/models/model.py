@@ -83,6 +83,7 @@ class Model:
         'max_grad_norm': float,
         'larc_params': dict,
         'loss_scaling': None,  # float, "Backoff" or "LogMax"
+        'loss_scaling_params': dict,
         'summaries': list,
         'iter_size': int,
     }
@@ -173,6 +174,8 @@ class Model:
       loss scaling algorithm is used. Must be one of 'Backoff'
       of 'LogMax' (case insensitive). Only used when dtype="mixed". For details
       see :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **loss_scaling_params** (dict) --- dictionary containing loss scaling
+      parameters.
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
       "variables", "variable_norm".
@@ -400,6 +403,7 @@ class Model:
           summaries=self.params.get('summaries', None),
           larc_params=self.params.get('larc_params', None),
           loss_scaling=self.params.get('loss_scaling', 1.0),
+          loss_scaling_params=self.params.get('loss_scaling_params', None),
           on_horovod=self.on_horovod,
           iter_size=self.params.get('iter_size', 1),
           skip_update_ph=self.skip_update_ph,
