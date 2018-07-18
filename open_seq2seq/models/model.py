@@ -178,7 +178,7 @@ class Model:
       parameters.
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
-      "variables", "variable_norm".
+      "variables", "variable_norm", "loss_scale".
     * **iter_size** (int) --- use this parameter to emulate large batches.
       The gradients will be accumulated for ``iter_size`` number of steps before
       applying update.
