@@ -29,7 +29,9 @@ def build_layer(inputs, layer, layer_params, data_format,
   order in the ``layer`` call signature. If one of this parameters is supported
   it will pass regularizer object as a value for that parameter. Based on the
   same "checking signature" technique "data_format" and "training" parameters
-  will try to be added.
+  will try to be added. Finally, "axis" parameter will try to be specified with
+  axis = ``1 if data_format == 'channels_first' else 3``. This is required for
+  automatic building batch normalization layer.
 
   Args:
     inputs: input Tensor that will be passed to the layer. Note that layer has
@@ -56,6 +58,11 @@ def build_layer(inputs, layer, layer_params, data_format,
   if 'data_format' not in layer_params_cp and \
      'data_format' in signature(layer).parameters:
     layer_params_cp.update({'data_format': data_format})
+
+  # necessary to check axis for correct batch normalization processing
+  if 'axis' not in layer_params_cp and \
+     'axis' in signature(layer).parameters:
+    layer_params_cp.update({'axis': 1 if data_format == 'channels_first' else 3})
 
   if 'training' not in layer_params_cp and \
      'training' in signature(layer).parameters:
@@ -117,10 +124,12 @@ class CNNEncoder(Encoder):
             (tf.layers.batch_normalization, {'momentum': 0.9, 'epsilon': 0.0001}),
             (tf.nn.relu, {}),
         ]
-      Note that you don't need to provide "regularizer", "training" and
-      "data_format" parameters since they will be automatically added.
+      Note that you don't need to provide "regularizer", "training",
+      "data_format" and "axis" parameters since they will be
+      automatically added. "axis" will be derived from "data_format" and will
+      be ``1 if data_format == "channels_first" else 3``.
 
-    * **cnn_layers** (list) --- list with the description of "fully-connected"
+    * **fc_layers** (list) --- list with the description of "fully-connected"
       layers. The only different from convolutional layers is that the input
       will be automatically reshaped to 2D (batch size x num features).
       For example::
@@ -130,8 +139,10 @@ class CNNEncoder(Encoder):
             (tf.layers.dense, {'units': 4096, 'activation': tf.nn.relu}),
             (tf.layers.dropout, {'rate': 0.5}),
         ],
-      Note that you don't need to provide "regularizer", "training" and
-      "data_format" parameters since they will be automatically added.
+      Note that you don't need to provide "regularizer", "training",
+      "data_format" and "axis" parameters since they will be
+      automatically added. "axis" will be derived from "data_format" and will
+      be ``1 if data_format == "channels_first" else 3``.
 
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_first".

@@ -6,24 +6,17 @@ from __future__ import unicode_literals
 
 import tensorflow as tf
 
+from open_seq2seq.utils.utils import check_params
 
 class AutomaticLossScaler(object):
   SUPPORTED_ALGOS = ['backoff', 'logmax']
 
-  def __init__(self, algorithm='Backoff', scale_min=1.0, scale_max=2.**24):
+  def __init__(self, algorithm='Backoff', params=None):
     algorithm = algorithm.lower().strip()
     if algorithm == 'backoff':
-      self.scaler = BackoffScaler(scale_min=scale_min,
-                                  scale_max=scale_max,
-                                  step_factor=2.0,
-                                  step_window=2000)
+      self.scaler = BackoffScaler(params)
     elif algorithm == 'logmax':
-      self.scaler = LogMaxScaler(scale_min=scale_min,
-                                 scale_max=scale_max,
-                                 log_max=16.,
-                                 beta1=0.99,
-                                 beta2=0.999,
-                                 overflow_std_dev=3.09)  # ppf(.999)
+      self.scaler = LogMaxScaler(params)  # ppf(.999)
     else:
       raise ValueError('Unknown scaling algorithm: {}'.format(algorithm))
 
@@ -55,11 +48,23 @@ class AutomaticLossScaler(object):
 
 
 class BackoffScaler(object):
-  def __init__(self, scale_min, scale_max, step_factor, step_window):
-    self.scale_min = scale_min
-    self.scale_max = scale_max
-    self.step_factor = step_factor
-    self.step_window = step_window
+  def __init__(self, params):
+    if params is None:
+      params = {}
+    check_params(
+        config=params,
+        required_dict={},
+        optional_dict={
+            'scale_min': float,
+            'scale_max': float,
+            'step_factor': float,
+            'step_window': int
+        },
+    )
+    self.scale_min = params.get('scale_min', 1.0)
+    self.scale_max = params.get('scale_max', 2.**24)
+    self.step_factor = params.get('step_factor', 2.0)
+    self.step_window = params.get('step_window', 2000)
 
     self.iteration = tf.Variable(initial_value=0,
                                  trainable=False,
@@ -67,7 +72,7 @@ class BackoffScaler(object):
     self.last_overflow_iteration = tf.Variable(initial_value=-1,
                                                trainable=False,
                                                dtype=tf.int64)
-    self.scale = tf.Variable(initial_value=2.**24,
+    self.scale = tf.Variable(initial_value=self.scale_max,
                              trainable=False)
 
   def update_op(self, has_nan, amax):
@@ -106,14 +111,27 @@ class BackoffScaler(object):
 
 
 class LogMaxScaler(object):
-  def __init__(self, scale_min, scale_max, log_max,
-               beta1, beta2, overflow_std_dev):
-    self.scale_min = scale_min
-    self.scale_max = scale_max
-    self.log_max = log_max
-    self.beta1 = beta1
-    self.beta2 = beta2
-    self.overflow_std_dev = overflow_std_dev
+  def __init__(self, params):
+    if params is None:
+      params = {}
+    check_params(
+        config=params,
+        required_dict={},
+        optional_dict={
+            'scale_min': float,
+            'scale_max': float,
+            'log_max': float,
+            'beta1': float,
+            'beta2': float,
+            'overflow_std_dev': float
+        },
+    )
+    self.scale_min = params.get('scale_min', 1.0)
+    self.scale_max = params.get('scale_max', 2.**24)
+    self.log_max = params.get('log_max', 16.)
+    self.beta1 = params.get('beta1', 0.99)
+    self.beta2 = params.get('beta2', 0.999)
+    self.overflow_std_dev = params.get('overflow_std_dev', 3.09)
 
     self.iteration = tf.Variable(initial_value=0,
                                  trainable=False,

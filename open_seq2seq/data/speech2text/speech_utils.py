@@ -103,6 +103,7 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps, num_features].
+    audio_duration (float): duration of the signal in seconds
   """
   if augmentation is not None:
     if 'time_stretch_ratio' not in augmentation:
@@ -115,6 +116,10 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
       raise ValueError('noise_level_max has to be included in augmentation '
                        'when augmentation it is not None')
     signal = augment_audio_signal(signal, fs, augmentation)
+  else:
+    signal = (normalize_signal(signal.astype(np.float32)) * 32767.0).astype(np.int16)
+
+  audio_duration = len(signal) * 1.0/fs
 
   n_window_size = int(fs * window_size)
   n_window_stride = int(fs * window_stride)
@@ -173,4 +178,4 @@ def get_speech_features(signal, fs, num_features, pad_to=8,
   m = np.mean(features)
   s = np.std(features)
   features = (features - m) / s
-  return features
+  return features, audio_duration
