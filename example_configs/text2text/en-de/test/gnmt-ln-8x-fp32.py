@@ -65,7 +65,6 @@ base_params = {
     "core_cell_params": {
         "num_units": 1024,
         "forget_bias": 1.0,
-        "layer_norm": True,
     },
     "use_swap_memory": True,
     "decoder_layers": 8,
@@ -128,9 +127,10 @@ infer_params = {
   "decoder_params": {
     "beam_width": 10,
     "length_penalty": 1.0,
-    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell_params": {
-      "num_units": 1024,
+        "num_units": 1024,
+        "forget_bias": 1.0,
     },
     "use_swap_memory": True,
     "decoder_layers": 8,
