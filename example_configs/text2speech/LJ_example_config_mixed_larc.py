@@ -139,7 +139,7 @@ base_params = {
 
     "anneal_teacher_forcing": False,
     "anneal_teacher_forcing_stop_gradient": False,
-    'scheduled_sampling_prob': 1.,
+    'scheduled_sampling_prob': 0.,
 
     'enable_postnet': True,
     "postnet_keep_dropout_prob": 0.5,
