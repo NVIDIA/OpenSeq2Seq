@@ -67,7 +67,7 @@ base_params = {
   },
   # "dtype": tf.float32, "mixed", tf.float16
   "dtype": tf.float32,
-  "loss_scaling": 1.,
+  "loss_scaling": "Backoff",
   "loss_scaling_params": {
     "scale_min": 0.5,
     "scale_max": 2.**16,
