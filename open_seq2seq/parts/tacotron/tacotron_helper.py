@@ -59,6 +59,7 @@ class TacotronTrainingHelper(Helper):
       time_major=False,
       sample_ids_shape=None,
       sample_ids_dtype=None,
+      model_dtype=tf.float32,
       mask_decoder_sequence=None
   ):
     """Initializer.
@@ -96,6 +97,7 @@ class TacotronTrainingHelper(Helper):
     if prenet is not None:
       self._start_inputs = self._prenet(self._zero_inputs)
     self._last_dim = self._start_inputs.get_shape()[-1]
+    self._dtype = model_dtype
 
   @property
   def batch_size(self):
@@ -147,7 +149,10 @@ class TacotronTrainingHelper(Helper):
         select_sample = tf.tile(select_sample, [1, self._last_dim])
         sample_ids = array_ops.where(
             select_sample, out,
-            gen_array_ops.fill([self.batch_size, self._last_dim], -20.)
+            gen_array_ops.fill(
+                [self.batch_size, self._last_dim],
+                tf.cast(-20., self._dtype)
+            )
         )
         where_sampling = math_ops.cast(
             array_ops.where(sample_ids > -20), dtypes.int32

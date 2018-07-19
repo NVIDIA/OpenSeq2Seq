@@ -444,6 +444,7 @@ class Tacotron2Decoder(Decoder):
           stop_gradient=self.params.get(
               "anneal_teacher_forcing_stop_gradient", False
           ),
+          model_dtype=self.params["dtype"],
           mask_decoder_sequence=self.params.get("mask_decoder_sequence", True)
       )
     elif self._mode == "eval" or self._mode == "infer":
