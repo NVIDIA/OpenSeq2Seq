@@ -243,7 +243,9 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 speech recognition models available in OpenSeq2Seq.
 Currently, we have DeepSpeech2-based models and Wav2Letter-based models.</p>
 <p>WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
-greedy decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
+<em>greedy</em> decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>) which outputs the most probable character at each timestep.
+A beam search decoder with language model-based re-scoring should correct many spelling errors. For example, OpenSLR LM allows
+us to improve WER from greedy 9.28% to 5.16%.
 For the final evaluation we used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
 to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cudnn padding issue</a>.
 For more details about model descriptions and training setup,
@@ -258,7 +260,7 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Config file</th>
-<th class="head">WER</th>
+<th class="head">Greedy WER</th>
 <th class="head">Training setup and additional comments</th>
 <th class="head">Short description of the model</th>
 <th class="head">Checkpoint</th>
