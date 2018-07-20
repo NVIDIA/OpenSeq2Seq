@@ -59,7 +59,6 @@ base_params = {
   },
   # "dtype": tf.float32, "mixed", tf.float16
   "dtype": tf.float32,
-  "loss_scaling": 1.,
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
