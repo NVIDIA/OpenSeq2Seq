@@ -337,7 +337,7 @@ class Tacotron2Decoder(Decoder):
       )
 
       decoder_cell = AttentionWrapper(
-          cell=attention_cell,
+          cell=decoder_cell,
           attention_mechanism=attention_mechanism,
           alignment_history=True,
           output_attention="both",
@@ -443,12 +443,10 @@ class Tacotron2Decoder(Decoder):
 
     if regularizer and training:
       vars_to_regularize = []
-      vars_to_regularize += attentive_cell.trainable_variables
+      vars_to_regularize += decoder_cell.trainable_variables
       vars_to_regularize += attention_mechanism.memory_layer.trainable_variables
       vars_to_regularize += output_projection_layer.trainable_variables
       vars_to_regularize += stop_token_projection_layer.trainable_variables
-      if self.params["attention_rnn_enable"]:
-        vars_to_regularize += decoder_cell.trainable_variables
 
       for weights in vars_to_regularize:
         if "bias" not in weights.name:

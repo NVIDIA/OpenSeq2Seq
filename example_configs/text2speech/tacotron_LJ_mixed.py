@@ -115,6 +115,7 @@ base_params = {
     "zoneout_prob": 0.1,
     
     'attention_type': 'location',
+    'attention_layer_size': 128,
     'attention_bias': True,
 
     'decoder_cell_units': 1024,
