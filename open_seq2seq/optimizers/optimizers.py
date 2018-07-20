@@ -50,6 +50,7 @@ OPTIMIZER_SUMMARIES = [
     "variables",
     "variable_norm",
     "larc_summaries",
+    "loss_scale"
 ]
 
 
@@ -102,6 +103,7 @@ def optimize_loss(loss,
                   summaries=None,
                   larc_params=None,
                   loss_scaling=1.0,
+                  loss_scaling_params=None,
                   on_horovod=False,
                   iter_size=1,
                   skip_update_ph=None):
@@ -138,7 +140,7 @@ def optimize_loss(loss,
     training op.
   """
   if summaries is None:
-    summaries = ["learning_rate", "global_gradient_norm"]
+    summaries = ["learning_rate", "global_gradient_norm", "loss_scale"]
   else:
     for summ in summaries:
       if summ not in OPTIMIZER_SUMMARIES:
@@ -173,7 +175,12 @@ def optimize_loss(loss,
     opt = optimizer(learning_rate=lr, **optimizer_params)
 
     if isinstance(loss_scaling, six.string_types):
-      loss_scaling = AutomaticLossScaler(algorithm=loss_scaling)
+      loss_scaling = AutomaticLossScaler(
+          algorithm=loss_scaling,
+          params=loss_scaling_params
+      )
+      if "loss_scale" in summaries:
+        tf.summary.scalar("loss_scale", loss_scaling.loss_scale)
 
     if dtype == 'mixed':
       opt = MixedPrecisionOptimizerWrapper(opt, loss_scale=loss_scaling)
@@ -422,7 +429,7 @@ def _clip_by_global_norm(t_list, clip_norm, use_norm, name=None):
   #   use_norm = global_norm(t_list, name)
 
   with tf.name_scope(name, "clip_by_global_norm",
-                      t_list + [clip_norm]) as name:
+                     t_list + [clip_norm]) as name:
     # Calculate L2-norm, clip elements by ratio of clip_norm to L2-norm
     scale = clip_norm * tf.minimum(
         1.0 / use_norm,
@@ -454,3 +461,4 @@ def _clip_by_global_norm(t_list, clip_norm, use_norm, name=None):
         for (c_v, t) in zip(values_clipped, t_list)]
 
   return list_clipped, use_norm
+  
