@@ -26,8 +26,6 @@ from tensorflow.python.framework import dtypes
 from tensorflow.python.layers import base as layers_base
 from tensorflow.python.ops import rnn_cell_impl
 from tensorflow.python.util import nest
-from tensorflow.python.ops import array_ops
-
 
 class BasicDecoderOutput(
     collections.namedtuple(
@@ -43,16 +41,10 @@ class TacotronDecoder(decoder.Decoder):
   def __init__(
       self,
       decoder_cell,
-      attention_cell,
       helper,
       initial_decoder_state,
-      initial_attention_state,
-      attention_type,
       spec_layer,
       stop_token_layer,
-      use_prenet_output=True,
-      stop_token_choice=1,
-      attention_rnn_enable=True,
       prenet=None,
       dtype=dtypes.float32,
       train=True
@@ -61,31 +53,21 @@ class TacotronDecoder(decoder.Decoder):
 
     Args:
       decoder_cell: An `RNNCell` instance.
-      attention_cell: An `RNNCell` instance.
       helper: A `Helper` instance.
       initial_decoder_state: A (possibly nested tuple of...) tensors and
         TensorArrays. The initial state of the RNNCell.
-      initial_attention_state: A (possibly nested tuple of...) tensors and
-        TensorArrays.The initial state of the RNNCell.
-      attention_type: The type of attention used
       stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
         predict when to stop the decoder
       spec_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Output layer to apply to the RNN output to map
         the ressult to a spectrogram
-      use_prenet_output: (Optional), whether to use the prenet output
-        in the attention mechanism
-      stop_token_choice (int): Current debug parameter to experiment with stop
-        token projection. **DOCUMENTATION NEEDS TO BE UPDATED**
-      stop_token_full: See tacotron 2 decoder for more details.
       prenet: The prenet to apply to inputs
 
     Raises:
       TypeError: if `cell`, `helper` or `output_layer` have an incorrect type.
     """
     rnn_cell_impl.assert_like_rnncell("cell", decoder_cell)
-    rnn_cell_impl.assert_like_rnncell("cell", attention_cell)
     if not isinstance(helper, helper_py.Helper):
       raise TypeError("helper must be a Helper, received: %s" % type(helper))
     if (
@@ -96,18 +78,12 @@ class TacotronDecoder(decoder.Decoder):
           "spec_layer must be a Layer, received: %s" % type(spec_layer)
       )
     self._decoder_cell = decoder_cell
-    self._attention_cell = attention_cell
     self._helper = helper
     self._decoder_initial_state = initial_decoder_state
-    self._attention_initial_state = initial_attention_state
     self._spec_layer = spec_layer
     self._stop_token_layer = stop_token_layer
-    self._attention_type = attention_type
-    self._use_prenet_output = use_prenet_output
     self._dtype = dtype
-    self._stop_token_choice = stop_token_choice
     self._prenet = prenet
-    self._attention_rnn_enable = attention_rnn_enable
 
     if train:
       self._spec_layer = None
@@ -166,14 +142,7 @@ class TacotronDecoder(decoder.Decoder):
     Args:
       name: Name scope for any created operations.
     """
-    if self._attention_type == "location":
-      self._attention_cell._attention_mechanisms[0].initialize_location(
-          self._dtype
-      )
-    if self._attention_rnn_enable:
-      state = ((self._attention_initial_state, self._decoder_initial_state, ), )
-    else:
-      state = (self._attention_initial_state, )
+    state = (self._decoder_initial_state, )
     return self._helper.initialize() + state
 
   def step(self, time, inputs, state, name=None):
@@ -192,37 +161,7 @@ class TacotronDecoder(decoder.Decoder):
       if self._prenet is not None:
         inputs = self._prenet(inputs)
 
-      if self._attention_rnn_enable:
-        if self._use_prenet_output:
-          # Do an attention rnn step with the prenet output and
-          # previous attention state
-          attention_context, attention_state = self._attention_cell(
-              inputs, state[0]
-          )
-        else:
-          # Do an attention rnn step with the decoder output and
-          # previous attention state
-          attention_context, attention_state = self._attention_cell(
-              state[1].h, state[0]
-          )
-        # For the decoder rnn, the input is the prenet output and
-        # attention context
-        decoder_rnn_input = array_ops.concat(
-            (inputs, attention_context), axis=-1
-        )
-        cell_outputs, decoder_state = self._decoder_cell(
-            decoder_rnn_input, state[1]
-        )
-        cell_state = (attention_state, decoder_state)
-        # Concatenate the decoder output and attention output and send it
-        # through a projection layer
-        cell_outputs = array_ops.concat(
-            (cell_outputs, attention_context), axis=-1
-        )
-      else:
-        # If not using the attention rnn, cell output is obtained from a
-        # simple decoder rnn step
-        cell_outputs, cell_state = self._decoder_cell(inputs, state)
+      cell_outputs, cell_state = self._decoder_cell(inputs, state)
 
       # If we are training and not using scheduled sampling, we can move
       # all projection layers outside decoder, should be faster?
@@ -232,13 +171,9 @@ class TacotronDecoder(decoder.Decoder):
       else:
         spec_outputs = cell_outputs
       if self._stop_token_layer is not None:
-        if self._stop_token_choice == 1:
-          stop_token_output = self._stop_token_layer(cell_outputs)
-        elif self._stop_token_choice > 1:
-          stop_token_output = self._stop_token_layer(spec_outputs)
+        stop_token_output = self._stop_token_layer(spec_outputs)
       else:
         stop_token_output = cell_outputs
-
 
       sample_ids = self._helper.sample(
           time=time, outputs=spec_outputs, state=cell_state

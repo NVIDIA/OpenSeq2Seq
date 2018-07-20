@@ -96,12 +96,10 @@ class Tacotron2Decoder(Decoder):
         Decoder.get_required_params(), **{
             'attention_layer_size': int,
             'attention_type': ['bahdanau', 'location', None],
-            'attention_rnn_enable': bool,
             'decoder_cell_units': int,
             'decoder_cell_type': None,
             'decoder_layers': int,
             'num_audio_features': int,
-            'scheduled_sampling_prob': float,
         }
     )
 
@@ -109,9 +107,6 @@ class Tacotron2Decoder(Decoder):
   def get_optional_params():
     return dict(
         Decoder.get_optional_params(), **{
-            'attention_rnn_units': int,
-            'attention_rnn_layers': int,
-            'attention_rnn_cell_type': None,
             'bahdanau_normalize': bool,
             'time_major': bool,
             'use_swap_memory': bool,
@@ -125,15 +120,10 @@ class Tacotron2Decoder(Decoder):
             'postnet_bn_epsilon': float,
             'postnet_data_format': ['channels_first', 'channels_last'],
             'postnet_keep_dropout_prob': float,
-            'anneal_teacher_forcing': bool,
-            'anneal_teacher_forcing_stop_gradient': bool,
             'mask_decoder_sequence': bool,
-            'use_prenet_output': bool,
             'attention_bias': bool,
             'zoneout_prob': float,
-            'stop_token_choice': [1, 2, 3],
             'parallel_iterations': int,
-            'use_state_for_location': bool,
         }
     )
 
@@ -150,22 +140,11 @@ class Tacotron2Decoder(Decoder):
     * **attention_type** (string) --- Determines whether attention mechanism to
       use, should be one of 'bahdanau', 'location', or None.
       Use of 'location'-sensitive attention is strongly recommended.
-    * **attention_rnn_enable** (bool) --- Whether to create a rnn layer for the
-      attention mechanism. If false, the attention mechanism is wrapped around
-      the decoder rnn
-    * **attention_rnn_units** (int) --- dimension of attention RNN cells if
-      enabled. Defaults to 1024.
-    * **attention_rnn_layers** (int) --- number of attention RNN layers to use
-      if enabled. Defaults to 1.
-    * **attention_rnn_cell_type** (callable) --- Any valid RNN cell class.
-      Currently, only 'lstm' has been tested. Defaults to 'lstm'.
     * **bahdanau_normalize** (bool) ---  Defaults to False.
     * **decoder_cell_units** (int) --- dimension of decoder RNN cells.
     * **decoder_layers** (int) --- number of decoder RNN layers to use.
     * **decoder_cell_type** (callable) --- could be "lstm", "gru", "glstm", or
       "slstm". Currently, only 'lstm' has been tested. Defaults to 'lstm'.
-    * **scheduled_sampling_prob** (float) --- probability for scheduled
-      sampling. Set to 0 for teacher forcing.
     * **time_major** (bool) --- whether to output as time major or batch major.
       Default is False for batch major.
     * **use_swap_memory** (bool) --- default is False.
@@ -216,27 +195,12 @@ class Tacotron2Decoder(Decoder):
       "channels_last". Defaults to "channels_last".
     * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in
       the postnet conv layers. Default to 0.5.
-    * **anneal_teacher_forcing** (bool) --- Whether to use scheduled sampling
-      and increase the probability / anneal the use of teacher forcing as
-      training progresses. Currently only a fixed staircase increase is
-      supported. If True, it will override the scheduled_sampling_prob
-      parameter. Defaults to False.
-    * **anneal_teacher_forcing_stop_gradient** (bool) --- If
-      anneal_teacher_forcing is True, tf.stop_gradient is called on the inputs
-      to the decoder to prevent back propogation through the scheduled sampler.
-      Defaults to False
     * **mask_decoder_sequence** (bool) --- Defaults to True
-    * **use_prenet_output** (bool) --- Wether to pass the prenet output to the
-      attention rnn. Defaults to True.
     * **attention_bias** (bool) --- Wether to use a bias term when calculating
       the attention. Only works for "location" attention. Defaults to False.
     * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.1
-    * **stop_token_choice** (int) --- 1 for paper, 2 for post decrnn, 3 for post
-      postnet. **DOCUMENTATION NEEDS TO BE UPDATED**
     * **parallel_iterations** (int) --- Number of parallel_iterations for
       tf.while loop inside dynamic_decode. Defaults to 32.
-    * **use_state_for_location** (bool) --- Use attention state to store
-      cumulative location. If false, stores inside self var
     """
 
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
@@ -248,7 +212,6 @@ class Tacotron2Decoder(Decoder):
       encoder_outputs,
       encoder_sequence_length,
       attention_bias,
-      use_state=True
   ):
     """
     Builds Attention part of the graph.
@@ -264,7 +227,6 @@ class Tacotron2Decoder(Decoder):
             probability_fn=tf.nn.softmax,
             dtype=tf.get_variable_scope().dtype,
             use_bias=attention_bias,
-            use_state=use_state
         )
       elif self.params['attention_type'] == 'bahdanau':
         bah_normalize = self.params.get('bahdanau_normalize', False)
@@ -358,7 +320,7 @@ class Tacotron2Decoder(Decoder):
 
     cell_params = {}
     cell_params["num_units"] = self.params['decoder_cell_units']
-    decoder_cells = [
+    decoder_cell = [
         single_cell(
             cell_class=self.params['decoder_cell_type'],
             cell_params=cell_params,
@@ -366,89 +328,31 @@ class Tacotron2Decoder(Decoder):
             training=training
         ) for _ in range(self.params['decoder_layers'])
     ]
+    decoder_cell = tf.contrib.rnn.MultiRNNCell(decoder_cell)
 
     if self.params['attention_type'] is not None:
       attention_mechanism = self._build_attention(
           encoder_outputs, enc_src_lengths,
           self.params.get("attention_bias", False),
-          use_state=self.params.get("use_state_for_location", True)
       )
 
-      if self.params["attention_rnn_enable"]:
-        cell_type = self.params.get(
-            'attention_rnn_cell_type', tf.nn.rnn_cell.LSTMCell
-        )
-        cell_params = {}
-        cell_params["num_units"] = self.params.get('attention_rnn_units', 1024)
-        attention_cells = [
-            single_cell(
-                cell_class=cell_type,
-                cell_params=cell_params,
-                zoneout_prob=self.params.get("zoneout_prob", 0.1),
-                training=training
-            ) for _ in range(self.params.get('attention_rnn_layers', 1))
-        ]
-        attention_cell = tf.contrib.rnn.MultiRNNCell(attention_cells)
-      else:
-        attention_cell = tf.contrib.rnn.MultiRNNCell(decoder_cells)
-
-      if self.params["attention_rnn_enable"]:
-        output_attention = True
-      else:
-        output_attention = "both"
-      attentive_cell = AttentionWrapper(
+      decoder_cell = AttentionWrapper(
           cell=attention_cell,
           attention_mechanism=attention_mechanism,
           alignment_history=True,
-          output_attention=output_attention,
+          output_attention="both",
       )
 
-      if not self.params["attention_rnn_enable"]:
-        decoder_cell = attentive_cell
-
-    if (self.params['attention_type'] is None or
-        self.params["attention_rnn_enable"]):
-      decoder_cell = tf.contrib.rnn.MultiRNNCell(decoder_cells)
-
-
     if self._mode == "train":
-      train_and_not_sampling = True
-      if self.params.get('anneal_sampling_prob', False):
-        if "128" in self._model.get_data_layer().params['dataset_files'][0]:
-          train_size = 128.
-        else:
-          train_size = 10480.
-        curr_epoch = tf.div(
-            tf.cast(tf.train.get_or_create_global_step(), self.params["dtype"]),
-            tf.constant(train_size / _batch_size, self.params["dtype"])
-        )
-        curr_step = tf.floor(
-            tf.div(
-                curr_epoch, tf.constant(self._model.params["num_epochs"] / 20.)
-            )
-        )
-        sampling_prob = tf.div(curr_step, tf.constant(20.))
-        train_and_not_sampling = False
-      else:
-        sampling_prob = self.params['scheduled_sampling_prob']
-        if sampling_prob > 0.:
-          train_and_not_sampling = False
       helper = TacotronTrainingHelper(
           inputs=spec,
           sequence_length=spec_length,
           prenet=None,
-          sampling_prob=sampling_prob,
-          anneal_teacher_forcing=self.params.get(
-              'anneal_teacher_forcing', False
-          ),
-          stop_gradient=self.params.get(
-              "anneal_teacher_forcing_stop_gradient", False
-          ),
+          sampling_prob=0.,
           model_dtype=self.params["dtype"],
           mask_decoder_sequence=self.params.get("mask_decoder_sequence", True)
       )
     elif self._mode == "eval" or self._mode == "infer":
-      train_and_not_sampling = False
       inputs = tf.zeros(
           (_batch_size, 1, self._num_audio_features), dtype=self.params["dtype"]
       )
@@ -461,23 +365,15 @@ class Tacotron2Decoder(Decoder):
       raise ValueError("Unknown mode for decoder: {}".format(self._mode))
     decoder = TacotronDecoder(
         decoder_cell=decoder_cell,
-        attention_cell=attentive_cell,
         helper=helper,
         initial_decoder_state=decoder_cell.zero_state(
             _batch_size, self.params["dtype"]
         ),
-        initial_attention_state=attentive_cell.zero_state(
-            _batch_size, self.params["dtype"]
-        ),
-        attention_type=self.params["attention_type"],
         spec_layer=output_projection_layer,
         stop_token_layer=stop_token_projection_layer,
-        use_prenet_output=self.params.get("use_prenet_output", True),
-        stop_token_choice=self.params.get("stop_token_choice", 1),
-        attention_rnn_enable=self.params["attention_rnn_enable"],
         prenet=prenet,
         dtype=self.params["dtype"],
-        train=train_and_not_sampling
+        train=training
     )
 
     if self._mode == 'train':
@@ -499,13 +395,10 @@ class Tacotron2Decoder(Decoder):
     stop_token_logits = outputs.stop_token_output
 
     with tf.variable_scope("decoder"):
-      # If we are in train and doing sampling, we need to do the projections
-      if train_and_not_sampling:
+      # If we are in train and not sampling, we need to do the projections
+      if training:
         decoder_spec_output = output_projection_layer(decoder_output)
-        if self.params.get("stop_token_choice", 1) == 1:
-          stop_token_logits = stop_token_projection_layer(decoder_output)
-        elif self.params.get("stop_token_choice", 1) == 2:
-          stop_token_logits = stop_token_projection_layer(decoder_spec_output)
+        stop_token_logits = stop_token_projection_layer(decoder_spec_output)
         decoder_output = decoder_spec_output
 
     ## Add the post net ##
@@ -573,22 +466,13 @@ class Tacotron2Decoder(Decoder):
         prenet.add_regularization(regularizer)
 
     if self.params['attention_type'] is not None:
-      if self.params['attention_rnn_enable']:
-        alignments = tf.transpose(
-            final_state[0].alignment_history.stack(), [1, 0, 2]
-        )
-      else:
-        alignments = tf.transpose(
-            final_state.alignment_history.stack(), [1, 0, 2]
-        )
+      alignments = tf.transpose(
+          final_state.alignment_history.stack(), [1, 0, 2]
+      )
     else:
       alignments = tf.zeros([_batch_size, _batch_size, _batch_size])
 
     spectrogram_prediction = decoder_output + top_layer
-
-    with tf.variable_scope("decoder"):
-      if self.params.get("stop_token_choice", 1) == 3:
-        stop_token_logits = stop_token_projection_layer(spectrogram_prediction)
 
     stop_token_prediction = tf.sigmoid(stop_token_logits)
 

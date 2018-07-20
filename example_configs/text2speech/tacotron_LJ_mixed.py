@@ -14,21 +14,16 @@ output_type = "magnitude"
 
 if output_type == "magnitude":
   num_audio_features = 513
-  output_type = "magnitude_disk"
 elif output_type == "mel":
   num_audio_features = 80
-  output_type = "mel_disk"
-
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
-  # "num_epochs": 501,
   "max_steps": 100000,
 
   "num_gpus": 1,
-  # 'gpu_ids': [1],
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 48,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
@@ -36,8 +31,10 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-float",
-  "max_grad_norm":1.,
+  "logdir": "result/tacotron-LJ-mixed",
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -63,8 +60,8 @@ base_params = {
     "min_lr": 1e-5,
   },
   # "dtype": tf.float32, "mixed", tf.float16
-  "dtype": tf.float32,
-  "loss_scaling": 1.,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
   "loss_scaling_params": {
     "scale_min": 0.5,
     "scale_max": 2.**16,
@@ -77,7 +74,8 @@ base_params = {
   "initializer": tf.contrib.layers.xavier_initializer,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+                'variable_norm', 'gradient_norm', 'global_gradient_norm',
+                'loss_scale'],
 
   "encoder": Tacotron2Encoder,
   "encoder_params": {
@@ -116,14 +114,8 @@ base_params = {
   "decoder_params": {
     "zoneout_prob": 0.1,
     
-    'attention_layer_size': 128,
     'attention_type': 'location',
-    'attention_rnn_enable': False,
-    'attention_rnn_units': 1024,
-    'attention_rnn_layers': 1,
-    'attention_rnn_cell_type': tf.nn.rnn_cell.LSTMCell,
     'attention_bias': True,
-    'use_state_for_location': True,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
@@ -132,10 +124,6 @@ base_params = {
     'enable_prenet': True,
     'prenet_layers': 2,
     'prenet_units': 256,
-
-    "anneal_teacher_forcing": False,
-    "anneal_teacher_forcing_stop_gradient": False,
-    'scheduled_sampling_prob': 0.,
 
     'enable_postnet': True,
     "postnet_keep_dropout_prob": 0.5,
@@ -169,7 +157,6 @@ base_params = {
     ],
     "mask_decoder_sequence": True,
     "parallel_iterations": 32,
-    "stop_token_choice": 1,
   },
   
   "loss": TacotronLoss,
