@@ -256,9 +256,9 @@ situations, in some cases it is important to keep the gradient in float32 from
 the beginning of the computation. One common case when this is necessary is
 weight decay regularization. This regularization results in the following
 addition to the usual gradients with respect to the loss:
-<span class="math notranslate">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
-where <span class="math notranslate">\(\lambda\)</span> is usually on the order of
-<span class="math notranslate">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
+<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
+where <span class="math notranslate nohighlight">\(\lambda\)</span> is usually on the order of
+<span class="math notranslate nohighlight">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
 Given that the weights are commonly initialized with small values, multiplying
 them with weight decay coefficient $lambda$ can result in numerical underflow.
 To overcome this problem we implemented the following design principles. First,

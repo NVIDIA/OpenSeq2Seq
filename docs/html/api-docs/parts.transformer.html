@@ -693,18 +693,18 @@ sequence scores [batch_size, beam_size]</p>
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>epsilon=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where the layer’s logic lives.</p>
+<dd><p>The logic of the layer lives here.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – Input tensor, or list/tuple of input tensors.</li>
-<li><strong>**kwargs</strong> – Additional keyword arguments.</li>
+<li><strong>inputs</strong> – input tensor(s).</li>
+<li><strong>**kwargs</strong> – additional keyword arguments.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor or list/tuple of tensors.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
 </td>
 </tr>
 </tbody>
@@ -786,18 +786,18 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <dl class="method">
 <dt id="parts.transformer.ffn_layer.FeedFowardNetwork.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>padding=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where the layer’s logic lives.</p>
+<dd><p>The logic of the layer lives here.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – Input tensor, or list/tuple of input tensors.</li>
-<li><strong>**kwargs</strong> – Additional keyword arguments.</li>
+<li><strong>inputs</strong> – input tensor(s).</li>
+<li><strong>**kwargs</strong> – additional keyword arguments.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor or list/tuple of tensors.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
 </td>
 </tr>
 </tbody>
