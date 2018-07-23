@@ -13,7 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""A powerful dynamic attention wrapper object."""
+"""A powerful dynamic attention wrapper object.
+
+Modified by blisc too add support for LocationSensitiveAttention and changed
+the AttentionWrapper class to output both the cell_output and attention context
+concatenated together.
+
+New classes:
+  LocationSensitiveAttention
+  LocationLayer
+
+New functions:
+  _bahdanau_score_with_location
+"""
 
 from __future__ import absolute_import
 from __future__ import division

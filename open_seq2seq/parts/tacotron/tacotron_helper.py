@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """
+Modified by blisc to enable support for tacotron models
 Custom Helper class that implements the tacotron decoder pre and post nets
 """
 from __future__ import absolute_import, division, print_function

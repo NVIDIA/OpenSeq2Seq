@@ -169,7 +169,7 @@ base_params = {
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_EOS_80.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
@@ -191,7 +191,7 @@ train_params = {
 eval_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/new_val.csv",
+      "/data/speech/LJSpeech/val.csv",
     ],
     "shuffle": False,
   },

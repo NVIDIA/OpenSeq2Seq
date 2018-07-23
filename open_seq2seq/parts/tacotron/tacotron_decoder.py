@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+"""
+Modified by blisc to enable support for tacotron models, specfically enables
+the prenet
+"""
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
