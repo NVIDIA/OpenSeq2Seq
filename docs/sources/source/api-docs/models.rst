@@ -38,6 +38,14 @@ text2text
     :undoc-members:
     :show-inheritance:
 
+text2speech
+-----------------------
+
+.. automodule:: models.text2speech
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 image2label
 -------------------------
 

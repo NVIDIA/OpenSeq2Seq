@@ -2,7 +2,7 @@ Text-To-Speech
 ==================
 
 How to train the model on `LJSpeech <https://keithito.com/LJ-Speech-Dataset/>`_ dataset
-----------------------------------------------------------------------------
+----------------------------------------------------------------------------------------
 
 First, you need to download the dataset. The dataset consists of metadata.csv
 and a directory of wav files. metadata-csv lists all the wavs filename and their

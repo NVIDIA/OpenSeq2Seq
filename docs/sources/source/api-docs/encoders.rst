@@ -78,3 +78,11 @@ cnn\_encoder
     :members:
     :undoc-members:
     :show-inheritance:
+
+tacotron2\_encoder
+--------------------------------
+
+.. automodule:: encoders.tacotron2_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
