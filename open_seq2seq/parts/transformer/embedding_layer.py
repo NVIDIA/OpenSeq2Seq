@@ -70,6 +70,11 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         # Scale embedding by the sqrt of the hidden size
         embeddings *= self.hidden_size ** 0.5
 
+      # fills out of bound values with padding symbol
+      out_bound_mask = tf.to_int32(x > (self.vocab_size - 1))
+      x *= 1 - out_bound_mask
+      x += out_bound_mask * tf.to_int32(self.pad_sym)
+
       if self.mask_paddings:
         # Create binary array of size [batch_size, length]
         # where 1 = padding, 0 = not padding
