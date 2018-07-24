@@ -12,7 +12,7 @@ base_model = Speech2Text
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "num_epochs": 40,
+  "num_epochs": 50,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 32,
@@ -36,12 +36,12 @@ base_params = {
     "power": 2.0,
   },
   "larc_params": {
-    "larc_eta": 0.004,
+    "larc_eta": 0.001,
   },
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 0.0005
+    'scale': 0.001
   },
 
   #"max_grad_norm": 15.0,
