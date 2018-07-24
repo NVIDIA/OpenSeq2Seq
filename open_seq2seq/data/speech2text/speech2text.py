@@ -36,11 +36,8 @@ class Speech2TextDataLayer(DataLayer):
 
   def __init__(self, params, model, num_workers, worker_id):
     """Speech-to-text data layer constructor.
-
     See parent class for arguments description.
-
     Config parameters:
-
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
     * **vocab_file** (str) --- path to vocabulary file.
@@ -62,7 +59,8 @@ class Speech2TextDataLayer(DataLayer):
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'], read_chars=True,
     )
-    self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
+    self.params['idx2char'] = {i: w for w,
+                               i in self.params['char2idx'].items()}
     # add one for implied blank token
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
@@ -125,23 +123,13 @@ class Speech2TextDataLayer(DataLayer):
       )
       if self.params['max_duration'] is not None:
         self._dataset = self._dataset.filter(
-            lambda x, x_len, y, y_len, duration: 
+            lambda x, x_len, y, y_len, duration:
             tf.less_equal(duration, self.params['max_duration'])
         )
       self._dataset = self._dataset.map(
           lambda x, x_len, y, y_len, duration:
           [x, x_len, y, y_len],
           num_parallel_calls=8,
-      )
-      if self.params['max_duration'] is not None:
-        self._dataset = self._dataset.filter(
-          lambda x, x_len, y, y_len, duration: 
-            tf.less_equal(duration, self.params['max_duration'])
-        )
-      self._dataset = self._dataset.map(
-        lambda x, x_len, y, y_len, duration:
-          [x, x_len, y, y_len],
-        num_parallel_calls=8,
       )
       self._dataset = self._dataset.padded_batch(
           self.params['batch_size'],
@@ -175,16 +163,6 @@ class Speech2TextDataLayer(DataLayer):
           [x, x_len, idx],
           num_parallel_calls=8,
       )
-      if self.params['max_duration'] is not None:
-        self._dataset = self._dataset.filter(
-          lambda x, x_len, idx, duration:
-            tf.less_equal(duration, self.params['max_duration'])
-        )
-      self._dataset = self._dataset.map(
-        lambda x, x_len, idx, duration:
-          [x, x_len, idx],
-        num_parallel_calls=8,
-      )
       self._dataset = self._dataset.padded_batch(
           self.params['batch_size'],
           padded_shapes=([None, self.params['num_audio_features']], 1, 1)
@@ -216,10 +194,8 @@ class Speech2TextDataLayer(DataLayer):
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
-
     Args:
       element: tf.data element from TextLineDataset.
-
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
       target text as `np.array` of ids, target text length.
@@ -235,18 +211,16 @@ class Speech2TextDataLayer(DataLayer):
         augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
-           np.int32([len(source)]), \
-           np.int32(target), \
-           np.int32([len(target)]), \
-           np.float32([audio_duration])
+        np.int32([len(source)]), \
+        np.int32(target), \
+        np.int32([len(target)]), \
+        np.float32([audio_duration])
 
   def _parse_audio_element(self, id_and_audio_filename):
     """Parses audio from file and returns array of audio features.
-
     Args:
       id_and_audio_filename: tuple of sample id and corresponding
           audio file name.
-
     Returns:
       tuple: source audio features as ``np.array``, length of source sequence,
       sample id.
@@ -259,21 +233,17 @@ class Speech2TextDataLayer(DataLayer):
         augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
-           np.int32([len(source)]), np.int32([idx]), \
-           np.float32([audio_duration])
+        np.int32([len(source)]), np.int32([idx]), \
+        np.float32([audio_duration])
 
   @property
   def input_tensors(self):
     """Dictionary with input tensors.
-
     ``input_tensors["source_tensors"]`` contains:
-
       * source_sequence
         (shape=[batch_size x sequence length x num_audio_features])
       * source_length (shape=[batch_size])
-
     ``input_tensors["target_tensors"]`` contains:
-
       * target_sequence
         (shape=[batch_size x sequence length x num_audio_features])
       * target_length (shape=[batch_size])
