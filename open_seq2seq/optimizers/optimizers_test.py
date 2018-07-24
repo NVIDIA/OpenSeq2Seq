@@ -1,11 +1,11 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import numpy as np
 import numpy.testing as npt
+import tensorflow as tf
+from six.moves import range
 
 from open_seq2seq.optimizers import optimize_loss
 from .lr_policies import fixed_lr

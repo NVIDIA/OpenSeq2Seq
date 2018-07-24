@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="utils" href="utils.html" />
+    <link rel="next" title="convs2s" href="parts.convs2s.html" />
     <link rel="prev" title="rnns" href="parts.rnns.html" /> 
 
   
@@ -103,13 +103,14 @@
 <li class="toctree-l3 current"><a class="current reference internal" href="#">transformer</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.attention_layer">attention_layer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.beam_search">beam_search</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.beam_search_test">beam_search_test</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.common">common</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.embedding_layer">embedding_layer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.ffn_layer">ffn_layer</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.transformer.utils">utils</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -676,51 +677,6 @@ sequence scores [batch_size, beam_size]</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-parts.transformer.beam_search_test">
-<span id="beam-search-test"></span><h2>beam_search_test<a class="headerlink" href="#module-parts.transformer.beam_search_test" title="Permalink to this headline">¶</a></h2>
-<p>Test beam search helper methods.</p>
-<dl class="class">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests">
-<em class="property">class </em><code class="descclassname">parts.transformer.beam_search_test.</code><code class="descname">BeamSearchHelperTests</code><span class="sig-paren">(</span><em>methodName='runTest'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.framework.test_util.TensorFlowTestCase</span></code></p>
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_expand_to_beam_size">
-<code class="descname">test_expand_to_beam_size</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_expand_to_beam_size"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_expand_to_beam_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_flatten_beam_dim">
-<code class="descname">test_flatten_beam_dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_flatten_beam_dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_flatten_beam_dim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_beams">
-<code class="descname">test_gather_beams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_gather_beams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_beams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_topk_beams">
-<code class="descname">test_gather_topk_beams</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_gather_topk_beams"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_gather_topk_beams" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_get_shape_keep_last_dim">
-<code class="descname">test_get_shape_keep_last_dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_get_shape_keep_last_dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_get_shape_keep_last_dim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_shape_list">
-<code class="descname">test_shape_list</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_shape_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_shape_list" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="parts.transformer.beam_search_test.BeamSearchHelperTests.test_unflatten_beam_dim">
-<code class="descname">test_unflatten_beam_dim</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search_test.html#BeamSearchHelperTests.test_unflatten_beam_dim"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search_test.BeamSearchHelperTests.test_unflatten_beam_dim" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-parts.transformer.common">
 <span id="common"></span><h2>common<a class="headerlink" href="#module-parts.transformer.common" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -770,7 +726,7 @@ sequence scores [batch_size, beam_size]</p>
 <p>Implementation of embedding layer with shared weights.</p>
 <dl class="class">
 <dt id="parts.transformer.embedding_layer.EmbeddingSharedWeights">
-<em class="property">class </em><code class="descclassname">parts.transformer.embedding_layer.</code><code class="descname">EmbeddingSharedWeights</code><span class="sig-paren">(</span><em>vocab_size</em>, <em>hidden_size</em>, <em>pad2eight=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.embedding_layer.</code><code class="descname">EmbeddingSharedWeights</code><span class="sig-paren">(</span><em>vocab_size</em>, <em>hidden_size</em>, <em>pad_vocab_to_eight=False</em>, <em>init_var=None</em>, <em>embed_scale=True</em>, <em>pad_sym=0</em>, <em>mask_paddings=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Calculates input embeddings and pre-softmax linear with shared weights.</p>
 <dl class="method">
@@ -875,7 +831,7 @@ positions.</p>
 
 <dl class="function">
 <dt id="parts.transformer.utils.get_padding">
-<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding</code><span class="sig-paren">(</span><em>x</em>, <em>padding_value=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding</code><span class="sig-paren">(</span><em>x</em>, <em>padding_value=0</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return float tensor representing the padding values in x.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -884,6 +840,7 @@ positions.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>x</strong> – int tensor with any shape</li>
 <li><strong>padding_value</strong> – int value that</li>
+<li><strong>dtype</strong> – type of the output</li>
 </ul>
 </td>
 </tr>
@@ -901,7 +858,7 @@ positions.</p>
 
 <dl class="function">
 <dt id="parts.transformer.utils.get_padding_bias">
-<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding_bias</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding_bias" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding_bias</code><span class="sig-paren">(</span><em>x</em>, <em>res_rank=4</em>, <em>pad_sym=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding_bias" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate bias tensor from padding values in tensor.</p>
 <p>Bias tensor that is added to the pre-softmax multi-headed attention logits,
 which has shape [batch_size, num_heads, length, length]. The tensor is zero at
@@ -910,9 +867,18 @@ non-padding locations, and -1e9 (negative infinity) at padding locations.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – int tensor with shape [batch_size, length]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>x</strong> – int tensor with shape [batch_size, length]</li>
+<li><strong>res_rank</strong> – int indicates the rank of attention_bias.</li>
+<li><strong>dtype</strong> – type of the output attention_bias</li>
+<li><strong>pad_sym</strong> – int the symbol used for padding</li>
+</ul>
+</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Attention bias tensor of shape [batch_size, 1, 1, length].</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Attention bias tensor of shape
+[batch_size, 1, 1, length] if  res_rank = 4 - for Transformer
+or [batch_size, 1, length] if res_rank = 3 - for ConvS2S</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -955,7 +921,7 @@ Defined and formulized in Attention is All You Need, section 3.5.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="utils.html" class="btn btn-neutral float-right" title="utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="parts.convs2s.html" class="btn btn-neutral float-right" title="convs2s" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="parts.rnns.html" class="btn btn-neutral" title="rnns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

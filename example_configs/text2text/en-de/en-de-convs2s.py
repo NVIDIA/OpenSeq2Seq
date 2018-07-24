@@ -1,3 +1,4 @@
+# pylint: skip-file
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
@@ -57,9 +58,9 @@ base_params = {
 
 
   "max_grad_norm": 0.1,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -133,7 +134,7 @@ train_params = {
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": False,
+    "shuffle": True,
     "repeat": True,
     "map_parallel_calls": 8,
     "prefetch_buffer_size": 4,

@@ -187,12 +187,12 @@
 <h2>speech2text<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-data.speech2text.speech2text"></span><dl class="class">
 <dt id="data.speech2text.speech2text.Speech2TextDataLayer">
-<em class="property">class </em><code class="descclassname">data.speech2text.speech2text.</code><code class="descname">Speech2TextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">data.speech2text.speech2text.</code><code class="descname">Speech2TextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
 <p>Speech-to-text data layer class.</p>
 <dl class="method">
 <dt id="data.speech2text.speech2text.Speech2TextDataLayer.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Speech-to-text data layer constructor.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
@@ -223,15 +223,16 @@ parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
 
 <dl class="method">
 <dt id="data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element">
-<code class="descname">_parse_audio_element</code><span class="sig-paren">(</span><em>audio_filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer._parse_audio_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element" title="Permalink to this definition">¶</a></dt>
+<code class="descname">_parse_audio_element</code><span class="sig-paren">(</span><em>id_and_audio_filename</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer._parse_audio_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parses audio from file and returns array of audio features.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>audio_filename</strong> – audio file name.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>id_and_audio_filename</strong> – tuple of sample id and corresponding audio file name.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, length of source sequence,</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">source audio features as <code class="docutils literal notranslate"><span class="pre">np.array</span></code>, length of source sequence,
+sample id.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
 </tr>
@@ -335,8 +336,7 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 <dl class="method">
 <dt id="data.speech2text.speech2text.Speech2TextDataLayer.split_data">
 <code class="descname">split_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech2text.html#Speech2TextDataLayer.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech2text.Speech2TextDataLayer.split_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Method that performs data split for evaluation.</p>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -437,6 +437,12 @@ If not None, has to have ‘time_stretch_ratio’,
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.speech2text.speech_utils.normalize_signal">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">normalize_signal</code><span class="sig-paren">(</span><em>signal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#normalize_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.normalize_signal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalize float32 signal to [-1, 1] range</p>
 </dd></dl>
 
 </div>

@@ -69,10 +69,10 @@ def main():
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
   for pm, value in flatten_dict(base_config).items():
-    if isinstance(value, int) or isinstance(value, float) or \
+    if type(value) == int or type(value) == float or \
        isinstance(value, string_types):
       parser_unk.add_argument('--' + pm, default=value, type=type(value))
-    elif isinstance(value, bool):
+    elif type(value) == bool:
       parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
   config_update = parser_unk.parse_args(unknown)
   nested_update(base_config, nest_dict(vars(config_update)))

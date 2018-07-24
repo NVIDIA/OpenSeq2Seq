@@ -3,11 +3,12 @@
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import os
-import tensorflow as tf
+
 import numpy as np
+import tensorflow as tf
+from six.moves import range
 
 from open_seq2seq.data.data_layer import DataLayer
 from .imagenet_preprocessing import parse_record
@@ -24,23 +25,23 @@ class CifarDataLayer(DataLayer):
   _NUM_DATA_FILES = 5
 
   _NUM_IMAGES = {
-    'train': 50000,
-    'validation': 10000,
+      'train': 50000,
+      'validation': 10000,
   }
 
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
-      'data_dir': str,
+        'data_dir': str,
     })
 
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-      'num_parallel_calls': int,
-      'shuffle_buffer': int,
-      'image_size': int,
-      'num_classes': int,
+        'num_parallel_calls': int,
+        'shuffle_buffer': int,
+        'image_size': int,
+        'num_classes': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -53,7 +54,7 @@ class CifarDataLayer(DataLayer):
       filenames = [
           os.path.join(self.params['data_dir'], 'data_batch_{}.bin'.format(i))
           for i in range(1, self._NUM_DATA_FILES + 1)
-        ]
+      ]
     else:
       filenames = [os.path.join(self.params['data_dir'], 'test_batch.bin')]
 
@@ -68,7 +69,8 @@ class CifarDataLayer(DataLayer):
     if is_training:
       # Resize the image to add four extra pixels on each side.
       image = tf.image.resize_image_with_crop_or_pad(
-        image, self._HEIGHT + 8, self._WIDTH + 8)
+          image, self._HEIGHT + 8, self._WIDTH + 8
+      )
 
       # Randomly crop a [_HEIGHT, _WIDTH] section of the image.
       image = tf.random_crop(image, [self._HEIGHT, self._WIDTH,
@@ -79,7 +81,8 @@ class CifarDataLayer(DataLayer):
 
     else:
       image = tf.image.resize_image_with_crop_or_pad(
-        image, self._HEIGHT, self._WIDTH)
+          image, self._HEIGHT, self._WIDTH
+      )
 
     # Subtract off the mean and divide by the variance of the pixels.
     image = tf.image.per_image_standardization(image)
@@ -121,11 +124,11 @@ class CifarDataLayer(DataLayer):
     dataset = dataset.repeat()
 
     dataset = dataset.map(
-      lambda value: self.parse_record(
-        raw_record=value,
-        is_training=self.params['mode'] == 'train',
-      ),
-      num_parallel_calls=self.params.get('num_parallel_calls', 16),
+        lambda value: self.parse_record(
+            raw_record=value,
+            is_training=self.params['mode'] == 'train',
+        ),
+        num_parallel_calls=self.params.get('num_parallel_calls', 16),
     )
 
     dataset = dataset.batch(self.params['batch_size'])
@@ -136,8 +139,8 @@ class CifarDataLayer(DataLayer):
     if self.params['mode'] == 'train':
       tf.summary.image('augmented_images', inputs, max_outputs=1)
     self._input_tensors = {
-      'source_tensors': [inputs],
-      'target_tensors': [labels],
+        'source_tensors': [inputs],
+        'target_tensors': [labels],
     }
 
   @property
@@ -151,24 +154,23 @@ class CifarDataLayer(DataLayer):
   def get_size_in_samples(self):
     if self.params['mode'] == 'train':
       return self._train_size
-    else:
-      return len(np.arange(self._valid_size)[self._worker_id::self._num_workers])
+    return len(np.arange(self._valid_size)[self._worker_id::self._num_workers])
 
 
 class ImagenetDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
-      'data_dir': str,
+        'data_dir': str,
     })
 
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
-      'num_parallel_calls': int,
-      'shuffle_buffer': int,
-      'image_size': int,
-      'num_classes': int,
+        'num_parallel_calls': int,
+        'shuffle_buffer': int,
+        'image_size': int,
+        'num_classes': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -179,14 +181,15 @@ class ImagenetDataLayer(DataLayer):
 
     if self.params['mode'] == 'train':
       filenames = [
-        os.path.join(self.params['data_dir'], 'train-{:05d}-of-01024'.format(i))
-        for i in range(1024)  # number of training files
+          os.path.join(self.params['data_dir'],
+                       'train-{:05d}-of-01024'.format(i))
+          for i in range(1024)  # number of training files
       ]
     else:
       filenames = [
-        os.path.join(self.params['data_dir'],
-                     'validation-{:05d}-of-00128'.format(i))
-        for i in range(128)  # number of validation files
+          os.path.join(self.params['data_dir'],
+                       'validation-{:05d}-of-00128'.format(i))
+          for i in range(128)  # number of validation files
       ]
 
     self._train_size = 1281167
@@ -221,13 +224,13 @@ class ImagenetDataLayer(DataLayer):
     dataset = dataset.repeat()
 
     dataset = dataset.map(
-      lambda value: parse_record(
-        raw_record=value,
-        is_training=self.params['mode'] == 'train',
-        image_size=self.params.get('image_size', 224),
-        num_classes=self.params.get('num_classes', 1000),
-      ),
-      num_parallel_calls=self.params.get('num_parallel_calls', 16),
+        lambda value: parse_record(
+            raw_record=value,
+            is_training=self.params['mode'] == 'train',
+            image_size=self.params.get('image_size', 224),
+            num_classes=self.params.get('num_classes', 1000),
+        ),
+        num_parallel_calls=self.params.get('num_parallel_calls', 16),
     )
 
     dataset = dataset.batch(self.params['batch_size'])
@@ -238,8 +241,8 @@ class ImagenetDataLayer(DataLayer):
     if self.params['mode'] == 'train':
       tf.summary.image('augmented_images', inputs, max_outputs=1)
     self._input_tensors = {
-      'source_tensors': [inputs],
-      'target_tensors': [labels],
+        'source_tensors': [inputs],
+        'target_tensors': [labels],
     }
 
   def split_data(self, data):
@@ -251,8 +254,7 @@ class ImagenetDataLayer(DataLayer):
       else:
         end = size // self._num_workers * (self._worker_id + 1)
       return data[start:end]
-    else:
-      return data
+    return data
 
   @property
   def input_tensors(self):
@@ -265,5 +267,4 @@ class ImagenetDataLayer(DataLayer):
   def get_size_in_samples(self):
     if self.params['mode'] == 'train':
       return self._train_size
-    else:
-      return self._valid_size
+    return self._valid_size

@@ -162,41 +162,14 @@
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.cudnn_rnn.python.ops</span> <span class="k">import</span> <span class="n">cudnn_rnn_ops</span>
 
 <span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
-
-
-<div class="viewcode-block" id="conv2d_bn_actv"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.conv2d_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv2d_bn_actv</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
-                   <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span>
-                   <span class="n">bn_epsilon</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Helper function that applies convolution, batch norm and activation.&quot;&quot;&quot;</span>
-  <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-    <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
-    <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
-    <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
-    <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
-    <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
-    <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-    <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
-  <span class="p">)</span>
-  <span class="n">bn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/bn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-    <span class="n">inputs</span><span class="o">=</span><span class="n">conv</span><span class="p">,</span>
-    <span class="n">gamma_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-    <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-    <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
-    <span class="n">epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
-  <span class="p">)</span>
-  <span class="n">output</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">bn</span><span class="p">)</span>
-  <span class="k">return</span> <span class="n">output</span></div>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.cnns.conv_blocks</span> <span class="k">import</span> <span class="n">conv_bn_actv</span>
 
 
 <div class="viewcode-block" id="rnn_cell"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.rnn_cell">[docs]</a><span class="k">def</span> <span class="nf">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Helper function that creates RNN cell.&quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;layernorm_lstm&quot;</span><span class="p">:</span>
     <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">LayerNormBasicLSTMCell</span><span class="p">(</span>
-      <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
+        <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;lstm&quot;</span><span class="p">:</span>
       <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">BasicLSTMCell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">)</span>
@@ -210,7 +183,7 @@
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error: not supported rnn type:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer_type</span><span class="p">))</span>
 
     <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">DropoutWrapper</span><span class="p">(</span>
-      <span class="n">cell</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
+        <span class="n">cell</span><span class="p">,</span> <span class="n">output_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">cell</span></div>
 
 
@@ -230,28 +203,28 @@
     <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">cast_back</span> <span class="o">=</span> <span class="kc">True</span>
   <span class="n">filters</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">+</span><span class="s1">&#39;/w&#39;</span><span class="p">,</span>
-    <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
-    <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-    <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+      <span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/w&#39;</span><span class="p">,</span>
+      <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">width</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+      <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
   <span class="p">)</span>
   <span class="n">strides</span> <span class="o">=</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
   <span class="n">y</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">depthwise_conv2d</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/conv&#39;</span><span class="p">,</span>
-    <span class="nb">input</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
-    <span class="nb">filter</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
-    <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
-    <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
-    <span class="n">data_format</span><span class="o">=</span><span class="s1">&#39;NHWC&#39;</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="s1">&#39;NCHW&#39;</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39;/conv&#39;</span><span class="p">,</span>
+      <span class="nb">input</span><span class="o">=</span><span class="n">x</span><span class="p">,</span>
+      <span class="nb">filter</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+      <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+      <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+      <span class="n">data_format</span><span class="o">=</span><span class="s1">&#39;NHWC&#39;</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="s1">&#39;NCHW&#39;</span><span class="p">,</span>
   <span class="p">)</span>
   <span class="n">bn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/bn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-    <span class="n">inputs</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
-    <span class="n">gamma_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-    <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-    <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
-    <span class="n">momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
-    <span class="n">epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/bn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+      <span class="n">inputs</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+      <span class="n">gamma_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+      <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+      <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="n">momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+      <span class="n">epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
   <span class="p">)</span>
   <span class="n">output</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">bn</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
@@ -267,25 +240,25 @@
 <div class="viewcode-block" id="DeepSpeech2Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;conv_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
-      <span class="s1">&#39;activation_fn&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid callable</span>
-      <span class="s1">&#39;num_rnn_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;row_conv&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;n_hidden&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;use_cudnn_rnn&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;rnn_cell_dim&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;rnn_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;layernorm_lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_lstm&#39;</span><span class="p">],</span>
-      <span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;conv_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s1">&#39;activation_fn&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid callable</span>
+        <span class="s1">&#39;num_rnn_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;row_conv&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;n_hidden&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;use_cudnn_rnn&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;rnn_cell_dim&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;rnn_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;layernorm_lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_lstm&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="DeepSpeech2Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;row_conv_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
-      <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;row_conv_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="DeepSpeech2Encoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ds2_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
@@ -369,8 +342,8 @@
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">input_layer</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">input_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-    
-    <span class="c1"># ----- Convolutional layers -----------------------------------------------</span>
+
+    <span class="c1"># ----- Convolutional layers ---------------------------------------------</span>
     <span class="n">conv_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;conv_layers&#39;</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">idx_conv</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">conv_layers</span><span class="p">)):</span>
@@ -384,19 +357,20 @@
       <span class="k">else</span><span class="p">:</span>
         <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv2d_bn_actv</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx_conv</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-        <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
-        <span class="n">filters</span><span class="o">=</span><span class="n">ch_out</span><span class="p">,</span>
-        <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
-        <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
-        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
-        <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
-        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
-        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
-        <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv_bn_actv</span><span class="p">(</span>
+          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;conv2d&quot;</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx_conv</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
+          <span class="n">filters</span><span class="o">=</span><span class="n">ch_out</span><span class="p">,</span>
+          <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+          <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+          <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+          <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
       <span class="p">)</span>
     <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
@@ -422,55 +396,56 @@
 
         <span class="k">if</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_gru&quot;</span> <span class="ow">or</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;gru&quot;</span><span class="p">:</span>
           <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnGRU</span><span class="p">(</span>
-            <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
-            <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>
-            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
-            <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_gru&quot;</span><span class="p">,</span>
+              <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
+              <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>
+              <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+              <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_gru&quot;</span><span class="p">,</span>
           <span class="p">)</span>
         <span class="k">elif</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_lstm&quot;</span> <span class="ow">or</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;lstm&quot;</span><span class="p">:</span>
           <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnLSTM</span><span class="p">(</span>
-            <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
-            <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>
-            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
-            <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_lstm&quot;</span><span class="p">,</span>
+              <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
+              <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>
+              <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+              <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_lstm&quot;</span><span class="p">,</span>
           <span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not a valid rnn_type for cudnn_rnn layers&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">rnn_type</span><span class="p">)</span>
+              <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> is not a valid rnn_type for cudnn_rnn layers&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                  <span class="n">rnn_type</span><span class="p">)</span>
           <span class="p">)</span>
         <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">rnn_block</span><span class="p">(</span><span class="n">rnn_input</span><span class="p">)</span>
         <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">rnn_input</span> <span class="o">=</span> <span class="n">top_layer</span>
         <span class="n">multirnn_cell_fw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span>
-          <span class="p">[</span><span class="n">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="n">rnn_type</span><span class="p">,</span>
-                    <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
-           <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_rnn_layers</span><span class="p">)]</span>
-        <span class="p">)</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">]:</span>
-          <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dynamic_rnn</span><span class="p">(</span>
-            <span class="n">cell</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span>
-            <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
-            <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-          <span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-          <span class="n">multirnn_cell_bw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span>
             <span class="p">[</span><span class="n">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="n">rnn_type</span><span class="p">,</span>
                       <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
              <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_rnn_layers</span><span class="p">)]</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">]:</span>
+          <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dynamic_rnn</span><span class="p">(</span>
+              <span class="n">cell</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span>
+              <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
+              <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">multirnn_cell_bw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span>
+              <span class="p">[</span><span class="n">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="o">=</span><span class="n">rnn_type</span><span class="p">,</span>
+                        <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_rnn_layers</span><span class="p">)]</span>
           <span class="p">)</span>
           <span class="n">top_layer</span><span class="p">,</span> <span class="n">state</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bidirectional_dynamic_rnn</span><span class="p">(</span>
-            <span class="n">cell_fw</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span> <span class="n">cell_bw</span><span class="o">=</span><span class="n">multirnn_cell_bw</span><span class="p">,</span>
-            <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
-            <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span>
+              <span class="n">cell_fw</span><span class="o">=</span><span class="n">multirnn_cell_fw</span><span class="p">,</span> <span class="n">cell_bw</span><span class="o">=</span><span class="n">multirnn_cell_bw</span><span class="p">,</span>
+              <span class="n">inputs</span><span class="o">=</span><span class="n">rnn_input</span><span class="p">,</span>
+              <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span>
           <span class="p">)</span>
           <span class="c1"># concat 2 tensors [B, T, n_cell_dim] --&gt; [B, T, 2*n_cell_dim]</span>
           <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -479,43 +454,43 @@
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;row_conv&#39;</span><span class="p">]:</span>
       <span class="n">channels</span> <span class="o">=</span> <span class="n">top_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">row_conv</span><span class="p">(</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;row_conv&quot;</span><span class="p">,</span>
-        <span class="n">input_layer</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
-        <span class="n">batch</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
-        <span class="n">channels</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
-        <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
-        <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;row_conv_width&#39;</span><span class="p">],</span>
-        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
-        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
-        <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;row_conv&quot;</span><span class="p">,</span>
+          <span class="n">input_layer</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
+          <span class="n">batch</span><span class="o">=</span><span class="n">batch_size</span><span class="p">,</span>
+          <span class="n">channels</span><span class="o">=</span><span class="n">channels</span><span class="p">,</span>
+          <span class="n">activation_fn</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
+          <span class="n">width</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;row_conv_width&#39;</span><span class="p">],</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+          <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
       <span class="p">)</span>
 
     <span class="c1"># Reshape [B, T, C] --&gt; [B*T, C]</span>
     <span class="n">c</span> <span class="o">=</span> <span class="n">top_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">c</span><span class="p">])</span>
 
-    <span class="c1"># --- hidden layer with clipped ReLU activation and dropout-----------------</span>
+    <span class="c1"># --- hidden layer with clipped ReLU activation and dropout---------------</span>
     <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">(</span>
-      <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
-      <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_hidden&#39;</span><span class="p">],</span>
-      <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-      <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
-      <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fully_connected&#39;</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_hidden&#39;</span><span class="p">],</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">activation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">],</span>
+        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;fully_connected&#39;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span> <span class="n">keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
 
     <span class="c1"># reshape from  [B*T,A] --&gt; [B, T, A].</span>
     <span class="c1"># Output shape: [batch_size, n_steps, n_hidden]</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
-      <span class="n">outputs</span><span class="p">,</span>
-      <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_hidden&#39;</span><span class="p">]],</span>
+        <span class="n">outputs</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;n_hidden&#39;</span><span class="p">]],</span>
     <span class="p">)</span>
 
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
-      <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">src_length</span><span class="p">,</span>
+        <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+        <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">src_length</span><span class="p">,</span>
     <span class="p">}</span></div></div>
 </pre></div>
 

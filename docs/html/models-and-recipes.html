@@ -89,10 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Models and recipes</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#machine-translation">Machine translation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#speech-recognition">Speech recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#deep-speech-2-based-models">Deep Speech 2 based models</a></li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="#speech-recognition">Speech recognition</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
@@ -168,13 +165,15 @@
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">Currently OpenSeq2Seq has model implementations for machine translation and
-automatic speech recognition. All models work both in float32 and mixed precision.
-We recommend you use <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> when training on Volta GPUs.</p>
+automatic speech recognition.
+All models work both in float32 and mixed precision.
+We recommend you use <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a>
+when training on Volta GPUs.</p>
 </div>
-<p>To train models you can use the following
-commands (don’t forget to substitute valid config_file path there).</p>
+<p>To train models you can use the following commands (don’t forget to substitute
+valid config_file path there and number of GPUs if using Horovod).</p>
 <p>With Horovod (highly recommended when using multiple GPUs):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">--</span><span class="n">mca</span> <span class="n">orte_base_help_aggregate</span> <span class="mi">0</span> <span class="o">-</span><span class="n">mca</span> <span class="n">btl</span> <span class="o">^</span><span class="n">openib</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="o">-</span><span class="n">H</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">4</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">none</span> <span class="o">-</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">slot</span> <span class="o">-</span><span class="n">x</span> <span class="n">LD_LIBRARY_PATH</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
 </pre></div>
 </div>
 <p>Without Horovod:</p>
@@ -184,6 +183,13 @@ commands (don’t forget to substitute valid config_file path there).</p>
 <p>The description of implemented models is available in the next sections:</p>
 <div class="section" id="machine-translation">
 <h2>Machine translation<a class="headerlink" href="#machine-translation" title="Permalink to this headline">¶</a></h2>
+<p>The table below contains description and results of
+machine translation models available in OpenSeq2Seq.
+Currently, we have GNMT-based model, Transformer-based models and
+ConvS2S-based models.</p>
+<p>We measure BLEU score on newstest2014.tok.de file using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
+For more details about model descriptions and training setup,
+have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de">configuration files</a>.</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
 <col width="20%" />
@@ -201,55 +207,58 @@ commands (don’t forget to substitute valid config_file path there).</p>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-nmt-small.py">en-de-nmt-small.py</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-nmt-small.py">en-de-nmt-small.py</a></td>
 <td>20.23</td>
 <td>This model should train on a single GPU such as 1080Ti. It is trained using Adam optimizer.</td>
 <td>RNN-based. Bi-directional encoder with 2 layers and. GNMT-like decoder with 2 layers and attention. Uses LSTM cells of size 512.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1Ty9hiOQx4V28jJmIbj7FWUyw7LVA39SF/view?usp=sharing">link</a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de-gnmt-like-4GPUs.py">en-de-gnmt-like-4GPUs.py</a></td>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py">en-de-gnmt-like-4GPUs.py</a></td>
 <td>23.89</td>
 <td>This model was trained on 4 GPUs with Adam optimizer and learning rate decay.</td>
 <td>RNN-based. This is GNMT-like model which tries to match the one described in <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a> as close as possible.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1HVc4S8-wv1-AZK1JeWgn6YNITSFAMes_/view?usp=sharing">link</a></td>
 </tr>
-<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/transformer-big.py">transformer-big.py</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py">transformer-big.py</a></td>
 <td>26.17</td>
 <td>This model was trained on 4 GPUs with Adam optimizer and learning rate decay.</td>
 <td>Transformer “big” model. This model does not have any RNN layers</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing">link</a></td>
 </tr>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s.py">en-de-convs2s.py</a></td>
+<td>xx.xx</td>
+<td>This model was trained on 4 GPUs with Adam optimizer, learning rate decay and warm-up.</td>
+<td>This is an implementation of the ConvS2S model proposed in <a class="reference external" href="https://arxiv.org/abs/1705.03122">https://arxiv.org/abs/1705.03122</a>.</td>
+<td>Coming soon.</td>
+</tr>
 </tbody>
 </table>
-<p>GNMT model description can be found <a class="reference external" href="https://arxiv.org/abs/1609.08144">here</a>.
-Transformer model description can be found <a class="reference external" href="https://arxiv.org/abs/1706.03762">here</a>.
-We measure BLEU score on newstest2014.tok.de file using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.</p>
+<p>GNMT model description: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.</p>
+<p>Transformer model description: <a class="reference external" href="https://arxiv.org/abs/1706.03762">https://arxiv.org/abs/1706.03762</a>.</p>
+<p>ConvS2S model description: <a class="reference external" href="https://arxiv.org/abs/1705.03122">https://arxiv.org/abs/1705.03122</a>.</p>
 </div>
 <div class="section" id="speech-recognition">
 <h2>Speech recognition<a class="headerlink" href="#speech-recognition" title="Permalink to this headline">¶</a></h2>
-<div class="section" id="deep-speech-2-based-models">
-<h3>Deep Speech 2 based models<a class="headerlink" href="#deep-speech-2-based-models" title="Permalink to this headline">¶</a></h3>
-<p>Original Deep Speech 2 model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.
-The table below contains description and results of
-Deep Speech 2 based models available in OpenSeq2Seq.</p>
-<p>WER-512 and WER-2048 is word error rate obtained with beam width of 512 and 2048
-correspondingly. For beam width of 2048 we also used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
+<p>The table below contains description and results of
+speech recognition models available in OpenSeq2Seq.
+Currently, we have DeepSpeech2-based models and Wav2Letter-based models.</p>
+<p>WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
+greedy decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
+For the final evaluation we used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
 to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cudnn padding issue</a>.
 For more details about model descriptions and training setup,
-have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/">configuration files</a>.</p>
+have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text">configuration files</a>.</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="17%" />
-<col width="17%" />
-<col width="17%" />
-<col width="17%" />
-<col width="17%" />
-<col width="17%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
+<col width="20%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Config file</th>
-<th class="head">WER-512</th>
-<th class="head">WER-2048</th>
+<th class="head">WER</th>
 <th class="head">Training setup and additional comments</th>
 <th class="head">Short description of the model</th>
 <th class="head">Checkpoint</th>
@@ -257,17 +266,15 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py">ds2_large_8gpus.py</a></td>
-<td>4.90%</td>
-<td>4.59%</td>
+<td>9.28%</td>
 <td>This model was trained for 50 epochs using SGD with Momentum and LARC on
 the full LibriSpeech in a few days using Horovod on eight GPUs.</td>
 <td>This model has 2 convolutional layers and 5 bidirectional
 GRU layers with 800 units.</td>
-<td><a class="reference external" href="https://drive.google.com/file/d/1gfGg3DzXviNhYlIyxl12gWp47R8Uz-Bf/view?usp=sharing">link</a></td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
 </tr>
 <tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py">ds2_medium_4gpus.py</a></td>
-<td>6.12%</td>
-<td>5.49%</td>
+<td>22.60%</td>
 <td>This model was trained for 50 epochs using Adam on the full
 LibriSpeech in a few days using Horovod on four GPUs.</td>
 <td>This model has 3 convolutional layers and 3 unidirectional
@@ -275,17 +282,26 @@ GRU layers with 1024 units.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1XpnyZzMaO38RE4dSOJZkcaJ3T8B0lxKe/view?usp=sharing">link</a></td>
 </tr>
 <tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py">ds2_small_1gpu.py</a></td>
-<td>11.77%</td>
-<td>9.32%</td>
+<td>39.08%</td>
 <td>This model was trained for 12 epochs using Adam on a “clean” subset of
 LibriSpeech in less than a day using a single GPU.</td>
 <td>This model has 2 convolutional layers and 2 bidirectional
 GRU layers with 512 units.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing">link</a></td>
 </tr>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus.py">w2l_large_8gpus.py</a></td>
+<td>15.44%</td>
+<td>This model was trained for 18 epochs (with early stopping based on
+validation loss) using SGD with Momentum and LARC on
+the full LibriSpeech in a few days on eight GPUs.</td>
+<td>The model has 19 convolutional layers (200–1000 units, 7–21 kernel size).
+We use batch norm between all layers.</td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1gVdi8am_a3bNUQo4SZGItqNrIeV8MSqA">link</a></td>
+</tr>
 </tbody>
 </table>
-</div>
+<p>Deep Speech 2 model description: <a class="reference external" href="https://arxiv.org/abs/1512.02595">https://arxiv.org/abs/1512.02595</a>.</p>
+<p>Wav2Letter model description: <a class="reference external" href="https://arxiv.org/abs/1609.03193">https://arxiv.org/abs/1609.03193</a>, <a class="reference external" href="https://arxiv.org/abs/1712.09444">https://arxiv.org/abs/1712.09444</a>.</p>
 </div>
 </div>
 

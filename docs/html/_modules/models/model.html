@@ -165,6 +165,11 @@
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">funcsigs</span> <span class="k">import</span> <span class="n">signature</span>
+
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">clip_last_batch</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.optimizers</span> <span class="k">import</span> <span class="n">optimize_loss</span><span class="p">,</span> <span class="n">get_regularization_loss</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span>
@@ -210,6 +215,7 @@
       <span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
       <span class="s1">&#39;print_loss_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
       <span class="s1">&#39;print_samples_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+      <span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
       <span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
       <span class="s1">&#39;eval_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 
@@ -230,9 +236,9 @@
       <span class="s1">&#39;lr_policy_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
       <span class="s1">&#39;max_grad_norm&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
       <span class="s1">&#39;larc_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-      <span class="s1">&#39;loss_scale&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;automatic_loss_scaling&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMax&#39;</span><span class="p">],</span>
+      <span class="s1">&#39;loss_scaling&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># float, &quot;Backoff&quot; or &quot;LogMax&quot;</span>
       <span class="s1">&#39;summaries&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+      <span class="s1">&#39;iter_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Model.__init__"><a class="viewcode-back" href="../../in-depth-tutorials/using-existing-models.html#models.model.Model.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -276,6 +282,11 @@
 <span class="sd">    * **print_samples_steps** (int or None) --- how often to print training</span>
 <span class="sd">      samples (input sequences, correct answers and model predictions).</span>
 <span class="sd">      Setting it to None disables samples printing.</span>
+<span class="sd">    * **print_bench_info_steps** (int or None) --- how often to print training</span>
+<span class="sd">      benchmarking information (average number of objects processed per step).</span>
+<span class="sd">      Setting it to None disables intermediate benchmarking printing, but</span>
+<span class="sd">      the average information across the whole training will always be printed</span>
+<span class="sd">      after the last iteration.</span>
 <span class="sd">    * **save_checkpoint_steps** (int or None) --- how often to save model</span>
 <span class="sd">      checkpoints. Setting it to None disables checkpoint saving.</span>
 <span class="sd">    * **eval_steps** (int) --- how often to run evaluation during training.</span>
@@ -311,14 +322,17 @@
 <span class="sd">    * **max_grad_norm** (float) --- maximum value of gradient norm. Clipping</span>
 <span class="sd">      will be performed if some gradients exceed this value (this is checked</span>
 <span class="sd">      for each variable independently).</span>
-<span class="sd">    * **loss_scale** (float) --- static loss scale to use. For details see</span>
-<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
-<span class="sd">    * **automatic_loss_scaling** --- automatic loss scaling mode. Could be</span>
-<span class="sd">      either None, &quot;Backoff&quot; or &quot;Logmax&quot;. For details see</span>
-<span class="sd">      :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
+<span class="sd">    * **loss_scaling** --- could be float or string. If float, static loss</span>
+<span class="sd">      scaling is applied. If string, the corresponding automatic</span>
+<span class="sd">      loss scaling algorithm is used. Must be one of &#39;Backoff&#39;</span>
+<span class="sd">      of &#39;LogMax&#39; (case insensitive). Only used when dtype=&quot;mixed&quot;. For details</span>
+<span class="sd">      see :ref:`mixed precision training &lt;mixed_precision&gt;` section in docs.</span>
 <span class="sd">    * **summaries** (list) --- which summaries to log. Could contain</span>
 <span class="sd">      &quot;learning_rate&quot;, &quot;gradients&quot;, &quot;gradient_norm&quot;, &quot;global_gradient_norm&quot;,</span>
 <span class="sd">      &quot;variables&quot;, &quot;variable_norm&quot;.</span>
+<span class="sd">    * **iter_size** (int) --- use this parameter to emulate large batches.</span>
+<span class="sd">      The gradients will be accumulated for ``iter_size`` number of steps before</span>
+<span class="sd">      applying update.</span>
 <span class="sd">    * **larc_params** --- dictionary with parameters for LARC (or LARS)</span>
 <span class="sd">      optimization algorithms. Can contain the following parameters:</span>
 
@@ -334,6 +348,9 @@
     <span class="n">check_params</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">())</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;iter_size is only supported in Horovod mode&quot;</span><span class="p">)</span>
 
     <span class="c1"># parameter checks</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
@@ -356,6 +373,8 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="s1">&#39;save_summaries_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">&#39;print_bench_info_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="c1"># checking that frequencies of samples and loss are aligned</span>
     <span class="n">s_fr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span>
@@ -421,15 +440,21 @@
           <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hvd</span><span class="o">.</span><span class="n">size</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">//=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Overall batch size is too big for this dataset.&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_steps_in_epoch</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span> <span class="o">=</span> <span class="p">[</span><span class="kc">None</span><span class="p">]</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">train_op</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">skip_update_ph</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="Model.compile"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.compile">[docs]</a>  <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;TensorFlow graph is built here.&quot;&quot;&quot;</span>
@@ -461,7 +486,7 @@
           <span class="p">)</span>
           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
              <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder samples have to be either None or list&#39;</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder outputs have to be either None or list&#39;</span><span class="p">)</span>
           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
             <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
       <span class="c1"># end of for gpu_ind loop</span>
@@ -487,12 +512,18 @@
         <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span>
                                                             <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
-          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder samples have to be either None or list&#39;</span><span class="p">)</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder outputs have to be either None or list&#39;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">eval_losses</span> <span class="o">=</span> <span class="p">[</span><span class="n">loss</span><span class="p">]</span>
+
+    <span class="k">try</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_num_objects_per_step</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)]</span>
+    <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+      <span class="k">pass</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="k">if</span> <span class="s1">&#39;lr_policy&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
@@ -501,34 +532,31 @@
         <span class="n">lr_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;lr_policy_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
         <span class="c1"># adding default decay_steps = max_steps if lr_policy supports it and</span>
         <span class="c1"># different value is not provided</span>
-        <span class="k">if</span> <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span> <span class="ow">and</span> \
-           <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lr_params</span><span class="p">:</span>
+        <span class="n">func_params</span> <span class="o">=</span> <span class="n">signature</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">parameters</span>
+        <span class="k">if</span> <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">in</span> <span class="n">func_params</span> <span class="ow">and</span> <span class="s1">&#39;decay_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lr_params</span><span class="p">:</span>
           <span class="n">lr_params</span><span class="p">[</span><span class="s1">&#39;decay_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span>
-        <span class="k">if</span> <span class="s1">&#39;steps_per_epoch&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">]</span><span class="o">.</span><span class="vm">__code__</span><span class="o">.</span><span class="n">co_varnames</span> <span class="ow">and</span> \
+        <span class="k">if</span> <span class="s1">&#39;steps_per_epoch&#39;</span> <span class="ow">in</span> <span class="n">func_params</span> <span class="ow">and</span> \
            <span class="s1">&#39;steps_per_epoch&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lr_params</span> <span class="ow">and</span> <span class="s1">&#39;num_epochs&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
           <span class="n">lr_params</span><span class="p">[</span><span class="s1">&#39;steps_per_epoch&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span>
         <span class="n">lr_policy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">gs</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lr_policy&#39;</span><span class="p">](</span><span class="n">global_step</span><span class="o">=</span><span class="n">gs</span><span class="p">,</span>
                                                         <span class="o">**</span><span class="n">lr_params</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">skip_update_ph</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
 
       <span class="bp">self</span><span class="o">.</span><span class="n">train_op</span> <span class="o">=</span> <span class="n">optimize_loss</span><span class="p">(</span>
         <span class="n">loss</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span> <span class="o">+</span> <span class="n">get_regularization_loss</span><span class="p">(),</span>
         <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>
         <span class="n">optimizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;optimizer&#39;</span><span class="p">],</span>
         <span class="n">optimizer_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;optimizer_params&#39;</span><span class="p">,</span> <span class="p">{}),</span>
-        <span class="n">gradient_noise_scale</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">gradient_multipliers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
         <span class="n">clip_gradients</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_grad_norm&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
         <span class="n">learning_rate_decay_fn</span><span class="o">=</span><span class="n">lr_policy</span><span class="p">,</span>
-        <span class="n">update_ops</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">variables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;Loss_Optimization&quot;</span><span class="p">,</span>
         <span class="n">summaries</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;summaries&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-        <span class="n">increment_global_step</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">larc_params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;larc_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">loss_scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loss_scale&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
-        <span class="n">automatic_loss_scaling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;automatic_loss_scaling&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+        <span class="n">loss_scaling</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;loss_scaling&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">),</span>
         <span class="n">on_horovod</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">,</span>
+        <span class="n">iter_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
+        <span class="n">skip_update_ph</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skip_update_ph</span><span class="p">,</span>
       <span class="p">)</span>
       <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">)</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">:</span>
@@ -569,7 +597,7 @@
 <span class="sd">          is constructed. For Horovod this is always zero.</span>
 
 <span class="sd">    Returns:</span>
-<span class="sd">      tuple: tuple containing loss tensor and samples tensor.</span>
+<span class="sd">      tuple: tuple containing loss tensor and list of outputs tensors.</span>
 
 <span class="sd">      Loss tensor will be automatically provided to the optimizer and</span>
 <span class="sd">      corresponding :attr:`train_op` will be created.</span>
@@ -579,12 +607,12 @@
 <span class="sd">      this happens inside :class:`utils.hooks.RunEvaluationHook`</span>
 <span class="sd">      to fetch output values for evaluation.</span>
 
-<span class="sd">      Both loss and samples can be None when corresponding part of the graph</span>
+<span class="sd">      Both loss and outputs can be None when corresponding part of the graph</span>
 <span class="sd">      is not built.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 
-<div class="viewcode-block" id="Model.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">training_step</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This method can be used to print logs that help to visualize training.</span>
 <span class="sd">    For example, you can print sample input sequences and their corresponding</span>
 <span class="sd">    predictions. This method will be called every ``print_samples_steps``</span>
@@ -602,6 +630,7 @@
 <span class="sd">      output_values: evaluation of</span>
 <span class="sd">          :meth:`self.get_output_tensors(0) &lt;get_output_tensors&gt;`,</span>
 <span class="sd">          that is, output tensors for one batch on the *first* GPU.</span>
+<span class="sd">      training_step (int): Current training step.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">      dict: dictionary with values that need to be logged to TensorBoard</span>
@@ -646,7 +675,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">[]</span></div>
 
-<div class="viewcode-block" id="Model.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">training_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This method can be used in conjunction with</span>
 <span class="sd">    :meth:`self.evaluate()&lt;evaluate&gt;` to calculate</span>
 <span class="sd">    evaluation metrics.</span>
@@ -669,6 +698,8 @@
 <span class="sd">      results_per_batch (list): aggregation of values returned from all calls</span>
 <span class="sd">          to :meth:`self.evaluate()&lt;evaluate&gt;` method (number of calls will be</span>
 <span class="sd">          equal to number of evaluation batches).</span>
+<span class="sd">      training_step (int): current training step. Will only be passed if mode</span>
+<span class="sd">          is &quot;train_eval&quot;.</span>
 
 <span class="sd">    Returns:</span>
 <span class="sd">      dict: dictionary with values that need to be logged to TensorBoard</span>
@@ -776,7 +807,7 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Model.get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="Model._get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">_get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Define this method if you need benchmarking functionality.</span>
 <span class="sd">    For example, for translation models, this method should return number of</span>
 <span class="sd">    tokens in current batch, for image recognition model should return number</span>
@@ -790,6 +821,12 @@
 <span class="sd">      tf.Tensor with number of objects in batch.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
+
+<div class="viewcode-block" id="Model.get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span><span class="p">[</span><span class="n">worker_id</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">()</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

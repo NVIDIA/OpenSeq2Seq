@@ -1,15 +1,15 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
-import tensorflow as tf
 import numpy as np
 import numpy.testing as npt
+import tensorflow as tf
+from six.moves import range
 
+from open_seq2seq.optimizers import optimize_loss
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper, \
                                                MixedPrecisionOptimizerWrapper
-from open_seq2seq.optimizers import optimize_loss
 from .lr_policies import fixed_lr
 
 
@@ -29,6 +29,7 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
     y = np.ones((n_samples, 1)) * scale_init
 
     for dtype in [tf.float16, tf.float32]:
+      # pylint: disable=no-member
       regularizer = tf.contrib.layers.l2_regularizer(wd)
 
       with tf.Graph().as_default() as g:
@@ -36,9 +37,9 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
         y_ph = tf.placeholder(dtype, [n_samples, 1])
 
         y_pred = tf.layers.dense(
-          x_ph, 1, kernel_regularizer=regularizer,
-          use_bias=False,
-          kernel_initializer=tf.constant_initializer(scale_init, dtype=dtype),
+            x_ph, 1, kernel_regularizer=regularizer,
+            use_bias=False,
+            kernel_initializer=tf.constant_initializer(scale_init, dtype=dtype),
         )
         loss = tf.reduce_mean((y_ph - y_pred) ** 2)
         reg_loss = tf.losses.get_regularization_loss()
@@ -66,6 +67,7 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
     y = np.ones((n_samples, 1)) * scale_init
 
     dtype = tf.float16
+    # pylint: disable=no-member
     regularizer = mp_regularizer_wrapper(tf.contrib.layers.l2_regularizer(wd))
 
     with tf.Graph().as_default() as g:
@@ -73,9 +75,9 @@ class MixedPrecisionOptimizerTests(tf.test.TestCase):
       y_ph = tf.placeholder(dtype, [n_samples, 1])
 
       y_pred = tf.layers.dense(
-        x_ph, 1, kernel_regularizer=regularizer,
-        use_bias=False,
-        kernel_initializer=tf.constant_initializer(scale_init, dtype=dtype),
+          x_ph, 1, kernel_regularizer=regularizer,
+          use_bias=False,
+          kernel_initializer=tf.constant_initializer(scale_init, dtype=dtype),
       )
       loss = tf.reduce_mean((y_ph - y_pred) ** 2)
       reg_loss = tf.losses.get_regularization_loss()

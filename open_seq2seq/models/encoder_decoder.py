@@ -3,8 +3,9 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import tensorflow as tf
-from open_seq2seq.utils.utils import deco_print
+
 from open_seq2seq.models.model import Model
+from open_seq2seq.utils.utils import deco_print
 
 
 class EncoderDecoderModel(Model):
@@ -16,17 +17,17 @@ class EncoderDecoderModel(Model):
   @staticmethod
   def get_required_params():
     return dict(Model.get_required_params(), **{
-      'encoder': None,  # could be any user defined class
-      'decoder': None,  # could be any user defined class
+        'encoder': None,  # could be any user defined class
+        'decoder': None,  # could be any user defined class
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Model.get_optional_params(), **{
-      'encoder_params': dict,
-      'decoder_params': dict,
-      'loss': None,  # could be any user defined class
-      'loss_params': dict,
+        'encoder_params': dict,
+        'decoder_params': dict,
+        'loss': None,  # could be any user defined class
+        'loss_params': dict,
     })
 
   def __init__(self, params, mode="train", hvd=None):
@@ -164,8 +165,8 @@ class EncoderDecoderModel(Model):
       if self.mode == "train" or self.mode == "eval":
         with tf.variable_scope("Loss"):
           loss_input_dict = {
-            "decoder_output": decoder_output,
-            "target_tensors": target_tensors,
+              "decoder_output": decoder_output,
+              "target_tensors": target_tensors,
           }
           loss = self.loss_computator.compute_loss(loss_input_dict)
       else:
