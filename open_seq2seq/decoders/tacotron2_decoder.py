@@ -247,37 +247,38 @@ class Tacotron2Decoder(Decoder):
     Decodes representation into data
 
     Args:
-      input_dict (dict): Python dictionary with inputs to decoder
+      input_dict (dict): Python dictionary with inputs to decoder. Must define:
 
-    Must define:
-      * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
-                     or [time, batch_size, dim]
-      * src_lengths - decoder input lengths Tensor of shape [batch_size]
-      * tgt_inputs - Only during training. labels Tensor of the
-                     shape [batch_size, time, num_features] or
-                     [time, batch_size, num_features]
-      * stop_token_inputs - Only during training. labels Tensor of the
-                     shape [batch_size, time, 1] or [time, batch_size, 1]
-      * tgt_lengths - Only during training. labels lengths
-                      Tensor of the shape [batch_size]
+          * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
+            or [time, batch_size, dim]
+          * src_lengths - decoder input lengths Tensor of shape [batch_size]
+          * tgt_inputs - Only during training. labels Tensor of the
+            shape [batch_size, time, num_features] or
+            [time, batch_size, num_features]
+          * stop_token_inputs - Only during training. labels Tensor of the
+            shape [batch_size, time, 1] or [time, batch_size, 1]
+          * tgt_lengths - Only during training. labels lengths
+            Tensor of the shape [batch_size]
+
     Returns:
-      a Python dictionary with:
-        * outputs - array containing
-          * decoder_output - tensor of shape [batch_size, time, num_features]
-            or [time, batch_size, num_features]. Spectrogram representation
-            learned by the decoder rnn
-          * spectrogram_prediction - tensor of shape [batch_size, time,
-            num_features] or [time, batch_size, num_features]. Spectrogram
-            containing the residual corrections from the postnet if enabled
-          * alignments - tensor of shape [batch_size, time, memory_size]
-            or [time, batch_size, memory_size]. The alignments learned by the
-            attention layer
-          * stop_token_prediction - tensor of shape [batch_size, time, 1]
-            or [time, batch_size, 1]. The stop token predictions
-          * final_sequence_lengths - tensor of shape [batch_size]
-        * stop_token_predictions - tensor of shape [batch_size, time, 1]
-          or [time, batch_size, 1]. The stop token predictions for use inside
-          the loss function.
+      dict:
+        A python dictionary containing:
+          * outputs - array containing:
+              * decoder_output - tensor of shape [batch_size, time,
+                num_features] or [time, batch_size, num_features]. Spectrogram
+                representation learned by the decoder rnn
+              * spectrogram_prediction - tensor of shape [batch_size, time,
+                num_features] or [time, batch_size, num_features]. Spectrogram
+                containing the residual corrections from the postnet if enabled
+              * alignments - tensor of shape [batch_size, time, memory_size]
+                or [time, batch_size, memory_size]. The alignments learned by
+                the attention layer
+              * stop_token_prediction - tensor of shape [batch_size, time, 1]
+                or [time, batch_size, 1]. The stop token predictions
+              * final_sequence_lengths - tensor of shape [batch_size]
+          * stop_token_predictions - tensor of shape [batch_size, time, 1]
+            or [time, batch_size, 1]. The stop token predictions for use inside
+            the loss function.
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']

@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 from scipy.io.wavfile import write
 
 from .encoder_decoder import EncoderDecoderModel
-from StringIO import StringIO
+from six import StringIO
 
 
 def plot_spectrograms(

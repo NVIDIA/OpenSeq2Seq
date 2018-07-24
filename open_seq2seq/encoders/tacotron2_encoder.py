@@ -96,19 +96,19 @@ class Tacotron2Encoder(Encoder):
     """Creates TensorFlow graph for Tacotron-2 like encoder.
 
     Args:
-      input_dict (dict): dictionary with inputs
-
-      Must define:
-        *source_tensors - array containing [
-          source_sequence: tensor of shape [batch_size, sequence length],
-          src_length: tensor of shape [batch_size]
-        ]
+       input_dict (dict): dictionary with inputs.
+          Must define:
+              source_tensors - array containing [
+                * source_sequence: tensor of shape [batch_size, sequence length]
+                * src_length: tensor of shape [batch_size]
+              ]
 
     Returns:
-      a Python dictionary with:
-        * outputs - tensor containing the encoded text to be passed to the
-          attention layer
-        * src_length - the length of the encoded text
+      dict:
+        A python dictionary containing:
+          * outputs - tensor containing the encoded text to be passed to the
+            attention layer
+          * src_length - the length of the encoded text
     """
 
     source_sequence, src_length = input_dict['source_tensors']

@@ -1,4 +1,4 @@
-speech2text
+text2speech
 ===========
 
 .. automodule:: data.text2speech
@@ -6,7 +6,7 @@ speech2text
     :undoc-members:
     :show-inheritance:
 
-speech2text
+text2speech
 -----------
 
 .. automodule:: data.text2speech.text2speech
