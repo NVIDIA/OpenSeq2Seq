@@ -45,3 +45,11 @@ convs2s\_decoder
     :members:
     :undoc-members:
     :show-inheritance:
+
+tacotron2\_decoder
+-------------------------------------
+
+.. automodule:: decoders.tacotron2_decoder
+    :members:
+    :undoc-members:
+    :show-inheritance:

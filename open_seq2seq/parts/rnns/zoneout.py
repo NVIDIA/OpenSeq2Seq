@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 from six.moves import range
 
 from tensorflow.python.ops import rnn_cell_impl
-from tensorflow.python.ops import array_ops
 from tensorflow.python.ops.nn_ops import dropout
 
 
@@ -27,7 +26,7 @@ class ZoneoutWrapper(rnn_cell_impl.RNNCell):
     self._cell = cell
     self._zoneout_prob = (zoneout_prob, zoneout_prob)
     self._seed = seed
-    self.is_training = is_training
+    self._is_training = is_training
 
   @property
   def state_size(self):
@@ -47,7 +46,7 @@ class ZoneoutWrapper(rnn_cell_impl.RNNCell):
       raise ValueError("State and zoneout need equally many parts.")
     output, new_state = self._cell(inputs, state, scope)
     if isinstance(self.state_size, tuple):
-      if self.is_training:
+      if self._is_training:
         new_state = tuple(
             (1 - state_part_zoneout_prob) * dropout(
                 new_state_part - state_part, (1 - state_part_zoneout_prob),
@@ -65,13 +64,5 @@ class ZoneoutWrapper(rnn_cell_impl.RNNCell):
         )
       new_state = rnn_cell_impl.LSTMStateTuple(new_state[0], new_state[1])
     else:
-      if self.is_training:
-        new_state = (1 - state_part_zoneout_prob) * dropout(
-            new_state_part - state_part, (1 - state_part_zoneout_prob),
-            seed=self._seed
-        ) + state_part
-      else:
-        new_state = state_part_zoneout_prob * state_part + (
-            1 - state_part_zoneout_prob
-        ) * new_state_part
+      raise ValueError("Only states that are tuples are supported")
     return output, new_state

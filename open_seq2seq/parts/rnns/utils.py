@@ -44,7 +44,8 @@ def single_cell(
       dp_input_keep_prob < 1.0 or dp_output_keep_prob < 1.0
   ):
     raise ValueError(
-        "Currently applying both dropout and zoneout on the same cell. This is not recommended"
+        "Currently applying both dropout and zoneout on the same cell."
+        "This is not recommended"
     )
   if dp_input_keep_prob != 1.0 or dp_output_keep_prob != 1.0:
     cell = DropoutWrapper(

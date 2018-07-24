@@ -1,3 +1,4 @@
+# pylint: skip-file
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""A powerful dynamic attention wrapper object."""
+"""A powerful dynamic attention wrapper object.
+
+Modified by blisc too add support for LocationSensitiveAttention and changed
+the AttentionWrapper class to output both the cell_output and attention context
+concatenated together.
+
+New classes:
+  LocationSensitiveAttention
+  LocationLayer
+
+New functions:
+  _bahdanau_score_with_location
+"""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -53,7 +66,6 @@ __all__ = [
     "LuongMonotonicAttention", "LocationSensitiveAttention"
 ]
 
-array_ops
 _zero_state_tensors = rnn_cell_impl._zero_state_tensors  # pylint: disable=protected-access
 
 
@@ -627,10 +639,10 @@ class BahdanauAttention(_BaseAttentionMechanism):
 
 
 def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
-  """Implements Bahdanau-style (additive) scoring function with location 
+  """Implements Bahdanau-style (additive) scoring function with location
   information.
 
-  The implementation is described in 
+  The implementation is described in
 
   Jan Chorowski, Dzmitry Bahdanau, Dmitriy Serdyuk, KyungHyun Cho, Yoshua Bengio
   "Attention-Based Models for Speech Recognition"
@@ -706,8 +718,8 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
   "Attention-Based Models for Speech Recognition"
   https://arxiv.org/abs/1506.07503
 
-  Jonathan Shen, Ruoming Pang, Ron J. Weiss, Mike Schuster, Navdeep Jaitly, 
-  Zongheng Yang, Zhifeng Chen, Yu Zhang, Yuxuan Wang, RJ Skerry-Ryan, 
+  Jonathan Shen, Ruoming Pang, Ron J. Weiss, Mike Schuster, Navdeep Jaitly,
+  Zongheng Yang, Zhifeng Chen, Yu Zhang, Yuxuan Wang, RJ Skerry-Ryan,
   Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
   "Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions"
   https://arxiv.org/abs/1712.05884
@@ -722,7 +734,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       score_mask_value=None,
       dtype=None,
       use_bias=False,
-      name="LocationSensitiveAttention"
+      name="LocationSensitiveAttention",
   ):
     """Construct the Attention mechanism.
 
@@ -786,25 +798,16 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     """
     with variable_scope.variable_scope(None, "location_attention", [query]):
       processed_query = self.query_layer(query) if self.query_layer else query
-      location = array_ops.stack(
-          (state, self.cumulative_location), axis=-1
-      )
+      location = array_ops.expand_dims(state, axis=-1)
       processed_location = self.location_layer(location)
-      self.cumulative_location = processed_location + self.cumulative_location
       score = _bahdanau_score_with_location(
           processed_query, self._keys, processed_location, self.use_bias
       )
     alignments = self._probability_fn(score, state)
-    next_state = alignments
-    return alignments, next_state
 
-  def initialize_location(self, dtype):
-    """
-    Used to initialize the cumulative location information to 0 
-    """
-    self.cumulative_location = self.initial_state(
-        self._batch_size, dtype
-    )
+    next_state = alignments + state
+
+    return alignments, next_state
 
 
 def safe_cumprod(x, *args, **kwargs):
@@ -890,7 +893,8 @@ def monotonic_attention(p_choose_i, previous_attention, mode):
     # attention[i] = p_choose_i[i]*q[i]
     attention = p_choose_i * array_ops.transpose(
         functional_ops.scan(
-            # Need to use reshape to remind TF of the shape between loop iterations
+            # Need to use reshape to remind TF of the shape between loop
+            # iterations
             lambda x, yz: array_ops.reshape(yz[0] * x + yz[1], (batch_size,)),
             # Loop variables yz[0] and yz[1]
             [
@@ -1414,7 +1418,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         are concatenated together and set as the output. In all cases, the
         `attention` tensor is propagated to the next time step via the state and
         is used there. This flag only controls whether the attention mechanism
-        is propagated up to the next cell in an RNN stack or to the top RNN 
+        is propagated up to the next cell in an RNN stack or to the top RNN
         output.
       initial_cell_state: The initial state value to use for the cell when
         the user calls `zero_state()`.  Note that if this value is provided

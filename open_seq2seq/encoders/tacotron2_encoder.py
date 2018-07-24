@@ -3,12 +3,10 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
-import math
 import inspect
 
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
-from tensorflow.contrib.rnn import LSTMStateTuple
 from tensorflow.python.framework import ops
 from open_seq2seq.parts.rnns.utils import single_cell
 from open_seq2seq.parts.cnns.conv_blocks import conv_bn_actv
@@ -17,9 +15,10 @@ from .encoder import Encoder
 
 
 class Tacotron2Encoder(Encoder):
-  """Tacotron-2 like encoder. 
+  """Tacotron-2 like encoder.
 
-  Consists of an embedding layer followed by a convolutional layer followed by a recurrent layer.
+  Consists of an embedding layer followed by a convolutional layer followed by
+  a recurrent layer.
   """
 
   @staticmethod
@@ -75,10 +74,12 @@ class Tacotron2Encoder(Encoder):
             "num_channels": 512, "padding": "SAME"
           }
         ]
-    * **activation_fn** (callable) --- activation function to use for conv layers.
+    * **activation_fn** (callable) --- activation function to use for conv
+      layers.
     * **num_rnn_layers** --- number of RNN layers to use.
     * **rnn_cell_dim** (int) --- dimension of RNN cells.
-    * **rnn_type** (callable) --- Any valid RNN Cell class. Suggested class is lstm
+    * **rnn_type** (callable) --- Any valid RNN Cell class. Suggested class is
+      lstm
     * **rnn_unidirectional** (bool) --- whether to use uni-directional or
       bi-directional RNNs.
     * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.
@@ -95,19 +96,19 @@ class Tacotron2Encoder(Encoder):
     """Creates TensorFlow graph for Tacotron-2 like encoder.
 
     Args:
-      input_dict (dict): dictionary with inputs
-
-      Must define:
-        *source_tensors - array containing [
-          source_sequence: tensor of shape [batch_size, sequence length],
-          src_length: tensor of shape [batch_size]
-        ]
+       input_dict (dict): dictionary with inputs.
+          Must define:
+              source_tensors - array containing [
+                * source_sequence: tensor of shape [batch_size, sequence length]
+                * src_length: tensor of shape [batch_size]
+              ]
 
     Returns:
-      a Python dictionary with:
-        * outputs - tensor containing the encoded text to be passed to the 
-          attention layer
-        * src_length - the length of the encoded text
+      dict:
+        A python dictionary containing:
+          * outputs - tensor containing the encoded text to be passed to the
+            attention layer
+          * src_length - the length of the encoded text
     """
 
     source_sequence, src_length = input_dict['source_tensors']
@@ -116,8 +117,6 @@ class Tacotron2Encoder(Encoder):
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
-    bn_momentum = self.params.get('bn_momentum', 0.1)
-    bn_epsilon = self.params.get('bn_epsilon', 1e-5)
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
     zoneout_prob = self.params.get('zoneout_prob', 0.)
 
@@ -139,20 +138,16 @@ class Tacotron2Encoder(Encoder):
     # ----- Convolutional layers -----------------------------------------------
     input_layer = embedded_inputs
 
-    batch_size = input_layer.get_shape().as_list()[0]
-
     if data_format == 'channels_last':
       top_layer = input_layer
     else:
       top_layer = tf.transpose(input_layer, [0, 2, 1])
 
-    conv_layers = self.params['conv_layers']
-
-    for idx_conv in range(len(conv_layers)):
-      ch_out = conv_layers[idx_conv]['num_channels']
-      kernel_size = conv_layers[idx_conv]['kernel_size']  # [time, freq]
-      strides = conv_layers[idx_conv]['stride']
-      padding = conv_layers[idx_conv]['padding']
+    for i, conv_params in enumerate(self.params['conv_layers']):
+      ch_out = conv_params['num_channels']
+      kernel_size = conv_params['kernel_size']  # [time, freq]
+      strides = conv_params['stride']
+      padding = conv_params['padding']
 
       if padding == "VALID":
         src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
@@ -161,7 +156,7 @@ class Tacotron2Encoder(Encoder):
 
       top_layer = conv_bn_actv(
           layer_type="conv1d",
-          name="conv{}".format(idx_conv + 1),
+          name="conv{}".format(i + 1),
           inputs=top_layer,
           filters=ch_out,
           kernel_size=kernel_size,
@@ -171,8 +166,8 @@ class Tacotron2Encoder(Encoder):
           regularizer=regularizer,
           training=training,
           data_format=data_format,
-          bn_momentum=bn_momentum,
-          bn_epsilon=bn_epsilon,
+          bn_momentum=self.params.get('bn_momentum', 0.1),
+          bn_epsilon=self.params.get('bn_epsilon', 1e-5),
       )
       top_layer = tf.layers.dropout(
           top_layer, rate=1. - dropout_keep_prob, training=training
@@ -183,8 +178,6 @@ class Tacotron2Encoder(Encoder):
 
     # ----- RNN ---------------------------------------------------------------
     num_rnn_layers = self.params['num_rnn_layers']
-    # Disable dropout for rnn layers, need to switch to zoneout
-    dropout_keep_prob = 1.
     if num_rnn_layers > 0:
       cell_params = {}
       cell_params["num_units"] = self.params['rnn_cell_dim']
@@ -217,7 +210,7 @@ class Tacotron2Encoder(Encoder):
             dtype=rnn_input.dtype,
             name="cudnn_rnn"
         )
-        top_layer, state = rnn_block(rnn_input)
+        top_layer, _ = rnn_block(rnn_input)
         top_layer = tf.transpose(top_layer, [1, 0, 2])
         rnn_vars += rnn_block.trainable_variables
 
@@ -235,7 +228,7 @@ class Tacotron2Encoder(Encoder):
         )
         rnn_vars += multirnn_cell_fw.trainable_variables
         if self.params['rnn_unidirectional']:
-          top_layer, state = tf.nn.dynamic_rnn(
+          top_layer, _ = tf.nn.dynamic_rnn(
               cell=multirnn_cell_fw,
               inputs=rnn_input,
               sequence_length=src_length,
@@ -254,7 +247,7 @@ class Tacotron2Encoder(Encoder):
                   ) for _ in range(num_rnn_layers)
               ]
           )
-          top_layer, state = tf.nn.bidirectional_dynamic_rnn(
+          top_layer, _ = tf.nn.bidirectional_dynamic_rnn(
               cell_fw=multirnn_cell_fw,
               cell_bw=multirnn_cell_bw,
               inputs=rnn_input,
@@ -272,7 +265,7 @@ class Tacotron2Encoder(Encoder):
         cell_weights += [enc_emb_w]
         for weights in cell_weights:
           if "bias" not in weights.name:
-            print("Added regularizer to {}".format(weights.name))
+            # print("Added regularizer to {}".format(weights.name))
             if weights.dtype.base_dtype == tf.float16:
               tf.add_to_collection(
                   'REGULARIZATION_FUNCTIONS', (weights, regularizer)

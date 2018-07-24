@@ -78,8 +78,12 @@ class Text2SpeechDataLayer(DataLayer):
       Defaults to 8.
 
     """
-    super(Text2SpeechDataLayer,
-          self).__init__(params, model, num_workers, worker_id)
+    super(Text2SpeechDataLayer, self).__init__(
+        params,
+        model,
+        num_workers,
+        worker_id
+    )
     # Character level vocab
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'],
@@ -88,22 +92,22 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     # add one for implied blank token
     self.params['src_vocab_size'] = len(self.params['char2idx']) + 1
-    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     names = ['wav_filename', 'transcript', 'transcript_normalized']
 
     if "disk" in self.params["output_type"]:
-      self.load_from_disk = True
+      self._load_from_disk = True
     else:
-      self.load_from_disk = False
+      self._load_from_disk = False
 
+    # This assumes that the LJSpeech dataset is used
     if "mel" in self.params["output_type"]:
-      self.mel = True
-      self.mel_basis = librosa.filters.mel(
-          22050, 1024, n_mels=self.params['num_audio_features']
+      self._mel = True
+      self._mel_basis = librosa.filters.mel(
+          sr=22050, n_fft=1024, n_mels=self.params['num_audio_features']
       )
     else:
-      self.mel = False
+      self._mel = False
 
     # Load csv files
     self._files = None
@@ -126,8 +130,8 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       cols = 'transcript_normalized'
 
-    self.all_files = self._files.loc[:, cols].values
-    self._files = self.split_data(self.all_files)
+    all_files = self._files.loc[:, cols].values
+    self._files = self.split_data(all_files)
 
     self._size = self.get_size_in_samples()
     self._dataset = None
@@ -238,26 +242,27 @@ class Text2SpeechDataLayer(DataLayer):
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
+      # num_pad = pad_to - (len(text_input) % pad_to)
       num_pad = pad_to - ((len(text_input) + 1) % pad_to) + 1
       text_input = np.pad(
           text_input, ((0, num_pad)),
           "constant",
           constant_values=self.params['char2idx']["~"]
       )
-    if self.load_from_disk:
+    if self._load_from_disk:
       file_path = os.path.join(
           self.params['dataset_location'], audio_filename + ".npy"
       )
       spectrogram = np.load(file_path)
       mag_power = self.params.get('mag_power', 2)
-      if self.mel:
+      if self._mel:
         spectrogram = get_mel(
             spectrogram,
             power=mag_power,
             feature_normalize=self.params["feature_normalize"],
             mean=self.params.get("feature_normalize_mean", 0.),
             std=self.params.get("feature_normalize_std", 1.),
-            mel_basis=self.mel_basis,
+            mel_basis=self._mel_basis,
             n_mels=self.params['num_audio_features']
         )
       else:
@@ -288,6 +293,7 @@ class Text2SpeechDataLayer(DataLayer):
         [len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype()
     )
     if self.params.get("pad_EOS", True):
+      # num_pad = pad_to - (len(spectrogram) % pad_to)
       num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
       spectrogram = np.pad(
           spectrogram, ((0, num_pad), (0, 0)), "constant", constant_values=0
@@ -295,6 +301,8 @@ class Text2SpeechDataLayer(DataLayer):
       stop_token_target = np.pad(
           stop_token_target, ((0, num_pad)), "constant", constant_values=1
       )
+    else:
+      stop_token_target[-1] = 1.
 
     assert len(text_input) % pad_to == 0
     assert len(spectrogram) % pad_to == 0
@@ -319,8 +327,15 @@ class Text2SpeechDataLayer(DataLayer):
     text_input = np.array(
         [self.params['char2idx'][c] for c in unicode(transcript, "utf-8")]
     )
+    pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
-      text_input = np.append(text_input, self.params['char2idx']["~"])
+      # num_pad = pad_to - (len(text_input) % pad_to)
+      num_pad = pad_to - ((len(text_input) + 1) % pad_to) + 1
+      text_input = np.pad(
+          text_input, ((0, num_pad)),
+          "constant",
+          constant_values=self.params['char2idx']["~"]
+      )
 
     return np.int32(text_input), \
            np.int32([len(text_input)])
@@ -344,7 +359,7 @@ class Text2SpeechDataLayer(DataLayer):
       mag_spec: mag spec
     """
     spectrogram = spectrogram.astype(float)
-    if self.mel:
+    if self._mel:
       return inverse_mel(
           spectrogram,
           n_mels=self.params['num_audio_features'],
@@ -352,7 +367,7 @@ class Text2SpeechDataLayer(DataLayer):
           feature_normalize=self.params["feature_normalize"],
           mean=self.params.get("feature_normalize_mean", 0.),
           std=self.params.get("feature_normalize_std", 1.),
-          mel_basis=self.mel_basis
+          mel_basis=self._mel_basis
       )
     else:
       if self.params["feature_normalize"]:

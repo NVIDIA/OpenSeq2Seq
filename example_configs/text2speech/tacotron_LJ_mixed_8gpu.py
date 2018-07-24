@@ -17,15 +17,11 @@ if output_type == "magnitude":
 elif output_type == "mel":
   num_audio_features = 80
 
-
 base_params = {
   "random_seed": 0,
-  "use_horovod": False,
-  # "num_epochs": 501,
-  "max_steps": 100000,
+  "use_horovod": True,
+  "max_steps": 40000,
 
-  "num_gpus": 1,
-  # 'gpu_ids': [1],
   "batch_size_per_gpu": 48,
 
   "save_summaries_steps": 50,
@@ -35,7 +31,9 @@ base_params = {
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
   "logdir": "result/tacotron-LJ-mixed",
-  "max_grad_norm":1.,
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -54,15 +52,19 @@ base_params = {
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1e-3,
-    "decay_steps": 20000,
+    "decay_steps": 10000,
     "decay_rate": 0.1,
     "use_staircase_decay": False,
-    "begin_decay_at": 45000,
+    "begin_decay_at": 5000,
     "min_lr": 1e-5,
   },
   # "dtype": tf.float32, "mixed", tf.float16
   "dtype": "mixed",
   "loss_scaling": "Backoff",
+  "loss_scaling_params": {
+    "scale_min": 0.5,
+    "scale_max": 4096.,
+  },
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
@@ -77,7 +79,6 @@ base_params = {
   "encoder": Tacotron2Encoder,
   "encoder_params": {
     "dropout_keep_prob": 0.5,
-    "zoneout_prob": 0.1,
     'src_emb_size': 512,
     "conv_layers": [
       {
@@ -112,26 +113,17 @@ base_params = {
   "decoder_params": {
     "zoneout_prob": 0.1,
     
-    'attention_layer_size': 128,
     'attention_type': 'location',
-    'attention_rnn_enable': True,
-    'attention_rnn_units': 1024,
-    'attention_rnn_layers': 1,
-    'attention_rnn_cell_type': tf.nn.rnn_cell.LSTMCell,
+    'attention_layer_size': 128,
     'attention_bias': True,
 
     'decoder_cell_units': 1024,
     'decoder_cell_type': tf.nn.rnn_cell.LSTMCell,
-    'decoder_layers': 1,
-    'decoder_use_skip_connections': False,
+    'decoder_layers': 2,
     
     'enable_prenet': True,
     'prenet_layers': 2,
     'prenet_units': 256,
-
-    "anneal_teacher_forcing": False,
-    "anneal_teacher_forcing_stop_gradient": False,
-    'scheduled_sampling_prob': 0.,
 
     'enable_postnet': True,
     "postnet_keep_dropout_prob": 0.5,
@@ -164,7 +156,7 @@ base_params = {
       }
     ],
     "mask_decoder_sequence": True,
-    "parallel_iterations": 48,
+    "parallel_iterations": 32,
   },
   
   "loss": TacotronLoss,
@@ -176,7 +168,7 @@ base_params = {
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_EOS_80.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
@@ -198,7 +190,7 @@ train_params = {
 eval_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/new_val.csv",
+      "/data/speech/LJSpeech/val.csv",
     ],
     "shuffle": False,
   },

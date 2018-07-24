@@ -15,8 +15,8 @@ def get_speech_features_from_file(
     window_stride=256,
     mag_power=2,
     feature_normalize=False,
-    mean=0,
-    std=1
+    mean=0.,
+    std=1.
 ):
   """ Helper function to retrieve spectrograms from wav files
 
@@ -56,8 +56,8 @@ def get_speech_features(
     n_window_stride=256,
     mag_power=2,
     feature_normalize=False,
-    mean=0,
-    std=1
+    mean=0.,
+    std=1.
 ):
   """ Helper function to retrieve spectrograms from loaded wav
 
