@@ -22,7 +22,7 @@ base_params = {
   "use_horovod": True,
   "max_steps": 40000,
 
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": 48,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
@@ -30,7 +30,7 @@ base_params = {
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
-  "logdir": "result/tacotron-LJ-float-8gpu",
+  "logdir": "result/tacotron-LJ-mixed",
   "larc_params": {
     "larc_eta": 0.001,
   },
@@ -59,7 +59,12 @@ base_params = {
     "min_lr": 1e-5,
   },
   # "dtype": tf.float32, "mixed", tf.float16
-  "dtype": tf.float32,
+  "dtype": "mixed",
+  "loss_scaling": "Backoff",
+  "loss_scaling_params": {
+    "scale_min": 0.5,
+    "scale_max": 4096.,
+  },
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {

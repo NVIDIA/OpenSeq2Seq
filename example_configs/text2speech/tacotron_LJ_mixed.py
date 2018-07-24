@@ -53,10 +53,10 @@ base_params = {
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1e-3,
-    "decay_steps": 20000,
+    "decay_steps": 10000,
     "decay_rate": 0.1,
     "use_staircase_decay": False,
-    "begin_decay_at": 45000,
+    "begin_decay_at": 10000,
     "min_lr": 1e-5,
   },
   # "dtype": tf.float32, "mixed", tf.float16
@@ -64,7 +64,7 @@ base_params = {
   "loss_scaling": "Backoff",
   "loss_scaling_params": {
     "scale_min": 0.5,
-    "scale_max": 2.**16,
+    "scale_max": 4096.,
   },
   # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
