@@ -27,7 +27,7 @@ pad_2_eight = True
 
 batch_size = 128
 num_gpus = 8
-epoch_num = 38
+epoch_num = 35
 
 iter_size = 1
 dtype = "mixed" # "mixed" or tf.float32
@@ -60,7 +60,7 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 7,
+    "learning_rate": 9,
     "max_lr": 1e-3,
     "warmup_steps": 4000,
     "d_model": d_model,
@@ -108,7 +108,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
-    "pos_embed": True,
+    "pos_embed": False,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
