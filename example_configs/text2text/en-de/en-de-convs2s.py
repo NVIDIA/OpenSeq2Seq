@@ -25,12 +25,12 @@ hidden_before_last = 512
 max_length = 64
 pad_2_eight = True
 
-batch_size = 128
+batch_size = 64
 num_gpus = 8
 epoch_num = 35
 
 iter_size = 1
-dtype = "mixed" # "mixed" or tf.float32
+dtype = tf.float32 # "mixed" or tf.float32
 shuffle_train = True
 use_horovod = True
 
@@ -60,7 +60,7 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 9,
+    "learning_rate": 13,
     "max_lr": 1e-3,
     "warmup_steps": 4000,
     "d_model": d_model,
