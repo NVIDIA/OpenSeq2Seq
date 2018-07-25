@@ -56,7 +56,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = True
-    else:
+    elif normalization_type is None:
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = False
