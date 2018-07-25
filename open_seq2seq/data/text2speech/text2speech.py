@@ -109,31 +109,32 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       self._mel = False
 
-    # Load csv files
-    self._files = None
-    for csvs in params['dataset_files']:
-      files = pd.read_csv(
-          csvs,
-          encoding='utf-8',
-          sep='\x7c',
-          header=None,
-          names=names,
-          quoting=3
-      )
-      if self._files is None:
-        self._files = files
+    if self.params['mode'] != "interactive_infer":
+      # Load csv files
+      self._files = None
+      for csvs in params['dataset_files']:
+        files = pd.read_csv(
+            csvs,
+            encoding='utf-8',
+            sep='\x7c',
+            header=None,
+            names=names,
+            quoting=3
+        )
+        if self._files is None:
+          self._files = files
+        else:
+          self._files = self._files.append(files)
+
+      if self.params['mode'] != 'infer':
+        cols = ['wav_filename', 'transcript_normalized']
       else:
-        self._files = self._files.append(files)
+        cols = 'transcript_normalized'
 
-    if self.params['mode'] != 'infer':
-      cols = ['wav_filename', 'transcript_normalized']
-    else:
-      cols = 'transcript_normalized'
+      all_files = self._files.loc[:, cols].values
+      self._files = self.split_data(all_files)
 
-    all_files = self._files.loc[:, cols].values
-    self._files = self.split_data(all_files)
-
-    self._size = self.get_size_in_samples()
+      self._size = self.get_size_in_samples()
     self._dataset = None
     self._iterator = None
     self._input_tensors = None
@@ -156,6 +157,8 @@ class Text2SpeechDataLayer(DataLayer):
 
   def build_graph(self):
     """Builds data reading graph."""
+    if self.params['mode'] == 'interactive_infer':
+      return self._build_interactive_graph()
     self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle']:
       self._dataset = self._dataset.shuffle(self._size)
@@ -340,12 +343,69 @@ class Text2SpeechDataLayer(DataLayer):
     return np.int32(text_input), \
            np.int32([len(text_input)])
 
+  def _build_interactive_graph(self):
+    self._dataset = tf.data.Dataset.from_tensor_slices(
+        np.array(self.params["interactive_infer_example_input"])
+    )
+
+    self._dataset = self._dataset.repeat()
+
+    self._dataset = self._dataset.map(
+        lambda line: tf.py_func(
+            self._parse_transcript_element,
+            [line],
+            [tf.int32, tf.int32],
+            stateful=False,
+        )
+    )
+
+    self._dataset = self._dataset.padded_batch(
+          1, padded_shapes=([None], 1)
+    )
+
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                                  .make_initializable_iterator()
+
+    text, text_length = self._iterator.get_next()
+    text.set_shape([1, None])
+    text_length = tf.reshape(text_length, [1])
+
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [text, text_length]
+
+  def update_iteractive_dataset(self, input):
+    print("Hello")
+    self._dataset = tf.data.Dataset.from_tensor_slices(
+        [input]
+    )
+
+    self._dataset = self._dataset.map(
+        lambda line: tf.py_func(
+            self._parse_transcript_element,
+            [line],
+            [tf.int32, tf.int32],
+            stateful=False,
+        )
+    )
+
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                                  .make_initializable_iterator()
+
+    text, text_length = self._iterator.get_next()
+    text.set_shape([1, None])
+    text_length = tf.reshape(text_length, [1])
+
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [text, text_length]
+
   @property
   def input_tensors(self):
     return self._input_tensors
 
   def get_size_in_samples(self):
     """Returns the number of audio files."""
+    if self.params["mode"] == "interactive_infer":
+      return 1
     return len(self._files)
 
   def get_magnitude_spec(self, spectrogram):

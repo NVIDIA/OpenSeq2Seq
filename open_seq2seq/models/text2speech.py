@@ -109,7 +109,8 @@ def plot_spectrograms(
 
 
 def save_audio(
-    magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False
+    magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False,
+    raw=False
 ):
   """
   Helper function to create a wav file to be logged to disk or a tf.Summary to
@@ -131,6 +132,8 @@ def save_audio(
     tf.Summary or None
   """
   signal = griffin_lim(magnitudes.T**1.2)
+  if raw:
+    return signal
   if save_to_tensorboard:
     tag = "{}_audio".format(mode)
     s = StringIO()

@@ -161,7 +161,7 @@ base_params = {
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS_80.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
@@ -183,7 +183,7 @@ train_params = {
 eval_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/val.csv",
+      "/data/speech/LJSpeech/new_val.csv",
     ],
     "shuffle": False,
   },
@@ -195,5 +195,15 @@ infer_params = {
       "/data/speech/LJSpeech/test.csv",
     ],
     "shuffle": False,
+  },
+}
+
+interactive_infer_params = {
+  "data_layer_params": {
+    "dataset_files": [
+      "/data/speech/LJSpeech/doesnotexists.csv",
+    ],
+    # "interactive_infer_example_input": ["Hello, welcome to my demo.", "Why do i need two?"],
+    "interactive_infer_example_input": ["Hello, welcome to my demo."],
   },
 }

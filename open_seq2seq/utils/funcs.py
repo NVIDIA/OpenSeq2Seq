@@ -190,6 +190,14 @@ def infer(model, checkpoint, output_file):
     model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")
 
+def interactive_infer(model, checkpoint, output_file, input):
+  model.get_data_layer().update_interactive_dataset(input)
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer")
+  print(results_per_batch)
+  # if not model.on_horovod or model.hvd.rank() == 0:
+  #   model.finalize_inference(results_per_batch, output_file)
+  #   deco_print("Finished inference")
+
 
 def evaluate(model, checkpoint):
   results_per_batch = restore_and_get_results(model, checkpoint, mode="eval")

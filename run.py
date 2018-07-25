@@ -25,7 +25,7 @@ from open_seq2seq.utils.utils import deco_print, flatten_dict, \
 from open_seq2seq.utils import train, infer, evaluate
 
 
-def main():
+def main(args):
   parser = argparse.ArgumentParser(description='Experiment parameters')
   parser.add_argument("--config_file", required=True,
                       help="Path to the configuration file")
@@ -50,11 +50,18 @@ def main():
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
                       help='whether to log output, git info, cmd args, etc.')
-  args, unknown = parser.parse_known_args()
+  args, unknown = parser.parse_known_args(args)
 
-  if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
+  if args.mode not in [
+      'train',
+      'eval',
+      'train_eval',
+      'infer',
+      'interactive_infer'
+  ]:
     raise ValueError("Mode has to be one of "
-                     "['train', 'eval', 'train_eval', 'infer']")
+                     "['train', 'eval', 'train_eval', 'infer', "
+                     "'interactive_infer']")
   config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
 
   base_config = config_module.get('base_params', None)
@@ -110,7 +117,8 @@ def main():
                         "You should probably not provide "
                         "\"--continue_learning\" flag?")
         checkpoint = None
-    elif args.mode == 'infer' or args.mode == 'eval':
+    elif (args.mode == 'infer' or args.mode == 'eval' or
+        args.mode == 'interactive_infer'):
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
         checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
@@ -132,6 +140,8 @@ def main():
       raise
 
   if base_config['use_horovod']:
+    if args.mode == "interactive_infer":
+      raise Error("Interactive inference does not support Horovod")
     import horovod.tensorflow as hvd
     hvd.init()
     if hvd.rank() == 0:
@@ -139,7 +149,7 @@ def main():
   else:
     hvd = None
 
-  if args.enable_logs:
+  if args.enable_logs and args.mode != "interactive_infer":
     if hvd is None or hvd.rank() == 0:
       if not os.path.exists(logdir):
         os.makedirs(logdir)
@@ -188,12 +198,18 @@ def main():
     if hvd is None or hvd.rank() == 0:
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
-  if args.mode == "infer":
+  if args.mode == "infer" or args.mode == "interactive_infer":
     if args.infer_output_file is None:
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
-    if "infer_params" in config_module:
+    if args.mode == "infer" and "infer_params" in config_module:
       nested_update(infer_config, copy.deepcopy(config_module['infer_params']))
+    if (args.mode == "interactive_infer"
+        and "interactive_infer_params" in config_module):
+      nested_update(
+          infer_config,
+          copy.deepcopy(config_module['interactive_infer_params'])
+      )
 
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
@@ -228,11 +244,13 @@ def main():
         deco_print(
             "Restored checkpoint from {}. Resuming training".format(checkpoint),
         )
-  elif args.mode == 'eval' or args.mode == 'infer':
+  elif (args.mode == 'eval' or args.mode == 'infer'
+      or args.mode == 'interactive_infer'):
     if hvd is None or hvd.rank() == 0:
       deco_print("Loading model from {}".format(checkpoint))
 
-  with tf.Graph().as_default():
+  graph = tf.Graph()
+  with graph.as_default():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
       train_model.compile()
@@ -251,6 +269,11 @@ def main():
       infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
+    elif args.mode == "interactive_infer":
+      infer_model = base_model(params=infer_config, mode="interactive_infer", hvd=hvd)
+      infer_model.compile()
+      return infer_model, checkpoint, graph
+      # interactive_infer(infer_model, checkpoint, args.infer_output_file)
 
   if args.enable_logs and (hvd is None or hvd.rank() == 0):
     sys.stdout = old_stdout
@@ -260,4 +283,5 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  print(sys.argv[1:])
+  main(sys.argv[1:])

@@ -26,7 +26,7 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
-        'mode': ['train', 'eval', 'infer'],
+        'mode': ['train', 'eval', 'infer', 'interactive_infer'],
     }
 
   @staticmethod
@@ -43,6 +43,7 @@ class DataLayer:
         'batch_size': int,
         'shuffle': bool,
         'dtype': [tf.float32, tf.float16],
+        'interactive_infer_example_input': None,
     }
 
   @abc.abstractmethod
@@ -67,6 +68,8 @@ class DataLayer:
     * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
       Typically will be True for train and False for inference and evaluation.
     * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
+    * **interactive_infer_example_input** (np.array) --- Should be a sample
+      input to the model in a numpy accepted format. Used to build the graph.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
@@ -119,6 +122,14 @@ class DataLayer:
     loss, e.g. target sequence and target length). Note that all tensors have
     to be created inside :meth:`self.build_graph()<build_graph>` method.
     """
+    pass
+
+  def _build_interactive_graph(self):
+    """Should be built into data layers that support interactive infer"""
+    pass
+
+  def update_interactive_dataset(self, input):
+    """Should be built into data layers that support interactive infer"""
     pass
 
   def get_size_in_samples(self):

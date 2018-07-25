@@ -203,8 +203,11 @@ class Model:
 
     # parameter checks
     self._mode = mode
-    if self._mode not in ["train", "infer", "eval"]:
-      raise ValueError("Mode has to be one of ['train', 'infer', 'eval']")
+    if self._mode not in ["train", "infer", "eval", "interactive_infer"]:
+      raise ValueError(
+          "Mode has to be one of ['train', 'infer', 'eval', ",
+          "'interactive_infer']"
+      )
 
     if "max_steps" in params and "num_epochs" in params:
       raise ValueError("You can't provide both max_steps and num_epochs. "

@@ -88,7 +88,10 @@ class EncoderDecoderModel(Model):
       instance of a class derived from :class:`encoders.encoder.Encoder`.
     """
     params = self.params['encoder_params']
-    return self.params['encoder'](params=params, mode=self.mode, model=self)
+    mode = self.mode
+    if self.mode == "interactive_infer":
+      mode = "infer"
+    return self.params['encoder'](params=params, mode=mode, model=self)
 
   def _create_decoder(self):
     """This function should return decoder class.
@@ -99,7 +102,10 @@ class EncoderDecoderModel(Model):
       instance of a class derived from :class:`decoders.decoder.Decoder`.
     """
     params = self.params['decoder_params']
-    return self.params['decoder'](params=params, mode=self.mode, model=self)
+    mode = self.mode
+    if self.mode == "interactive_infer":
+      mode = "infer"
+    return self.params['decoder'](params=params, mode=mode, model=self)
 
   def _create_loss(self):
     """This function should return loss class.
