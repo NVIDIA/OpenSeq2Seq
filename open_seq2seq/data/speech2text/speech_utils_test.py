@@ -12,7 +12,7 @@ import tensorflow as tf
 from six.moves import range
 
 from .speech_utils import get_speech_features, get_speech_features_from_file, \
-    augment_audio_signal
+                          augment_audio_signal
 
 
 class SpeechUtilsTests(tf.test.TestCase):

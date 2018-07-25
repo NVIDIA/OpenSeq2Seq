@@ -5,7 +5,7 @@ from open_seq2seq.encoders import Wave2LetterEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import *
+from open_seq2seq.optimizers.lr_policies import poly_decay
 
 
 base_model = Speech2Text
