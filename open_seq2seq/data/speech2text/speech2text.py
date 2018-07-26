@@ -108,6 +108,8 @@ class Speech2TextDataLayer(DataLayer):
 
   def build_graph(self):
     """Builds data processing graph using ``tf.data`` API."""
+    if self.params["mode"] == "interactive_infer":
+      return self._build_interactive_graph()
     if self.params['mode'] != 'infer':
       self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
       if self.params['shuffle']:
@@ -193,6 +195,60 @@ class Speech2TextDataLayer(DataLayer):
       self._input_tensors['target_tensors'] = [y, y_length]
     else:
       self._input_tensors['source_ids'] = [x_id]
+
+  def _build_interactive_graph(self):
+    """
+    Must pass in placeholder
+    """
+    self.input = tf.placeholder(dtype=tf.float)
+    self._dataset = tf.data.Dataset.from_tensor_slices(self.input)
+    self._dataset = self._dataset.map(
+        lambda line: tf.py_func(
+            self._parse_audio_element,
+            [line],
+            [self.params['dtype'], tf.int32, tf.int32, tf.float32],
+            stateful=False,
+        ),
+        num_parallel_calls=8,
+    )
+    if self.params['max_duration'] is not None:
+      self._dataset = self._dataset.filter(
+          lambda x, x_len, idx, duration:
+          tf.less_equal(duration, self.params['max_duration'])
+      )
+    self._dataset = self._dataset.map(
+        lambda x, x_len, idx, duration:
+        [x, x_len, idx],
+        num_parallel_calls=8,
+    )
+    self._dataset = self._dataset.padded_batch(
+        self.params['batch_size'],
+        padded_shapes=([None, self.params['num_audio_features']], 1, 1)
+    )
+
+  self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                       .make_initializable_iterator()
+
+  if self.params['mode'] != 'infer':
+    x, x_length, y, y_length = self._iterator.get_next()
+    # need to explicitly set batch size dimension
+    # (it is employed in the model)
+    y.set_shape([self.params['batch_size'], None])
+    y_length = tf.reshape(y_length, [self.params['batch_size']])
+  else:
+    x, x_length, x_id = self._iterator.get_next()
+    x_id = tf.reshape(x_id, [self.params['batch_size']])
+
+  x.set_shape([self.params['batch_size'], None,
+               self.params['num_audio_features']])
+  x_length = tf.reshape(x_length, [self.params['batch_size']])
+
+  self._input_tensors = {}
+  self._input_tensors["source_tensors"] = [x, x_length]
+  if self.params['mode'] != 'infer':
+    self._input_tensors['target_tensors'] = [y, y_length]
+  else:
+    self._input_tensors['source_ids'] = [x_id]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.

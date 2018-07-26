@@ -141,7 +141,7 @@ def main(args):
 
   if base_config['use_horovod']:
     if args.mode == "interactive_infer":
-      raise Error("Interactive inference does not support Horovod")
+      raise ValueError("Interactive inference does not support Horovod")
     import horovod.tensorflow as hvd
     hvd.init()
     if hvd.rank() == 0:
