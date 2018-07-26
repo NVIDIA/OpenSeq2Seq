@@ -30,7 +30,7 @@ num_gpus = 8
 epoch_num = 35
 
 iter_size = 1
-dtype = "mixed" # "mixed" or tf.float32
+dtype = tf.float32  # "mixed" or tf.float32
 shuffle_train = True
 use_horovod = True
 
@@ -73,6 +73,10 @@ base_params = {
 
   "dtype": dtype,
   "loss_scaling": "Backoff",
+  # "loss_scaling_params": {
+  #    "scale_min": 1.0,
+  #    "scale_max": 2.**24,
+  #  },
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {

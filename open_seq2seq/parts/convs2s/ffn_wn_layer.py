@@ -65,7 +65,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         self.V = tf.get_variable(
           'W',
           shape=[in_dim, out_dim],
-          initializer=tf.random_normal_initializer(mean=0, stddev=0.001),
+          initializer=tf.random_normal_initializer(mean=0, stddev=0.01),
           trainable=True)
       if self.bias_enabled:
         self.b = tf.get_variable(
@@ -99,7 +99,9 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     if self.b is not None:
       output = output + tf.reshape(self.b, [1, self.out_dim])
 
+
     if self.apply_batch_norm:
+      output = tf.expand_dims(output, axis=1)  # NWC --> NHWC
       output = tf.layers.batch_normalization(
         name=self.var_scope_name + "_batch_norm",
         inputs=output,
@@ -109,4 +111,6 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         momentum=0.99,
         epsilon=1e-4,
       )
+      output = tf.squeeze(output, axis=1)
+
     return output

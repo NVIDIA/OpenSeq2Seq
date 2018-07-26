@@ -82,7 +82,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.random_normal_initializer(mean=0, stddev=0.001),
+            initializer=tf.random_normal_initializer(mean=0, stddev=0.01),
             trainable=True)
 
       if self.bias_enabled:
