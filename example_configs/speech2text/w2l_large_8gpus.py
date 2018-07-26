@@ -31,7 +31,6 @@ base_params = {
         "momentum": 0.90,
     },
     "lr_policy": poly_decay,
-    #"lr_policy": fixed_lr,
     "lr_policy_params": {
         "learning_rate": 0.1,
         "power": 2.0,
@@ -48,7 +47,6 @@ base_params = {
         'scale': 0.001
     },
 
-    #"max_grad_norm": 15.0,
     "dtype": tf.float32,
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
@@ -139,9 +137,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "data/librispeech/librivox-train-clean-100.csv",
+            "data/librispeech/librivox-train-clean-360.csv",
+            "data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -155,7 +153,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
     },
@@ -168,7 +166,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-test-clean.csv",
+            "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
     },
