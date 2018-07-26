@@ -119,9 +119,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose, input=None):
 
   if mode == "interactive_infer":
     sess.run(
-        [model.get_data_layer(i).iterator.initializer
-         for i in range(model.num_gpus)],
-        feed_dict={model.get_data_layer(i).input:input}
+        [model.get_data_layer().iterator.initializer],
+        feed_dict={model.get_data_layer().input:input}
     )
     mode = "infer"
   else:

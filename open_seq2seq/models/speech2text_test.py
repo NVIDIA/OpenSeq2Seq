@@ -18,6 +18,7 @@ from .speech2text import levenshtein
 
 
 class Speech2TextModelTests(tf.test.TestCase):
+
   def setUp(self):
     # define this values in subclasses
     self.base_params = None
@@ -148,13 +149,15 @@ class Speech2TextModelTests(tf.test.TestCase):
 
     with tf.Graph().as_default():
       # pylint: disable=not-callable
-      train_model = self.base_model(params=train_config, mode="train", hvd=None)
+      train_model = self.base_model(
+          params=train_config, mode="train", hvd=None)
       train_model.compile()
       train(train_model, None)
 
     with tf.Graph().as_default():
       # pylint: disable=not-callable
-      infer_model = self.base_model(params=infer_config, mode="infer", hvd=None)
+      infer_model = self.base_model(
+          params=infer_config, mode="infer", hvd=None)
       infer_model.compile()
 
       print(train_model.params['logdir'])

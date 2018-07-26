@@ -65,7 +65,6 @@ base_params = {
         "data_format": "channels_last",
         "bn_momentum": 0.001,
     },
-
     "decoder": FullyConnectedCTCDecoder,
     "decoder_params": {
         "initializer": tf.contrib.layers.xavier_initializer,

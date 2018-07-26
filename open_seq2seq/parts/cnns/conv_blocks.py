@@ -1,26 +1,25 @@
 # Copyright (c) 2018 NVIDIA Corporation
-"""Convenient block for building convolutional neural networks."""
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
+from six.moves import range
 
 import tensorflow as tf
 
+layers_dict = {
+    "conv1d": tf.layers.conv1d,
+    "conv2d": tf.layers.conv2d
+}
 
-def conv_actv(layer_type, name, inputs, filters, kernel_size,
-              activation_fn, strides,
+def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
               padding, regularizer, training, data_format):
   """Helper function that applies convolution and activation.
-
-  Args:
-    layer_type: the following types are supported
-      'conv1d', 'conv2d'
+    Args:
+      layer_type: the following types are supported
+        'conv1d', 'conv2d'
   """
-  if layer_type == "conv1d":
-    layer = tf.layers.conv1d
-  elif layer_type == "conv2d":
-    layer = tf.layers.conv2d
+  layer = layers_dict[layer_type]
 
   conv = layer(
       name="{}".format(name),
@@ -40,20 +39,16 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size,
   return output
 
 
-def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
-                 strides, padding, regularizer, training, data_format,
-                 bn_momentum, bn_epsilon):
+def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
+                 padding, regularizer, training, data_format, bn_momentum,
+                 bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
-  Accepts inputs in 'channels_last' format only.
-
-  Args:
-    layer_type: the following types are supported
-      'conv1d', 'conv2d'
+    Accepts inputs in 'channels_last' format only.
+    Args:
+      layer_type: the following types are supported
+        'conv1d', 'conv2d'
   """
-  if layer_type == "conv1d":
-    layer = tf.layers.conv1d
-  elif layer_type == "conv2d":
-    layer = tf.layers.conv2d
+  layer = layers_dict[layer_type]
 
   conv = layer(
       name="{}".format(name),
@@ -68,7 +63,7 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
   )
 
   # trick to make batchnorm work for mixed precision training.
-  # TODO: check if batchnorm works smoothly for >4 dimensional tensors
+  # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
   if layer_type == "conv1d":
     conv = tf.expand_dims(conv, axis=1)  # NWC --> NHWC
