@@ -344,8 +344,12 @@ class Text2SpeechDataLayer(DataLayer):
            np.int32([len(text_input)])
 
   def _build_interactive_graph(self):
+    """
+    Must pass in placeholder
+    """
+    self.input = tf.placeholder(dtype=tf.string)
     self._dataset = tf.data.Dataset.from_tensor_slices(
-        np.array(self.params["interactive_infer_example_input"])
+        self.input
     )
 
     self._dataset = self._dataset.repeat()
@@ -361,31 +365,6 @@ class Text2SpeechDataLayer(DataLayer):
 
     self._dataset = self._dataset.padded_batch(
           1, padded_shapes=([None], 1)
-    )
-
-    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
-                                  .make_initializable_iterator()
-
-    text, text_length = self._iterator.get_next()
-    text.set_shape([1, None])
-    text_length = tf.reshape(text_length, [1])
-
-    self._input_tensors = {}
-    self._input_tensors["source_tensors"] = [text, text_length]
-
-  def update_iteractive_dataset(self, input):
-    print("Hello")
-    self._dataset = tf.data.Dataset.from_tensor_slices(
-        [input]
-    )
-
-    self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-            self._parse_transcript_element,
-            [line],
-            [tf.int32, tf.int32],
-            stateful=False,
-        )
     )
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\

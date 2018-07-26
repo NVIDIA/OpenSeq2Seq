@@ -44,7 +44,7 @@ def collect_if_horovod(value, hvd, mode='sum'):
     mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
-        
+
   Returns:
     collected results if run on Horovod or value otherwise.
   """
@@ -82,7 +82,7 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
-def iterate_data(model, sess, compute_loss, mode, verbose):
+def iterate_data(model, sess, compute_loss, mode, verbose, input=None):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
   results_per_batch = []
@@ -117,8 +117,16 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     fetches.append(cur_fetches)
     total_samples.append(0.0)
 
-  sess.run([model.get_data_layer(i).iterator.initializer
-            for i in range(model.num_gpus)])
+  if mode == "interactive_infer":
+    sess.run(
+        [model.get_data_layer(i).iterator.initializer
+         for i in range(model.num_gpus)],
+        feed_dict={model.get_data_layer(i).input:input}
+    )
+    mode = "infer"
+  else:
+    sess.run([model.get_data_layer(i).iterator.initializer
+              for i in range(model.num_gpus)])
 
   step = 0
   processed_batches = 0
@@ -222,14 +230,21 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     return results_per_batch
 
 
-def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
+def get_results_for_epoch(
+    model,
+    sess,
+    compute_loss,
+    mode,
+    verbose=False,
+    input=None
+):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-        model, sess, compute_loss, mode, verbose,
+        model, sess, compute_loss, mode, verbose, input
     )
   else:
     results_per_batch = iterate_data(
-        model, sess, compute_loss, mode, verbose,
+        model, sess, compute_loss, mode, verbose, input
     )
 
   if compute_loss:
@@ -440,3 +455,4 @@ def cast_types(input_dict, dtype):
       continue
     cast_input_dict[key] = input_dict[key]
   return cast_input_dict
+  

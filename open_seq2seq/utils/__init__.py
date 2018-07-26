@@ -1,2 +1,2 @@
 # Copyright (c) 2017 NVIDIA Corporation
-from .funcs import train, infer, evaluate, interactive_infer
+from .funcs import train, infer, evaluate

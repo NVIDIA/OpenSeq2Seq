@@ -43,7 +43,6 @@ class DataLayer:
         'batch_size': int,
         'shuffle': bool,
         'dtype': [tf.float32, tf.float16],
-        'interactive_infer_example_input': None,
     }
 
   @abc.abstractmethod
@@ -68,8 +67,6 @@ class DataLayer:
     * **shuffle** (bool) --- whether to shuffle dataset after an epoch.
       Typically will be True for train and False for inference and evaluation.
     * **dtype** --- data dtype. Could be either ``tf.float16`` or ``tf.float32``.
-    * **interactive_infer_example_input** (np.array) --- Should be a sample
-      input to the model in a numpy accepted format. Used to build the graph.
     """
     check_params(params, self.get_required_params(), self.get_optional_params())
     self._params = copy.deepcopy(params)
@@ -125,11 +122,11 @@ class DataLayer:
     pass
 
   def _build_interactive_graph(self):
-    """Should be built into data layers that support interactive infer"""
-    pass
-
-  def update_interactive_dataset(self, input):
-    """Should be built into data layers that support interactive infer"""
+    """Should be built into data layers that support interactive infer. This
+    function must define a self.input variable as a tensorflow placeholder.
+    It is intended to pass 1 example to this placeholder for the model to run
+    inference on.
+    """
     pass
 
   def get_size_in_samples(self):

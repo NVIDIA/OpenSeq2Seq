@@ -270,10 +270,13 @@ def main(args):
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
     elif args.mode == "interactive_infer":
-      infer_model = base_model(params=infer_config, mode="interactive_infer", hvd=hvd)
+      infer_model = base_model(
+          params=infer_config,
+          mode="interactive_infer",
+          hvd=hvd
+      )
       infer_model.compile()
       return infer_model, checkpoint, graph
-      # interactive_infer(infer_model, checkpoint, args.infer_output_file)
 
   if args.enable_logs and (hvd is None or hvd.rank() == 0):
     sys.stdout = old_stdout
@@ -283,5 +286,4 @@ def main(args):
 
 
 if __name__ == '__main__':
-  print(sys.argv[1:])
   main(sys.argv[1:])
