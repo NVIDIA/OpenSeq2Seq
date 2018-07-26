@@ -103,7 +103,8 @@ class ConvS2SDecoder(Decoder):
         knum_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[0]
         kwidth_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[1]
 
-        normalization_type = self.params.get("normalization_type", "weight_norm")
+        normalization_type = self.params.get("normalization_type",
+                                             "weight_norm")
         conv_activation = self.params.get("conv_activation", gated_linear_units)
 
         # preparing embedding layers
@@ -251,7 +252,11 @@ class ConvS2SDecoder(Decoder):
     if self.position_embedding_layer is not None:
       with tf.name_scope("add_pos_encoding"):
         pos_input = tf.range(
-            0, tf.shape(decoder_inputs)[1], delta=1, dtype=tf.int32, name='range')
+            0,
+            tf.shape(decoder_inputs)[1],
+            delta=1,
+            dtype=tf.int32,
+            name='range')
         pos_encoding = self.position_embedding_layer(pos_input)
         decoder_inputs = decoder_inputs + tf.cast(
             x=pos_encoding, dtype=decoder_inputs.dtype)
@@ -321,7 +326,8 @@ class ConvS2SDecoder(Decoder):
     symbols_to_logits_fn = self._get_symbols_to_logits_fn()
 
     # Create initial set of IDs that will be passed into symbols_to_logits_fn.
-    initial_ids = tf.zeros([batch_size], dtype=tf.int32) + self.params["GO_SYMBOL"]
+    initial_ids = tf.zeros(
+        [batch_size], dtype=tf.int32) + self.params["GO_SYMBOL"]
 
     cache = {}
     # Add encoder outputs and attention bias to the cache.

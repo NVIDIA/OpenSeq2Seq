@@ -14,9 +14,17 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 class Conv1DNetworkNormalized(tf.layers.Layer):
   """1D convolutional layer with weight normalization"""
 
-  def __init__(self, in_dim, out_dim, kernel_width, mode, layer_id,
-               hidden_dropout, conv_padding, decode_padding,
-               activation=gated_linear_units, normalization_type="weight_norm"):
+  def __init__(self,
+               in_dim,
+               out_dim,
+               kernel_width,
+               mode,
+               layer_id,
+               hidden_dropout,
+               conv_padding,
+               decode_padding,
+               activation=gated_linear_units,
+               normalization_type="weight_norm"):
     """initializes the 1D convolution layer.
     It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
@@ -70,14 +78,14 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       if self.wn_enabled:
         V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
         self.V = tf.get_variable(
-          'V',
-          shape=[kernel_width, in_dim, conv_out_size],
-          initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
-          trainable=True)
+            'V',
+            shape=[kernel_width, in_dim, conv_out_size],
+            initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
+            trainable=True)
         self.V_norm = tf.norm(self.V.initialized_value(), axis=[0, 1])
         self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
         self.W = tf.reshape(self.g, [1, 1, conv_out_size]) * tf.nn.l2_normalize(
-        self.V, [0, 1])
+            self.V, [0, 1])
       else:
         self.W = tf.get_variable(
             'W',
@@ -112,7 +120,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           x, [[0, 0], [self.kernel_width - 1, self.kernel_width - 1], [0, 0]],
           "CONSTANT")
 
-    output = tf.nn.conv1d(value=x, filters=self.W, stride=1, padding=self.conv_padding)
+    output = tf.nn.conv1d(
+        value=x, filters=self.W, stride=1, padding=self.conv_padding)
 
     if self.b is not None:
       output = tf.nn.bias_add(output, self.b)
@@ -125,13 +134,13 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       # To-Do check if batchnorm works smoothly for >4 dimensional tensors
       output = tf.expand_dims(output, axis=1)  # NWC --> NHWC
       output = tf.layers.batch_normalization(
-        name="batch_norm_" + str(self.layer_id),
-        inputs=output,
-        #gamma_regularizer=regularizer,
-        training=self.mode == 'train',
-        axis=-1,
-        momentum=0.99,
-        epsilon=1e-4,
+          name="batch_norm_" + str(self.layer_id),
+          inputs=output,
+          #gamma_regularizer=regularizer,
+          training=self.mode == 'train',
+          axis=-1,
+          momentum=0.99,
+          epsilon=1e-4,
       )
       output = tf.squeeze(output, axis=1)
 
