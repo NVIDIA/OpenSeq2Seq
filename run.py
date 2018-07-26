@@ -24,7 +24,9 @@ from open_seq2seq.utils.utils import deco_print, flatten_dict, \
                                      get_git_hash, Logger
 from open_seq2seq.utils import train, infer, evaluate
 
-
+from __future__ import unicode_literals
+import codecs
+from subword_nmt import codecs
 def main(args):
   parser = argparse.ArgumentParser(description='Experiment parameters')
   parser.add_argument("--config_file", required=True,

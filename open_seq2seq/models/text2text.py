@@ -223,7 +223,7 @@ class Text2Text(EncoderDecoderModel):
     data_layer = self.get_data_layer(worker_id)
     # sum of source length in batch
     num_tokens = tf.reduce_sum(data_layer.input_tensors['source_tensors'][1])
-    if self.mode != "infer":
+    if self.mode != "infer" and self.mode != "interactive_infer":
       # sum of target length in batch
       num_tokens += tf.reduce_sum(data_layer.input_tensors['target_tensors'][1])
     else:
