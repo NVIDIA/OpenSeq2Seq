@@ -4,8 +4,8 @@ from __future__ import unicode_literals
 
 import tensorflow as tf
 
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
 from .encoder import Encoder
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
 
 
 class Wave2LetterEncoder(Encoder):
@@ -64,7 +64,7 @@ class Wave2LetterEncoder(Encoder):
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
     * **normalization** --- normalization to use. Accepts [None, 'batch_norm'].
-      Use None if you don't want to use normalization. Defaults to 'batch_norm'.
+      Use None if you don't want to use normalization. Defaults to 'batch_norm'.     
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
@@ -105,7 +105,8 @@ class Wave2LetterEncoder(Encoder):
       conv_block = conv_actv
     elif normalization == "batch_norm":
       conv_block = conv_bn_actv
-      normalization_params['bn_momentum'] = self.params.get('bn_momentum', 0.90)
+      normalization_params['bn_momentum'] = self.params.get(
+          'bn_momentum', 0.90)
       normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
     else:
       raise ValueError("Incorrect normalization")
@@ -126,6 +127,8 @@ class Wave2LetterEncoder(Encoder):
       kernel_size = convnet_layers[idx_convnet]['kernel_size']
       strides = convnet_layers[idx_convnet]['stride']
       padding = convnet_layers[idx_convnet]['padding']
+      dropout_keep = convnet_layers[idx_convnet].get(
+          'dropout_keep_prob', dropout_keep_prob) if training else 1.0
 
       for idx_layer in range(layer_repeat):
         conv_feats = conv_block(
@@ -143,7 +146,9 @@ class Wave2LetterEncoder(Encoder):
             data_format=data_format,
             **normalization_params
         )
-        outputs = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep_prob)
+        conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
+
+    outputs = conv_feats
 
     if data_format == 'channels_first':
       outputs = tf.transpose(outputs, [0, 2, 1])

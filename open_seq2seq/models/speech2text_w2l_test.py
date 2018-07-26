@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from open_seq2seq.test_utils.test_speech_configs.w2l_test_config import \
-  base_params, train_params, eval_params, base_model
+    base_params, train_params, eval_params, base_model
 from .speech2text_test import Speech2TextModelTests
 
 
