@@ -25,7 +25,7 @@ hidden_before_last = 512
 max_length = 64
 pad_2_eight = True
 
-batch_size = 128
+batch_size = 64
 num_gpus = 8
 epoch_num = 35
 
