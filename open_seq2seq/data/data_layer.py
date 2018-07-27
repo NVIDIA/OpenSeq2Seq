@@ -26,7 +26,7 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
-        'mode': ['train', 'eval', 'infer', 'interactive_infer'],
+        'mode': ['train', 'eval', 'infer'],
     }
 
   @staticmethod

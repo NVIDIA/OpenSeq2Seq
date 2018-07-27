@@ -204,15 +204,15 @@ class Model:
     # parameter checks
     self._mode = mode
     self._interactive = False
-    if self._mode not in ["train", "infer", "eval", "interactive_infer"]:
+    if self._mode == "interactive_infer":
+      self._mode = "infer"
+      self._interactive = True
+
+    if self._mode not in ["train", "infer", "eval"]:
       raise ValueError(
           "Mode has to be one of ['train', 'infer', 'eval', ",
           "'interactive_infer']"
       )
-
-    if self._mode == "interactive_infer":
-      self._mode = "infer"
-      self._interactive = True
 
     if "max_steps" in params and "num_epochs" in params:
       raise ValueError("You can't provide both max_steps and num_epochs. "
@@ -251,6 +251,9 @@ class Model:
       else:
         raise ValueError('Either "gpu_ids" or "num_gpus" has to '
                          'be specified in the config')
+
+    if self._interactive and len(self._gpu_ids) > 1:
+      raise ValueError("Interactive infer is meant to be used with 1 gpu")
 
     # setting random seed
     rs = self._params.get('random_seed', int(time.time()))
