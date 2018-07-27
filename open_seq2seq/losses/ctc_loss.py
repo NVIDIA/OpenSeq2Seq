@@ -2,12 +2,11 @@
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 
-from .loss import Loss
 from open_seq2seq.utils.utils import mask_nans, deco_print
+from .loss import Loss
 
 
 def dense_to_sparse(dense_tensor, sequence_length):
@@ -22,7 +21,7 @@ class CTCLoss(Loss):
   @staticmethod
   def get_optional_params():
     return dict(Loss.get_optional_params(), **{
-      'mask_nan': bool,
+        'mask_nan': bool,
     })
 
   def __init__(self, params, model, name="ctc_loss"):
@@ -76,10 +75,10 @@ class CTCLoss(Loss):
 
     # Compute the CTC loss
     total_loss = tf.nn.ctc_loss(
-      labels=dense_to_sparse(tgt_sequence, tgt_length),
-      inputs=logits,
-      sequence_length=src_length,
-      ignore_longer_outputs_than_inputs=True,
+        labels=dense_to_sparse(tgt_sequence, tgt_length),
+        inputs=logits,
+        sequence_length=src_length,
+        ignore_longer_outputs_than_inputs=True,
     )
 
     if self._mask_nan:

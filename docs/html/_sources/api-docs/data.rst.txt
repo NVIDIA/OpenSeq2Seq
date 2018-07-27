@@ -11,6 +11,7 @@ data
     data.image2label
     data.speech2text
     data.text2text
+    data.text2speech
 
 data\_layer
 -----------------------

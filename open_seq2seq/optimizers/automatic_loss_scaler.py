@@ -3,28 +3,20 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 
+from open_seq2seq.utils.utils import check_params
 
 class AutomaticLossScaler(object):
   SUPPORTED_ALGOS = ['backoff', 'logmax']
 
-  def __init__(self, algorithm='Backoff', scale_min=1.0, scale_max=2.**24):
+  def __init__(self, algorithm='Backoff', params=None):
     algorithm = algorithm.lower().strip()
     if algorithm == 'backoff':
-      self.scaler = BackoffScaler(scale_min=scale_min,
-                                  scale_max=scale_max,
-                                  step_factor=2.0,
-                                  step_window=2000)
+      self.scaler = BackoffScaler(params)
     elif algorithm == 'logmax':
-      self.scaler = LogMaxScaler(scale_min=scale_min,
-                                 scale_max=scale_max,
-                                 log_max=16.,
-                                 beta1=0.99,
-                                 beta2=0.999,
-                                 overflow_std_dev=3.09)  # ppf(.999)
+      self.scaler = LogMaxScaler(params)  # ppf(.999)
     else:
       raise ValueError('Unknown scaling algorithm: {}'.format(algorithm))
 
@@ -56,11 +48,23 @@ class AutomaticLossScaler(object):
 
 
 class BackoffScaler(object):
-  def __init__(self, scale_min, scale_max, step_factor, step_window):
-    self.scale_min = scale_min
-    self.scale_max = scale_max
-    self.step_factor = step_factor
-    self.step_window = step_window
+  def __init__(self, params):
+    if params is None:
+      params = {}
+    check_params(
+        config=params,
+        required_dict={},
+        optional_dict={
+            'scale_min': float,
+            'scale_max': float,
+            'step_factor': float,
+            'step_window': int
+        },
+    )
+    self.scale_min = params.get('scale_min', 1.0)
+    self.scale_max = params.get('scale_max', 2.**24)
+    self.step_factor = params.get('step_factor', 2.0)
+    self.step_window = params.get('step_window', 2000)
 
     self.iteration = tf.Variable(initial_value=0,
                                  trainable=False,
@@ -68,7 +72,7 @@ class BackoffScaler(object):
     self.last_overflow_iteration = tf.Variable(initial_value=-1,
                                                trainable=False,
                                                dtype=tf.int64)
-    self.scale = tf.Variable(initial_value=2.**24,
+    self.scale = tf.Variable(initial_value=self.scale_max,
                              trainable=False)
 
   def update_op(self, has_nan, amax):
@@ -76,7 +80,8 @@ class BackoffScaler(object):
       new_scale_val = tf.clip_by_value(self.scale / self.step_factor,
                                        self.scale_min, self.scale_max)
       scale_assign = tf.assign(self.scale, new_scale_val)
-      overflow_iter_assign = tf.assign(self.last_overflow_iteration, self.iteration)
+      overflow_iter_assign = tf.assign(self.last_overflow_iteration,
+                                       self.iteration)
       with tf.control_dependencies([scale_assign, overflow_iter_assign]):
         return tf.identity(self.scale)
 
@@ -106,13 +111,27 @@ class BackoffScaler(object):
 
 
 class LogMaxScaler(object):
-  def __init__(self, scale_min, scale_max, log_max, beta1, beta2, overflow_std_dev):
-    self.scale_min = scale_min
-    self.scale_max = scale_max
-    self.log_max = log_max
-    self.beta1 = beta1
-    self.beta2 = beta2
-    self.overflow_std_dev = overflow_std_dev
+  def __init__(self, params):
+    if params is None:
+      params = {}
+    check_params(
+        config=params,
+        required_dict={},
+        optional_dict={
+            'scale_min': float,
+            'scale_max': float,
+            'log_max': float,
+            'beta1': float,
+            'beta2': float,
+            'overflow_std_dev': float
+        },
+    )
+    self.scale_min = params.get('scale_min', 1.0)
+    self.scale_max = params.get('scale_max', 2.**24)
+    self.log_max = params.get('log_max', 16.)
+    self.beta1 = params.get('beta1', 0.99)
+    self.beta2 = params.get('beta2', 0.999)
+    self.overflow_std_dev = params.get('overflow_std_dev', 3.09)
 
     self.iteration = tf.Variable(initial_value=0,
                                  trainable=False,
@@ -151,13 +170,18 @@ class LogMaxScaler(object):
 
     slow_x_hat_assn = tf.assign(self.slow_x_hat, self.beta2 * self.slow_x_hat +
                                 (1 - self.beta2) * x)
-    xsquared_hat_assn = tf.assign(self.xsquared_hat, self.beta2 * self.xsquared_hat +
-                                  (1 - self.beta2) * (x * x))
+    xsquared_hat_assn = tf.assign(
+        self.xsquared_hat,
+        self.beta2 * self.xsquared_hat + (1 - self.beta2) * (x * x),
+    )
     b2_corr_assn = tf.assign(self.b2_correction,
                              self.b2_correction * self.beta2)
-    with tf.control_dependencies([slow_x_hat_assn, xsquared_hat_assn, b2_corr_assn]):
-      e_xsquared = self.xsquared_hat.read_value() / (1 - self.b2_correction.read_value())
-      slow_mu = self.slow_x_hat.read_value() / (1 - self.b2_correction.read_value())
+    with tf.control_dependencies([slow_x_hat_assn, xsquared_hat_assn,
+                                  b2_corr_assn]):
+      e_xsquared = self.xsquared_hat.read_value() / \
+                   (1 - self.b2_correction.read_value())
+      slow_mu = self.slow_x_hat.read_value() / \
+                (1 - self.b2_correction.read_value())
 
     sigma2 = e_xsquared - (slow_mu * slow_mu)
     sigma = tf.sqrt(tf.maximum(sigma2, tf.constant(0.)))
@@ -165,8 +189,10 @@ class LogMaxScaler(object):
     log_cutoff = sigma * self.overflow_std_dev + mu
     log_difference = 16 - log_cutoff
     proposed_scale = tf.pow(2., log_difference)
-    scale_update = tf.assign(self.scale, tf.clip_by_value(proposed_scale, self.scale_min,
-                                                          self.scale_max))
+    scale_update = tf.assign(
+        self.scale,
+        tf.clip_by_value(proposed_scale, self.scale_min, self.scale_max),
+    )
     iter_update = tf.assign_add(self.iteration, 1)
 
     with tf.control_dependencies([scale_update]):

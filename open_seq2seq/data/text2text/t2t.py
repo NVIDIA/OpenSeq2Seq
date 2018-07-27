@@ -52,8 +52,6 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import os
-
 import tensorflow as tf
 
 # Use the number of training files as the shuffle buffer.
@@ -84,14 +82,18 @@ def _parse_example(serialized_example, pad_2_eight=False):
   targets = tf.sparse_tensor_to_dense(parsed["targets"])
 
   if pad_2_eight:
-    inputs = tf.cond(tf.equal(tf.shape(inputs)[0] % 8, 0),
-                     true_fn=lambda:  inputs,
-                     false_fn=lambda: tf.pad(inputs,
-                                      paddings=[[0, 8 - tf.shape(inputs)[0] % 8]]))
-    targets = tf.cond(tf.equal(tf.shape(targets)[0] % 8, 0),
-                     true_fn=lambda:  targets,
-                     false_fn=lambda: tf.pad(targets,
-                                      paddings=[[0, 8 - tf.shape(targets)[0] % 8]]))
+    inputs = tf.cond(
+        tf.equal(tf.shape(inputs)[0] % 8, 0),
+        true_fn=lambda: inputs,
+        false_fn=lambda: tf.pad(inputs,
+                                paddings=[[0, 8 - tf.shape(inputs)[0] % 8]])
+    )
+    targets = tf.cond(
+        tf.equal(tf.shape(targets)[0] % 8, 0),
+        true_fn=lambda: targets,
+        false_fn=lambda: tf.pad(targets,
+                                paddings=[[0, 8 - tf.shape(targets)[0] % 8]])
+    )
 
   return inputs, targets
 
@@ -166,10 +168,12 @@ def _batch_examples(dataset, batch_size, max_length, pad_2_eight=True):
 
   # Create list of batch sizes for each bucket_id, so that
   # bucket_batch_size[bucket_id] * buckets_max[bucket_id] <= batch_size
-  if pad_2_eight: # pad to 8 for HMMA
+  if pad_2_eight:  # pad to 8 for HMMA
     bucket_batch_sizes = [
-      batch_size // x if batch_size // x % 8 == 0 else batch_size // x + (
-            8 - batch_size // x % 8) for x in buckets_max]
+        batch_size // x if batch_size // x % 8 == 0 else
+        batch_size // x + (8 - batch_size // x % 8)
+        for x in buckets_max
+    ]
   else:
     bucket_batch_sizes = [batch_size // x for x in buckets_max]
   # bucket_id will be a tensor, so convert this list to a tensor as well.
@@ -198,11 +202,14 @@ def _batch_examples(dataset, batch_size, max_length, pad_2_eight=True):
     # lengths as well. Resulting lengths of inputs and targets can differ.
     return grouped_dataset.padded_batch(bucket_batch_size, ([None], [None]))
 
-  return dataset.apply(tf.contrib.data.group_by_window(
-      key_func=example_to_bucket_id,
-      reduce_func=batching_fn,
-      window_size=None,
-      window_size_func=window_size_fn))
+  return dataset.apply(
+      tf.contrib.data.group_by_window(  # pylint: disable=no-member
+          key_func=example_to_bucket_id,
+          reduce_func=batching_fn,
+          window_size=None,
+          window_size_func=window_size_fn
+      )
+  )
 
 
 def _read_and_batch_from_files(
@@ -240,7 +247,7 @@ def _read_and_batch_from_files(
   # Read files and interleave results. When training, the order of the examples
   # will be non-deterministic.
   dataset = dataset.apply(
-      tf.contrib.data.parallel_interleave(
+      tf.contrib.data.parallel_interleave(  # pylint: disable=no-member
           _load_records, sloppy=shuffle, cycle_length=num_cpu_cores))
 
   # Parse each tf.Example into a dictionary
@@ -263,19 +270,3 @@ def _read_and_batch_from_files(
   # Prefetch the next element to improve speed of input pipeline.
   dataset = dataset.prefetch(1)
   return dataset
-
-
-def train_input_fn(params):
-  """Load and return dataset of batched examples for use during training."""
-  file_pattern = os.path.join(getattr(params, "data_dir", ""), "*train*")
-  return _read_and_batch_from_files(
-      file_pattern, params.batch_size, params.max_length, params.num_cpu_cores,
-      shuffle=True, repeat=params.repeat_dataset)
-
-
-def eval_input_fn(params):
-  """Load and return dataset of batched examples for use during evaluation."""
-  file_pattern = os.path.join(getattr(params, "data_dir", ""), "*dev*")
-  return _read_and_batch_from_files(
-      file_pattern, params.batch_size, params.max_length, params.num_cpu_cores,
-      shuffle=False, repeat=1)

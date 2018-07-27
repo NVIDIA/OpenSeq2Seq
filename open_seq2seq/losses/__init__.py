@@ -6,3 +6,4 @@ from .sequence_loss import BasicSequenceLoss, CrossEntropyWithSmoothing, \
   PaddedCrossEntropyLossWithSmoothing
 from .ctc_loss import CTCLoss
 from .cross_entropy_loss import CrossEntropyLoss
+from .tacotron_loss import TacotronLoss

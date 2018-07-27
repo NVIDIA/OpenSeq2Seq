@@ -1,20 +1,20 @@
 # Copyright (c) 2017 NVIDIA Corporation
-"""Data Layer Classes"""
+"""Data layer classes"""
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import abc
+import copy
+
 import six
 import tensorflow as tf
-import copy
+
 from open_seq2seq.utils.utils import check_params
 
 
 @six.add_metaclass(abc.ABCMeta)
 class DataLayer:
-  """Abstract class from which all data layers must inherit.
-  """
+  """Abstract class from which all data layers must inherit."""
   @staticmethod
   def get_required_params():
     """Static method with description of required parameters.
@@ -26,7 +26,7 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
-      'mode': ['train', 'eval', 'infer'],
+        'mode': ['train', 'eval', 'infer'],
     }
 
   @staticmethod
@@ -40,9 +40,9 @@ class DataLayer:
             class :meth:`__init__` method.
     """
     return {
-      'batch_size': int,
-      'shuffle': bool,
-      'dtype': [tf.float32, tf.float16],
+        'batch_size': int,
+        'shuffle': bool,
+        'dtype': [tf.float32, tf.float16],
     }
 
   @abc.abstractmethod
@@ -79,10 +79,7 @@ class DataLayer:
         self._params['dtype'] = tf.float32
 
     if 'shuffle' not in params:
-      if self._params['mode'] == 'train':
-        self._params['shuffle'] = True
-      else:
-        self._params['shuffle'] = False
+      self._params['shuffle'] = (self._params['mode'] == 'train')
 
     if self._params['mode'] != 'train' and self._params['shuffle']:
       raise ValueError("Shuffle should not be performed in eval or infer modes")

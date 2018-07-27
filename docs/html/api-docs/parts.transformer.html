@@ -111,6 +111,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -192,7 +193,7 @@
 <dl class="class">
 <dt id="parts.transformer.attention_layer.Attention">
 <em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">Attention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Multi-headed attention layer.</p>
 <dl class="method">
 <dt id="parts.transformer.attention_layer.Attention.call">
@@ -203,15 +204,15 @@
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – a tensor with shape [batch_size, length_x, hidden_size]</li>
-<li><strong>y</strong> – a tensor with shape [batch_size, length_y, hidden_size]</li>
-<li><strong>bias</strong> – attention bias that will be added to the result of the dot product.</li>
-<li><strong>cache</strong> – <p>(Used during prediction) dictionary with tensors containing results
+<li><strong>x</strong> &#8211; a tensor with shape [batch_size, length_x, hidden_size]</li>
+<li><strong>y</strong> &#8211; a tensor with shape [batch_size, length_y, hidden_size]</li>
+<li><strong>bias</strong> &#8211; attention bias that will be added to the result of the dot product.</li>
+<li><strong>cache</strong> &#8211; <p>(Used during prediction) dictionary with tensors containing results
 of previous attentions. The dictionary must have the items:</p>
 <blockquote>
 <div><dl class="docutils">
-<dt>{“k”: tensor with shape [batch_size, i, key_channels],</dt>
-<dd>”v”: tensor with shape [batch_size, i, value_channels]}</dd>
+<dt>{&#8220;k&#8221;: tensor with shape [batch_size, i, key_channels],</dt>
+<dd>&#8220;v&#8221;: tensor with shape [batch_size, i, value_channels]}</dd>
 </dl>
 </div></blockquote>
 <p>where i is the current decoded length.</p>
@@ -234,7 +235,7 @@ of previous attentions. The dictionary must have the items:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A tensor [batch_size, num_heads, length, hidden_size/num_heads]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; A tensor [batch_size, num_heads, length, hidden_size/num_heads]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tensor with shape [batch_size, length, hidden_size]</td>
 </tr>
@@ -252,7 +253,7 @@ values during the matrix multiplication.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A tensor with shape [batch_size, length, hidden_size]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; A tensor with shape [batch_size, length, hidden_size]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A tensor with shape [batch_size, num_heads, length, hidden_size/num_heads]</td>
 </tr>
@@ -265,39 +266,12 @@ values during the matrix multiplication.</p>
 <dl class="class">
 <dt id="parts.transformer.attention_layer.SelfAttention">
 <em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">SelfAttention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.transformer.attention_layer.Attention" title="parts.transformer.attention_layer.Attention"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.transformer.attention_layer.Attention</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.transformer.attention_layer.Attention" title="parts.transformer.attention_layer.Attention"><code class="xref py py-class docutils literal"><span class="pre">parts.transformer.attention_layer.Attention</span></code></a></p>
 <p>Multiheaded self-attention layer.</p>
 <dl class="method">
 <dt id="parts.transformer.attention_layer.SelfAttention.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>bias</em>, <em>cache=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply attention mechanism to x and y.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – a tensor with shape [batch_size, length_x, hidden_size]</li>
-<li><strong>y</strong> – a tensor with shape [batch_size, length_y, hidden_size]</li>
-<li><strong>bias</strong> – attention bias that will be added to the result of the dot product.</li>
-<li><strong>cache</strong> – <p>(Used during prediction) dictionary with tensors containing results
-of previous attentions. The dictionary must have the items:</p>
-<blockquote>
-<div><dl class="docutils">
-<dt>{“k”: tensor with shape [batch_size, i, key_channels],</dt>
-<dd>”v”: tensor with shape [batch_size, i, value_channels]}</dd>
-</dl>
-</div></blockquote>
-<p>where i is the current decoded length.</p>
-</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Attention layer output with shape [batch_size, length_x, hidden_size]</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -310,7 +284,7 @@ of previous attentions. The dictionary must have the items:</p>
 <dl class="class">
 <dt id="parts.transformer.beam_search.SequenceBeamSearch">
 <em class="property">class </em><code class="descclassname">parts.transformer.beam_search.</code><code class="descname">SequenceBeamSearch</code><span class="sig-paren">(</span><em>symbols_to_logits_fn</em>, <em>vocab_size</em>, <em>batch_size</em>, <em>beam_size</em>, <em>alpha</em>, <em>max_decode_length</em>, <em>eos_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search.html#SequenceBeamSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search.SequenceBeamSearch" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Implementation of beam search loop.</p>
 <dl class="method">
 <dt id="parts.transformer.beam_search.SequenceBeamSearch._continue_search">
@@ -330,7 +304,7 @@ unchanging)</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> – A dictionary with the current loop state.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> &#8211; A dictionary with the current loop state.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Bool tensor with value True if loop should continue, False if loop should
 terminate.</td>
@@ -348,9 +322,9 @@ terminate.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>initial_ids</strong> – initial ids to pass into the symbols_to_logits_fn.
+<li><strong>initial_ids</strong> &#8211; initial ids to pass into the symbols_to_logits_fn.
 int tensor with shape [batch_size, 1]</li>
-<li><strong>initial_cache</strong> – dictionary storing values to be passed into the
+<li><strong>initial_cache</strong> &#8211; dictionary storing values to be passed into the
 symbols_to_logits_fn.</li>
 </ul>
 </td>
@@ -371,16 +345,16 @@ symbols_to_logits_fn.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>new_seq</strong> – New sequences generated by growing the current alive sequences
+<li><strong>new_seq</strong> &#8211; New sequences generated by growing the current alive sequences
 int32 tensor with shape [batch_size, 2 * beam_size, cur_index + 1]</li>
-<li><strong>new_log_probs</strong> – Log probabilities of new sequences
+<li><strong>new_log_probs</strong> &#8211; Log probabilities of new sequences
 float32 tensor with shape [batch_size, beam_size]</li>
-<li><strong>new_cache</strong> – Dict of cached values for each sequence.</li>
+<li><strong>new_cache</strong> &#8211; Dict of cached values for each sequence.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt>{Top beam_size sequences that are still alive (don’t end with eos_id)</dt>
+<dt>{Top beam_size sequences that are still alive (don&#8217;t end with eos_id)</dt>
 <dd><p class="first last">Log probabilities of top alive sequences
 Dict cache storing decoder states for top alive sequences}</p>
 </dd>
@@ -404,10 +378,10 @@ Dict cache storing decoder states for top alive sequences}</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>state</strong> – A dictionary with the current loop state.</li>
-<li><strong>new_seq</strong> – New sequences generated by growing the current alive sequences
+<li><strong>state</strong> &#8211; A dictionary with the current loop state.</li>
+<li><strong>new_seq</strong> &#8211; New sequences generated by growing the current alive sequences
 int32 tensor with shape [batch_size, beam_size, i + 1]</li>
-<li><strong>new_log_probs</strong> – Log probabilities of new sequences
+<li><strong>new_log_probs</strong> &#8211; Log probabilities of new sequences
 float32 tensor with shape [batch_size, beam_size]</li>
 </ul>
 </td>
@@ -439,7 +413,7 @@ still alive.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> – A dictionary with the current loop state.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> &#8211; A dictionary with the current loop state.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Tuple of
 (Top 2*beam_size sequences [batch_size, 2 * beam_size, cur_index + 1],<blockquote>
@@ -458,14 +432,14 @@ New alive cache, for each of the 2 * beam_size sequences)</div></blockquote>
 <p>Grow alive sequences by a single ID. Sequences that have reached the EOS
 token are marked as finished. The alive and finished sequences with the
 highest log probabilities and scores are returned.</p>
-<p>A sequence’s finished score is calculating by dividing the log probability
+<p>A sequence&#8217;s finished score is calculating by dividing the log probability
 by the length normalization factor. Without length normalization, the
 search is more likely to return shorter sequences.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> – A dictionary with the current loop state.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>state</strong> &#8211; A dictionary with the current loop state.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">new state dictionary.</td>
 </tr>
@@ -484,7 +458,7 @@ search is more likely to return shorter sequences.</p>
 <dl class="class">
 <dt id="parts.transformer.beam_search._StateKeys">
 <em class="property">class </em><code class="descclassname">parts.transformer.beam_search.</code><code class="descname">_StateKeys</code><a class="reference internal" href="../_modules/parts/transformer/beam_search.html#_StateKeys"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search._StateKeys" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Keys to dictionary storing the state of the beam search loop.</p>
 <dl class="attribute">
 <dt id="parts.transformer.beam_search._StateKeys.ALIVE_CACHE">
@@ -532,12 +506,12 @@ search is more likely to return shorter sequences.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tensor</strong> – tensor to tile [batch_size, …]</li>
-<li><strong>beam_size</strong> – How much to tile the tensor by.</li>
+<li><strong>tensor</strong> &#8211; tensor to tile [batch_size, ...]</li>
+<li><strong>beam_size</strong> &#8211; How much to tile the tensor by.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tiled tensor [batch_size, beam_size, …]</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Tiled tensor [batch_size, beam_size, ...]</p>
 </td>
 </tr>
 </tbody>
@@ -552,9 +526,9 @@ search is more likely to return shorter sequences.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tensor</strong> – Tensor to reshape of shape [A, B, …]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>tensor</strong> &#8211; Tensor to reshape of shape [A, B, ...]</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Reshaped tensor of shape [A*B, …]</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Reshaped tensor of shape [A*B, ...]</td>
 </tr>
 </tbody>
 </table>
@@ -574,19 +548,19 @@ beam_indices, from the nested tensors.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>nested</strong> – Nested structure (tensor, list, tuple or dict) containing tensors
-with shape [batch_size, beam_size, …].</li>
-<li><strong>beam_indices</strong> – int32 tensor with shape [batch_size, new_beam_size]. Each
+<li><strong>nested</strong> &#8211; Nested structure (tensor, list, tuple or dict) containing tensors
+with shape [batch_size, beam_size, ...].</li>
+<li><strong>beam_indices</strong> &#8211; int32 tensor with shape [batch_size, new_beam_size]. Each
 value in beam_indices must be between [0, beam_size), and are not
 necessarily unique.</li>
-<li><strong>batch_size</strong> – int size of batch</li>
-<li><strong>new_beam_size</strong> – int number of beams to be pulled from the nested tensors.</li>
+<li><strong>batch_size</strong> &#8211; int size of batch</li>
+<li><strong>new_beam_size</strong> &#8211; int number of beams to be pulled from the nested tensors.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
 <dt>Nested structure containing tensors with shape</dt>
-<dd><p class="first last">[batch_size, new_beam_size, …]</p>
+<dd><p class="first last">[batch_size, new_beam_size, ...]</p>
 </dd>
 </dl>
 </p>
@@ -611,7 +585,7 @@ necessarily unique.</li>
 <dl class="function">
 <dt id="parts.transformer.beam_search._shape_list">
 <code class="descclassname">parts.transformer.beam_search.</code><code class="descname">_shape_list</code><span class="sig-paren">(</span><em>tensor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/beam_search.html#_shape_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.beam_search._shape_list" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a list of the tensor’s shape, and ensure no None values in list.</p>
+<dd><p>Return a list of the tensor&#8217;s shape, and ensure no None values in list.</p>
 </dd></dl>
 
 <dl class="function">
@@ -623,13 +597,13 @@ necessarily unique.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>tensor</strong> – Tensor to reshape of shape [batch_size*beam_size, …]</li>
-<li><strong>batch_size</strong> – Tensor, original batch size.</li>
-<li><strong>beam_size</strong> – int, original beam size.</li>
+<li><strong>tensor</strong> &#8211; Tensor to reshape of shape [batch_size*beam_size, ...]</li>
+<li><strong>batch_size</strong> &#8211; Tensor, original batch size.</li>
+<li><strong>beam_size</strong> &#8211; int, original beam size.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Reshaped tensor of shape [batch_size, beam_size, …]</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Reshaped tensor of shape [batch_size, beam_size, ...]</p>
 </td>
 </tr>
 </tbody>
@@ -645,26 +619,26 @@ necessarily unique.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>symbols_to_logits_fn</strong> – <p>A function that takes in ids, index, and cache as
+<li><strong>symbols_to_logits_fn</strong> &#8211; <p>A function that takes in ids, index, and cache as
 arguments. The passed in arguments will have shape:</p>
 <blockquote>
 <div>ids -&gt; [batch_size * beam_size, index]
 index -&gt; [] (scalar)
-cache -&gt; nested dictionary of tensors [batch_size * beam_size, …]</div></blockquote>
+cache -&gt; nested dictionary of tensors [batch_size * beam_size, ...]</div></blockquote>
 <dl class="docutils">
 <dt>The function must return logits and new cache.</dt>
 <dd>logits -&gt; [batch * beam_size, vocab_size]
 new cache -&gt; same shape/structure as inputted cache</dd>
 </dl>
 </li>
-<li><strong>initial_ids</strong> – Starting ids for each batch item.
+<li><strong>initial_ids</strong> &#8211; Starting ids for each batch item.
 int32 tensor with shape [batch_size]</li>
-<li><strong>initial_cache</strong> – dict containing starting decoder variables information</li>
-<li><strong>vocab_size</strong> – int size of tokens</li>
-<li><strong>beam_size</strong> – int number of beams</li>
-<li><strong>alpha</strong> – float defining the strength of length normalization</li>
-<li><strong>max_decode_length</strong> – maximum length to decoded sequence</li>
-<li><strong>eos_id</strong> – int id of eos token, used to determine when a sequence has finished</li>
+<li><strong>initial_cache</strong> &#8211; dict containing starting decoder variables information</li>
+<li><strong>vocab_size</strong> &#8211; int size of tokens</li>
+<li><strong>beam_size</strong> &#8211; int number of beams</li>
+<li><strong>alpha</strong> &#8211; float defining the strength of length normalization</li>
+<li><strong>max_decode_length</strong> &#8211; maximum length to decoded sequence</li>
+<li><strong>eos_id</strong> &#8211; int id of eos token, used to determine when a sequence has finished</li>
 </ul>
 </td>
 </tr>
@@ -682,41 +656,24 @@ sequence scores [batch_size, beam_size]</p>
 <dl class="class">
 <dt id="parts.transformer.common.LayerNormalization">
 <em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">LayerNormalization</code><span class="sig-paren">(</span><em>hidden_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Applies layer normalization.</p>
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.build">
 <code class="descname">build</code><span class="sig-paren">(</span><em>_</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the variables of the layer.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>epsilon=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>The logic of the layer lives here.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – input tensor(s).</li>
-<li><strong>**kwargs</strong> – additional keyword arguments.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="parts.transformer.common.PrePostProcessingWrapper">
 <em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">PrePostProcessingWrapper</code><span class="sig-paren">(</span><em>layer</em>, <em>params</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#PrePostProcessingWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.PrePostProcessingWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Wrapper class that applies layer pre-processing and post-processing.</p>
 </dd></dl>
 
@@ -727,13 +684,12 @@ sequence scores [batch_size, beam_size]</p>
 <dl class="class">
 <dt id="parts.transformer.embedding_layer.EmbeddingSharedWeights">
 <em class="property">class </em><code class="descclassname">parts.transformer.embedding_layer.</code><code class="descname">EmbeddingSharedWeights</code><span class="sig-paren">(</span><em>vocab_size</em>, <em>hidden_size</em>, <em>pad_vocab_to_eight=False</em>, <em>init_var=None</em>, <em>embed_scale=True</em>, <em>pad_sym=0</em>, <em>mask_paddings=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Calculates input embeddings and pre-softmax linear with shared weights.</p>
 <dl class="method">
 <dt id="parts.transformer.embedding_layer.EmbeddingSharedWeights.build">
 <code class="descname">build</code><span class="sig-paren">(</span><em>_</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights.build" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates the variables of the layer.</p>
-</dd></dl>
+<dd></dd></dl>
 
 <dl class="method">
 <dt id="parts.transformer.embedding_layer.EmbeddingSharedWeights.call">
@@ -743,7 +699,7 @@ sequence scores [batch_size, beam_size]</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – An int64 tensor with shape [batch_size, length]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; An int64 tensor with shape [batch_size, length]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float32 tensor with shape [batch_size, length, embedding_size]
 padding: float32 tensor with shape [batch_size, length] indicating the<blockquote>
@@ -764,7 +720,7 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A float32 tensor with shape [batch_size, length, hidden_size]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; A float32 tensor with shape [batch_size, length, hidden_size]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float32 tensor with shape [batch_size, length, vocab_size].</td>
 </tr>
@@ -781,28 +737,12 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <dl class="class">
 <dt id="parts.transformer.ffn_layer.FeedFowardNetwork">
 <em class="property">class </em><code class="descclassname">parts.transformer.ffn_layer.</code><code class="descname">FeedFowardNetwork</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>filter_size</em>, <em>relu_dropout</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Fully connected feedforward network.</p>
 <dl class="method">
 <dt id="parts.transformer.ffn_layer.FeedFowardNetwork.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>padding=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>The logic of the layer lives here.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – input tensor(s).</li>
-<li><strong>**kwargs</strong> – additional keyword arguments.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
+<dd></dd></dl>
 
 </dd></dl>
 
@@ -813,7 +753,7 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <dl class="function">
 <dt id="parts.transformer.utils.get_decoder_self_attention_bias">
 <code class="descclassname">parts.transformer.utils.</code><code class="descname">get_decoder_self_attention_bias</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_decoder_self_attention_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_decoder_self_attention_bias" title="Permalink to this definition">¶</a></dt>
-<dd><p>Calculate bias for decoder that maintains model’s autoregressive property.</p>
+<dd><p>Calculate bias for decoder that maintains model&#8217;s autoregressive property.</p>
 <p>Creates a tensor that masks out locations that correspond to illegal
 connections, so prediction at position i cannot draw information from future
 positions.</p>
@@ -821,7 +761,7 @@ positions.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> – int length of sequences in batch.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>length</strong> &#8211; int length of sequences in batch.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float tensor of shape [1, 1, length, length]</td>
 </tr>
@@ -838,9 +778,9 @@ positions.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – int tensor with any shape</li>
-<li><strong>padding_value</strong> – int value that</li>
-<li><strong>dtype</strong> – type of the output</li>
+<li><strong>x</strong> &#8211; int tensor with any shape</li>
+<li><strong>padding_value</strong> &#8211; int value that</li>
+<li><strong>dtype</strong> &#8211; type of the output</li>
 </ul>
 </td>
 </tr>
@@ -868,10 +808,10 @@ non-padding locations, and -1e9 (negative infinity) at padding locations.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> – int tensor with shape [batch_size, length]</li>
-<li><strong>res_rank</strong> – int indicates the rank of attention_bias.</li>
-<li><strong>dtype</strong> – type of the output attention_bias</li>
-<li><strong>pad_sym</strong> – int the symbol used for padding</li>
+<li><strong>x</strong> &#8211; int tensor with shape [batch_size, length]</li>
+<li><strong>res_rank</strong> &#8211; int indicates the rank of attention_bias.</li>
+<li><strong>dtype</strong> &#8211; type of the output attention_bias</li>
+<li><strong>pad_sym</strong> &#8211; int the symbol used for padding</li>
 </ul>
 </td>
 </tr>
@@ -896,10 +836,10 @@ Defined and formulized in Attention is All You Need, section 3.5.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>length</strong> – Sequence length.</li>
-<li><strong>hidden_size</strong> – Size of the</li>
-<li><strong>min_timescale</strong> – Minimum scale that will be applied at each position</li>
-<li><strong>max_timescale</strong> – Maximum scale that will be applied at each position</li>
+<li><strong>length</strong> &#8211; Sequence length.</li>
+<li><strong>hidden_size</strong> &#8211; Size of the</li>
+<li><strong>min_timescale</strong> &#8211; Minimum scale that will be applied at each position</li>
+<li><strong>max_timescale</strong> &#8211; Maximum scale that will be applied at each position</li>
 </ul>
 </td>
 </tr>
@@ -966,7 +906,7 @@ Defined and formulized in Attention is All You Need, section 3.5.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

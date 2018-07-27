@@ -1,0 +1,574 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>text2speech &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="encoders" href="encoders.html" />
+    <link rel="prev" title="text2text" href="data.text2text.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="data.html">data</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="data.image2label.html">image2label</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.speech2text.html">speech2text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2text.html">text2text</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">text2speech</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#id1">text2speech</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-data.text2speech.speech_utils">speech_utils</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data.data_layer">data_layer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.html#module-data.utils">utils</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="parts.html">parts</a></li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+          <li><a href="data.html">data</a> &raquo;</li>
+        
+      <li>text2speech</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/data.text2speech.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-data.text2speech">
+<span id="text2speech"></span><h1>text2speech<a class="headerlink" href="#module-data.text2speech" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>text2speech<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-data.text2speech.text2speech"></span><dl class="class">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer">
+<em class="property">class </em><code class="descclassname">data.text2speech.text2speech.</code><code class="descname">Text2SpeechDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<p>Text-to-speech data layer class</p>
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Text-to-speech data layer constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>num_audio_features</strong> (int) &#8212; number of audio features to extract.</li>
+<li><strong>output_type</strong> (str) &#8212; could be either &#8220;magnitude&#8221;, or &#8220;mel&#8221;.</li>
+<li><strong>vocab_file</strong> (str) &#8212; path to vocabulary file.</li>
+<li><strong>dataset_files</strong> (list) &#8212; list with paths to all dataset .csv files.
+File is assumed to be separated by &#8220;|&#8221;.</li>
+<li><strong>dataset_location</strong> (string) &#8212; string with path to directory where wavs
+are stored.</li>
+<li><strong>feature_normalize</strong> (bool) &#8212; whether to normlize the data with a
+preset mean and std</li>
+<li><strong>feature_normalize_mean</strong> (bool) &#8212; used for feature normalize.
+Defaults to 0.</li>
+<li><strong>feature_normalize_std</strong> (bool) &#8212; used for feature normalize.
+Defaults to 1.</li>
+<li><strong>mag_power</strong> (int) &#8212; the power to which the magnitude spectrogram is
+scaled to:
+1 for energy spectrogram
+2 for power spectrogram
+Defaults to 2.</li>
+<li><strong>pad_EOS</strong> (bool) &#8212; whether to apply EOS tokens to both the text and
+the speech signal. Will pad at least 1 token regardless of pad_to value.
+Defaults to True.</li>
+<li><strong>pad_to</strong> (int) &#8212; we pad such that the resulting datapoint is a
+multiple of pad_to.
+Defaults to 8.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer._parse_audio_transcript_element">
+<code class="descname">_parse_audio_transcript_element</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer._parse_audio_transcript_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer._parse_audio_transcript_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses tf.data element from TextLineDataset into audio and text.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong> &#8211; tf.data element from TextLineDataset.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">text_input text as <cite>np.array</cite> of ids, text_input length,
+target audio features as <cite>np.array</cite>, stop token targets as <cite>np.array</cite>,
+length of target sequence,
+.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer._parse_transcript_element">
+<code class="descname">_parse_transcript_element</code><span class="sig-paren">(</span><em>transcript</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer._parse_transcript_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer._parse_transcript_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses text from file and returns array of text features.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transcript</strong> &#8211; the string to parse.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">target text as <cite>np.array</cite> of ids, target text length.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">
+<code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds data reading graph.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec">
+<code class="descname">get_magnitude_spec</code><span class="sig-paren">(</span><em>spectrogram</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_magnitude_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns an energy magnitude spectrogram. The processing depends on the
+data leyer params.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spectrogram</strong> &#8211; output spec from model</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">mag spec</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">mag_spec</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">
+<code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the number of audio files.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors">
+<code class="descname">input_tensors</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.iterator">
+<code class="descname">iterator</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.split_data">
+<code class="descname">split_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.split_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-data.text2speech.speech_utils">
+<span id="speech-utils"></span><h2>speech_utils<a class="headerlink" href="#module-data.text2speech.speech_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="data.text2speech.speech_utils.denormalize">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">denormalize</code><span class="sig-paren">(</span><em>features</em>, <em>mean</em>, <em>std</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#denormalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.denormalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes features with the specificed mean and std</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2speech.speech_utils.get_mel">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_mel</code><span class="sig-paren">(</span><em>log_mag_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_mel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Method to get mel spectrograms from magnitude spectrograms</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>log_mag_spec</strong> (<em>np.array</em>) &#8211; log of the magnitude spec</li>
+<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz</li>
+<li><strong>n_fft</strong> (<em>int</em>) &#8211; size of fft window in samples</li>
+<li><strong>n_mels</strong> (<em>int</em>) &#8211; number of mel features</li>
+<li><strong>power</strong> (<em>float</em>) &#8211; power of the mag spectrogram</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether the mag spec was normalized</li>
+<li><strong>mean</strong> (<em>float</em>) &#8211; normalization param of mag spec</li>
+<li><strong>std</strong> (<em>float</em>) &#8211; normalization param of mag spec</li>
+<li><strong>mel_basis</strong> (<em>np.array</em>) &#8211; optional pre-computed mel basis to save computational
+time if passed. If not passed, it will call librosa to construct one</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">mel_spec with shape [time, n_mels]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2speech.speech_utils.get_speech_features">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_window_size=1024</em>, <em>n_window_stride=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to retrieve spectrograms from loaded wav</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>signal</strong> &#8211; signal loaded with librosa.</li>
+<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz.</li>
+<li><strong>num_features</strong> (<em>int</em>) &#8211; number of speech features in frequency domain.</li>
+<li><strong>features_type</strong> (<em>string</em>) &#8211; &#8216;magnitude&#8217; or &#8216;mel&#8217;.</li>
+<li><strong>window_size</strong> (<em>int</em>) &#8211; size of analysis window in samples.</li>
+<li><strong>window_stride</strong> (<em>int</em>) &#8211; stride of analysis window in samples.</li>
+<li><strong>mag_power</strong> (<em>int</em>) &#8211; power to raise magnitude spectrograms (prior to dot product
+with mel basis)
+1 for energy spectrograms
+2 fot power spectrograms</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether to normalize the data with mean and std</li>
+<li><strong>mean</strong> (<em>float</em>) &#8211; if normalize is enabled, the mean to normalize to</li>
+<li><strong>std</strong> (<em>float</em>) &#8211; if normalize is enabled, the deviation to normalize to</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>np.array of audio features with shape=[num_time_steps,</dt>
+<dd><p class="first last">num_features].</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2speech.speech_utils.get_speech_features_from_file">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>window_size=1024</em>, <em>window_stride=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function to retrieve spectrograms from wav files</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>filename</strong> (<em>string</em>) &#8211; WAVE filename.</li>
+<li><strong>num_features</strong> (<em>int</em>) &#8211; number of speech features in frequency domain.</li>
+<li><strong>features_type</strong> (<em>string</em>) &#8211; &#8216;magnitude&#8217; or &#8216;mel&#8217;.</li>
+<li><strong>window_size</strong> (<em>int</em>) &#8211; size of analysis window in samples.</li>
+<li><strong>window_stride</strong> (<em>int</em>) &#8211; stride of analysis window in samples.</li>
+<li><strong>mag_power</strong> (<em>int</em>) &#8211; power to raise magnitude spectrograms (prior to dot product
+with mel basis)
+1 for energy spectrograms
+2 fot power spectrograms</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether to normalize the data with mean and std</li>
+<li><strong>mean</strong> (<em>float</em>) &#8211; if normalize is enabled, the mean to normalize to</li>
+<li><strong>std</strong> (<em>float</em>) &#8211; if normalize is enabled, the deviation to normalize to</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>np.array of audio features with shape=[num_time_steps,</dt>
+<dd><p class="first last">num_features].</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2speech.speech_utils.inverse_mel">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">inverse_mel</code><span class="sig-paren">(</span><em>log_mel_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#inverse_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.inverse_mel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Very hacky method to reconstruct mag spec from mel</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>log_mel_spec</strong> (<em>np.array</em>) &#8211; log of the mel spec</li>
+<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz</li>
+<li><strong>n_fft</strong> (<em>int</em>) &#8211; size of fft window in samples</li>
+<li><strong>n_mels</strong> (<em>int</em>) &#8211; number of mel features</li>
+<li><strong>power</strong> (<em>float</em>) &#8211; power of the mag spectrogram that was used to generate the
+mel spec</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether the mel spec was normalized</li>
+<li><strong>mean</strong> (<em>float</em>) &#8211; normalization param of mel spec</li>
+<li><strong>std</strong> (<em>float</em>) &#8211; normalization param of mel spec</li>
+<li><strong>mel_basis</strong> (<em>np.array</em>) &#8211; optional pre-computed mel basis to save computational
+time if passed. If not passed, it will call librosa to construct one</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">mag_spec with shape [time, n_fft/2 + 1]</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2speech.speech_utils.normalize">
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">normalize</code><span class="sig-paren">(</span><em>features</em>, <em>mean</em>, <em>std</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#normalize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.normalize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Normalizes features with the specificed mean and std</p>
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="encoders.html" class="btn btn-neutral float-right" title="encoders" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="data.text2text.html" class="btn btn-neutral" title="text2text" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

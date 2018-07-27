@@ -1,3 +1,4 @@
+# pylint: skip-file
 from open_seq2seq.models import Image2Label
 from open_seq2seq.encoders.cnn_encoder import CNNEncoder
 from open_seq2seq.decoders import FullyConnectedDecoder

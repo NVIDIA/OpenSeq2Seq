@@ -82,9 +82,7 @@ speech recognition models available in OpenSeq2Seq.
 Currently, we have DeepSpeech2-based models and Wav2Letter-based models.
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
-*greedy* decoder (``decoder_params/use_language_model = False``) which outputs the most probable character at each timestep.
-A beam search decoder with language model-based re-scoring should correct many spelling errors. For example, OpenSLR LM allows
-us to improve WER from greedy 9.28% to 5.16%.
+greedy decoder (``decoder_params/use_language_model = False``).
 For the final evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 For more details about model descriptions and training setup,
@@ -95,7 +93,7 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
    :header-rows: 1
 
    * - Config file
-     - Greedy WER
+     - WER
      - Training setup and additional comments
      - Short description of the model
      - Checkpoint
@@ -133,3 +131,44 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
 Deep Speech 2 model description: https://arxiv.org/abs/1512.02595.
 
 Wav2Letter model description: https://arxiv.org/abs/1609.03193, https://arxiv.org/abs/1712.09444.
+
+Text To Speech
+---------------
+
+The table below contains description and results of
+text-to-speech models available in OpenSeq2Seq.
+Currently, we have a Tacotron2-based model.
+
+.. list-table::
+   :widths: 1 1 1 1 1
+   :header-rows: 1
+
+   * - Config file
+     - Samples
+     - Training setup and additional comments
+     - Short description of the model
+     - Checkpoint
+   * - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - Coming soon.
+     - Learns magnitude spectrograms. Trained on 1 gpu for 100,000 steps with ADAM.
+     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
+       The only difference is that the stop token projection layer is placed after
+       the spectrogram projection layer.
+     - Coming soon.
+   * - `tacotron_LJ_float_8gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float_8gpu.py>`_
+     - Coming soon.
+     - Learns magnitude spectrograms. Trained on 8 gpus for 30,000 steps with ADAM and larc.
+     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
+       The only difference is that the stop token projection layer is placed after
+       the spectrogram projection layer.
+     - Coming soon.
+   * - `tacotron_LJ_mixed.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_mixed.py>`_
+     - Coming soon.
+     - Learns magnitude spectrograms. Trained on 1 gpu for 100,000 steps with ADAM and larc.
+     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
+       The only difference is that the stop token projection layer is placed after
+       the spectrogram projection layer.
+     - Coming soon.
+
+
+Tacotron 2 model description: https://arxiv.org/abs/1712.05884.

@@ -162,15 +162,15 @@
 approach</a>
 and <a class="reference external" href="https://github.com/uber/horovod">Horovod-based approach</a>. To run the
 mutli-GPU training using the first approach, you only need to change
-the configuration parameter <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code>. To use Horovod you will need to set
-<code class="docutils literal notranslate"><span class="pre">use_horovod:</span> <span class="pre">True</span></code> in the config and start
-<code class="docutils literal notranslate"><span class="pre">run.py</span></code> script <a class="reference external" href="https://github.com/uber/horovod#running-horovod">using mpirun</a>.
+the configuration parameter <code class="docutils literal"><span class="pre">num_gpus</span></code>. To use Horovod you will need to set
+<code class="docutils literal"><span class="pre">use_horovod:</span> <span class="pre">True</span></code> in the config and start
+<code class="docutils literal"><span class="pre">run.py</span></code> script <a class="reference external" href="https://github.com/uber/horovod#running-horovod">using mpirun</a>.
 With Horovod you can also enable multi-node execution.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
-<p class="last"><code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> parameter will be ignored when <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is set to True.
+<p class="last"><code class="docutils literal"><span class="pre">num_gpus</span></code> parameter will be ignored when <code class="docutils literal"><span class="pre">use_horovod</span></code> is set to True.
 In that case the number of GPUs to use is specified in the command line with
-<code class="docutils literal notranslate"><span class="pre">mpirun</span></code> arguments.</p>
+<code class="docutils literal"><span class="pre">mpirun</span></code> arguments.</p>
 </div>
 </div>
 
@@ -227,7 +227,7 @@ In that case the number of GPUs to use is specified in the command line with
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

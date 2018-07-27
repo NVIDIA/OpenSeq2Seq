@@ -37,3 +37,12 @@ cross\_entropy\_loss
     :members:
     :undoc-members:
     :show-inheritance:
+
+tacotron\_loss
+----------------------------------
+
+.. automodule:: losses.tacotron_loss
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

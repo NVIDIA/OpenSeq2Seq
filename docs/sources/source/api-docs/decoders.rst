@@ -30,7 +30,7 @@ rnn\_decoders
     :undoc-members:
     :show-inheritance:
 
-transformer\_decoders
+transformer\_decoder
 -------------------------------------
 
 .. automodule:: decoders.transformer_decoder
@@ -42,6 +42,14 @@ convs2s\_decoder
 -------------------------------------
 
 .. automodule:: decoders.convs2s_decoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tacotron2\_decoder
+-------------------------------------
+
+.. automodule:: decoders.tacotron2_decoder
     :members:
     :undoc-members:
     :show-inheritance:

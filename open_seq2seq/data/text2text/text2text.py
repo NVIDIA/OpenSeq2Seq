@@ -56,6 +56,7 @@ class ParallelTextDataLayer(DataLayer):
       'prefetch_buffer_size': int,
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
+      'shuffle_buffer_size': int,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -79,6 +80,7 @@ class ParallelTextDataLayer(DataLayer):
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
     self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
                                                  tf.contrib.data.AUTOTUNE)
+    self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
     self._num_workers = num_workers
     self._worker_id = worker_id
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
@@ -157,13 +159,13 @@ class ParallelTextDataLayer(DataLayer):
     def src_token_to_id(line):
       tokens = line.decode("utf-8").split(self._delimiter)
       return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens] + \
+             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
              [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
     def tgt_token_to_id(line):
       tokens = line.decode("utf-8").split(self._delimiter)
       return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens] + \
+             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
              [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
     _sources = tf.data.TextLineDataset(self.source_file)\
@@ -189,10 +191,10 @@ class ParallelTextDataLayer(DataLayer):
       _src_tgt_dataset = _src_tgt_dataset\
         .shard(num_shards=self._num_workers, index=self._worker_id)
 
-
     if self.params['shuffle']:
-      _src_tgt_dataset = _src_tgt_dataset\
-        .shuffle(buffer_size=self.get_size_in_samples())
+      bf_size = self.get_size_in_samples() if self._shuffle_buffer_size == -1 \
+                                           else self._shuffle_buffer_size
+      _src_tgt_dataset = _src_tgt_dataset.shuffle(buffer_size=bf_size)
     else:
       _src_tgt_dataset = _src_tgt_dataset
 
@@ -325,6 +327,3 @@ class TransformerDataLayer(DataLayer):
   @property
   def input_tensors(self):
     return self._input_tensors
-
-
-
