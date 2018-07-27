@@ -20,7 +20,7 @@ d_model = 512
 num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": False,

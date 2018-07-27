@@ -65,15 +65,15 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         locations of the padding tokens in x.
     """
     with tf.name_scope("embedding"):
-      embeddings = tf.gather(self.shared_weights, x)
-      if self.embed_scale:
-        # Scale embedding by the sqrt of the hidden size
-        embeddings *= self.hidden_size ** 0.5
-
       # fills out of bound values with padding symbol
       out_bound_mask = tf.to_int32(x > (self.vocab_size - 1))
       x *= 1 - out_bound_mask
       x += out_bound_mask * tf.to_int32(self.pad_sym)
+
+      embeddings = tf.gather(self.shared_weights, x)
+      if self.embed_scale:
+        # Scale embedding by the sqrt of the hidden size
+        embeddings *= self.hidden_size ** 0.5
 
       if self.mask_paddings:
         # Create binary array of size [batch_size, length]
