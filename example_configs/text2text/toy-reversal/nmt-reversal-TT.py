@@ -28,7 +28,7 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-Transformer-MP",
+  "logdir": "ReversalTask-Transformer-Transformer",
   "dtype": tf.float32,
   # "dtype": "mixed",
   # "loss_scaling": "Backoff",

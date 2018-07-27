@@ -42,12 +42,15 @@ base_params = {
     "d_model": 64,
   },
   "dtype": tf.float32,
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 128,
-        "forget_bias": 1.0,
+      "num_units": 128,
+      "forget_bias": 1.0,
     },
     "encoder_layers": 1,
     "encoder_dp_input_keep_prob": 0.8,
