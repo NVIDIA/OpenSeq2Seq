@@ -150,9 +150,6 @@ class ParallelTextDataLayer(DataLayer):
     self._input_tensors = {}
 
   def build_graph(self):
-    if self.params["mode"] == "interactive_infer":
-      return self._build_interactive_graph()
-
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
         return lst
@@ -228,7 +225,7 @@ class ParallelTextDataLayer(DataLayer):
       t1, _ = self.iterator.get_next()
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
-  def _build_interactive_graph(self):
+  def build_interactive_graph(self):
     """
     Must pass in placeholder
     """
@@ -279,7 +276,7 @@ class ParallelTextDataLayer(DataLayer):
     #
     # t1, _ = self.iterator.get_next()
     # self._input_tensors['source_tensors'] = [t1[0], t1[1]]
-
+    self.dataset_size = 1
 
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
@@ -359,8 +356,6 @@ class ParallelTextDataLayer(DataLayer):
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
   def get_size_in_samples(self):
-    if self.params["mode"] == "interactive_infer":
-      return 1
     return self.dataset_size
 
   @property

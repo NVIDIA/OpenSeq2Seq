@@ -106,8 +106,6 @@ class Speech2TextDataLayer(DataLayer):
 
   def build_graph(self):
     """Builds data processing graph using ``tf.data`` API."""
-    if self.params["mode"] == "interactive_infer":
-      return self._build_interactive_graph()
     if self.params['mode'] != 'infer':
       self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
       if self.params['shuffle']:
@@ -194,10 +192,11 @@ class Speech2TextDataLayer(DataLayer):
     else:
       self._input_tensors['source_ids'] = [x_id]
 
-  def _build_interactive_graph(self):
+  def build_interactive_graph(self):
     """
     Must pass in placeholder
     """
+    self._files = [0]
     self.input = tf.placeholder(dtype=tf.float32)
     self._dataset = tf.data.Dataset.from_tensor_slices(self.input)
     self._dataset = self._dataset.map(
@@ -317,6 +316,4 @@ class Speech2TextDataLayer(DataLayer):
 
   def get_size_in_samples(self):
     """Returns the number of audio files."""
-    if self.params["mode"] == "interactive_infer":
-      return 1
     return len(self._files)

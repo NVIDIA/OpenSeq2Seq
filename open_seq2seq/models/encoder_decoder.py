@@ -72,16 +72,12 @@ class EncoderDecoderModel(Model):
     if 'loss_params' not in self.params:
       self.params['loss_params'] = {}
 
-    old_mode = self.mode
-    if self.mode == "interactive_infer":
-      self._mode = "infer"
     self._encoder = self._create_encoder()
     self._decoder = self._create_decoder()
     if self.mode == 'train' or self.mode == 'eval':
       self._loss_computator = self._create_loss()
     else:
       self._loss_computator = None
-    self._mode = old_mode
 
   def _create_encoder(self):
     """This function should return encoder class.

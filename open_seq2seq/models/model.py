@@ -203,11 +203,16 @@ class Model:
 
     # parameter checks
     self._mode = mode
+    self._interactive = False
     if self._mode not in ["train", "infer", "eval", "interactive_infer"]:
       raise ValueError(
           "Mode has to be one of ['train', 'infer', 'eval', ",
           "'interactive_infer']"
       )
+
+    if self._mode == "interactive_infer":
+      self._mode = "infer"
+      self._interactive = True
 
     if "max_steps" in params and "num_epochs" in params:
       raise ValueError("You can't provide both max_steps and num_epochs. "
@@ -329,7 +334,10 @@ class Model:
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
-          self.get_data_layer(gpu_cnt).build_graph()
+          if self._interactive:
+            self.get_data_layer(gpu_cnt).build_interactive_graph()
+          else:
+            self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
