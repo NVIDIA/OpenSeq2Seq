@@ -13,7 +13,12 @@ import math
 class FeedFowardNetworkNormalized(tf.layers.Layer):
   """Fully connected feedforward network with weight normalization"""
 
-  def __init__(self, in_dim, out_dim, dropout, var_scope_name, mode,
+  def __init__(self,
+               in_dim,
+               out_dim,
+               dropout,
+               var_scope_name,
+               mode,
                normalization_type="weight_norm"):
     """initializes the linear layer.
     This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
@@ -45,10 +50,12 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = True
-    else:
+    elif normalization_type is None:
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = False
+    else:
+      raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
       if self.wn_enabled:
@@ -63,10 +70,10 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         self.g = tf.get_variable('g', initializer=self.V_norm, trainable=True)
       else:
         self.V = tf.get_variable(
-          'W',
-          shape=[in_dim, out_dim],
-          initializer=tf.random_normal_initializer(mean=0, stddev=0.001),
-          trainable=True)
+            'W',
+            shape=[in_dim, out_dim],
+            initializer=tf.random_normal_initializer(mean=0, stddev=0.01),
+            trainable=True)
       if self.bias_enabled:
         self.b = tf.get_variable(
             'b',
@@ -92,7 +99,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     output = tf.reshape(output, [batch_size, -1, self.out_dim])
 
     if self.wn_enabled:
-    # x*(v*(g/2-norm(v)))
+      # x*(v*(g/2-norm(v)))
       scaler = tf.div(self.g, tf.norm(self.V, axis=0))
       output = tf.reshape(scaler, [1, self.out_dim]) * output
 
@@ -100,13 +107,16 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       output = output + tf.reshape(self.b, [1, self.out_dim])
 
     if self.apply_batch_norm:
+      output = tf.expand_dims(output, axis=1)
       output = tf.layers.batch_normalization(
-        name=self.var_scope_name + "_batch_norm",
-        inputs=output,
-        #gamma_regularizer=regularizer,
-        training=self.mode == 'train',
-        axis=-1,
-        momentum=0.99,
-        epsilon=1e-4,
+          name=self.var_scope_name + "_batch_norm",
+          inputs=output,
+          #gamma_regularizer=regularizer,
+          training=self.mode == 'train',
+          axis=-1,
+          momentum=0.99,
+          epsilon=1e-4,
       )
+      output = tf.squeeze(output, axis=1)
+
     return output
