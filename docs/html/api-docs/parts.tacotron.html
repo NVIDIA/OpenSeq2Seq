@@ -190,13 +190,13 @@ the prenet</p>
 <dl class="class">
 <dt id="parts.tacotron.tacotron_decoder.BasicDecoderOutput">
 <em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">BasicDecoderOutput</code><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#BasicDecoderOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.BasicDecoderOutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.tacotron.tacotron_decoder.BasicDecoderOutput" title="parts.tacotron.tacotron_decoder.BasicDecoderOutput"><code class="xref py py-class docutils literal"><span class="pre">parts.tacotron.tacotron_decoder.BasicDecoderOutput</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.tacotron.tacotron_decoder.BasicDecoderOutput" title="parts.tacotron.tacotron_decoder.BasicDecoderOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.tacotron.tacotron_decoder.BasicDecoderOutput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder">
 <em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">TacotronDecoder</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
 <p>Basic sampling decoder.</p>
 <dl class="method">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.__init__">
@@ -207,21 +207,21 @@ the prenet</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>decoder_cell</strong> &#8211; An <cite>RNNCell</cite> instance.</li>
-<li><strong>helper</strong> &#8211; A <cite>Helper</cite> instance.</li>
-<li><strong>initial_decoder_state</strong> &#8211; A (possibly nested tuple of...) tensors and
+<li><strong>decoder_cell</strong> – An <cite>RNNCell</cite> instance.</li>
+<li><strong>helper</strong> – A <cite>Helper</cite> instance.</li>
+<li><strong>initial_decoder_state</strong> – A (possibly nested tuple of…) tensors and
 TensorArrays. The initial state of the RNNCell.</li>
-<li><strong>stop_token_layer</strong> &#8211; An instance of <cite>tf.layers.Layer</cite>, i.e.,
+<li><strong>stop_token_layer</strong> – An instance of <cite>tf.layers.Layer</cite>, i.e.,
 <cite>tf.layers.Dense</cite>. Stop token layer to apply to the RNN output to
 predict when to stop the decoder</li>
-<li><strong>spec_layer</strong> &#8211; An instance of <cite>tf.layers.Layer</cite>, i.e.,
+<li><strong>spec_layer</strong> – An instance of <cite>tf.layers.Layer</cite>, i.e.,
 <cite>tf.layers.Dense</cite>. Output layer to apply to the RNN output to map
 the ressult to a spectrogram</li>
-<li><strong>prenet</strong> &#8211; The prenet to apply to inputs</li>
+<li><strong>prenet</strong> – The prenet to apply to inputs</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; if <cite>cell</cite>, <cite>helper</cite> or <cite>output_layer</cite> have an incorrect type.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – if <cite>cell</cite>, <cite>helper</cite> or <cite>output_layer</cite> have an incorrect type.</p>
 </td>
 </tr>
 </tbody>
@@ -231,7 +231,8 @@ the ressult to a spectrogram</li>
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.batch_size">
 <code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.batch_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The batch size of input values.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.initialize">
@@ -241,7 +242,7 @@ the ressult to a spectrogram</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; Name scope for any created operations.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – Name scope for any created operations.</td>
 </tr>
 </tbody>
 </table>
@@ -250,12 +251,14 @@ the ressult to a spectrogram</li>
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.output_dtype">
 <code class="descname">output_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.output_dtype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A (possibly nested tuple of…) dtype[s].</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A (possibly nested tuple of…) integer[s] or <cite>TensorShape</cite> object[s].</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.step">
@@ -266,10 +269,10 @@ the ressult to a spectrogram</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>time</strong> &#8211; scalar <cite>int32</cite> tensor.</li>
-<li><strong>inputs</strong> &#8211; A (structure of) input tensors.</li>
-<li><strong>state</strong> &#8211; A (structure of) state tensors and TensorArrays.</li>
-<li><strong>name</strong> &#8211; Name scope for any created operations.</li>
+<li><strong>time</strong> – scalar <cite>int32</cite> tensor.</li>
+<li><strong>inputs</strong> – A (structure of) input tensors.</li>
+<li><strong>state</strong> – A (structure of) state tensors and TensorArrays.</li>
+<li><strong>name</strong> – Name scope for any created operations.</li>
 </ul>
 </td>
 </tr>
@@ -290,7 +293,7 @@ Custom Helper class that implements the tacotron decoder pre and post nets</p>
 <dl class="class">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper">
 <em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
 <p>Helper for use during eval and infer. Does not use teacher forcing</p>
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.__init__">
@@ -301,14 +304,14 @@ Custom Helper class that implements the tacotron decoder pre and post nets</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>inputs</strong> (<em>Tensor</em>) &#8211; inputs of shape [batch, time, n_feats]</li>
-<li><strong>prenet</strong> &#8211; prenet to use, currently disabled and used in tacotron decoder
+<li><strong>inputs</strong> (<em>Tensor</em>) – inputs of shape [batch, time, n_feats]</li>
+<li><strong>prenet</strong> – prenet to use, currently disabled and used in tacotron decoder
 instead.</li>
-<li><strong>sampling_prob</strong> (<em>float</em>) &#8211; see tacotron 2 decoder</li>
-<li><strong>anneal_teacher_forcing</strong> (<em>float</em>) &#8211; see tacotron 2 decoder</li>
-<li><strong>stop_gradient</strong> (<em>float</em>) &#8211; see tacotron 2 decoder</li>
-<li><strong>time_major</strong> (<em>bool</em>) &#8211; (float): see tacotron 2 decoder</li>
-<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) &#8211; whether to pass finished when the decoder
+<li><strong>sampling_prob</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>anneal_teacher_forcing</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>stop_gradient</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>time_major</strong> (<em>bool</em>) – (float): see tacotron 2 decoder</li>
+<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) – whether to pass finished when the decoder
 passed the sequence_length input or to pass unfinished to dynamic_decode</li>
 </ul>
 </td>
@@ -320,39 +323,48 @@ passed the sequence_length input or to pass unfinished to dynamic_decode</li>
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.batch_size">
 <code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.batch_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Batch size of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a scalar int32 tensor.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.initialize">
 <code class="descname">initialize</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.initialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>(initial_finished, initial_inputs)</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.next_inputs">
 <code class="descname">next_inputs</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>stop_token_predictions</em>, <em>name=None</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.next_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.next_inputs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>(finished, next_inputs, next_state)</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample">
 <code class="descname">sample</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>sample_ids</cite>.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_dtype">
 <code class="descname">sample_ids_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_dtype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>DType of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a DType.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_shape">
 <code class="descname">sample_ids_shape</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_shape" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shape of tensor returned by <cite>sample</cite>, excluding the batch dimension.</p>
+<p>Returns a <cite>TensorShape</cite>.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper">
 <em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronTrainingHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>sampling_prob=0.0</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
 <p>Helper funciton for training. Can be used for teacher forcing or scheduled
 sampling</p>
 <dl class="method">
@@ -364,13 +376,13 @@ sampling</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>inputs</strong> (<em>Tensor</em>) &#8211; inputs of shape [batch, time, n_feats]</li>
-<li><strong>sequence_length</strong> (<em>Tensor</em>) &#8211; length of each input. shape [batch]</li>
-<li><strong>prenet</strong> &#8211; prenet to use, currently disabled and used in tacotron decoder
+<li><strong>inputs</strong> (<em>Tensor</em>) – inputs of shape [batch, time, n_feats]</li>
+<li><strong>sequence_length</strong> (<em>Tensor</em>) – length of each input. shape [batch]</li>
+<li><strong>prenet</strong> – prenet to use, currently disabled and used in tacotron decoder
 instead.</li>
-<li><strong>sampling_prob</strong> (<em>float</em>) &#8211; see tacotron 2 decoder</li>
-<li><strong>time_major</strong> (<em>bool</em>) &#8211; (float): see tacotron 2 decoder</li>
-<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) &#8211; whether to pass finished when the decoder
+<li><strong>sampling_prob</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>time_major</strong> (<em>bool</em>) – (float): see tacotron 2 decoder</li>
+<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) – whether to pass finished when the decoder
 passed the sequence_length input or to pass unfinished to dynamic_decode</li>
 </ul>
 </td>
@@ -382,32 +394,41 @@ passed the sequence_length input or to pass unfinished to dynamic_decode</li>
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.batch_size">
 <code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.batch_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Batch size of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a scalar int32 tensor.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize">
 <code class="descname">initialize</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>(initial_finished, initial_inputs)</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs">
 <code class="descname">next_inputs</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.next_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>(finished, next_inputs, next_state)</cite>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample">
 <code class="descname">sample</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Returns <cite>sample_ids</cite>.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_dtype">
 <code class="descname">sample_ids_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_dtype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>DType of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a DType.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_shape">
 <code class="descname">sample_ids_shape</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_shape" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Shape of tensor returned by <cite>sample</cite>, excluding the batch dimension.</p>
+<p>Returns a <cite>TensorShape</cite>.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -467,7 +488,7 @@ passed the sequence_length input or to pass unfinished to dynamic_decode</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

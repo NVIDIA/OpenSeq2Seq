@@ -171,14 +171,14 @@ All models work both in float32 and mixed precision.
 We recommend you use <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a>
 when training on Volta GPUs.</p>
 </div>
-<p>To train models you can use the following commands (don&#8217;t forget to substitute
+<p>To train models you can use the following commands (don’t forget to substitute
 valid config_file path there and number of GPUs if using Horovod).</p>
 <p>With Horovod (highly recommended when using multiple GPUs):</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
 </pre></div>
 </div>
 <p>Without Horovod:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
 </pre></div>
 </div>
 <p>The description of implemented models is available in the next sections:</p>
@@ -188,7 +188,7 @@ valid config_file path there and number of GPUs if using Horovod).</p>
 machine translation models available in OpenSeq2Seq.
 Currently, we have GNMT-based model, Transformer-based models and
 ConvS2S-based models.</p>
-<p>We measure BLEU score on newstest2014.tok.de file using <code class="docutils literal"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
+<p>We measure BLEU score on newstest2014.tok.de file using <code class="docutils literal notranslate"><span class="pre">multi-bleu.perl</span></code> script from Mosses.
 For more details about model descriptions and training setup,
 have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de">configuration files</a>.</p>
 <table border="1" class="colwidths-given docutils">
@@ -223,7 +223,7 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 <tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py">transformer-big.py</a></td>
 <td>26.17</td>
 <td>This model was trained on 4 GPUs with Adam optimizer and learning rate decay.</td>
-<td>Transformer &#8220;big&#8221; model. This model does not have any RNN layers</td>
+<td>Transformer “big” model. This model does not have any RNN layers</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing">link</a></td>
 </tr>
 <tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s.py">en-de-convs2s.py</a></td>
@@ -244,8 +244,8 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 speech recognition models available in OpenSeq2Seq.
 Currently, we have DeepSpeech2-based models and Wav2Letter-based models.</p>
 <p>WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
-greedy decoder (<code class="docutils literal"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
-For the final evaluation we used <code class="docutils literal"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
+greedy decoder (<code class="docutils literal notranslate"><span class="pre">decoder_params/use_language_model</span> <span class="pre">=</span> <span class="pre">False</span></code>).
+For the final evaluation we used <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span> <span class="pre">=</span> <span class="pre">1</span></code>
 to eliminate the effect of <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/issues/69">cudnn padding issue</a>.
 For more details about model descriptions and training setup,
 have a look at the <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text">configuration files</a>.</p>
@@ -284,7 +284,7 @@ GRU layers with 1024 units.</td>
 </tr>
 <tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py">ds2_small_1gpu.py</a></td>
 <td>39.08%</td>
-<td>This model was trained for 12 epochs using Adam on a &#8220;clean&#8221; subset of
+<td>This model was trained for 12 epochs using Adam on a “clean” subset of
 LibriSpeech in less than a day using a single GPU.</td>
 <td>This model has 2 convolutional layers and 2 bidirectional
 GRU layers with 512 units.</td>
@@ -295,7 +295,7 @@ GRU layers with 512 units.</td>
 <td>This model was trained for 18 epochs (with early stopping based on
 validation loss) using SGD with Momentum and LARC on
 the full LibriSpeech in a few days on eight GPUs.</td>
-<td>The model has 19 convolutional layers (200&#8211;1000 units, 7&#8211;21 kernel size).
+<td>The model has 19 convolutional layers (200–1000 units, 7–21 kernel size).
 We use batch norm between all layers.</td>
 <td><a class="reference external" href="https://drive.google.com/open?id=1gVdi8am_a3bNUQo4SZGItqNrIeV8MSqA">link</a></td>
 </tr>
@@ -409,7 +409,7 @@ the spectrogram projection layer.</td>
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

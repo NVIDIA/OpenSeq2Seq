@@ -166,16 +166,16 @@
 <div class="viewcode-block" id="Wave2LetterEncoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder">[docs]</a><span class="k">class</span> <span class="nc">Wave2LetterEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Wave2Letter like encoder. Fully convolutional model&quot;&quot;&quot;</span>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Wave2LetterEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Wave2LetterEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s1">&#39;convnet_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
         <span class="s1">&#39;activation_fn&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid callable</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Wave2LetterEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Wave2LetterEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
         <span class="s1">&#39;normalization&#39;</span><span class="p">:</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="s1">&#39;batch_norm&#39;</span><span class="p">],</span>
@@ -357,7 +357,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

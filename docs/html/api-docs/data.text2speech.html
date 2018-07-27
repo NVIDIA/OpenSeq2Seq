@@ -189,7 +189,7 @@
 <span class="target" id="module-data.text2speech.text2speech"></span><dl class="class">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer">
 <em class="property">class </em><code class="descclassname">data.text2speech.text2speech.</code><code class="descname">Text2SpeechDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
 <p>Text-to-speech data layer class</p>
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.__init__">
@@ -198,28 +198,28 @@
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>num_audio_features</strong> (int) &#8212; number of audio features to extract.</li>
-<li><strong>output_type</strong> (str) &#8212; could be either &#8220;magnitude&#8221;, or &#8220;mel&#8221;.</li>
-<li><strong>vocab_file</strong> (str) &#8212; path to vocabulary file.</li>
-<li><strong>dataset_files</strong> (list) &#8212; list with paths to all dataset .csv files.
-File is assumed to be separated by &#8220;|&#8221;.</li>
-<li><strong>dataset_location</strong> (string) &#8212; string with path to directory where wavs
+<li><strong>num_audio_features</strong> (int) — number of audio features to extract.</li>
+<li><strong>output_type</strong> (str) — could be either “magnitude”, or “mel”.</li>
+<li><strong>vocab_file</strong> (str) — path to vocabulary file.</li>
+<li><strong>dataset_files</strong> (list) — list with paths to all dataset .csv files.
+File is assumed to be separated by “|”.</li>
+<li><strong>dataset_location</strong> (string) — string with path to directory where wavs
 are stored.</li>
-<li><strong>feature_normalize</strong> (bool) &#8212; whether to normlize the data with a
+<li><strong>feature_normalize</strong> (bool) — whether to normlize the data with a
 preset mean and std</li>
-<li><strong>feature_normalize_mean</strong> (bool) &#8212; used for feature normalize.
+<li><strong>feature_normalize_mean</strong> (bool) — used for feature normalize.
 Defaults to 0.</li>
-<li><strong>feature_normalize_std</strong> (bool) &#8212; used for feature normalize.
+<li><strong>feature_normalize_std</strong> (bool) — used for feature normalize.
 Defaults to 1.</li>
-<li><strong>mag_power</strong> (int) &#8212; the power to which the magnitude spectrogram is
+<li><strong>mag_power</strong> (int) — the power to which the magnitude spectrogram is
 scaled to:
 1 for energy spectrogram
 2 for power spectrogram
 Defaults to 2.</li>
-<li><strong>pad_EOS</strong> (bool) &#8212; whether to apply EOS tokens to both the text and
+<li><strong>pad_EOS</strong> (bool) — whether to apply EOS tokens to both the text and
 the speech signal. Will pad at least 1 token regardless of pad_to value.
 Defaults to True.</li>
-<li><strong>pad_to</strong> (int) &#8212; we pad such that the resulting datapoint is a
+<li><strong>pad_to</strong> (int) — we pad such that the resulting datapoint is a
 multiple of pad_to.
 Defaults to 8.</li>
 </ul>
@@ -233,7 +233,7 @@ Defaults to 8.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong> &#8211; tf.data element from TextLineDataset.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>element</strong> – tf.data element from TextLineDataset.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">text_input text as <cite>np.array</cite> of ids, text_input length,
 target audio features as <cite>np.array</cite>, stop token targets as <cite>np.array</cite>,
@@ -254,7 +254,7 @@ length of target sequence,
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transcript</strong> &#8211; the string to parse.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>transcript</strong> – the string to parse.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">target text as <cite>np.array</cite> of ids, target text length.</td>
 </tr>
@@ -279,7 +279,7 @@ data leyer params.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spectrogram</strong> &#8211; output spec from model</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>spectrogram</strong> – output spec from model</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">mag spec</td>
 </tr>
@@ -292,12 +292,38 @@ data leyer params.</p>
 <dl class="staticmethod">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.text2speech.text2speech.Text2SpeechDataLayer.__init__" title="data.text2speech.text2speech.Text2SpeechDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.text2speech.text2speech.Text2SpeechDataLayer.__init__" title="data.text2speech.text2speech.Text2SpeechDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">
@@ -308,12 +334,23 @@ data leyer params.</p>
 <dl class="attribute">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors">
 <code class="descname">input_tensors</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Dictionary containing input tensors.
+This dictionary has to define the following keys: <cite>source_tensors</cite>,
+which should contain all tensors describing the input object (i.e. tensors
+that are passed to the encoder, e.g. input sequence and input length). And
+when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+<cite>target_tensors</cite> which is the list of all tensors related to the
+corresponding target object (i.e. tensors taht are passed to the decoder and
+loss, e.g. target sequence and target length). Note that all tensors have
+to be created inside <a class="reference internal" href="#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph" title="data.text2speech.text2speech.Text2SpeechDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.iterator">
 <code class="descname">iterator</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph" title="data.text2speech.text2speech.Text2SpeechDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.split_data">
@@ -340,15 +377,15 @@ data leyer params.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>log_mag_spec</strong> (<em>np.array</em>) &#8211; log of the magnitude spec</li>
-<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz</li>
-<li><strong>n_fft</strong> (<em>int</em>) &#8211; size of fft window in samples</li>
-<li><strong>n_mels</strong> (<em>int</em>) &#8211; number of mel features</li>
-<li><strong>power</strong> (<em>float</em>) &#8211; power of the mag spectrogram</li>
-<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether the mag spec was normalized</li>
-<li><strong>mean</strong> (<em>float</em>) &#8211; normalization param of mag spec</li>
-<li><strong>std</strong> (<em>float</em>) &#8211; normalization param of mag spec</li>
-<li><strong>mel_basis</strong> (<em>np.array</em>) &#8211; optional pre-computed mel basis to save computational
+<li><strong>log_mag_spec</strong> (<em>np.array</em>) – log of the magnitude spec</li>
+<li><strong>fs</strong> (<em>int</em>) – sampling frequency in Hz</li>
+<li><strong>n_fft</strong> (<em>int</em>) – size of fft window in samples</li>
+<li><strong>n_mels</strong> (<em>int</em>) – number of mel features</li>
+<li><strong>power</strong> (<em>float</em>) – power of the mag spectrogram</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) – whether the mag spec was normalized</li>
+<li><strong>mean</strong> (<em>float</em>) – normalization param of mag spec</li>
+<li><strong>std</strong> (<em>float</em>) – normalization param of mag spec</li>
+<li><strong>mel_basis</strong> (<em>np.array</em>) – optional pre-computed mel basis to save computational
 time if passed. If not passed, it will call librosa to construct one</li>
 </ul>
 </td>
@@ -372,19 +409,19 @@ time if passed. If not passed, it will call librosa to construct one</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> &#8211; signal loaded with librosa.</li>
-<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz.</li>
-<li><strong>num_features</strong> (<em>int</em>) &#8211; number of speech features in frequency domain.</li>
-<li><strong>features_type</strong> (<em>string</em>) &#8211; &#8216;magnitude&#8217; or &#8216;mel&#8217;.</li>
-<li><strong>window_size</strong> (<em>int</em>) &#8211; size of analysis window in samples.</li>
-<li><strong>window_stride</strong> (<em>int</em>) &#8211; stride of analysis window in samples.</li>
-<li><strong>mag_power</strong> (<em>int</em>) &#8211; power to raise magnitude spectrograms (prior to dot product
+<li><strong>signal</strong> – signal loaded with librosa.</li>
+<li><strong>fs</strong> (<em>int</em>) – sampling frequency in Hz.</li>
+<li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
+<li><strong>features_type</strong> (<em>string</em>) – ‘magnitude’ or ‘mel’.</li>
+<li><strong>window_size</strong> (<em>int</em>) – size of analysis window in samples.</li>
+<li><strong>window_stride</strong> (<em>int</em>) – stride of analysis window in samples.</li>
+<li><strong>mag_power</strong> (<em>int</em>) – power to raise magnitude spectrograms (prior to dot product
 with mel basis)
 1 for energy spectrograms
 2 fot power spectrograms</li>
-<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether to normalize the data with mean and std</li>
-<li><strong>mean</strong> (<em>float</em>) &#8211; if normalize is enabled, the mean to normalize to</li>
-<li><strong>std</strong> (<em>float</em>) &#8211; if normalize is enabled, the deviation to normalize to</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) – whether to normalize the data with mean and std</li>
+<li><strong>mean</strong> (<em>float</em>) – if normalize is enabled, the mean to normalize to</li>
+<li><strong>std</strong> (<em>float</em>) – if normalize is enabled, the deviation to normalize to</li>
 </ul>
 </td>
 </tr>
@@ -412,18 +449,18 @@ with mel basis)
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> (<em>string</em>) &#8211; WAVE filename.</li>
-<li><strong>num_features</strong> (<em>int</em>) &#8211; number of speech features in frequency domain.</li>
-<li><strong>features_type</strong> (<em>string</em>) &#8211; &#8216;magnitude&#8217; or &#8216;mel&#8217;.</li>
-<li><strong>window_size</strong> (<em>int</em>) &#8211; size of analysis window in samples.</li>
-<li><strong>window_stride</strong> (<em>int</em>) &#8211; stride of analysis window in samples.</li>
-<li><strong>mag_power</strong> (<em>int</em>) &#8211; power to raise magnitude spectrograms (prior to dot product
+<li><strong>filename</strong> (<em>string</em>) – WAVE filename.</li>
+<li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
+<li><strong>features_type</strong> (<em>string</em>) – ‘magnitude’ or ‘mel’.</li>
+<li><strong>window_size</strong> (<em>int</em>) – size of analysis window in samples.</li>
+<li><strong>window_stride</strong> (<em>int</em>) – stride of analysis window in samples.</li>
+<li><strong>mag_power</strong> (<em>int</em>) – power to raise magnitude spectrograms (prior to dot product
 with mel basis)
 1 for energy spectrograms
 2 fot power spectrograms</li>
-<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether to normalize the data with mean and std</li>
-<li><strong>mean</strong> (<em>float</em>) &#8211; if normalize is enabled, the mean to normalize to</li>
-<li><strong>std</strong> (<em>float</em>) &#8211; if normalize is enabled, the deviation to normalize to</li>
+<li><strong>feature_normalize</strong> (<em>bool</em>) – whether to normalize the data with mean and std</li>
+<li><strong>mean</strong> (<em>float</em>) – if normalize is enabled, the mean to normalize to</li>
+<li><strong>std</strong> (<em>float</em>) – if normalize is enabled, the deviation to normalize to</li>
 </ul>
 </td>
 </tr>
@@ -451,16 +488,16 @@ with mel basis)
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>log_mel_spec</strong> (<em>np.array</em>) &#8211; log of the mel spec</li>
-<li><strong>fs</strong> (<em>int</em>) &#8211; sampling frequency in Hz</li>
-<li><strong>n_fft</strong> (<em>int</em>) &#8211; size of fft window in samples</li>
-<li><strong>n_mels</strong> (<em>int</em>) &#8211; number of mel features</li>
-<li><strong>power</strong> (<em>float</em>) &#8211; power of the mag spectrogram that was used to generate the
+<li><strong>log_mel_spec</strong> (<em>np.array</em>) – log of the mel spec</li>
+<li><strong>fs</strong> (<em>int</em>) – sampling frequency in Hz</li>
+<li><strong>n_fft</strong> (<em>int</em>) – size of fft window in samples</li>
+<li><strong>n_mels</strong> (<em>int</em>) – number of mel features</li>
+<li><strong>power</strong> (<em>float</em>) – power of the mag spectrogram that was used to generate the
 mel spec</li>
-<li><strong>feature_normalize</strong> (<em>bool</em>) &#8211; whether the mel spec was normalized</li>
-<li><strong>mean</strong> (<em>float</em>) &#8211; normalization param of mel spec</li>
-<li><strong>std</strong> (<em>float</em>) &#8211; normalization param of mel spec</li>
-<li><strong>mel_basis</strong> (<em>np.array</em>) &#8211; optional pre-computed mel basis to save computational
+<li><strong>feature_normalize</strong> (<em>bool</em>) – whether the mel spec was normalized</li>
+<li><strong>mean</strong> (<em>float</em>) – normalization param of mel spec</li>
+<li><strong>std</strong> (<em>float</em>) – normalization param of mel spec</li>
+<li><strong>mel_basis</strong> (<em>np.array</em>) – optional pre-computed mel basis to save computational
 time if passed. If not passed, it will call librosa to construct one</li>
 </ul>
 </td>
@@ -537,7 +574,7 @@ time if passed. If not passed, it will call librosa to construct one</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
