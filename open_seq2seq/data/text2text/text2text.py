@@ -97,11 +97,11 @@ class ParallelTextDataLayer(DataLayer):
 
     # load source and target vocabularies to RAM
     self.src_seq2idx = load_pre_existing_vocabulary(
-      self.src_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.src_vocab_file, min_idx=0)
+      #min_idx=SpecialTextTokens.UNK_ID.value + 1)
     self.tgt_seq2idx = load_pre_existing_vocabulary(
-      self.tgt_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.tgt_vocab_file, min_idx=0)
+      #min_idx=SpecialTextTokens.UNK_ID.value + 1)
 
     # unknown symbol
     self.src_seq2idx[

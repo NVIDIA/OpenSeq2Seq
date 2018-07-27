@@ -7,3 +7,4 @@ six
 mpi4py
 librosa
 matplotlib
+sentencepiece
