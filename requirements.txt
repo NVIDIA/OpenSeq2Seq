@@ -8,3 +8,4 @@ mpi4py
 librosa
 matplotlib
 sentencepiece
+sacrebleu
