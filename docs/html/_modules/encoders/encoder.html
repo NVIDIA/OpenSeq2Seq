@@ -167,12 +167,12 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span><span class="p">,</span> <span class="n">cast_types</span>
 
 
-<span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
-<div class="viewcode-block" id="Encoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder">[docs]</a><span class="k">class</span> <span class="nc">Encoder</span><span class="p">:</span>
+<div class="viewcode-block" id="Encoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder">[docs]</a><span class="nd">@six</span><span class="o">.</span><span class="n">add_metaclass</span><span class="p">(</span><span class="n">abc</span><span class="o">.</span><span class="n">ABCMeta</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">Encoder</span><span class="p">:</span>
   <span class="sd">&quot;&quot;&quot;Abstract class from which all encoders must inherit.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Encoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of required parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -183,8 +183,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{}</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="Encoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
 
 <span class="sd">      Returns:</span>
@@ -303,8 +303,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">cast_types</span><span class="p">(</span><span class="n">input_dict</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">])</span></div>
 
-  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
-<div class="viewcode-block" id="Encoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder._encode">[docs]</a>  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+<div class="viewcode-block" id="Encoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.encoder.Encoder._encode">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
+  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;This is the main function which should construct encoder graph.</span>
 <span class="sd">    Typically, encoder will take raw input sequence as an input and</span>
 <span class="sd">    produce some hidden representation as an output.</span>
@@ -387,7 +387,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

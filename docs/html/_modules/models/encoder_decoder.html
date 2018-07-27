@@ -169,15 +169,15 @@
 <span class="sd">  &quot;encoder-decoder-loss&quot; models should inherit from this class.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="EncoderDecoderModel.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_required_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+<div class="viewcode-block" id="EncoderDecoderModel.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Model</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;encoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
         <span class="s1">&#39;decoder&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be any user defined class</span>
     <span class="p">})</span></div>
 
-  <span class="nd">@staticmethod</span>
-<div class="viewcode-block" id="EncoderDecoderModel.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+<div class="viewcode-block" id="EncoderDecoderModel.get_optional_params"><a class="viewcode-back" href="../../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Model</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;encoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="s1">&#39;decoder_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
@@ -388,7 +388,7 @@
       <script type="text/javascript" src="../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

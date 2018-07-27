@@ -194,8 +194,8 @@
 <dl class="docutils">
 <dt>The examples encoded in the TFRecord files contain data in the format:</dt>
 <dd><dl class="first last docutils">
-<dt>{&#8220;inputs&#8221;: [variable length array of integers],</dt>
-<dd><p class="first last">&#8220;targets&#8221;: [variable length array of integers]}</p>
+<dt>{“inputs”: [variable length array of integers],</dt>
+<dd><p class="first last">“targets”: [variable length array of integers]}</p>
 </dd>
 </dl>
 </dd>
@@ -203,7 +203,7 @@
 <p>Where integers in the arrays refer to tokens in the English and German vocab
 file (named <cite>vocab.ende.32768</cite>).</p>
 <p>Prior to batching, elements in the dataset are grouped by length (max between
-&#8220;inputs&#8221; and &#8220;targets&#8221; length). Each group is then batched such that:</p>
+“inputs” and “targets” length). Each group is then batched such that:</p>
 <blockquote>
 <div><p>group_batch_size * length &lt;= batch_size.</p>
 </div></blockquote>
@@ -211,13 +211,13 @@ file (named <cite>vocab.ende.32768</cite>).</p>
 <dl class="docutils">
 <dt>Once batched, each element in the dataset will have the shape:</dt>
 <dd><dl class="first last docutils">
-<dt>{&#8220;inputs&#8221;: [group_batch_size, padded_input_length],</dt>
-<dd><p class="first last">&#8220;targets&#8221;: [group_batch_size, padded_target_length]}</p>
+<dt>{“inputs”: [group_batch_size, padded_input_length],</dt>
+<dd><p class="first last">“targets”: [group_batch_size, padded_target_length]}</p>
 </dd>
 </dl>
 </dd>
 </dl>
-<p>Lengths are padded to the longest &#8220;inputs&#8221; or &#8220;targets&#8221; sequence in the batch
+<p>Lengths are padded to the longest “inputs” or “targets” sequence in the batch
 (padded_input_length and padded_target_length can be different).</p>
 <p>This batching scheme decreases the fraction of padding tokens per training
 batch, thus improving the training speed significantly.</p>
@@ -246,9 +246,9 @@ training speed.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dataset</strong> &#8211; Dataset of unbatched examples.</li>
-<li><strong>batch_size</strong> &#8211; Max number of tokens per batch of examples.</li>
-<li><strong>max_length</strong> &#8211; Max number of tokens in an example input or target sequence.</li>
+<li><strong>dataset</strong> – Dataset of unbatched examples.</li>
+<li><strong>batch_size</strong> – Max number of tokens per batch of examples.</li>
+<li><strong>max_length</strong> – Max number of tokens in an example input or target sequence.</li>
 </ul>
 </td>
 </tr>
@@ -273,9 +273,9 @@ buckets_max = [4, 8, 16, 24, 25]</div></blockquote>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>max_length</strong> &#8211; The maximum length of example in dataset.</li>
-<li><strong>min_boundary</strong> &#8211; Minimum length in boundary.</li>
-<li><strong>boundary_scale</strong> &#8211; Amount to scale consecutive boundaries in the list.</li>
+<li><strong>max_length</strong> – The maximum length of example in dataset.</li>
+<li><strong>min_boundary</strong> – Minimum length in boundary.</li>
+<li><strong>boundary_scale</strong> – Amount to scale consecutive boundaries in the list.</li>
 </ul>
 </td>
 </tr>
@@ -289,7 +289,7 @@ buckets_max = [4, 8, 16, 24, 25]</div></blockquote>
 <dl class="function">
 <dt id="data.text2text.t2t._filter_max_length">
 <code class="descclassname">data.text2text.t2t.</code><code class="descname">_filter_max_length</code><span class="sig-paren">(</span><em>example</em>, <em>max_length=256</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_filter_max_length"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._filter_max_length" title="Permalink to this definition">¶</a></dt>
-<dd><p>Indicates whether the example&#8217;s length is lower than the maximum length.</p>
+<dd><p>Indicates whether the example’s length is lower than the maximum length.</p>
 </dd></dl>
 
 <dl class="function">
@@ -313,26 +313,26 @@ buckets_max = [4, 8, 16, 24, 25]</div></blockquote>
 <dl class="function">
 <dt id="data.text2text.t2t._read_and_batch_from_files">
 <code class="descclassname">data.text2text.t2t.</code><code class="descname">_read_and_batch_from_files</code><span class="sig-paren">(</span><em>file_pattern</em>, <em>batch_size</em>, <em>max_length</em>, <em>num_cpu_cores</em>, <em>shuffle</em>, <em>repeat</em>, <em>num_workers</em>, <em>worker_id</em>, <em>batch_in_tokens</em>, <em>pad2eight=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#_read_and_batch_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t._read_and_batch_from_files" title="Permalink to this definition">¶</a></dt>
-<dd><p>Create dataset where each item is a dict of &#8220;inputs&#8221; and &#8220;targets&#8221;.</p>
+<dd><p>Create dataset where each item is a dict of “inputs” and “targets”.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>file_pattern</strong> &#8211; String used to match the input TFRecord files.</li>
-<li><strong>batch_size</strong> &#8211; Maximum number of tokens per batch of examples</li>
-<li><strong>max_length</strong> &#8211; Maximum number of tokens per example</li>
-<li><strong>num_cpu_cores</strong> &#8211; Number of cpu cores for parallel input processing.</li>
-<li><strong>shuffle</strong> &#8211; If true, randomizes order of elements.</li>
-<li><strong>repeat</strong> &#8211; Number of times to repeat the dataset. If None, the dataset is
+<li><strong>file_pattern</strong> – String used to match the input TFRecord files.</li>
+<li><strong>batch_size</strong> – Maximum number of tokens per batch of examples</li>
+<li><strong>max_length</strong> – Maximum number of tokens per example</li>
+<li><strong>num_cpu_cores</strong> – Number of cpu cores for parallel input processing.</li>
+<li><strong>shuffle</strong> – If true, randomizes order of elements.</li>
+<li><strong>repeat</strong> – Number of times to repeat the dataset. If None, the dataset is
 repeated forever.</li>
-<li><strong>num_workers</strong> &#8211; Number of workers or number of Horovod workers</li>
-<li><strong>worker_id</strong> &#8211; Worker id or Horovod rank</li>
-<li><strong>batch_in_tokens</strong> &#8211; whether to batch_size means amounts in tokens or sentence</li>
-<li><strong>batching in tokens is more efficient as it reduces PADs. batching in</strong> (<em>pairs.</em>) &#8211; </li>
-<li><strong>should be used in inference mode since order of</strong> (<em>sentences</em>) &#8211; </li>
-<li><strong>is important</strong> (<em>sentences</em>) &#8211; </li>
-<li><strong>pad2eight</strong> &#8211; if True, it will pad both dimensions to be divisible by 8</li>
+<li><strong>num_workers</strong> – Number of workers or number of Horovod workers</li>
+<li><strong>worker_id</strong> – Worker id or Horovod rank</li>
+<li><strong>batch_in_tokens</strong> – whether to batch_size means amounts in tokens or sentence</li>
+<li><strong>batching in tokens is more efficient as it reduces PADs. batching in</strong> (<em>pairs.</em>) – </li>
+<li><strong>should be used in inference mode since order of</strong> (<em>sentences</em>) – </li>
+<li><strong>is important</strong> (<em>sentences</em>) – </li>
+<li><strong>pad2eight</strong> – if True, it will pad both dimensions to be divisible by 8</li>
 </ul>
 </td>
 </tr>
@@ -349,43 +349,97 @@ repeated forever.</li>
 <span class="target" id="module-data.text2text.text2text"></span><dl class="class">
 <dt id="data.text2text.text2text.ParallelTextDataLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.text2text.</code><code class="descname">ParallelTextDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=1</em>, <em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
 <dl class="method">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Here all TensorFlow graph construction should happen.</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.get_size_in_samples">
 <code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Should return the dataset size in samples.
+That is, the number of objects in the dataset. This method is used to
+calculate a valid epoch size. If this method is not defined, you will need
+to make sure that your dataset for evaluation is created only for
+one epoch. You will also not be able to use <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> parameter in the
+base config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.input_tensors">
 <code class="descname">input_tensors</code><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Dictionary containing input tensors.
+This dictionary has to define the following keys: <cite>source_tensors</cite>,
+which should contain all tensors describing the input object (i.e. tensors
+that are passed to the encoder, e.g. input sequence and input length). And
+when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+<cite>target_tensors</cite> which is the list of all tensors related to the
+corresponding target object (i.e. tensors taht are passed to the decoder and
+loss, e.g. target sequence and target length). Note that all tensors have
+to be created inside <a class="reference internal" href="#data.text2text.text2text.ParallelTextDataLayer.build_graph" title="data.text2text.text2text.ParallelTextDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.iterator">
 <code class="descname">iterator</code><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.text2text.text2text.ParallelTextDataLayer.build_graph" title="data.text2text.text2text.ParallelTextDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.text2text.SpecialTextTokens">
 <em class="property">class </em><code class="descclassname">data.text2text.text2text.</code><code class="descname">SpecialTextTokens</code><a class="reference internal" href="../_modules/data/text2text/text2text.html#SpecialTextTokens"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.SpecialTextTokens" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">enum.Enum</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
 <p>An enumeration.</p>
 <dl class="attribute">
 <dt id="data.text2text.text2text.SpecialTextTokens.END_OF_CHOICE">
@@ -417,42 +471,75 @@ repeated forever.</li>
 <code class="descname">UNK_ID</code><em class="property"> = 3</em><a class="headerlink" href="#data.text2text.text2text.SpecialTextTokens.UNK_ID" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="staticmethod">
-<dt id="data.text2text.text2text.SpecialTextTokens.to_string">
-<em class="property">static </em><code class="descname">to_string</code><span class="sig-paren">(</span><em>s_token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#SpecialTextTokens.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.SpecialTextTokens.to_string" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="class">
 <dt id="data.text2text.text2text.TransformerDataLayer">
 <em class="property">class </em><code class="descclassname">data.text2text.text2text.</code><code class="descname">TransformerDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=1</em>, <em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#TransformerDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
 <p>Wraps Transformers data pipeline into the form for OpenSeq2Seq</p>
 <dl class="method">
 <dt id="data.text2text.text2text.TransformerDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#TransformerDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Here all TensorFlow graph construction should happen.</p>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.text2text.TransformerDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#TransformerDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="data.text2text.text2text.TransformerDataLayer.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#TransformerDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="data.text2text.text2text.TransformerDataLayer.input_tensors">
 <code class="descname">input_tensors</code><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Dictionary containing input tensors.
+This dictionary has to define the following keys: <cite>source_tensors</cite>,
+which should contain all tensors describing the input object (i.e. tensors
+that are passed to the encoder, e.g. input sequence and input length). And
+when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+<cite>target_tensors</cite> which is the list of all tensors related to the
+corresponding target object (i.e. tensors taht are passed to the decoder and
+loss, e.g. target sequence and target length). Note that all tensors have
+to be created inside <a class="reference internal" href="#data.text2text.text2text.TransformerDataLayer.build_graph" title="data.text2text.text2text.TransformerDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="data.text2text.text2text.TransformerDataLayer.iterator">
 <code class="descname">iterator</code><a class="headerlink" href="#data.text2text.text2text.TransformerDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.text2text.text2text.TransformerDataLayer.build_graph" title="data.text2text.text2text.TransformerDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -463,7 +550,7 @@ repeated forever.</li>
 <dl class="class">
 <dt id="data.text2text.tokenizer.Subtokenizer">
 <em class="property">class </em><code class="descclassname">data.text2text.tokenizer.</code><code class="descname">Subtokenizer</code><span class="sig-paren">(</span><em>vocab_file</em>, <em>reserved_tokens=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#Subtokenizer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer.Subtokenizer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Encodes and decodes strings to/from integer IDs.</p>
 <dl class="method">
 <dt id="data.text2text.tokenizer.Subtokenizer.__init__">
@@ -504,17 +591,17 @@ repeated forever.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>vocab_file</strong> &#8211; String name of vocab file to store subtoken vocabulary.</li>
-<li><strong>files</strong> &#8211; List of file paths that will be used to generate vocabulary.</li>
-<li><strong>target_vocab_size</strong> &#8211; target vocabulary size to generate.</li>
-<li><strong>threshold</strong> &#8211; int threshold of vocabulary size to accept.</li>
-<li><strong>min_count</strong> &#8211; int minimum count to use for generating the vocabulary. The min
+<li><strong>vocab_file</strong> – String name of vocab file to store subtoken vocabulary.</li>
+<li><strong>files</strong> – List of file paths that will be used to generate vocabulary.</li>
+<li><strong>target_vocab_size</strong> – target vocabulary size to generate.</li>
+<li><strong>threshold</strong> – int threshold of vocabulary size to accept.</li>
+<li><strong>min_count</strong> – int minimum count to use for generating the vocabulary. The min
 count is the minimum number of times a subtoken should appear in the
 files before it is added to the vocabulary. If set to none, this value
 is found using binary search.</li>
-<li><strong>file_byte_limit</strong> &#8211; (Default 1e6) Maximum number of bytes of sample text that
+<li><strong>file_byte_limit</strong> – (Default 1e6) Maximum number of bytes of sample text that
 will be drawn from the files.</li>
-<li><strong>reserved_tokens</strong> &#8211; List of string tokens that are guaranteed to be at the
+<li><strong>reserved_tokens</strong> – List of string tokens that are guaranteed to be at the
 beginning of the subtoken vocabulary list.</li>
 </ul>
 </td>
@@ -537,12 +624,12 @@ beginning of the subtoken vocabulary list.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>token_counts</strong> &#8211; dict mapping tokens to the number of times they appear in the
+<li><strong>token_counts</strong> – dict mapping tokens to the number of times they appear in the
 original files.</li>
-<li><strong>alphabet</strong> &#8211; list of allowed characters. Used to escape the tokens, which
+<li><strong>alphabet</strong> – list of allowed characters. Used to escape the tokens, which
 guarantees that all tokens can be split into subtokens.</li>
-<li><strong>subtoken_dict</strong> &#8211; dict mapping subtokens to ids.</li>
-<li><strong>max_subtoken_length</strong> &#8211; maximum length of subtoken in subtoken_dict.</li>
+<li><strong>subtoken_dict</strong> – dict mapping subtokens to ids.</li>
+<li><strong>max_subtoken_length</strong> – maximum length of subtoken in subtoken_dict.</li>
 </ul>
 </td>
 </tr>
@@ -565,8 +652,8 @@ in the samples. The samples are semi-evenly distributed across the file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>files</strong> &#8211; List of filepaths</li>
-<li><strong>file_byte_limit</strong> &#8211; Max number of bytes that will be read from each file.</li>
+<li><strong>files</strong> – List of filepaths</li>
+<li><strong>file_byte_limit</strong> – Max number of bytes that will be read from each file.</li>
 </ul>
 </td>
 </tr>
@@ -581,14 +668,14 @@ lines from the files.</p>
 <dl class="function">
 <dt id="data.text2text.tokenizer._escape_token">
 <code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_escape_token</code><span class="sig-paren">(</span><em>token</em>, <em>alphabet</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_escape_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._escape_token" title="Permalink to this definition">¶</a></dt>
-<dd><p>Replace characters that aren&#8217;t in the alphabet and append &#8220;_&#8221; to token.</p>
+<dd><p>Replace characters that aren’t in the alphabet and append “_” to token.</p>
 <dl class="docutils">
 <dt>Apply three transformations to the token:</dt>
 <dd><ol class="first last arabic simple">
-<li>Replace underline character &#8220;_&#8221; with &#8220;u&#8221;, and backslash &#8220;&#8221; with &#8220;\&#8221;.</li>
-<li>Replace characters outside of the alphabet with &#8220;###;&#8221;, where ### is the
-character&#8217;s Unicode code point.</li>
-<li>Appends &#8220;_&#8221; to mark the end of a token.</li>
+<li>Replace underline character “_” with “u”, and backslash “” with “&quot;.</li>
+<li>Replace characters outside of the alphabet with “###;”, where ### is the
+character’s Unicode code point.</li>
+<li>Appends “_” to mark the end of a token.</li>
 </ol>
 </dd>
 </dl>
@@ -597,8 +684,8 @@ character&#8217;s Unicode code point.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>token</strong> &#8211; unicode string to be escaped</li>
-<li><strong>alphabet</strong> &#8211; list of all known characters</li>
+<li><strong>token</strong> – unicode string to be escaped</li>
+<li><strong>alphabet</strong> – list of all known characters</li>
 </ul>
 </td>
 </tr>
@@ -618,8 +705,8 @@ character&#8217;s Unicode code point.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>subtoken_counts</strong> &#8211; defaultdict mapping subtokens to their counts</li>
-<li><strong>min_count</strong> &#8211; int count used to filter subtokens</li>
+<li><strong>subtoken_counts</strong> – defaultdict mapping subtokens to their counts</li>
+<li><strong>min_count</strong> – int count used to filter subtokens</li>
 </ul>
 </td>
 </tr>
@@ -636,28 +723,28 @@ character&#8217;s Unicode code point.</li>
 <dd><p>Generate candidate subtokens ordered by count, and new max subtoken length.</p>
 <p>Add subtokens to the candiate list in order of length (longest subtokens
 first). When a subtoken is added, the counts of each of its prefixes are
-decreased. Prefixes that don&#8217;t appear much outside the subtoken are not added
+decreased. Prefixes that don’t appear much outside the subtoken are not added
 to the candidate list.</p>
 <dl class="docutils">
 <dt>For example:</dt>
-<dd>subtoken being added to candidate list: &#8216;translate&#8217;
-subtoken_counts: {&#8216;translate&#8217;:10, &#8216;t&#8217;:40, &#8216;tr&#8217;:16, &#8216;tra&#8217;:12, ...}
+<dd>subtoken being added to candidate list: ‘translate’
+subtoken_counts: {‘translate’:10, ‘t’:40, ‘tr’:16, ‘tra’:12, …}
 min_count: 5</dd>
-<dt>When &#8216;translate&#8217; is added, subtoken_counts is updated to:</dt>
-<dd>{&#8216;translate&#8217;:0, &#8216;t&#8217;:30, &#8216;tr&#8217;:6, &#8216;tra&#8217;: 2, ...}</dd>
+<dt>When ‘translate’ is added, subtoken_counts is updated to:</dt>
+<dd>{‘translate’:0, ‘t’:30, ‘tr’:6, ‘tra’: 2, …}</dd>
 </dl>
-<p>The subtoken &#8216;tra&#8217; will not be added to the candidate list, because it appears
-twice (less than min_count) outside of &#8216;translate&#8217;.</p>
+<p>The subtoken ‘tra’ will not be added to the candidate list, because it appears
+twice (less than min_count) outside of ‘translate’.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>subtoken_counts</strong> &#8211; defaultdict mapping str subtokens to int counts</li>
-<li><strong>min_count</strong> &#8211; int minumum count requirement for subtokens</li>
-<li><strong>alphabet</strong> &#8211; set of characters. Each character is added to the subtoken list to
+<li><strong>subtoken_counts</strong> – defaultdict mapping str subtokens to int counts</li>
+<li><strong>min_count</strong> – int minumum count requirement for subtokens</li>
+<li><strong>alphabet</strong> – set of characters. Each character is added to the subtoken list to
 guarantee that all tokens can be encoded.</li>
-<li><strong>reserved_tokens</strong> &#8211; list of tokens that will be added to the beginning of the
+<li><strong>reserved_tokens</strong> – list of tokens that will be added to the beginning of the
 returned subtoken list.</li>
 </ul>
 </td>
@@ -685,12 +772,12 @@ length</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>token_counts</strong> &#8211; dict mapping str tokens -&gt; int count</li>
-<li><strong>alphabet</strong> &#8211; set of characters</li>
-<li><strong>min_count</strong> &#8211; int minimum number of times a subtoken must appear before it is
+<li><strong>token_counts</strong> – dict mapping str tokens -&gt; int count</li>
+<li><strong>alphabet</strong> – set of characters</li>
+<li><strong>min_count</strong> – int minimum number of times a subtoken must appear before it is
 added to the vocabulary.</li>
-<li><strong>num_iterations</strong> &#8211; int number of iterations to generate new tokens.</li>
-<li><strong>reserved_tokens</strong> &#8211; list of tokens that will be added to the beginning to the
+<li><strong>num_iterations</strong> – int number of iterations to generate new tokens.</li>
+<li><strong>reserved_tokens</strong> – list of tokens that will be added to the beginning to the
 returned subtoken list.</li>
 </ul>
 </td>
@@ -763,8 +850,8 @@ returned subtoken list.</li>
 <dl class="docutils">
 <dt>Applies inverse transformations as _escape_token():</dt>
 <dd><ol class="first last arabic simple">
-<li>Replace &#8220;u&#8221; with &#8220;_&#8221;, and &#8220;\&#8221; with &#8220;&#8221;.</li>
-<li>Replace &#8220;###;&#8221; with the unicode character the ### refers to.</li>
+<li>Replace “u” with “_”, and “&quot; with “”.</li>
+<li>Replace “###;” with the unicode character the ### refers to.</li>
 </ol>
 </dd>
 </dl>
@@ -772,7 +859,7 @@ returned subtoken list.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>token</strong> &#8211; escaped string</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>token</strong> – escaped string</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">unescaped string</td>
 </tr>
@@ -836,7 +923,7 @@ returned subtoken list.</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
