@@ -162,19 +162,19 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
+<span class="n">layers_dict</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">,</span>
+    <span class="s2">&quot;conv2d&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span>
+<span class="p">}</span>
 
-<div class="viewcode-block" id="conv_actv"><a class="viewcode-back" href="../../../api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_actv">[docs]</a><span class="k">def</span> <span class="nf">conv_actv</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
+<div class="viewcode-block" id="conv_actv"><a class="viewcode-back" href="../../../api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_actv">[docs]</a><span class="k">def</span> <span class="nf">conv_actv</span><span class="p">(</span><span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
               <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Helper function that applies convolution and activation.</span>
-
 <span class="sd">    Args:</span>
-<span class="sd">      type: the following types are supported</span>
+<span class="sd">      layer_type: the following types are supported</span>
 <span class="sd">        &#39;conv1d&#39;, &#39;conv2d&#39;</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
-    <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span>
-  <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;conv2d&quot;</span><span class="p">:</span>
-    <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span>
+  <span class="n">layer</span> <span class="o">=</span> <span class="n">layers_dict</span><span class="p">[</span><span class="n">layer_type</span><span class="p">]</span>
 
   <span class="n">conv</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
@@ -194,20 +194,16 @@
   <span class="k">return</span> <span class="n">output</span></div>
 
 
-<div class="viewcode-block" id="conv_bn_actv"><a class="viewcode-back" href="../../../api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv_bn_actv</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span>
-                 <span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span>
-                 <span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="p">):</span>
+<div class="viewcode-block" id="conv_bn_actv"><a class="viewcode-back" href="../../../api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv_bn_actv</span><span class="p">(</span><span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
+                 <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span>
+                 <span class="n">bn_epsilon</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Helper function that applies convolution, batch norm and activation.</span>
 <span class="sd">    Accepts inputs in &#39;channels_last&#39; format only.</span>
-
 <span class="sd">    Args:</span>
-<span class="sd">      type: the following types are supported</span>
+<span class="sd">      layer_type: the following types are supported</span>
 <span class="sd">        &#39;conv1d&#39;, &#39;conv2d&#39;</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
-    <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span>
-  <span class="k">elif</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;conv2d&quot;</span><span class="p">:</span>
-    <span class="n">layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span>
+  <span class="n">layer</span> <span class="o">=</span> <span class="n">layers_dict</span><span class="p">[</span><span class="n">layer_type</span><span class="p">]</span>
 
   <span class="n">conv</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
@@ -224,7 +220,7 @@
   <span class="c1"># trick to make batchnorm work for mixed precision training.</span>
   <span class="c1"># To-Do check if batchnorm works smoothly for &gt;4 dimensional tensors</span>
   <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">False</span>
-  <span class="k">if</span> <span class="nb">type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
+  <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
     <span class="n">conv</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">conv</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># NWC --&gt; NHWC</span>
     <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">True</span>
 
@@ -290,7 +286,7 @@
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

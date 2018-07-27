@@ -168,7 +168,13 @@
 <div class="viewcode-block" id="FeedFowardNetworkNormalized"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized">[docs]</a><span class="k">class</span> <span class="nc">FeedFowardNetworkNormalized</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Fully connected feedforward network with weight normalization&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="FeedFowardNetworkNormalized.__init__"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">,</span> <span class="n">dropout</span><span class="p">,</span> <span class="n">var_scope_name</span><span class="p">):</span>
+<div class="viewcode-block" id="FeedFowardNetworkNormalized.__init__"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span>
+               <span class="n">in_dim</span><span class="p">,</span>
+               <span class="n">out_dim</span><span class="p">,</span>
+               <span class="n">dropout</span><span class="p">,</span>
+               <span class="n">var_scope_name</span><span class="p">,</span>
+               <span class="n">mode</span><span class="p">,</span>
+               <span class="n">normalization_type</span><span class="o">=</span><span class="s2">&quot;weight_norm&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;initializes the linear layer.</span>
 <span class="sd">    This layer projects from in_dim-dimenstional space to out_dim-dimentional space.</span>
 <span class="sd">    It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</span>
@@ -179,33 +185,65 @@
 <span class="sd">      dropout: float the keep-dropout value used in the previous layer.</span>
 <span class="sd">                  It is used to initialize the weights. Give 1.0 if no dropout.</span>
 <span class="sd">      var_scope_name: str the scope name for the weight variables</span>
+<span class="sd">      mode: str current mode</span>
+<span class="sd">      normalization_type: str specifies the normalization used for this layer.</span>
+<span class="sd">                          &quot;weight_norm&quot; for weight normalization or</span>
+<span class="sd">                          &quot;batch_norm&quot; for batch normalization</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">FeedFowardNetworkNormalized</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span> <span class="o">=</span> <span class="n">out_dim</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">in_dim</span> <span class="o">=</span> <span class="n">in_dim</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">normalization_type</span> <span class="o">=</span> <span class="n">normalization_type</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">var_scope_name</span> <span class="o">=</span> <span class="n">var_scope_name</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="n">mode</span>
+
+    <span class="k">if</span> <span class="n">normalization_type</span> <span class="o">==</span> <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">normalization_type</span> <span class="o">==</span> <span class="s2">&quot;weight_norm&quot;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">elif</span> <span class="n">normalization_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong normalization type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization_type</span><span class="p">))</span>
 
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="n">var_scope_name</span><span class="p">):</span>
-      <span class="n">V_initializer</span> <span class="o">=</span> \
-        <span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dropout</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">in_dim</span><span class="p">))</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
-          <span class="s1">&#39;V&#39;</span><span class="p">,</span>
-          <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">],</span>
-          <span class="n">initializer</span><span class="o">=</span><span class="n">V_initializer</span><span class="p">,</span>
-          <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">V_norm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">initialized_value</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">V_norm</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
-          <span class="s1">&#39;b&#39;</span><span class="p">,</span>
-          <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">out_dim</span><span class="p">],</span>
-          <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">(),</span>
-          <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span><span class="p">:</span>
+        <span class="n">V_initializer</span> <span class="o">=</span> \
+          <span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">dropout</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">in_dim</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="s1">&#39;V&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">V_initializer</span><span class="p">,</span>
+            <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V_norm</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="o">.</span><span class="n">initialized_value</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">g</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="s1">&#39;g&#39;</span><span class="p">,</span> <span class="n">initializer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">V_norm</span><span class="p">,</span> <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="s1">&#39;W&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">in_dim</span><span class="p">,</span> <span class="n">out_dim</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">),</span>
+            <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+            <span class="s1">&#39;b&#39;</span><span class="p">,</span>
+            <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">out_dim</span><span class="p">],</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">(),</span>
+            <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 <div class="viewcode-block" id="FeedFowardNetworkNormalized.call"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Projects x with its linear transformation.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      x: A float32 tensor with shape [batch_size, length, in_dim]</span>
-<span class="sd">      </span>
+
 <span class="sd">    Returns:</span>
 <span class="sd">      float32 tensor with shape [batch_size, length, out_dim].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -215,10 +253,26 @@
     <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matmul</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">)</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span><span class="p">])</span>
 
-    <span class="c1"># x*(v*(g/2-norm(v))) + b</span>
-    <span class="n">scaler</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
-    <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scaler</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span><span class="p">])</span> <span class="o">*</span> <span class="n">output</span> <span class="o">+</span> \
-             <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span><span class="p">])</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span><span class="p">:</span>
+      <span class="c1"># x*(v*(g/2-norm(v)))</span>
+      <span class="n">scaler</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">g</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">norm</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">V</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">))</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">scaler</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span><span class="p">])</span> <span class="o">*</span> <span class="n">output</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">output</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">out_dim</span><span class="p">])</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
+          <span class="n">name</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">var_scope_name</span> <span class="o">+</span> <span class="s2">&quot;_batch_norm&quot;</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
+          <span class="c1">#gamma_regularizer=regularizer,</span>
+          <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span>
+          <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+          <span class="n">momentum</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
+          <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">output</span></div></div>
 </pre></div>
@@ -266,7 +320,7 @@
       <script type="text/javascript" src="../../../_static/jquery.js"></script>
       <script type="text/javascript" src="../../../_static/underscore.js"></script>
       <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

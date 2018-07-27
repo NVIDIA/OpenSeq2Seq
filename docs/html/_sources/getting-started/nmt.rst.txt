@@ -43,8 +43,9 @@ Feeling adventurous?
 
 One of the main goals of OpenSeq2Seq is to allow you easily experiment with different architectures. Try out these configurations:
 
-#. ``example_configs/nmt_reversal-TR.py`` - a model which uses Transformer's encoder and RNN decoder with attention
-#. ``example_configs/nmt_reversal-RT.py`` - a model which uses RNN-based encoder Transformer-based decoder
+#. ``example_configs/nmt_reversal-CR.py`` - a model which uses Convolutional encoder and RNN decoder with attention
+#. ``example_configs/nmt_reversal-RC.py`` - a model which uses RNN-based encoder and Convolutional decoder
+#. ``example_configs/nmt_reversal-TT.py`` - a model which uses Transformer-based encoder and Transformer-based decoder
 
 
 #####################################
@@ -92,4 +93,5 @@ Run ```multi-blue.perl``` script on cleaned data::
 
   ./multi-bleu.perl newstest2014.tok.de < cleaned_file.txt
 
-You should get a BLEU score above 20 for this model on newstest2014.tok.de.
+You should get a BLEU score above 20 for this small model on newstest2014.tok.de.
+

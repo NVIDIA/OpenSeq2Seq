@@ -156,6 +156,8 @@
 <li><a href="data/image2label/imagenet_preprocessing.html">data.image2label.imagenet_preprocessing</a></li>
 <li><a href="data/speech2text/speech2text.html">data.speech2text.speech2text</a></li>
 <li><a href="data/speech2text/speech_utils.html">data.speech2text.speech_utils</a></li>
+<li><a href="data/text2speech/speech_utils.html">data.text2speech.speech_utils</a></li>
+<li><a href="data/text2speech/text2speech.html">data.text2speech.text2speech</a></li>
 <li><a href="data/text2text/t2t.html">data.text2text.t2t</a></li>
 <li><a href="data/text2text/text2text.html">data.text2text.text2text</a></li>
 <li><a href="data/text2text/tokenizer.html">data.text2text.tokenizer</a></li>
@@ -164,6 +166,8 @@
 <li><a href="decoders/decoder.html">decoders.decoder</a></li>
 <li><a href="decoders/fc_decoders.html">decoders.fc_decoders</a></li>
 <li><a href="decoders/rnn_decoders.html">decoders.rnn_decoders</a></li>
+<li><a href="decoders/tacotron2_decoder.html">decoders.tacotron2_decoder</a></li>
+<li><a href="decoders/transformer_decoder.html">decoders.transformer_decoder</a></li>
 <li><a href="encoders/cnn_encoder.html">encoders.cnn_encoder</a></li>
 <li><a href="encoders/convs2s_encoder.html">encoders.convs2s_encoder</a></li>
 <li><a href="encoders/ds2_encoder.html">encoders.ds2_encoder</a></li>
@@ -171,15 +175,19 @@
 <li><a href="encoders/resnet_blocks.html">encoders.resnet_blocks</a></li>
 <li><a href="encoders/resnet_encoder.html">encoders.resnet_encoder</a></li>
 <li><a href="encoders/rnn_encoders.html">encoders.rnn_encoders</a></li>
+<li><a href="encoders/tacotron2_encoder.html">encoders.tacotron2_encoder</a></li>
+<li><a href="encoders/transformer_encoder.html">encoders.transformer_encoder</a></li>
 <li><a href="encoders/w2l_encoder.html">encoders.w2l_encoder</a></li>
 <li><a href="losses/cross_entropy_loss.html">losses.cross_entropy_loss</a></li>
 <li><a href="losses/ctc_loss.html">losses.ctc_loss</a></li>
 <li><a href="losses/loss.html">losses.loss</a></li>
 <li><a href="losses/sequence_loss.html">losses.sequence_loss</a></li>
+<li><a href="losses/tacotron_loss.html">losses.tacotron_loss</a></li>
 <li><a href="models/encoder_decoder.html">models.encoder_decoder</a></li>
 <li><a href="models/image2label.html">models.image2label</a></li>
 <li><a href="models/model.html">models.model</a></li>
 <li><a href="models/speech2text.html">models.speech2text</a></li>
+<li><a href="models/text2speech.html">models.text2speech</a></li>
 <li><a href="models/text2text.html">models.text2text</a></li>
 <li><a href="optimizers/automatic_loss_scaler.html">optimizers.automatic_loss_scaler</a></li>
 <li><a href="optimizers/lr_policies.html">optimizers.lr_policies</a></li>
@@ -196,6 +204,9 @@
 <li><a href="parts/rnns/rnn_beam_search_decoder.html">parts.rnns.rnn_beam_search_decoder</a></li>
 <li><a href="parts/rnns/slstm.html">parts.rnns.slstm</a></li>
 <li><a href="parts/rnns/utils.html">parts.rnns.utils</a></li>
+<li><a href="parts/rnns/zoneout.html">parts.rnns.zoneout</a></li>
+<li><a href="parts/tacotron/tacotron_decoder.html">parts.tacotron.tacotron_decoder</a></li>
+<li><a href="parts/tacotron/tacotron_helper.html">parts.tacotron.tacotron_helper</a></li>
 <li><a href="parts/transformer/attention_layer.html">parts.transformer.attention_layer</a></li>
 <li><a href="parts/transformer/beam_search.html">parts.transformer.beam_search</a></li>
 <li><a href="parts/transformer/common.html">parts.transformer.common</a></li>
@@ -250,7 +261,7 @@
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

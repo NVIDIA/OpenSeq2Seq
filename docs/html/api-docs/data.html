@@ -97,6 +97,7 @@
 <li class="toctree-l3"><a class="reference internal" href="data.image2label.html">image2label</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.speech2text.html">speech2text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.text2text.html">text2text</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2speech.html">text2speech</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-data.data_layer">data_layer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-data.utils">utils</a></li>
 </ul>
@@ -195,35 +196,40 @@
 <li class="toctree-l2"><a class="reference internal" href="data.text2text.html#module-data.text2text.tokenizer">tokenizer</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="data.text2speech.html">text2speech</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="data.text2speech.html#id1">text2speech</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.text2speech.html#module-data.text2speech.speech_utils">speech_utils</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="section" id="module-data.data_layer">
 <span id="data-layer"></span><h2>data_layer<a class="headerlink" href="#module-data.data_layer" title="Permalink to this headline">¶</a></h2>
-<p>Data Layer Classes</p>
+<p>Data layer classes</p>
 <dl class="class">
 <dt id="data.data_layer.DataLayer">
 <em class="property">class </em><code class="descclassname">data.data_layer.</code><code class="descname">DataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Abstract class from which all data layers must inherit.</p>
 <dl class="method">
 <dt id="data.data_layer.DataLayer.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers</em>, <em>worker_id</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Data layer constructor.
 The TensorFlow graph should not be created here, but rather in the
-<a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+<a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal"><span class="pre">self.build_graph()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) – parameters describing the data layer.
-All supported parameters are listed in <a class="reference internal" href="#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this data layer.
+<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the data layer.
+All supported parameters are listed in <a class="reference internal" href="#data.data_layer.DataLayer.get_required_params" title="data.data_layer.DataLayer.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#data.data_layer.DataLayer.get_optional_params" title="data.data_layer.DataLayer.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) &#8211; parent model that created this data layer.
 Could be None if no model access is required for the use case.</li>
-<li><strong>num_workers</strong> (<em>int</em>) – number of Horovod processes or number of GPUs
+<li><strong>num_workers</strong> (<em>int</em>) &#8211; number of Horovod processes or number of GPUs
 if Horovod is not used.</li>
-<li><strong>worker_id</strong> (<em>int</em>) – Horovod process id or GPU id if Horovod is not used.</li>
+<li><strong>worker_id</strong> (<em>int</em>) &#8211; Horovod process id or GPU id if Horovod is not used.</li>
 </ul>
 </td>
 </tr>
@@ -231,9 +237,9 @@ if Horovod is not used.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>shuffle</strong> (bool) — whether to shuffle dataset after an epoch.
+<li><strong>shuffle</strong> (bool) &#8212; whether to shuffle dataset after an epoch.
 Typically will be True for train and False for inference and evaluation.</li>
-<li><strong>dtype</strong> — data dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code> or <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>.</li>
+<li><strong>dtype</strong> &#8212; data dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code> or <code class="docutils literal"><span class="pre">tf.float32</span></code>.</li>
 </ul>
 </dd></dl>
 
@@ -252,8 +258,8 @@ Typically will be True for train and False for inference and evaluation.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -270,8 +276,8 @@ class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" t
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" title="data.data_layer.DataLayer.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -286,7 +292,7 @@ class <a class="reference internal" href="#data.data_layer.DataLayer.__init__" t
 That is, the number of objects in the dataset. This method is used to
 calculate a valid epoch size. If this method is not defined, you will need
 to make sure that your dataset for evaluation is created only for
-one epoch. You will also not be able to use <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> parameter in the
+one epoch. You will also not be able to use <code class="docutils literal"><span class="pre">num_epochs</span></code> parameter in the
 base config.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -307,18 +313,18 @@ base config.</p>
 This dictionary has to define the following keys: <cite>source_tensors</cite>,
 which should contain all tensors describing the input object (i.e. tensors
 that are passed to the encoder, e.g. input sequence and input length). And
-when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+when <code class="docutils literal"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
 <cite>target_tensors</cite> which is the list of all tensors related to the
 corresponding target object (i.e. tensors taht are passed to the decoder and
 loss, e.g. target sequence and target length). Note that all tensors have
-to be created inside <a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+to be created inside <a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal"><span class="pre">self.build_graph()</span></code></a> method.</p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="data.data_layer.DataLayer.iterator">
 <code class="descname">iterator</code><a class="headerlink" href="#data.data_layer.DataLayer.iterator" title="Permalink to this definition">¶</a></dt>
-<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
-Should be created by <a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+<dd><p><code class="docutils literal"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.data_layer.DataLayer.build_graph" title="data.data_layer.DataLayer.build_graph"><code class="xref py py-meth docutils literal"><span class="pre">self.build_graph()</span></code></a>.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -338,7 +344,7 @@ Should be created by <a class="reference internal" href="#data.data_layer.DataLa
 <dd><p>Loads pre-existing vocabulary into memory.</p>
 <p>The vocabulary file should contain a token on each line with optional
 token count on the same line that will be ignored. Example:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="mi">1234</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">a</span> <span class="mi">1234</span>
 <span class="n">b</span> <span class="mi">4321</span>
 <span class="n">c</span> <span class="mi">32342</span>
 <span class="n">d</span>
@@ -351,9 +357,9 @@ token count on the same line that will be ignored. Example:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>path</strong> (<em>str</em>) – path to vocabulary.</li>
-<li><strong>min_idx</strong> (<em>int</em><em>, </em><em>optional</em>) – minimum id to assign for a token.</li>
-<li><strong>read_chars</strong> (<em>bool</em><em>, </em><em>optional</em>) – whether to read only the
+<li><strong>path</strong> (<em>str</em>) &#8211; path to vocabulary.</li>
+<li><strong>min_idx</strong> (<em>int</em><em>, </em><em>optional</em>) &#8211; minimum id to assign for a token.</li>
+<li><strong>read_chars</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; whether to read only the
 first symbol of the line.</li>
 </ul>
 </td>
@@ -376,7 +382,7 @@ first symbol of the line.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vocab</strong> (<em>dict</em>) – vocabulary in the form token-&gt;id</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>vocab</strong> (<em>dict</em>) &#8211; vocabulary in the form token-&gt;id</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">vocab with new tokens added if necessary, such that the total
 vocab size is divisible by 8.</td>
@@ -443,7 +449,7 @@ vocab size is divisible by 8.</td>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
