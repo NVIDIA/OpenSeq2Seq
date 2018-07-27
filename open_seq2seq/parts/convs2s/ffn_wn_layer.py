@@ -54,6 +54,8 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = False
+    else:
+      raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
       if self.wn_enabled:

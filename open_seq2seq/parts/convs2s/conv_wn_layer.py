@@ -68,6 +68,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = False
+    else:
+      raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     if activation == gated_linear_units:
       conv_out_size = 2 * out_dim
