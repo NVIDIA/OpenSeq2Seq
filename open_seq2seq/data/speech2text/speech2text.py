@@ -12,7 +12,7 @@ from six.moves import range
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
-from .speech_utils import get_speech_features_from_file
+from .speech_utils import get_speech_features_from_file, get_speech_features
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -198,11 +198,11 @@ class Speech2TextDataLayer(DataLayer):
     """
     Must pass in placeholder
     """
-    self.input = tf.placeholder(dtype=tf.float)
+    self.input = tf.placeholder(dtype=tf.float32)
     self._dataset = tf.data.Dataset.from_tensor_slices(self.input)
     self._dataset = self._dataset.map(
         lambda line: tf.py_func(
-            self._parse_audio_element,
+            self._get_audio,
             [line],
             [self.params['dtype'], tf.int32, tf.int32, tf.float32],
             stateful=False,
@@ -224,28 +224,18 @@ class Speech2TextDataLayer(DataLayer):
         padded_shapes=([None, self.params['num_audio_features']], 1, 1)
     )
 
-  self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
-                       .make_initializable_iterator()
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                         .make_initializable_iterator()
 
-  if self.params['mode'] != 'infer':
-    x, x_length, y, y_length = self._iterator.get_next()
-    # need to explicitly set batch size dimension
-    # (it is employed in the model)
-    y.set_shape([self.params['batch_size'], None])
-    y_length = tf.reshape(y_length, [self.params['batch_size']])
-  else:
     x, x_length, x_id = self._iterator.get_next()
     x_id = tf.reshape(x_id, [self.params['batch_size']])
 
-  x.set_shape([self.params['batch_size'], None,
-               self.params['num_audio_features']])
-  x_length = tf.reshape(x_length, [self.params['batch_size']])
+    x.set_shape([self.params['batch_size'], None,
+                 self.params['num_audio_features']])
+    x_length = tf.reshape(x_length, [self.params['batch_size']])
 
-  self._input_tensors = {}
-  self._input_tensors["source_tensors"] = [x, x_length]
-  if self.params['mode'] != 'infer':
-    self._input_tensors['target_tensors'] = [y, y_length]
-  else:
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [x, x_length]
     self._input_tensors['source_ids'] = [x_id]
 
   def _parse_audio_transcript_element(self, element):
@@ -270,6 +260,25 @@ class Speech2TextDataLayer(DataLayer):
         np.int32([len(source)]), \
         np.int32(target), \
         np.int32([len(target)]), \
+        np.float32([audio_duration])
+
+  def _get_audio(self, file):
+    """Parses audio from file and returns array of audio features.
+    Args:
+      id_and_audio_filename: tuple of sample id and corresponding
+          audio file name.
+    Returns:
+      tuple: source audio features as ``np.array``, length of source sequence,
+      sample id.
+    """
+    pad_to = self.params.get('pad_to', 8)
+    source, audio_duration = get_speech_features(
+        file, 16000., self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
+    )
+    return source.astype(self.params['dtype'].as_numpy_dtype()), \
+        np.int32([len(source)]), np.int32([0]), \
         np.float32([audio_duration])
 
   def _parse_audio_element(self, id_and_audio_filename):
@@ -308,4 +317,6 @@ class Speech2TextDataLayer(DataLayer):
 
   def get_size_in_samples(self):
     """Returns the number of audio files."""
+    if self.params["mode"] == "interactive_infer":
+      return 1
     return len(self._files)

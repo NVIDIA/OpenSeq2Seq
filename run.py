@@ -24,10 +24,7 @@ from open_seq2seq.utils.utils import deco_print, flatten_dict, \
                                      get_git_hash, Logger
 from open_seq2seq.utils import train, infer, evaluate
 
-from __future__ import unicode_literals
-import codecs
-from subword_nmt import codecs
-def main(args):
+def main(args, graph=None, namescope=None):
   parser = argparse.ArgumentParser(description='Experiment parameters')
   parser.add_argument("--config_file", required=True,
                       help="Path to the configuration file")
@@ -251,7 +248,8 @@ def main(args):
     if hvd is None or hvd.rank() == 0:
       deco_print("Loading model from {}".format(checkpoint))
 
-  graph = tf.Graph()
+  if graph == None:
+    graph = tf.Graph()
   with graph.as_default():
     if args.mode == 'train':
       train_model = base_model(params=train_config, mode="train", hvd=hvd)
@@ -272,12 +270,13 @@ def main(args):
       infer_model.compile()
       infer(infer_model, checkpoint, args.infer_output_file)
     elif args.mode == "interactive_infer":
-      infer_model = base_model(
-          params=infer_config,
-          mode="interactive_infer",
-          hvd=hvd
-      )
-      infer_model.compile()
+      with tf.variable_scope(namescope):
+        infer_model = base_model(
+            params=infer_config,
+            mode="interactive_infer",
+            hvd=hvd
+        )
+        infer_model.compile()
       return infer_model, checkpoint, graph
 
   if args.enable_logs and (hvd is None or hvd.rank() == 0):
