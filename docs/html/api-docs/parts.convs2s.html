@@ -108,6 +108,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -189,12 +190,12 @@
 Inspired from <a class="reference external" href="https://github.com/tobyyouup/conv_seq2seq">https://github.com/tobyyouup/conv_seq2seq</a></p>
 <dl class="class">
 <dt id="parts.convs2s.attention_wn_layer.AttentionLayerNormalized">
-<em class="property">class </em><code class="descclassname">parts.convs2s.attention_wn_layer.</code><code class="descname">AttentionLayerNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>embed_size</em>, <em>layer_id</em>, <em>add_res</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/attention_wn_layer.html#AttentionLayerNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.attention_wn_layer.AttentionLayerNormalized" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<em class="property">class </em><code class="descclassname">parts.convs2s.attention_wn_layer.</code><code class="descname">AttentionLayerNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>embed_size</em>, <em>layer_id</em>, <em>add_res</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/attention_wn_layer.html#AttentionLayerNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.attention_wn_layer.AttentionLayerNormalized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Attention layer for convs2s with weight normalization</p>
 <dl class="method">
 <dt id="parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>embed_size</em>, <em>layer_id</em>, <em>add_res</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/attention_wn_layer.html#AttentionLayerNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>embed_size</em>, <em>layer_id</em>, <em>add_res</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/attention_wn_layer.html#AttentionLayerNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>initializes the attention layer.
 It uses weight normalization for linear projections
 (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</p>
@@ -203,10 +204,11 @@ It uses weight normalization for linear projections
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>in_dim</strong> – int last dimension of the inputs</li>
-<li><strong>embed_size</strong> – int target embedding size</li>
-<li><strong>layer_id</strong> – int the id of current convolution layer</li>
-<li><strong>add_res</strong> – bool whether residual connection should be added or not</li>
+<li><strong>in_dim</strong> &#8211; int last dimension of the inputs</li>
+<li><strong>embed_size</strong> &#8211; int target embedding size</li>
+<li><strong>layer_id</strong> &#8211; int the id of current convolution layer</li>
+<li><strong>add_res</strong> &#8211; bool whether residual connection should be added or not</li>
+<li><strong>mode</strong> &#8211; str current mode</li>
 </ul>
 </td>
 </tr>
@@ -223,14 +225,14 @@ It uses weight normalization for linear projections
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input</strong> – A float32 tensor with shape [batch_size, length, in_dim]</li>
-<li><strong>target_embed</strong> – A float32 tensor with shape [batch_size, length, in_dim]
+<li><strong>input</strong> &#8211; A float32 tensor with shape [batch_size, length, in_dim]</li>
+<li><strong>target_embed</strong> &#8211; A float32 tensor with shape [batch_size, length, in_dim]
 containing the target embeddings</li>
-<li><strong>encoder_output_a</strong> – A float32 tensor with shape [batch_size, length, out_dim]
+<li><strong>encoder_output_a</strong> &#8211; A float32 tensor with shape [batch_size, length, out_dim]
 containing the first encoder outputs, uses as the keys</li>
-<li><strong>encoder_output_b</strong> – A float32 tensor with shape [batch_size, length, src_emb_dim]
+<li><strong>encoder_output_b</strong> &#8211; A float32 tensor with shape [batch_size, length, src_emb_dim]
 containing the second encoder outputs, uses as the values</li>
-<li><strong>input_attention_bias</strong> – A float32 tensor with shape [batch_size, length, 1]
+<li><strong>input_attention_bias</strong> &#8211; A float32 tensor with shape [batch_size, length, 1]
 containing the bias used to mask the paddings</li>
 </ul>
 </td>
@@ -251,12 +253,12 @@ containing the bias used to mask the paddings</li>
 Inspired from <a class="reference external" href="https://github.com/tobyyouup/conv_seq2seq">https://github.com/tobyyouup/conv_seq2seq</a></p>
 <dl class="class">
 <dt id="parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized">
-<em class="property">class </em><code class="descclassname">parts.convs2s.conv_wn_layer.</code><code class="descname">Conv1DNetworkNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>kernel_width</em>, <em>mode</em>, <em>layer_id</em>, <em>hidden_dropout</em>, <em>conv_padding</em>, <em>decode_padding</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/conv_wn_layer.html#Conv1DNetworkNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<em class="property">class </em><code class="descclassname">parts.convs2s.conv_wn_layer.</code><code class="descname">Conv1DNetworkNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>kernel_width</em>, <em>mode</em>, <em>layer_id</em>, <em>hidden_dropout</em>, <em>conv_padding</em>, <em>decode_padding</em>, <em>activation=&lt;function gated_linear_units&gt;</em>, <em>normalization_type='weight_norm'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/conv_wn_layer.html#Conv1DNetworkNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>1D convolutional layer with weight normalization</p>
 <dl class="method">
 <dt id="parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>kernel_width</em>, <em>mode</em>, <em>layer_id</em>, <em>hidden_dropout</em>, <em>conv_padding</em>, <em>decode_padding</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/conv_wn_layer.html#Conv1DNetworkNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>kernel_width</em>, <em>mode</em>, <em>layer_id</em>, <em>hidden_dropout</em>, <em>conv_padding</em>, <em>decode_padding</em>, <em>activation=&lt;function gated_linear_units&gt;</em>, <em>normalization_type='weight_norm'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/conv_wn_layer.html#Conv1DNetworkNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>initializes the 1D convolution layer.
 It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -264,17 +266,21 @@ It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)<
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>in_dim</strong> – int last dimension of the inputs</li>
-<li><strong>out_dim</strong> – int new dimension for the output</li>
-<li><strong>kernel_width</strong> – int width of kernel</li>
-<li><strong>mode</strong> – str the current mode</li>
-<li><strong>layer_id</strong> – int the id of current convolution layer</li>
-<li><strong>hidden_dropout</strong> – float the keep-dropout value used on the input.
+<li><strong>in_dim</strong> &#8211; int last dimension of the inputs</li>
+<li><strong>out_dim</strong> &#8211; int new dimension for the output</li>
+<li><strong>kernel_width</strong> &#8211; int width of kernel</li>
+<li><strong>mode</strong> &#8211; str the current mode</li>
+<li><strong>layer_id</strong> &#8211; int the id of current convolution layer</li>
+<li><strong>hidden_dropout</strong> &#8211; float the keep-dropout value used on the input.
 Give 1.0 if no dropout.
 It is used to initialize the weights of convolution.</li>
-<li><strong>conv_padding</strong> – str the type of padding done for convolution</li>
-<li><strong>decode_padding</strong> – bool specifies if this convolution layer is in decoder or not
+<li><strong>conv_padding</strong> &#8211; str the type of padding done for convolution</li>
+<li><strong>decode_padding</strong> &#8211; bool specifies if this convolution layer is in decoder or not
 in decoder padding is done explicitly before convolution</li>
+<li><strong>activation</strong> &#8211; the activation function applies after the convolution</li>
+<li><strong>normalization_type</strong> &#8211; str specifies the normalization used for the layer.
+&#8220;weight_norm&#8221; for weight normalization or
+&#8220;batch_norm&#8221; for batch normalization</li>
 </ul>
 </td>
 </tr>
@@ -290,23 +296,7 @@ in decoder padding is done explicitly before convolution</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A float32 tensor with shape [batch_size, length, in_dim]</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float32 tensor with shape [batch_size, length, out_dim].</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="method">
-<dt id="parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.gated_linear_units">
-<code class="descname">gated_linear_units</code><span class="sig-paren">(</span><em>inputs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/conv_wn_layer.html#Conv1DNetworkNormalized.gated_linear_units"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.gated_linear_units" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gated Linear Units (GLU) on x.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A float32 tensor with shape [batch_size, length, 2*out_dim]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; A float32 tensor with shape [batch_size, length, in_dim]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float32 tensor with shape [batch_size, length, out_dim].</td>
 </tr>
@@ -323,12 +313,12 @@ in decoder padding is done explicitly before convolution</li>
 Inspired from <a class="reference external" href="https://github.com/tobyyouup/conv_seq2seq">https://github.com/tobyyouup/conv_seq2seq</a></p>
 <dl class="class">
 <dt id="parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized">
-<em class="property">class </em><code class="descclassname">parts.convs2s.ffn_wn_layer.</code><code class="descname">FeedFowardNetworkNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>dropout</em>, <em>var_scope_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/ffn_wn_layer.html#FeedFowardNetworkNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<em class="property">class </em><code class="descclassname">parts.convs2s.ffn_wn_layer.</code><code class="descname">FeedFowardNetworkNormalized</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>dropout</em>, <em>var_scope_name</em>, <em>mode</em>, <em>normalization_type='weight_norm'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/ffn_wn_layer.html#FeedFowardNetworkNormalized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Fully connected feedforward network with weight normalization</p>
 <dl class="method">
 <dt id="parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>dropout</em>, <em>var_scope_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/ffn_wn_layer.html#FeedFowardNetworkNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>in_dim</em>, <em>out_dim</em>, <em>dropout</em>, <em>var_scope_name</em>, <em>mode</em>, <em>normalization_type='weight_norm'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/convs2s/ffn_wn_layer.html#FeedFowardNetworkNormalized.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.convs2s.ffn_wn_layer.FeedFowardNetworkNormalized.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>initializes the linear layer.
 This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
 It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</p>
@@ -337,11 +327,15 @@ It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)<
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>in_dim</strong> – int last dimension of the inputs</li>
-<li><strong>out_dim</strong> – int new dimension for the output</li>
-<li><strong>dropout</strong> – float the keep-dropout value used in the previous layer.
+<li><strong>in_dim</strong> &#8211; int last dimension of the inputs</li>
+<li><strong>out_dim</strong> &#8211; int new dimension for the output</li>
+<li><strong>dropout</strong> &#8211; float the keep-dropout value used in the previous layer.
 It is used to initialize the weights. Give 1.0 if no dropout.</li>
-<li><strong>var_scope_name</strong> – str the scope name for the weight variables</li>
+<li><strong>var_scope_name</strong> &#8211; str the scope name for the weight variables</li>
+<li><strong>mode</strong> &#8211; str current mode</li>
+<li><strong>normalization_type</strong> &#8211; str specifies the normalization used for this layer.
+&#8220;weight_norm&#8221; for weight normalization or
+&#8220;batch_norm&#8221; for batch normalization</li>
 </ul>
 </td>
 </tr>
@@ -357,7 +351,7 @@ It is used to initialize the weights. Give 1.0 if no dropout.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> – A float32 tensor with shape [batch_size, length, in_dim]</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> &#8211; A float32 tensor with shape [batch_size, length, in_dim]</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">float32 tensor with shape [batch_size, length, out_dim].</td>
 </tr>
@@ -423,7 +417,7 @@ It is used to initialize the weights. Give 1.0 if no dropout.</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

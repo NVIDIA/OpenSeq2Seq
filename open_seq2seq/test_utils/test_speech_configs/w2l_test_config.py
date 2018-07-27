@@ -13,7 +13,7 @@ base_model = Speech2Text
 
 base_params = {
     "use_horovod": False,
-    "num_epochs": 200,
+    "num_epochs": 500,
 
     "num_gpus": 1,
     "batch_size_per_gpu": 10,
@@ -65,7 +65,6 @@ base_params = {
         "data_format": "channels_last",
         "bn_momentum": 0.001,
     },
-
     "decoder": FullyConnectedCTCDecoder,
     "decoder_params": {
         "initializer": tf.contrib.layers.xavier_initializer,

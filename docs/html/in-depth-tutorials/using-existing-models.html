@@ -177,104 +177,104 @@ can be specified in the config file/command line and what are the different
 kinds of output that OpenSeq2Seq generates for you.</p>
 <div class="section" id="how-to-run-models">
 <h2>How to run models<a class="headerlink" href="#how-to-run-models" title="Permalink to this headline">¶</a></h2>
-<p>The main script to run all models is <code class="docutils literal notranslate"><span class="pre">run.py</span></code>. Since it is a fairly simple
+<p>The main script to run all models is <code class="docutils literal"><span class="pre">run.py</span></code>. Since it is a fairly simple
 Python script, you can probably understand
-how to use it by running <code class="docutils literal notranslate"><span class="pre">run.py</span> <span class="pre">--help</span></code> which will display all available
+how to use it by running <code class="docutils literal"><span class="pre">run.py</span> <span class="pre">--help</span></code> which will display all available
 command line parameters and their short description. If that does not contain
 enough details, continue reading this section. Otherwise, you can safely skip
 to the next section, which describes config parameters.</p>
-<p>There are 2 main parameters of <code class="docutils literal notranslate"><span class="pre">run.py</span></code> that will be
-used most often: <code class="docutils literal notranslate"><span class="pre">--config_file</span></code> and <code class="docutils literal notranslate"><span class="pre">--mode</span></code>. The first one is a required
+<p>There are 2 main parameters of <code class="docutils literal"><span class="pre">run.py</span></code> that will be
+used most often: <code class="docutils literal"><span class="pre">--config_file</span></code> and <code class="docutils literal"><span class="pre">--mode</span></code>. The first one is a required
 parameter with path to the python configuration file (described in the
-<a class="reference internal" href="#config-params"><span class="std std-ref">next section</span></a>). <code class="docutils literal notranslate"><span class="pre">--mode</span></code> parameter can be one of the
-“train”, “eval”, “train_eval” or “infer”. This will do what it says: run
-the model in the corresponding mode (with “train_eval” executing training
+<a class="reference internal" href="#config-params"><span class="std std-ref">next section</span></a>). <code class="docutils literal"><span class="pre">--mode</span></code> parameter can be one of the
+&#8220;train&#8221;, &#8220;eval&#8221;, &#8220;train_eval&#8221; or &#8220;infer&#8221;. This will do what it says: run
+the model in the corresponding mode (with &#8220;train_eval&#8221; executing training
 with periodic evaluation).
-The other parameters of the <code class="docutils literal notranslate"><span class="pre">run.py</span></code> script are the following:</p>
+The other parameters of the <code class="docutils literal"><span class="pre">run.py</span></code> script are the following:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">--continue_learning</span></code> — specify this when you want to continue learning
-from existing checkpoint. This parameter is only checked when <code class="docutils literal notranslate"><span class="pre">--mode</span></code> is
-“train” or “train_eval”.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--infer_output_file</span></code> — this specifies the path to output of the inference.
-This parameter is only checked when <code class="docutils literal notranslate"><span class="pre">--mode</span></code> is “infer”.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--no_dir_check</span></code> — this parameter disables log directory checking.
-By default, <code class="docutils literal notranslate"><span class="pre">run.py</span></code> will be checking that the log
+<li><code class="docutils literal"><span class="pre">--continue_learning</span></code> &#8212; specify this when you want to continue learning
+from existing checkpoint. This parameter is only checked when <code class="docutils literal"><span class="pre">--mode</span></code> is
+&#8220;train&#8221; or &#8220;train_eval&#8221;.</li>
+<li><code class="docutils literal"><span class="pre">--infer_output_file</span></code> &#8212; this specifies the path to output of the inference.
+This parameter is only checked when <code class="docutils literal"><span class="pre">--mode</span></code> is &#8220;infer&#8221;.</li>
+<li><code class="docutils literal"><span class="pre">--no_dir_check</span></code> &#8212; this parameter disables log directory checking.
+By default, <code class="docutils literal"><span class="pre">run.py</span></code> will be checking that the log
 directory (specified in the python config) is valid. Specifically, it will
-check that it exists when <code class="docutils literal notranslate"><span class="pre">--mode</span></code> equals “eval” or “infer”
-(or when <code class="docutils literal notranslate"><span class="pre">--continue_learning</span></code> is specified for training). If training is
-performed, but <code class="docutils literal notranslate"><span class="pre">--continue_learning</span></code> is not specified, the script will check
+check that it exists when <code class="docutils literal"><span class="pre">--mode</span></code> equals &#8220;eval&#8221; or &#8220;infer&#8221;
+(or when <code class="docutils literal"><span class="pre">--continue_learning</span></code> is specified for training). If training is
+performed, but <code class="docutils literal"><span class="pre">--continue_learning</span></code> is not specified, the script will check
 that log directory is empty or does not exist, otherwise finishing with
 exception. Finally, whenever necessary it will check that the log directory
 contains a valid TensorFlow checkpoint of the saved model.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--benchmark</span></code> — specifying this parameter will automatically prepare config
+<li><code class="docutils literal"><span class="pre">--benchmark</span></code> &#8212; specifying this parameter will automatically prepare config
 for time benchmarking: disable all logging and evaluation. This parameter is
 only useful for training benchmarking, since in other cases no config
 preparation is needed. Moreover, specifying it will force the model to run
-in the “train” mode.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--bench_steps</span></code> — number of steps to run the model for benchmarking. For
-now this can only be used in conjunction with <code class="docutils literal notranslate"><span class="pre">--benchmark</span></code> parameter and
+in the &#8220;train&#8221; mode.</li>
+<li><code class="docutils literal"><span class="pre">--bench_steps</span></code> &#8212; number of steps to run the model for benchmarking. For
+now this can only be used in conjunction with <code class="docutils literal"><span class="pre">--benchmark</span></code> parameter and
 thus only works in the training benchmarking.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--bench_start</span></code> — first step to start counting time for benchmarking. This
-parameter works in all modes whether or not <code class="docutils literal notranslate"><span class="pre">--benchmark</span></code> parameter was
+<li><code class="docutils literal"><span class="pre">--bench_start</span></code> &#8212; first step to start counting time for benchmarking. This
+parameter works in all modes whether or not <code class="docutils literal"><span class="pre">--benchmark</span></code> parameter was
 specified.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--debug_port</span></code> — this enables TensorFlow debugging. To use it first run, e.g.
-<code class="docutils literal notranslate"><span class="pre">tensorboard</span> <span class="pre">--logdir=.</span> <span class="pre">--debugger_port=6067</span></code> and while tensorboard is
-running execute <code class="docutils literal notranslate"><span class="pre">run.py</span></code> with <code class="docutils literal notranslate"><span class="pre">--debug_port=6067</span></code> attribute.
+<li><code class="docutils literal"><span class="pre">--debug_port</span></code> &#8212; this enables TensorFlow debugging. To use it first run, e.g.
+<code class="docutils literal"><span class="pre">tensorboard</span> <span class="pre">--logdir=.</span> <span class="pre">--debugger_port=6067</span></code> and while tensorboard is
+running execute <code class="docutils literal"><span class="pre">run.py</span></code> with <code class="docutils literal"><span class="pre">--debug_port=6067</span></code> attribute.
 After that tensorboard should have debugging tab.</li>
-<li><code class="docutils literal notranslate"><span class="pre">--enable_logs</span></code> — specifying this parameter will enable additional
+<li><code class="docutils literal"><span class="pre">--enable_logs</span></code> &#8212; specifying this parameter will enable additional
 convenient log information to be saved. Namely, the script will save all
 output (both stdout and stderr), exact configuration file, git information
 (git commit hash and git diff) and exact command line parameters used to start
 the script. For all log files it will automatically append current time stamp
 so that subsequent runs do not overwrite any information. One important thing
 to note is that specifying this parameter will force the script to save
-all TensorFlow logs (tensorboard events, checkpoint, etc.) in the <code class="docutils literal notranslate"><span class="pre">logs</span></code>
+all TensorFlow logs (tensorboard events, checkpoint, etc.) in the <code class="docutils literal"><span class="pre">logs</span></code>
 subfolder. Thus, if you want to restore the model that was saved with
-<code class="docutils literal notranslate"><span class="pre">enable_logs</span></code> specified you will need to either specify it again or move
-the model checkpoints from the <code class="docutils literal notranslate"><span class="pre">logs</span></code> directory into the base <code class="docutils literal notranslate"><span class="pre">logdir</span></code>
+<code class="docutils literal"><span class="pre">enable_logs</span></code> specified you will need to either specify it again or move
+the model checkpoints from the <code class="docutils literal"><span class="pre">logs</span></code> directory into the base <code class="docutils literal"><span class="pre">logdir</span></code>
 folder (which is a config parameter).</li>
 </ul>
 </div>
 <div class="section" id="config-parameters">
 <span id="config-params"></span><h2>Config parameters<a class="headerlink" href="#config-parameters" title="Permalink to this headline">¶</a></h2>
 <p>The experiment parameters are completely defined in one Python configuration
-file. This file must define <code class="docutils literal notranslate"><span class="pre">base_params</span></code> dictionary and <code class="docutils literal notranslate"><span class="pre">base_model</span></code> class.
-<code class="docutils literal notranslate"><span class="pre">base_model</span></code> should be any class derived from
-<a class="reference internal" href="../api-docs/models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>. Currently it can be
-<a class="reference internal" href="../api-docs/models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Speech2Text</span></code></a>,
-<a class="reference internal" href="../api-docs/models.html#models.text2text.Text2Text" title="models.text2text.Text2Text"><code class="xref py py-class docutils literal notranslate"><span class="pre">Text2Text</span></code></a> or
-<a class="reference internal" href="../api-docs/models.html#models.image2label.Image2Label" title="models.image2label.Image2Label"><code class="xref py py-class docutils literal notranslate"><span class="pre">Image2Label</span></code></a>.
+file. This file must define <code class="docutils literal"><span class="pre">base_params</span></code> dictionary and <code class="docutils literal"><span class="pre">base_model</span></code> class.
+<code class="docutils literal"><span class="pre">base_model</span></code> should be any class derived from
+<a class="reference internal" href="../api-docs/models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>. Currently it can be
+<a class="reference internal" href="../api-docs/models.html#models.speech2text.Speech2Text" title="models.speech2text.Speech2Text"><code class="xref py py-class docutils literal"><span class="pre">Speech2Text</span></code></a>,
+<a class="reference internal" href="../api-docs/models.html#models.text2text.Text2Text" title="models.text2text.Text2Text"><code class="xref py py-class docutils literal"><span class="pre">Text2Text</span></code></a> or
+<a class="reference internal" href="../api-docs/models.html#models.image2label.Image2Label" title="models.image2label.Image2Label"><code class="xref py py-class docutils literal"><span class="pre">Image2Label</span></code></a>.
 Note that this parameter is not a string, but an actual Python class, so you
 will need to add corresponding imports in the configuration file. In addition
-to <code class="docutils literal notranslate"><span class="pre">base_params</span></code> and <code class="docutils literal notranslate"><span class="pre">base_model</span></code> you can define
-<code class="docutils literal notranslate"><span class="pre">train_params</span></code>, <code class="docutils literal notranslate"><span class="pre">eval_params</span></code> and <code class="docutils literal notranslate"><span class="pre">infer_params</span></code> dictionaries that will
-overwrite corresponding parts of <code class="docutils literal notranslate"><span class="pre">base_params</span></code> when the corresponding mode
-is used. For examples of configuration files look in the <code class="docutils literal notranslate"><span class="pre">example_configs</span></code>
+to <code class="docutils literal"><span class="pre">base_params</span></code> and <code class="docutils literal"><span class="pre">base_model</span></code> you can define
+<code class="docutils literal"><span class="pre">train_params</span></code>, <code class="docutils literal"><span class="pre">eval_params</span></code> and <code class="docutils literal"><span class="pre">infer_params</span></code> dictionaries that will
+overwrite corresponding parts of <code class="docutils literal"><span class="pre">base_params</span></code> when the corresponding mode
+is used. For examples of configuration files look in the <code class="docutils literal"><span class="pre">example_configs</span></code>
 directory. The complete list of all possible configuration parameters is
 defined in the documentation in various places. A good place to look first is
-the <a class="reference internal" href="../api-docs/models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">Model.__init__()</span></code></a> method
+the <a class="reference internal" href="../api-docs/models.html#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal"><span class="pre">Model.__init__()</span></code></a> method
 (config parameters section), which defines most of the <em>first level</em> parameters:</p>
 <dl class="method">
 <dt>
 <code class="descclassname">Model.</code><code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Model constructor.
 The TensorFlow graph should not be created here, but rather in the
-<a class="reference internal" href="../api-docs/models.html#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
+<code class="xref py py-meth docutils literal"><span class="pre">self.compile()</span></code> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
-All supported parameters are listed in <a class="reference internal" href="../api-docs/models.html#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="../api-docs/models.html#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
-If mode is “train” all parts of the graph will be built
+<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the model.
+All supported parameters are listed in <code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code>,
+<code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code> functions.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.
+If mode is &#8220;train&#8221; all parts of the graph will be built
 (model, loss, optimizer).
-If mode is “eval”, only model and loss will be built.
-If mode is “infer”, only model will be built.</li>
-<li><strong>hvd</strong> (<em>optional</em>) – if Horovod is used, this should be
-<code class="docutils literal notranslate"><span class="pre">horovod.tensorflow</span></code> module.
+If mode is &#8220;eval&#8221;, only model and loss will be built.
+If mode is &#8220;infer&#8221;, only model will be built.</li>
+<li><strong>hvd</strong> (<em>optional</em>) &#8211; if Horovod is used, this should be
+<code class="docutils literal"><span class="pre">horovod.tensorflow</span></code> module.
 If Horovod is not used, it should be None.</li>
 </ul>
 </td>
@@ -283,87 +283,89 @@ If Horovod is not used, it should be None.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>random_seed</strong> (int) — random seed to use.</li>
-<li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed
+<li><strong>random_seed</strong> (int) &#8212; random seed to use.</li>
+<li><strong>use_horovod</strong> (bool) &#8212; whether to use Horovod for distributed
 execution.</li>
-<li><strong>num_gpus</strong> (int) — number of GPUs to use. This parameter cannot be
-used if <code class="docutils literal notranslate"><span class="pre">gpu_ids</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
+<li><strong>num_gpus</strong> (int) &#8212; number of GPUs to use. This parameter cannot be
+used if <code class="docutils literal"><span class="pre">gpu_ids</span></code> is specified. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
-<li><strong>gpu_ids</strong> (list of ints) — GPU ids to use. This parameter cannot be
-used if <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
+<li><strong>gpu_ids</strong> (list of ints) &#8212; GPU ids to use. This parameter cannot be
+used if <code class="docutils literal"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
-<li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
-<li><strong>num_epochs</strong> (int) — number of epochs to run training for.
-This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> is specified.</li>
-<li><strong>max_steps</strong> (int) — number of steps to run training for.
-This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> is specified.</li>
-<li><strong>save_summaries_steps</strong> (int or None) — how often to save summaries.
+<li><strong>batch_size_per_gpu</strong> (int) &#8212; batch size to use for each GPU.</li>
+<li><strong>num_epochs</strong> (int) &#8212; number of epochs to run training for.
+This parameter cannot be used if <code class="docutils literal"><span class="pre">max_steps</span></code> is specified.</li>
+<li><strong>max_steps</strong> (int) &#8212; number of steps to run training for.
+This parameter cannot be used if <code class="docutils literal"><span class="pre">num_epochs</span></code> is specified.</li>
+<li><strong>save_summaries_steps</strong> (int or None) &#8212; how often to save summaries.
 Setting it to None disables summaries saving.</li>
-<li><strong>print_loss_steps</strong> (int or None) — how often to print loss during
+<li><strong>print_loss_steps</strong> (int or None) &#8212; how often to print loss during
 training. Setting it to None disables loss printing.</li>
-<li><strong>print_samples_steps</strong> (int or None) — how often to print training
+<li><strong>print_samples_steps</strong> (int or None) &#8212; how often to print training
 samples (input sequences, correct answers and model predictions).
 Setting it to None disables samples printing.</li>
-<li><strong>print_bench_info_steps</strong> (int or None) — how often to print training
+<li><strong>print_bench_info_steps</strong> (int or None) &#8212; how often to print training
 benchmarking information (average number of objects processed per step).
 Setting it to None disables intermediate benchmarking printing, but
 the average information across the whole training will always be printed
 after the last iteration.</li>
-<li><strong>save_checkpoint_steps</strong> (int or None) — how often to save model
+<li><strong>save_checkpoint_steps</strong> (int or None) &#8212; how often to save model
 checkpoints. Setting it to None disables checkpoint saving.</li>
-<li><strong>eval_steps</strong> (int) — how often to run evaluation during training.
-This parameter is only checked if <code class="docutils literal notranslate"><span class="pre">--mode</span></code> argument of <code class="docutils literal notranslate"><span class="pre">run.py</span></code> is
-“train_eval”. If no evaluation is needed you should use “train” mode.</li>
-<li><strong>logdir</strong> (string) — path to the log directory where all checkpoints
+<li><strong>eval_steps</strong> (int) &#8212; how often to run evaluation during training.
+This parameter is only checked if <code class="docutils literal"><span class="pre">--mode</span></code> argument of <code class="docutils literal"><span class="pre">run.py</span></code> is
+&#8220;train_eval&#8221;. If no evaluation is needed you should use &#8220;train&#8221; mode.</li>
+<li><strong>logdir</strong> (string) &#8212; path to the log directory where all checkpoints
 and summaries will be saved.</li>
 <li><strong>data_layer</strong> (any class derived from
-<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) — data layer class
+<a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>) &#8212; data layer class
 to use.</li>
-<li><strong>data_layer_params</strong> (dict) — dictionary with data layer
+<li><strong>data_layer_params</strong> (dict) &#8212; dictionary with data layer
 configuration.
 For complete list of possible parameters see the corresponding
 class docs.</li>
-<li><strong>optimizer</strong> (string or TensorFlow optimizer class) — optimizer to
-use for training. Could be either “Adam”, “Adagrad”, “Ftrl”, “Momentum”,
-“RMSProp”, “SGD” or any valid TensorFlow optimizer class.</li>
-<li><strong>optimizer_params</strong> (dict) — dictionary that will be passed to
-optimizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
-<li><strong>initializer</strong> — any valid TensorFlow initializer.</li>
-<li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
-initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
-<li><strong>regularizer</strong> — and valid TensorFlow regularizer.</li>
-<li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
-regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
-<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>,
-<code class="docutils literal notranslate"><span class="pre">tf.float32</span></code> or “mixed”. For details see
+<li><strong>optimizer</strong> (string or TensorFlow optimizer class) &#8212; optimizer to
+use for training. Could be either &#8220;Adam&#8221;, &#8220;Adagrad&#8221;, &#8220;Ftrl&#8221;, &#8220;Momentum&#8221;,
+&#8220;RMSProp&#8221;, &#8220;SGD&#8221; or any valid TensorFlow optimizer class.</li>
+<li><strong>optimizer_params</strong> (dict) &#8212; dictionary that will be passed to
+optimizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
+<li><strong>initializer</strong> &#8212; any valid TensorFlow initializer.</li>
+<li><strong>initializer_params</strong> (dict) &#8212; dictionary that will be passed to
+initializer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
+<li><strong>regularizer</strong> &#8212; and valid TensorFlow regularizer.</li>
+<li><strong>regularizer_params</strong> (dict) &#8212; dictionary that will be passed to
+regularizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
+<li><strong>dtype</strong> &#8212; model dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code>,
+<code class="docutils literal"><span class="pre">tf.float32</span></code> or &#8220;mixed&#8221;. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>lr_policy</strong> — any valid learning rate policy function. For examples,
-see <a class="reference internal" href="../api-docs/optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
-<li><strong>lr_policy_params</strong> (dict) — dictionary containing lr_policy
+<li><strong>lr_policy</strong> &#8212; any valid learning rate policy function. For examples,
+see <a class="reference internal" href="../api-docs/optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
+<li><strong>lr_policy_params</strong> (dict) &#8212; dictionary containing lr_policy
 parameters.</li>
-<li><strong>max_grad_norm</strong> (float) — maximum value of gradient norm. Clipping
+<li><strong>max_grad_norm</strong> (float) &#8212; maximum value of gradient norm. Clipping
 will be performed if some gradients exceed this value (this is checked
 for each variable independently).</li>
-<li><strong>loss_scaling</strong> — could be float or string. If float, static loss
+<li><strong>loss_scaling</strong> &#8212; could be float or string. If float, static loss
 scaling is applied. If string, the corresponding automatic
-loss scaling algorithm is used. Must be one of ‘Backoff’
-of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
+loss scaling algorithm is used. Must be one of &#8216;Backoff&#8217;
+of &#8216;LogMax&#8217; (case insensitive). Only used when dtype=&#8221;mixed&#8221;. For details
 see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>summaries</strong> (list) — which summaries to log. Could contain
-“learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
-“variables”, “variable_norm”.</li>
-<li><strong>iter_size</strong> (int) — use this parameter to emulate large batches.
-The gradients will be accumulated for <code class="docutils literal notranslate"><span class="pre">iter_size</span></code> number of steps before
+<li><strong>loss_scaling_params</strong> (dict) &#8212; dictionary containing loss scaling
+parameters.</li>
+<li><strong>summaries</strong> (list) &#8212; which summaries to log. Could contain
+&#8220;learning_rate&#8221;, &#8220;gradients&#8221;, &#8220;gradient_norm&#8221;, &#8220;global_gradient_norm&#8221;,
+&#8220;variables&#8221;, &#8220;variable_norm&#8221;, &#8220;loss_scale&#8221;.</li>
+<li><strong>iter_size</strong> (int) &#8212; use this parameter to emulate large batches.
+The gradients will be accumulated for <code class="docutils literal"><span class="pre">iter_size</span></code> number of steps before
 applying update.</li>
-<li><strong>larc_params</strong> — dictionary with parameters for LARC (or LARS)
+<li><strong>larc_params</strong> &#8212; dictionary with parameters for LARC (or LARS)
 optimization algorithms. Can contain the following parameters:<ul>
-<li><strong>larc_mode</strong> — Could be either “scale” (LARS) or “clip” (LARC).
+<li><strong>larc_mode</strong> &#8212; Could be either &#8220;scale&#8221; (LARS) or &#8220;clip&#8221; (LARC).
 Note that it works in addition to any other optimization algorithm
 since we treat
 it as adaptive gradient clipping and learning rate adjustment.</li>
-<li><strong>larc_eta</strong> (float) — LARC or LARS scaling parameter.</li>
-<li><strong>min_update</strong> (float) — minimal value of the LARC (LARS) update.</li>
-<li><strong>epsilon</strong> (float) — small number added to gradient norm in
+<li><strong>larc_eta</strong> (float) &#8212; LARC or LARS scaling parameter.</li>
+<li><strong>min_update</strong> (float) &#8212; minimal value of the LARC (LARS) update.</li>
+<li><strong>epsilon</strong> (float) &#8212; small number added to gradient norm in
 denominator for numerical stability.</li>
 </ul>
 </li>
@@ -373,22 +375,22 @@ denominator for numerical stability.</li>
 <p>Note that some of the parameters are also config dictionaries for corresponding
 classes. To see list of their configuration options, you should proceed to the
 corresponding class docs. For example, to see all supported data layer parameters,
-look into the docs for <a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">data.data_layer.DataLayer</span></code></a>. Sometimes, derived classes
+look into the docs for <a class="reference internal" href="../api-docs/data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">data.data_layer.DataLayer</span></code></a>. Sometimes, derived classes
 might define their additional parameters, in that case you should be looking
 into both, parent class and its child. For example, look into
-<a class="reference internal" href="../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a>, which defines parameters
+<a class="reference internal" href="../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a>, which defines parameters
 specific for models that can be expressed as encoder-decoder-loss blocks.
 You can also have a look at
-<a class="reference internal" href="../api-docs/encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a> (which defines some parameters shared across
-all encoders) and <a class="reference internal" href="../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder" title="encoders.ds2_encoder.DeepSpeech2Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.ds2_encoder.DeepSpeech2Encoder</span></code></a> (which
+<a class="reference internal" href="../api-docs/encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a> (which defines some parameters shared across
+all encoders) and <a class="reference internal" href="../api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder" title="encoders.ds2_encoder.DeepSpeech2Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.ds2_encoder.DeepSpeech2Encoder</span></code></a> (which
 additionally defines a set of DeepSpeech-2 specific parameters).</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last">For convenience all string or numerical config parameters can be overwritten
 by command line arguments. To overwrite parameters of the nested
-dictionaries, separate the dictionary and parameter name with “/”.
-For example, try to specify <code class="docutils literal notranslate"><span class="pre">--logdir</span></code> argument or
-<code class="docutils literal notranslate"><span class="pre">--lr_policy_params/learning_rate</span></code> in your <code class="docutils literal notranslate"><span class="pre">run.py</span></code> execution.</p>
+dictionaries, separate the dictionary and parameter name with &#8220;/&#8221;.
+For example, try to specify <code class="docutils literal"><span class="pre">--logdir</span></code> argument or
+<code class="docutils literal"><span class="pre">--lr_policy_params/learning_rate</span></code> in your <code class="docutils literal"><span class="pre">run.py</span></code> execution.</p>
 </div>
 </div>
 <div class="section" id="what-is-being-logged">
@@ -450,7 +452,7 @@ For example, try to specify <code class="docutils literal notranslate"><span cla
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
