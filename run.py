@@ -197,22 +197,25 @@ def main(args, graph=None, namescope=None):
     if hvd is None or hvd.rank() == 0:
       deco_print("Evaluation config:")
       pprint.pprint(eval_config)
-  if args.mode == "infer" or args.mode == "interactive_infer":
+  if args.mode == "infer":
     if args.infer_output_file is None:
       raise ValueError("\"infer_output_file\" command line parameter is "
                        "required in inference mode")
-    if args.mode == "infer" and "infer_params" in config_module:
+    if "infer_params" in config_module:
       nested_update(infer_config, copy.deepcopy(config_module['infer_params']))
-    if (args.mode == "interactive_infer"
-        and "interactive_infer_params" in config_module):
-      nested_update(
-          infer_config,
-          copy.deepcopy(config_module['interactive_infer_params'])
-      )
-
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
       pprint.pprint(infer_config)
+  if (args.mode == "interactive_infer"
+      and "interactive_infer_params" in config_module):
+    nested_update(
+        infer_config,
+        copy.deepcopy(config_module['interactive_infer_params'])
+    )
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
+
 
   if args.benchmark:
     deco_print("Adjusting config for benchmarking")

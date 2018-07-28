@@ -82,7 +82,7 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
-def iterate_data(model, sess, compute_loss, mode, verbose, input=None):
+def iterate_data(model, sess, compute_loss, mode, verbose):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
   results_per_batch = []
@@ -117,13 +117,6 @@ def iterate_data(model, sess, compute_loss, mode, verbose, input=None):
     fetches.append(cur_fetches)
     total_samples.append(0.0)
 
-  if mode == "interactive_infer":
-    sess.run(
-        [model.get_data_layer().iterator.initializer],
-        feed_dict={model.get_data_layer().input:input}
-    )
-    mode = "infer"
-  else:
     sess.run([model.get_data_layer(i).iterator.initializer
               for i in range(model.num_gpus)])
 
@@ -229,21 +222,14 @@ def iterate_data(model, sess, compute_loss, mode, verbose, input=None):
     return results_per_batch
 
 
-def get_results_for_epoch(
-    model,
-    sess,
-    compute_loss,
-    mode,
-    verbose=False,
-    input=None
-):
+def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-        model, sess, compute_loss, mode, verbose, input
+        model, sess, compute_loss, mode, verbose
     )
   else:
     results_per_batch = iterate_data(
-        model, sess, compute_loss, mode, verbose, input
+        model, sess, compute_loss, mode, verbose
     )
 
   if compute_loss:
@@ -454,4 +440,23 @@ def cast_types(input_dict, dtype):
       continue
     cast_input_dict[key] = input_dict[key]
   return cast_input_dict
-  
+
+def get_interactive_infer_results(model, sess, model_in):
+  results_per_batch = []
+
+  sess.run(
+      [model.get_data_layer().iterator.initializer],
+      feed_dict={model.get_data_layer().input:model_in}
+  )
+
+  fetches = [
+      model.get_data_layer().input_tensors,
+      model.get_output_tensors(),
+  ]
+
+  fetches_vals = sess.run(fetches)
+  inputs, outputs = fetches_vals[:2]
+
+  results_per_batch.append(model.infer(inputs, outputs))
+
+  return results_per_batch
