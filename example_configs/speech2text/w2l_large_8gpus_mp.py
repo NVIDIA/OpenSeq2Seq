@@ -103,6 +103,7 @@ base_params = {
         ],
 
         "dropout_keep_prob": 0.8,
+        "residual_connections" : True,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
@@ -146,6 +147,7 @@ train_params = {
         ],
         "max_duration": 16.7,
         "shuffle": True,
+        "autoregressive": False,
     },
 }
 
@@ -159,6 +161,7 @@ eval_params = {
             "/data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
+        "autoregressive": False,
     },
 }
 
@@ -172,5 +175,6 @@ infer_params = {
             "/data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
+        "autoregressive": False,
     },
 }

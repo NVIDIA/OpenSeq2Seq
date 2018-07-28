@@ -12,6 +12,7 @@ layers_dict = {
     "conv2d": tf.layers.conv2d
 }
 
+
 def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
               padding, regularizer, training, data_format):
   """Helper function that applies convolution and activation.
@@ -40,7 +41,7 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, str
 
 
 def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, regularizer, training, data_format, bn_momentum,
+                 padding, regularizer, training, data_format, use_residual, bn_momentum,
                  bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
     Accepts inputs in 'channels_last' format only.
@@ -81,6 +82,21 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
 
   if squeeze:
     bn = tf.squeeze(bn, axis=1)
+
+  # add residual connections
+  if use_residual:
+    in_size_index = -1 if data_format == 'channels_last' else 1
+    channels = int(inputs.get_shape()[in_size_index])
+    if channels != filters:
+      residual = tf.layers.dense(
+          inputs=inputs,
+          units=filters,
+          kernel_regularizer=regularizer,
+          name="{}/residual".format(name),
+      )
+    else:
+      residual = inputs
+    bn = bn + residual
 
   output = bn
   if activation_fn is not None:

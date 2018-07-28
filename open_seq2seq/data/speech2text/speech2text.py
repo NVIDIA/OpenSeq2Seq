@@ -32,6 +32,7 @@ class Speech2TextDataLayer(DataLayer):
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
+        'autoregressive': bool,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -52,17 +53,30 @@ class Speech2TextDataLayer(DataLayer):
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
+    * **autoregressive** (bool) --- boolean indicating whether the model is autoregressive.  
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
 
+    self.autoregressive = self.params.get('autoregressive', False)
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'], read_chars=True,
     )
+    self.target_pad_value = 0
+    if not self.autoregressive:
+      # add one for implied blank token
+      self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
+    else:
+      num_chars_orig = len(self.params['char2idx'])
+      self.params['tgt_vocab_size'] = num_chars_orig + 2
+      self.start_index = num_chars_orig
+      self.end_index = num_chars_orig + 1
+      self.params['char2idx']['<S>'] = self.start_index
+      self.params['char2idx']['</S>'] = self.end_index
+      self.target_pad_value = self.end_index
+
     self.params['idx2char'] = {i: w for w,
                                i in self.params['char2idx'].items()}
-    # add one for implied blank token
-    self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None
     for csv in params['dataset_files']:
@@ -134,7 +148,8 @@ class Speech2TextDataLayer(DataLayer):
       self._dataset = self._dataset.padded_batch(
           self.params['batch_size'],
           padded_shapes=([None, self.params['num_audio_features']],
-                         1, [None], 1)
+                         1, [None], 1),
+          padding_values=(tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
       )
     else:
       indices = self.split_data(
@@ -203,7 +218,11 @@ class Speech2TextDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
-    target = np.array([self.params['char2idx'][c] for c in transcript])
+    target_indices = [self.params['char2idx'][c] for c in transcript]
+    if self.autoregressive:
+      target_indices = target_indices + [self.end_index]
+    target = np.array(target_indices)
+
     pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
         audio_filename, self.params['num_audio_features'], pad_to,
