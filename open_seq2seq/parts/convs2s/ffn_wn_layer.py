@@ -46,14 +46,22 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       self.apply_batch_norm = True
       self.bias_enabled = False
       self.wn_enabled = False
+      self.apply_layer_norm = False
     elif normalization_type == "weight_norm":
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = True
+      self.apply_layer_norm = False
+    elif normalization_type == "layer_norm":
+      self.apply_batch_norm = False
+      self.bias_enabled = True
+      self.wn_enabled = True
+      self.apply_layer_norm = True
     elif normalization_type is None:
       self.apply_batch_norm = False
       self.bias_enabled = True
       self.wn_enabled = False
+      self.apply_layer_norm = False
     else:
       raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
@@ -116,6 +124,16 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           axis=-1,
           momentum=0.99,
           epsilon=1e-4,
+      )
+      output = tf.squeeze(output, axis=1)
+
+    if self.apply_layer_norm:
+      output = tf.expand_dims(output, axis=1)
+      output = tf.contrib.layers.layer_norm(
+          inputs=output,
+          begin_norm_axis=1,
+          begin_params_axis=-1,
+          scope=self.var_scope_name + "_layer_norm",
       )
       output = tf.squeeze(output, axis=1)
 

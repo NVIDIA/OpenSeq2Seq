@@ -8,12 +8,14 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 
-from open_seq2seq.encoders import ConvS2SEncoder
-from open_seq2seq.decoders import ConvS2SDecoder
+from open_seq2seq.encoders import ConvS2SEncoder, ConvS2SEncoder2
+from open_seq2seq.decoders import ConvS2SDecoder, ConvS2SDecoder2
 
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
+
+import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "./wmt16_en_dt/"
@@ -25,19 +27,20 @@ hidden_before_last = 512
 max_length = 64
 pad_2_eight = True
 
-batch_size = 128
-num_gpus = 8
+batch_size = 256
+num_gpus = 2
 epoch_num = 35
 
 iter_size = 1
-dtype = "mixed"  # "mixed" or tf.float32
+dtype = tf.float32  # "mixed" or tf.float32
 shuffle_train = True
-use_horovod = True
+use_horovod = False
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = tf.nn.relu  #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
+normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
+scaling_factor = 1.0 #math.sqrt(0.5)
 
 base_params = {
   # iter_size can be used just with horovod
@@ -48,11 +51,11 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": 50,#max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 50, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
-  "save_checkpoint_steps": int((max_steps-1)/5.0),
+  "save_checkpoint_steps": None, #int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
 
@@ -66,7 +69,7 @@ base_params = {
     "d_model": d_model,
   },
 
-  "max_grad_norm": 0.1,
+  "max_grad_norm": 10.0,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
@@ -78,7 +81,7 @@ base_params = {
      "scale_max": 2.**24,
    },
 
-  "encoder": ConvS2SEncoder,
+  "encoder": ConvS2SEncoder2,
   "encoder_params": {
     "encoder_layers": num_layers,
 
@@ -100,11 +103,12 @@ base_params = {
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
 
     "conv_activation": conv_act,
-    'normalization_type': normalization_type,
+    "normalization_type": normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
 
-  "decoder": ConvS2SDecoder,
+  "decoder": ConvS2SDecoder2,
   "decoder_params": {
     "decoder_layers": num_layers,
 
@@ -135,7 +139,8 @@ base_params = {
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
 
     "conv_activation": conv_act,
-    'normalization_type': normalization_type,
+    "normalization_type": normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
   "loss": BasicSequenceLoss,

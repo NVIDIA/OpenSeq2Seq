@@ -14,7 +14,8 @@ from open_seq2seq.parts.convs2s.ffn_wn_layer import FeedFowardNetworkNormalized
 class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
 
-  def __init__(self, in_dim, embed_size, layer_id, add_res, mode):
+  def __init__(self, in_dim, embed_size, layer_id, add_res, mode,
+               normalization_type="weight_norm", scaling_factor=math.sqrt(0.5)):
     """initializes the attention layer.
     It uses weight normalization for linear projections
     (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
@@ -29,6 +30,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
     super(AttentionLayerNormalized, self).__init__()
 
     self.add_res = add_res
+    self.scaling_factor = scaling_factor
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
@@ -37,7 +39,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
           embed_size,
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
-          mode=mode)
+          mode=mode,
+          normalization_type=normalization_type)
 
       # linear projection layer to project back to the input space
       self.out_proj = FeedFowardNetworkNormalized(
@@ -45,7 +48,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
           in_dim,
           dropout=1.0,
           var_scope_name="att_linear_mapping_out",
-          mode=mode)
+          mode=mode,
+          normalization_type=normalization_type)
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_b,
            input_attention_bias):
@@ -67,7 +71,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
     """
 
     h_proj = self.tgt_embed_proj(input)
-    d_proj = (h_proj + target_embed) * math.sqrt(0.5)
+    d_proj = (h_proj + target_embed) * self.scaling_factor
     att_score = tf.matmul(d_proj, encoder_output_a, transpose_b=True)
 
     # Masking need to be done in float32. Added to support mixed-precision training.
@@ -88,6 +92,6 @@ class AttentionLayerNormalized(tf.layers.Layer):
     output = self.out_proj(output)
 
     if self.add_res:
-      output = (output + input) * math.sqrt(0.5)
+      output = (output + input) * self.scaling_factor
 
     return output
