@@ -27,14 +27,14 @@ hidden_before_last = 512
 max_length = 64
 pad_2_eight = True
 
-batch_size = 256
-num_gpus = 2
+batch_size = 128
+num_gpus = 8
 epoch_num = 35
 
 iter_size = 1
 dtype = tf.float32  # "mixed" or tf.float32
 shuffle_train = True
-use_horovod = False
+use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
