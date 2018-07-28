@@ -276,8 +276,6 @@ class ParallelTextDataLayer(DataLayer):
     #
     # t1, _ = self.iterator.get_next()
     # self._input_tensors['source_tensors'] = [t1[0], t1[1]]
-    self.dataset_size = 1
-
     def pad2eight(lst, do_pad_eight):
       if len(lst) % 8 == 0 or not do_pad_eight:
         return lst

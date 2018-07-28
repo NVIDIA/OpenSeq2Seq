@@ -125,8 +125,7 @@ class DataLayer:
     """Should be built into data layers that support interactive infer. This
     function must define a self.input variable as a tensorflow placeholder.
     It is intended to pass 1 example to this placeholder for the model to run
-    inference on. This fucnction must also ensure that get_size_in_samples()
-    returns 1.
+    inference on.
     """
     pass
 

@@ -344,7 +344,6 @@ class Text2SpeechDataLayer(DataLayer):
     """
     Must pass in placeholder
     """
-    self._files = [0]
     self.input = tf.placeholder(dtype=tf.string)
     self._dataset = tf.data.Dataset.from_tensor_slices(
         self.input
