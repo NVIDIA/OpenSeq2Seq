@@ -117,8 +117,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     fetches.append(cur_fetches)
     total_samples.append(0.0)
 
-    sess.run([model.get_data_layer(i).iterator.initializer
-              for i in range(model.num_gpus)])
+  sess.run([model.get_data_layer(i).iterator.initializer
+            for i in range(model.num_gpus)])
 
   step = 0
   processed_batches = 0
@@ -225,11 +225,11 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-        model, sess, compute_loss, mode, verbose
+        model, sess, compute_loss, mode, verbose,
     )
   else:
     results_per_batch = iterate_data(
-        model, sess, compute_loss, mode, verbose
+        model, sess, compute_loss, mode, verbose,
     )
 
   if compute_loss:

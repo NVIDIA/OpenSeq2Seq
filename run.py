@@ -206,12 +206,12 @@ def main(args, graph=None, namescope=None):
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
       pprint.pprint(infer_config)
-  if (args.mode == "interactive_infer"
-      and "interactive_infer_params" in config_module):
-    nested_update(
-        infer_config,
-        copy.deepcopy(config_module['interactive_infer_params'])
-    )
+  if args.mode == "interactive_infer":
+    if "interactive_infer_params" in config_module:
+      nested_update(
+          infer_config,
+          copy.deepcopy(config_module['interactive_infer_params'])
+      )
     if hvd is None or hvd.rank() == 0:
       deco_print("Inference config:")
       pprint.pprint(infer_config)
