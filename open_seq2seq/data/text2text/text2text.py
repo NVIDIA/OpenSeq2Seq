@@ -217,6 +217,7 @@ class ParallelTextDataLayer(DataLayer):
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
+      print(x, x_length)
       self._input_tensors['source_tensors'] = [x, x_length]
       self._input_tensors['target_tensors'] = [y, y_length]
     else:
@@ -327,4 +328,200 @@ class TransformerDataLayer(DataLayer):
     return self._input_tensors
 
 
+class LMTextDataLayer(DataLayer):
+  @staticmethod
+  def get_required_params():
+    return dict(DataLayer.get_required_params(), **{
+      'source_file': str,
+      'src_vocab_file': str,
+      'max_length': int,
+      'shuffle': bool,
+      'repeat': bool,
+      'bptt': int,
+    })
 
+  @staticmethod
+  def get_optional_params():
+    return dict(DataLayer.get_optional_params(), **{
+      'use_targets': bool,
+      'delimiter': str,
+      'target_file': str,
+      'map_parallel_calls': int,
+      'prefetch_buffer_size': int,
+      'pad_lengths_to_eight': bool,
+      'pad_vocab_to_eight': bool,
+    })
+
+  def __init__(self, params, model, num_workers=1, worker_id=0):
+    super(LMTextDataLayer, self).__init__(params, model,
+                                          num_workers, worker_id)
+    self._batch_size = self.params['batch_size']
+    self.source_file = self.params['source_file']
+    # self._use_targets = self.params.get('use_targets', True)
+    # if not self._use_targets:
+    #   self.target_file = self.source_file
+    #   if 'target_file' in self.params:
+    #     print("WARNING: target file was specified but was "
+    #           "ignored by data layer because 'use_targets'=False")
+    # else:
+    #   self.target_file = self.params['target_file']
+    self.src_vocab_file = self.params['src_vocab_file']
+    self.bptt = self.params['bptt']
+    self._delimiter = self.params.get('delimiter', ' ')
+    self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
+    self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
+    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
+                                                 tf.contrib.data.AUTOTUNE)
+    self._num_workers = num_workers
+    self._worker_id = worker_id
+    if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
+      raise ValueError("If padding to 8 in data layer, then "
+                       "max_length should be multiple of 8")
+
+    def file_len(fname):
+      content = open(fname, 'r').read()
+      return len(content)
+
+    self.dataset_size = file_len(self.source_file) - self.bptt + 1
+
+    # load source and target vocabularies to RAM
+    self.src_seq2idx = load_pre_existing_vocabulary(
+      self.src_vocab_file,
+      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+    self.tgt_seq2idx = load_pre_existing_vocabulary(
+      self.tgt_vocab_file,
+      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+
+    # unknown symbol
+    self.src_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+      SpecialTextTokens.UNK_ID.value
+    self.tgt_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+      SpecialTextTokens.UNK_ID.value
+
+    # sentence start
+    self.src_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+      SpecialTextTokens.S_ID.value
+    self.tgt_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+      SpecialTextTokens.S_ID.value
+    # sentence end
+    self.src_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+      SpecialTextTokens.EOS_ID.value
+    self.tgt_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+      SpecialTextTokens.EOS_ID.value
+    # padding
+    self.src_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+      SpecialTextTokens.PAD_ID.value
+    self.tgt_seq2idx[
+      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+      SpecialTextTokens.PAD_ID.value
+
+    if self.params.get('pad_vocab_to_eight', False):
+      self.src_seq2idx = pad_vocab_to_eight(self.src_seq2idx)
+      self.tgt_seq2idx = pad_vocab_to_eight(self.tgt_seq2idx)
+
+    self.src_idx2seq = {idx: w for w, idx in self.src_seq2idx.items()}
+    self.tgt_idx2seq = {idx: w for w, idx in self.tgt_seq2idx.items()}
+
+    self.params['src_vocab_size'] = len(self.src_seq2idx)
+    self.params['tgt_vocab_size'] = len(self.tgt_seq2idx)
+    self.params['target_seq2idx'] = self.tgt_seq2idx
+    self.params['source_seq2idx'] = self.src_seq2idx
+    self.params['target_idx2seq'] = self.tgt_idx2seq
+    self.params['source_idx2seq'] = self.src_idx2seq
+
+    self._input_tensors = {}
+
+  def build_graph(self):
+    def pad2eight(lst, do_pad_eight):
+      if len(lst) % 8 == 0 or not do_pad_eight:
+        return lst
+      else:
+        return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
+
+    def src_token_to_id(line):
+      tokens = line.decode("utf-8").split(self._delimiter)
+      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
+             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens] + \
+             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
+    def tgt_token_to_id(line):
+      tokens = line.decode("utf-8").split(self._delimiter)
+      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
+             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens] + \
+             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
+    _sources = tf.data.TextLineDataset(self.source_file)\
+      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
+                                   Tout=[tf.int32], stateful=False),
+           num_parallel_calls=self._map_parallel_calls) \
+      .map(lambda tokens: (tokens, tf.size(tokens)),
+           num_parallel_calls=self._map_parallel_calls)
+
+    _targets = tf.data.TextLineDataset(self.target_file) \
+      .map(lambda line: tf.py_func(func=tgt_token_to_id, inp=[line],
+                                   Tout=[tf.int32], stateful=False),
+           num_parallel_calls=self._map_parallel_calls) \
+      .map(lambda tokens: (tokens, tf.size(tokens)),
+           num_parallel_calls=self._map_parallel_calls)
+
+    _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
+      lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
+                                    tf.less_equal(t2[1], self.max_len))
+    ).cache()
+
+    if self._num_workers > 1:
+      _src_tgt_dataset = _src_tgt_dataset\
+        .shard(num_shards=self._num_workers, index=self._worker_id)
+
+
+    if self.params['shuffle']:
+      _src_tgt_dataset = _src_tgt_dataset\
+        .shuffle(buffer_size=self.get_size_in_samples())
+    else:
+      _src_tgt_dataset = _src_tgt_dataset
+
+    if self.params['repeat']:
+      _src_tgt_dataset = _src_tgt_dataset.repeat()
+
+    self.batched_dataset = _src_tgt_dataset.padded_batch(
+      self._batch_size,
+      padded_shapes=((tf.TensorShape([None]),
+                      tf.TensorShape([])),
+                     (tf.TensorShape([None]),
+                      tf.TensorShape([]))),
+      padding_values=(
+      (SpecialTextTokens.PAD_ID.value,
+       0),
+      (SpecialTextTokens.PAD_ID.value,
+       0))).prefetch(buffer_size=self._prefetch_buffer_size)
+
+    self._iterator = self.batched_dataset.make_initializable_iterator()
+
+    if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
+      t1, t2 = self.iterator.get_next()
+      x, x_length = t1[0], t1[1]
+      y, y_length = t2[0], t2[1]
+      self._input_tensors['source_tensors'] = [x, x_length]
+      self._input_tensors['target_tensors'] = [y, y_length]
+    else:
+      t1, _ = self.iterator.get_next()
+      self._input_tensors['source_tensors'] = [t1[0], t1[1]]
+
+
+  def get_size_in_samples(self):
+    return self.dataset_size
+
+  @property
+  def iterator(self):
+    return self._iterator
+
+  @property
+  def input_tensors(self):
+    return self._input_tensors

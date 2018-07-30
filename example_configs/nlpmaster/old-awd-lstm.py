@@ -1,0 +1,158 @@
+import tensorflow as tf
+
+from open_seq2seq.models import AWDLSTM
+from open_seq2seq.encoders import AWDLSTMEncoder
+# from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
+from open_seq2seq.decoders import FullyConnectedDecoder
+from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
+# from open_seq2seq.losses import CrossEntropyLoss
+from open_seq2seq.losses import BasicSequenceLoss
+from open_seq2seq.optimizers.lr_policies import fixed_lr
+# from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+# from open_seq2seq.optimizers.lr_policies import exp_decay
+
+data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
+
+base_model = AWDLSTM
+bptt = 12
+
+base_params = {
+  # "seed": 1882, # conforming to AWD-LSTM paper
+  "use_horovod": False,
+  "num_gpus": 1,
+
+  "batch_size_per_gpu": 1, # conforming to AWD-LSTM paper 80
+  "num_epochs": 350, # conforming to AWD-LSTM paper 750
+  "save_summaries_steps": 10,
+  "print_loss_steps": 10,
+  "print_samples_steps": 10,
+  "save_checkpoint_steps": 200,
+  "logdir": "AWDLSTM-ADAM-UNI",
+  "eval_steps": 1000,
+
+  "optimizer": "Adam", # need to change to NT-ASGD
+  "optimizer_params": {},
+  # luong10 decay scheme
+
+  "lr_policy": fixed_lr,
+  "lr_policy_params": {
+    "learning_rate": 3e-3,
+  },
+
+  # "lr_policy": exp_decay,
+  # "lr_policy_params": {
+  #   "learning_rate": 0.0008,
+  #   "begin_decay_at": 170000,
+  #   "decay_steps": 17000,
+  #   "decay_rate": 0.5,
+  #   "use_staircase_decay": True,
+  #   "min_lr": 0.0000005,
+  # },
+  "summaries": ['learning_rate', 'variables', 'gradients', 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
+  # "grad_clip":0.25, # conforming to AWD-LSTM paper
+  # "max_grad_norm": 0.25, # conform to paper 0.25
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
+  "encoder": AWDLSTMEncoder,
+  # "encoder": BidirectionalRNNEncoderWithEmbedding,
+  "encoder_params": { # will need to update
+    "initializer": tf.random_uniform_initializer,
+    "initializer_params": { # need different initializers for embeddings and for weights
+      "minval": -0.1,
+      "maxval": 0.1,
+    },
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 1150,
+        "forget_bias": 1.0,
+    },
+    "last_cell_params": {
+        "num_units": 400,
+        "forget_bias": 1.0,
+    },
+    "encoder_layers": 3,
+    "encoder_dp_input_keep_prob": 0.65,
+    "encoder_dp_output_keep_prob": 1.0, # can't find it in paper. need to update dropouts
+    "encoder_use_skip_connections": False,
+    "src_emb_size": 400,
+    "src_vocab_size": 33278,
+  },
+
+  "decoder": FullyConnectedDecoder, # need a new decoder with AR and TAR
+
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   'scale': 2.0, # alpha
+  # },
+
+  # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
+  "loss": BasicSequenceLoss,
+  "loss_params": {
+    "offset_target_by_one": False,
+    "average_across_timestep": True,
+    "do_mask": False,
+  }
+}
+
+train_params = {
+  "data_layer": LMTextDataLayer,
+  "data_layer_params": {
+    "pad_vocab_to_eight": False,
+    "vocab_file": data_root+"vocab.txt",
+    "content_file": data_root+"train.ids",
+    "rand_start": True,
+    "shuffle": False,
+    "repeat": True,
+    "map_parallel_calls": 16,
+    "prefetch_buffer_size": 8,
+    "bptt": bptt,
+  },
+}
+eval_params = {
+  "batch_size_per_gpu": 16,
+  "data_layer": LMTextDataLayer,
+  "data_layer_params": {
+    "pad_vocab_to_eight": False,
+    "vocab_file": data_root+"vocab.txt",
+    "content_file": data_root+"valid.ids",
+    "shuffle": False,
+    "repeat": True,
+    "map_parallel_calls": 16,
+    "prefetch_buffer_size": 1,
+    "bptt": bptt,
+  },
+}
+
+infer_params = {
+  "data_layer": LMTextDataLayer,
+  "data_layer_params": {
+    "pad_vocab_to_eight": False,
+    "vocab_file": data_root+"vocab.txt",
+    "content_file": data_root+"test.ids",
+    "shuffle": False,
+    "repeat": False,
+    "rand_start": False,
+    "map_parallel_calls": 16,
+    "prefetch_buffer_size": 8,
+    "bptt": bptt,
+  },
+}
+
+# infer_params = {
+#   "batch_size_per_gpu": 1,
+#   "decoder": FullyConnectedDecoder,
+#   "decoder_params": {
+#     "output_dim": 33278,
+#   },
+
+#   "data_layer": LMTextDataLayerGenerate,
+#   "data_layer_params": {
+#     "pad_vocab_to_eight": False,
+#     "bptt": bptt,
+#     "vocab_file": data_root+"vocab.txt",
+#     "seed_file": data_root+"test.txt",
+#     "map_parallel_calls": 16,
+#     "prefetch_buffer_size": 8,
+#   },
+# }

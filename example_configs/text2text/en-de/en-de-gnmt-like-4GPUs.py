@@ -10,13 +10,13 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/home/chipn/data/wmt16_en_de/"
 
 base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 4,
+  "num_gpus": 2,
   "max_steps": 340000,
   "batch_size_per_gpu": 32,
   "save_summaries_steps": 50,
@@ -24,7 +24,7 @@ base_params = {
   "print_samples_steps": 48,
   "eval_steps": 1000,
   "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-Adam-LR0.0008-FP32-4x32-MP-luong10-P8-AAT",
+  "logdir": "GNMT-Adam-LR0.0008-FP32-4x32-MP",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
@@ -103,7 +103,7 @@ train_params = {
     "source_file": data_root+"train.tok.clean.bpe.32000.en",
     "target_file": data_root+"train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": False,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,

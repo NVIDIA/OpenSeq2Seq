@@ -88,3 +88,9 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+
+# chip's setting
+GNMT*/*
+AWD*/*
+pics/*

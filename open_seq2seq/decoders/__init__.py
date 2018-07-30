@@ -11,5 +11,7 @@ from .transformer_decoder import TransformerDecoder
 from .fc_decoders import FullyConnectedCTCDecoder, FullyConnectedDecoder
 
 from .convs2s_decoder import ConvS2SDecoder
+from .convs2s_decoder import ConvS2SDecoder
+from .lm_decoders import FakeDecoder
 #from .convs2s_decoder_old import ConvS2SDecoder
 

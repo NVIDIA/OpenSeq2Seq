@@ -13,4 +13,5 @@ from .ds2_encoder import DeepSpeech2Encoder
 from .resnet_encoder import ResNetEncoder
 from .w2l_encoder import Wave2LetterEncoder
 from .convs2s_encoder import ConvS2SEncoder
+from .lm_encoders import AWDLSTMEncoder
 #from .convs2s_encoder_old import ConvS2SEncoder
