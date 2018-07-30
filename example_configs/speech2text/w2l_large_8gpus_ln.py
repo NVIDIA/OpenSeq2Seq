@@ -57,6 +57,12 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
+            },
+            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
@@ -106,7 +112,7 @@ base_params = {
         "initializer_params": {
             'uniform': False,
         },
-        "normalization": "batch_norm",
+        "normalization": "layer_norm",
         "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
         "data_format": "channels_last",
     },
