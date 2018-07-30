@@ -23,7 +23,7 @@ class Wave2LetterEncoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
         'data_format': ['channels_first', 'channels_last'],
-        'normalization': [None, 'batch_norm'],
+        'normalization': [None, 'batch_norm', 'layer_norm', 'instance_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
     })
