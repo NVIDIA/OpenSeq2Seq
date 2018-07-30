@@ -48,7 +48,7 @@ base_params = {
   "print_samples_steps": 100,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
-  "logdir": "WMT16_EN_DT",
+  "logdir": "ConvSeq2Seq-8GPUs-FP32",
 
 
   "optimizer": "Adam",
