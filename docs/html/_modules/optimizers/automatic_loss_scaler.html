@@ -158,28 +158,20 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
+<span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">check_params</span>
 
 <div class="viewcode-block" id="AutomaticLossScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler">[docs]</a><span class="k">class</span> <span class="nc">AutomaticLossScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
   <span class="n">SUPPORTED_ALGOS</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;backoff&#39;</span><span class="p">,</span> <span class="s1">&#39;logmax&#39;</span><span class="p">]</span>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="n">scale_min</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">scale_max</span><span class="o">=</span><span class="mf">2.</span><span class="o">**</span><span class="mi">24</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">algorithm</span><span class="o">=</span><span class="s1">&#39;Backoff&#39;</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">algorithm</span> <span class="o">=</span> <span class="n">algorithm</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;backoff&#39;</span><span class="p">:</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">BackoffScaler</span><span class="p">(</span><span class="n">scale_min</span><span class="o">=</span><span class="n">scale_min</span><span class="p">,</span>
-                                  <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
-                                  <span class="n">step_factor</span><span class="o">=</span><span class="mf">2.0</span><span class="p">,</span>
-                                  <span class="n">step_window</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">BackoffScaler</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">algorithm</span> <span class="o">==</span> <span class="s1">&#39;logmax&#39;</span><span class="p">:</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">LogMaxScaler</span><span class="p">(</span><span class="n">scale_min</span><span class="o">=</span><span class="n">scale_min</span><span class="p">,</span>
-                                 <span class="n">scale_max</span><span class="o">=</span><span class="n">scale_max</span><span class="p">,</span>
-                                 <span class="n">log_max</span><span class="o">=</span><span class="mf">16.</span><span class="p">,</span>
-                                 <span class="n">beta1</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-                                 <span class="n">beta2</span><span class="o">=</span><span class="mf">0.999</span><span class="p">,</span>
-                                 <span class="n">overflow_std_dev</span><span class="o">=</span><span class="mf">3.09</span><span class="p">)</span>  <span class="c1"># ppf(.999)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">scaler</span> <span class="o">=</span> <span class="n">LogMaxScaler</span><span class="p">(</span><span class="n">params</span><span class="p">)</span>  <span class="c1"># ppf(.999)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown scaling algorithm: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">algorithm</span><span class="p">))</span>
 
@@ -211,11 +203,23 @@
 
 
 <div class="viewcode-block" id="BackoffScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.BackoffScaler">[docs]</a><span class="k">class</span> <span class="nc">BackoffScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">step_factor</span><span class="p">,</span> <span class="n">step_window</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">scale_min</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">scale_max</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">step_factor</span> <span class="o">=</span> <span class="n">step_factor</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">step_window</span> <span class="o">=</span> <span class="n">step_window</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">check_params</span><span class="p">(</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+        <span class="n">required_dict</span><span class="o">=</span><span class="p">{},</span>
+        <span class="n">optional_dict</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;scale_min&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;scale_max&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;step_factor&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;step_window&#39;</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale_min&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale_max&#39;</span><span class="p">,</span> <span class="mf">2.</span><span class="o">**</span><span class="mi">24</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">step_factor</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;step_factor&#39;</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">step_window</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;step_window&#39;</span><span class="p">,</span> <span class="mi">2000</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                  <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -223,7 +227,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">last_overflow_iteration</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial_value</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
                                                <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                                <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial_value</span><span class="o">=</span><span class="mf">2.</span><span class="o">**</span><span class="mi">24</span><span class="p">,</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial_value</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span><span class="p">,</span>
                              <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="BackoffScaler.update_op"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.BackoffScaler.update_op">[docs]</a>  <span class="k">def</span> <span class="nf">update_op</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">has_nan</span><span class="p">,</span> <span class="n">amax</span><span class="p">):</span>
@@ -231,7 +235,8 @@
       <span class="n">new_scale_val</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">step_factor</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span><span class="p">)</span>
       <span class="n">scale_assign</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="n">new_scale_val</span><span class="p">)</span>
-      <span class="n">overflow_iter_assign</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_overflow_iteration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">)</span>
+      <span class="n">overflow_iter_assign</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">last_overflow_iteration</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">)</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span><span class="n">scale_assign</span><span class="p">,</span> <span class="n">overflow_iter_assign</span><span class="p">]):</span>
         <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">)</span>
 
@@ -261,13 +266,27 @@
 
 
 <div class="viewcode-block" id="LogMaxScaler"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.automatic_loss_scaler.LogMaxScaler">[docs]</a><span class="k">class</span> <span class="nc">LogMaxScaler</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">scale_min</span><span class="p">,</span> <span class="n">scale_max</span><span class="p">,</span> <span class="n">log_max</span><span class="p">,</span> <span class="n">beta1</span><span class="p">,</span> <span class="n">beta2</span><span class="p">,</span> <span class="n">overflow_std_dev</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">scale_min</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">scale_max</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">log_max</span> <span class="o">=</span> <span class="n">log_max</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span> <span class="o">=</span> <span class="n">beta1</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">=</span> <span class="n">beta2</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">overflow_std_dev</span> <span class="o">=</span> <span class="n">overflow_std_dev</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">params</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">check_params</span><span class="p">(</span>
+        <span class="n">config</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
+        <span class="n">required_dict</span><span class="o">=</span><span class="p">{},</span>
+        <span class="n">optional_dict</span><span class="o">=</span><span class="p">{</span>
+            <span class="s1">&#39;scale_min&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;scale_max&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;log_max&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;beta1&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;beta2&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;overflow_std_dev&#39;</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="p">},</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale_min&#39;</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;scale_max&#39;</span><span class="p">,</span> <span class="mf">2.</span><span class="o">**</span><span class="mi">24</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">log_max</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_max&#39;</span><span class="p">,</span> <span class="mf">16.</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">beta1</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;beta1&#39;</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;beta2&#39;</span><span class="p">,</span> <span class="mf">0.999</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">overflow_std_dev</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;overflow_std_dev&#39;</span><span class="p">,</span> <span class="mf">3.09</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">iteration</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Variable</span><span class="p">(</span><span class="n">initial_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
                                  <span class="n">trainable</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -306,13 +325,18 @@
 
     <span class="n">slow_x_hat_assn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">slow_x_hat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">slow_x_hat</span> <span class="o">+</span>
                                 <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">)</span>
-    <span class="n">xsquared_hat_assn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span> <span class="o">+</span>
-                                  <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
+    <span class="n">xsquared_hat_assn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">x</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">b2_corr_assn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span><span class="p">,</span>
                              <span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">beta2</span><span class="p">)</span>
-    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span><span class="n">slow_x_hat_assn</span><span class="p">,</span> <span class="n">xsquared_hat_assn</span><span class="p">,</span> <span class="n">b2_corr_assn</span><span class="p">]):</span>
-      <span class="n">e_xsquared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span><span class="o">.</span><span class="n">read_value</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span><span class="o">.</span><span class="n">read_value</span><span class="p">())</span>
-      <span class="n">slow_mu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slow_x_hat</span><span class="o">.</span><span class="n">read_value</span><span class="p">()</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span><span class="o">.</span><span class="n">read_value</span><span class="p">())</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span><span class="n">slow_x_hat_assn</span><span class="p">,</span> <span class="n">xsquared_hat_assn</span><span class="p">,</span>
+                                  <span class="n">b2_corr_assn</span><span class="p">]):</span>
+      <span class="n">e_xsquared</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">xsquared_hat</span><span class="o">.</span><span class="n">read_value</span><span class="p">()</span> <span class="o">/</span> \
+                   <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span><span class="o">.</span><span class="n">read_value</span><span class="p">())</span>
+      <span class="n">slow_mu</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">slow_x_hat</span><span class="o">.</span><span class="n">read_value</span><span class="p">()</span> <span class="o">/</span> \
+                <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b2_correction</span><span class="o">.</span><span class="n">read_value</span><span class="p">())</span>
 
     <span class="n">sigma2</span> <span class="o">=</span> <span class="n">e_xsquared</span> <span class="o">-</span> <span class="p">(</span><span class="n">slow_mu</span> <span class="o">*</span> <span class="n">slow_mu</span><span class="p">)</span>
     <span class="n">sigma</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">sigma2</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">constant</span><span class="p">(</span><span class="mf">0.</span><span class="p">)))</span>
@@ -320,8 +344,10 @@
     <span class="n">log_cutoff</span> <span class="o">=</span> <span class="n">sigma</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">overflow_std_dev</span> <span class="o">+</span> <span class="n">mu</span>
     <span class="n">log_difference</span> <span class="o">=</span> <span class="mi">16</span> <span class="o">-</span> <span class="n">log_cutoff</span>
     <span class="n">proposed_scale</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">2.</span><span class="p">,</span> <span class="n">log_difference</span><span class="p">)</span>
-    <span class="n">scale_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">proposed_scale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span><span class="p">,</span>
-                                                          <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span><span class="p">))</span>
+    <span class="n">scale_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">clip_by_value</span><span class="p">(</span><span class="n">proposed_scale</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_min</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale_max</span><span class="p">),</span>
+    <span class="p">)</span>
     <span class="n">iter_update</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">assign_add</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">iteration</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">control_dependencies</span><span class="p">([</span><span class="n">scale_update</span><span class="p">]):</span>

@@ -175,6 +175,7 @@
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.encoder_decoder">encoder_decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.speech2text">speech2text</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2text">text2text</a></li>
+<li class="toctree-l2"><a class="reference internal" href="models.html#module-models.text2speech">text2speech</a></li>
 <li class="toctree-l2"><a class="reference internal" href="models.html#module-models.image2label">image2label</a></li>
 </ul>
 </li>
@@ -195,6 +196,11 @@
 <li class="toctree-l3"><a class="reference internal" href="data.text2text.html#module-data.text2text.tokenizer">tokenizer</a></li>
 </ul>
 </li>
+<li class="toctree-l2"><a class="reference internal" href="data.text2speech.html">text2speech</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="data.text2speech.html#id1">text2speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2speech.html#module-data.text2speech.speech_utils">speech_utils</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="data.html#module-data.data_layer">data_layer</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html#module-data.utils">utils</a></li>
 </ul>
@@ -204,19 +210,21 @@
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.ds2_encoder">ds2_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.w2l_encoder">w2l_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.rnn_encoders">rnn_encoders</a></li>
-<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.transformer_encoder">transformer_encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.transformer_encoder">transformer_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.convs2s_encoder">convs2s_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.resnet_encoder">resnet_encoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.resnet_blocks">resnet_blocks</a></li>
 <li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.cnn_encoder">cnn_encoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html#module-encoders.tacotron2_encoder">tacotron2_encoder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="decoders.html">decoders</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.decoder">decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.fc_decoders">fc_decoders</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.rnn_decoders">rnn_decoders</a></li>
-<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.transformer_decoder">transformer_decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.transformer_decoder">transformer_decoder</a></li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.convs2s_decoder">convs2s_decoder</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html#module-decoders.tacotron2_decoder">tacotron2_decoder</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="losses.html">losses</a><ul>
@@ -224,6 +232,7 @@
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.ctc_loss">ctc_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.sequence_loss">sequence_loss</a></li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html#module-losses.tacotron_loss">tacotron_loss</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="optimizers.html">optimizers</a><ul>
@@ -242,6 +251,7 @@
 <li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.rnn_beam_search_decoder">rnn_beam_search_decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.slstm">slstm</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.utils">utils</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html#module-parts.rnns.zoneout">zoneout</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="parts.transformer.html">transformer</a><ul>
@@ -261,6 +271,11 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="parts.cnns.html">cnns</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html#module-parts.cnns.conv_blocks">conv_blocks</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="parts.tacotron.html">tacotron</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html#module-parts.tacotron.tacotron_decoder">tacotron_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html#module-parts.tacotron.tacotron_helper">tacotron_helper</a></li>
 </ul>
 </li>
 </ul>

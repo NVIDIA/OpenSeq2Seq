@@ -7,11 +7,11 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import argparse
-import sys
+
 import tokenizer
 
-def main(argv):
 
+def main():
   with open(FLAGS.input_file, 'r') as in_file:
     def trim(token):
       return token[1:-1]
@@ -28,10 +28,10 @@ def main(argv):
         unescaped_tokens = []
         for token in escaped_tokens:
           if token:
-            unescaped_tokens.append(tokenizer._unescape_token(token))
+            unescaped_tokens.append(tokenizer.unescape_token(token))
 
         # join and write
-        out_file.write(tokenizer._join_tokens_to_string(unescaped_tokens)+'\n')
+        out_file.write(tokenizer.join_tokens_to_string(unescaped_tokens)+'\n')
   print("******All done!")
 
 
@@ -46,5 +46,5 @@ if __name__ == "__main__":
       "--output_file", "-of", type=str, default="tokenized_output.txt",
       help="where to save output",
       metavar="<OF>")
-  FLAGS, unparsed = parser.parse_known_args()
-  main(sys.argv)
+  FLAGS, _ = parser.parse_known_args()
+  main()

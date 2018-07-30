@@ -1,3 +1,4 @@
+# pylint: skip-file
 from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
@@ -19,7 +20,7 @@ d_model = 512
 num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": False,
@@ -99,6 +100,7 @@ train_params = {
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
     "shuffle": True,
+    "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 2,

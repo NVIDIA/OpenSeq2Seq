@@ -156,14 +156,16 @@
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="c1"># pylint: disable=no-name-in-module</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.client</span> <span class="k">import</span> <span class="n">device_lib</span>
 
 
@@ -197,7 +199,7 @@
 <span class="sd">    mode: could be &quot;sum&quot;, &quot;mean&quot; or &quot;gather&quot;, indicating reduce_sum or gather.</span>
 <span class="sd">        For &quot;sum&quot; and &quot;mean&quot; value has to be numerical, for &quot;gather&quot;, value has</span>
 <span class="sd">        to be iterable.</span>
-
+<span class="sd">        </span>
 <span class="sd">  Returns:</span>
 <span class="sd">    collected results if run on Horovod or value otherwise.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -220,7 +222,9 @@
   <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;mean&#39;</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">values</span><span class="p">)</span>
   <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;gather&#39;</span><span class="p">:</span>
-    <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sl</span><span class="p">]</span></div>
+    <span class="k">return</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">sl</span> <span class="ow">in</span> <span class="n">values</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sl</span><span class="p">]</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Incorrect mode: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="clip_last_batch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.clip_last_batch">[docs]</a><span class="k">def</span> <span class="nf">clip_last_batch</span><span class="p">(</span><span class="n">last_batch</span><span class="p">,</span> <span class="n">true_size</span><span class="p">):</span>
@@ -251,8 +255,8 @@
   <span class="c1"># on horovod num_gpus is 1</span>
   <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">):</span>
     <span class="n">cur_fetches</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="n">worker_id</span><span class="p">),</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="n">worker_id</span><span class="p">),</span>
     <span class="p">]</span>
     <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
       <span class="n">cur_fetches</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">eval_losses</span><span class="p">[</span><span class="n">worker_id</span><span class="p">])</span>
@@ -343,7 +347,8 @@
         <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> \
            <span class="p">(</span><span class="n">data_size</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">processed_batches</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> batches</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-            <span class="n">processed_batches</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">ending</span><span class="p">))</span>
+              <span class="n">processed_batches</span><span class="p">,</span> <span class="n">data_size</span><span class="p">,</span> <span class="n">ending</span>
+          <span class="p">))</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2"> batches</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">processed_batches</span><span class="p">,</span> <span class="n">ending</span><span class="p">),</span>
                    <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\r</span><span class="s1">&#39;</span><span class="p">)</span>
@@ -355,17 +360,16 @@
   <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Avg time per step</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)),</span>
+          <span class="s2">&quot;Avg time per step</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+              <span class="n">ending</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)</span>
+          <span class="p">),</span>
       <span class="p">)</span>
       <span class="k">if</span> <span class="n">total_objects</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span>
         <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg objects per second</span><span class="si">{}</span><span class="s2">: </span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">,</span>
                                                              <span class="n">avg_objects</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">)</span>
-      <span class="p">)</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">))</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_samples</span><span class="p">)</span>
@@ -376,11 +380,11 @@
 <div class="viewcode-block" id="get_results_for_epoch"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.get_results_for_epoch">[docs]</a><span class="k">def</span> <span class="nf">get_results_for_epoch</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
     <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">total_samples</span> <span class="o">=</span> <span class="n">iterate_data</span><span class="p">(</span>
-      <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
     <span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">iterate_data</span><span class="p">(</span>
-      <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span>
     <span class="p">)</span>
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
@@ -402,14 +406,32 @@
 
 
 <div class="viewcode-block" id="log_summaries_from_dict"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.log_summaries_from_dict">[docs]</a><span class="k">def</span> <span class="nf">log_summaries_from_dict</span><span class="p">(</span><span class="n">dict_to_log</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">,</span> <span class="n">step</span><span class="p">):</span>
-  <span class="c1"># this returns the same writer as was created by</span>
-  <span class="c1"># the first call to this function</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  A function that writes values from dict_to_log to a tensorboard</span>
+<span class="sd">  log file inside output_dir.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    dict_to_log (dict):</span>
+<span class="sd">      A dictiontary containing the tags and scalar values to log.</span>
+<span class="sd">      The dictionary values could also contain tf.Summary.Value objects</span>
+<span class="sd">      to support logging of image and audio data. In this mode, the</span>
+<span class="sd">      dictionary key is ignored, as tf.Summary.Value already contains a</span>
+<span class="sd">      tag.</span>
+<span class="sd">    output_dir (str): dir containing the tensorboard file</span>
+<span class="sd">    step (int): current training step</span>
+<span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">sm_writer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">FileWriterCache</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">output_dir</span><span class="p">)</span>
   <span class="k">for</span> <span class="n">tag</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dict_to_log</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="n">sm_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span>
-      <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">simple_value</span><span class="o">=</span><span class="n">value</span><span class="p">)]),</span>
-      <span class="n">global_step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
-    <span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">):</span>
+      <span class="n">sm_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">value</span><span class="p">]),</span>
+          <span class="n">global_step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">sm_writer</span><span class="o">.</span><span class="n">add_summary</span><span class="p">(</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">simple_value</span><span class="o">=</span><span class="n">value</span><span class="p">)]),</span>
+          <span class="n">global_step</span><span class="o">=</span><span class="n">step</span><span class="p">,</span>
+      <span class="p">)</span>
     <span class="n">sm_writer</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span></div>
 
 
@@ -446,12 +468,12 @@
 <div class="viewcode-block" id="flatten_dict"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.flatten_dict">[docs]</a><span class="k">def</span> <span class="nf">flatten_dict</span><span class="p">(</span><span class="n">dct</span><span class="p">):</span>
   <span class="n">flat_dict</span> <span class="o">=</span> <span class="p">{}</span>
   <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">dct</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">int</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">float</span><span class="p">)</span> <span class="ow">or</span> \
-       <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">string_types</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">bool</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="n">string_types</span><span class="p">,</span> <span class="nb">bool</span><span class="p">)):</span>
       <span class="n">flat_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span><span class="p">})</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
       <span class="n">flat_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-        <span class="p">{</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">dct</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+          <span class="p">{</span><span class="n">key</span> <span class="o">+</span> <span class="s1">&#39;/&#39;</span> <span class="o">+</span> <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">dct</span><span class="p">[</span><span class="n">key</span><span class="p">])</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+      <span class="p">)</span>
   <span class="k">return</span> <span class="n">flat_dict</span></div>
 
 
@@ -474,7 +496,7 @@
       <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">org_dict</span><span class="p">:</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="nb">dict</span><span class="p">):</span>
           <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-            <span class="s2">&quot;Mismatch between org_dict and upd_dict at node </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+              <span class="s2">&quot;Mismatch between org_dict and upd_dict at node </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
           <span class="p">)</span>
         <span class="n">nested_update</span><span class="p">(</span><span class="n">org_dict</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">value</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
@@ -510,8 +532,7 @@
   <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">vocab</span><span class="p">)</span>
   <span class="k">if</span> <span class="n">ignore_special</span><span class="p">:</span>
     <span class="n">f_row</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">row</span><span class="p">)):</span>
-      <span class="n">char_id</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+    <span class="k">for</span> <span class="n">char_id</span> <span class="ow">in</span> <span class="n">row</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">char_id</span> <span class="o">==</span> <span class="n">EOS_ID</span><span class="p">:</span>
         <span class="k">break</span>
       <span class="k">if</span> <span class="n">char_id</span> <span class="o">!=</span> <span class="n">PAD_ID</span> <span class="ow">and</span> <span class="n">char_id</span> <span class="o">!=</span> <span class="n">S_ID</span><span class="p">:</span>

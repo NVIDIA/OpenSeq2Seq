@@ -62,3 +62,11 @@ utils
     :members:
     :undoc-members:
     :show-inheritance:
+
+zoneout
+-------------------------------------
+
+.. automodule:: parts.rnns.zoneout
+    :members:
+    :undoc-members:
+    :show-inheritance:

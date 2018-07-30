@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="prev" title="cnns" href="parts.cnns.html" /> 
+    <link rel="prev" title="tacotron" href="parts.tacotron.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -568,7 +568,26 @@ to be iterable.</li>
 <dl class="function">
 <dt id="utils.utils.log_summaries_from_dict">
 <code class="descclassname">utils.utils.</code><code class="descname">log_summaries_from_dict</code><span class="sig-paren">(</span><em>dict_to_log</em>, <em>output_dir</em>, <em>step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#log_summaries_from_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.log_summaries_from_dict" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A function that writes values from dict_to_log to a tensorboard
+log file inside output_dir.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dict_to_log</strong> (<em>dict</em>) – A dictiontary containing the tags and scalar values to log.
+The dictionary values could also contain tf.Summary.Value objects
+to support logging of image and audio data. In this mode, the
+dictionary key is ignored, as tf.Summary.Value already contains a
+tag.</li>
+<li><strong>output_dir</strong> (<em>str</em>) – dir containing the tensorboard file</li>
+<li><strong>step</strong> (<em>int</em>) – current training step</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="function">
 <dt id="utils.utils.mask_nans">
@@ -604,7 +623,7 @@ target vocabulary and prints it as a human-readable string</p>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
       
-        <a href="parts.cnns.html" class="btn btn-neutral" title="cnns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="parts.tacotron.html" class="btn btn-neutral" title="tacotron" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

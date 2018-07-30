@@ -38,7 +38,7 @@ rnn\_encoders
     :undoc-members:
     :show-inheritance:
 
-transformer\_encoders
+transformer\_encoder
 -------------------------------------
 
 .. automodule:: encoders.transformer_encoder
@@ -75,6 +75,14 @@ cnn\_encoder
 --------------------------------
 
 .. automodule:: encoders.cnn_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+tacotron2\_encoder
+--------------------------------
+
+.. automodule:: encoders.tacotron2_encoder
     :members:
     :undoc-members:
     :show-inheritance:

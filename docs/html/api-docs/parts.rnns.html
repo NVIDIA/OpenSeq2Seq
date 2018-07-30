@@ -107,11 +107,13 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.rnns.rnn_beam_search_decoder">rnn_beam_search_decoder</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.rnns.slstm">slstm</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.rnns.utils">utils</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.rnns.zoneout">zoneout</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parts.transformer.html">transformer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -190,6 +192,16 @@
 <div class="section" id="module-parts.rnns.attention_wrapper">
 <span id="attention-wrapper"></span><h2>attention_wrapper<a class="headerlink" href="#module-parts.rnns.attention_wrapper" title="Permalink to this headline">¶</a></h2>
 <p>A powerful dynamic attention wrapper object.</p>
+<p>Modified by blisc too add support for LocationSensitiveAttention and changed
+the AttentionWrapper class to output both the cell_output and attention context
+concatenated together.</p>
+<dl class="docutils">
+<dt>New classes:</dt>
+<dd>LocationSensitiveAttention
+LocationLayer</dd>
+<dt>New functions:</dt>
+<dd>_bahdanau_score_with_location</dd>
+</dl>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.AttentionMechanism">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">AttentionMechanism</code><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionMechanism"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionMechanism" title="Permalink to this definition">¶</a></dt>
@@ -269,14 +281,16 @@ from all time steps in the final output state (currently stored as a
 time major <cite>TensorArray</cite> on which you must call <cite>stack()</cite>).</li>
 <li><strong>cell_input_fn</strong> – (optional) A <cite>callable</cite>.  The default is:
 <cite>lambda inputs, attention: array_ops.concat([inputs, attention], -1)</cite>.</li>
-<li><strong>output_attention</strong> – Python bool.  If <cite>True</cite> (default), the output at each
+<li><strong>output_attention</strong> – bool or “both”.  If <cite>True</cite> (default), the output at each
 time step is the attention value.  This is the behavior of Luong-style
 attention mechanisms.  If <cite>False</cite>, the output at each time step is
 the output of <cite>cell</cite>.  This is the beahvior of Bhadanau-style
-attention mechanisms.  In both cases, the <cite>attention</cite> tensor is
-propagated to the next time step via the state and is used there.
-This flag only controls whether the attention mechanism is propagated
-up to the next cell in an RNN stack or to the top RNN output.</li>
+attention mechanisms.  If “both”, the attention value and cell output
+are concatenated together and set as the output. In all cases, the
+<cite>attention</cite> tensor is propagated to the next time step via the state and
+is used there. This flag only controls whether the attention mechanism
+is propagated up to the next cell in an RNN stack or to the top RNN
+output.</li>
 <li><strong>initial_cell_state</strong> – The initial state value to use for the cell when
 the user calls <cite>zero_state()</cite>.  Note that if this value is provided
 now, and the user uses a <cite>batch_size</cite> argument of <cite>zero_state</cite> which
@@ -783,6 +797,57 @@ large.</li>
 <cite>tf.contrib.seq2seq.monotonic_attention</cite> for more information.</li>
 <li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention">
+<em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LocationSensitiveAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<p>Implements Bahdanau-style (additive) scoring function with cumulative
+location information.</p>
+<p>The implementation is described in:</p>
+<p>Jan Chorowski, Dzmitry Bahdanau, Dmitriy Serdyuk, KyungHyun Cho, Yoshua Bengio
+“Attention-Based Models for Speech Recognition”
+<a class="reference external" href="https://arxiv.org/abs/1506.07503">https://arxiv.org/abs/1506.07503</a></p>
+<p>Jonathan Shen, Ruoming Pang, Ron J. Weiss, Mike Schuster, Navdeep Jaitly,
+Zongheng Yang, Zhifeng Chen, Yu Zhang, Yuxuan Wang, RJ Skerry-Ryan,
+Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
+“Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions”
+<a class="reference external" href="https://arxiv.org/abs/1712.05884">https://arxiv.org/abs/1712.05884</a></p>
+<dl class="method">
+<dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct the Attention mechanism.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> – The depth of the query mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) – Sequence lengths for the batch entries
+in memory.  If provided, the memory tensor rows are masked with zeros
+for values past the respective sequence lengths.</li>
+<li><strong>normalize</strong> – Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>probability_fn</strong> – (optional) A <cite>callable</cite>.  Converts the score to
+probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
+&#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
+Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
+<li><strong>score_mask_value</strong> – (optional): The mask value for score before passing into
+<cite>probability_fn</cite>. The default is -inf. Only used if
+<cite>memory_sequence_length</cite> is not None.</li>
+<li><strong>dtype</strong> – The data type for the query and memory layers of the attention
+mechanism.</li>
+<li><strong>use_bias</strong> (<em>bool</em>) – Whether to use a bias when computing alignments</li>
 <li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
@@ -1524,7 +1589,7 @@ sum_i(args[i] * W[i]), where W[i]s are newly created matrices.</p>
 <span id="utils"></span><h2>utils<a class="headerlink" href="#module-parts.rnns.utils" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="parts.rnns.utils.single_cell">
-<code class="descclassname">parts.rnns.utils.</code><code class="descname">single_cell</code><span class="sig-paren">(</span><em>cell_class</em>, <em>cell_params</em>, <em>dp_input_keep_prob=1.0</em>, <em>dp_output_keep_prob=1.0</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/utils.html#single_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.utils.single_cell" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.rnns.utils.</code><code class="descname">single_cell</code><span class="sig-paren">(</span><em>cell_class</em>, <em>cell_params</em>, <em>dp_input_keep_prob=1.0</em>, <em>dp_output_keep_prob=1.0</em>, <em>zoneout_prob=0.0</em>, <em>training=True</em>, <em>residual_connections=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/utils.html#single_cell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.utils.single_cell" title="Permalink to this definition">¶</a></dt>
 <dd><p>Creates an instance of the rnn cell.
 Such cell describes one step one layer and can include residual connection
 and/or dropout</p>
@@ -1535,8 +1600,12 @@ and/or dropout</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>cell_class</strong> – Tensorflow RNN cell class</li>
 <li><strong>cell_params</strong> (<em>dict</em>) – cell parameters</li>
-<li><strong>dp_input_keep_prob</strong> (<em>float</em>) – (default: 1.0) input dropout keep probability</li>
-<li><strong>dp_output_keep_prob</strong> (<em>float</em>) – (default: 1.0) output dropout keep probability</li>
+<li><strong>dp_input_keep_prob</strong> (<em>float</em>) – (default: 1.0) input dropout keep
+probability.</li>
+<li><strong>dp_output_keep_prob</strong> (<em>float</em>) – (default: 1.0) output dropout keep
+probability.</li>
+<li><strong>zoneout_prob</strong> (<em>float</em>) – zoneout probability. Applying both zoneout and
+droupout is currently not supported</li>
 <li><strong>residual_connections</strong> (<em>bool</em>) – whether to add residual connection</li>
 </ul>
 </td>
@@ -1546,6 +1615,32 @@ and/or dropout</p>
 </tr>
 </tbody>
 </table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.rnns.zoneout">
+<span id="zoneout"></span><h2>zoneout<a class="headerlink" href="#module-parts.rnns.zoneout" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="parts.rnns.zoneout.ZoneoutWrapper">
+<em class="property">class </em><code class="descclassname">parts.rnns.zoneout.</code><code class="descname">ZoneoutWrapper</code><span class="sig-paren">(</span><em>cell</em>, <em>zoneout_prob</em>, <em>is_training=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/zoneout.html#ZoneoutWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<p>Operator adding zoneout to all states (states+cells) of the given cell.
+Code taken from <a class="reference external" href="https://github.com/teganmaharaj/zoneout">https://github.com/teganmaharaj/zoneout</a>
+applying zoneout as described in <a class="reference external" href="https://arxiv.org/pdf/1606.01305.pdf">https://arxiv.org/pdf/1606.01305.pdf</a></p>
+<dl class="attribute">
+<dt id="parts.rnns.zoneout.ZoneoutWrapper.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper.output_size" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.rnns.zoneout.ZoneoutWrapper.state_size">
+<code class="descname">state_size</code><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper.state_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>size(s) of state(s) used by this cell.</p>
+<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
+or TensorShapes.</p>
+</dd></dl>
+
 </dd></dl>
 
 </div>

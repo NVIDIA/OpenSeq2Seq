@@ -1,7 +1,6 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 from .resnet_blocks import conv2d_fixed_padding, batch_norm, block_layer, \
@@ -12,28 +11,23 @@ from .encoder import Encoder
 
 class ResNetEncoder(Encoder):
   @staticmethod
-  def get_required_params():
-    return dict(Encoder.get_required_params(), **{
-    })
-
-  @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
-      'resnet_size': int,
-      'block_sizes': list,
-      'block_strides': list,
-      'version': [1, 2],
-      'bottleneck': bool,
-      'final_size': int,
-      'first_num_filters': int,
-      'first_kernel_size': int,
-      'first_conv_stride': int,
-      'first_pool_size': int,
-      'first_pool_stride': int,
-      'data_format': ['channels_first', 'channels_last'],
-      'regularize_bn': bool,
-      'bn_momentum': float,
-      'bn_epsilon': float,
+        'resnet_size': int,
+        'block_sizes': list,
+        'block_strides': list,
+        'version': [1, 2],
+        'bottleneck': bool,
+        'final_size': int,
+        'first_num_filters': int,
+        'first_kernel_size': int,
+        'first_conv_stride': int,
+        'first_pool_size': int,
+        'first_pool_stride': int,
+        'data_format': ['channels_first', 'channels_last'],
+        'regularize_bn': bool,
+        'bn_momentum': float,
+        'bn_epsilon': float,
     })
 
   def __init__(self, params, model, name="resnet_encoder", mode='train'):
@@ -55,12 +49,12 @@ class ResNetEncoder(Encoder):
         bottleneck = self.params.get('bottleneck', True)
         final_size = self.params.get('final_size', 2048)
       block_sizes_dict = {
-        18: [2, 2, 2, 2],
-        34: [3, 4, 6, 3],
-        50: [3, 4, 6, 3],
-        101: [3, 4, 23, 3],
-        152: [3, 8, 36, 3],
-        200: [3, 24, 36, 3],
+          18: [2, 2, 2, 2],
+          34: [3, 4, 6, 3],
+          50: [3, 4, 6, 3],
+          101: [3, 4, 23, 3],
+          152: [3, 8, 36, 3],
+          200: [3, 24, 36, 3],
       }
       block_sizes = block_sizes_dict[self.params['resnet_size']]
     else:
@@ -106,8 +100,8 @@ class ResNetEncoder(Encoder):
       inputs = tf.transpose(inputs, [0, 3, 1, 2])
 
     inputs = conv2d_fixed_padding(
-      inputs=inputs, filters=num_filters, kernel_size=kernel_size,
-      strides=conv_stride, data_format=data_format, regularizer=regularizer,
+        inputs=inputs, filters=num_filters, kernel_size=kernel_size,
+        strides=conv_stride, data_format=data_format, regularizer=regularizer,
     )
     inputs = tf.identity(inputs, 'initial_conv')
 
@@ -119,21 +113,21 @@ class ResNetEncoder(Encoder):
 
     if first_pool_size:
       inputs = tf.layers.max_pooling2d(
-        inputs=inputs, pool_size=first_pool_size,
-        strides=first_pool_stride, padding='SAME',
-        data_format=data_format,
+          inputs=inputs, pool_size=first_pool_size,
+          strides=first_pool_stride, padding='SAME',
+          data_format=data_format,
       )
       inputs = tf.identity(inputs, 'initial_max_pool')
 
     for i, num_blocks in enumerate(block_sizes):
       cur_num_filters = num_filters * (2**i)
       inputs = block_layer(
-        inputs=inputs, filters=cur_num_filters, bottleneck=bottleneck,
-        block_fn=block_fn, blocks=num_blocks,
-        strides=block_strides[i], training=training,
-        name='block_layer{}'.format(i + 1), data_format=data_format,
-        regularizer=regularizer, bn_regularizer=bn_regularizer,
-        bn_momentum=bn_momentum, bn_epsilon=bn_epsilon,
+          inputs=inputs, filters=cur_num_filters, bottleneck=bottleneck,
+          block_fn=block_fn, blocks=num_blocks,
+          strides=block_strides[i], training=training,
+          name='block_layer{}'.format(i + 1), data_format=data_format,
+          regularizer=regularizer, bn_regularizer=bn_regularizer,
+          bn_momentum=bn_momentum, bn_epsilon=bn_epsilon,
       )
     if version == 2:
       inputs = batch_norm(inputs, training, data_format,

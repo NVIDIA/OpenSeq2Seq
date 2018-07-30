@@ -101,6 +101,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="asr.html">Speech Recognition</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tts.html">Text-To-Speech</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
@@ -211,8 +212,9 @@ configuration file.</p>
 <h3>Feeling adventurous?<a class="headerlink" href="#feeling-adventurous" title="Permalink to this headline">¶</a></h3>
 <p>One of the main goals of OpenSeq2Seq is to allow you easily experiment with different architectures. Try out these configurations:</p>
 <ol class="arabic simple">
-<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TR.py</span></code> - a model which uses Transformer’s encoder and RNN decoder with attention</li>
-<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-RT.py</span></code> - a model which uses RNN-based encoder Transformer-based decoder</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-CR.py</span></code> - a model which uses Convolutional encoder and RNN decoder with attention</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-RC.py</span></code> - a model which uses RNN-based encoder and Convolutional decoder</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TT.py</span></code> - a model which uses Transformer-based encoder and Transformer-based decoder</li>
 </ol>
 </div>
 </div>
@@ -253,7 +255,7 @@ Also, make sure you use only 1 GPU for inference (<code class="docutils literal 
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">newstest2014</span><span class="o">.</span><span class="n">tok</span><span class="o">.</span><span class="n">de</span> <span class="o">&lt;</span> <span class="n">cleaned_file</span><span class="o">.</span><span class="n">txt</span>
 </pre></div>
 </div>
-<p>You should get a BLEU score above 20 for this model on newstest2014.tok.de.</p>
+<p>You should get a BLEU score above 20 for this small model on newstest2014.tok.de.</p>
 </div>
 </div>
 </div>

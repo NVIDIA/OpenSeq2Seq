@@ -8,3 +8,4 @@ Getting started
 
    getting-started/nmt
    getting-started/asr
+   getting-started/tts

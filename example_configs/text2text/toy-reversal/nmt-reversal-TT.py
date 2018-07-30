@@ -1,3 +1,4 @@
+# pylint: skip-file
 from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
@@ -27,7 +28,7 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-Transformer-MP",
+  "logdir": "ReversalTask-Transformer-Transformer",
   "dtype": tf.float32,
   # "dtype": "mixed",
   # "loss_scaling": "Backoff",

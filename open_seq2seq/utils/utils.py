@@ -1,14 +1,16 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
-from six import string_types
 
-import six
-import tensorflow as tf
 import subprocess
-import numpy as np
 import time
+
+import numpy as np
+import six
+from six import string_types
+from six.moves import range
+import tensorflow as tf
+# pylint: disable=no-name-in-module
 from tensorflow.python.client import device_lib
 
 
@@ -42,7 +44,7 @@ def collect_if_horovod(value, hvd, mode='sum'):
     mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
-
+        
   Returns:
     collected results if run on Horovod or value otherwise.
   """
@@ -66,6 +68,8 @@ def collect_if_horovod(value, hvd, mode='sum'):
     return np.mean(values)
   elif mode == 'gather':
     return [item for sl in values for item in sl]
+  else:
+    raise ValueError("Incorrect mode: {}".format(mode))
 
 
 def clip_last_batch(last_batch, true_size):
@@ -96,8 +100,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
   # on horovod num_gpus is 1
   for worker_id in range(model.num_gpus):
     cur_fetches = [
-      model.get_data_layer(worker_id).input_tensors,
-      model.get_output_tensors(worker_id),
+        model.get_data_layer(worker_id).input_tensors,
+        model.get_output_tensors(worker_id),
     ]
     if compute_loss:
       cur_fetches.append(model.eval_losses[worker_id])
@@ -188,7 +192,8 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
         if step == 0 or len(fetches_vals) == 0 or \
            (data_size > 10 and processed_batches % (data_size // 10) == 0):
           deco_print("Processed {}/{} batches{}".format(
-            processed_batches, data_size, ending))
+              processed_batches, data_size, ending
+          ))
       else:
         deco_print("Processed {} batches{}".format(processed_batches, ending),
                    end='\r')
@@ -200,17 +205,16 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
   if verbose:
     if step > bench_start:
       deco_print(
-        "Avg time per step{}: {:.3}s".format(
-          ending, 1.0 * total_time / (step - bench_start)),
+          "Avg time per step{}: {:.3}s".format(
+              ending, 1.0 * total_time / (step - bench_start)
+          ),
       )
       if total_objects is not None:
         avg_objects = 1.0 * total_objects / total_time
         deco_print("Avg objects per second{}: {:.3f}".format(ending,
                                                              avg_objects))
     else:
-      deco_print(
-        "Not enough steps for benchmarking{}".format(ending)
-      )
+      deco_print("Not enough steps for benchmarking{}".format(ending))
 
   if compute_loss:
     return results_per_batch, total_loss, np.sum(total_samples)
@@ -221,11 +225,11 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
 def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
   if compute_loss:
     results_per_batch, total_loss, total_samples = iterate_data(
-      model, sess, compute_loss, mode, verbose,
+        model, sess, compute_loss, mode, verbose,
     )
   else:
     results_per_batch = iterate_data(
-      model, sess, compute_loss, mode, verbose,
+        model, sess, compute_loss, mode, verbose,
     )
 
   if compute_loss:
@@ -247,14 +251,32 @@ def get_results_for_epoch(model, sess, compute_loss, mode, verbose=False):
 
 
 def log_summaries_from_dict(dict_to_log, output_dir, step):
-  # this returns the same writer as was created by
-  # the first call to this function
+  """
+  A function that writes values from dict_to_log to a tensorboard
+  log file inside output_dir.
+
+  Args:
+    dict_to_log (dict):
+      A dictiontary containing the tags and scalar values to log.
+      The dictionary values could also contain tf.Summary.Value objects
+      to support logging of image and audio data. In this mode, the
+      dictionary key is ignored, as tf.Summary.Value already contains a
+      tag.
+    output_dir (str): dir containing the tensorboard file
+    step (int): current training step
+  """
   sm_writer = tf.summary.FileWriterCache.get(output_dir)
   for tag, value in dict_to_log.items():
-    sm_writer.add_summary(
-      tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
-      global_step=step,
-    )
+    if isinstance(value, tf.Summary.Value):
+      sm_writer.add_summary(
+          tf.Summary(value=[value]),
+          global_step=step,
+      )
+    else:
+      sm_writer.add_summary(
+          tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value)]),
+          global_step=step,
+      )
     sm_writer.flush()
 
 
@@ -291,12 +313,12 @@ class Logger(object):
 def flatten_dict(dct):
   flat_dict = {}
   for key, value in dct.items():
-    if isinstance(value, int) or isinstance(value, float) or \
-       isinstance(value, string_types) or isinstance(value, bool):
+    if isinstance(value, (int, float, string_types, bool)):
       flat_dict.update({key: value})
     elif isinstance(value, dict):
       flat_dict.update(
-        {key + '/' + k: v for k, v in flatten_dict(dct[key]).items()})
+          {key + '/' + k: v for k, v in flatten_dict(dct[key]).items()}
+      )
   return flat_dict
 
 
@@ -319,7 +341,7 @@ def nested_update(org_dict, upd_dict):
       if key in org_dict:
         if not isinstance(org_dict[key], dict):
           raise ValueError(
-            "Mismatch between org_dict and upd_dict at node {}".format(key)
+              "Mismatch between org_dict and upd_dict at node {}".format(key)
           )
         nested_update(org_dict[key], value)
       else:
@@ -355,8 +377,7 @@ def text_ids_to_string(row, vocab, S_ID, EOS_ID, PAD_ID,
   n = len(vocab)
   if ignore_special:
     f_row = []
-    for i in range(0, len(row)):
-      char_id = row[i]
+    for char_id in row:
       if char_id == EOS_ID:
         break
       if char_id != PAD_ID and char_id != S_ID:
