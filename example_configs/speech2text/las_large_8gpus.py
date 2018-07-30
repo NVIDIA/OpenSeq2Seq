@@ -75,16 +75,8 @@ base_params = {
 
         "recurrent_layers": [
             {
-                "type": "lstm", "num_layers": 2,
-                "hidden_dim": 256, "dropout_keep_prob": 0.8,
-            },
-            {
-                "type": "lstm", "num_layers": 2,
-                "hidden_dim": 256, "dropout_keep_prob": 0.8,
-            },
-            {
-                "type": "lstm", "num_layers": 2,
-                "hidden_dim": 512, "dropout_keep_prob": 0.6,
+                "type": "lstm", "num_layers": 6,
+                "hidden_dim": 512, "dropout_keep_prob": 0.8,
             },
         ],
 
