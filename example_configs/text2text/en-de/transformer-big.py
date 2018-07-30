@@ -32,7 +32,7 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
-  "logdir": "Transformer-FP32",
+  "logdir": "Transformer-4GPUs-FP32",
   "dtype": tf.float32,
   #"dtype": "mixed",
   #"loss_scaling": "Backoff",

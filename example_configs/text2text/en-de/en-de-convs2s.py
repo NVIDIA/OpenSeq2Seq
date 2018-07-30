@@ -36,8 +36,8 @@ max_steps = 310000
 max_length = 64
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 8,
+  "use_horovod": True,
+  "num_gpus": 1, # Use 8 horovod workers to train on 8 GPUs
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
@@ -48,7 +48,7 @@ base_params = {
   "print_samples_steps": 100,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
-  "logdir": "WMT16_EN_DT",
+  "logdir": "ConvSeq2Seq-8GPUs-FP32",
 
 
   "optimizer": "Adam",

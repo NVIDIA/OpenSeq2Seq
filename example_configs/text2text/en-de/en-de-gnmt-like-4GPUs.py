@@ -23,9 +23,9 @@ base_params = {
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
-  "eval_steps": 1000,
-  "save_checkpoint_steps": 2001,
-  "logdir": "GNMT-Adam-LR0.0008-FP32-4x32-MP-luong10-P8-AAT",
+  "eval_steps": 4001,
+  "save_checkpoint_steps": 4000,
+  "logdir": "GNMT-4GPUs-FP32",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
