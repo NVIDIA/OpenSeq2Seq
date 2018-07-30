@@ -13,7 +13,7 @@ layers_dict = {
 }
 
 def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-              padding, regularizer, training, data_format):
+              padding, dilation, regularizer, training, data_format):
   """Helper function that applies convolution and activation.
     Args:
       layer_type: the following types are supported
@@ -28,6 +28,7 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, str
       kernel_size=kernel_size,
       strides=strides,
       padding=padding,
+      dilation_rate=dilation,
       kernel_regularizer=regularizer,
       use_bias=False,
       data_format=data_format,
@@ -40,7 +41,7 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, str
 
 
 def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, regularizer, training, data_format, bn_momentum,
+                 padding, dilation, regularizer, training, data_format, bn_momentum,
                  bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
     Accepts inputs in 'channels_last' format only.
@@ -57,6 +58,7 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
       kernel_size=kernel_size,
       strides=strides,
       padding=padding,
+      dilation_rate=dilation,
       kernel_regularizer=regularizer,
       use_bias=False,
       data_format=data_format,

@@ -127,6 +127,7 @@ class Wave2LetterEncoder(Encoder):
       kernel_size = convnet_layers[idx_convnet]['kernel_size']
       strides = convnet_layers[idx_convnet]['stride']
       padding = convnet_layers[idx_convnet]['padding']
+      dilation = convnet_layers[idx_convnet]['dilation']
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
 
@@ -146,6 +147,7 @@ class Wave2LetterEncoder(Encoder):
             activation_fn=self.params['activation_fn'],
             strides=strides,
             padding=padding,
+            dilation=dilation,
             regularizer=regularizer,
             training=training,
             data_format=data_format,
