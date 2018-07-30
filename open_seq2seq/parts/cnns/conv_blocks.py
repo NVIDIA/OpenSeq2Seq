@@ -88,3 +88,68 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   if activation_fn is not None:
     output = activation_fn(output)
   return output
+
+
+def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
+                 padding, dilation, regularizer, training, data_format):
+  """Helper function that applies convolution, layer norm and activation.
+    Accepts inputs in 'channels_last' format only.
+    Args:
+      layer_type: the following types are supported
+        'conv1d', 'conv2d'
+  """
+  layer = layers_dict[layer_type]
+
+  conv = layer(
+      name="{}".format(name),
+      inputs=inputs,
+      filters=filters,
+      kernel_size=kernel_size,
+      strides=strides,
+      padding=padding,
+      dilation_rate=dilation,
+      kernel_regularizer=regularizer,
+      use_bias=False,
+      data_format=data_format,
+  )
+
+  ln = tf.contrib.layers.layer_norm(
+      inputs=conv,
+  )
+
+  output = ln
+  if activation_fn is not None:
+    output = activation_fn(output)
+  return output
+
+def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
+                 padding, dilation, regularizer, training, data_format):
+  """Helper function that applies convolution, instance norm and activation.
+    Accepts inputs in 'channels_last' format only.
+    Args:
+      layer_type: the following types are supported
+        'conv1d', 'conv2d'
+  """
+  layer = layers_dict[layer_type]
+
+  conv = layer(
+      name="{}".format(name),
+      inputs=inputs,
+      filters=filters,
+      kernel_size=kernel_size,
+      strides=strides,
+      padding=padding,
+      dilation_rate=dilation,
+      kernel_regularizer=regularizer,
+      use_bias=False,
+      data_format=data_format,
+  )
+
+  sn = tf.contrib.layers.instance_norm(
+      inputs=conv,
+  )
+
+  output = sn
+  if activation_fn is not None:
+    output = activation_fn(output)
+  return output
