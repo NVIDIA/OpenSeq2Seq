@@ -57,6 +57,22 @@ base_params = {
 
     "encoder": ListenAttendSpellEncoder,
     "encoder_params": {
+
+        "convnet_layers": [
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [1],
+                "num_channels": 256, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+        ],
+
         "recurrent_layers": [
             {
                 "type": "lstm", "num_layers": 2,
@@ -74,11 +90,15 @@ base_params = {
 
         "dropout_keep_prob": 0.8,
 
+        "residual_connections": False,
+
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
             'uniform': False,
         },
-        "residual_connections" : True,
+        "normalization": "batch_norm",
+        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "data_format": "channels_last",
     },
 
     "decoder": FullyConnectedCTCDecoder,

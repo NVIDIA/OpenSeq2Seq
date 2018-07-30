@@ -5,12 +5,12 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .encoder import Encoder
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
 
 cells_dict = {
     "lstm": tf.nn.rnn_cell.BasicLSTMCell,
     "gru": tf.nn.rnn_cell.GRUCell,
 }
-
 
 def rnn_layer(layer_type, num_layers, name, inputs, src_length, hidden_dim,
               regularizer, training, dropout_keep_prob=1.0):
@@ -54,11 +54,17 @@ class ListenAttendSpellEncoder(Encoder):
     return dict(Encoder.get_required_params(), **{
         'dropout_keep_prob': float,
         'recurrent_layers': list,
+        'convnet_layers': list,
+        'activation_fn': None,  # any valid callable
     })
 
   @staticmethod
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
+        'data_format': ['channels_first', 'channels_last'],
+        'normalization': [None, 'batch_norm'],
+        'bn_momentum': float,
+        'bn_epsilon': float,
         'residual_connections': bool,
     })
 
@@ -131,8 +137,61 @@ class ListenAttendSpellEncoder(Encoder):
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
+    normalization = self.params.get('normalization', 'batch_norm')
+    residual = self.params.get('residual_connections', False)
+    data_format = self.params.get('data_format', 'channels_last')
 
-    rnn_feats = source_sequence
+    normalization_params = {}
+    if normalization is None:
+      conv_block = conv_actv
+    elif normalization == "batch_norm":
+      conv_block = conv_bn_actv
+      normalization_params['bn_momentum'] = self.params.get(
+          'bn_momentum', 0.90)
+      normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
+    else:
+      raise ValueError("Incorrect normalization")
+
+    conv_feats = source_sequence
+
+    # ----- Convolutional layers ---------------------------------------------
+    convnet_layers = self.params['convnet_layers']
+
+    for idx_convnet in range(len(convnet_layers)):
+      layer_type = convnet_layers[idx_convnet]['type']
+      layer_repeat = convnet_layers[idx_convnet]['repeat']
+      ch_out = convnet_layers[idx_convnet]['num_channels']
+      kernel_size = convnet_layers[idx_convnet]['kernel_size']
+      strides = convnet_layers[idx_convnet]['stride']
+      padding = convnet_layers[idx_convnet]['padding']
+      dropout_keep = convnet_layers[idx_convnet].get(
+          'dropout_keep_prob', dropout_keep_prob) if training else 1.0
+
+      if padding == "VALID":
+        src_length = (src_length - kernel_size[0]) // strides[0] + 1
+      else:
+        src_length = (src_length + strides[0] - 1) // strides[0]
+
+      for idx_layer in range(layer_repeat):
+        conv_feats = conv_block(
+            layer_type=layer_type,
+            name="conv{}{}".format(
+                idx_convnet + 1, idx_layer + 1),
+            inputs=conv_feats,
+            filters=ch_out,
+            kernel_size=kernel_size,
+            activation_fn=self.params['activation_fn'],
+            strides=strides,
+            padding=padding,
+            regularizer=regularizer,
+            training=training,
+            data_format=data_format,
+            use_residual=residual,
+            **normalization_params
+        )
+        conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
+
+    rnn_feats = conv_feats
     rnn_block = rnn_layer
 
     # ----- Recurrent layers ---------------------------------------------
