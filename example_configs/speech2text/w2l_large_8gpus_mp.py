@@ -59,6 +59,12 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
@@ -103,7 +109,7 @@ base_params = {
         ],
 
         "dropout_keep_prob": 0.8,
-        "residual_connections" : True,
+        "residual_connections" : False,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
