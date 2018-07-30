@@ -57,6 +57,12 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
@@ -138,9 +144,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "data/librispeech/librivox-train-clean-100.csv",
-            "data/librispeech/librivox-train-clean-360.csv",
-            "data/librispeech/librivox-train-other-500.csv",
+            "/data/librispeech/librivox-train-clean-100.csv",
+            "/data/librispeech/librivox-train-clean-360.csv",
+            "/data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,

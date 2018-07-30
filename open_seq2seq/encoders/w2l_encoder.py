@@ -130,6 +130,11 @@ class Wave2LetterEncoder(Encoder):
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
 
+      if padding == "VALID":
+        src_length = (src_length - kernel_size[0]) // strides[0] + 1
+      else:
+        src_length = (src_length + strides[0] - 1) // strides[0]
+
       for idx_layer in range(layer_repeat):
         conv_feats = conv_block(
             layer_type=layer_type,
