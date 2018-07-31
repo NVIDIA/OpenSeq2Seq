@@ -35,7 +35,7 @@ normalization_type = "weight_norm"
 max_length = 64
 
 base_params = {
-  "use_horovod": True,
+  "use_horovod": False,
   "num_gpus": 1,
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
