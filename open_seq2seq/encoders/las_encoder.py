@@ -68,8 +68,8 @@ class ListenAttendSpellEncoder(Encoder):
         'residual_connections': bool,
     })
 
-  def __init__(self, params, model, name="w2l_encoder", mode='train'):
-    """Wave2Letter like encoder constructor.
+  def __init__(self, params, model, name="las_encoder", mode='train'):
+    """DeepSpeech2 like encoder constructor.
 
     See parent class for arguments description.
 
