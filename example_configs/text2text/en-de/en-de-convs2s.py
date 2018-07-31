@@ -28,7 +28,7 @@ num_layers = 15
 d_model = 512
 hidden_before_last = 512
 
-dtype = "mixed"
+dtype = tf.float32
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
@@ -36,7 +36,7 @@ max_length = 64
 
 base_params = {
   "use_horovod": True,
-  "num_gpus": 8,
+  "num_gpus": 1,
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
