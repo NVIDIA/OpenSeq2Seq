@@ -8,17 +8,14 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 
-from open_seq2seq.encoders import ConvS2SEncoder
-from open_seq2seq.decoders import ConvS2SDecoder
+from open_seq2seq.encoders import ConvS2SEncoder, ConvS2SEncoder2
+from open_seq2seq.decoders import ConvS2SDecoder, ConvS2SDecoder2
 
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
-"""
-This configuration file describes a variant of ConvS2S model from
-https://arxiv.org/pdf/1705.03122
-"""
+import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "./wmt16_en_dt/"
@@ -27,26 +24,38 @@ base_model = Text2Text
 num_layers = 15
 d_model = 512
 hidden_before_last = 512
-
-dtype = "mixed"
-conv_act = gated_linear_units
-normalization_type = "weight_norm"
-
 max_length = 64
+pad_2_eight = True
+
+batch_size = 128
+num_gpus = 1
+epoch_num = 35
+
+iter_size = 1
+dtype = "mixed"  # "mixed" or tf.float32
+shuffle_train = True
+use_horovod = True
+
+max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
+
+conv_act = gated_linear_units  #tf.nn.relu tf.nn.tanh gated_linear_units
+normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
+scaling_factor = 1.0 #math.sqrt(0.5)
 
 base_params = {
-  "use_horovod": True,
-  "num_gpus": 8,
+  # iter_size can be used just with horovod
+  #"iter_size": iter_size,
+  "use_horovod": use_horovod,
+  "num_gpus": num_gpus,
 
-  # max_step is set for 35 epochs on 8 gpus with batch size of 64,
-  # 4.5M is the size of the dataset
-  "max_steps": 310000,
-  "batch_size_per_gpu": 64,
-  "save_summaries_steps": 100,
-  "print_loss_steps": 100,
-  "print_samples_steps": 100,
-  "eval_steps": 4000,
-  "save_checkpoint_steps": 4000,
+  # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
+  "max_steps": max_steps,
+  "batch_size_per_gpu": batch_size,
+  "save_summaries_steps": 50,#max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 50, #max(1, int(max_steps/1000.0)),
+  "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
+  "eval_steps": max(1, int(max_steps/100.0)),
+  "save_checkpoint_steps": None, #int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
 
@@ -60,20 +69,30 @@ base_params = {
     "d_model": d_model,
   },
 
-  "max_grad_norm": 0.1,
+  "max_grad_norm": 10.0,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
 
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    'scale': 0.001
+  },
+
+
   "dtype": dtype,
   "loss_scaling": "Backoff",
+  "loss_scaling_params": {
+     "scale_min": 1.0,
+     "scale_max": 2.**24,
+   },
 
-  "encoder": ConvS2SEncoder,
+  "encoder": ConvS2SEncoder2,
   "encoder_params": {
     "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
-    "pad_embeddings_2_eight": True,
+    "pad_embeddings_2_eight": pad_2_eight,
     "att_layer_num": num_layers,
 
     # original ConvS2S paper
@@ -90,17 +109,18 @@ base_params = {
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
 
     "conv_activation": conv_act,
-    'normalization_type': normalization_type,
+    "normalization_type": normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
 
-  "decoder": ConvS2SDecoder,
+  "decoder": ConvS2SDecoder2,
   "decoder_params": {
     "decoder_layers": num_layers,
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
-    "pad_embeddings_2_eight": True,
+    "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
     "pos_embed": True,
 
@@ -125,7 +145,8 @@ base_params = {
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
 
     "conv_activation": conv_act,
-    'normalization_type': normalization_type,
+    "normalization_type": normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
   "loss": BasicSequenceLoss,
@@ -140,13 +161,13 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_2_eight,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "train.tok.clean.bpe.32000.en",
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": shuffle_train,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
@@ -159,7 +180,7 @@ eval_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_2_eight,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "newstest2014.tok.bpe.32000.en",
@@ -176,7 +197,7 @@ infer_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
+    "pad_vocab_to_eight": pad_2_eight,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "newstest2014.tok.bpe.32000.en",

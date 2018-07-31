@@ -28,19 +28,19 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-num_gpus = 8
+num_gpus = 1
 epoch_num = 35
 
 iter_size = 1
-dtype = tf.float32  # "mixed" or tf.float32
+dtype = "mixed"  # "mixed" or tf.float32
 shuffle_train = True
-use_horovod = True
+use_horovod = False
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = tf.nn.relu  #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
-scaling_factor = 1.0 #math.sqrt(0.5)
+conv_act = gated_linear_units  #tf.nn.relu tf.nn.tanh gated_linear_units
+normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
+scaling_factor = math.sqrt(0.5) #changed here
 
 base_params = {
   # iter_size can be used just with horovod
@@ -73,6 +73,12 @@ base_params = {
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
+
+  #"regularizer": tf.contrib.layers.l2_regularizer,
+  #"regularizer_params": {
+  #  'scale': 0.001
+  #},
+
 
   "dtype": dtype,
   "loss_scaling": "Backoff",

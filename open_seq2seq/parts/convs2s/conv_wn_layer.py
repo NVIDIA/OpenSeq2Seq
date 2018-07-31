@@ -24,7 +24,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
                conv_padding,
                decode_padding,
                activation=gated_linear_units,
-               normalization_type="weight_norm"):
+               normalization_type="weight_norm",
+               regularizer=None):
     """initializes the 1D convolution layer.
     It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
@@ -43,7 +44,9 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       activation: the activation function applies after the convolution
       normalization_type: str specifies the normalization used for the layer.
                     "weight_norm" for weight normalization or
-                    "batch_norm" for batch normalization
+                    "batch_norm" for batch normalization or
+                    "layer_norm" for layer normalization
+      regularizer: the regularizer for the batch normalization
 
     """
 
@@ -55,6 +58,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     self.kernel_width = kernel_width
     self.layer_id = layer_id
     self.act_func = activation
+    self.regularizer = regularizer
 
     if normalization_type == "batch_norm":
       self.apply_batch_norm = True
@@ -100,7 +104,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.random_normal_initializer(mean=0, stddev=0.01),
+            initializer=tf.contrib.layers.variance_scaling_initializer(), #tf.random_normal_initializer(mean=0, stddev=0.01),
             trainable=True)
 
       if self.bias_enabled:
@@ -142,27 +146,27 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     if self.apply_batch_norm:
       # trick to make batchnorm work for mixed precision training.
       # To-Do check if batchnorm works smoothly for >4 dimensional tensors
-      output = tf.expand_dims(output, axis=1)  # NWC --> NHWC
-      output = tf.layers.batch_normalization(
+      bn_input = tf.expand_dims(output, axis=1)  # NWC --> NHWC
+      bn_output = tf.layers.batch_normalization(
           name="batch_norm_" + str(self.layer_id),
-          inputs=output,
-          #gamma_regularizer=regularizer,
+          inputs=bn_input,
+          #gamma_regularizer=self.regularizer,
           training=self.mode == 'train',
           axis=-1,
-          momentum=0.99,
+          momentum=0.90,
           epsilon=1e-4,
       )
-      output = tf.squeeze(output, axis=1)
+      output = tf.squeeze(bn_output, axis=1)
 
     if self.apply_layer_norm:
-      output = tf.expand_dims(output, axis=1)
-      output = tf.contrib.layers.layer_norm(
-          inputs=output,
+      ln_input = tf.expand_dims(output, axis=1)
+      ln_output = tf.contrib.layers.layer_norm(
+          inputs=ln_input,
           begin_norm_axis=1,
           begin_params_axis=-1,
           scope="layer_norm_" + str(self.layer_id),
       )
-      output = tf.squeeze(output, axis=1)
+      output = tf.squeeze(ln_output, axis=1)
 
     if self.act_func is not None:
       output = self.act_func(output)
