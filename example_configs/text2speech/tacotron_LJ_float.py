@@ -29,7 +29,7 @@ base_params = {
   "print_loss_steps": 50,
   "print_samples_steps": 500,
   "eval_steps": 500,
-  "save_checkpoint_steps": 2500,
+  "save_checkpoint_steps": 100,
   "save_to_tensorboard": True,
   "logdir": "result/tacotron-LJ-float",
   "max_grad_norm":1.,
@@ -161,7 +161,7 @@ base_params = {
   "data_layer_params": {
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
+    "vocab_file": "/data/speech/LJSpeech/vocab_EOS_80.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
@@ -201,7 +201,7 @@ infer_params = {
 interactive_infer_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/doesnotexists.csv",
+      "/data/speech/LJSpeech/test.csv",
     ],
   },
 }
