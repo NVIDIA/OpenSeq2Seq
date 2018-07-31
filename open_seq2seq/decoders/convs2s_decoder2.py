@@ -120,7 +120,7 @@ class ConvS2SDecoder2(Decoder):
                 vocab_size=self._tgt_vocab_size,
                 hidden_size=self._tgt_emb_size,
                 pad_vocab_to_eight=self._pad2eight,
-                init_var=0.1,
+                init_var=0.1, #changed here None or 0.1
                 embed_scale=False,
                 pad_sym=self._pad_sym,
                 mask_paddings=True)
@@ -212,7 +212,7 @@ class ConvS2SDecoder2(Decoder):
                   dropout=self.params["out_dropout_keep_prob"],
                   var_scope_name="linear_mapping_to_vocabspace",
                   mode=self.mode,
-                  normalization_type=self.normalization_type)) #changed here self.normalization_type
+                  normalization_type=None)) #changed here self.normalization_type
         else:
           # if embedding is shared,
           # the shared embedding is used as the final linear projection to vocab space
@@ -308,7 +308,7 @@ class ConvS2SDecoder2(Decoder):
                               encoder_outputs_b, input_attention_bias)
         outputs = (outputs + res_inputs) * self.scaling_factor
         # changed here
-        #outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)

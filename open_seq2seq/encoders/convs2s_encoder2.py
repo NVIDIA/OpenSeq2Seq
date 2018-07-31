@@ -82,7 +82,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self._src_vocab_size,
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=0.1, #0.1, changed here
+              init_var=None, #0.1, changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -92,7 +92,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH),
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=0.1, #0.1,changed here
+              init_var=None, #0.1,changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -206,7 +206,7 @@ class ConvS2SEncoder2(Encoder):
         outputs = conv_layer(outputs)
         outputs = (outputs + res_inputs) * self.scaling_factor
         #changed here
-        #outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
