@@ -265,6 +265,7 @@ class Model:
     dl_params = self._params.get('data_layer_params', {})
     dl_params['batch_size'] = self._params['batch_size_per_gpu']
     dl_params['mode'] = self._mode
+    dl_params['interactive'] = self._interactive
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -335,7 +336,8 @@ class Model:
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
           if self._interactive:
-            self.get_data_layer(gpu_cnt).build_interactive_graph()
+            # self.get_data_layer(gpu_cnt).build_interactive_graph()
+            self.get_data_layer(gpu_cnt).create_interactive_placeholders()
           else:
             self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors

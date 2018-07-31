@@ -454,18 +454,14 @@ def cast_types(input_dict, dtype):
 def get_interactive_infer_results(model, sess, model_in):
   results_per_batch = []
 
-  sess.run(
-      [model.get_data_layer().iterator.initializer],
-      feed_dict={model.get_data_layer().input:model_in}
-  )
-
   fetches = [
       model.get_data_layer().input_tensors,
       model.get_output_tensors(),
   ]
 
-  fetches_vals = sess.run(fetches)
-  inputs, outputs = fetches_vals[:2]
+  feed_dict = model.get_data_layer().create_feed_dict(model_in)
+
+  inputs, outputs = sess.run(fetches, feed_dict=feed_dict)
 
   results_per_batch.append(model.infer(inputs, outputs))
 

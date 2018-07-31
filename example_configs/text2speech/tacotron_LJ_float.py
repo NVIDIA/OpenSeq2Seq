@@ -197,11 +197,3 @@ infer_params = {
     "shuffle": False,
   },
 }
-
-interactive_infer_params = {
-  "data_layer_params": {
-    "dataset_files": [
-      "/data/speech/LJSpeech/test.csv",
-    ],
-  },
-}

@@ -43,6 +43,7 @@ class DataLayer:
         'batch_size': int,
         'shuffle': bool,
         'dtype': [tf.float32, tf.float16],
+        'interactive': bool,
     }
 
   @abc.abstractmethod
@@ -121,11 +122,20 @@ class DataLayer:
     """
     pass
 
-  def build_interactive_graph(self):
-    """Should be built into data layers that support interactive infer. This
-    function must define a self.input variable as a tensorflow placeholder.
-    It is intended to pass 1 example to this placeholder for the model to run
-    inference on.
+  def create_interactive_placeholders(self):
+    """A function that must be defined for data layers that support interactive
+    infer. This function is intended to create placeholders that will be passed
+    to self._input_tensors that will be passed to the model.
+    """
+    pass
+
+  def create_feed_dict(self, model_in):
+    """A function that must be defined for data layers that support interactive
+    infer. Given input which is an abstract data element to be defined by the
+    data layer. The intended use is for the user to build and pass model_in from
+    the jupyter notebook. Given model_in, the data layer must preprocess the raw
+    data, and create the feed dict that defines the placeholders defined in
+    create_interactive_placeholders().
     """
     pass
 

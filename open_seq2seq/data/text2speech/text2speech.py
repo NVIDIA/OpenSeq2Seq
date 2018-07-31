@@ -27,7 +27,6 @@ class Text2SpeechDataLayer(DataLayer):
             'num_audio_features': int,
             'output_type': ['magnitude', 'mel', 'magnitude_disk', 'mel_disk'],
             'vocab_file': str,
-            'dataset_files': list,
             'dataset_location': str,
             'feature_normalize': bool,
         }
@@ -37,6 +36,7 @@ class Text2SpeechDataLayer(DataLayer):
   def get_optional_params():
     return dict(
         DataLayer.get_optional_params(), **{
+            'dataset_files': list,
             'pad_to': int,
             'mag_power': int,
             'pad_EOS': bool,
@@ -93,13 +93,6 @@ class Text2SpeechDataLayer(DataLayer):
     # add one for implied blank token
     self.params['src_vocab_size'] = len(self.params['char2idx']) + 1
 
-    names = ['wav_filename', 'transcript', 'transcript_normalized']
-
-    if "disk" in self.params["output_type"]:
-      self._load_from_disk = True
-    else:
-      self._load_from_disk = False
-
     # This assumes that the LJSpeech dataset is used
     if "mel" in self.params["output_type"]:
       self._mel = True
@@ -108,6 +101,20 @@ class Text2SpeechDataLayer(DataLayer):
       )
     else:
       self._mel = False
+
+    # The rest of the code is not needed for interactive infer
+    if self.params["interactive"]:
+      return
+
+    if "dataset_files" not in self.params:
+      raise ValueError("dataset_files parameter has to be specified")
+
+    names = ['wav_filename', 'transcript', 'transcript_normalized']
+
+    if "disk" in self.params["output_type"]:
+      self._load_from_disk = True
+    else:
+      self._load_from_disk = False
 
     # Load csv files
     self._files = None
@@ -340,39 +347,38 @@ class Text2SpeechDataLayer(DataLayer):
     return np.int32(text_input), \
            np.int32([len(text_input)])
 
-  def build_interactive_graph(self):
-    """
-    Must pass in placeholder
-    """
-    self.input = tf.placeholder(dtype=tf.string)
-    self._dataset = tf.data.Dataset.from_tensor_slices(
-        self.input
+  def create_interactive_placeholders(self):
+    self._text = tf.placeholder(dtype=tf.int32)
+    self._text_length = tf.placeholder(dtype=tf.int32)
+
+    self._text.set_shape([self.params["batch_size"], None])
+    self._text_length = tf.reshape(
+        self._text_length,
+        [self.params["batch_size"]]
     )
-
-    self._dataset = self._dataset.repeat()
-
-    self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-            self._parse_transcript_element,
-            [line],
-            [tf.int32, tf.int32],
-            stateful=False,
-        )
-    )
-
-    self._dataset = self._dataset.padded_batch(
-          1, padded_shapes=([None], 1)
-    )
-
-    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
-                                  .make_initializable_iterator()
-
-    text, text_length = self._iterator.get_next()
-    text.set_shape([1, None])
-    text_length = tf.reshape(text_length, [1])
 
     self._input_tensors = {}
-    self._input_tensors["source_tensors"] = [text, text_length]
+    self._input_tensors["source_tensors"] = [self._text, self._text_length]
+
+  def create_feed_dict(self, model_in):
+    """ Creates the feed dict for interactive infer
+
+    Args:
+      model_in (str): The string to be spoken.
+
+    Returns:
+      feed_dict (dict): Dictionary with values for the placeholders.
+    """
+    text, text_length = self._parse_transcript_element(model_in)
+
+    text = np.reshape(text, [self.params["batch_size"], -1])
+    text_length = np.reshape(text_length, [self.params["batch_size"]])
+
+    feed_dict = {
+        self._text: text,
+        self._text_length: text_length,
+    }
+    return feed_dict
 
   @property
   def input_tensors(self):
