@@ -29,7 +29,7 @@ base_params = {
   "print_samples_steps": 20,
   "eval_steps": 50,
   "save_checkpoint_steps": 300,
-  "logdir": "ReversalTask-RNN",
+  "logdir": "ReversalTask-RNN-RNN",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-4},
@@ -39,7 +39,8 @@ base_params = {
   },
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
-  #"dtype": "mixed",
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {

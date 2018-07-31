@@ -166,6 +166,7 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer.utils</span> <span class="k">import</span> <span class="n">get_padding</span>
 
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.convs2s</span> <span class="k">import</span> <span class="n">ffn_wn_layer</span><span class="p">,</span> <span class="n">conv_wn_layer</span><span class="p">,</span> <span class="n">attention_wn_layer</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.convs2s.utils</span> <span class="k">import</span> <span class="n">gated_linear_units</span>
 
 <span class="c1"># Default value used if max_input_length is not given</span>
 <span class="n">MAX_INPUT_LENGTH</span> <span class="o">=</span> <span class="mi">128</span>
@@ -214,13 +215,16 @@
         <span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span>
         <span class="o">**</span><span class="p">{</span>
             <span class="s1">&#39;pad_embeddings_2_eight&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-
+            <span class="c1"># set the default to False later.</span>
+            <span class="s2">&quot;pos_embed&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
             <span class="c1"># if not provided, tgt_emb_size is used as the default value</span>
             <span class="s1">&#39;out_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="s1">&#39;max_input_length&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;conv_activation&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;normalization_type&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="p">})</span></div>
 
   <span class="k">def</span> <span class="nf">_cast_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
@@ -254,6 +258,10 @@
         <span class="n">knum_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;conv_nchannels_kwidth&quot;</span><span class="p">)))[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">kwidth_list</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;conv_nchannels_kwidth&quot;</span><span class="p">)))[</span><span class="mi">1</span><span class="p">]</span>
 
+        <span class="n">normalization_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;normalization_type&quot;</span><span class="p">,</span>
+                                             <span class="s2">&quot;weight_norm&quot;</span><span class="p">)</span>
+        <span class="n">conv_activation</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;conv_activation&quot;</span><span class="p">,</span> <span class="n">gated_linear_units</span><span class="p">)</span>
+
         <span class="c1"># preparing embedding layers</span>
         <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;embedding&quot;</span><span class="p">):</span>
           <span class="k">if</span> <span class="s1">&#39;embedding_softmax_layer&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">]</span> \
@@ -268,23 +276,25 @@
                 <span class="n">init_var</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
                 <span class="n">embed_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">pad_sym</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pad_sym</span><span class="p">,</span>
-                <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+                <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
-        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;pos_embedding&quot;</span><span class="p">):</span>
-          <span class="k">if</span> <span class="s1">&#39;position_embedding_layer&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">]</span> \
-                  <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shared_embed&#39;</span><span class="p">]:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="o">=</span> \
-              <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;position_embedding_layer&#39;</span><span class="p">]</span>
-          <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="o">=</span> <span class="n">embedding_layer</span><span class="o">.</span><span class="n">EmbeddingSharedWeights</span><span class="p">(</span>
-                <span class="n">vocab_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_input_length&quot;</span><span class="p">,</span>
-                                           <span class="n">MAX_INPUT_LENGTH</span><span class="p">),</span>
-                <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">,</span>
-                <span class="n">pad_vocab_to_eight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pad2eight</span><span class="p">,</span>
-                <span class="n">init_var</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
-                <span class="n">embed_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                <span class="n">pad_sym</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pad_sym</span><span class="p">,</span>
-                <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pos_embed&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+          <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;pos_embedding&quot;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="s1">&#39;position_embedding_layer&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">]</span> \
+                    <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shared_embed&#39;</span><span class="p">]:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="o">=</span> \
+                <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;position_embedding_layer&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="o">=</span> <span class="n">embedding_layer</span><span class="o">.</span><span class="n">EmbeddingSharedWeights</span><span class="p">(</span>
+                  <span class="n">vocab_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;max_input_length&quot;</span><span class="p">,</span> <span class="n">MAX_INPUT_LENGTH</span><span class="p">),</span>
+                  <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">,</span>
+                  <span class="n">pad_vocab_to_eight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pad2eight</span><span class="p">,</span>
+                  <span class="n">init_var</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span>
+                  <span class="n">embed_scale</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                  <span class="n">pad_sym</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_pad_sym</span><span class="p">,</span>
+                  <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="c1"># linear projection before cnn layers</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -292,7 +302,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">,</span>
                 <span class="n">knum_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
                 <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;embedding_dropout_keep_prob&quot;</span><span class="p">],</span>
-                <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_before_cnn_layers&quot;</span><span class="p">))</span>
+                <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_before_cnn_layers&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                <span class="n">normalization_type</span><span class="o">=</span><span class="n">normalization_type</span><span class="p">))</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">]):</span>
           <span class="n">in_dim</span> <span class="o">=</span> <span class="n">knum_list</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">knum_list</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
@@ -305,7 +317,9 @@
                 <span class="n">in_dim</span><span class="p">,</span>
                 <span class="n">out_dim</span><span class="p">,</span>
                 <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_cnn_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
-                <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+                <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                <span class="n">normalization_type</span><span class="o">=</span><span class="n">normalization_type</span><span class="p">)</span>
           <span class="k">else</span><span class="p">:</span>
             <span class="n">linear_proj</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -317,13 +331,16 @@
               <span class="n">layer_id</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
               <span class="n">hidden_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_dropout_keep_prob&quot;</span><span class="p">],</span>
               <span class="n">conv_padding</span><span class="o">=</span><span class="s2">&quot;VALID&quot;</span><span class="p">,</span>
-              <span class="n">decode_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+              <span class="n">decode_padding</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">activation</span><span class="o">=</span><span class="n">conv_activation</span><span class="p">,</span>
+              <span class="n">normalization_type</span><span class="o">=</span><span class="n">normalization_type</span><span class="p">)</span>
 
           <span class="n">att_layer</span> <span class="o">=</span> <span class="n">attention_wn_layer</span><span class="o">.</span><span class="n">AttentionLayerNormalized</span><span class="p">(</span>
               <span class="n">out_dim</span><span class="p">,</span>
               <span class="n">embed_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">,</span>
               <span class="n">layer_id</span><span class="o">=</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
-              <span class="n">add_res</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+              <span class="n">add_res</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
 
           <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">linear_proj</span><span class="p">,</span> <span class="n">conv_layer</span><span class="p">,</span> <span class="n">att_layer</span><span class="p">])</span>
 
@@ -333,7 +350,9 @@
                 <span class="n">knum_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;out_emb_size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">),</span>
                 <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-                <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_after_cnn_layers&quot;</span><span class="p">))</span>
+                <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_after_cnn_layers&quot;</span><span class="p">,</span>
+                <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                <span class="n">normalization_type</span><span class="o">=</span><span class="n">normalization_type</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shared_embed&#39;</span><span class="p">]:</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
@@ -341,7 +360,9 @@
                   <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;out_emb_size&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_emb_size</span><span class="p">),</span>
                   <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">,</span>
                   <span class="n">dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;out_dropout_keep_prob&quot;</span><span class="p">],</span>
-                  <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_to_vocabspace&quot;</span><span class="p">))</span>
+                  <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;linear_mapping_to_vocabspace&quot;</span><span class="p">,</span>
+                  <span class="n">mode</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span>
+                  <span class="n">normalization_type</span><span class="o">=</span><span class="n">normalization_type</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="c1"># if embedding is shared,</span>
           <span class="c1"># the shared embedding is used as the final linear projection to vocab space</span>
@@ -383,12 +404,17 @@
     <span class="c1"># and adding positional encoding.</span>
     <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embedding_softmax_layer</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span>
 
-    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;add_pos_encoding&quot;</span><span class="p">):</span>
-      <span class="n">pos_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span>
-          <span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_inputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;range&#39;</span><span class="p">)</span>
-      <span class="n">pos_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span><span class="p">(</span><span class="n">pos_input</span><span class="p">)</span>
-      <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">decoder_inputs</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
-          <span class="n">x</span><span class="o">=</span><span class="n">pos_encoding</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">decoder_inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;add_pos_encoding&quot;</span><span class="p">):</span>
+        <span class="n">pos_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_inputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">delta</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s1">&#39;range&#39;</span><span class="p">)</span>
+        <span class="n">pos_encoding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">position_embedding_layer</span><span class="p">(</span><span class="n">pos_input</span><span class="p">)</span>
+        <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">decoder_inputs</span> <span class="o">+</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
+            <span class="n">x</span><span class="o">=</span><span class="n">pos_encoding</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">decoder_inputs</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
       <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">decoder_inputs</span><span class="p">,</span>

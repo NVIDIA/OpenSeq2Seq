@@ -35,7 +35,7 @@ base_params = {
   "eval_steps": 50,
   "save_checkpoint_steps": 200,
 
-  "logdir": "ReversalTask-RC",
+  "logdir": "ReversalTask-RNN-Conv",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-9},
@@ -46,6 +46,8 @@ base_params = {
 
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],

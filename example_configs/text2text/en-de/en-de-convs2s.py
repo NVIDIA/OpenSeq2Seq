@@ -15,45 +15,40 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
+"""
+This configuration file describes a variant of ConvS2S model from
+https://arxiv.org/pdf/1705.03122
+"""
+
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_model = Text2Text
 num_layers = 15
 d_model = 512
 hidden_before_last = 512
+
+dtype = tf.float32
+conv_act = gated_linear_units
+normalization_type = "weight_norm"
+
+max_steps = 310000
 max_length = 64
-pad_2_eight = True
-
-batch_size = 64
-num_gpus = 8
-epoch_num = 35
-
-iter_size = 1
-dtype = tf.float32 # "mixed" or tf.float32
-shuffle_train = True
-use_horovod = True
-
-max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
-
-conv_act = gated_linear_units  #tf.nn.relu tf.nn.tanh
-normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
 
 base_params = {
-  # iter_size can be used just with horovod
-  #"iter_size": iter_size,
-  "use_horovod": use_horovod,
-  "num_gpus": num_gpus,
+  "use_horovod": True,
+  "num_gpus": 1, # Use 8 horovod workers to train on 8 GPUs
 
-  # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
-  "max_steps": max_steps,
-  "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": max(1, int(max_steps/1000.0)),
-  "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
-  "eval_steps": max(1, int(max_steps/100.0)),
-  "save_checkpoint_steps": int((max_steps-1)/5.0),
-  "logdir": "WMT16_EN_DT",
+  # max_step is set for 35 epochs on 8 gpus with batch size of 64,
+  # 4.5M is the size of the dataset
+  "max_steps": 310000,
+  "batch_size_per_gpu": 64,
+  "save_summaries_steps": 100,
+  "print_loss_steps": 100,
+  "print_samples_steps": 100,
+  "eval_steps": 4000,
+  "save_checkpoint_steps": 4000,
+  "logdir": "ConvSeq2Seq-8GPUs-FP32",
 
 
   "optimizer": "Adam",
@@ -79,7 +74,7 @@ base_params = {
     "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
-    "pad_embeddings_2_eight": pad_2_eight,
+    "pad_embeddings_2_eight": True,
     "att_layer_num": num_layers,
 
     # original ConvS2S paper
@@ -106,7 +101,7 @@ base_params = {
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
-    "pad_embeddings_2_eight": pad_2_eight,
+    "pad_embeddings_2_eight": True,
     "out_emb_size": hidden_before_last,
     "pos_embed": True,
 
@@ -146,13 +141,13 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": pad_2_eight,
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "train.tok.clean.bpe.32000.en",
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
-    "shuffle": shuffle_train,
+    "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
@@ -165,7 +160,7 @@ eval_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": pad_2_eight,
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "newstest2014.tok.bpe.32000.en",
@@ -182,7 +177,7 @@ infer_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": pad_2_eight,
+    "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
     "source_file": data_root + "newstest2014.tok.bpe.32000.en",

@@ -34,7 +34,7 @@ class ConvS2SEncoder(Encoder):
             "conv_nchannels_kwidth": list,
             "embedding_dropout_keep_prob": float,
             "hidden_dropout_keep_prob": float,
-      })
+        })
 
   @staticmethod
   def get_optional_params():
@@ -45,7 +45,7 @@ class ConvS2SEncoder(Encoder):
             'PAD_SYMBOL': int,
             'conv_activation': None,
             'normalization_type': str,
-      })
+        })
 
   def __init__(self,
                params,
@@ -71,7 +71,8 @@ class ConvS2SEncoder(Encoder):
         knum_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[0]
         kwidth_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[1]
 
-        normalization_type = self.params.get("normalization_type", "weight_norm")
+        normalization_type = self.params.get("normalization_type",
+                                             "weight_norm")
         conv_activation = self.params.get("conv_activation", gated_linear_units)
 
         with tf.variable_scope("embedding"):

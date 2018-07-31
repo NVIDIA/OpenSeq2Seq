@@ -114,7 +114,7 @@ folder.
 
 After that you should be able to run toy speech example with no errors::
 
-    python run.py --config_file=example_configs/speech2text/ds2_toy_data_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_toy_config.py --mode=train_eval
 
 Horovod installation
 --------------------

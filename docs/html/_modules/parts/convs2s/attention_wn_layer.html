@@ -169,7 +169,7 @@
 <div class="viewcode-block" id="AttentionLayerNormalized"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized">[docs]</a><span class="k">class</span> <span class="nc">AttentionLayerNormalized</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Attention layer for convs2s with weight normalization&quot;&quot;&quot;</span>
 
-<div class="viewcode-block" id="AttentionLayerNormalized.__init__"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">,</span> <span class="n">layer_id</span><span class="p">,</span> <span class="n">add_res</span><span class="p">):</span>
+<div class="viewcode-block" id="AttentionLayerNormalized.__init__"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">embed_size</span><span class="p">,</span> <span class="n">layer_id</span><span class="p">,</span> <span class="n">add_res</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;initializes the attention layer.</span>
 <span class="sd">    It uses weight normalization for linear projections</span>
 <span class="sd">    (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</span>
@@ -179,6 +179,7 @@
 <span class="sd">      embed_size: int target embedding size</span>
 <span class="sd">      layer_id: int the id of current convolution layer</span>
 <span class="sd">      add_res: bool whether residual connection should be added or not</span>
+<span class="sd">      mode: str current mode</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">AttentionLayerNormalized</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
 
@@ -190,14 +191,16 @@
           <span class="n">in_dim</span><span class="p">,</span>
           <span class="n">embed_size</span><span class="p">,</span>
           <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-          <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;att_linear_mapping_tgt_embed&quot;</span><span class="p">)</span>
+          <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;att_linear_mapping_tgt_embed&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
 
       <span class="c1"># linear projection layer to project back to the input space</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">out_proj</span> <span class="o">=</span> <span class="n">FeedFowardNetworkNormalized</span><span class="p">(</span>
           <span class="n">embed_size</span><span class="p">,</span>
           <span class="n">in_dim</span><span class="p">,</span>
           <span class="n">dropout</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-          <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;att_linear_mapping_out&quot;</span><span class="p">)</span></div>
+          <span class="n">var_scope_name</span><span class="o">=</span><span class="s2">&quot;att_linear_mapping_out&quot;</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="AttentionLayerNormalized.call"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.attention_wn_layer.AttentionLayerNormalized.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">,</span> <span class="n">target_embed</span><span class="p">,</span> <span class="n">encoder_output_a</span><span class="p">,</span> <span class="n">encoder_output_b</span><span class="p">,</span>
            <span class="n">input_attention_bias</span><span class="p">):</span>

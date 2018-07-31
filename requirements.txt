@@ -7,5 +7,6 @@ six
 mpi4py
 librosa
 matplotlib
+joblib==0.11
 sentencepiece
 sacrebleu

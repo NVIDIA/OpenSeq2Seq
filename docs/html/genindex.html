@@ -167,6 +167,7 @@
  | <a href="#G"><strong>G</strong></a>
  | <a href="#H"><strong>H</strong></a>
  | <a href="#I"><strong>I</strong></a>
+ | <a href="#J"><strong>J</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
  | <a href="#N"><strong>N</strong></a>
@@ -188,6 +189,8 @@
       <ul>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.__init__">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.__init__">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer.__init__">(data.text2text.tokenizer.Subtokenizer method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.__init__">(decoders.decoder.Decoder method)</a>
@@ -202,6 +205,10 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.__init__">(decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Prenet.__init__">(decoders.tacotron2_decoder.Prenet method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.__init__">(decoders.tacotron2_decoder.Tacotron2Decoder method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.__init__">(encoders.cnn_encoder.CNNEncoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder.__init__">(encoders.ds2_encoder.DeepSpeech2Encoder method)</a>
@@ -215,6 +222,8 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.__init__">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.__init__">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
 </li>
@@ -242,6 +251,8 @@
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.BahdanauMonotonicAttention.__init__">(parts.rnns.attention_wrapper.BahdanauMonotonicAttention method)</a>
 </li>
+        <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__">(parts.rnns.attention_wrapper.LocationSensitiveAttention method)</a>
+</li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongAttention.__init__">(parts.rnns.attention_wrapper.LuongAttention method)</a>
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongMonotonicAttention.__init__">(parts.rnns.attention_wrapper.LuongMonotonicAttention method)</a>
@@ -256,6 +267,12 @@
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.slstm.BasicSLSTMCell.__init__">(parts.rnns.slstm.BasicSLSTMCell method)</a>
 </li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.__init__">(parts.tacotron.tacotron_decoder.TacotronDecoder method)</a>
+</li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.__init__">(parts.tacotron.tacotron_helper.TacotronHelper method)</a>
+</li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__">(parts.tacotron.tacotron_helper.TacotronTrainingHelper method)</a>
+</li>
         <li><a href="api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.__init__">(utils.hooks.BroadcastGlobalVariablesHook method)</a>
 </li>
       </ul></li>
@@ -264,7 +281,11 @@
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t._batch_examples">_batch_examples() (in module data.text2text.t2t)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">_build_attention() (decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
+
+      <ul>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder._build_attention">(decoders.tacotron2_decoder.Tacotron2Decoder method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel._build_forward_pass_graph">_build_forward_pass_graph() (models.encoder_decoder.EncoderDecoderModel method)</a>
 
       <ul>
@@ -281,6 +302,8 @@
       </ul></li>
       <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._central_crop">_central_crop() (in module data.image2label.imagenet_preprocessing)</a>
 </li>
+      <li><a href="api-docs/optimizers.html#optimizers.optimizers._clip_by_global_norm">_clip_by_global_norm() (in module optimizers.optimizers)</a>
+</li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers._clip_gradients_by_norm">_clip_gradients_by_norm() (in module optimizers.optimizers)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss._compute_loss">_compute_loss() (losses.ctc_loss.CTCLoss method)</a>
@@ -291,6 +314,8 @@
         <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss._compute_loss">(losses.sequence_loss.BasicSequenceLoss method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">(losses.sequence_loss.CrossEntropyWithSmoothing method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.tacotron_loss.TacotronLoss._compute_loss">(losses.tacotron_loss.TacotronLoss method)</a>
 </li>
       </ul></li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._continue_search">_continue_search() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
@@ -305,6 +330,8 @@
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._create_initial_state">_create_initial_state() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel._create_loss">_create_loss() (models.encoder_decoder.EncoderDecoderModel method)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t._create_min_max_boundaries">_create_min_max_boundaries() (in module data.text2text.t2t)</a>
@@ -320,9 +347,9 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention._decode">(decoders.rnn_decoders.RNNDecoderWithAttention method)</a>
 </li>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder._decode">(decoders.tacotron2_decoder.Tacotron2Decoder method)</a>
+</li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._decode_crop_and_flip">_decode_crop_and_flip() (in module data.image2label.imagenet_preprocessing)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder._encode">_encode() (encoders.ds2_encoder.DeepSpeech2Encoder method)</a>
@@ -333,6 +360,8 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder._encode">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder._encode">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
 </li>
@@ -378,12 +407,14 @@
 </li>
       </ul></li>
       <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder._get_symbols_to_logits_fn">_get_symbols_to_logits_fn() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+
+      <ul>
+        <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder._get_symbols_to_logits_fn">(decoders.transformer_decoder.TransformerDecoder method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._grow_alive_seq">_grow_alive_seq() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper._item_or_tuple">_item_or_tuple() (parts.rnns.attention_wrapper.AttentionWrapper method)</a>
-</li>
-      <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._join_tokens_to_string">_join_tokens_to_string() (in module data.text2text.tokenizer)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search._length_normalization">_length_normalization() (in module parts.transformer.beam_search)</a>
 </li>
@@ -408,10 +439,16 @@
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element">_parse_audio_element() (data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_transcript_element">_parse_audio_transcript_element() (data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer._parse_audio_transcript_element">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t._parse_example">_parse_example() (in module data.text2text.t2t)</a>
 </li>
       <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing._parse_example_proto">_parse_example_proto() (in module data.image2label.imagenet_preprocessing)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer._parse_transcript_element">_parse_transcript_element() (data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.t2t._read_and_batch_from_files">_read_and_batch_from_files() (in module data.text2text.t2t)</a>
 </li>
@@ -437,8 +474,6 @@
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer._token_to_subtoken_ids">_token_to_subtoken_ids() (data.text2text.tokenizer.Subtokenizer method)</a>
 </li>
-      <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._unescape_token">_unescape_token() (in module data.text2text.tokenizer)</a>
-</li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search._unflatten_beam_dim">_unflatten_beam_dim() (in module parts.transformer.beam_search)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._unicode_to_native">_unicode_to_native() (in module data.text2text.tokenizer)</a>
@@ -449,6 +484,8 @@
 <h2 id="A">A</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Prenet.add_regularization">add_regularization() (decoders.tacotron2_decoder.Prenet method)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.hooks.BroadcastGlobalVariablesHook.after_create_session">after_create_session() (utils.hooks.BroadcastGlobalVariablesHook method)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.hooks.PrintLossAndTimeHook.after_run">after_run() (utils.hooks.PrintLossAndTimeHook method)</a>
@@ -499,6 +536,8 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.BahdanauMonotonicAttention">BahdanauMonotonicAttention (class in parts.rnns.attention_wrapper)</a>
 </li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.BasicDecoderOutput">BasicDecoderOutput (class in parts.tacotron.tacotron_decoder)</a>
+</li>
       <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSequenceLoss">BasicSequenceLoss (class in losses.sequence_loss)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.slstm.BasicSLSTMCell">BasicSLSTMCell (class in parts.rnns.slstm)</a>
@@ -506,7 +545,15 @@
       <li><a href="api-docs/encoders.html#encoders.resnet_blocks.batch_norm">batch_norm() (in module encoders.resnet_blocks)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.batch_size">batch_size (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.batch_size">(parts.tacotron.tacotron_decoder.TacotronDecoder attribute)</a>
 </li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.batch_size">(parts.tacotron.tacotron_helper.TacotronHelper attribute)</a>
+</li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.batch_size">(parts.tacotron.tacotron_helper.TacotronTrainingHelper attribute)</a>
+</li>
+      </ul></li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder">BeamSearchDecoder (class in parts.rnns.rnn_beam_search_decoder)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput">BeamSearchDecoderOutput (class in parts.rnns.rnn_beam_search_decoder)</a>
@@ -559,6 +606,8 @@
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.build_graph">(data.image2label.image2label.ImagenetDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.build_graph">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.build_graph">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
@@ -679,6 +728,12 @@
 </li>
       <li><a href="api-docs/data.speech2text.html#module-data.speech2text.speech_utils">data.speech2text.speech_utils (module)</a>
 </li>
+      <li><a href="api-docs/data.text2speech.html#module-data.text2speech">data.text2speech (module)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#module-data.text2speech.speech_utils">data.text2speech.speech_utils (module)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#module-data.text2speech.text2speech">data.text2speech.text2speech (module)</a>
+</li>
       <li><a href="api-docs/data.text2text.html#module-data.text2text">data.text2text (module)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#module-data.text2text.t2t">data.text2text.t2t (module)</a>
@@ -689,10 +744,10 @@
 </li>
       <li><a href="api-docs/data.html#module-data.utils">data.utils (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer">DataLayer (class in data.data_layer)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.deco_print">deco_print() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer.decode">decode() (data.text2text.tokenizer.Subtokenizer method)</a>
@@ -702,7 +757,11 @@
 </li>
       </ul></li>
       <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.decode_pass">decode_pass() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+
+      <ul>
+        <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder.decode_pass">(decoders.transformer_decoder.TransformerDecoder method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/decoders.html#decoders.decoder.Decoder">Decoder (class in decoders.decoder)</a>
 </li>
       <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.decoder">decoder (models.encoder_decoder.EncoderDecoderModel attribute)</a>
@@ -717,7 +776,13 @@
 </li>
       <li><a href="api-docs/decoders.html#module-decoders.rnn_decoders">decoders.rnn_decoders (module)</a>
 </li>
+      <li><a href="api-docs/decoders.html#module-decoders.tacotron2_decoder">decoders.tacotron2_decoder (module)</a>
+</li>
+      <li><a href="api-docs/decoders.html#module-decoders.transformer_decoder">decoders.transformer_decoder (module)</a>
+</li>
       <li><a href="api-docs/encoders.html#encoders.ds2_encoder.DeepSpeech2Encoder">DeepSpeech2Encoder (class in encoders.ds2_encoder)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.denormalize">denormalize() (in module data.text2speech.speech_utils)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.ctc_loss.dense_to_sparse">dense_to_sparse() (in module losses.ctc_loss)</a>
 </li>
@@ -759,23 +824,25 @@
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.ds2_encoder">encoders.ds2_encoder (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.encoder">encoders.encoder (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_blocks">encoders.resnet_blocks (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_encoder">encoders.resnet_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.rnn_encoders">encoders.rnn_encoders (module)</a>
 </li>
+      <li><a href="api-docs/encoders.html#module-encoders.tacotron2_encoder">encoders.tacotron2_encoder (module)</a>
+</li>
+      <li><a href="api-docs/encoders.html#module-encoders.transformer_encoder">encoders.transformer_encoder (module)</a>
+</li>
       <li><a href="api-docs/encoders.html#module-encoders.w2l_encoder">encoders.w2l_encoder (module)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.END_OF_CHOICE">END_OF_CHOICE (data.text2text.text2text.SpecialTextTokens attribute)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.EOS_ID">EOS_ID (data.text2text.text2text.SpecialTextTokens attribute)</a>
-</li>
-      <li><a href="api-docs/data.text2text.html#data.text2text.t2t.eval_input_fn">eval_input_fn() (in module data.text2text.t2t)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.funcs.evaluate">evaluate() (in module utils.funcs)</a>
 
@@ -785,6 +852,8 @@
         <li><a href="api-docs/models.html#models.model.Model.evaluate">(models.model.Model method)</a>
 </li>
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.evaluate">(models.speech2text.Speech2Text method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.evaluate">(models.text2speech.Text2Speech method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.evaluate">(models.text2text.Text2Text method)</a>
 </li>
@@ -812,6 +881,8 @@
 </li>
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.finalize_evaluation">(models.speech2text.Speech2Text method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.finalize_evaluation">(models.text2speech.Text2Speech method)</a>
+</li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.finalize_evaluation">(models.text2text.Text2Text method)</a>
 </li>
       </ul></li>
@@ -819,6 +890,8 @@
 
       <ul>
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.finalize_inference">(models.speech2text.Speech2Text method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.finalize_inference">(models.text2speech.Text2Speech method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.finalize_inference">(models.text2text.Text2Text method)</a>
 </li>
@@ -853,8 +926,6 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.gated_linear_units">gated_linear_units() (parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized method)</a>
-</li>
       <li><a href="api-docs/utils.html#utils.utils.get_available_gpus">get_available_gpus() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model.get_data_layer">get_data_layer() (models.model.Model method)</a>
@@ -864,6 +935,10 @@
       <li><a href="api-docs/utils.html#utils.utils.get_git_diff">get_git_diff() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.get_git_hash">get_git_hash() (in module utils.utils)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec">get_magnitude_spec() (data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.get_mel">get_mel() (in module data.text2speech.speech_utils)</a>
 </li>
       <li><a href="api-docs/models.html#models.model.Model.get_num_objects_per_step">get_num_objects_per_step() (models.model.Model method)</a>
 </li>
@@ -875,6 +950,8 @@
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_optional_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_optional_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_optional_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
@@ -891,6 +968,10 @@
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.get_optional_params">(decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention static method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_optional_params">(decoders.rnn_decoders.RNNDecoderWithAttention static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.get_optional_params">(decoders.tacotron2_decoder.Tacotron2Decoder static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder.get_optional_params">(decoders.transformer_decoder.TransformerDecoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_optional_params">(encoders.cnn_encoder.CNNEncoder static method)</a>
 </li>
@@ -910,6 +991,10 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.get_optional_params">(encoders.tacotron2_encoder.Tacotron2Encoder static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.transformer_encoder.TransformerEncoder.get_optional_params">(encoders.transformer_encoder.TransformerEncoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">(losses.ctc_loss.CTCLoss static method)</a>
@@ -921,6 +1006,8 @@
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_optional_params">(losses.sequence_loss.CrossEntropyWithSmoothing static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing.get_optional_params">(losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing static method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.tacotron_loss.TacotronLoss.get_optional_params">(losses.tacotron_loss.TacotronLoss method)</a>
 </li>
         <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_optional_params">(models.encoder_decoder.EncoderDecoderModel static method)</a>
 </li>
@@ -937,8 +1024,6 @@
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers.get_regularization_loss">get_regularization_loss() (in module optimizers.optimizers)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_required_params">get_required_params() (data.data_layer.DataLayer static method)</a>
 
       <ul>
@@ -947,6 +1032,8 @@
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_required_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_required_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_required_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
@@ -964,6 +1051,10 @@
 </li>
         <li><a href="api-docs/decoders.html#decoders.rnn_decoders.RNNDecoderWithAttention.get_required_params">(decoders.rnn_decoders.RNNDecoderWithAttention static method)</a>
 </li>
+        <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.get_required_params">(decoders.tacotron2_decoder.Tacotron2Decoder static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder.get_required_params">(decoders.transformer_decoder.TransformerDecoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.cnn_encoder.CNNEncoder.get_required_params">(encoders.cnn_encoder.CNNEncoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.get_required_params">(encoders.convs2s_encoder.ConvS2SEncoder static method)</a>
@@ -972,8 +1063,6 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.encoder.Encoder.get_required_params">(encoders.encoder.Encoder static method)</a>
 </li>
-        <li><a href="api-docs/encoders.html#encoders.resnet_encoder.ResNetEncoder.get_required_params">(encoders.resnet_encoder.ResNetEncoder static method)</a>
-</li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_required_params">(encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding static method)</a>
@@ -981,6 +1070,10 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params">(encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.get_required_params">(encoders.tacotron2_encoder.Tacotron2Encoder static method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.transformer_encoder.TransformerEncoder.get_required_params">(encoders.transformer_encoder.TransformerEncoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
@@ -994,7 +1087,11 @@
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_required_params">(models.model.Model static method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.get_required_params">(models.text2speech.Text2Speech static method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.get_results_for_epoch">get_results_for_epoch() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">get_size_in_samples() (data.data_layer.DataLayer method)</a>
@@ -1006,13 +1103,23 @@
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_size_in_samples">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
       </ul></li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features">get_speech_features() (in module data.speech2text.speech_utils)</a>
+
+      <ul>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features">(in module data.text2speech.speech_utils)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_from_file">get_speech_features_from_file() (in module data.speech2text.speech_utils)</a>
+
+      <ul>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features_from_file">(in module data.text2speech.speech_utils)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/models.html#models.model.Model.get_tf_dtype">get_tf_dtype() (models.model.Model method)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.glstm.GLSTMCell">GLSTMCell (class in parts.rnns.glstm)</a>
@@ -1024,6 +1131,8 @@
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding">GNMTLikeEncoderWithEmbedding (class in encoders.rnn_encoders)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN">GNMTLikeEncoderWithEmbedding_cuDNN (class in encoders.rnn_encoders)</a>
+</li>
+      <li><a href="api-docs/models.html#models.text2speech.griffin_lim">griffin_lim() (in module models.text2speech)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -1054,13 +1163,23 @@
 </li>
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.infer">(models.speech2text.Speech2Text method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.infer">(models.text2speech.Text2Speech method)</a>
+</li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.infer">(models.text2text.Text2Text method)</a>
 </li>
       </ul></li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer.init_from_files">init_from_files() (data.text2text.tokenizer.Subtokenizer static method)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.initialize">initialize() (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder method)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.initialize">(parts.tacotron.tacotron_decoder.TacotronDecoder method)</a>
 </li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.initialize">(parts.tacotron.tacotron_helper.TacotronHelper method)</a>
+</li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize">(parts.tacotron.tacotron_helper.TacotronTrainingHelper method)</a>
+</li>
+      </ul></li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.input_tensors">input_tensors (data.data_layer.DataLayer attribute)</a>
 
       <ul>
@@ -1070,6 +1189,8 @@
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.input_tensors">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.input_tensors">(data.text2text.text2text.ParallelTextDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.input_tensors">(data.text2text.text2text.TransformerDataLayer attribute)</a>
@@ -1077,6 +1198,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.inverse_mel">inverse_mel() (in module data.text2speech.speech_utils)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.iterate_data">iterate_data() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.iterator">iterator (data.data_layer.DataLayer attribute)</a>
@@ -1088,11 +1211,21 @@
 </li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.iterator">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.iterator">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.iterator">(data.text2text.text2text.ParallelTextDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.iterator">(data.text2text.text2text.TransformerDataLayer attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+</tr></table>
+
+<h2 id="J">J</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.join_tokens_to_string">join_tokens_to_string() (in module data.text2text.tokenizer)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -1108,6 +1241,8 @@
       <li><a href="api-docs/parts.transformer.html#parts.transformer.embedding_layer.EmbeddingSharedWeights.linear">linear() (parts.transformer.embedding_layer.EmbeddingSharedWeights method)</a>
 </li>
       <li><a href="api-docs/data.html#data.utils.load_pre_existing_vocabulary">load_pre_existing_vocabulary() (in module data.utils)</a>
+</li>
+      <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LocationSensitiveAttention">LocationSensitiveAttention (class in parts.rnns.attention_wrapper)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.log_summaries_from_dict">log_summaries_from_dict() (in module utils.utils)</a>
 </li>
@@ -1139,6 +1274,8 @@
 </li>
       <li><a href="api-docs/losses.html#module-losses.sequence_loss">losses.sequence_loss (module)</a>
 </li>
+      <li><a href="api-docs/losses.html#module-losses.tacotron_loss">losses.tacotron_loss (module)</a>
+</li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongAttention">LuongAttention (class in parts.rnns.attention_wrapper)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongMonotonicAttention">LuongMonotonicAttention (class in parts.rnns.attention_wrapper)</a>
@@ -1157,6 +1294,8 @@
         <li><a href="api-docs/models.html#models.model.Model.maybe_print_logs">(models.model.Model method)</a>
 </li>
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.maybe_print_logs">(models.speech2text.Speech2Text method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech.Text2Speech.maybe_print_logs">(models.text2speech.Text2Speech method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.maybe_print_logs">(models.text2text.Text2Text method)</a>
 </li>
@@ -1185,6 +1324,8 @@
 </li>
       <li><a href="api-docs/models.html#module-models.speech2text">models.speech2text (module)</a>
 </li>
+      <li><a href="api-docs/models.html#module-models.text2speech">models.text2speech (module)</a>
+</li>
       <li><a href="api-docs/models.html#module-models.text2text">models.text2text (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.monotonic_attention">monotonic_attention() (in module parts.rnns.attention_wrapper)</a>
@@ -1205,11 +1346,19 @@
         <li><a href="api-docs/losses.html#losses.loss.Loss.name">(losses.loss.Loss attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.nest_dict">nest_dict() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.nested_update">nested_update() (in module utils.utils)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.next_inputs">next_inputs() (parts.tacotron.tacotron_helper.TacotronHelper method)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs">(parts.tacotron.tacotron_helper.TacotronTrainingHelper method)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.normalize">normalize() (in module data.text2speech.speech_utils)</a>
 </li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.normalize_signal">normalize_signal() (in module data.speech2text.speech_utils)</a>
 </li>
@@ -1235,15 +1384,21 @@
 </li>
       <li><a href="api-docs/optimizers.html#module-optimizers.optimizers">optimizers.optimizers (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.OUT_OF_BUCKET">OUT_OF_BUCKET (data.text2text.text2text.SpecialTextTokens attribute)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_dtype">output_dtype (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder attribute)</a>
-</li>
-      <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.output_size">output_size (parts.rnns.attention_wrapper.AttentionWrapper attribute)</a>
 
       <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.output_dtype">(parts.tacotron.tacotron_decoder.TacotronDecoder attribute)</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Prenet.output_size">output_size (decoders.tacotron2_decoder.Prenet attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.output_size">(parts.rnns.attention_wrapper.AttentionWrapper attribute)</a>
+</li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.flstm.FLSTMCell.output_size">(parts.rnns.flstm.FLSTMCell attribute)</a>
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.glstm.GLSTMCell.output_size">(parts.rnns.glstm.GLSTMCell attribute)</a>
@@ -1251,6 +1406,10 @@
         <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_size">(parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder attribute)</a>
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.slstm.BasicSLSTMCell.output_size">(parts.rnns.slstm.BasicSLSTMCell attribute)</a>
+</li>
+        <li><a href="api-docs/parts.rnns.html#parts.rnns.zoneout.ZoneoutWrapper.output_size">(parts.rnns.zoneout.ZoneoutWrapper attribute)</a>
+</li>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.output_size">(parts.tacotron.tacotron_decoder.TacotronDecoder attribute)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1305,17 +1464,25 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.flstm">parts.rnns.flstm (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.glstm">parts.rnns.glstm (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.gnmt">parts.rnns.gnmt (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.rnn_beam_search_decoder">parts.rnns.rnn_beam_search_decoder (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.slstm">parts.rnns.slstm (module)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#module-parts.rnns.utils">parts.rnns.utils (module)</a>
+</li>
+      <li><a href="api-docs/parts.rnns.html#module-parts.rnns.zoneout">parts.rnns.zoneout (module)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#module-parts.tacotron">parts.tacotron (module)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#module-parts.tacotron.tacotron_decoder">parts.tacotron.tacotron_decoder (module)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#module-parts.tacotron.tacotron_helper">parts.tacotron.tacotron_helper (module)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#module-parts.transformer">parts.transformer (module)</a>
 </li>
@@ -1333,11 +1500,19 @@
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.lr_policies.piecewise_constant">piecewise_constant() (in module optimizers.lr_policies)</a>
 </li>
+      <li><a href="api-docs/models.html#models.text2speech.plot_spectrograms">plot_spectrograms() (in module models.text2speech)</a>
+</li>
       <li><a href="api-docs/optimizers.html#optimizers.lr_policies.poly_decay">poly_decay() (in module optimizers.lr_policies)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers.post_process_gradients">post_process_gradients() (in module optimizers.optimizers)</a>
 </li>
       <li><a href="api-docs/decoders.html#decoders.convs2s_decoder.ConvS2SDecoder.predict">predict() (decoders.convs2s_decoder.ConvS2SDecoder method)</a>
+
+      <ul>
+        <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder.predict">(decoders.transformer_decoder.TransformerDecoder method)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Prenet">Prenet (class in decoders.tacotron2_decoder)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.common.PrePostProcessingWrapper">PrePostProcessingWrapper (class in parts.transformer.common)</a>
 </li>
@@ -1383,6 +1558,26 @@
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.safe_cumprod">safe_cumprod() (in module parts.rnns.attention_wrapper)</a>
 </li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.sample">sample() (parts.tacotron.tacotron_helper.TacotronHelper method)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample">(parts.tacotron.tacotron_helper.TacotronTrainingHelper method)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_dtype">sample_ids_dtype (parts.tacotron.tacotron_helper.TacotronHelper attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_dtype">(parts.tacotron.tacotron_helper.TacotronTrainingHelper attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_shape">sample_ids_shape (parts.tacotron.tacotron_helper.TacotronHelper attribute)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_shape">(parts.tacotron.tacotron_helper.TacotronTrainingHelper attribute)</a>
+</li>
+      </ul></li>
+      <li><a href="api-docs/models.html#models.text2speech.save_audio">save_audio() (in module models.text2speech)</a>
+</li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch.search">search() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.SelfAttention">SelfAttention (class in parts.transformer.attention_layer)</a>
@@ -1406,7 +1601,11 @@
       <ul>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.split_data">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.split_data">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.Attention.split_heads">split_heads() (parts.transformer.attention_layer.Attention method)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.src_emb_size">src_emb_size (encoders.convs2s_encoder.ConvS2SEncoder attribute)</a>
@@ -1421,8 +1620,6 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.src_emb_size">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#encoders.convs2s_encoder.ConvS2SEncoder.src_vocab_size">src_vocab_size (encoders.convs2s_encoder.ConvS2SEncoder attribute)</a>
 
       <ul>
@@ -1446,9 +1643,15 @@
 </li>
         <li><a href="api-docs/parts.rnns.html#parts.rnns.slstm.BasicSLSTMCell.state_size">(parts.rnns.slstm.BasicSLSTMCell attribute)</a>
 </li>
+        <li><a href="api-docs/parts.rnns.html#parts.rnns.zoneout.ZoneoutWrapper.state_size">(parts.rnns.zoneout.ZoneoutWrapper attribute)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.step">step() (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder method)</a>
+
+      <ul>
+        <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.step">(parts.tacotron.tacotron_decoder.TacotronDecoder method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/models.html#models.model.Model.steps_in_epoch">steps_in_epoch (models.model.Model attribute)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer">Subtokenizer (class in data.text2text.tokenizer)</a>
@@ -1461,19 +1664,33 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder">Tacotron2Decoder (class in decoders.tacotron2_decoder)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder">Tacotron2Encoder (class in encoders.tacotron2_encoder)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder">TacotronDecoder (class in parts.tacotron.tacotron_decoder)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper">TacotronHelper (class in parts.tacotron.tacotron_helper)</a>
+</li>
+      <li><a href="api-docs/losses.html#losses.tacotron_loss.TacotronLoss">TacotronLoss (class in losses.tacotron_loss)</a>
+</li>
+      <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper">TacotronTrainingHelper (class in parts.tacotron.tacotron_helper)</a>
+</li>
+      <li><a href="api-docs/models.html#models.text2speech.Text2Speech">Text2Speech (class in models.text2speech)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer">Text2SpeechDataLayer (class in data.text2speech.text2speech)</a>
+</li>
       <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.text_ids_to_string">text_ids_to_string() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.tile_batch">tile_batch() (in module parts.rnns.rnn_beam_search_decoder)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.tracks_own_finished">tracks_own_finished (parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.funcs.train">train() (in module utils.funcs)</a>
-</li>
-      <li><a href="api-docs/data.text2text.html#data.text2text.t2t.train_input_fn">train_input_fn() (in module data.text2text.t2t)</a>
 </li>
       <li><a href="api-docs/models.html#models.text2text.transform_for_bleu">transform_for_bleu() (in module models.text2text)</a>
 </li>
@@ -1481,12 +1698,18 @@
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer">TransformerDataLayer (class in data.text2text.text2text)</a>
 </li>
+      <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder">TransformerDecoder (class in decoders.transformer_decoder)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.transformer_encoder.TransformerEncoder">TransformerEncoder (class in encoders.transformer_encoder)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="U">U</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.unescape_token">unescape_token() (in module data.text2text.tokenizer)</a>
+</li>
       <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding">UnidirectionalRNNEncoderWithEmbedding (class in encoders.rnn_encoders)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.UNK_ID">UNK_ID (data.text2text.text2text.SpecialTextTokens attribute)</a>
@@ -1528,6 +1751,10 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.AttentionWrapper.zero_state">zero_state() (parts.rnns.attention_wrapper.AttentionWrapper method)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/parts.rnns.html#parts.rnns.zoneout.ZoneoutWrapper">ZoneoutWrapper (class in parts.rnns.zoneout)</a>
 </li>
   </ul></td>
 </tr></table>

@@ -11,7 +11,7 @@ import tensorflow as tf
 from six.moves import range
 
 from open_seq2seq.test_utils.test_speech_configs.ds2_test_config import \
-  base_params, train_params, eval_params, base_model
+    base_params, train_params, eval_params, base_model
 from open_seq2seq.utils.utils import get_results_for_epoch, get_available_gpus
 
 
