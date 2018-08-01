@@ -468,6 +468,19 @@ def get_interactive_infer_results(model, sess, model_in):
   return results_per_batch
 
 def get_base_config(args):
+  """This function parses the command line arguments, reads the config file, and
+  gets the base_model from the config.
+
+  Args:
+    args (str): The command line arugments
+
+  Returns
+    args (dict): The arguments parsed into a dictionary
+    base_config (dict): The config read from the file and ammended with the
+      command line arguments
+    base_model (OpenSeq2Seq model): The model specified in the config file
+    config_module (dict): The raw config file processed by runpy
+  """
   parser = argparse.ArgumentParser(description='Experiment parameters')
   parser.add_argument("--config_file", required=True,
                       help="Path to the configuration file")
@@ -529,6 +542,16 @@ def get_base_config(args):
   return args, base_config, base_model, config_module
 
 def check_logdir(args, base_config):
+  """A helper function that ensures the logdir is setup correctly
+
+  Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+
+  Returns:
+    checkpoint: Either None if continue-learning is not set and training, or
+      the name of the checkpoint used to restore the model
+  """
   # checking that everything is correct with log directory
   logdir = base_config['logdir']
   if args.benchmark:
@@ -587,6 +610,16 @@ def check_logdir(args, base_config):
   return checkpoint
 
 def create_logdir(args, base_config):
+  """A helper function that ensures the logdir and log files are setup corretly.
+  Only called in --enable_logs is set.
+
+   Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+
+  Returns:
+    Some objects that need to be cleaned up in run.py
+  """
   logdir = base_config['logdir']
   if not os.path.exists(logdir):
     os.makedirs(logdir)
@@ -620,6 +653,22 @@ def create_logdir(args, base_config):
   return old_stdout, old_stderr, stdout_log, stderr_log
 
 def create_models(args, base_config, config_module, base_model, hvd):
+  """A helpful function that creates the train, eval, and infer models as
+  needed.
+
+  Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+    config_module: config_module as returned from get_base_config()
+    base_model (OpenSeq2Seq model): Dictionary as returned from
+      get_base_config()
+    hvd: Either None if Horovod is not enabled, or the Horovod library
+
+  Returns:
+    models (list): A 3 element list consisting of the train, eval, and infer
+      models. Depending on the mode set, the list will contain either an
+      OpenSeq2Seq model or None.
+  """
   train_config = copy.deepcopy(base_config)
   eval_config = copy.deepcopy(base_config)
   infer_config = copy.deepcopy(base_config)

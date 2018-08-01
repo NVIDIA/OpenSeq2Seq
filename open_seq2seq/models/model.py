@@ -336,7 +336,6 @@ class Model:
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
           if self._interactive:
-            # self.get_data_layer(gpu_cnt).build_interactive_graph()
             self.get_data_layer(gpu_cnt).create_interactive_placeholders()
           else:
             self.get_data_layer(gpu_cnt).build_graph()
