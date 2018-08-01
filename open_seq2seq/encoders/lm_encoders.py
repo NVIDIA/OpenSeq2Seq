@@ -36,6 +36,10 @@ class AWDLSTMEncoder(Encoder):
     return dict(Encoder.get_optional_params(), **{
       'encoder_dp_input_keep_prob': float,
       'encoder_dp_output_keep_prob': float,
+      "encoder_last_input_keep_prob": float,
+      "encoder_last_output_keep_prob": float, # output droput at last layer is 0.4
+      'encoder_emb_keep_prob': float,
+      'variational_recurrent': bool,
       'time_major': bool,
       'use_swap_memory': bool,
       'proj_size': int,
@@ -76,12 +80,54 @@ class AWDLSTMEncoder(Encoder):
     self._sampling_prob = self.params.get('sampling_prob', 0.0)
     self._schedule_learning = self.params.get('schedule_learning', False)
     self._weight_tied = self.params.get('weight_tied', False)
+    self.params['encoder_last_input_keep_prob'] = self.params.get('encoder_last_input_keep_prob', 1.0)
+    self.params['encoder_last_output_keep_prob'] = self.params.get('encoder_last_output_keep_prob', 1.0)
+    self.params['encoder_emb_keep_prob'] = self.params.get('encoder_emb_keep_prob', 1.0)
+    self.params['variational_recurrent'] = self.params.get('variational_recurrent', False)
+
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
       self._batch_size = len(self.params['seed_tokens'])
     else:
       self.num_tokens_gen = 1
       self._batch_size = self.params['batch_size']
+
+  def encode(self, input_dict):
+    """Wrapper around :meth:`self._encode() <_encode>` method.
+    Here name, initializer and dtype are set in the variable scope and then
+    :meth:`self._encode() <_encode>` method is called.
+
+    Args:
+      input_dict (dict): see :meth:`self._encode() <_encode>` docs.
+
+    Returns:
+      see :meth:`self._encode() <_encode>` docs.
+    """
+    if not self._compiled:
+      if 'regularizer' not in self._params:
+        if self._model and 'regularizer' in self._model.params:
+          self._params['regularizer'] = copy.deepcopy(
+              self._model.params['regularizer']
+          )
+          self._params['regularizer_params'] = copy.deepcopy(
+              self._model.params['regularizer_params']
+          )
+
+      if 'regularizer' in self._params:
+        init_dict = self._params.get('regularizer_params', {})
+        self._params['regularizer'] = self._params['regularizer'](**init_dict)
+        if self._params['dtype'] == 'mixed':
+          self._params['regularizer'] = mp_regularizer_wrapper(
+              self._params['regularizer'],
+          )
+
+      if self._params['dtype'] == 'mixed':
+        self._params['dtype'] = tf.float16
+
+    self._compiled = True
+
+    with tf.variable_scope(self._name, dtype=self.params['dtype']):
+      return self._encode(self._cast_types(input_dict))
 
   def _encode(self, input_dict):
     """
@@ -104,9 +150,26 @@ class AWDLSTMEncoder(Encoder):
     regularizer = self.params.get('regularizer', None)
     fc_use_bias = self.params.get('fc_use_bias', True)
 
+    if 'initializer' in self.params:
+      init_dict = self.params.get('initializer_params', {})
+      initializer = self.params['initializer'](**init_dict)
+    else:
+      initializer = None
+
+    if self._mode == "train":
+      dp_input_keep_prob = self.params['encoder_dp_input_keep_prob']
+      dp_output_keep_prob = self.params['encoder_dp_output_keep_prob']
+      last_input_keep_prob = self.params['encoder_last_input_keep_prob']
+      last_output_keep_prob = self.params['encoder_last_output_keep_prob']
+      emb_keep_prob = self.params['encoder_emb_keep_prob']
+    else:
+      dp_input_keep_prob, dp_output_keep_prob = 1.0, 1.0
+      last_input_keep_prob, last_output_keep_prob, emb_keep_prob = 1.0, 1.0, 1.0
+
     self._output_layer = tf.layers.Dense(
       self._vocab_size, 
       kernel_regularizer=regularizer,
+      kernel_initializer=initializer,
       use_bias=fc_use_bias,
     )
 
@@ -114,21 +177,16 @@ class AWDLSTMEncoder(Encoder):
       fake_input = tf.zeros(shape=(1, self._emb_size))
       fake_output = self._output_layer.apply(fake_input)
       with tf.variable_scope("dense", reuse=True):
-        self._enc_emb_w = tf.transpose(tf.get_variable("kernel"))
+        enc_emb_w = tf.transpose(tf.get_variable("kernel"))
         
     else:
-      self._enc_emb_w = tf.get_variable(
+      enc_emb_w = tf.get_variable(
         name="EncoderEmbeddingMatrix",
         shape=[self._vocab_size, self._emb_size],
-        dtype=tf.float32
+        dtype=self._params['dtype']
       )
-      
-    if self._mode == "train":
-      dp_input_keep_prob = self.params['encoder_dp_input_keep_prob']
-      dp_output_keep_prob = self.params['encoder_dp_output_keep_prob']
-    else:
-      dp_input_keep_prob = 1.0
-      dp_output_keep_prob = 1.0
+
+    self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
 
     if self._weight_tied:
       last_cell_params = self.params['last_cell_params']
@@ -140,15 +198,21 @@ class AWDLSTMEncoder(Encoder):
                   cell_params=self.params['core_cell_params'],
                   dp_input_keep_prob=dp_input_keep_prob,
                   dp_output_keep_prob=dp_output_keep_prob,
-                  residual_connections=self.params['encoder_use_skip_connections']
+                  residual_connections=self.params['encoder_use_skip_connections'],
+                  awd_initializer=True,
+                  variational_recurrent=self.params['variational_recurrent'],
+                  dtype=self._params['dtype']
                   ) for _ in range(self.params['encoder_layers'] - 1)]
 
     fwd_cells.append(
       single_cell(cell_class=self.params['core_cell'],
                   cell_params=last_cell_params,
-                  dp_input_keep_prob=dp_input_keep_prob,
-                  dp_output_keep_prob=dp_output_keep_prob,
-                  residual_connections=self.params['encoder_use_skip_connections']
+                  dp_input_keep_prob=last_input_keep_prob,
+                  dp_output_keep_prob=last_output_keep_prob,
+                  residual_connections=self.params['encoder_use_skip_connections'],
+                  awd_initializer=True,
+                  variational_recurrent=self.params['variational_recurrent'],
+                  dtype=self._params['dtype']
                   )
       )
 
@@ -189,7 +253,7 @@ class AWDLSTMEncoder(Encoder):
         helper=helper,
         output_layer=self._output_layer,
         initial_state=self._encoder_cell_fw.zero_state(
-          self._batch_size, dtype=tf.float32,
+          self._batch_size, dtype=self._params['dtype'],
         ),
       )
       maximum_iterations = tf.reduce_max(source_length)
@@ -209,7 +273,7 @@ class AWDLSTMEncoder(Encoder):
         cell=self._encoder_cell_fw,
         helper=helper,
         initial_state=self._encoder_cell_fw.zero_state(
-          batch_size=self._batch_size, dtype=tf.float32,
+          batch_size=self._batch_size, dtype=self._params['dtype'],
         ),
         output_layer=self._output_layer,
       )

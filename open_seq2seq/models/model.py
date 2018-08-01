@@ -297,7 +297,6 @@ class Model:
         if self._steps_in_epoch == 0:
           raise ValueError("Overall batch size is too big for this dataset.")
         self._last_step = self._params['num_epochs'] * self._steps_in_epoch
-        print(self._params['num_epochs'])
 
     if self.on_horovod:
       self._output = None

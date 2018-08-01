@@ -28,7 +28,7 @@ base_params = {
   "print_loss_steps": 40,
   "print_samples_steps": 40,
   "save_checkpoint_steps": 40,
-  "logdir": "AWDLSTM-ADAM-TIED",
+  "logdir": "AWDLSTM-EXP2",
   "eval_steps": 80,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -74,8 +74,11 @@ base_params = {
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
-    "encoder_dp_input_keep_prob": 0.65,
-    "encoder_dp_output_keep_prob": 1.0, # can't find it in paper. need to update dropouts
+    "encoder_dp_input_keep_prob": 1.0,
+    "encoder_dp_output_keep_prob": 0.7, # output dropout for middle layer 0.3
+    "encoder_last_input_keep_prob": 1.0,
+    "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
+    'encoder_emb_keep_prob': 0.6,
     "encoder_use_skip_connections": False,
     "emb_size": 400,
     "vocab_size": 33278,
@@ -83,14 +86,15 @@ base_params = {
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
     "weight_tied": True,
+    "variational_recurrent": True,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   'scale': 2.0, # alpha
-  # }
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    'scale': 2.0, # alpha
+  }
 
   # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
   "loss": BasicSequenceLoss,
