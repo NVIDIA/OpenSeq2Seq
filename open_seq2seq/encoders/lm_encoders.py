@@ -5,8 +5,11 @@ RNN-based encoders
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import copy
+
 import tensorflow as tf
 
+from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
