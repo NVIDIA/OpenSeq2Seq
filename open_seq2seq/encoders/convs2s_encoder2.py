@@ -214,11 +214,13 @@ class ConvS2SEncoder2(Encoder):
       if padding_mask is not None:
         outputs *= padding_mask
 
+      #changed here
+
       # Gradients are scaled as the gradients from
       # all decoder attention layers enters the encoder
-      scale = 1.0 / (
-          2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
-      outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
+      #scale = 1.0 / (
+      #    2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
+      #outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor
 

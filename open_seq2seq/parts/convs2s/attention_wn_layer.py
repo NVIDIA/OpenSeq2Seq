@@ -40,7 +40,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
           mode=mode,
-          normalization_type=normalization_type)
+          normalization_type=None) #changed here
 
       # linear projection layer to project back to the input space
       self.out_proj = FeedFowardNetworkNormalized(
@@ -49,7 +49,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_out",
           mode=mode,
-          normalization_type=normalization_type)
+          normalization_type=None) #changed here
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_b,
            input_attention_bias):
