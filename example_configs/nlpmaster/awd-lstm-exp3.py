@@ -94,7 +94,7 @@ base_params = {
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
     'scale': 2.0, # alpha
-  }
+  },
 
   # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
   "loss": BasicSequenceLoss,
