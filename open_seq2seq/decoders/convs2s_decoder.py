@@ -8,7 +8,7 @@ from .decoder import Decoder
 from open_seq2seq.parts.transformer import beam_search
 
 from open_seq2seq.parts.transformer import embedding_layer
-from open_seq2seq.parts.transformer.utils import get_padding
+from open_seq2seq.parts.transformer.utils import get_padding, get_position_encoding
 
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, attention_wn_layer
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
@@ -248,6 +248,14 @@ class ConvS2SDecoder(Decoder):
     # Prepare inputs to decoder layers by applying embedding
     # and adding positional encoding.
     decoder_inputs = self.embedding_softmax_layer(targets)
+
+    # with tf.name_scope("add_pos_encoding"):
+    #   length = tf.shape(decoder_inputs)[1]
+    #   pos_encoding = get_position_encoding(
+    #     length, self._tgt_emb_size,
+    #   )
+    #   decoder_inputs = decoder_inputs + 0.1*tf.cast(x=pos_encoding,
+    #                                             dtype=decoder_inputs.dtype)
 
     if self.position_embedding_layer is not None:
       with tf.name_scope("add_pos_encoding"):
