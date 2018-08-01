@@ -11,7 +11,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
+data_root = "/data/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
@@ -20,7 +20,7 @@ base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
   "restore_best_checkpoint": True,
   "use_horovod": False,
-  "num_gpus": 2,
+  "num_gpus": 4,
 
   "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "num_epochs": 350, # conforming to AWD-LSTM paper 750
@@ -28,7 +28,7 @@ base_params = {
   "print_loss_steps": 40,
   "print_samples_steps": 40,
   "save_checkpoint_steps": 40,
-  "logdir": "AWDLSTM-EXP2",
+  "logdir": "AWDLSTM-EXP3",
   "eval_steps": 80,
 
   "optimizer": "Adam", # need to change to NT-ASGD
