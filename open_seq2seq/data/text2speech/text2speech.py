@@ -10,6 +10,8 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
+from six import string_types
+
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_mel,\
@@ -369,6 +371,11 @@ class Text2SpeechDataLayer(DataLayer):
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
+    if not isinstance(model_in, string_types):
+      raise ValueError(
+          "Text2Speech's interactive inference mode only supports string.",
+          "Got {}". format(type(model_in))
+      )
     text, text_length = self._parse_transcript_element(model_in)
 
     text = np.reshape(text, [self.params["batch_size"], -1])

@@ -149,34 +149,34 @@ class ParallelTextDataLayer(DataLayer):
 
     self._input_tensors = {}
 
+  def _pad2eight(self, lst, do_pad_eight):
+    if len(lst) % 8 == 0 or not do_pad_eight:
+      return lst
+    else:
+      return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
+
+  def _src_token_to_id(self, line):
+    tokens = line.decode("utf-8").split(self._delimiter)
+    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+           [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
+  def _tgt_token_to_id(self, line):
+    tokens = line.decode("utf-8").split(self._delimiter)
+    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+           [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
   def build_graph(self):
-    def pad2eight(lst, do_pad_eight):
-      if len(lst) % 8 == 0 or not do_pad_eight:
-        return lst
-      else:
-        return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
-
-    def src_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
-
-    def tgt_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
-
     _sources = tf.data.TextLineDataset(self.source_file)\
-      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
+      .map(lambda line: tf.py_func(func=self._src_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
            num_parallel_calls=self._map_parallel_calls)
 
     _targets = tf.data.TextLineDataset(self.target_file) \
-      .map(lambda line: tf.py_func(func=tgt_token_to_id, inp=[line],
+      .map(lambda line: tf.py_func(func=self._tgt_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
@@ -225,81 +225,36 @@ class ParallelTextDataLayer(DataLayer):
       t1, _ = self.iterator.get_next()
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
-  def build_interactive_graph(self):
+  def create_interactive_placeholders(self):
+    self._text = tf.placeholder(dtype=tf.int32)
+    self._text_length = tf.placeholder(dtype=tf.int32)
+
+    self._text.set_shape([self._batch_size, None])
+    self._text_length.set_shape([self._batch_size])
+
+    self._input_tensors = {}
+    self._input_tensors['source_tensors'] = [self._text, self._text_length]
+
+  def create_feed_dict(self, model_in):
+    """ Creates the feed dict for interactive infer
+
+    Args:
+      model_in (str): the string to be translated. Should be in bpe format.
+
+    Returns:
+      feed_dict (dict): Dictionary with values for the placeholders.
     """
-    Must pass in placeholder
-    """
-    def pad2eight(lst, do_pad_eight):
-      if len(lst) % 8 == 0 or not do_pad_eight:
-        return lst
-      else:
-        return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
+    text = self._src_token_to_id(model_in)
+    text_length = text.shape[0]
 
-    def src_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+    text = np.reshape(text, [self._batch_size, -1])
+    text_length = np.reshape(text_length, [self._batch_size])
 
-    def tgt_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
-
-    self.input = tf.placeholder(dtype=tf.string)
-
-    _sources = tf.data.Dataset.from_tensor_slices(self.input)\
-      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
-                                   Tout=[tf.int32], stateful=False),
-           num_parallel_calls=self._map_parallel_calls) \
-      .map(lambda tokens: (tokens, tf.size(tokens)),
-           num_parallel_calls=self._map_parallel_calls)
-
-    _targets = tf.data.Dataset.from_tensor_slices(self.input) \
-      .map(lambda line: tf.py_func(func=tgt_token_to_id, inp=[line],
-                                   Tout=[tf.int32], stateful=False),
-           num_parallel_calls=self._map_parallel_calls) \
-      .map(lambda tokens: (tokens, tf.size(tokens)),
-           num_parallel_calls=self._map_parallel_calls)
-
-    _src_tgt_dataset = tf.data.Dataset.zip((_sources, _targets)).filter(
-      lambda t1, t2: tf.logical_and(tf.less_equal(t1[1], self.max_len),
-                                    tf.less_equal(t2[1], self.max_len))
-    ).cache()
-
-    if self._num_workers > 1:
-      _src_tgt_dataset = _src_tgt_dataset\
-        .shard(num_shards=self._num_workers, index=self._worker_id)
-
-    _src_tgt_dataset = _src_tgt_dataset
-
-    if self.params['repeat']:
-      _src_tgt_dataset = _src_tgt_dataset.repeat()
-
-    self.batched_dataset = _src_tgt_dataset.padded_batch(
-      self._batch_size,
-      padded_shapes=((tf.TensorShape([None]),
-                      tf.TensorShape([])),
-                     (tf.TensorShape([None]),
-                      tf.TensorShape([]))),
-      padding_values=(
-      (SpecialTextTokens.PAD_ID.value,
-       0),
-      (SpecialTextTokens.PAD_ID.value,
-       0))).prefetch(buffer_size=self._prefetch_buffer_size)
-
-    self._iterator = self.batched_dataset.make_initializable_iterator()
-
-    if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
-      t1, t2 = self.iterator.get_next()
-      x, x_length = t1[0], t1[1]
-      y, y_length = t2[0], t2[1]
-      self._input_tensors['source_tensors'] = [x, x_length]
-      self._input_tensors['target_tensors'] = [y, y_length]
-    else:
-      t1, _ = self.iterator.get_next()
-      self._input_tensors['source_tensors'] = [t1[0], t1[1]]
+    feed_dict = {
+        self._text: text,
+        self._text_length: text_length
+    }
+    return feed_dict
 
   def get_size_in_samples(self):
     return self.dataset_size
