@@ -14,7 +14,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
 
 base_model = AWDLSTM
-bptt = 72
+bptt = 12
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
@@ -22,14 +22,14 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 2,
 
-  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 16, # conforming to AWD-LSTM paper 80
   "num_epochs": 350, # conforming to AWD-LSTM paper 750
-  "save_summaries_steps": 40,
-  "print_loss_steps": 40,
-  "print_samples_steps": 40,
-  "save_checkpoint_steps": 40,
-  "logdir": "AWDLSTM-ADAM-TIED",
-  "eval_steps": 80,
+  "save_summaries_steps": 10,
+  "print_loss_steps": 10,
+  "print_samples_steps": 10,
+  "save_checkpoint_steps": 10,
+  "logdir": "TEST-AWDLSTM-ADAM-TRAINHELP",
+  "eval_steps": 10,
 
   "optimizer": "Adam", # need to change to NT-ASGD
   "optimizer_params": {},
@@ -66,7 +66,7 @@ base_params = {
     },
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 1024, # paper 1150
+        "num_units": 1150,
         "forget_bias": 1.0,
     },
     "last_cell_params": {
@@ -82,7 +82,7 @@ base_params = {
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
-    "weight_tied": True,
+    'weight_tied': True,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
@@ -108,7 +108,7 @@ train_params = {
     "vocab_file": data_root+"vocab.txt",
     "content_file": data_root+"train.ids",
     "rand_start": True,
-    "shuffle": True,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,

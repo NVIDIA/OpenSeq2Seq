@@ -2,6 +2,7 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import math
 import os
 import time
 
@@ -139,7 +140,7 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       )
 
     loss = results[0]
-    deco_print("loss = {:.4f}".format(loss), start="", end=", ")
+    deco_print("loss = {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(loss, math.exp(loss), loss/math.log(2)), start="", end=", ")
 
     tm = (time.time() - self._last_time) / self._every_steps
     m, s = divmod(tm, 60)
@@ -190,7 +191,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     )
 
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
-      deco_print("Validation loss: {:.4f}".format(total_loss), offset=4)
+      deco_print("Validation loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(total_loss, math.exp(total_loss), total_loss/math.log(2)), offset=4)
 
       dict_to_log = self._model.finalize_evaluation(results_per_batch, step)
       dict_to_log['eval_loss'] = total_loss

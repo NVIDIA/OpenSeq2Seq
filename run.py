@@ -98,6 +98,11 @@ def main():
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
                         "\"--continue_learning\" flag")
+        # if base_config['restore_best_checkpoint']:
+        #   print('restoring best checkpoint')
+        #   checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
+        # else:
+        #   checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
@@ -112,7 +117,11 @@ def main():
         checkpoint = None
     elif args.mode == 'infer' or args.mode == 'eval':
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if base_config['restore_best_checkpoint']:
+          print('restoring best checkpoint')
+          checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
+        else:
+          checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
               "There is no valid TensorFlow checkpoint in the "

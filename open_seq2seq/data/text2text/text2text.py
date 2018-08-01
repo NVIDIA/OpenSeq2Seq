@@ -328,8 +328,6 @@ class TransformerDataLayer(DataLayer):
   @property
   def input_tensors(self):
     return self._input_tensors
-<<<<<<< HEAD
-
 
 class LMTextDataLayer(DataLayer):
   @staticmethod
@@ -528,5 +526,3 @@ class LMTextDataLayer(DataLayer):
   @property
   def input_tensors(self):
     return self._input_tensors
-=======
->>>>>>> 670be38dd60141c69a273e4d5204a5ce79bb5d4d

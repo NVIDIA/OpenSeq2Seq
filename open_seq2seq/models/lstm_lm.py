@@ -35,11 +35,6 @@ class AWDLSTM(EncoderDecoderModel):
 
     return super(AWDLSTM, self)._create_loss()
 
-  # def _create_decoder(self):
-  #   self.params['decoder_params']['output_dim'] = (
-  #     self.get_data_layer().params['vocab_size']
-  #   )
-  #   return super(AWDLSTM, self)._create_decoder()
 
   def infer(self, input_values, output_values):
   	vocab = self.get_data_layer().corp.dictionary.idx2word
@@ -117,7 +112,7 @@ class AWDLSTM(EncoderDecoderModel):
       ),
       offset=4,
     )
-    samples = output_values[0][0].argmax(axis=1)
+    samples = output_values[0][0][0]
     deco_print(
       "*****EVAL Prediction[0]: " + array_to_string(
         samples,

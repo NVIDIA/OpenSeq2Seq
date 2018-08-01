@@ -42,14 +42,3 @@ class FakeDecoder(Decoder):
     """
     return {'logits': input_dict['encoder_output']['logits'], 
             'outputs': [input_dict['encoder_output']['outputs']]}
-    # inputs = input_dict['encoder_output']['outputs']
-    # regularizer = self.params.get('regularizer', None)
-
-    # # activation is linear by default
-    # logits = tf.layers.dense(
-    #   inputs=inputs,
-    #   units=self.params['output_dim'],
-    #   kernel_regularizer=regularizer,
-    #   name='fully_connected',
-    # )
-    # return {'logits': logits, 'outputs': [logits]}

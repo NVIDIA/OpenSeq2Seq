@@ -28,7 +28,9 @@ base_params = {
   "print_loss_steps": 40,
   "print_samples_steps": 40,
   "save_checkpoint_steps": 40,
-  "logdir": "AWDLSTM-ADAM-TIED",
+  "base_logdir": "AWDLSTM-ADAM-TIED",
+  "finetune": True,
+  "logdir": "AWDLSTM-ADAM-TIED-FINETUNE",
   "eval_steps": 80,
 
   "optimizer": "Adam", # need to change to NT-ASGD

@@ -34,6 +34,7 @@ class LMTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
       'seed_tokens': str,
+      'shuffle_buffer_size': int,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -52,6 +53,7 @@ class LMTextDataLayer(DataLayer):
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
     self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
                                                  tf.contrib.data.AUTOTUNE)
+    self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
     self._num_workers = num_workers
     self._worker_id = worker_id
     self.params["delimiter"] = self.params.get("delimiter", " ")
@@ -67,7 +69,7 @@ class LMTextDataLayer(DataLayer):
     self.corp = Corpus(self.params['vocab_file'], self.params['content_file'])
     self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
-    # self.corp.content = self.corp.content[:1004]
+    # self.corp.content = self.corp.content[:9004]
 
 
     if self.params.get('pad_vocab_to_eight', False):
@@ -91,13 +93,18 @@ class LMTextDataLayer(DataLayer):
     while True:
       if self.rand_start:
         self.start = random.randint(0, self.bptt - 1)
-      
-      for i in range(self.start, self.dataset_size - 1 - self.bptt, self.bptt):
-        yield (self.corp.content[i : i + self.bptt], self.corp.content[i + 1 : i + self.bptt + 1])
+
+      n_samples = (self.dataset_size - self.start - 1) // self.bptt
+
+      for i in range(n_samples):
+        begin = self.start + i * self.bptt
+        yield (self.corp.content[begin : begin + self.bptt], self.corp.content[begin + 1 : begin + self.bptt + 1])
+
   def gen_infer(self):
     # if len(self.corp.content) > self.bptt:
     #   self.corp.content = self.corp.content[-self.bptt:]
-    yield (self.corp.content, self.corp.content)
+    while True:
+      yield (self.corp.content, self.corp.content)
     
   def build_graph(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
@@ -114,8 +121,10 @@ class LMTextDataLayer(DataLayer):
         .shard(num_shards=self._num_workers, index=self._worker_id)
 
     if self.params['shuffle']:
-      _src_tgt_dataset = _src_tgt_dataset\
-        .shuffle(buffer_size=self.get_size_in_samples())
+      bf_size = self.get_size_in_samples() if self._shuffle_buffer_size == -1 \
+                                           else self._shuffle_buffer_size
+      _src_tgt_dataset = _src_tgt_dataset.shuffle(buffer_size=bf_size)
+
     else:
       _src_tgt_dataset = _src_tgt_dataset
 
@@ -138,10 +147,12 @@ class LMTextDataLayer(DataLayer):
     else: # this is unncessary
       t1, _ = self.iterator.get_next()
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
+      # self._input_tensors['source_tensors'] = [None, None]
+      # print('inferencing')
 
   def get_size_in_samples(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
-      return self.dataset_size - 1 - self.bptt - self.start
+      return (self.dataset_size - self.start) // self.bptt
     return 1
 
   @property
