@@ -28,7 +28,7 @@ num_layers = 15
 d_model = 512
 hidden_before_last = 512
 
-dtype = tf.float32
+dtype = "mixed"
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
@@ -41,7 +41,7 @@ base_params = {
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
   "max_steps": 310000,
-  "batch_size_per_gpu": 128,
+  "batch_size_per_gpu": 256,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
