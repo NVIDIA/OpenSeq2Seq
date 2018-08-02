@@ -35,13 +35,13 @@ normalization_type = "weight_norm"
 max_length = 64
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 1,
+  "use_horovod": True,
+  "num_gpus": 8,
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
   "max_steps": 310000,
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,

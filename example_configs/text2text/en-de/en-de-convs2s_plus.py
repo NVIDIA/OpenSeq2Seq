@@ -51,7 +51,7 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": 50,#max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": None, #50,#max(1, int(max_steps/1000.0)),
   "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
@@ -59,31 +59,31 @@ base_params = {
   "logdir": "WMT16_EN_DT",
 
 
-  # "optimizer": "Adam",
-  # "optimizer_params": {},
-  # "lr_policy": transformer_policy,
+  "optimizer": "Adam",
+  "optimizer_params": {},
+  "lr_policy": transformer_policy,
+  "lr_policy_params": {
+    "learning_rate": 1,
+    "max_lr": 1e-3,
+    "warmup_steps": 4000,
+    "d_model": d_model,
+  },
+
+  # "optimizer": "Momentum",
+  # "optimizer_params": {
+  #   "momentum": 0.90,
+  # },
+  #
+  # "lr_policy": fixed_lr,
+  # "lr_policy": poly_decay,
   # "lr_policy_params": {
-  #   "learning_rate": 1,
-  #   "max_lr": 1e-3,
-  #   "warmup_steps": 4000,
-  #   "d_model": d_model,
+  #    "learning_rate": 0.01,
+  #    "power": 2.0,
+  #    "decay_steps":max_steps,
   # },
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.90,
-  },
-
-  "lr_policy": fixed_lr,
-  "lr_policy": poly_decay,
-  "lr_policy_params": {
-     "learning_rate": 0.01,
-     "power": 2.0,
-     "decay_steps":max_steps,
-  },
-
   "larc_params": {
-    "larc_eta": 0.001,
+    "larc_eta": 0.0001,
   },
 
 
