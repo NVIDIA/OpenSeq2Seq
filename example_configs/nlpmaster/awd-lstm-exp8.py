@@ -75,10 +75,10 @@ base_params = {
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
-    "encoder_dp_input_keep_prob": 0.6,
-    "encoder_dp_output_keep_prob": 1.0, # output dropout for middle layer 0.3
-    "encoder_last_input_keep_prob": 0.6,
-    "encoder_last_output_keep_prob": 1.0, # output droput at last layer is 0.4
+    "encoder_dp_input_keep_prob": 1.0,
+    "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
+    "encoder_last_input_keep_prob": 1.0,
+    "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
     'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
     "emb_size": 400,
