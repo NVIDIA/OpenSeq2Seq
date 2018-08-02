@@ -7,7 +7,9 @@ from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 import argparse
 import sentencepiece as spm
-#import zip # note this isn't Python2 friendly
+
+
+vocab_size = 32768
 
 def train_tokenizer_model(args):
   print("========> Training tokenizer model")
@@ -37,21 +39,31 @@ def tokenize(args):
   sp2 = spm.SentencePieceProcessor()
   sp2.Load(model_prefix2 + ".model")
 
+  ind = 0
   with open(input_file1, 'r') as file1, open(input_file2, 'r') as file2:
     with open(tokenized_output1, 'w') as ofile1, open(tokenized_output2, 'w') as ofile2:
-      for src_raw, tgt_raw in zip(file1, file2): # will this work in Python2 ?
-        if src_raw.strip() == "" or tgt_raw.strip() == "":
+      while True: # YaY!
+        _src_raw = file1.readline()
+        _tgt_raw = file2.readline()
+
+        if not _src_raw or not _tgt_raw:
+          break
+
+        src_raw = _src_raw.strip()
+        tgt_raw = _tgt_raw.strip()
+
+        try:
+          encoded_src_list = sp1.EncodeAsPieces(src_raw)
+          encoded_tgt_list = sp2.EncodeAsPieces(tgt_raw)
+        except:
           continue
-        encoded_src_list = sp1.EncodeAsPieces(src_raw)
-        encoded_tgt_list = sp2.EncodeAsPieces(tgt_raw)
 
         encoded_src = ' '.join([w.decode('utf-8') for w in encoded_src_list])
         encoded_tgt = ' '.join([w.decode('utf-8') for w in encoded_tgt_list])
 
-        if encoded_src.strip() == "" or encoded_tgt.strip() == "":
-          continue
         ofile1.write(encoded_src + "\n")
         ofile2.write(encoded_tgt + "\n")
+        ind += 1
 
 def detokenize(args):
   print("========> Detokenizing")
@@ -86,7 +98,7 @@ def main():
                       help="model prefix for src when tokenizing")
   parser.add_argument("--model_prefix2",
                       help="model prefix for tgt when tokenizing")
-  parser.add_argument('--vocab_size', type=int, default=32768,
+  parser.add_argument('--vocab_size', type=int, default=vocab_size,
                       help='Vocabulary size')
   parser.add_argument('--mode', required=True,
                       help='train, tokenize or detokenize')
