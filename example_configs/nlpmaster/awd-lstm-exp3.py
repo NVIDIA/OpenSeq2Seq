@@ -24,12 +24,12 @@ base_params = {
 
   "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "num_epochs": 350, # conforming to AWD-LSTM paper 750
-  "save_summaries_steps": 40,
-  "print_loss_steps": 40,
-  "print_samples_steps": 40,
-  "save_checkpoint_steps": 40,
+  "save_summaries_steps": 20,
+  "print_loss_steps": 20,
+  "print_samples_steps": 20,
+  "save_checkpoint_steps": 20,
   "logdir": "AWDLSTM-EXP3",
-  "eval_steps": 80,
+  "eval_steps": 40,
 
   "optimizer": "Adam", # need to change to NT-ASGD
   "optimizer_params": {},
