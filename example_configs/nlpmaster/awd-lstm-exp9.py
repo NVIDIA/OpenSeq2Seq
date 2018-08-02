@@ -11,26 +11,26 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/data/wikitext-2/"
+data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
-steps = 10
+steps = 40
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
   "restore_best_checkpoint": True,
-  "use_horovod": True,
-  "num_gpus": 8,
+  "use_horovod": False,
+  "num_gpus": 2,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "num_epochs": 750, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP7",
-  "eval_steps": 2 * steps,
+  "logdir": "AWDLSTM-EXP9",
+  "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
   "optimizer_params": {},
@@ -38,7 +38,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 3e-3,
+    "learning_rate": 1e-3
   },
 
   # "lr_policy": exp_decay,
@@ -71,7 +71,7 @@ base_params = {
         "forget_bias": 1.0,
     },
     "last_cell_params": {
-        "num_units": 400,
+        "num_units": 320,
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
@@ -81,11 +81,11 @@ base_params = {
     "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
     'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
-    "emb_size": 400,
+    "emb_size": 320,
     "vocab_size": 33278,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
-    "fc_use_bias": True,d
+    "fc_use_bias": True,
     "weight_tied": True,
     "variational_recurrent": True,
   },
