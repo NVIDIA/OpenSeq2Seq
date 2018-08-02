@@ -104,7 +104,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.contrib.layers.variance_scaling_initializer(), #tf.random_normal_initializer(mean=0, stddev=0.01),
+            initializer=tf.random_normal_initializer(mean=0, stddev=0.01), #tf.contrib.layers.variance_scaling_initializer()
             trainable=True)
 
       if self.bias_enabled:
@@ -151,7 +151,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           name="batch_norm_" + str(self.layer_id),
           inputs=bn_input,
           #gamma_regularizer=self.regularizer,
-          training=True, #self.mode == 'train',
+          training=self.mode == 'train',
           axis=-1,
           momentum=0.90,
           epsilon=1e-4,

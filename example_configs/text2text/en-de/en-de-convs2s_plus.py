@@ -40,7 +40,7 @@ max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None  #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
-scaling_factor = math.sqrt(0.5) #changed here
+scaling_factor = 1.0 #math.sqrt(0.5) #changed here
 
 base_params = {
   # iter_size can be used just with horovod
@@ -51,7 +51,7 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": None, #50,#max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": 20, #50,#max(1, int(max_steps/1000.0)),
   "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
@@ -77,17 +77,17 @@ base_params = {
   # "lr_policy": fixed_lr,
   # "lr_policy": poly_decay,
   # "lr_policy_params": {
-  #    "learning_rate": 0.01,
+  #    "learning_rate": 1.0,
   #    "power": 2.0,
   #    "decay_steps":max_steps,
   # },
+  #
+  # "larc_params": {
+  #   "larc_eta": 0.001,
+  # },
 
-  "larc_params": {
-    "larc_eta": 0.0001,
-  },
 
-
-  # "max_grad_norm": 10.0,
+  "max_grad_norm": 10.0,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
@@ -141,7 +141,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
-    "pos_embed": True,
+    "pos_embed": False,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,

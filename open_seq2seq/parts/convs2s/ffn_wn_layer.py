@@ -80,8 +80,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         self.V = tf.get_variable(
             'W',
             shape=[in_dim, out_dim],
-            initializer=tf.contrib.layers.variance_scaling_initializer(),
-            #tf.random_normal_initializer(mean=0, stddev=0.01),
+            initializer=tf.random_normal_initializer(mean=0, stddev=0.01),#tf.contrib.layers.variance_scaling_initializer(),
             trainable=True)
       if self.bias_enabled:
         self.b = tf.get_variable(

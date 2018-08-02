@@ -82,7 +82,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self._src_vocab_size,
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=0.1, #0.1, changed here
+              init_var=None, #0.1, changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -92,7 +92,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH),
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=0.1, #0.1,changed here
+              init_var=None, #0.1,changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -218,9 +218,9 @@ class ConvS2SEncoder2(Encoder):
 
       # Gradients are scaled as the gradients from
       # all decoder attention layers enters the encoder
-      #scale = 1.0 / (
-      #    2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
-      #outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
+      scale = 1.0 / (
+          2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
+      outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor
 
