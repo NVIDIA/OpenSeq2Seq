@@ -11,3 +11,4 @@ from .rnn_decoders import RNNDecoderWithAttention, \
 from .transformer_decoder import TransformerDecoder
 from .tacotron2_decoder import Tacotron2Decoder
 from .convs2s_decoder import ConvS2SDecoder
+from .las_decoder import ListenAttendSpellDecoder

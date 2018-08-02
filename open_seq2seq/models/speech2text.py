@@ -44,10 +44,23 @@ def levenshtein(a, b):
 
 class Speech2Text(EncoderDecoderModel):
   def _create_decoder(self):
+    data_layer = self.get_data_layer()
     self.params['decoder_params']['tgt_vocab_size'] = (
+        data_layer.params['tgt_vocab_size']
+    )
+
+    if data_layer.params['autoregressive']:
+      self.params['decoder_params']['GO_SYMBOL'] = data_layer.start_index
+      self.params['decoder_params']['END_SYMBOL'] = data_layer.end_index
+
+    return super(Speech2Text, self)._create_decoder()
+
+  def _create_loss(self):
+    self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
+    self.params['loss_params']['tgt_vocab_size'] = (
         self.get_data_layer().params['tgt_vocab_size']
     )
-    return super(Speech2Text, self)._create_decoder()
+    return super(Speech2Text, self)._create_loss()
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     y, len_y = input_values['target_tensors']

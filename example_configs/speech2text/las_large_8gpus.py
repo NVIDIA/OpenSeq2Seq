@@ -2,9 +2,9 @@
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
 from open_seq2seq.encoders import ListenAttendSpellEncoder
-from open_seq2seq.decoders import FullyConnectedCTCDecoder
+from open_seq2seq.decoders import ListenAttendSpellDecoder
 from open_seq2seq.data import Speech2TextDataLayer
-from open_seq2seq.losses import CTCLoss
+from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
 
@@ -12,7 +12,7 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
+    "use_horovod": False,
     "num_epochs": 50,
 
     "num_gpus": 8,
@@ -75,7 +75,7 @@ base_params = {
 
         "recurrent_layers": [
             {
-                "type": "lstm", "num_layers": 6,
+                "type": "lstm", "num_layers": 3,
                 "hidden_dim": 512, "dropout_keep_prob": 0.8,
             },
         ],
@@ -95,10 +95,20 @@ base_params = {
 
     "decoder": ListenAttendSpellDecoder,
     "decoder_params": {
-
+        "tgt_emb_size": 256,
+        "attention_dim": 256,
+        "rnn_type": "lstm",
+        "hidden_dim": 512,
+        "num_layers": 2,
+        "dropout_keep_prob": 1.0,
     },
-    "loss": CTCLoss, --------->
-    "loss_params": {},
+
+    "loss": BasicSequenceLoss,
+    "loss_params": {
+        "offset_target_by_one": False,
+        "average_across_timestep": True,
+        "do_mask": True
+    }
 }
 
 train_params = {
@@ -108,9 +118,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "../librispeech/librivox-train-clean-100.csv",
+            "../librispeech/librivox-train-clean-360.csv",
+            "../librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
