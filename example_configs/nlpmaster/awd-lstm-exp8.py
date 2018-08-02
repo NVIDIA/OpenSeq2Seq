@@ -15,15 +15,15 @@ data_root = "/data/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
-steps = 20
+steps = 10
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
   "restore_best_checkpoint": True,
   "use_horovod": False,
-  "num_gpus": 4,
+  "num_gpus": 8,
 
-  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
   "num_epochs": 750, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -38,7 +38,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 1e-3,
+    "learning_rate": 3e-3,
   },
 
   # "lr_policy": exp_decay,
@@ -75,9 +75,9 @@ base_params = {
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
-    "encoder_dp_input_keep_prob": 1.0,
-    "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
-    "encoder_last_input_keep_prob": 1.0,
+    "encoder_dp_input_keep_prob": 0.6,
+    "encoder_dp_output_keep_prob": 1.0, # output dropout for middle layer 0.3
+    "encoder_last_input_keep_prob": 0.6,
     "encoder_last_output_keep_prob": 1.0, # output droput at last layer is 0.4
     'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
