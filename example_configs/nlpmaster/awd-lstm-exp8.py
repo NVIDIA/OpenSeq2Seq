@@ -20,7 +20,7 @@ steps = 10
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
   "restore_best_checkpoint": True,
-  "use_horovod": False,
+  "use_horovod": True,
   "num_gpus": 8,
 
   "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
