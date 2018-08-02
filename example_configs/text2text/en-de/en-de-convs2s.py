@@ -28,7 +28,7 @@ num_layers = 15
 d_model = 512
 hidden_before_last = 512
 
-dtype = "mixed"
+dtype = tf.float32
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
