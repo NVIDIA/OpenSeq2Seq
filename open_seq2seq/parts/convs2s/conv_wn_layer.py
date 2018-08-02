@@ -89,8 +89,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       conv_out_size = out_dim
 
     with tf.variable_scope("conv_layer_" + str(layer_id)):
+      V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
       if self.wn_enabled:
-        V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
         self.V = tf.get_variable(
             'V',
             shape=[kernel_width, in_dim, conv_out_size],
@@ -104,7 +104,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.random_normal_initializer(mean=0, stddev=0.01), #tf.contrib.layers.variance_scaling_initializer()
+            initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.random_normal_initializer(mean=0, stddev=0.01)
             trainable=True)
 
       if self.bias_enabled:
@@ -112,7 +112,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
             'b',
             shape=[conv_out_size],
             initializer=tf.zeros_initializer(),
-            trainable=True)
+            trainable=False)
       else:
         self.b = None
 
@@ -137,9 +137,6 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     output = tf.nn.conv1d(
         value=x, filters=self.W, stride=1, padding=self.conv_padding)
 
-    if self.b is not None:
-      output = tf.nn.bias_add(output, self.b)
-
     if self.decode_padding and self.kernel_width > 1:
       output = output[:, 0:-self.kernel_width + 1, :]
 
@@ -155,6 +152,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           axis=-1,
           momentum=0.90,
           epsilon=1e-4,
+          scale=not self.bias_enabled,
+          center=not self.bias_enabled,
       )
       output = tf.squeeze(bn_output, axis=1)
 
@@ -167,6 +166,9 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           scope="layer_norm_" + str(self.layer_id),
       )
       output = tf.squeeze(ln_output, axis=1)
+
+    if self.b is not None:
+      output = tf.nn.bias_add(output, self.b)
 
     if self.act_func is not None:
       output = self.act_func(output)

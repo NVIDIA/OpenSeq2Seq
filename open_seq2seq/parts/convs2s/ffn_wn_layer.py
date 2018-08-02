@@ -80,14 +80,14 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         self.V = tf.get_variable(
             'W',
             shape=[in_dim, out_dim],
-            initializer=tf.random_normal_initializer(mean=0, stddev=0.01),#tf.contrib.layers.variance_scaling_initializer(),
+            initializer=tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim)),#tf.contrib.layers.variance_scaling_initializer(),
             trainable=True)
       if self.bias_enabled:
         self.b = tf.get_variable(
             'b',
             shape=[out_dim],
             initializer=tf.zeros_initializer(),
-            trainable=True)
+            trainable=False)
       else:
         self.b = None
 
@@ -111,9 +111,6 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       scaler = tf.div(self.g, tf.norm(self.V, axis=0))
       output = tf.reshape(scaler, [1, self.out_dim]) * output
 
-    if self.b is not None:
-      output = output + tf.reshape(self.b, [1, self.out_dim])
-
     if self.apply_batch_norm:
       output = tf.expand_dims(output, axis=1)
       output = tf.layers.batch_normalization(
@@ -124,6 +121,8 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           axis=-1,
           momentum=0.99,
           epsilon=1e-4,
+          scale=not self.bias_enabled,
+          center=not self.bias_enabled,
       )
       output = tf.squeeze(output, axis=1)
 
@@ -136,5 +135,8 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           scope=self.var_scope_name + "_layer_norm",
       )
       output = tf.squeeze(output, axis=1)
+
+    if self.b is not None:
+      output = output + tf.reshape(self.b, [1, self.out_dim])
 
     return output

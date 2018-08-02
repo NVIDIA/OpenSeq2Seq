@@ -39,8 +39,8 @@ use_horovod = False
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None  #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
-scaling_factor = 1.0 #math.sqrt(0.5) #changed here
+normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
+scaling_factor = math.sqrt(0.5) #changed here
 
 base_params = {
   # iter_size can be used just with horovod
@@ -51,7 +51,7 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": 20, #50,#max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": 1, #50,#max(1, int(max_steps/1000.0)),
   "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),

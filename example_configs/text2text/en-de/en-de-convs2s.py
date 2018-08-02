@@ -40,8 +40,8 @@ base_params = {
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
-  "max_steps": 310000,
-  "batch_size_per_gpu": 256,
+  "max_steps": 132000,#310000,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
@@ -102,7 +102,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": True,
     "out_emb_size": hidden_before_last,
-    "pos_embed": False,
+    "pos_embed": True,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
