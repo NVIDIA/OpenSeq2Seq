@@ -12,7 +12,7 @@ from open_seq2seq.encoders import ConvS2SEncoder, ConvS2SEncoder2
 from open_seq2seq.decoders import ConvS2SDecoder, ConvS2SDecoder2
 
 from open_seq2seq.losses import BasicSequenceLoss
-from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay, fixed_lr
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 import math
@@ -52,24 +52,42 @@ base_params = {
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
   "save_summaries_steps": 50,#max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 50, #max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": None, #int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
 
-  "optimizer": "Adam",
-  "optimizer_params": {},
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "learning_rate": 9,
-    "max_lr": 1e-3,
-    "warmup_steps": 4000,
-    "d_model": d_model,
+  # "optimizer": "Adam",
+  # "optimizer_params": {},
+  # "lr_policy": transformer_policy,
+  # "lr_policy_params": {
+  #   "learning_rate": 1,
+  #   "max_lr": 1e-3,
+  #   "warmup_steps": 4000,
+  #   "d_model": d_model,
+  # },
+
+  "optimizer": "Momentum",
+  "optimizer_params": {
+    "momentum": 0.90,
   },
 
-  "max_grad_norm": 10.0,
+  "lr_policy": fixed_lr,
+  "lr_policy": poly_decay,
+  "lr_policy_params": {
+     "learning_rate": 0.01,
+     "power": 2.0,
+     "decay_steps":max_steps,
+  },
+
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
+
+
+  # "max_grad_norm": 10.0,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
@@ -79,16 +97,16 @@ base_params = {
   #  'scale': 0.001
   #},
 
-
-  "dtype": dtype,
   "loss_scaling": "Backoff",
-  "loss_scaling_params": {
-     "scale_min": 1.0,
-     "scale_max": 2.**24,
-   },
+  # "loss_scaling_params": {
+  #    "scale_min": 1.0,
+  #    "scale_max": 10., #2.**24., #100., #1024.0, #2.**24,
+  #  },
 
   "encoder": ConvS2SEncoder2,
   "encoder_params": {
+    "dtype": dtype,
+
     "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
@@ -116,6 +134,7 @@ base_params = {
 
   "decoder": ConvS2SDecoder2,
   "decoder_params": {
+    "dtype": dtype,
     "decoder_layers": num_layers,
 
     "shared_embed": True,

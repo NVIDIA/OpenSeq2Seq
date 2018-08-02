@@ -82,7 +82,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self._src_vocab_size,
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=None, #0.1, changed here
+              init_var=0.1, #0.1, changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -92,7 +92,7 @@ class ConvS2SEncoder2(Encoder):
               vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH),
               hidden_size=self._src_emb_size,
               pad_vocab_to_eight=self._pad2eight,
-              init_var=None, #0.1,changed here
+              init_var=0.1, #0.1,changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
               mask_paddings=True)
@@ -120,7 +120,7 @@ class ConvS2SEncoder2(Encoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=None)
+                normalization_type=self.normalization_type)
           else:
             linear_proj = None
 

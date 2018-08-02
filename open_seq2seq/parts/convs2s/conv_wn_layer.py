@@ -151,7 +151,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           name="batch_norm_" + str(self.layer_id),
           inputs=bn_input,
           #gamma_regularizer=self.regularizer,
-          training=self.mode == 'train',
+          training=True, #self.mode == 'train',
           axis=-1,
           momentum=0.90,
           epsilon=1e-4,
