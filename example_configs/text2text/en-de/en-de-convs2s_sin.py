@@ -28,13 +28,13 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-num_gpus = 1
+num_gpus = 8
 epoch_num = 35
 
 iter_size = 1
 dtype = "mixed"  # "mixed" or tf.float32
-shuffle_train = False
-use_horovod = False
+shuffle_train = True
+use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
