@@ -11,7 +11,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
+data_root = "/data/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
@@ -29,7 +29,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP16",
+  "logdir": "AWDLSTM-EXP17",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
