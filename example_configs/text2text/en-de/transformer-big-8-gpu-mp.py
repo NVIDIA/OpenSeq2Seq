@@ -26,7 +26,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 1, # use 8 Horovod workers
   "batch_size_per_gpu": 128,  # this size is in sentence pairs
-  "max_steps": 250000,
+  "max_steps": 310000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
