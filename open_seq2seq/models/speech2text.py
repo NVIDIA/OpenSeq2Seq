@@ -93,7 +93,7 @@ class Speech2Text(EncoderDecoderModel):
     pred_text = "".join(self.tensor_to_chars(
         decoded_sequence_one_batch,
         self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params,
+        **self.tensor_to_char_params
     )[0])
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
         len(true_text.split())
@@ -126,7 +126,7 @@ class Speech2Text(EncoderDecoderModel):
     decoded_texts = self.tensor_to_chars(
         decoded_sequence,
         self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params,
+        **self.tensor_to_char_params
     )
     batch_size = input_values['source_tensors'][0].shape[0]
     for sample_id in range(batch_size):
@@ -149,7 +149,7 @@ class Speech2Text(EncoderDecoderModel):
     decoded_texts = self.tensor_to_chars(
         decoded_sequence,
         self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params,
+        **self.tensor_to_char_params
     )
     for decoded_text in decoded_texts:
       preds.append("".join(decoded_text))
