@@ -16,8 +16,8 @@ data_root = "/data/wmt16-ende-sp/"
 base_model = Text2Text
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 4,
+  "use_horovod": True,
+  "num_gpus": 1,
   "max_steps": 310000,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
