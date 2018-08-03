@@ -124,7 +124,6 @@ class ListenAttendSpellDecoder(Decoder):
           inputs=tgt_input_vectors,
           sequence_length=tgt_lengths,
       )
-      maximum_iterations = tf.reduce_max(tgt_lengths)
     elif self._mode == "infer" or self._mode == "eval":
       embedding_fn = lambda ids: tf.cast(
           tf.nn.embedding_lookup(self._target_emb_layer, ids),
@@ -135,7 +134,10 @@ class ListenAttendSpellDecoder(Decoder):
           start_tokens=tf.fill([self._batch_size], self.GO_SYMBOL),
           end_token=self.END_SYMBOL,
       )
-      # To-Do chnage this
+
+    if self._mode != "infer":
+      maximum_iterations = tf.reduce_max(tgt_lengths)
+    else:
       maximum_iterations = tf.reduce_max(enc_src_lengths)
 
     decoder = tf.contrib.seq2seq.BasicDecoder(
@@ -155,13 +157,13 @@ class ListenAttendSpellDecoder(Decoder):
 
     outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
     
-    bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
+    '''bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
     indices = tf.constant([[i, j] for i in tf.range(bs) for j in tf.range(ln)])
     values = tf.reshape(outputs, [-1])
-    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])    
+    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''    
 
     return {
-        'outputs': [sparse_outputs],
+        'outputs': [outputs],
         'logits': final_outputs.rnn_output,
         'tgt_length': final_sequence_lengths,
     }

@@ -65,31 +65,51 @@ base_params = {
                 "num_channels": 256, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
+            {
+                "type": "conv1d", "repeat": 3,
+                "kernel_size": [11], "stride": [1],
+                "num_channels": 256, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [13], "stride": [2],
+                "num_channels": 384, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 3,
+                "kernel_size": [13], "stride": [1],
+                "num_channels": 384, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [17], "stride": [2],
+                "num_channels": 512, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 3,
+                "kernel_size": [17], "stride": [1],
+                "num_channels": 512, "padding": "SAME",
+                "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 2,
+                "kernel_size": [21], "stride": [1],
+                "num_channels": 512, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
+            },
+            {
+                "type": "conv1d", "repeat": 2,
+                "kernel_size": [25], "stride": [1],
+                "num_channels": 512, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
+            },
         ],
 
-        "recurrent_layers": [
-            {
-                "type": "lstm", "num_layers": 1,
-                "hidden_dim": 512, "dropout_keep_prob": 0.8,
-                "pool": True, "pool_size":[2], "stride": [2],
-            },
-            {
-                "type": "lstm", "num_layers": 1,
-                "hidden_dim": 512, "dropout_keep_prob": 0.8,
-                "pool": False, "pool_size":[2], "stride": [2],
-            },
-            {
-                "type": "lstm", "num_layers": 1,
-                "hidden_dim": 512, "dropout_keep_prob": 0.8,
-                "pool": True, "pool_size":[2], "stride": [2],
-            },
-            {
-                "type": "lstm", "num_layers": 1,
-                "hidden_dim": 512, "dropout_keep_prob": 0.8,
-                "pool": False, "pool_size":[2], "stride": [2],
-            },
-        ],
-
+        "recurrent_layers": [],
         "dropout_keep_prob": 0.8,
 
         "residual_connections": False,

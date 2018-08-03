@@ -203,6 +203,9 @@ class ListenAttendSpellEncoder(Encoder):
       hidden_dim = recurrent_layers[idx_rnn]['hidden_dim']
       dropout_keep = recurrent_layers[idx_rnn].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
+      use_pool = recurrent_layers[idx_rnn]['pool']
+      pool_size = recurrent_layers[idx_rnn]['pool_size']
+      strides = recurrent_layers[idx_rnn]['stride']
 
       rnn_feats = rnn_block(
           layer_type=layer_type,
@@ -217,6 +220,13 @@ class ListenAttendSpellEncoder(Encoder):
           dropout_keep_prob=dropout_keep,
       )
 
+      if use_pool:
+        rnn_feats = tf.layers.max_pooling1d(
+          inputs=rnn_feats,
+          pool_size=pool_size,
+          strides=strides,
+        )
+        src_length = (src_length - pool_size[0]) // strides[0] + 1
     outputs = rnn_feats
 
     return {

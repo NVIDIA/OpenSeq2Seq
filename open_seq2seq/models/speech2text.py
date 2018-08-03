@@ -19,6 +19,15 @@ def sparse_tensor_to_chars(tensor, idx2char):
   return text
 
 
+def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
+  batch_size = len(tensor)
+  text = [''] * batch_size
+  for batch_num in range(batch_size):
+    text[batch_num] = "".join([idx2char[idx] for idx in tensor[batch_num]
+                               if idx not in [startindex, endindex]])
+  return text
+
+
 def levenshtein(a, b):
   """Calculates the Levenshtein distance between a and b.
   The code was copied from: http://hetland.org/coding/python/levenshtein.py
@@ -43,23 +52,30 @@ def levenshtein(a, b):
 
 
 class Speech2Text(EncoderDecoderModel):
+
   def _create_decoder(self):
     data_layer = self.get_data_layer()
     self.params['decoder_params']['tgt_vocab_size'] = (
         data_layer.params['tgt_vocab_size']
     )
-
+    self.tensor_to_chars = sparse_tensor_to_chars
+    self.tensor_to_char_params = {}
     if data_layer.params['autoregressive']:
       self.params['decoder_params']['GO_SYMBOL'] = data_layer.start_index
       self.params['decoder_params']['END_SYMBOL'] = data_layer.end_index
+      self.tensor_to_chars = dense_tensor_to_chars
+      self.tensor_to_char_params['startindex'] = data_layer.start_index
+      self.tensor_to_char_params['endindex'] = data_layer.end_index
 
     return super(Speech2Text, self)._create_decoder()
 
   def _create_loss(self):
-    self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
-    self.params['loss_params']['tgt_vocab_size'] = (
+    if self.get_data_layer().params['autoregressive']:
+      self.params['loss_params'][
+        'batch_size'] = self.params['batch_size_per_gpu']
+      self.params['loss_params']['tgt_vocab_size'] = (
         self.get_data_layer().params['tgt_vocab_size']
-    )
+      )
     return super(Speech2Text, self)._create_loss()
 
   def maybe_print_logs(self, input_values, output_values, training_step):
@@ -74,12 +90,13 @@ class Speech2Text(EncoderDecoderModel):
         self.get_data_layer().params['idx2char'].get,
         y_one_sample[:len_y_one_sample],
     ))
-    pred_text = "".join(sparse_tensor_to_chars(
+    pred_text = "".join(self.tensor_to_chars(
         decoded_sequence_one_batch,
-        self.get_data_layer().params['idx2char']
+        self.get_data_layer().params['idx2char'],
+        **self.tensor_to_char_params,
     )[0])
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
-                 len(true_text.split())
+        len(true_text.split())
 
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
@@ -106,9 +123,10 @@ class Speech2Text(EncoderDecoderModel):
     total_word_count = 0.0
 
     decoded_sequence = output_values[0]
-    decoded_texts = sparse_tensor_to_chars(
+    decoded_texts = self.tensor_to_chars(
         decoded_sequence,
         self.get_data_layer().params['idx2char'],
+        **self.tensor_to_char_params,
     )
     batch_size = input_values['source_tensors'][0].shape[0]
     for sample_id in range(batch_size):
@@ -128,9 +146,10 @@ class Speech2Text(EncoderDecoderModel):
   def infer(self, input_values, output_values):
     preds = []
     decoded_sequence = output_values[0]
-    decoded_texts = sparse_tensor_to_chars(
+    decoded_texts = self.tensor_to_chars(
         decoded_sequence,
         self.get_data_layer().params['idx2char'],
+        **self.tensor_to_char_params,
     )
     for decoded_text in decoded_texts:
       preds.append("".join(decoded_text))
