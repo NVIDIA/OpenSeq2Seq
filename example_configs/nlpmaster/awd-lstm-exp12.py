@@ -11,17 +11,17 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/data/wikitext-2/"
+data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
-steps = 10
+steps = 40
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
   "restore_best_checkpoint": True,
-  "use_horovod": True,
-  "num_gpus": 8,
+  "use_horovod": False,
+  "num_gpus": 2,
 
   "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
   "num_epochs": 750, # conforming to AWD-LSTM paper 750
@@ -29,7 +29,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP11",
+  "logdir": "AWDLSTM-EXP12",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -79,7 +79,7 @@ base_params = {
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
     "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
-    'encoder_emb_keep_prob': 1.0,
+    'encoder_emb_keep_prob': 0.6,
     "encoder_use_skip_connections": False,
     "emb_size": 320,
     "vocab_size": 33278,
@@ -92,13 +92,13 @@ base_params = {
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
 
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    'scale': 0.5, # alpha
-  },
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   'scale': 2.0, # alpha
+  # },
 
   # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
-  "loss": BasicSequencgseLoss,
+  "loss": BasicSequenceLoss,
   "loss_params": {
     "offset_target_by_one": False,
     "average_across_timestep": True,
