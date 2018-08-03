@@ -53,6 +53,7 @@ class AWDLSTMEncoder(Encoder):
       'sampling_prob': float,
       'schedule_learning': bool,
       'weight_tied': bool,
+      'awd_initializer': bool,
     })
 
   def __init__(self, params, model,
@@ -87,6 +88,7 @@ class AWDLSTMEncoder(Encoder):
     self.params['encoder_last_output_keep_prob'] = self.params.get('encoder_last_output_keep_prob', 1.0)
     self.params['encoder_emb_keep_prob'] = self.params.get('encoder_emb_keep_prob', 1.0)
     self.params['variational_recurrent'] = self.params.get('variational_recurrent', False)
+    self.params['awd_initializer'] = self.params.get('awd_initializer', False)
 
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
@@ -202,7 +204,7 @@ class AWDLSTMEncoder(Encoder):
                   dp_input_keep_prob=dp_input_keep_prob,
                   dp_output_keep_prob=dp_output_keep_prob,
                   residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=True,
+                  awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],
                   dtype=self._params['dtype']
                   ) for _ in range(self.params['encoder_layers'] - 1)]
@@ -213,7 +215,7 @@ class AWDLSTMEncoder(Encoder):
                   dp_input_keep_prob=last_input_keep_prob,
                   dp_output_keep_prob=last_output_keep_prob,
                   residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=True,
+                  awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],
                   dtype=self._params['dtype']
                   )
