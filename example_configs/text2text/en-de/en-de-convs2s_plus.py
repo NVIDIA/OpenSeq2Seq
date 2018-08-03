@@ -32,7 +32,7 @@ num_gpus = 1
 epoch_num = 35
 
 iter_size = 1
-dtype = tf.float32  # "mixed" or tf.float32
+dtype = "mixed"  # "mixed" or tf.float32
 shuffle_train = True
 use_horovod = True
 
@@ -85,17 +85,18 @@ base_params = {
 
   #"max_grad_norm": 10.0,
 
-  # "larc_params": {
-  #   "larc_eta": 0.001,
-  # },
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
 
   #"regularizer": tf.contrib.layers.l2_regularizer,
-  #"regularizer_params": {
-  #  'scale': 0.001
-  #},
+
+  # "regularizer_params": {
+  #   "scale": 0.001
+  # },
 
   "loss_scaling": "Backoff",
   # "loss_scaling_params": {
