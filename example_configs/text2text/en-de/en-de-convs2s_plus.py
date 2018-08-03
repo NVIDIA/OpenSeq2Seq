@@ -52,11 +52,11 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": 1, #50,#max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": 100, #50,#max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
-  "save_checkpoint_steps": None, #int((max_steps-1)/5.0),
+  "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
 
