@@ -43,7 +43,7 @@ base_params = {
   "max_grad_norm": 32768.0,
   #"dtype": tf.float32,
   "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
