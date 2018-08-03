@@ -32,7 +32,7 @@ num_gpus = 1
 epoch_num = 35
 
 iter_size = 1
-dtype = "mixed"  # "mixed" or tf.float32
+dtype = tf.float32  # "mixed" or tf.float32
 shuffle_train = True
 use_horovod = True
 
