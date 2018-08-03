@@ -83,11 +83,11 @@ base_params = {
   #    "decay_steps":max_steps,
   # },
 
-  #"max_grad_norm": 10.0,
+  "max_grad_norm": 10.0,
 
-  "larc_params": {
-    "larc_eta": 0.001,
-  },
+  # "larc_params": {
+  #   "larc_eta": 0.001,
+  # },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
