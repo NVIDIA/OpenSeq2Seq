@@ -33,13 +33,13 @@ epoch_num = 35
 
 iter_size = 1
 dtype = "mixed"  # "mixed" or tf.float32
-shuffle_train = False
-use_horovod = False
+shuffle_train = True
+use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None  #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
+normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 
 base_params = {
@@ -47,6 +47,7 @@ base_params = {
   #"iter_size": iter_size,
   "use_horovod": use_horovod,
   "num_gpus": num_gpus,
+  "dtype": dtype,
 
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
@@ -81,13 +82,12 @@ base_params = {
   #    "power": 2.0,
   #    "decay_steps":max_steps,
   # },
-  #
+
+  #"max_grad_norm": 10.0,
+
   # "larc_params": {
   #   "larc_eta": 0.001,
   # },
-
-
-  "max_grad_norm": 10.0,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
@@ -105,9 +105,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder2,
   "encoder_params": {
-    "dtype": dtype,
-
-    "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
@@ -134,8 +131,6 @@ base_params = {
 
   "decoder": ConvS2SDecoder2,
   "decoder_params": {
-    "dtype": dtype,
-    "decoder_layers": num_layers,
 
     "shared_embed": True,
     "tgt_emb_size": d_model,

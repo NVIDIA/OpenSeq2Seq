@@ -72,7 +72,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       self.apply_layer_norm = False
     elif normalization_type == "layer_norm":
       self.apply_batch_norm = False
-      self.bias_enabled = True
+      self.bias_enabled = False
       self.wn_enabled = True
       self.apply_layer_norm = True
     elif normalization_type is None:
@@ -104,7 +104,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.random_normal_initializer(mean=0, stddev=0.01)
+            initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.contrib.layers.variance_scaling_initializer()
             trainable=True)
 
       if self.bias_enabled:
@@ -112,7 +112,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
             'b',
             shape=[conv_out_size],
             initializer=tf.zeros_initializer(),
-            trainable=False)
+            trainable=True)
       else:
         self.b = None
 
@@ -142,22 +142,21 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
 
     if self.apply_batch_norm:
       # trick to make batchnorm work for mixed precision training.
-      # To-Do check if batchnorm works smoothly for >4 dimensional tensors
-      bn_input = tf.expand_dims(output, axis=1)  # NWC --> NHWC
+      bn_input = tf.expand_dims(output, axis=1)
       bn_output = tf.layers.batch_normalization(
           name="batch_norm_" + str(self.layer_id),
           inputs=bn_input,
           #gamma_regularizer=self.regularizer,
           training=self.mode == 'train',
           axis=-1,
-          momentum=0.90,
+          momentum=0.95,
           epsilon=1e-4,
-          scale=not self.bias_enabled,
-          center=not self.bias_enabled,
+          #scale=not self.bias_enabled,
+          #center=not self.bias_enabled,
       )
       output = tf.squeeze(bn_output, axis=1)
 
-    if self.apply_layer_norm:
+    elif self.apply_layer_norm:
       ln_input = tf.expand_dims(output, axis=1)
       ln_output = tf.contrib.layers.layer_norm(
           inputs=ln_input,

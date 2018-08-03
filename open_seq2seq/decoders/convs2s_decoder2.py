@@ -32,7 +32,6 @@ class ConvS2SDecoder2(Decoder):
     return dict(
         Decoder.get_required_params(), **{
             'batch_size': int,
-            'decoder_layers': int,
             'tgt_emb_size': int,
             'tgt_vocab_size': int,
             'shared_embed': bool,
@@ -153,7 +152,7 @@ class ConvS2SDecoder2(Decoder):
                 mode=self.mode,
                 normalization_type=self.normalization_type))
 
-        for i in range(self.params['decoder_layers']):
+        for i in range(len(knum_list)):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
           out_dim = knum_list[i]
 
@@ -197,7 +196,7 @@ class ConvS2SDecoder2(Decoder):
         # linear projection after cnn layers
         self.layers.append(
             ffn_wn_layer.FeedFowardNetworkNormalized(
-                knum_list[self.params['decoder_layers'] - 1],
+                knum_list[-1],
                 self.params.get("out_emb_size", self._tgt_emb_size),
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
@@ -212,7 +211,7 @@ class ConvS2SDecoder2(Decoder):
                   dropout=self.params["out_dropout_keep_prob"],
                   var_scope_name="linear_mapping_to_vocabspace",
                   mode=self.mode,
-                  normalization_type=self.normalization_type)) #changed here self.normalization_type
+                  normalization_type=None)) #changed here self.normalization_type
         else:
           # if embedding is shared,
           # the shared embedding is used as the final linear projection to vocab space

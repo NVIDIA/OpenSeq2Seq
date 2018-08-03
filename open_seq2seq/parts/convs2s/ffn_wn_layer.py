@@ -54,7 +54,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       self.apply_layer_norm = False
     elif normalization_type == "layer_norm":
       self.apply_batch_norm = False
-      self.bias_enabled = True
+      self.bias_enabled = False
       self.wn_enabled = True
       self.apply_layer_norm = True
     elif normalization_type is None:
@@ -66,9 +66,10 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
+      V_std = math.sqrt(dropout * 1.0 / in_dim)
       if self.wn_enabled:
         V_initializer = \
-          tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim))
+          tf.random_normal_initializer(mean=0, stddev=V_std)
         self.V = tf.get_variable(
             'V',
             shape=[in_dim, out_dim],
@@ -80,14 +81,15 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
         self.V = tf.get_variable(
             'W',
             shape=[in_dim, out_dim],
-            initializer=tf.random_normal_initializer(mean=0, stddev=math.sqrt(dropout * 1.0 / in_dim)),#tf.contrib.layers.variance_scaling_initializer(),
+            initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.contrib.layers.variance_scaling_initializer(),
             trainable=True)
+
       if self.bias_enabled:
         self.b = tf.get_variable(
             'b',
             shape=[out_dim],
             initializer=tf.zeros_initializer(),
-            trainable=False)
+            trainable=True)
       else:
         self.b = None
 
@@ -103,38 +105,40 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     batch_size = tf.shape(x)[0]
 
     x = tf.reshape(x, [-1, self.in_dim])
-    output = tf.matmul(x, self.V)
-    output = tf.reshape(output, [batch_size, -1, self.out_dim])
+    y = tf.matmul(x, self.V)
+    y = tf.reshape(y, [batch_size, -1, self.out_dim])
 
     if self.wn_enabled:
       # x*(v*(g/2-norm(v)))
       scaler = tf.div(self.g, tf.norm(self.V, axis=0))
-      output = tf.reshape(scaler, [1, self.out_dim]) * output
+      output = tf.reshape(scaler, [1, self.out_dim]) * y
 
-    if self.apply_batch_norm:
-      output = tf.expand_dims(output, axis=1)
-      output = tf.layers.batch_normalization(
+    elif self.apply_batch_norm:
+      y = tf.expand_dims(y, axis=1)
+      norm_output = tf.layers.batch_normalization(
           name=self.var_scope_name + "_batch_norm",
-          inputs=output,
+          inputs=y,
           #gamma_regularizer=regularizer,
           training=self.mode == 'train',
           axis=-1,
-          momentum=0.99,
+          momentum=0.95,
           epsilon=1e-4,
-          scale=not self.bias_enabled,
-          center=not self.bias_enabled,
+          #scale=not self.bias_enabled,
+          #center=not self.bias_enabled,
       )
-      output = tf.squeeze(output, axis=1)
+      output = tf.squeeze(norm_output, axis=1)
 
-    if self.apply_layer_norm:
-      output = tf.expand_dims(output, axis=1)
-      output = tf.contrib.layers.layer_norm(
-          inputs=output,
+    elif self.apply_layer_norm:
+      y = tf.expand_dims(y, axis=1)
+      norm_output = tf.contrib.layers.layer_norm(
+          inputs=y,
           begin_norm_axis=1,
           begin_params_axis=-1,
           scope=self.var_scope_name + "_layer_norm",
       )
-      output = tf.squeeze(output, axis=1)
+      output = tf.squeeze(norm_output, axis=1)
+    else:
+      output = y
 
     if self.b is not None:
       output = output + tf.reshape(self.b, [1, self.out_dim])

@@ -27,7 +27,6 @@ class ConvS2SEncoder2(Encoder):
   def get_required_params():
     return dict(
         Encoder.get_required_params(), **{
-            "encoder_layers": int,
             "src_emb_size": int,
             "src_vocab_size": int,
             "pad_embeddings_2_eight": bool,
@@ -107,7 +106,7 @@ class ConvS2SEncoder2(Encoder):
                 mode=self.mode,
                 normalization_type=self.normalization_type))
 
-        for i in range(self.params['encoder_layers']):
+        for i in range(len(knum_list)):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
           out_dim = knum_list[i]
 
@@ -142,7 +141,7 @@ class ConvS2SEncoder2(Encoder):
         # linear projection after cnn layers
         self.layers.append(
             ffn_wn_layer.FeedFowardNetworkNormalized(
-                knum_list[self.params['encoder_layers'] - 1],
+                knum_list[-1],
                 self._src_emb_size,
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
@@ -219,7 +218,7 @@ class ConvS2SEncoder2(Encoder):
       # Gradients are scaled as the gradients from
       # all decoder attention layers enters the encoder
       scale = 1.0 / (
-          2.0 * self.params.get("att_layer_num", self.params["encoder_layers"]))
+          2.0 * self.params.get("att_layer_num", 1))
       outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor

@@ -28,7 +28,7 @@ num_layers = 15
 d_model = 512
 hidden_before_last = 512
 
-dtype = "mixed"
+dtype = tf.float32
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
@@ -40,8 +40,8 @@ base_params = {
 
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
-  "max_steps": 77000,#310000,
-  "batch_size_per_gpu": 256,
+  "max_steps": 310000,
+  "batch_size_per_gpu": 64,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
@@ -70,7 +70,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
     "pad_embeddings_2_eight": True,
@@ -96,19 +95,18 @@ base_params = {
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": True,
     "out_emb_size": hidden_before_last,
-    "pos_embed": False,
+    "pos_embed": True,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512, 3)]*1,# + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
