@@ -9,7 +9,7 @@ import tensorflow as tf
 import math
 from .encoder import Encoder
 
-from open_seq2seq.parts.transformer import embedding_layer, utils
+from open_seq2seq.parts.transformer import embedding_layer
 from open_seq2seq.parts.transformer.utils import get_padding_bias, get_padding
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
@@ -150,22 +150,15 @@ class ConvS2SEncoder(Encoder):
           inputs, res_rank=3, pad_sym=self._pad_sym)
 
       with tf.name_scope("add_pos_encoding"):
-        length = tf.shape(encoder_inputs)[1]
-        pos_encoding = utils.get_position_encoding(
-            length, self._src_emb_size,
-        )
-        encoder_inputs = encoder_inputs + 0.1*tf.cast(x=pos_encoding,
-                                                   dtype=encoder_inputs.dtype)
-
-        # pos_input = tf.range(
-        #     0,
-        #     tf.shape(encoder_inputs)[1],
-        #     delta=1,
-        #     dtype=tf.int32,
-        #     name='range')
-        # pos_encoding = self.position_embedding_layer(pos_input)
-        # encoder_inputs = encoder_inputs + tf.cast(
-        #     x=pos_encoding, dtype=encoder_inputs.dtype)
+        pos_input = tf.range(
+            0,
+            tf.shape(encoder_inputs)[1],
+            delta=1,
+            dtype=tf.int32,
+            name='range')
+        pos_encoding = self.position_embedding_layer(pos_input)
+        encoder_inputs = encoder_inputs + tf.cast(
+            x=pos_encoding, dtype=encoder_inputs.dtype)
 
       if self.mode == "train":
         encoder_inputs = tf.nn.dropout(

@@ -64,7 +64,7 @@ base_params = {
   "optimizer_params": {},
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 1,
+    "learning_rate": 9,
     "max_lr": 1e-3,
     "warmup_steps": 4000,
     "d_model": d_model,

@@ -8,7 +8,7 @@ from .decoder import Decoder
 from open_seq2seq.parts.transformer import beam_search
 
 from open_seq2seq.parts.transformer import embedding_layer
-from open_seq2seq.parts.transformer.utils import get_padding, get_position_encoding
+from open_seq2seq.parts.transformer.utils import get_padding
 
 from open_seq2seq.parts.convs2s import ffn_wn_layer, conv_wn_layer, attention_wn_layer
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
