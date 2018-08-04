@@ -85,7 +85,7 @@ base_params = {
     "vocab_size": 33278,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
-    "fc_use_bias": False,
+    "fc_use_bias": True,
     "weight_tied": True,
     "variational_recurrent": False,
     "awd_initializer": False,
