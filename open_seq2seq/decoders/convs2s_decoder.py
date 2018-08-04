@@ -248,14 +248,6 @@ class ConvS2SDecoder(Decoder):
     # and adding positional encoding.
     decoder_inputs = self.embedding_softmax_layer(targets)
 
-    # with tf.name_scope("add_pos_encoding"):
-    #   length = tf.shape(decoder_inputs)[1]
-    #   pos_encoding = get_position_encoding(
-    #     length, self._tgt_emb_size,
-    #   )
-    #   decoder_inputs = decoder_inputs + 0.1*tf.cast(x=pos_encoding,
-    #                                             dtype=decoder_inputs.dtype)
-
     if self.position_embedding_layer is not None:
       with tf.name_scope("add_pos_encoding"):
         pos_input = tf.range(
