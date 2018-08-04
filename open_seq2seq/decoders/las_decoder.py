@@ -38,6 +38,7 @@ class ListenAttendSpellDecoder(Decoder):
   def get_optional_params():
     return dict(Decoder.get_optional_params(), **{
         'dropout_keep_prob': float,
+        'pos_embedding': bool,
     })
 
   def __init__(self, params, model, name='las_decoder', mode='train'):
@@ -86,6 +87,27 @@ class ListenAttendSpellDecoder(Decoder):
         shape=[self._tgt_vocab_size, self._tgt_emb_size],
         dtype=tf.float32,
     )
+
+    if self.params['pos_embedding']:
+      self._pos_emb_size = int(encoder_outputs.get_shape()[-1])
+      self._pos_emb_layer = tf.get_variable(
+          name='PositionEmbeddingMatrix',
+          shape=[1024, self._pos_emb_size],
+          dtype=tf.float32,
+      )
+      encoder_output_positions = tf.range(
+          0,
+          tf.shape(encoder_outputs)[1],
+          delta=1,
+          dtype=tf.int32,
+          name='positional_inputs'
+      )
+      encoder_position_embeddings = tf.cast(
+          tf.nn.embedding_lookup(
+              self._pos_emb_layer, encoder_output_positions),
+          dtype=encoder_outputs.dtype
+      )
+      encoder_outputs = encoder_outputs + encoder_position_embeddings
 
     output_projection_layer = tf.layers.Dense(
         self._tgt_vocab_size, use_bias=False,
@@ -156,11 +178,11 @@ class ListenAttendSpellDecoder(Decoder):
     )
 
     outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
-    
+
     '''bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
     indices = tf.constant([[i, j] for i in tf.range(bs) for j in tf.range(ln)])
     values = tf.reshape(outputs, [-1])
-    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''    
+    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''
 
     return {
         'outputs': [outputs],

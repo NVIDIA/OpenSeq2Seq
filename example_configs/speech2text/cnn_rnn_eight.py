@@ -126,10 +126,15 @@ base_params = {
     "decoder": ListenAttendSpellDecoder,
     "decoder_params": {
         "tgt_emb_size": 256,
+
+        "pos_embedding": True,
+
         "attention_dim": 256,
+
         "rnn_type": "lstm",
         "hidden_dim": 512,
         "num_layers": 1,
+
         "dropout_keep_prob": 1.0,
     },
 
