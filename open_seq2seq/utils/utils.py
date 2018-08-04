@@ -452,8 +452,6 @@ def cast_types(input_dict, dtype):
   return cast_input_dict
 
 def get_interactive_infer_results(model, sess, model_in):
-  results_per_batch = []
-
   fetches = [
       model.get_data_layer().input_tensors,
       model.get_output_tensors(),
@@ -463,9 +461,7 @@ def get_interactive_infer_results(model, sess, model_in):
 
   inputs, outputs = sess.run(fetches, feed_dict=feed_dict)
 
-  results_per_batch.append(model.infer(inputs, outputs))
-
-  return results_per_batch
+  return model.infer(inputs, outputs)
 
 def get_base_config(args):
   """This function parses the command line arguments, reads the config file, and
@@ -652,7 +648,7 @@ def create_logdir(args, base_config):
 
   return old_stdout, old_stderr, stdout_log, stderr_log
 
-def create_models(args, base_config, config_module, base_model, hvd):
+def create_model(args, base_config, config_module, base_model, hvd):
   """A helpful function that creates the train, eval, and infer models as
   needed.
 
@@ -665,9 +661,8 @@ def create_models(args, base_config, config_module, base_model, hvd):
     hvd: Either None if Horovod is not enabled, or the Horovod library
 
   Returns:
-    models (list): A 3 element list consisting of the train, eval, and infer
-      models. Depending on the mode set, the list will contain either an
-      OpenSeq2Seq model or None.
+    model: A compiled model. For the 'train_eval' mode, a tuple containing the
+      (train_model, eval_model) is returned.
   """
   train_config = copy.deepcopy(base_config)
   eval_config = copy.deepcopy(base_config)
@@ -725,25 +720,20 @@ def create_models(args, base_config, config_module, base_model, hvd):
       pprint.pprint(train_config)
     args.mode = "train"
 
-  models = [None, None, None]
   if args.mode == 'train_eval':
     train_model = base_model(params=train_config, mode="train", hvd=hvd)
     train_model.compile()
     eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
     eval_model.compile(force_var_reuse=True)
-    models[0] = train_model
-    models[1] = eval_model
+    model = (train_model, eval_model)
   elif args.mode == 'train':
-    train_model = base_model(params=train_config, mode="train", hvd=hvd)
-    train_model.compile()
-    models[0] = train_model
+    model = base_model(params=train_config, mode="train", hvd=hvd)
+    model.compile()
   elif args.mode == 'eval':
-    eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
-    eval_model.compile(force_var_reuse=False)
-    models[1] = eval_model
+    model = base_model(params=eval_config, mode="eval", hvd=hvd)
+    model.compile(force_var_reuse=False)
   else:
-    infer_model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    infer_model.compile()
-    models[2] = infer_model
+    model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
+    model.compile()
 
-  return models
+  return model

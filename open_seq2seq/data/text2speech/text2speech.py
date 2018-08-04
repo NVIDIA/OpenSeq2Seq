@@ -350,13 +350,13 @@ class Text2SpeechDataLayer(DataLayer):
            np.int32([len(text_input)])
 
   def create_interactive_placeholders(self):
-    self._text = tf.placeholder(dtype=tf.int32)
-    self._text_length = tf.placeholder(dtype=tf.int32)
-
-    self._text.set_shape([self.params["batch_size"], None])
-    self._text_length = tf.reshape(
-        self._text_length,
-        [self.params["batch_size"]]
+    self._text = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params["batch_size"], None]
+    )
+    self._text_length = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params["batch_size"]]
     )
 
     self._input_tensors = {}

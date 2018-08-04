@@ -226,11 +226,8 @@ class ParallelTextDataLayer(DataLayer):
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
   def create_interactive_placeholders(self):
-    self._text = tf.placeholder(dtype=tf.int32)
-    self._text_length = tf.placeholder(dtype=tf.int32)
-
-    self._text.set_shape([self._batch_size, None])
-    self._text_length.set_shape([self._batch_size])
+    self._text = tf.placeholder(dtype=tf.int32, shape=[self._batch_size, None])
+    self._text_length = tf.placeholder(dtype=tf.int32, shape=[self._batch_size])
 
     self._input_tensors = {}
     self._input_tensors['source_tensors'] = [self._text, self._text_length]

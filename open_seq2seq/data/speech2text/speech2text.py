@@ -194,17 +194,22 @@ class Speech2TextDataLayer(DataLayer):
       self._input_tensors['source_ids'] = [x_id]
 
   def create_interactive_placeholders(self):
-    self._x = tf.placeholder(dtype=self.params['dtype'])
-    self._x_length = tf.placeholder(dtype=tf.int32)
-    self._x_id = tf.placeholder(dtype=tf.int32)
-
-    self._x.set_shape([
-        self.params['batch_size'],
-        None,
-        self.params['num_audio_features']
-    ])
-    self._x_length = tf.reshape(self._x_length, [self.params['batch_size']])
-    self._x_id = tf.reshape(self._x_id, [self.params['batch_size']])
+    self._x = tf.placeholder(
+        dtype=self.params['dtype'],
+        shape = [
+            self.params['batch_size'],
+            None,
+            self.params['num_audio_features']
+        ]
+    )
+    self._x_length = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params['batch_size']]
+    )
+    self._x_id = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params['batch_size']]
+    )
 
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [self._x, self._x_length]
