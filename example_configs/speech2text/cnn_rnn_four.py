@@ -127,8 +127,8 @@ base_params = {
 
         "attention_params": {
             "attention_dim": 256,
-            "attention_type": "bahadanuwithlocation",
-            "use_coverage": False,
+            "attention_type": "bahadanu",
+            #"use_coverage": False,
         },
         
         "rnn_type": "lstm",
