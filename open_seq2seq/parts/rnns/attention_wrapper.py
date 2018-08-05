@@ -673,7 +673,7 @@ def _bahdanau_score_with_location(processed_query, keys, location, use_bias):
   )
 
 
-class LocationLayer(layers_base.Layer):
+class ChorowskiLocationLayer(layers_base.Layer):
   """
   The layer that processed the location information
   """
@@ -686,9 +686,10 @@ class LocationLayer(layers_base.Layer):
       strides=1,
       data_format="channels_last",
       name="location",
+      dtype=None,
       **kwargs
   ):
-    super(LocationLayer, self).__init__(name=name, **kwargs)
+    super(ChorowskiLocationLayer, self).__init__(name=name, **kwargs)
     self.conv_layer = Conv1D(
         name="{}_conv".format(name),
         filters=filters,
@@ -702,8 +703,32 @@ class LocationLayer(layers_base.Layer):
         name="{}_dense".format(name), units=attention_units, use_bias=False
     )
 
-  def __call__(self, prev_attention):
+  def __call__(self, prev_attention, query=None):
     location_attention = self.conv_layer(prev_attention)
+    location_attention = self.location_dense(location_attention)
+    return location_attention
+
+
+class ZhaopengLocationLayer(layers_base.Layer):
+
+  def __init__(
+      self,
+      attention_units,
+      query_dim,
+      name="location",
+      dtype=None,
+      **kwargs
+  ):
+    super(ZhaopengLocationLayer, self).__init__(name=name, **kwargs)
+    self.vbeta = variable_scope.get_variable("location_attention_vbeta", [query_dim], dtype=dtypes.float32)
+    self.location_dense = layers_core.Dense(
+        name="{}_dense".format(name), units=attention_units, use_bias=False
+    )
+
+  def __call__(self, prev_attention, query):
+    #query = math_ops.cast(query, dtypes.float32)
+    fertility = math_ops.sigmoid(math_ops.reduce_sum(math_ops.multiply(self.vbeta, query)))
+    location_attention = fertility * prev_attention
     location_attention = self.location_dense(location_attention)
     return location_attention
 
@@ -729,12 +754,14 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       self,
       num_units,
       memory,
+      query_dim = None,
       memory_sequence_length=None,
       probability_fn=None,
       score_mask_value=None,
       dtype=None,
       use_bias=False,
       use_coverage=True,
+      location_attn_type = "chorowski",
       name="LocationSensitiveAttention",
   ):
     """Construct the Attention mechanism.
@@ -777,11 +804,16 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
-    self.location_layer = LocationLayer(10, 101, num_units)
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
     self._use_coverage = use_coverage
+
+    if location_attn_type == "chorowski":
+      self.location_layer = ChorowskiLocationLayer(10, 101, num_units)
+    elif location_attn_type == "zhaopeng":
+      self.location_layer = ZhaopengLocationLayer(num_units, query_dim)
+      self._use_coverage = True
 
   def __call__(self, query, state):
     """Score the query based on the keys, values, and location.
@@ -801,7 +833,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     with variable_scope.variable_scope(None, "location_attention", [query]):
       processed_query = self.query_layer(query) if self.query_layer else query
       location = array_ops.expand_dims(state, axis=-1)
-      processed_location = self.location_layer(location)
+      processed_location = self.location_layer(location, query)
       score = _bahdanau_score_with_location(
           processed_query, self._keys, processed_location, self.use_bias
       )
