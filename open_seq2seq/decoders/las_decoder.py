@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
     LuongAttention, \
+    LocationSensitiveAttention, \
     AttentionWrapper
 from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 from open_seq2seq.parts.rnns.utils import single_cell
@@ -28,7 +29,7 @@ class ListenAttendSpellDecoder(Decoder):
         'END_SYMBOL': int,  # symbol id
         'tgt_vocab_size': int,
         'tgt_emb_size': int,
-        'attention_dim': int,
+        'attention_params': dict,
         'rnn_type': None,
         'hidden_dim': int,
         'num_layers': int,
@@ -77,7 +78,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     layer_type = self.params['rnn_type']
     num_layers = self.params['num_layers']
-    attention_dim = self.params['attention_dim']
+    attention_params = self.params['attention_params']
     hidden_dim = self.params['hidden_dim']
     dropout_keep_prob = self.params.get(
         'dropout_keep_prob', 1.0) if self._mode == "train" else 1.0
@@ -123,13 +124,24 @@ class ListenAttendSpellDecoder(Decoder):
          for _ in range(num_layers)]
     )
 
-    attention_mechanism = BahdanauAttention(
+    attention_dim = attention_params["attention_dim"]
+    attention_type = attention_params["attention_type"]
+
+    attention_params_dict = {}
+    if attention_type == "bahadanu":
+      AttentionMechanism = BahdanauAttention
+      attention_params_dict["normalize"] = False,
+    elif attention_type == "bahadanuwithlocation":
+      AttentionMechanism = LocationSensitiveAttention
+      attention_params_dict["use_coverage"] = attention_params["use_coverage"]  
+
+    attention_mechanism = AttentionMechanism(
         num_units=attention_dim,
         memory=encoder_outputs,
-        normalize=False,
         memory_sequence_length=enc_src_lengths,
         probability_fn=tf.nn.softmax,
-        dtype=tf.get_variable_scope().dtype
+        dtype=tf.get_variable_scope().dtype,
+        **attention_params_dict
     )
 
     multirnn_cell_with_attention = AttentionWrapper(

@@ -12,7 +12,7 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
+    "use_horovod": False,
     "num_epochs": 50,
 
     "num_gpus": 8,
@@ -26,29 +26,25 @@ base_params = {
     "save_checkpoint_steps": 1100,
     "logdir": "las_log_folder",
 
-    "optimizer": "Momentum",
+    "optimizer": "Adam",
     "optimizer_params": {
-        "momentum": 0.90,
     },
     "lr_policy": poly_decay,
-    #"lr_policy": fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.01,
+        "learning_rate": 1e-3,
         "power": 2.0,
+        "min_lr": 1e-5
     },
-    "larc_params": {
-        "larc_eta": 0.001,
-    },
+
     "larc_params": {
         "larc_eta": 0.001,
     },
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
-        'scale': 0.001
+        'scale': 0.0001
     },
 
-    #"max_grad_norm": 15.0,
     "dtype": "mixed",
     "loss_scaling": "Backoff",
 
@@ -126,10 +122,19 @@ base_params = {
     "decoder": ListenAttendSpellDecoder,
     "decoder_params": {
         "tgt_emb_size": 256,
-        "attention_dim": 256,
+
+        "pos_embedding": False,
+
+        "attention_params": {
+            "attention_dim": 256,
+            "attention_type": "bahadanuwithlocation",
+            "use_coverage": True,
+        },
+        
         "rnn_type": "lstm",
         "hidden_dim": 512,
         "num_layers": 1,
+
         "dropout_keep_prob": 1.0,
     },
 
@@ -148,9 +153,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "../librispeech/librivox-train-clean-100.csv",
+            "../librispeech/librivox-train-clean-360.csv",
+            "../librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,

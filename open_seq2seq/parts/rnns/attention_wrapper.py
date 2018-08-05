@@ -734,6 +734,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       score_mask_value=None,
       dtype=None,
       use_bias=False,
+      use_coverage=True,
       name="LocationSensitiveAttention",
   ):
     """Construct the Attention mechanism.
@@ -776,10 +777,11 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
-    self.location_layer = LocationLayer(32, 31, num_units)
+    self.location_layer = LocationLayer(10, 101, num_units)
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
+    self._use_coverage = use_coverage
 
   def __call__(self, query, state):
     """Score the query based on the keys, values, and location.
@@ -805,7 +807,10 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       )
     alignments = self._probability_fn(score, state)
 
-    next_state = alignments + state
+    if self._use_coverage:
+      next_state = alignments + state
+    else:
+      next_state = alignments
 
     return alignments, next_state
 
