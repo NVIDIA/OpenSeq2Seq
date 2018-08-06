@@ -66,7 +66,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
-      V_std = 0.01 #math.sqrt(dropout * 1.0 / in_dim)
+      V_std = 0.001 #math.sqrt(dropout * 1.0 / in_dim)
       if self.wn_enabled:
         V_initializer = \
           tf.random_normal_initializer(mean=0, stddev=V_std)
@@ -122,9 +122,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           training=self.mode == 'train',
           axis=-1,
           momentum=0.95,
-          epsilon=1e-4,
-          #scale=not self.bias_enabled,
-          #center=not self.bias_enabled,
+          epsilon=1e-4
       )
       output = tf.squeeze(norm_output, axis=1)
 
