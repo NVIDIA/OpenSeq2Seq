@@ -7,6 +7,10 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from six.moves import range
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
+from io import BytesIO
 
 from open_seq2seq.utils.utils import deco_print
 from .encoder_decoder import EncoderDecoderModel
@@ -51,6 +55,30 @@ def levenshtein(a, b):
   return current[n]
 
 
+def plot_attention(alignments, pred_text, encoder_len, training_step):
+
+  alignments = alignments[:len(pred_text), :encoder_len]
+  fig = plt.figure(figsize=(15, 10))
+  ax = fig.add_subplot(1, 1, 1)
+
+  img = ax.imshow(alignments, interpolation='nearest', cmap='Blues')
+  ax.grid()
+  #fig.savefig('/home/rgadde/Desktop/OpenSeq2Seq/plots/file{}.png'.format(training_step), dpi=300)
+
+  sbuffer = BytesIO()
+  fig.savefig(sbuffer, dpi=300)
+  summary = tf.Summary.Image(
+      encoded_image_string=sbuffer.getvalue(),
+      height=int(fig.get_figheight() * 2),
+      width=int(fig.get_figwidth() * 2)
+  )
+  summary = tf.Summary.Value(
+      tag="attention_summary_step_{}".format(training_step), image=summary)
+
+  plt.close(fig)
+  return summary
+
+
 class Speech2Text(EncoderDecoderModel):
 
   def _create_decoder(self):
@@ -60,7 +88,8 @@ class Speech2Text(EncoderDecoderModel):
     )
     self.tensor_to_chars = sparse_tensor_to_chars
     self.tensor_to_char_params = {}
-    if data_layer.params['autoregressive']:
+    self.autoregressive = data_layer.params['autoregressive']
+    if self.autoregressive:
       self.params['decoder_params']['GO_SYMBOL'] = data_layer.start_index
       self.params['decoder_params']['END_SYMBOL'] = data_layer.end_index
       self.tensor_to_chars = dense_tensor_to_chars
@@ -72,9 +101,9 @@ class Speech2Text(EncoderDecoderModel):
   def _create_loss(self):
     if self.get_data_layer().params['autoregressive']:
       self.params['loss_params'][
-        'batch_size'] = self.params['batch_size_per_gpu']
+          'batch_size'] = self.params['batch_size_per_gpu']
       self.params['loss_params']['tgt_vocab_size'] = (
-        self.get_data_layer().params['tgt_vocab_size']
+          self.get_data_layer().params['tgt_vocab_size']
       )
     return super(Speech2Text, self)._create_loss()
 
@@ -98,12 +127,25 @@ class Speech2Text(EncoderDecoderModel):
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
         len(true_text.split())
 
+    self.autoregressive = self.get_data_layer().params['autoregressive']
+    if self.autoregressive:
+      attention_summary = plot_attention(
+          output_values[1][0], pred_text, output_values[2][0], training_step)
+      deco_print("Encoder Length: {}".format(output_values[2][0]), offset=4)
+
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
-    return {
-        'Sample WER': sample_wer,
-    }
+
+    if self.autoregressive:
+      return {
+          'Sample WER': sample_wer,
+          'Attention Summary': attention_summary,
+      }
+    else:
+      return {
+          'Sample WER': sample_wer,
+      }
 
   def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0

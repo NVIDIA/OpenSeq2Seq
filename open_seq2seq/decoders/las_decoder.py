@@ -31,6 +31,7 @@ class FullyConnected(tf.layers.Layer):
     super(FullyConnected, self).__init__(name=name)
 
     self.dense_layers = []
+    i = -1
     for i in range(len(hidden_dims) - 1):
       self.dense_layers.append(tf.layers.Dense(
           name="{}_{}".format(name, i), units=hidden_dims[i], use_bias=True, activation=tf.nn.relu)
@@ -142,7 +143,7 @@ class ListenAttendSpellDecoder(Decoder):
       encoder_outputs = encoder_outputs + encoder_position_embeddings
 
     output_projection_layer = FullyConnected(
-        [self.params['hidden_dim'], self._tgt_vocab_size]
+        [self._tgt_vocab_size]
     )
 
     rnn_cell = cells_dict[layer_type]
@@ -184,7 +185,9 @@ class ListenAttendSpellDecoder(Decoder):
     multirnn_cell_with_attention = AttentionWrapper(
         cell=multirnn_cell,
         attention_mechanism=attention_mechanism,
-        output_attention="both",
+        attention_layer_size=hidden_dim,
+        output_attention=True,
+        alignment_history=True,
     )
 
     if self._mode == "train":
@@ -228,6 +231,17 @@ class ListenAttendSpellDecoder(Decoder):
     )
 
     outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
+    alignments = tf.transpose(
+        final_state.alignment_history.stack(), [1, 0, 2]
+    )
+    '''alignments = tf.expand_dims(alignments, axis=-1)
+    alignments = tf.expand_dims(alignments, axis=1)
+
+    summary = tf.summary.image(
+      name='alignments',
+      tensor=alignments[0],
+      max_outputs=1,
+    )'''
 
     '''bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
     indices = tf.constant([[i, j] for i in tf.range(bs) for j in tf.range(ln)])
@@ -235,7 +249,7 @@ class ListenAttendSpellDecoder(Decoder):
     sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''
 
     return {
-        'outputs': [outputs],
+        'outputs': [outputs, alignments, enc_src_lengths],
         'logits': final_outputs.rnn_output,
         'tgt_length': final_sequence_lengths,
     }
