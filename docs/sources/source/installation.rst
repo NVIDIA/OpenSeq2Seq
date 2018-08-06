@@ -1,7 +1,7 @@
 .. _installation:
 
-Installation
-============
+Installation instructions
+=========================
 
 General installation
 --------------------
