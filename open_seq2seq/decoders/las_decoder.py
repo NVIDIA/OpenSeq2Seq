@@ -19,6 +19,37 @@ cells_dict = {
 }
 
 
+class FullyConnected(tf.layers.Layer):
+  """Fully connected layer
+  """
+
+  def __init__(
+      self,
+      hidden_dims,
+      name="fully_connected",
+  ):
+    super(FullyConnected, self).__init__(name=name)
+
+    self.dense_layers = []
+    for i in range(len(hidden_dims) - 1):
+      self.dense_layers.append(tf.layers.Dense(
+          name="{}_{}".format(name, i), units=hidden_dims[i], use_bias=True, activation=tf.nn.relu)
+      )
+    self.dense_layers.append(tf.layers.Dense(
+        name="{}_{}".format(name, i + 1), units=hidden_dims[i + 1], use_bias=False)
+    )
+    self.output_dim = hidden_dims[i + 1]
+
+  def call(self, inputs):
+    for layer in self.dense_layers:
+      inputs = layer(inputs)
+    return inputs
+
+  def compute_output_shape(self, input_shape):
+    input_shape = tf.TensorShape(input_shape).as_list()
+    return tf.TensorShape([input_shape[0], self.output_dim])
+
+
 class ListenAttendSpellDecoder(Decoder):
   """Listen Attend Spell like decoder.
   """
@@ -110,8 +141,8 @@ class ListenAttendSpellDecoder(Decoder):
       )
       encoder_outputs = encoder_outputs + encoder_position_embeddings
 
-    output_projection_layer = tf.layers.Dense(
-        self._tgt_vocab_size, use_bias=False,
+    output_projection_layer = FullyConnected(
+        [self.params['hidden_dim'], self._tgt_vocab_size]
     )
 
     rnn_cell = cells_dict[layer_type]
@@ -134,13 +165,12 @@ class ListenAttendSpellDecoder(Decoder):
     elif attention_type == "chorowski":
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
-      attention_params_dict["location_attn_type"] = attention_type  
+      attention_params_dict["location_attn_type"] = attention_type
     elif attention_type == "zhaopeng":
       AttentionMechanism = LocationSensitiveAttention
-      attention_params_dict["use_coverage"] = attention_params["use_coverage"] 
+      attention_params_dict["use_coverage"] = attention_params["use_coverage"]
       attention_params_dict["query_dim"] = hidden_dim
       attention_params_dict["location_attn_type"] = attention_type
-
 
     attention_mechanism = AttentionMechanism(
         num_units=attention_dim,
