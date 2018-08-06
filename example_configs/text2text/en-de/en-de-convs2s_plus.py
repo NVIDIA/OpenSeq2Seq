@@ -28,8 +28,8 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-num_gpus = 8
 epoch_num = 35
+num_gpus = 8
 
 iter_size = 1
 dtype = "mixed"  # "mixed" or tf.float32
@@ -38,8 +38,8 @@ use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = None  #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
+conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
+normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 
 base_params = {
@@ -83,10 +83,10 @@ base_params = {
   #    "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 10.0,
+  "max_grad_norm": 0.1,
 
   # "larc_params": {
-  #   "larc_eta": 0.001,
+  #   "larc_eta": 0.00001,
   # },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',

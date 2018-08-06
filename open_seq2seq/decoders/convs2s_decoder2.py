@@ -211,7 +211,7 @@ class ConvS2SDecoder2(Decoder):
                   dropout=self.params["out_dropout_keep_prob"],
                   var_scope_name="linear_mapping_to_vocabspace",
                   mode=self.mode,
-                  normalization_type=None)) #changed here self.normalization_type
+                  normalization_type=self.normalization_type)) #changed here self.normalization_type
         else:
           # if embedding is shared,
           # the shared embedding is used as the final linear projection to vocab space

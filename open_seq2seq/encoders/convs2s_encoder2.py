@@ -204,6 +204,7 @@ class ConvS2SEncoder2(Encoder):
 
         outputs = conv_layer(outputs)
         outputs = (outputs + res_inputs) * self.scaling_factor
+
         #changed here
         outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
