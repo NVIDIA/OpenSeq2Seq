@@ -154,6 +154,7 @@ class ListenAttendSpellDecoder(Decoder):
     multirnn_cell_with_attention = AttentionWrapper(
         cell=multirnn_cell,
         attention_mechanism=attention_mechanism,
+        output_attention="both",
     )
 
     if self._mode == "train":
