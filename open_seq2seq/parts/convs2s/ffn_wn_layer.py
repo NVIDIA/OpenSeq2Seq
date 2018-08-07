@@ -66,7 +66,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
-      V_std = 0.001 #math.sqrt(dropout * 1.0 / in_dim)
+      V_std = 0.0001 #math.sqrt(dropout * 1.0 / in_dim)
       if self.wn_enabled:
         V_initializer = \
           tf.random_normal_initializer(mean=0, stddev=V_std)

@@ -89,7 +89,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       conv_out_size = out_dim
 
     with tf.variable_scope("conv_layer_" + str(layer_id)):
-      V_std = 0.001 #math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
+      V_std = 0.0001 #math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
       if self.wn_enabled:
         self.V = tf.get_variable(
             'V',
