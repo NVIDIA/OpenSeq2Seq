@@ -15,6 +15,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 data_root = "/data/wikitext-2/"
 
+
 base_model = AWDLSTM
 bptt = 72
 steps = 20
@@ -63,10 +64,11 @@ base_params = {
   # "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": { # will need to update
     "initializer": tf.contrib.layers.xavier_initializer,
-    "initializer_params": { # need different initializers for embeddings and for weights
-      "minval": -0.1,
-      "maxval": 0.1,
-    },
+    "initializer_params": {},
+    # "initializer_params": { # need different initializers for embeddings and for weights
+    #   "minval": -0.1,
+    #   "maxval": 0.1,
+    # },
     "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell_params": {
         "num_units": 1024, # paper 1150
