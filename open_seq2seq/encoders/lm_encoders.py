@@ -8,11 +8,13 @@ from __future__ import unicode_literals
 import copy
 
 import tensorflow as tf
+from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
-from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
+from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
+
 
 class AWDLSTMEncoder(Encoder):
   """
@@ -54,6 +56,8 @@ class AWDLSTMEncoder(Encoder):
       'schedule_learning': bool,
       'weight_tied': bool,
       'awd_initializer': bool,
+      "recurrent_keep_prob": float,
+      "weight_keep_prob": float,
     })
 
   def __init__(self, params, model,
@@ -89,6 +93,8 @@ class AWDLSTMEncoder(Encoder):
     self.params['encoder_emb_keep_prob'] = self.params.get('encoder_emb_keep_prob', 1.0)
     self.params['variational_recurrent'] = self.params.get('variational_recurrent', False)
     self.params['awd_initializer'] = self.params.get('awd_initializer', False)
+    self.params['recurrent_keep_prob'] = self.params.get('recurrent_keep_prob', 1.0)
+    self.params['weight_keep_prob'] = self.params.get('weight_keep_prob', 1.0)
 
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
@@ -167,9 +173,13 @@ class AWDLSTMEncoder(Encoder):
       last_input_keep_prob = self.params['encoder_last_input_keep_prob']
       last_output_keep_prob = self.params['encoder_last_output_keep_prob']
       emb_keep_prob = self.params['encoder_emb_keep_prob']
+      recurrent_keep_prob = self.params['recurrent_keep_prob']
+      weight_keep_prob = self.params['weight_keep_prob']
+
     else:
       dp_input_keep_prob, dp_output_keep_prob = 1.0, 1.0
       last_input_keep_prob, last_output_keep_prob, emb_keep_prob = 1.0, 1.0, 1.0
+      recurrent_keep_prob, weight_keep_prob = 1.0, 1.0
 
     self._output_layer = tf.layers.Dense(
       self._vocab_size, 
@@ -203,6 +213,8 @@ class AWDLSTMEncoder(Encoder):
                   cell_params=self.params['core_cell_params'],
                   dp_input_keep_prob=dp_input_keep_prob,
                   dp_output_keep_prob=dp_output_keep_prob,
+                  recurrent_keep_prob=recurrent_keep_prob,
+                  weight_keep_prob=weight_keep_prob,
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],
@@ -214,6 +226,8 @@ class AWDLSTMEncoder(Encoder):
                   cell_params=last_cell_params,
                   dp_input_keep_prob=last_input_keep_prob,
                   dp_output_keep_prob=last_output_keep_prob,
+                  recurrent_keep_prob=recurrent_keep_prob,
+                  weight_keep_prob=weight_keep_prob,
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],

@@ -19,6 +19,8 @@ def single_cell(
     cell_params,
     dp_input_keep_prob=1.0,
     dp_output_keep_prob=1.0,
+    recurrent_keep_prob=1.0,
+    weight_keep_prob=1.0,
     zoneout_prob=0.,
     training=True,
     residual_connections=False,
@@ -47,6 +49,12 @@ def single_cell(
   if awd_initializer:
     val = 1.0/math.sqrt(cell_params['num_units'])
     cell_params['initializer'] = tf.random_uniform_initializer(minval=-val, maxval=val)
+  else:
+    cell_params['initializer'] = tf.contrib.layers.xavier_initializer()
+  if recurrent_keep_prob < 1.0:
+    cell_params['recurrent_keep_prob'] = recurrent_keep_prob
+  if weight_keep_prob < 1.0:
+    cell_params['weight_keep_prob'] = weight_keep_prob
 
   cell = cell_class(**cell_params)
   if residual_connections:

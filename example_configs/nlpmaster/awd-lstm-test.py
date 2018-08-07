@@ -5,6 +5,8 @@ from open_seq2seq.encoders import AWDLSTMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
+from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
+
 # from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
@@ -28,7 +30,7 @@ base_params = {
   "print_loss_steps": 10,
   "print_samples_steps": 10,
   "save_checkpoint_steps": 10,
-  "logdir": "TEST-AWDLSTM-ADAM-TRAINHELP",
+  "logdir": "TEST-AWDLSTM-10",
   "eval_steps": 10,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -37,7 +39,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 3e-4,
+    "learning_rate": 1e-4,
   },
 
   # "lr_policy": exp_decay,
@@ -64,25 +66,32 @@ base_params = {
       "minval": -0.1,
       "maxval": 0.1,
     },
-    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 1150,
-        "forget_bias": 1.0,
+        "num_units": 128,
+        "layer_norm": True,
     },
     "last_cell_params": {
-        "num_units": 400,
-        "forget_bias": 1.0,
+        "num_units": 320,
+        "layer_norm": True,
     },
     "encoder_layers": 3,
-    "encoder_dp_input_keep_prob": 0.65,
-    "encoder_dp_output_keep_prob": 1.0, # can't find it in paper. need to update dropouts
+    "encoder_dp_input_keep_prob": 1.0,
+    "encoder_dp_output_keep_prob": 1.0, # output dropout for middle layer 0.3
+    "encoder_last_input_keep_prob": 1.0,
+    "encoder_last_output_keep_prob": 1.0, # output droput at last layer is 0.4
+    'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
-    "emb_size": 400,
+    "recurrent_keep_prob": 1.0,
+    "weight_keep_prob": 1.0,
+    "emb_size": 320,
     "vocab_size": 33278,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
-    'weight_tied': True,
+    "weight_tied": True,
+    "variational_recurrent": False,
+    "awd_initializer": False,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
@@ -114,6 +123,7 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "bptt": bptt,
+    'small': True,
   },
 }
 eval_params = {
@@ -128,6 +138,7 @@ eval_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
     "bptt": bptt,
+    'small': True,
   },
 }
 

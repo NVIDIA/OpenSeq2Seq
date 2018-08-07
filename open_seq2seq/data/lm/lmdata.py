@@ -26,6 +26,7 @@ class LMTextDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
       'rand_start': bool,
+      'small': bool,
       'use_targets': bool,
       'delimiter': str,
       'target_file': str,
@@ -57,6 +58,7 @@ class LMTextDataLayer(DataLayer):
     self._num_workers = num_workers
     self._worker_id = worker_id
     self.params["delimiter"] = self.params.get("delimiter", " ")
+    self.params["small"] = self.params.get("small", False)
     self.start = 0
 
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
@@ -69,7 +71,11 @@ class LMTextDataLayer(DataLayer):
     self.corp = Corpus(self.params['vocab_file'], self.params['content_file'])
     self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
-    # self.corp.content = self.corp.content[:9004]
+    if self.params["small"]:
+      if self.params['mode'] == 'eval':
+        self.corp.content = self.corp.content[:200]
+      else:
+        self.corp.content = self.corp.content[:9004]
 
 
     if self.params.get('pad_vocab_to_eight', False):
