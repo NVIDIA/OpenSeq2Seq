@@ -5,6 +5,8 @@ from open_seq2seq.encoders import AWDLSTMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
+from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
+
 # from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
@@ -29,7 +31,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP23",
+  "logdir": "AWDLSTM-EXP33",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
