@@ -28,7 +28,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
       mode: str current mode
     """
     super(AttentionLayerNormalized, self).__init__()
-    normalization_type = "weight_norm"
+    #changed
+    normalization_type = None
+
     self.add_res = add_res
     self.scaling_factor = scaling_factor
     with tf.variable_scope("attention_layer_" + str(layer_id)):
