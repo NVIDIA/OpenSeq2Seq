@@ -157,13 +157,12 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
+<span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
 
 
 <div class="viewcode-block" id="Image2Label"><a class="viewcode-back" href="../../api-docs/models.html#models.image2label.Image2Label">[docs]</a><span class="k">class</span> <span class="nc">Image2Label</span><span class="p">(</span><span class="n">EncoderDecoderModel</span><span class="p">):</span>
@@ -182,8 +181,8 @@
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Train batch top-1: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">top1</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Train batch top-5: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">top5</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s2">&quot;Train batch top-1&quot;</span><span class="p">:</span> <span class="n">top1</span><span class="p">,</span>
-      <span class="s2">&quot;Train batch top-5&quot;</span><span class="p">:</span> <span class="n">top5</span><span class="p">,</span>
+        <span class="s2">&quot;Train batch top-1&quot;</span><span class="p">:</span> <span class="n">top1</span><span class="p">,</span>
+        <span class="s2">&quot;Train batch top-5&quot;</span><span class="p">:</span> <span class="n">top5</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Image2Label.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.image2label.Image2Label.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">training_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -201,8 +200,8 @@
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation top-1: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">top1</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Validation top-5: </span><span class="si">{:.4f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">top5</span><span class="p">),</span> <span class="n">offset</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">{</span>
-      <span class="s2">&quot;Eval top-1&quot;</span><span class="p">:</span> <span class="n">top1</span><span class="p">,</span>
-      <span class="s2">&quot;Eval top-5&quot;</span><span class="p">:</span> <span class="n">top5</span><span class="p">,</span>
+        <span class="s2">&quot;Eval top-1&quot;</span><span class="p">:</span> <span class="n">top1</span><span class="p">,</span>
+        <span class="s2">&quot;Eval top-5&quot;</span><span class="p">:</span> <span class="n">top5</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Image2Label.evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.image2label.Image2Label.evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>

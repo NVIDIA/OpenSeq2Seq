@@ -156,12 +156,11 @@
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">time</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">time</span>
-<span class="kn">import</span> <span class="nn">os</span>
-
 
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">log_summaries_from_dict</span><span class="p">,</span> \
                                      <span class="n">get_results_for_epoch</span>
@@ -222,8 +221,8 @@
     <span class="c1"># using only first GPU</span>
     <span class="n">output_tensors</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_fetches</span> <span class="o">=</span> <span class="p">[</span>
-      <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
-      <span class="n">output_tensors</span><span class="p">,</span>
+        <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
+        <span class="n">output_tensors</span><span class="p">,</span>
     <span class="p">]</span>
 
 <div class="viewcode-block" id="PrintSamplesHook.begin"><a class="viewcode-back" href="../../api-docs/utils.html#utils.hooks.PrintSamplesHook.begin">[docs]</a>  <span class="k">def</span> <span class="nf">begin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -249,9 +248,9 @@
     <span class="c1"># returned from maybe_print_logs</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dict_to_log</span><span class="p">:</span>
       <span class="n">log_summaries_from_dict</span><span class="p">(</span>
-        <span class="n">dict_to_log</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
-        <span class="n">step</span><span class="p">,</span>
+          <span class="n">dict_to_log</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
+          <span class="n">step</span><span class="p">,</span>
       <span class="p">)</span></div></div>
 
 
@@ -289,9 +288,9 @@
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Global step </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">step</span><span class="p">),</span> <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span>
-        <span class="s2">&quot;Epoch </span><span class="si">{}</span><span class="s2">, global step </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
-          <span class="n">step</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span>
-        <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
+          <span class="s2">&quot;Epoch </span><span class="si">{}</span><span class="s2">, global step </span><span class="si">{}</span><span class="s2">:&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+              <span class="n">step</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">,</span> <span class="n">step</span><span class="p">),</span>
+          <span class="n">end</span><span class="o">=</span><span class="s2">&quot; &quot;</span><span class="p">,</span>
       <span class="p">)</span>
 
     <span class="n">loss</span> <span class="o">=</span> <span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -302,8 +301,8 @@
     <span class="n">h</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="nb">divmod</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
 
     <span class="n">deco_print</span><span class="p">(</span>
-      <span class="s2">&quot;time per step = </span><span class="si">{}</span><span class="s2">:</span><span class="si">{:02}</span><span class="s2">:</span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">s</span><span class="p">),</span>
-      <span class="n">start</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;time per step = </span><span class="si">{}</span><span class="s2">:</span><span class="si">{:02}</span><span class="s2">:</span><span class="si">{:.3f}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">h</span><span class="p">),</span> <span class="nb">int</span><span class="p">(</span><span class="n">m</span><span class="p">),</span> <span class="n">s</span><span class="p">),</span>
+        <span class="n">start</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_last_time</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span></div></div>
 
@@ -342,7 +341,7 @@
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Running evaluation on a validation set:&quot;</span><span class="p">)</span>
 
     <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span> <span class="o">=</span> <span class="n">get_results_for_epoch</span><span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="p">,</span> <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -356,19 +355,19 @@
          <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="n">total_loss</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
-          <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
-          <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span> <span class="s1">&#39;best_models&#39;</span><span class="p">,</span>
-                       <span class="s1">&#39;val_loss=</span><span class="si">{:.4f}</span><span class="s1">-step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)),</span>
-          <span class="n">global_step</span><span class="o">=</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="n">run_context</span><span class="o">.</span><span class="n">session</span><span class="p">,</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span> <span class="s1">&#39;best_models&#39;</span><span class="p">,</span>
+                         <span class="s1">&#39;val_loss=</span><span class="si">{:.4f}</span><span class="s1">-step&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)),</span>
+            <span class="n">global_step</span><span class="o">=</span><span class="n">step</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
         <span class="p">)</span>
 
       <span class="c1"># optionally logging to tensorboard any values</span>
       <span class="c1"># returned from maybe_print_logs</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]:</span>
         <span class="n">log_summaries_from_dict</span><span class="p">(</span>
-          <span class="n">dict_to_log</span><span class="p">,</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
-          <span class="n">step</span><span class="p">,</span>
+            <span class="n">dict_to_log</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">],</span>
+            <span class="n">step</span><span class="p">,</span>
         <span class="p">)</span></div></div>
 </pre></div>
 

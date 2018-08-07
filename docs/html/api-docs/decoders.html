@@ -99,8 +99,9 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.decoder">decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.fc_decoders">fc_decoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.rnn_decoders">rnn_decoders</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#transformer-decoders">transformer_decoders</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.transformer_decoder">transformer_decoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-decoders.convs2s_decoder">convs2s_decoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-decoders.tacotron2_decoder">tacotron2_decoder</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
@@ -608,38 +609,50 @@ Can be used only during Inference (mode=infer)</p>
 <dl class="method">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='rnn_decoder_with_attention'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializes beam search decoder
-:param params: decoder_params: dictionary with decoder parameters
-Must define:</p>
-<blockquote>
-<div><ul class="simple">
-<li>batch_size - batch size</li>
-<li>GO_SYMBOL - GO symbol id, must be the same as used in data layer</li>
-<li>END_SYMBOL - END symbol id, must be the same as used in data layer</li>
-<li>tgt_vocab_size - vocabulary size of target</li>
-<li>tgt_emb_size - embedding to use</li>
-<li>decoder_cell_units - number of units in RNN</li>
-<li>decoder_cell_type - RNN type: lstm, gru, glstm, etc.</li>
-<li>decoder_dp_input_keep_prob -</li>
-<li>decoder_dp_output_keep_prob -</li>
-<li>decoder_use_skip_connections - use residual connections or not</li>
-<li>attention_type - bahdanau, luong, gnmt, gnmt_v2</li>
-<li>bahdanau_normalize - (optional)</li>
-<li>luong_scale - (optional)</li>
-<li>mode - train or infer</li>
+<dd><p>Initializes beam search decoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – dictionary with decoder parameters</td>
+</tr>
+</tbody>
+</table>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>batch_size</strong> — batch size</li>
+<li><strong>GO_SYMBOL</strong> — GO symbol id, must be the same as used in data layer</li>
+<li><strong>END_SYMBOL</strong> — END symbol id, must be the same as used in data layer</li>
+<li><strong>tgt_vocab_size</strong> — vocabulary size of target</li>
+<li><strong>tgt_emb_size</strong> — embedding to use</li>
+<li><strong>decoder_cell_units</strong> — number of units in RNN</li>
+<li><strong>decoder_cell_type</strong> — RNN type: lstm, gru, glstm, etc.</li>
+<li><strong>decoder_dp_input_keep_prob</strong> —</li>
+<li><strong>decoder_dp_output_keep_prob</strong> —</li>
+<li><strong>decoder_use_skip_connections</strong> — use residual connections or not</li>
+<li><strong>attention_type</strong> — bahdanau, luong, gnmt, gnmt_v2</li>
+<li><strong>bahdanau_normalize</strong> — (optional)</li>
+<li><strong>luong_scale</strong> — (optional)</li>
+<li><strong>mode</strong> — train or infer</li>
 </ul>
 <p>… add any cell-specific parameters here as well</p>
-</div></blockquote>
 </dd></dl>
 
 <dl class="method">
 <dt id="decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention._decode">
 <code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#BeamSearchRNNDecoderWithAttention._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.BeamSearchRNNDecoderWithAttention._decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decodes representation into data
-:param input_dict: Python dictionary with inputs to decoder
-Must define:</p>
-<blockquote>
-<div><ul class="simple">
+<dd><p>Decodes representation into data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – Python dictionary with inputs to decoder</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Must define:</dt>
+<dd><ul class="first last simple">
 <li><dl class="first docutils">
 <dt>src_inputs - decoder input Tensor of shape [batch_size, time, dim]</dt>
 <dd>or [time, batch_size, dim]</dd>
@@ -647,16 +660,17 @@ Must define:</p>
 </li>
 <li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
 </ul>
-</div></blockquote>
-<p>Does not need tgt_inputs and tgt_lengths
-:return: a Python dictionary with:</p>
-<blockquote>
-<div><ul class="simple">
-<li><dl class="first docutils">
-<dt>final_outputs - tensor of shape [batch_size, time, dim] or</dt>
-<dd>[time, batch_size, dim]</dd>
+</dd>
 </dl>
-</li>
+<p>Does not need tgt_inputs and tgt_lengths</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Python dictionary with:
+* final_outputs - tensor of shape [batch_size, time, dim] or<blockquote>
+<div>[time, batch_size, dim]</div></blockquote>
+<ul class="simple">
 <li>final_state - tensor with decoder final state</li>
 <li><dl class="first docutils">
 <dt>final_sequence_lengths - tensor of shape [batch_size, time] or</dt>
@@ -664,7 +678,12 @@ Must define:</p>
 </dl>
 </li>
 </ul>
-</div></blockquote>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -722,43 +741,36 @@ bahdanau attention.</li>
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention._build_attention">
 <code class="descname">_build_attention</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_sequence_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._build_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._build_attention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Builds Attention part of the graph.
-Currently supports “bahdanau” and “luong”
-:param encoder_outputs:
-:param encoder_sequence_length:
-:return:</p>
+Currently supports “bahdanau” and “luong”.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="decoders.rnn_decoders.RNNDecoderWithAttention._decode">
 <code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/rnn_decoders.html#RNNDecoderWithAttention._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.rnn_decoders.RNNDecoderWithAttention._decode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Decodes representation into data
-:param input_dict: Python dictionary with inputs to decoder
-Must define:</p>
-<blockquote>
-<div><ul class="simple">
-<li><dl class="first docutils">
-<dt>src_inputs - decoder input Tensor of shape [batch_size, time, dim]</dt>
-<dd>or [time, batch_size, dim]</dd>
-</dl>
-</li>
-<li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
-<li><dl class="first docutils">
-<dt>tgt_inputs - Only during training. labels Tensor of the</dt>
-<dd>shape [batch_size, time] or [time, batch_size]</dd>
-</dl>
-</li>
-<li><dl class="first docutils">
-<dt>tgt_lengths - Only during training. labels lengths</dt>
-<dd>Tensor of the shape [batch_size]</dd>
-</dl>
-</li>
-</ul>
-</div></blockquote>
+<dd><p>Decodes representation into data.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">a Python dictionary with:
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – Python dictionary with inputs to decoder.</td>
+</tr>
+</tbody>
+</table>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>src_inputs</strong> — Decoder input Tensor of shape [batch_size, time, dim]
+or [time, batch_size, dim]</li>
+<li><strong>src_lengths</strong> — Decoder input lengths Tensor of shape [batch_size]</li>
+<li><strong>tgt_inputs</strong> — Only during training. labels Tensor of the
+shape [batch_size, time] or [time, batch_size].</li>
+<li><strong>tgt_lengths</strong> — Only during training. labels lengths
+Tensor of the shape [batch_size].</li>
+</ul>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Python dictionary with:
 * final_outputs - tensor of shape [batch_size, time, dim]<blockquote>
 <div>or [time, batch_size, dim]</div></blockquote>
 <ul class="simple">
@@ -770,6 +782,8 @@ Must define:</p>
 </li>
 </ul>
 </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
 </tbody>
 </table>
@@ -814,8 +828,86 @@ class <a class="reference internal" href="#decoders.rnn_decoders.RNNDecoderWithA
 </dd></dl>
 
 </div>
-<div class="section" id="transformer-decoders">
-<h2>transformer_decoders<a class="headerlink" href="#transformer-decoders" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-decoders.transformer_decoder">
+<span id="transformer-decoder"></span><h2>transformer_decoder<a class="headerlink" href="#module-decoders.transformer_decoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="decoders.transformer_decoder.TransformerDecoder">
+<em class="property">class </em><code class="descclassname">decoders.transformer_decoder.</code><code class="descname">TransformerDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder._get_symbols_to_logits_fn">
+<code class="descname">_get_symbols_to_logits_fn</code><span class="sig-paren">(</span><em>max_decode_length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder._get_symbols_to_logits_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder._get_symbols_to_logits_fn" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a decoding function that calculates logits of the next tokens.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder.decode_pass">
+<code class="descname">decode_pass</code><span class="sig-paren">(</span><em>targets</em>, <em>encoder_outputs</em>, <em>inputs_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.decode_pass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.decode_pass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate logits for each value in the target sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>targets</strong> – target values for the output sequence.
+int tensor with shape [batch_size, target_length]</li>
+<li><strong>encoder_outputs</strong> – continuous representation of input sequence.
+float tensor with shape [batch_size, input_length, hidden_size]</li>
+<li><strong>inputs_attention_bias</strong> – float tensor with shape [batch_size, 1, 1, input_length]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">float32 tensor with shape [batch_size, target_length, vocab_size]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoder.TransformerDecoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.transformer_decoder.TransformerDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.transformer_decoder.TransformerDecoder.predict">
+<code class="descname">predict</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_decoder_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/transformer_decoder.html#TransformerDecoder.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.transformer_decoder.TransformerDecoder.predict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return predicted sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-decoders.convs2s_decoder">
 <span id="convs2s-decoder"></span><h2>convs2s_decoder<a class="headerlink" href="#module-decoders.convs2s_decoder" title="Permalink to this headline">¶</a></h2>
@@ -897,6 +989,258 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <dt id="decoders.convs2s_decoder.ConvS2SDecoder.predict">
 <code class="descname">predict</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_outputs_b</em>, <em>inputs_attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/convs2s_decoder.html#ConvS2SDecoder.predict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.convs2s_decoder.ConvS2SDecoder.predict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return predicted sequence.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-decoders.tacotron2_decoder">
+<span id="tacotron2-decoder"></span><h2>tacotron2_decoder<a class="headerlink" href="#module-decoders.tacotron2_decoder" title="Permalink to this headline">¶</a></h2>
+<p>Tacotron2 decoder</p>
+<dl class="class">
+<dt id="decoders.tacotron2_decoder.Prenet">
+<em class="property">class </em><code class="descclassname">decoders.tacotron2_decoder.</code><code class="descname">Prenet</code><span class="sig-paren">(</span><em>num_units</em>, <em>num_layers</em>, <em>activation_fn=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Prenet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Prenet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Fully connected prenet used in the decoder</p>
+<dl class="method">
+<dt id="decoders.tacotron2_decoder.Prenet.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>num_layers</em>, <em>activation_fn=None</em>, <em>dtype=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Prenet.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Prenet.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Prenet initializer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>num_units</strong> (<em>int</em>) – number of units in the fully connected layer</li>
+<li><strong>num_layers</strong> (<em>int</em>) – number of fully connected layers</li>
+<li><strong>activation_fn</strong> (<em>callable</em>) – any valid activation function</li>
+<li><strong>dtype</strong> (<em>dtype</em>) – the data format for this layer</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.tacotron2_decoder.Prenet.add_regularization">
+<code class="descname">add_regularization</code><span class="sig-paren">(</span><em>regularizer</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Prenet.add_regularization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Prenet.add_regularization" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds regularization to all prenet kernels</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="decoders.tacotron2_decoder.Prenet.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#decoders.tacotron2_decoder.Prenet.output_size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder">
+<em class="property">class </em><code class="descclassname">decoders.tacotron2_decoder.</code><code class="descname">Tacotron2Decoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron_2_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Tacotron 2 Decoder</p>
+<dl class="method">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron_2_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Tacotron-2 like decoder constructor. A lot of optional configurations are
+currently for testing. Not all configurations are supported. Use of thed
+efault config is reccommended.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>attention_layer_size</strong> (int) — size of attention layer.</p>
+</li>
+<li><p class="first"><strong>attention_type</strong> (string) — Determines whether attention mechanism to
+use, should be one of ‘bahdanau’, ‘location’, or None.
+Use of ‘location’-sensitive attention is strongly recommended.</p>
+</li>
+<li><p class="first"><strong>bahdanau_normalize</strong> (bool) —  Defaults to False.</p>
+</li>
+<li><p class="first"><strong>decoder_cell_units</strong> (int) — dimension of decoder RNN cells.</p>
+</li>
+<li><p class="first"><strong>decoder_layers</strong> (int) — number of decoder RNN layers to use.</p>
+</li>
+<li><p class="first"><strong>decoder_cell_type</strong> (callable) — could be “lstm”, “gru”, “glstm”, or
+“slstm”. Currently, only ‘lstm’ has been tested. Defaults to ‘lstm’.</p>
+</li>
+<li><p class="first"><strong>time_major</strong> (bool) — whether to output as time major or batch major.
+Default is False for batch major.</p>
+</li>
+<li><p class="first"><strong>use_swap_memory</strong> (bool) — default is False.</p>
+</li>
+<li><p class="first"><strong>enable_prenet</strong> (bool) — whether to use the fully-connected prenet in
+the decoder. Defaults to True</p>
+</li>
+<li><p class="first"><strong>prenet_layers</strong> (int) — number of fully-connected layers to use.
+Defaults to 2.</p>
+</li>
+<li><p class="first"><strong>prenet_units</strong> (int) — number of units in each layer. Defaults to 256.</p>
+</li>
+<li><p class="first"><strong>prenet_activation</strong> (callable) — activation function to use for the
+prenet lyaers. Defaults to relu</p>
+</li>
+<li><p class="first"><strong>enable_postnet</strong> (bool) — whether to use the convolutional postnet in
+the decoder. Defaults to True</p>
+</li>
+<li><p class="first"><strong>postnet_conv_layers</strong> (bool) — list with the description of
+convolutional layers. Must be passed if postnet is enabled
+For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;postnet_conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;activation_fn&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;activation_fn&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;activation_fn&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;activation_fn&quot;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">tanh</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">80</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;activation_fn&quot;</span><span class="p">:</span> <span class="kc">None</span>
+  <span class="p">}</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>postnet_bn_momentum</strong> (float) — momentum for batch norm.
+Defaults to 0.1.</p>
+</li>
+<li><p class="first"><strong>postnet_bn_epsilon</strong> (float) — epsilon for batch norm.
+Defaults to 1e-5.</p>
+</li>
+<li><p class="first"><strong>postnet_data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
+</li>
+<li><p class="first"><strong>postnet_keep_dropout_prob</strong> (float) — keep probability for dropout in
+the postnet conv layers. Default to 0.5.</p>
+</li>
+<li><p class="first"><strong>mask_decoder_sequence</strong> (bool) — Defaults to True</p>
+</li>
+<li><p class="first"><strong>attention_bias</strong> (bool) — Wether to use a bias term when calculating
+the attention. Only works for “location” attention. Defaults to False.</p>
+</li>
+<li><p class="first"><strong>zoneout_prob</strong> (float) — zoneout probability. Defaults to 0.1</p>
+</li>
+<li><p class="first"><strong>parallel_iterations</strong> (int) — Number of parallel_iterations for
+tf.while loop inside dynamic_decode. Defaults to 32.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder._build_attention">
+<code class="descname">_build_attention</code><span class="sig-paren">(</span><em>encoder_outputs</em>, <em>encoder_sequence_length</em>, <em>attention_bias</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder._build_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder._build_attention" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds Attention part of the graph.
+Currently supports “bahdanau”, and “location”</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Decodes representation into data</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>Python dictionary with inputs to decoder. Must define:</p>
+<ul class="simple">
+<li>src_inputs - decoder input Tensor of shape [batch_size, time, dim]
+or [time, batch_size, dim]</li>
+<li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
+<li>tgt_inputs - Only during training. labels Tensor of the
+shape [batch_size, time, num_features] or
+[time, batch_size, num_features]</li>
+<li>stop_token_inputs - Only during training. labels Tensor of the
+shape [batch_size, time, 1] or [time, batch_size, 1]</li>
+<li>tgt_lengths - Only during training. labels lengths
+Tensor of the shape [batch_size]</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
+<dt>A python dictionary containing:</dt>
+<dd><ul class="first last simple">
+<li><dl class="first docutils">
+<dt>outputs - array containing:</dt>
+<dd><ul class="first last">
+<li>decoder_output - tensor of shape [batch_size, time,
+num_features] or [time, batch_size, num_features]. Spectrogram
+representation learned by the decoder rnn</li>
+<li>spectrogram_prediction - tensor of shape [batch_size, time,
+num_features] or [time, batch_size, num_features]. Spectrogram
+containing the residual corrections from the postnet if enabled</li>
+<li>alignments - tensor of shape [batch_size, time, memory_size]
+or [time, batch_size, memory_size]. The alignments learned by
+the attention layer</li>
+<li>stop_token_prediction - tensor of shape [batch_size, time, 1]
+or [time, batch_size, 1]. The stop token predictions</li>
+<li>final_sequence_lengths - tensor of shape [batch_size]</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>stop_token_predictions - tensor of shape [batch_size, time, 1]
+or [time, batch_size, 1]. The stop token predictions for use inside
+the loss function.</li>
+</ul>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.tacotron2_decoder.Tacotron2Decoder.__init__" title="decoders.tacotron2_decoder.Tacotron2Decoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.tacotron2_decoder.Tacotron2Decoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/tacotron2_decoder.html#Tacotron2Decoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.tacotron2_decoder.Tacotron2Decoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.tacotron2_decoder.Tacotron2Decoder.__init__" title="decoders.tacotron2_decoder.Tacotron2Decoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>

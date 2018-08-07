@@ -349,9 +349,11 @@ scaling is applied. If string, the corresponding automatic
 loss scaling algorithm is used. Must be one of ‘Backoff’
 of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
 see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
+<li><strong>loss_scaling_params</strong> (dict) — dictionary containing loss scaling
+parameters.</li>
 <li><strong>summaries</strong> (list) — which summaries to log. Could contain
 “learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
-“variables”, “variable_norm”.</li>
+“variables”, “variable_norm”, “loss_scale”.</li>
 <li><strong>iter_size</strong> (int) — use this parameter to emulate large batches.
 The gradients will be accumulated for <code class="docutils literal notranslate"><span class="pre">iter_size</span></code> number of steps before
 applying update.</li>

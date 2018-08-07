@@ -101,6 +101,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.ctc_loss">ctc_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.sequence_loss">sequence_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-losses.tacotron_loss">tacotron_loss</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
@@ -421,32 +422,56 @@ class <a class="reference internal" href="#losses.ctc_loss.CTCLoss.__init__" tit
 <dl class="method">
 <dt id="losses.sequence_loss.BasicSequenceLoss.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='basic_sequence_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructor
-:param params - dictionary with loss parameters.
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>dictionary with loss parameters.
 Should contain the following:
 * tgt_vocab_size: Target vocabulary size
 * batch_size_per_gpu: Size of the per-worker batch
 * offset_target_by_one: (default: True). Keep it true for
 auto-regressive models
-* average_across_timestep: (default: False). If True, will average
-loss across timesteps, else it will sum across timesteps
-* do_mask: (default: True) whether to mask based on tgt_lengths
-(which is passed as part of loss_input_dict to compute_loss and has to be
-not None then)</p>
+* average_across_timestep: (default: False). If True, will average</p>
+<blockquote>
+<div>loss across timesteps, else it will sum across timesteps</div></blockquote>
+<ul class="simple">
+<li>do_mask: (default: True) whether to mask based on tgt_lengths
+(which is passed as part of loss_input_dict to compute_loss
+and has to be not None then)</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="losses.sequence_loss.BasicSequenceLoss._compute_loss">
 <code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSequenceLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSequenceLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes cross entropy based sequence-to-sequence loss
-:param input_dict: inputs to compute loss
-{</p>
-<blockquote>
-<div>“logits”: logits tensor of shape [batch_size, T, dim]
+<dd><p>Computes cross entropy based sequence-to-sequence loss.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <dl class="docutils">
+<dt>inputs to compute loss::</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>“logits”: logits tensor of shape [batch_size, T, dim]
 “target_sequence”: tensor of shape [batch_size, T]
-“tgt_lengths”: tensor of shape [batch_size] or None</div></blockquote>
-<p>}
-:return: Singleton loss tensor</p>
+“tgt_lengths”: tensor of shape [batch_size] or None</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Singleton loss tensor</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -491,35 +516,61 @@ class <a class="reference internal" href="#losses.sequence_loss.BasicSequenceLos
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing">
 <em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">CrossEntropyWithSmoothing</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cross_entropy_with_smoothing'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
-<p>Softmax cross entropy loss with label smoothing. This one uses one-hot encodings
-for labels</p>
+<p>Softmax cross entropy loss with label smoothing.
+This one uses one-hot encodings for labels.</p>
 <dl class="method">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cross_entropy_with_smoothing'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing.__init__" title="Permalink to this definition">¶</a></dt>
-<dd><p>Constructor
-:param params - dictionary with loss parameters.
-Should contain the following:
-* tgt_vocab_size: Target vocabulary size
-* batch_size_per_gpu: Size of the per-worker batch
-* offset_target_by_one: (default: True). Keep it true for
-auto-regressive models
-* do_mask: (default: True) whether to mask based on tgt_lengths
-(which is passed as part of loss_input_dict to compute_loss and has to be
-not None then)</p>
+<dd><p>Constructor.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>dictionary with loss parameters.
+Should contain the following:</p>
+<blockquote>
+<div><ul class="simple">
+<li>tgt_vocab_size: Target vocabulary size</li>
+<li>batch_size_per_gpu: Size of the per-worker batch</li>
+<li>offset_target_by_one: (default: True). Keep it true for
+auto-regressive models</li>
+<li>do_mask: (default: True) whether to mask based on tgt_lengths
+(which is passed as part of loss_input_dict to compute_loss
+and has to be not None then)</li>
+</ul>
+</div></blockquote>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss">
 <code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#CrossEntropyWithSmoothing._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.CrossEntropyWithSmoothing._compute_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Computes cross entropy based sequence-to-sequence loss with label smoothing
-:param input_dict: inputs to compute loss
-{</p>
-<blockquote>
-<div>“logits”: logits tensor of shape [batch_size, T, dim]
+<dd><p>Computes cross entropy based sequence-to-sequence loss
+with label smoothing.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <dl class="docutils">
+<dt>inputs to compute loss::</dt>
+<dd><dl class="first docutils">
+<dt>{</dt>
+<dd>“logits”: logits tensor of shape [batch_size, T, dim]
 “target_sequence”: tensor of shape [batch_size, T]
-“tgt_lengths”: tensor of shape [batch_size] or None</div></blockquote>
-<p>}
-:return: Singleton loss tensor</p>
+“tgt_lengths”: tensor of shape [batch_size] or None</dd>
+</dl>
+<p class="last">}</p>
+</dd>
+</dl>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Singleton loss tensor</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -591,6 +642,75 @@ class <code class="xref py py-meth docutils literal notranslate"><span class="pr
 <dt id="losses.cross_entropy_loss.CrossEntropyLoss">
 <em class="property">class </em><code class="descclassname">losses.cross_entropy_loss.</code><code class="descname">CrossEntropyLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cross_entropy_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/cross_entropy_loss.html#CrossEntropyLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.cross_entropy_loss.CrossEntropyLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<p>Implementation of the usual cross_entropy loss with softmax.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-losses.tacotron_loss">
+<span id="tacotron-loss"></span><h2>tacotron_loss<a class="headerlink" href="#module-losses.tacotron_loss" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="losses.tacotron_loss.TacotronLoss">
+<em class="property">class </em><code class="descclassname">losses.tacotron_loss.</code><code class="descname">TacotronLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<dl class="method">
+<dt id="losses.tacotron_loss.TacotronLoss._compute_loss">
+<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes loss according to the tacotron 2 paper.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>inputs to compute loss. Contains:</p>
+<dl class="docutils">
+<dt>”decoder_output”: dicionary containing:</dt>
+<dd><dl class="first docutils">
+<dt>”outputs”: array containing [</dt>
+<dd><ul class="first last simple">
+<li>decoder_predictions: spectrogram predicted by the decoder
+rnn of shape [batch, time, feats]</li>
+<li>post_net_predictions: spectrogram after adding the residual
+corrections from the post net of shape [batch, time, feats]</li>
+<li>stop_token_predictions: stop_token predictions of shape
+[batch, time, 1]</li>
+</ul>
+</dd>
+</dl>
+<p class="last">]</p>
+</dd>
+<dt>”target_tensors”: array containing [</dt>
+<dd><ul class="first last simple">
+<li>spec: the true spectrogram of shape [batch, time, feats]</li>
+<li>stop_token: the stop_token of shape [batch, time]</li>
+</ul>
+</dd>
+</dl>
+<p>]</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Singleton loss tensor</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="losses.tacotron_loss.TacotronLoss.get_optional_params">
+<code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/tacotron_loss.html#TacotronLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.tacotron_loss.TacotronLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
