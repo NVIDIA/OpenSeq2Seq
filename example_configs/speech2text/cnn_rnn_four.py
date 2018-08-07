@@ -45,8 +45,10 @@ base_params = {
         'scale': 0.0001
     },
 
-    "dtype": "mixed",
-    "loss_scaling": "Backoff",
+    #"dtype": "mixed",
+    #"loss_scaling": "Backoff",
+
+    "dtype": tf.float32,
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -127,8 +129,8 @@ base_params = {
 
         "attention_params": {
             "attention_dim": 256,
-            "attention_type": "bahadanu",
-            #"use_coverage": False,
+            "attention_type": "zhaopeng",
+            "use_coverage": True,
         },
         
         "rnn_type": "lstm",
