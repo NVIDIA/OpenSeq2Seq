@@ -37,7 +37,7 @@ class FullyConnected(tf.layers.Layer):
           name="{}_{}".format(name, i), units=hidden_dims[i], use_bias=True, activation=tf.nn.relu)
       )
     self.dense_layers.append(tf.layers.Dense(
-        name="{}_{}".format(name, i + 1), units=hidden_dims[i + 1], use_bias=False)
+        name="{}_{}".format(name, i + 1), units=hidden_dims[i + 1], use_bias=True)
     )
     self.output_dim = hidden_dims[i + 1]
 
