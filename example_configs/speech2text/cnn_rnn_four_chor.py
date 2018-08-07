@@ -7,7 +7,6 @@ from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
-
 base_model = Speech2Text
 
 base_params = {
@@ -19,10 +18,10 @@ base_params = {
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 100,
+    "save_summaries_steps": 1000,
     "print_loss_steps": 10,
-    "print_samples_steps": 100,
-    "eval_steps": 200,
+    "print_samples_steps": 1000,
+    "eval_steps": 4400,
     "save_checkpoint_steps": 1100,
     "logdir": "las_log_folder",
 

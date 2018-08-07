@@ -11,19 +11,19 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": False,
+    "use_horovod": True,
     "num_epochs": 50,
 
     "num_gpus": 8,
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 100,
+    "save_summaries_steps": 1000,
     "print_loss_steps": 10,
-    "print_samples_steps": 100,
-    "eval_steps": 200,
+    "print_samples_steps": 1000,
+    "eval_steps": 4400,
     "save_checkpoint_steps": 1100,
-    "logdir": "las_log_folder",
+    "logdir": "jca_log_folder",
 
     "optimizer": "Adam",
     "optimizer_params": {
@@ -181,9 +181,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "../librispeech/librivox-train-clean-100.csv",
-            "../librispeech/librivox-train-clean-360.csv",
-            "../librispeech/librivox-train-other-500.csv",
+            "/data/librispeech/librivox-train-clean-100.csv",
+            "/data/librispeech/librivox-train-clean-360.csv",
+            "/data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
