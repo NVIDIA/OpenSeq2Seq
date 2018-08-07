@@ -184,7 +184,7 @@
 <dl class="class">
 <dt id="models.model.Model">
 <em class="property">class </em><code class="descclassname">models.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class that any model should inherit from.
 It automatically enables multi-GPU (or Horovod) computation,
 has mixed precision support, logs training summaries, etc.</p>
@@ -193,22 +193,22 @@ has mixed precision support, logs training summaries, etc.</p>
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Model constructor.
 The TensorFlow graph should not be created here, but rather in the
-<a class="reference internal" href="#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal"><span class="pre">self.compile()</span></code></a> method.</p>
+<a class="reference internal" href="#models.model.Model.compile" title="models.model.Model.compile"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.compile()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the model.
-All supported parameters are listed in <a class="reference internal" href="#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.
-If mode is &#8220;train&#8221; all parts of the graph will be built
+<li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
+All supported parameters are listed in <a class="reference internal" href="#models.model.Model.get_required_params" title="models.model.Model.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#models.model.Model.get_optional_params" title="models.model.Model.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
+If mode is “train” all parts of the graph will be built
 (model, loss, optimizer).
-If mode is &#8220;eval&#8221;, only model and loss will be built.
-If mode is &#8220;infer&#8221;, only model will be built.</li>
-<li><strong>hvd</strong> (<em>optional</em>) &#8211; if Horovod is used, this should be
-<code class="docutils literal"><span class="pre">horovod.tensorflow</span></code> module.
+If mode is “eval”, only model and loss will be built.
+If mode is “infer”, only model will be built.</li>
+<li><strong>hvd</strong> (<em>optional</em>) – if Horovod is used, this should be
+<code class="docutils literal notranslate"><span class="pre">horovod.tensorflow</span></code> module.
 If Horovod is not used, it should be None.</li>
 </ul>
 </td>
@@ -217,89 +217,89 @@ If Horovod is not used, it should be None.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>random_seed</strong> (int) &#8212; random seed to use.</li>
-<li><strong>use_horovod</strong> (bool) &#8212; whether to use Horovod for distributed
+<li><strong>random_seed</strong> (int) — random seed to use.</li>
+<li><strong>use_horovod</strong> (bool) — whether to use Horovod for distributed
 execution.</li>
-<li><strong>num_gpus</strong> (int) &#8212; number of GPUs to use. This parameter cannot be
-used if <code class="docutils literal"><span class="pre">gpu_ids</span></code> is specified. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
+<li><strong>num_gpus</strong> (int) — number of GPUs to use. This parameter cannot be
+used if <code class="docutils literal notranslate"><span class="pre">gpu_ids</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
-<li><strong>gpu_ids</strong> (list of ints) &#8212; GPU ids to use. This parameter cannot be
-used if <code class="docutils literal"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal"><span class="pre">use_horovod</span></code> is True
+<li><strong>gpu_ids</strong> (list of ints) — GPU ids to use. This parameter cannot be
+used if <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
-<li><strong>batch_size_per_gpu</strong> (int) &#8212; batch size to use for each GPU.</li>
-<li><strong>num_epochs</strong> (int) &#8212; number of epochs to run training for.
-This parameter cannot be used if <code class="docutils literal"><span class="pre">max_steps</span></code> is specified.</li>
-<li><strong>max_steps</strong> (int) &#8212; number of steps to run training for.
-This parameter cannot be used if <code class="docutils literal"><span class="pre">num_epochs</span></code> is specified.</li>
-<li><strong>save_summaries_steps</strong> (int or None) &#8212; how often to save summaries.
+<li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
+<li><strong>num_epochs</strong> (int) — number of epochs to run training for.
+This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> is specified.</li>
+<li><strong>max_steps</strong> (int) — number of steps to run training for.
+This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> is specified.</li>
+<li><strong>save_summaries_steps</strong> (int or None) — how often to save summaries.
 Setting it to None disables summaries saving.</li>
-<li><strong>print_loss_steps</strong> (int or None) &#8212; how often to print loss during
+<li><strong>print_loss_steps</strong> (int or None) — how often to print loss during
 training. Setting it to None disables loss printing.</li>
-<li><strong>print_samples_steps</strong> (int or None) &#8212; how often to print training
+<li><strong>print_samples_steps</strong> (int or None) — how often to print training
 samples (input sequences, correct answers and model predictions).
 Setting it to None disables samples printing.</li>
-<li><strong>print_bench_info_steps</strong> (int or None) &#8212; how often to print training
+<li><strong>print_bench_info_steps</strong> (int or None) — how often to print training
 benchmarking information (average number of objects processed per step).
 Setting it to None disables intermediate benchmarking printing, but
 the average information across the whole training will always be printed
 after the last iteration.</li>
-<li><strong>save_checkpoint_steps</strong> (int or None) &#8212; how often to save model
+<li><strong>save_checkpoint_steps</strong> (int or None) — how often to save model
 checkpoints. Setting it to None disables checkpoint saving.</li>
-<li><strong>eval_steps</strong> (int) &#8212; how often to run evaluation during training.
-This parameter is only checked if <code class="docutils literal"><span class="pre">--mode</span></code> argument of <code class="docutils literal"><span class="pre">run.py</span></code> is
-&#8220;train_eval&#8221;. If no evaluation is needed you should use &#8220;train&#8221; mode.</li>
-<li><strong>logdir</strong> (string) &#8212; path to the log directory where all checkpoints
+<li><strong>eval_steps</strong> (int) — how often to run evaluation during training.
+This parameter is only checked if <code class="docutils literal notranslate"><span class="pre">--mode</span></code> argument of <code class="docutils literal notranslate"><span class="pre">run.py</span></code> is
+“train_eval”. If no evaluation is needed you should use “train” mode.</li>
+<li><strong>logdir</strong> (string) — path to the log directory where all checkpoints
 and summaries will be saved.</li>
 <li><strong>data_layer</strong> (any class derived from
-<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal"><span class="pre">DataLayer</span></code></a>) &#8212; data layer class
+<a class="reference internal" href="data.html#data.data_layer.DataLayer" title="data.data_layer.DataLayer"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataLayer</span></code></a>) — data layer class
 to use.</li>
-<li><strong>data_layer_params</strong> (dict) &#8212; dictionary with data layer
+<li><strong>data_layer_params</strong> (dict) — dictionary with data layer
 configuration.
 For complete list of possible parameters see the corresponding
 class docs.</li>
-<li><strong>optimizer</strong> (string or TensorFlow optimizer class) &#8212; optimizer to
-use for training. Could be either &#8220;Adam&#8221;, &#8220;Adagrad&#8221;, &#8220;Ftrl&#8221;, &#8220;Momentum&#8221;,
-&#8220;RMSProp&#8221;, &#8220;SGD&#8221; or any valid TensorFlow optimizer class.</li>
-<li><strong>optimizer_params</strong> (dict) &#8212; dictionary that will be passed to
-optimizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>initializer</strong> &#8212; any valid TensorFlow initializer.</li>
-<li><strong>initializer_params</strong> (dict) &#8212; dictionary that will be passed to
-initializer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>regularizer</strong> &#8212; and valid TensorFlow regularizer.</li>
-<li><strong>regularizer_params</strong> (dict) &#8212; dictionary that will be passed to
-regularizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>dtype</strong> &#8212; model dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code>,
-<code class="docutils literal"><span class="pre">tf.float32</span></code> or &#8220;mixed&#8221;. For details see
+<li><strong>optimizer</strong> (string or TensorFlow optimizer class) — optimizer to
+use for training. Could be either “Adam”, “Adagrad”, “Ftrl”, “Momentum”,
+“RMSProp”, “SGD” or any valid TensorFlow optimizer class.</li>
+<li><strong>optimizer_params</strong> (dict) — dictionary that will be passed to
+optimizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>initializer</strong> — any valid TensorFlow initializer.</li>
+<li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
+initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>regularizer</strong> — and valid TensorFlow regularizer.</li>
+<li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
+regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>,
+<code class="docutils literal notranslate"><span class="pre">tf.float32</span></code> or “mixed”. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>lr_policy</strong> &#8212; any valid learning rate policy function. For examples,
-see <a class="reference internal" href="optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
-<li><strong>lr_policy_params</strong> (dict) &#8212; dictionary containing lr_policy
+<li><strong>lr_policy</strong> — any valid learning rate policy function. For examples,
+see <a class="reference internal" href="optimizers.html#module-optimizers.lr_policies" title="optimizers.lr_policies"><code class="xref any py py-mod docutils literal notranslate"><span class="pre">optimizers.lr_policies</span></code></a> module.</li>
+<li><strong>lr_policy_params</strong> (dict) — dictionary containing lr_policy
 parameters.</li>
-<li><strong>max_grad_norm</strong> (float) &#8212; maximum value of gradient norm. Clipping
+<li><strong>max_grad_norm</strong> (float) — maximum value of gradient norm. Clipping
 will be performed if some gradients exceed this value (this is checked
 for each variable independently).</li>
-<li><strong>loss_scaling</strong> &#8212; could be float or string. If float, static loss
+<li><strong>loss_scaling</strong> — could be float or string. If float, static loss
 scaling is applied. If string, the corresponding automatic
-loss scaling algorithm is used. Must be one of &#8216;Backoff&#8217;
-of &#8216;LogMax&#8217; (case insensitive). Only used when dtype=&#8221;mixed&#8221;. For details
+loss scaling algorithm is used. Must be one of ‘Backoff’
+of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
 see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
-<li><strong>loss_scaling_params</strong> (dict) &#8212; dictionary containing loss scaling
+<li><strong>loss_scaling_params</strong> (dict) — dictionary containing loss scaling
 parameters.</li>
-<li><strong>summaries</strong> (list) &#8212; which summaries to log. Could contain
-&#8220;learning_rate&#8221;, &#8220;gradients&#8221;, &#8220;gradient_norm&#8221;, &#8220;global_gradient_norm&#8221;,
-&#8220;variables&#8221;, &#8220;variable_norm&#8221;, &#8220;loss_scale&#8221;.</li>
-<li><strong>iter_size</strong> (int) &#8212; use this parameter to emulate large batches.
-The gradients will be accumulated for <code class="docutils literal"><span class="pre">iter_size</span></code> number of steps before
+<li><strong>summaries</strong> (list) — which summaries to log. Could contain
+“learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
+“variables”, “variable_norm”, “loss_scale”.</li>
+<li><strong>iter_size</strong> (int) — use this parameter to emulate large batches.
+The gradients will be accumulated for <code class="docutils literal notranslate"><span class="pre">iter_size</span></code> number of steps before
 applying update.</li>
-<li><strong>larc_params</strong> &#8212; dictionary with parameters for LARC (or LARS)
+<li><strong>larc_params</strong> — dictionary with parameters for LARC (or LARS)
 optimization algorithms. Can contain the following parameters:<ul>
-<li><strong>larc_mode</strong> &#8212; Could be either &#8220;scale&#8221; (LARS) or &#8220;clip&#8221; (LARC).
+<li><strong>larc_mode</strong> — Could be either “scale” (LARS) or “clip” (LARC).
 Note that it works in addition to any other optimization algorithm
 since we treat
 it as adaptive gradient clipping and learning rate adjustment.</li>
-<li><strong>larc_eta</strong> (float) &#8212; LARC or LARS scaling parameter.</li>
-<li><strong>min_update</strong> (float) &#8212; minimal value of the LARC (LARS) update.</li>
-<li><strong>epsilon</strong> (float) &#8212; small number added to gradient norm in
+<li><strong>larc_eta</strong> (float) — LARC or LARS scaling parameter.</li>
+<li><strong>min_update</strong> (float) — minimal value of the LARC (LARS) update.</li>
+<li><strong>epsilon</strong> (float) — small number added to gradient norm in
 denominator for numerical stability.</li>
 </ul>
 </li>
@@ -315,18 +315,18 @@ denominator for numerical stability.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_tensors</strong> &#8211; <code class="docutils literal"><span class="pre">input_tensors</span></code> defined by the data_layer class.</li>
-<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) &#8211; id of the GPU where the current copy of the model
+<li><strong>input_tensors</strong> – <code class="docutils literal notranslate"><span class="pre">input_tensors</span></code> defined by the data_layer class.</li>
+<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) – id of the GPU where the current copy of the model
 is constructed. For Horovod this is always zero.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><p>tuple containing loss tensor and list of outputs tensors.</p>
 <p>Loss tensor will be automatically provided to the optimizer and
-corresponding <code class="xref py py-attr docutils literal"><span class="pre">train_op</span></code> will be created.</p>
-<p>Samples tensors are stored in the <code class="xref py py-attr docutils literal"><span class="pre">_outputs</span></code> attribute and can be
-accessed by calling <a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal"><span class="pre">get_output_tensors()</span></code></a> function. For example,
-this happens inside <a class="reference internal" href="utils.html#utils.hooks.RunEvaluationHook" title="utils.hooks.RunEvaluationHook"><code class="xref py py-class docutils literal"><span class="pre">utils.hooks.RunEvaluationHook</span></code></a>
+corresponding <code class="xref py py-attr docutils literal notranslate"><span class="pre">train_op</span></code> will be created.</p>
+<p>Samples tensors are stored in the <code class="xref py py-attr docutils literal notranslate"><span class="pre">_outputs</span></code> attribute and can be
+accessed by calling <a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_output_tensors()</span></code></a> function. For example,
+this happens inside <a class="reference internal" href="utils.html#utils.hooks.RunEvaluationHook" title="utils.hooks.RunEvaluationHook"><code class="xref py py-class docutils literal notranslate"><span class="pre">utils.hooks.RunEvaluationHook</span></code></a>
 to fetch output values for evaluation.</p>
 <p>Both loss and outputs can be None when corresponding part of the graph
 is not built.</p>
@@ -351,7 +351,7 @@ of images in current batch.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) &#8211; id of the worker to get data layer from
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) – id of the worker to get data layer from
 (not used for Horovod).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">tf.Tensor with number of objects in batch.</td>
@@ -366,7 +366,7 @@ of images in current batch.</p>
 <dd><p>This method performs last batch clipping.
 Used in cases when dataset is not divisible by the batch size and model
 does not support dynamic batch sizes. In those cases, the last batch will
-contain some data from the &#8220;next epoch&#8221; and this method can be used
+contain some data from the “next epoch” and this method can be used
 to remove that data. This method works for both
 dense and sparse tensors. In most cases you will not need to overwrite this
 method.</p>
@@ -375,11 +375,11 @@ method.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>last_batch</strong> (<em>list</em>) &#8211; list with elements that could be either <code class="docutils literal"><span class="pre">np.array</span></code>
-or <code class="docutils literal"><span class="pre">tf.SparseTensorValue</span></code> containing data for last batch. The
+<li><strong>last_batch</strong> (<em>list</em>) – list with elements that could be either <code class="docutils literal notranslate"><span class="pre">np.array</span></code>
+or <code class="docutils literal notranslate"><span class="pre">tf.SparseTensorValue</span></code> containing data for last batch. The
 assumption is that the first axis of all data tensors will correspond
 to the current batch size.</li>
-<li><strong>true_size</strong> (<em>int</em>) &#8211; true size that the last batch should be cut to.</li>
+<li><strong>true_size</strong> (<em>int</em>) – true size that the last batch should be cut to.</li>
 </ul>
 </td>
 </tr>
@@ -397,18 +397,18 @@ to the current batch size.</li>
 <dt id="models.model.Model.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.evaluate" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method can be used in conjunction with
-<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
 evaluation metrics.
 For example, for speech-to-text models these methods can calculate
 word-error-rate on the validation data. For text-to-text models, these
 methods can compute BLEU score. Look at the corresponding derived classes
 for examples of this. These methods will be called every
-<code class="docutils literal"><span class="pre">eval_steps</span></code> (config parameter) iterations and
-input/output values will be populated automatically by calling <code class="docutils literal"><span class="pre">sess.run</span></code>
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
 on corresponding tensors (using evaluation model).
-The <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
-and it&#8217;s results will be collected and provided to
-<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+The <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
 Note that
 this function is not abstract and does not have to be implemented in
 derived classes. But if evaluation functionality is required,
@@ -418,12 +418,12 @@ overwriting this function can be a useful way to add it.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_values</strong> &#8211; evaluation of
-<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
 all workers. That is, input tensors for one batch combined
 from <em>all</em> GPUs.</li>
-<li><strong>output_values</strong> &#8211; evaluation of
-<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_output_tensors()</span></code></a> concatenated
+<li><strong>output_values</strong> – evaluation of
+<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code></a> concatenated
 across all workers. That is, output tensors for one batch combined
 from <em>all</em> GPUs.</li>
 </ul>
@@ -444,18 +444,18 @@ current batch, which will then be averaged in finalization method).</p>
 <dt id="models.model.Model.finalize_evaluation">
 <code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method can be used in conjunction with
-<a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a> to calculate
+<a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
 evaluation metrics.
 For example, for speech-to-text models these methods can calculate
 word-error-rate on the validation data. For text-to-text models, these
 methods can compute BLEU score. Look at the corresponding derived classes
 for examples of this. These methods will be called every
-<code class="docutils literal"><span class="pre">eval_steps</span></code> (config parameter) iterations and
-input/output values will be populated automatically by calling <code class="docutils literal"><span class="pre">sess.run</span></code>
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
 on corresponding tensors (using evaluation model).
-The <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
-and it&#8217;s results will be collected and provided to
-<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+The <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.model.Model.finalize_evaluation" title="models.model.Model.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
 Note that
 these methods are not abstract and does not have to be implemented in
 derived classes. But if evaluation functionality is required,
@@ -465,11 +465,11 @@ overwriting these methods can be a useful way to add it.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>results_per_batch</strong> (<em>list</em>) &#8211; aggregation of values returned from all calls
-to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
 equal to number of evaluation batches).</li>
-<li><strong>training_step</strong> (<em>int</em>) &#8211; current training step. Will only be passed if mode
-is &#8220;train_eval&#8221;.</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
 </ul>
 </td>
 </tr>
@@ -495,10 +495,10 @@ log the corresponding input-output pair to the output_file.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>results_per_batch</strong> (<em>list</em>) &#8211; aggregation of values returned from all calls
-to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
 equal to number of evaluation batches).</li>
-<li><strong>output_file</strong> (<em>str</em>) &#8211; name of the output file that inference results should
+<li><strong>output_file</strong> (<em>str</em>) – name of the output file that inference results should
 be saved to.</li>
 </ul>
 </td>
@@ -511,14 +511,14 @@ be saved to.</li>
 <dt id="models.model.Model.get_data_layer">
 <code class="descname">get_data_layer</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.get_data_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.get_data_layer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns model data layer.
-When using Horovod, <code class="docutils literal"><span class="pre">worker_id</span></code> parameter is ignored. When using
-tower-based multi-GPU approach, <code class="docutils literal"><span class="pre">worker_id</span></code> can be used to select
+When using Horovod, <code class="docutils literal notranslate"><span class="pre">worker_id</span></code> parameter is ignored. When using
+tower-based multi-GPU approach, <code class="docutils literal notranslate"><span class="pre">worker_id</span></code> can be used to select
 data layer for corresponding tower/GPU.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) &#8211; id of the worker to get data layer from
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) – id of the worker to get data layer from
 (not used for Horovod).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">model data layer.</td>
@@ -541,8 +541,8 @@ data layer for corresponding tower/GPU.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -553,15 +553,15 @@ class <a class="reference internal" href="#models.model.Model.__init__" title="m
 <dl class="method">
 <dt id="models.model.Model.get_output_tensors">
 <code class="descname">get_output_tensors</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.get_output_tensors"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.get_output_tensors" title="Permalink to this definition">¶</a></dt>
-<dd><p>Returns output tensors generated by <code class="xref py py-meth docutils literal"><span class="pre">_build_forward_pass_graph.()</span></code>
-When using Horovod, <code class="docutils literal"><span class="pre">worker_id</span></code> parameter is ignored. When using
-tower-based multi-GPU approach, <code class="docutils literal"><span class="pre">worker_id</span></code> can be used to select tensors
+<dd><p>Returns output tensors generated by <code class="xref py py-meth docutils literal notranslate"><span class="pre">_build_forward_pass_graph.()</span></code>
+When using Horovod, <code class="docutils literal notranslate"><span class="pre">worker_id</span></code> parameter is ignored. When using
+tower-based multi-GPU approach, <code class="docutils literal notranslate"><span class="pre">worker_id</span></code> can be used to select tensors
 for corresponding tower/GPU.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) &#8211; id of the worker to get tensors from
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>worker_id</strong> (<em>int</em>) – id of the worker to get tensors from
 (not used for Horovod).</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">output tensors.</td>
@@ -579,8 +579,8 @@ for corresponding tower/GPU.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.model.Model.__init__" title="models.model.Model.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -603,20 +603,20 @@ class <a class="reference internal" href="#models.model.Model.__init__" title="m
 <dl class="method">
 <dt id="models.model.Model.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.infer" title="Permalink to this definition">¶</a></dt>
-<dd><p>This method is analogous to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal"><span class="pre">self.evaluate()</span></code></a>, but used
-in conjunction with <a class="reference internal" href="#models.model.Model.finalize_inference" title="models.model.Model.finalize_inference"><code class="xref py py-meth docutils literal"><span class="pre">self.finalize_inference()</span></code></a>
+<dd><p>This method is analogous to <a class="reference internal" href="#models.model.Model.evaluate" title="models.model.Model.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
+in conjunction with <a class="reference internal" href="#models.model.Model.finalize_inference" title="models.model.Model.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
 to perform inference.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_values</strong> &#8211; evaluation of
-<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
 all workers. That is, input tensors for one batch combined
 from <em>all</em> GPUs.</li>
-<li><strong>output_values</strong> &#8211; evaluation of
-<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_output_tensors()</span></code></a> concatenated
+<li><strong>output_values</strong> – evaluation of
+<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code></a> concatenated
 across all workers. That is, output tensors for one batch combined
 from <em>all</em> GPUs.</li>
 </ul>
@@ -624,7 +624,7 @@ from <em>all</em> GPUs.</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for inference finalization (e.g. this method
 can return final generated sequences for each batch which will then be
-saved to file in <a class="reference internal" href="#models.model.Model.finalize_inference" title="models.model.Model.finalize_inference"><code class="xref py py-meth docutils literal"><span class="pre">self.finalize_inference()</span></code></a>
+saved to file in <a class="reference internal" href="#models.model.Model.finalize_inference" title="models.model.Model.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
 method).</p>
 </td>
 </tr>
@@ -646,9 +646,9 @@ method).</p>
 <code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/model.html#Model.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.model.Model.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method can be used to print logs that help to visualize training.
 For example, you can print sample input sequences and their corresponding
-predictions. This method will be called every <code class="docutils literal"><span class="pre">print_samples_steps</span></code>
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
 (config parameter) iterations and input/output values will be populated
-automatically by calling <code class="docutils literal"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
 this method is not abstract and does not have to be implemented in
 derived classes. But if additional printing functionality is required,
 overwriting this method can be a useful way to add it.</p>
@@ -657,13 +657,13 @@ overwriting this method can be a useful way to add it.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_values</strong> &#8211; evaluation of
-<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
 for one batch on the <em>first</em> GPU.</li>
-<li><strong>output_values</strong> &#8211; evaluation of
-<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal"><span class="pre">self.get_output_tensors(0)</span></code></a>,
+<li><strong>output_values</strong> – evaluation of
+<a class="reference internal" href="#models.model.Model.get_output_tensors" title="models.model.Model.get_output_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code></a>,
 that is, output tensors for one batch on the <em>first</em> GPU.</li>
-<li><strong>training_step</strong> (<em>int</em>) &#8211; Current training step.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
 </ul>
 </td>
 </tr>
@@ -681,7 +681,7 @@ that is, output tensors for one batch on the <em>first</em> GPU.</li>
 <dl class="attribute">
 <dt id="models.model.Model.mode">
 <code class="descname">mode</code><a class="headerlink" href="#models.model.Model.mode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mode the model is executed in (&#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;).</p>
+<dd><p>Mode the model is executed in (“train”, “eval” or “infer”).</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -708,7 +708,7 @@ Open-MPI parameters.</p>
 <dt id="models.model.Model.steps_in_epoch">
 <code class="descname">steps_in_epoch</code><a class="headerlink" href="#models.model.Model.steps_in_epoch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Number of steps in epoch.
-This parameter is only populated if <code class="docutils literal"><span class="pre">num_epochs</span></code> was specified in the
+This parameter is only populated if <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> was specified in the
 config (otherwise it is None).
 It is used in training hooks to correctly print epoch number.</p>
 </dd></dl>
@@ -721,31 +721,31 @@ It is used in training hooks to correctly print epoch number.</p>
 <dl class="class">
 <dt id="models.encoder_decoder.EncoderDecoderModel">
 <em class="property">class </em><code class="descclassname">models.encoder_decoder.</code><code class="descname">EncoderDecoderModel</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/encoder_decoder.html#EncoderDecoderModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.encoder_decoder.EncoderDecoderModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.models.model.Model</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.models.model.Model</span></code></p>
 <p>Standard encoder-decoder class with one encoder and one decoder.
-&#8220;encoder-decoder-loss&#8221; models should inherit from this class.</p>
+“encoder-decoder-loss” models should inherit from this class.</p>
 <dl class="method">
 <dt id="models.encoder_decoder.EncoderDecoderModel.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/encoder_decoder.html#EncoderDecoderModel.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.encoder_decoder.EncoderDecoderModel.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encoder-decoder model constructor.
 Note that TensorFlow graph should not be created here. All graph creation
 logic is happening inside
-<a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel._build_forward_pass_graph" title="models.encoder_decoder.EncoderDecoderModel._build_forward_pass_graph"><code class="xref py py-meth docutils literal"><span class="pre">self._build_forward_pass_graph()</span></code></a> method.</p>
+<a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel._build_forward_pass_graph" title="models.encoder_decoder.EncoderDecoderModel._build_forward_pass_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._build_forward_pass_graph()</span></code></a> method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the model.
-All supported parameters are listed in <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.get_required_params" title="models.encoder_decoder.EncoderDecoderModel.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.get_optional_params" title="models.encoder_decoder.EncoderDecoderModel.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.
-If mode is &#8220;train&#8221; all parts of the graph will be built
+<li><strong>params</strong> (<em>dict</em>) – parameters describing the model.
+All supported parameters are listed in <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.get_required_params" title="models.encoder_decoder.EncoderDecoderModel.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.get_optional_params" title="models.encoder_decoder.EncoderDecoderModel.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – “train”, “eval” or “infer”.
+If mode is “train” all parts of the graph will be built
 (model, loss, optimizer).
-If mode is &#8220;eval&#8221;, only model and loss will be built.
-If mode is &#8220;infer&#8221;, only model will be built.</li>
-<li><strong>hvd</strong> (<em>optional</em>) &#8211; if Horovod is used, this should be
-<code class="docutils literal"><span class="pre">horovod.tensorflow</span></code> module.
+If mode is “eval”, only model and loss will be built.
+If mode is “infer”, only model will be built.</li>
+<li><strong>hvd</strong> (<em>optional</em>) – if Horovod is used, this should be
+<code class="docutils literal notranslate"><span class="pre">horovod.tensorflow</span></code> module.
 If Horovod is not used, it should be None.</li>
 </ul>
 </td>
@@ -755,16 +755,16 @@ If Horovod is not used, it should be None.</li>
 <p>Config parameters:</p>
 <ul class="simple">
 <li><strong>encoder</strong> (any class derived from
-<a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">Encoder</span></code></a>) &#8212; encoder class to use.</li>
-<li><strong>encoder_params</strong> (dict) &#8212; dictionary with encoder configuration. For
+<a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Encoder</span></code></a>) — encoder class to use.</li>
+<li><strong>encoder_params</strong> (dict) — dictionary with encoder configuration. For
 complete list of possible parameters see the corresponding class docs.</li>
 <li><strong>decoder</strong> (any class derived from
-<a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">Decoder</span></code></a>) &#8212; decoder class to use.</li>
-<li><strong>decoder_params</strong> (dict) &#8212; dictionary with decoder configuration. For
+<a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">Decoder</span></code></a>) — decoder class to use.</li>
+<li><strong>decoder_params</strong> (dict) — dictionary with decoder configuration. For
 complete list of possible parameters see the corresponding class docs.</li>
 <li><strong>loss</strong> (any class derived from
-<a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">Loss</span></code></a>) &#8212; loss class to use.</li>
-<li><strong>loss_params</strong> (dict) &#8212; dictionary with loss configuration. For
+<a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">Loss</span></code></a>) — loss class to use.</li>
+<li><strong>loss_params</strong> (dict) — dictionary with loss configuration. For
 complete list of possible parameters see the corresponding class docs.</li>
 </ul>
 </dd></dl>
@@ -778,25 +778,25 @@ encoder it will specify source tensors (as returned from
 the data layer). As an input for decoder it will specify target tensors
 as well as all output returned from encoder. For loss it
 will also specify target tensors and all output returned from
-decoder. Note that loss will only be built for mode == &#8220;train&#8221; or &#8220;eval&#8221;.</p>
+decoder. Note that loss will only be built for mode == “train” or “eval”.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>input_tensors</strong> (<em>dict</em>) &#8211; <code class="docutils literal"><span class="pre">input_tensors</span></code> dictionary that has to contain
-<code class="docutils literal"><span class="pre">source_tensors</span></code> key with the list of all source tensors, and
-<code class="docutils literal"><span class="pre">target_tensors</span></code> with the list of all target tensors. Note that
-<code class="docutils literal"><span class="pre">target_tensors</span></code> only need to be provided if mode is
-&#8220;train&#8221; or &#8220;eval&#8221;.</li>
-<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) &#8211; id of the GPU where the current copy of the model
+<li><strong>input_tensors</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">input_tensors</span></code> dictionary that has to contain
+<code class="docutils literal notranslate"><span class="pre">source_tensors</span></code> key with the list of all source tensors, and
+<code class="docutils literal notranslate"><span class="pre">target_tensors</span></code> with the list of all target tensors. Note that
+<code class="docutils literal notranslate"><span class="pre">target_tensors</span></code> only need to be provided if mode is
+“train” or “eval”.</li>
+<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) – id of the GPU where the current copy of the model
 is constructed. For Horovod this is always zero.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tuple containing loss tensor as returned from
-<code class="docutils literal"><span class="pre">loss.compute_loss()</span></code> and list of outputs tensors, which is taken from
-<code class="docutils literal"><span class="pre">decoder.decode()['outputs']</span></code>. When <code class="docutils literal"><span class="pre">mode</span> <span class="pre">==</span> <span class="pre">'infer'</span></code>, loss will
+<code class="docutils literal notranslate"><span class="pre">loss.compute_loss()</span></code> and list of outputs tensors, which is taken from
+<code class="docutils literal notranslate"><span class="pre">decoder.decode()['outputs']</span></code>. When <code class="docutils literal notranslate"><span class="pre">mode</span> <span class="pre">==</span> <span class="pre">'infer'</span></code>, loss will
 be None.</p>
 </td>
 </tr>
@@ -817,7 +817,7 @@ decoder, besides provided in the config.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal"><span class="pre">decoders.decoder.Decoder</span></code></a>.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="decoders.html#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -833,7 +833,7 @@ encoder, besides provided in the config.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a>.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="encoders.html#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -849,7 +849,7 @@ loss, besides provided in the config.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal"><span class="pre">losses.loss.Loss</span></code></a>.</td>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">instance of a class derived from <a class="reference internal" href="losses.html#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a>.</td>
 </tr>
 </tbody>
 </table>
@@ -870,12 +870,38 @@ loss, besides provided in the config.</p>
 <dl class="staticmethod">
 <dt id="models.encoder_decoder.EncoderDecoderModel.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/encoder_decoder.html#EncoderDecoderModel.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.encoder_decoder.EncoderDecoderModel.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.__init__" title="models.encoder_decoder.EncoderDecoderModel.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="models.encoder_decoder.EncoderDecoderModel.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/encoder_decoder.html#EncoderDecoderModel.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.encoder_decoder.EncoderDecoderModel.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel.__init__" title="models.encoder_decoder.EncoderDecoderModel.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="models.encoder_decoder.EncoderDecoderModel.loss_computator">
@@ -891,7 +917,7 @@ loss, besides provided in the config.</p>
 <dl class="class">
 <dt id="models.speech2text.Speech2Text">
 <em class="property">class </em><code class="descclassname">models.speech2text.</code><code class="descname">Speech2Text</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
 <dl class="method">
 <dt id="models.speech2text.Speech2Text._get_num_objects_per_step">
 <code class="descname">_get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text._get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text._get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
@@ -901,27 +927,188 @@ loss, besides provided in the config.</p>
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.speech2text.Speech2Text.finalize_evaluation" title="models.speech2text.Speech2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.speech2text.Speech2Text.finalize_evaluation" title="models.speech2text.Speech2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+this function is not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting this function can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for evaluation finalization (e.g. accuracy on
+current batch, which will then be averaged in finalization method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.finalize_evaluation">
 <code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.speech2text.Speech2Text.finalize_evaluation" title="models.speech2text.Speech2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+these methods are not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting these methods can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.finalize_inference">
 <code class="descname">finalize_inference</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.finalize_inference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.finalize_inference" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method should be implemented if the model support inference mode.
+For example for speech-to-text and text-to-text models, this method will
+log the corresponding input-output pair to the output_file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>output_file</strong> (<em>str</em>) – name of the output file that inference results should
+be saved to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.infer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method is analogous to <a class="reference internal" href="#models.speech2text.Speech2Text.evaluate" title="models.speech2text.Speech2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
+in conjunction with <a class="reference internal" href="#models.speech2text.Speech2Text.finalize_inference" title="models.speech2text.Speech2Text.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+to perform inference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for inference finalization (e.g. this method
+can return final generated sequences for each batch which will then be
+saved to file in <a class="reference internal" href="#models.speech2text.Speech2Text.finalize_inference" title="models.speech2text.Speech2Text.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.speech2text.Speech2Text.maybe_print_logs">
 <code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used to print logs that help to visualize training.
+For example, you can print sample input sequences and their corresponding
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
+(config parameter) iterations and input/output values will be populated
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+this method is not abstract and does not have to be implemented in
+derived classes. But if additional printing functionality is required,
+overwriting this method can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+for one batch on the <em>first</em> GPU.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code>,
+that is, output tensors for one batch on the <em>first</em> GPU.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -943,7 +1130,7 @@ The code was copied from: <a class="reference external" href="http://hetland.org
 <dl class="class">
 <dt id="models.text2text.Text2Text">
 <em class="property">class </em><code class="descclassname">models.text2text.</code><code class="descname">Text2Text</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
 <p>An example class implementing classical text-to-text model.</p>
 <dl class="method">
 <dt id="models.text2text.Text2Text._get_num_objects_per_step">
@@ -954,27 +1141,188 @@ The code was copied from: <a class="reference external" href="http://hetland.org
 <dl class="method">
 <dt id="models.text2text.Text2Text.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2text.Text2Text.finalize_evaluation" title="models.text2text.Text2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2text.Text2Text.finalize_evaluation" title="models.text2text.Text2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+this function is not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting this function can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for evaluation finalization (e.g. accuracy on
+current batch, which will then be averaged in finalization method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2text.Text2Text.finalize_evaluation">
 <code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2text.Text2Text.finalize_evaluation" title="models.text2text.Text2Text.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+these methods are not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting these methods can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2text.Text2Text.finalize_inference">
 <code class="descname">finalize_inference</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.finalize_inference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.finalize_inference" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method should be implemented if the model support inference mode.
+For example for speech-to-text and text-to-text models, this method will
+log the corresponding input-output pair to the output_file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>output_file</strong> (<em>str</em>) – name of the output file that inference results should
+be saved to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2text.Text2Text.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.infer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method is analogous to <a class="reference internal" href="#models.text2text.Text2Text.evaluate" title="models.text2text.Text2Text.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
+in conjunction with <a class="reference internal" href="#models.text2text.Text2Text.finalize_inference" title="models.text2text.Text2Text.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+to perform inference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for inference finalization (e.g. this method
+can return final generated sequences for each batch which will then be
+saved to file in <a class="reference internal" href="#models.text2text.Text2Text.finalize_inference" title="models.text2text.Text2Text.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2text.Text2Text.maybe_print_logs">
 <code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2text.html#Text2Text.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2text.Text2Text.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used to print logs that help to visualize training.
+For example, you can print sample input sequences and their corresponding
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
+(config parameter) iterations and input/output values will be populated
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+this method is not abstract and does not have to be implemented in
+derived classes. But if additional printing functionality is required,
+overwriting this method can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+for one batch on the <em>first</em> GPU.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code>,
+that is, output tensors for one batch on the <em>first</em> GPU.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -987,8 +1335,8 @@ The code was copied from: <a class="reference external" href="http://hetland.org
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>preds</strong> &#8211; list of lists</li>
-<li><strong>targets</strong> &#8211; list of lists</li>
+<li><strong>preds</strong> – list of lists</li>
+<li><strong>targets</strong> – list of lists</li>
 </ul>
 </td>
 </tr>
@@ -1013,36 +1361,210 @@ The code was copied from: <a class="reference external" href="http://hetland.org
 <dl class="class">
 <dt id="models.text2speech.Text2Speech">
 <em class="property">class </em><code class="descclassname">models.text2speech.</code><code class="descname">Text2Speech</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2speech.Text2Speech.finalize_evaluation" title="models.text2speech.Text2Speech.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2speech.Text2Speech.finalize_evaluation" title="models.text2speech.Text2Speech.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+this function is not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting this function can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for evaluation finalization (e.g. accuracy on
+current batch, which will then be averaged in finalization method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.finalize_evaluation">
 <code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2speech.Text2Speech.finalize_evaluation" title="models.text2speech.Text2Speech.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+these methods are not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting these methods can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.finalize_inference">
 <code class="descname">finalize_inference</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.finalize_inference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.finalize_inference" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method should be implemented if the model support inference mode.
+For example for speech-to-text and text-to-text models, this method will
+log the corresponding input-output pair to the output_file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>output_file</strong> (<em>str</em>) – name of the output file that inference results should
+be saved to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="models.text2speech.Text2Speech.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.infer">
 <code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.infer" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method is analogous to <a class="reference internal" href="#models.text2speech.Text2Speech.evaluate" title="models.text2speech.Text2Speech.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
+in conjunction with <a class="reference internal" href="#models.text2speech.Text2Speech.finalize_inference" title="models.text2speech.Text2Speech.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+to perform inference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for inference finalization (e.g. this method
+can return final generated sequences for each batch which will then be
+saved to file in <a class="reference internal" href="#models.text2speech.Text2Speech.finalize_inference" title="models.text2speech.Text2Speech.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.text2speech.Text2Speech.maybe_print_logs">
 <code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech.html#Text2Speech.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech.Text2Speech.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used to print logs that help to visualize training.
+For example, you can print sample input sequences and their corresponding
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
+(config parameter) iterations and input/output values will be populated
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+this method is not abstract and does not have to be implemented in
+derived classes. But if additional printing functionality is required,
+overwriting this method can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+for one batch on the <em>first</em> GPU.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code>,
+that is, output tensors for one batch on the <em>first</em> GPU.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1062,19 +1584,19 @@ logged to tensorboard.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>specs</strong> (<em>array</em>) &#8211; array of images to show</li>
-<li><strong>titles</strong> (<em>array</em>) &#8211; array of titles. Must match lengths of specs array</li>
-<li><strong>stop_token_pred</strong> (<em>np.array</em>) &#8211; np.array of size [time, 1] containing the stop
+<li><strong>specs</strong> (<em>array</em>) – array of images to show</li>
+<li><strong>titles</strong> (<em>array</em>) – array of titles. Must match lengths of specs array</li>
+<li><strong>stop_token_pred</strong> (<em>np.array</em>) – np.array of size [time, 1] containing the stop
 token predictions from the model.</li>
-<li><strong>audio_length</strong> (<em>int</em>) &#8211; lenth of the predicted spectrogram</li>
-<li><strong>logdir</strong> (<em>str</em>) &#8211; dir to save image file is save_to_tensorboard is disabled.</li>
-<li><strong>train_step</strong> (<em>int</em>) &#8211; current training step</li>
-<li><strong>stop_token_target</strong> (<em>np.array</em>) &#8211; np.array of size [time, 1] containing the stop
+<li><strong>audio_length</strong> (<em>int</em>) – lenth of the predicted spectrogram</li>
+<li><strong>logdir</strong> (<em>str</em>) – dir to save image file is save_to_tensorboard is disabled.</li>
+<li><strong>train_step</strong> (<em>int</em>) – current training step</li>
+<li><strong>stop_token_target</strong> (<em>np.array</em>) – np.array of size [time, 1] containing the stop
 token target.</li>
-<li><strong>number</strong> (<em>int</em>) &#8211; Current sample number (used if evaluating more than 1 sample
+<li><strong>number</strong> (<em>int</em>) – Current sample number (used if evaluating more than 1 sample
 from a batch)</li>
-<li><strong>append</strong> (<em>str</em>) &#8211; Optional string to append to file name eg. train, eval, infer</li>
-<li><strong>save_to_tensorboard</strong> (<em>bool</em>) &#8211; If False, the created image is saved to the
+<li><strong>append</strong> (<em>str</em>) – Optional string to append to file name eg. train, eval, infer</li>
+<li><strong>save_to_tensorboard</strong> (<em>bool</em>) – If False, the created image is saved to the
 logdir as a png file. If True, the function returns a tf.Summary object
 containing the image and will be logged to the current tensorboard file.</li>
 </ul>
@@ -1097,14 +1619,14 @@ be logged to tensorboard.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>magnitudes</strong> (<em>np.array</em>) &#8211; np.array of size [time, n_fft/2 + 1] containing the
+<li><strong>magnitudes</strong> (<em>np.array</em>) – np.array of size [time, n_fft/2 + 1] containing the
 energy spectrogram.</li>
-<li><strong>logdir</strong> (<em>str</em>) &#8211; dir to save image file is save_to_tensorboard is disabled.</li>
-<li><strong>step</strong> (<em>int</em>) &#8211; current training step</li>
-<li><strong>number</strong> (<em>int</em>) &#8211; Current sample number (used if evaluating more than 1 sample</li>
-<li><strong>mode</strong> (<em>str</em>) &#8211; Optional string to append to file name eg. train, eval, infer
+<li><strong>logdir</strong> (<em>str</em>) – dir to save image file is save_to_tensorboard is disabled.</li>
+<li><strong>step</strong> (<em>int</em>) – current training step</li>
+<li><strong>number</strong> (<em>int</em>) – Current sample number (used if evaluating more than 1 sample</li>
+<li><strong>mode</strong> (<em>str</em>) – Optional string to append to file name eg. train, eval, infer
 from a batch)</li>
-<li><strong>save_to_tensorboard</strong> (<em>bool</em>) &#8211; If False, the created file is saved to the
+<li><strong>save_to_tensorboard</strong> (<em>bool</em>) – If False, the created file is saved to the
 logdir as a wav file. If True, the function returns a tf.Summary object
 containing the wav file and will be logged to the current tensorboard file.</li>
 </ul>
@@ -1123,7 +1645,7 @@ containing the wav file and will be logged to the current tensorboard file.</li>
 <dl class="class">
 <dt id="models.image2label.Image2Label">
 <em class="property">class </em><code class="descclassname">models.image2label.</code><code class="descname">Image2Label</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
 <dl class="method">
 <dt id="models.image2label.Image2Label._get_num_objects_per_step">
 <code class="descname">_get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label._get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label._get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
@@ -1133,17 +1655,130 @@ containing the wav file and will be logged to the current tensorboard file.</li>
 <dl class="method">
 <dt id="models.image2label.Image2Label.evaluate">
 <code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label.evaluate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.image2label.Image2Label.finalize_evaluation" title="models.image2label.Image2Label.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.image2label.Image2Label.evaluate" title="models.image2label.Image2Label.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.image2label.Image2Label.finalize_evaluation" title="models.image2label.Image2Label.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+this function is not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting this function can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for evaluation finalization (e.g. accuracy on
+current batch, which will then be averaged in finalization method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.image2label.Image2Label.finalize_evaluation">
 <code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.image2label.Image2Label.evaluate" title="models.image2label.Image2Label.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.image2label.Image2Label.evaluate" title="models.image2label.Image2Label.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.image2label.Image2Label.finalize_evaluation" title="models.image2label.Image2Label.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+these methods are not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting these methods can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.image2label.Image2Label.evaluate" title="models.image2label.Image2Label.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="models.image2label.Image2Label.maybe_print_logs">
 <code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/image2label.html#Image2Label.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.image2label.Image2Label.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>This method can be used to print logs that help to visualize training.
+For example, you can print sample input sequences and their corresponding
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
+(config parameter) iterations and input/output values will be populated
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+this method is not abstract and does not have to be implemented in
+derived classes. But if additional printing functionality is required,
+overwriting this method can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+for one batch on the <em>first</em> GPU.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code>,
+that is, output tensors for one batch on the <em>first</em> GPU.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1203,7 +1838,7 @@ containing the wav file and will be logged to the current tensorboard file.</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

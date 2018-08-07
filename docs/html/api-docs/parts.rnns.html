@@ -205,7 +205,7 @@ LocationLayer</dd>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.AttentionMechanism">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">AttentionMechanism</code><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionMechanism"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionMechanism" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="parts.rnns.attention_wrapper.AttentionMechanism.alignments_size">
 <code class="descname">alignments_size</code><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionMechanism.alignments_size" title="Permalink to this definition">¶</a></dt>
@@ -221,7 +221,7 @@ LocationLayer</dd>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.AttentionWrapper">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">AttentionWrapper</code><span class="sig-paren">(</span><em>cell</em>, <em>attention_mechanism</em>, <em>attention_layer_size=None</em>, <em>alignment_history=False</em>, <em>cell_input_fn=None</em>, <em>output_attention=True</em>, <em>initial_cell_state=None</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Wraps another <cite>RNNCell</cite> with attention.</p>
 <dl class="method">
 <dt id="parts.rnns.attention_wrapper.AttentionWrapper.__init__">
@@ -253,7 +253,7 @@ tiled_encoder_outputs = tf.contrib.seq2seq.tile_batch(</p>
 memory=tiled_inputs,
 memory_sequence_length=tiled_sequence_length)</dd>
 </dl>
-<p>attention_cell = AttentionWrapper(cell, attention_mechanism, ...)
+<p>attention_cell = AttentionWrapper(cell, attention_mechanism, …)
 decoder_initial_state = attention_cell.zero_state(</p>
 <blockquote>
 <div>dtype, batch_size=true_batch_size * beam_width)</div></blockquote>
@@ -267,43 +267,43 @@ decoder_initial_state = attention_cell.zero_state(</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cell</strong> &#8211; An instance of <cite>RNNCell</cite>.</li>
-<li><strong>attention_mechanism</strong> &#8211; A list of <cite>AttentionMechanism</cite> instances or a single
+<li><strong>cell</strong> – An instance of <cite>RNNCell</cite>.</li>
+<li><strong>attention_mechanism</strong> – A list of <cite>AttentionMechanism</cite> instances or a single
 instance.</li>
-<li><strong>attention_layer_size</strong> &#8211; A list of Python integers or a single Python
+<li><strong>attention_layer_size</strong> – A list of Python integers or a single Python
 integer, the depth of the attention (output) layer(s). If None
 (default), use the context as attention at each time step. Otherwise,
 feed the context and cell output into the attention layer to generate
 attention at each time step. If attention_mechanism is a list,
 attention_layer_size must be a list of the same length.</li>
-<li><strong>alignment_history</strong> &#8211; Python boolean, whether to store alignment history
+<li><strong>alignment_history</strong> – Python boolean, whether to store alignment history
 from all time steps in the final output state (currently stored as a
 time major <cite>TensorArray</cite> on which you must call <cite>stack()</cite>).</li>
-<li><strong>cell_input_fn</strong> &#8211; (optional) A <cite>callable</cite>.  The default is:
+<li><strong>cell_input_fn</strong> – (optional) A <cite>callable</cite>.  The default is:
 <cite>lambda inputs, attention: array_ops.concat([inputs, attention], -1)</cite>.</li>
-<li><strong>output_attention</strong> &#8211; bool or &#8220;both&#8221;.  If <cite>True</cite> (default), the output at each
+<li><strong>output_attention</strong> – bool or “both”.  If <cite>True</cite> (default), the output at each
 time step is the attention value.  This is the behavior of Luong-style
 attention mechanisms.  If <cite>False</cite>, the output at each time step is
 the output of <cite>cell</cite>.  This is the beahvior of Bhadanau-style
-attention mechanisms.  If &#8220;both&#8221;, the attention value and cell output
+attention mechanisms.  If “both”, the attention value and cell output
 are concatenated together and set as the output. In all cases, the
 <cite>attention</cite> tensor is propagated to the next time step via the state and
 is used there. This flag only controls whether the attention mechanism
 is propagated up to the next cell in an RNN stack or to the top RNN
 output.</li>
-<li><strong>initial_cell_state</strong> &#8211; The initial state value to use for the cell when
+<li><strong>initial_cell_state</strong> – The initial state value to use for the cell when
 the user calls <cite>zero_state()</cite>.  Note that if this value is provided
 now, and the user uses a <cite>batch_size</cite> argument of <cite>zero_state</cite> which
 does not match the batch size of <cite>initial_cell_state</cite>, proper
 behavior is not guaranteed.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; <cite>attention_layer_size</cite> is not None and (<cite>attention_mechanism</cite>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – <cite>attention_layer_size</cite> is not None and (<cite>attention_mechanism</cite>
 is a list but <cite>attention_layer_size</cite> is not; or vice versa).</li>
-<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if <cite>attention_layer_size</cite> is not None, <cite>attention_mechanism</cite>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if <cite>attention_layer_size</cite> is not None, <cite>attention_mechanism</cite>
 is a list, and its length does not match that of <cite>attention_layer_size</cite>.</li>
 </ul>
 </td>
@@ -322,7 +322,7 @@ to the constructor.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seq</strong> &#8211; A non-empty sequence of items or generator.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>seq</strong> – A non-empty sequence of items or generator.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Either the values in the sequence as a tuple if AttentionMechanism(s)
 were passed to the constructor as a sequence or the singular element.</td>
@@ -336,14 +336,14 @@ were passed to the constructor as a sequence or the singular element.</td>
 <code class="descname">call</code><span class="sig-paren">(</span><em>inputs</em>, <em>state</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionWrapper.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionWrapper.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>Perform a step of attention-wrapped RNN.</p>
 <ul class="simple">
-<li>Step 1: Mix the <cite>inputs</cite> and previous step&#8217;s <cite>attention</cite> output via
+<li>Step 1: Mix the <cite>inputs</cite> and previous step’s <cite>attention</cite> output via
 <cite>cell_input_fn</cite>.</li>
 <li>Step 2: Call the wrapped <cite>cell</cite> with this input and its previous state.</li>
-<li>Step 3: Score the cell&#8217;s output with <cite>attention_mechanism</cite>.</li>
+<li>Step 3: Score the cell’s output with <cite>attention_mechanism</cite>.</li>
 <li>Step 4: Calculate the alignments by passing the score through the
 <cite>normalizer</cite>.</li>
 <li>Step 5: Calculate the context vector as the inner product between the
-alignments and the attention_mechanism&#8217;s values (memory).</li>
+alignments and the attention_mechanism’s values (memory).</li>
 <li>Step 6: Calculate the attention output by concatenating the cell output
 and context through the attention layer (a linear layer with
 <cite>attention_layer_size</cite> outputs).</li>
@@ -353,8 +353,8 @@ and context through the attention layer (a linear layer with
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; (Possibly nested tuple of) Tensor, the input at this time step.</li>
-<li><strong>state</strong> &#8211; An instance of <cite>AttentionWrapperState</cite> containing
+<li><strong>inputs</strong> – (Possibly nested tuple of) Tensor, the input at this time step.</li>
+<li><strong>state</strong> – An instance of <cite>AttentionWrapperState</cite> containing
 tensors from the previous time step.</li>
 </ul>
 </td>
@@ -373,7 +373,7 @@ tensors from the previous time step.</li>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">A tuple <cite>(attention_or_cell_output, next_state)</cite>, where</p>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If <cite>state</cite> is not an instance of <cite>AttentionWrapperState</cite>.</p>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>state</cite> is not an instance of <cite>AttentionWrapperState</cite>.</p>
 </td>
 </tr>
 </tbody>
@@ -383,7 +383,8 @@ tensors from the previous time step.</li>
 <dl class="attribute">
 <dt id="parts.rnns.attention_wrapper.AttentionWrapper.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionWrapper.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.attention_wrapper.AttentionWrapper.state_size">
@@ -411,8 +412,8 @@ to call <cite>zero_state</cite> if using an <cite>AttentionWrapper</cite> with a
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>batch_size</strong> &#8211; <cite>0D</cite> integer tensor: the batch size.</li>
-<li><strong>dtype</strong> &#8211; The internal state data type.</li>
+<li><strong>batch_size</strong> – <cite>0D</cite> integer tensor: the batch size.</li>
+<li><strong>dtype</strong> – The internal state data type.</li>
 </ul>
 </td>
 </tr>
@@ -420,7 +421,7 @@ to call <cite>zero_state</cite> if using an <cite>AttentionWrapper</cite> with a
 possibly, empty <cite>TensorArray</cite> objects.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; (or, possibly at runtime, InvalidArgument), if
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – (or, possibly at runtime, InvalidArgument), if
 <cite>batch_size</cite> does not match the output size of the encoder passed
 to the wrapper object at initialization time.</p>
 </td>
@@ -434,7 +435,7 @@ to the wrapper object at initialization time.</p>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.AttentionWrapperState">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">AttentionWrapperState</code><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionWrapperState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionWrapperState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.rnns.attention_wrapper.AttentionWrapperState" title="parts.rnns.attention_wrapper.AttentionWrapperState"><code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper.AttentionWrapperState</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.rnns.attention_wrapper.AttentionWrapperState" title="parts.rnns.attention_wrapper.AttentionWrapperState"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper.AttentionWrapperState</span></code></a></p>
 <p><cite>namedtuple</cite> storing the state of a <cite>AttentionWrapper</cite>.</p>
 <p>Contains:</p>
 <blockquote>
@@ -466,11 +467,11 @@ The objects may contain Tensors or TensorArrays.</dd>
 <dt id="parts.rnns.attention_wrapper.AttentionWrapperState.clone">
 <code class="descname">clone</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#AttentionWrapperState.clone"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.AttentionWrapperState.clone" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clone this object, overriding components provided by kwargs.</p>
-<p>The new state fields&#8217; shape must match original state fields&#8217; shape. This
-will be validated, and original fields&#8217; shape will be propagated to new
+<p>The new state fields’ shape must match original state fields’ shape. This
+will be validated, and original fields’ shape will be propagated to new
 fields.</p>
 <p>Example:</p>
-<p><code class="docutils literal"><span class="pre">`python</span>
+<p><code class="docutils literal notranslate"><span class="pre">`python</span>
 <span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">attention_wrapper.zero_state(dtype=...,</span> <span class="pre">batch_size=...)</span>
 <span class="pre">initial_state</span> <span class="pre">=</span> <span class="pre">initial_state.clone(cell_state=encoder_state)</span>
 <span class="pre">`</span></code></p>
@@ -478,7 +479,7 @@ fields.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> &#8211; Any properties of the state object to replace in the returned
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>**kwargs</strong> – Any properties of the state object to replace in the returned
 <cite>AttentionWrapperState</cite>.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A new <cite>AttentionWrapperState</cite> whose properties are the same as
@@ -493,12 +494,12 @@ this one, except any overridden properties as provided in <cite>kwargs</cite>.</
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.LuongAttention">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LuongAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='LuongAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LuongAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LuongAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Luong-style (multiplicative) attention scoring.</p>
 <p>This attention has two forms.  The first is standard Luong attention,
 as described in:</p>
 <p>Minh-Thang Luong, Hieu Pham, Christopher D. Manning.
-&#8220;Effective Approaches to Attention-based Neural Machine Translation.&#8221;
+“Effective Approaches to Attention-based Neural Machine Translation.”
 EMNLP 2015.  <a class="reference external" href="https://arxiv.org/abs/1508.04025">https://arxiv.org/abs/1508.04025</a></p>
 <p>The second is the scaled form inspired partly by the normalized form of
 Bahdanau attention.</p>
@@ -513,22 +514,22 @@ Bahdanau attention.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; The depth of the attention mechanism.</li>
-<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
-tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
-<li><strong>memory_sequence_length</strong> &#8211; (optional) Sequence lengths for the batch entries
+<li><strong>num_units</strong> – The depth of the attention mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> – (optional) Sequence lengths for the batch entries
 in memory.  If provided, the memory tensor rows are masked with zeros
 for values past the respective sequence lengths.</li>
-<li><strong>scale</strong> &#8211; Python boolean.  Whether to scale the energy term.</li>
-<li><strong>probability_fn</strong> &#8211; (optional) A <cite>callable</cite>.  Converts the score to
+<li><strong>scale</strong> – Python boolean.  Whether to scale the energy term.</li>
+<li><strong>probability_fn</strong> – (optional) A <cite>callable</cite>.  Converts the score to
 probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
 &#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
 Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
-<li><strong>score_mask_value</strong> &#8211; (optional) The mask value for score before passing into
+<li><strong>score_mask_value</strong> – (optional) The mask value for score before passing into
 <cite>probability_fn</cite>. The default is -inf. Only used if
 <cite>memory_sequence_length</cite> is not None.</li>
-<li><strong>dtype</strong> &#8211; The data type for the memory layer of the attention mechanism.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>dtype</strong> – The data type for the memory layer of the attention mechanism.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -541,19 +542,19 @@ Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.BahdanauAttention">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">BahdanauAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>name='BahdanauAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#BahdanauAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.BahdanauAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Bahdanau-style (additive) attention.</p>
 <p>This attention has two forms.  The first is Bahdanau attention,
 as described in:</p>
 <p>Dzmitry Bahdanau, Kyunghyun Cho, Yoshua Bengio.
-&#8220;Neural Machine Translation by Jointly Learning to Align and Translate.&#8221;
+“Neural Machine Translation by Jointly Learning to Align and Translate.”
 ICLR 2015. <a class="reference external" href="https://arxiv.org/abs/1409.0473">https://arxiv.org/abs/1409.0473</a></p>
 <p>The second is the normalized form.  This form is inspired by the
 weight normalization article:</p>
 <p>Tim Salimans, Diederik P. Kingma.
-&#8220;Weight Normalization: A Simple Reparameterization to Accelerate</p>
+“Weight Normalization: A Simple Reparameterization to Accelerate</p>
 <blockquote>
-<div>Training of Deep Neural Networks.&#8221;</div></blockquote>
+<div>Training of Deep Neural Networks.”</div></blockquote>
 <p><a class="reference external" href="https://arxiv.org/abs/1602.07868">https://arxiv.org/abs/1602.07868</a></p>
 <p>To enable the second form, construct the object with parameter
 <cite>normalize=True</cite>.</p>
@@ -566,23 +567,23 @@ weight normalization article:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
-<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
-tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
-<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+<li><strong>num_units</strong> – The depth of the query mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) – Sequence lengths for the batch entries
 in memory.  If provided, the memory tensor rows are masked with zeros
 for values past the respective sequence lengths.</li>
-<li><strong>normalize</strong> &#8211; Python boolean.  Whether to normalize the energy term.</li>
-<li><strong>probability_fn</strong> &#8211; (optional) A <cite>callable</cite>.  Converts the score to
+<li><strong>normalize</strong> – Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>probability_fn</strong> – (optional) A <cite>callable</cite>.  Converts the score to
 probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
 &#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
 Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
-<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<li><strong>score_mask_value</strong> – (optional): The mask value for score before passing into
 <cite>probability_fn</cite>. The default is -inf. Only used if
 <cite>memory_sequence_length</cite> is not None.</li>
-<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+<li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -602,8 +603,8 @@ mechanism.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>logits</strong> &#8211; A batch tensor of logit values.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>logits</strong> – A batch tensor of logit values.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -627,9 +628,9 @@ exp(cumsum(log(x))).  This function can be called identically to tf.cumprod.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>x</strong> &#8211; Tensor to take the cumulative product of.</li>
-<li><strong>*args</strong> &#8211; Passed on to cumsum; these are identical to those in cumprod.</li>
-<li><strong>**kwargs</strong> &#8211; Passed on to cumsum; these are identical to those in cumprod.</li>
+<li><strong>x</strong> – Tensor to take the cumulative product of.</li>
+<li><strong>*args</strong> – Passed on to cumsum; these are identical to those in cumprod.</li>
+<li><strong>**kwargs</strong> – Passed on to cumsum; these are identical to those in cumprod.</li>
 </ul>
 </td>
 </tr>
@@ -650,34 +651,34 @@ addition, once an input sequence element is attended to at a given output
 timestep, elements occurring before it cannot be attended to at subsequent
 output timesteps.  This function generates attention distributions according
 to these assumptions.  For more information, see <a href="#id11"><span class="problematic" id="id12">``</span></a>Online and Linear-Time
-Attention by Enforcing Monotonic Alignments&#8217;&#8216;.</p>
+Attention by Enforcing Monotonic Alignments’‘.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>p_choose_i</strong> &#8211; Probability of choosing input sequence/memory element i.  Should
+<li><strong>p_choose_i</strong> – Probability of choosing input sequence/memory element i.  Should
 be of shape (batch_size, input_sequence_length), and should all be in the
 range [0, 1].</li>
-<li><strong>previous_attention</strong> &#8211; The attention distribution from the previous output
+<li><strong>previous_attention</strong> – The attention distribution from the previous output
 timestep.  Should be of shape (batch_size, input_sequence_length).  For
-the first output timestep, preevious_attention[n] should be [1, 0, 0, ...,
-0] for all n in [0, ... batch_size - 1].</li>
-<li><strong>mode</strong> &#8211; <p>How to compute the attention distribution.  Must be one of
-&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.</p>
+the first output timestep, preevious_attention[n] should be [1, 0, 0, …,
+0] for all n in [0, … batch_size - 1].</li>
+<li><strong>mode</strong> – <p>How to compute the attention distribution.  Must be one of
+‘recursive’, ‘parallel’, or ‘hard’.</p>
 <blockquote>
 <div><ul>
-<li>&#8216;recursive&#8217; uses tf.scan to recursively compute the distribution.
+<li>’recursive’ uses tf.scan to recursively compute the distribution.
 This is slowest but is exact, general, and does not suffer from
 numerical instabilities.</li>
-<li>&#8216;parallel&#8217; uses parallelized cumulative-sum and cumulative-product
+<li>’parallel’ uses parallelized cumulative-sum and cumulative-product
 operations to compute a closed-form solution to the recurrence
 relation defining the attention distribution.  This makes it more
-efficient than &#8216;recursive&#8217;, but it requires numerical checks which
+efficient than ‘recursive’, but it requires numerical checks which
 make the distribution non-exact.  This can be a problem in particular
 when input_sequence_length is long and/or p_choose_i has entries very
 close to 0 or 1.</li>
-<li>&#8216;hard&#8217; requires that the probabilities in p_choose_i are all either 0
+<li>’hard’ requires that the probabilities in p_choose_i are all either 0
 or 1, and subsequently uses a more efficient and exact solution.</li>
 </ul>
 </div></blockquote>
@@ -689,7 +690,7 @@ or 1, and subsequently uses a more efficient and exact solution.</li>
 attention distributions for each sequence in the batch.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; mode is not one of &#8216;recursive&#8217;, &#8216;parallel&#8217;, &#8216;hard&#8217;.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – mode is not one of ‘recursive’, ‘parallel’, ‘hard’.</p>
 </td>
 </tr>
 </tbody>
@@ -699,18 +700,18 @@ attention distributions for each sequence in the batch.</p>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.BahdanauMonotonicAttention">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">BahdanauMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>normalize=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='BahdanauMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#BahdanauMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.BahdanauMonotonicAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
 <p>Monotonic attention mechanism with Bahadanau-style energy function.</p>
 <p>This type of attention encorces a monotonic constraint on the attention
 distributions; that is once the model attends to a given point in the memory
-it can&#8217;t attend to any prior points at subsequence output timesteps.  It
+it can’t attend to any prior points at subsequence output timesteps.  It
 achieves this by using the _monotonic_probability_fn instead of softmax to
 construct its attention distributions.  Since the attention scores are passed
 through a sigmoid, a learnable scalar bias parameter is applied after the
 score function and before the sigmoid.  Otherwise, it is equivalent to
 BahdanauAttention.  This approach is proposed in</p>
 <p>Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,
-&#8220;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&#8221;
+“Online and Linear-Time Attention by Enforcing Monotonic Alignments.”
 ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784">https://arxiv.org/abs/1704.00784</a></p>
 <dl class="method">
 <dt id="parts.rnns.attention_wrapper.BahdanauMonotonicAttention.__init__">
@@ -721,28 +722,28 @@ ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
-<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
-tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
-<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+<li><strong>num_units</strong> – The depth of the query mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) – Sequence lengths for the batch entries
 in memory.  If provided, the memory tensor rows are masked with zeros
 for values past the respective sequence lengths.</li>
-<li><strong>normalize</strong> &#8211; Python boolean.  Whether to normalize the energy term.</li>
-<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<li><strong>normalize</strong> – Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>score_mask_value</strong> – (optional): The mask value for score before passing into
 <cite>probability_fn</cite>. The default is -inf. Only used if
 <cite>memory_sequence_length</cite> is not None.</li>
-<li><strong>sigmoid_noise</strong> &#8211; Standard deviation of pre-sigmoid noise.  See the docstring
+<li><strong>sigmoid_noise</strong> – Standard deviation of pre-sigmoid noise.  See the docstring
 for <cite>_monotonic_probability_fn</cite> for more information.</li>
-<li><strong>sigmoid_noise_seed</strong> &#8211; (optional) Random seed for pre-sigmoid noise.</li>
-<li><strong>score_bias_init</strong> &#8211; Initial value for score bias scalar.  It&#8217;s recommended to
+<li><strong>sigmoid_noise_seed</strong> – (optional) Random seed for pre-sigmoid noise.</li>
+<li><strong>score_bias_init</strong> – Initial value for score bias scalar.  It’s recommended to
 initialize this to a negative value when the length of the memory is
 large.</li>
-<li><strong>mode</strong> &#8211; How to compute the attention distribution.  Must be one of
-&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.  See the docstring for
+<li><strong>mode</strong> – How to compute the attention distribution.  Must be one of
+‘recursive’, ‘parallel’, or ‘hard’.  See the docstring for
 <cite>tf.contrib.seq2seq.monotonic_attention</cite> for more information.</li>
-<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+<li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -755,16 +756,16 @@ mechanism.</li>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.LuongMonotonicAttention">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LuongMonotonicAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>scale=False</em>, <em>score_mask_value=None</em>, <em>sigmoid_noise=0.0</em>, <em>sigmoid_noise_seed=None</em>, <em>score_bias_init=0.0</em>, <em>mode='parallel'</em>, <em>dtype=None</em>, <em>name='LuongMonotonicAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LuongMonotonicAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LuongMonotonicAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseMonotonicAttentionMechanism</span></code></p>
 <p>Monotonic attention mechanism with Luong-style energy function.</p>
 <p>This type of attention encorces a monotonic constraint on the attention
 distributions; that is once the model attends to a given point in the memory
-it can&#8217;t attend to any prior points at subsequence output timesteps.  It
+it can’t attend to any prior points at subsequence output timesteps.  It
 achieves this by using the _monotonic_probability_fn instead of softmax to
 construct its attention distributions.  Otherwise, it is equivalent to
 LuongAttention.  This approach is proposed in</p>
 <p>Colin Raffel, Minh-Thang Luong, Peter J. Liu, Ron J. Weiss, Douglas Eck,
-&#8220;Online and Linear-Time Attention by Enforcing Monotonic Alignments.&#8221;
+“Online and Linear-Time Attention by Enforcing Monotonic Alignments.”
 ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784">https://arxiv.org/abs/1704.00784</a></p>
 <dl class="method">
 <dt id="parts.rnns.attention_wrapper.LuongMonotonicAttention.__init__">
@@ -775,28 +776,28 @@ ICML 2017.  <a class="reference external" href="https://arxiv.org/abs/1704.00784
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
-<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
-tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
-<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+<li><strong>num_units</strong> – The depth of the query mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) – Sequence lengths for the batch entries
 in memory.  If provided, the memory tensor rows are masked with zeros
 for values past the respective sequence lengths.</li>
-<li><strong>scale</strong> &#8211; Python boolean.  Whether to scale the energy term.</li>
-<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<li><strong>scale</strong> – Python boolean.  Whether to scale the energy term.</li>
+<li><strong>score_mask_value</strong> – (optional): The mask value for score before passing into
 <cite>probability_fn</cite>. The default is -inf. Only used if
 <cite>memory_sequence_length</cite> is not None.</li>
-<li><strong>sigmoid_noise</strong> &#8211; Standard deviation of pre-sigmoid noise.  See the docstring
+<li><strong>sigmoid_noise</strong> – Standard deviation of pre-sigmoid noise.  See the docstring
 for <cite>_monotonic_probability_fn</cite> for more information.</li>
-<li><strong>sigmoid_noise_seed</strong> &#8211; (optional) Random seed for pre-sigmoid noise.</li>
-<li><strong>score_bias_init</strong> &#8211; Initial value for score bias scalar.  It&#8217;s recommended to
+<li><strong>sigmoid_noise_seed</strong> – (optional) Random seed for pre-sigmoid noise.</li>
+<li><strong>score_bias_init</strong> – Initial value for score bias scalar.  It’s recommended to
 initialize this to a negative value when the length of the memory is
 large.</li>
-<li><strong>mode</strong> &#8211; How to compute the attention distribution.  Must be one of
-&#8216;recursive&#8217;, &#8216;parallel&#8217;, or &#8216;hard&#8217;.  See the docstring for
+<li><strong>mode</strong> – How to compute the attention distribution.  Must be one of
+‘recursive’, ‘parallel’, or ‘hard’.  See the docstring for
 <cite>tf.contrib.seq2seq.monotonic_attention</cite> for more information.</li>
-<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+<li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -809,17 +810,17 @@ mechanism.</li>
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention">
 <em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LocationSensitiveAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Bahdanau-style (additive) scoring function with cumulative
 location information.</p>
 <p>The implementation is described in:</p>
 <p>Jan Chorowski, Dzmitry Bahdanau, Dmitriy Serdyuk, KyungHyun Cho, Yoshua Bengio
-&#8220;Attention-Based Models for Speech Recognition&#8221;
+“Attention-Based Models for Speech Recognition”
 <a class="reference external" href="https://arxiv.org/abs/1506.07503">https://arxiv.org/abs/1506.07503</a></p>
 <p>Jonathan Shen, Ruoming Pang, Ron J. Weiss, Mike Schuster, Navdeep Jaitly,
 Zongheng Yang, Zhifeng Chen, Yu Zhang, Yuxuan Wang, RJ Skerry-Ryan,
 Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
-&#8220;Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions&#8221;
+“Natural TTS Synthesis by Conditioning WaveNet on Mel Spectrogram Predictions”
 <a class="reference external" href="https://arxiv.org/abs/1712.05884">https://arxiv.org/abs/1712.05884</a></p>
 <dl class="method">
 <dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__">
@@ -830,24 +831,24 @@ Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; The depth of the query mechanism.</li>
-<li><strong>memory</strong> &#8211; The memory to query; usually the output of an RNN encoder.  This
-tensor should be shaped <cite>[batch_size, max_time, ...]</cite>.</li>
-<li><strong>memory_sequence_length</strong> (<em>optional</em>) &#8211; Sequence lengths for the batch entries
+<li><strong>num_units</strong> – The depth of the query mechanism.</li>
+<li><strong>memory</strong> – The memory to query; usually the output of an RNN encoder.  This
+tensor should be shaped <cite>[batch_size, max_time, …]</cite>.</li>
+<li><strong>memory_sequence_length</strong> (<em>optional</em>) – Sequence lengths for the batch entries
 in memory.  If provided, the memory tensor rows are masked with zeros
 for values past the respective sequence lengths.</li>
-<li><strong>normalize</strong> &#8211; Python boolean.  Whether to normalize the energy term.</li>
-<li><strong>probability_fn</strong> &#8211; (optional) A <cite>callable</cite>.  Converts the score to
+<li><strong>normalize</strong> – Python boolean.  Whether to normalize the energy term.</li>
+<li><strong>probability_fn</strong> – (optional) A <cite>callable</cite>.  Converts the score to
 probabilities.  The default is &#64;{tf.nn.softmax}. Other options include
 &#64;{tf.contrib.seq2seq.hardmax} and &#64;{tf.contrib.sparsemax.sparsemax}.
 Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li>
-<li><strong>score_mask_value</strong> &#8211; (optional): The mask value for score before passing into
+<li><strong>score_mask_value</strong> – (optional): The mask value for score before passing into
 <cite>probability_fn</cite>. The default is -inf. Only used if
 <cite>memory_sequence_length</cite> is not None.</li>
-<li><strong>dtype</strong> &#8211; The data type for the query and memory layers of the attention
+<li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
-<li><strong>use_bias</strong> (<em>bool</em>) &#8211; Whether to use a bias when computing alignments</li>
-<li><strong>name</strong> &#8211; Name to use when creating ops.</li>
+<li><strong>use_bias</strong> (<em>bool</em>) – Whether to use a bias when computing alignments</li>
+<li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
 </tr>
@@ -864,13 +865,13 @@ mechanism.</li>
 <dl class="class">
 <dt id="parts.rnns.flstm.FLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.rnns.flstm.</code><code class="descname">FLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>fact_size</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/flstm.html#FLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.flstm.FLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Group LSTM cell (G-LSTM).
 The implementation is based on:</p>
 <blockquote>
 <div><a class="reference external" href="https://arxiv.org/abs/1703.10722">https://arxiv.org/abs/1703.10722</a></div></blockquote>
 <p>O. Kuchaiev and B. Ginsburg
-&#8220;Factorization Tricks for LSTM Networks&#8221;, ICLR 2017 workshop.</p>
+“Factorization Tricks for LSTM Networks”, ICLR 2017 workshop.</p>
 <dl class="method">
 <dt id="parts.rnns.flstm.FLSTMCell.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>fact_size</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/flstm.html#FLSTMCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.flstm.FLSTMCell.__init__" title="Permalink to this definition">¶</a></dt>
@@ -884,19 +885,19 @@ The implementation is based on:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>num_proj</strong> &#8211; (optional) int, The output dimensionality for the projection
+<li><strong>num_proj</strong> – (optional) int, The output dimensionality for the projection
 matrices.  If None, no projection is performed.</li>
-<li><strong>forget_bias</strong> &#8211; Biases of the forget gate are initialized by default to 1
+<li><strong>forget_bias</strong> – Biases of the forget gate are initialized by default to 1
 in order to reduce the scale of forgetting at the beginning of
 the training.</li>
-<li><strong>activation</strong> &#8211; Activation function of the inner states.</li>
-<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+<li><strong>activation</strong> – Activation function of the inner states.</li>
+<li><strong>reuse</strong> – (optional) Python boolean describing whether to reuse variables
 in an existing scope.  If not <cite>True</cite>, and the existing scope already
 has the given variables, an error is raised.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
 <cite>number_of_groups</cite>.</p>
 </td>
 </tr>
@@ -912,12 +913,16 @@ has the given variables, an error is raised.</li>
 <dl class="attribute">
 <dt id="parts.rnns.flstm.FLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.flstm.FLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.flstm.FLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.rnns.flstm.FLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>size(s) of state(s) used by this cell.</p>
+<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
+or TensorShapes.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -928,13 +933,13 @@ has the given variables, an error is raised.</li>
 <dl class="class">
 <dt id="parts.rnns.glstm.GLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.rnns.glstm.</code><code class="descname">GLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>number_of_groups=1</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/glstm.html#GLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.glstm.GLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Group LSTM cell (G-LSTM).
 The implementation is based on:</p>
 <blockquote>
 <div><a class="reference external" href="https://arxiv.org/abs/1703.10722">https://arxiv.org/abs/1703.10722</a></div></blockquote>
 <p>O. Kuchaiev and B. Ginsburg
-&#8220;Factorization Tricks for LSTM Networks&#8221;, ICLR 2017 workshop.</p>
+“Factorization Tricks for LSTM Networks”, ICLR 2017 workshop.</p>
 <dl class="method">
 <dt id="parts.rnns.glstm.GLSTMCell.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>initializer=None</em>, <em>num_proj=None</em>, <em>number_of_groups=1</em>, <em>forget_bias=1.0</em>, <em>activation=&lt;function tanh&gt;</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/glstm.html#GLSTMCell.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.glstm.GLSTMCell.__init__" title="Permalink to this definition">¶</a></dt>
@@ -948,21 +953,21 @@ The implementation is based on:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>num_proj</strong> &#8211; (optional) int, The output dimensionality for the projection
+<li><strong>num_proj</strong> – (optional) int, The output dimensionality for the projection
 matrices.  If None, no projection is performed.</li>
-<li><strong>number_of_groups</strong> &#8211; (optional) int, number of groups to use.
+<li><strong>number_of_groups</strong> – (optional) int, number of groups to use.
 If <cite>number_of_groups</cite> is 1, then it should be equivalent to LSTM cell</li>
-<li><strong>forget_bias</strong> &#8211; Biases of the forget gate are initialized by default to 1
+<li><strong>forget_bias</strong> – Biases of the forget gate are initialized by default to 1
 in order to reduce the scale of forgetting at the beginning of
 the training.</li>
-<li><strong>activation</strong> &#8211; Activation function of the inner states.</li>
-<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+<li><strong>activation</strong> – Activation function of the inner states.</li>
+<li><strong>reuse</strong> – (optional) Python boolean describing whether to reuse variables
 in an existing scope.  If not <cite>True</cite>, and the existing scope already
 has the given variables, an error is raised.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>num_units</cite> or <cite>num_proj</cite> is not divisible by
 <cite>number_of_groups</cite>.</p>
 </td>
 </tr>
@@ -973,8 +978,8 @@ has the given variables, an error is raised.</li>
 <dl class="method">
 <dt id="parts.rnns.glstm.GLSTMCell._get_input_for_group">
 <code class="descname">_get_input_for_group</code><span class="sig-paren">(</span><em>inputs</em>, <em>group_id</em>, <em>group_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/glstm.html#GLSTMCell._get_input_for_group"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.glstm.GLSTMCell._get_input_for_group" title="Permalink to this definition">¶</a></dt>
-<dd><p>Slices inputs into groups to prepare for processing by cell&#8217;s groups
-:param inputs: cell input or it&#8217;s previous state,</p>
+<dd><p>Slices inputs into groups to prepare for processing by cell’s groups
+:param inputs: cell input or it’s previous state,</p>
 <blockquote>
 <div>a Tensor, 2D, [batch x num_units]</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
@@ -982,12 +987,12 @@ has the given variables, an error is raised.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>group_id</strong> &#8211; group id, a Scalar, for which to prepare input</li>
-<li><strong>group_size</strong> &#8211; size of the group</li>
+<li><strong>group_id</strong> – group id, a Scalar, for which to prepare input</li>
+<li><strong>group_size</strong> – size of the group</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">subset of inputs corresponding to group &#8220;group_id&#8221;,
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">subset of inputs corresponding to group “group_id”,
 a Tensor, 2D, [batch x num_units/number_of_groups]</p>
 </td>
 </tr>
@@ -1020,7 +1025,7 @@ after reading <cite>inputs</cite> when the previous state was <cite>state</cite>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">A tuple containing</td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If input size cannot be inferred from inputs via
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If input size cannot be inferred from inputs via
 static shape inference.</td>
 </tr>
 </tbody>
@@ -1030,12 +1035,16 @@ static shape inference.</td>
 <dl class="attribute">
 <dt id="parts.rnns.glstm.GLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.glstm.GLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.glstm.GLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.rnns.glstm.GLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>size(s) of state(s) used by this cell.</p>
+<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
+or TensorShapes.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1046,7 +1055,7 @@ static shape inference.</td>
 <dl class="class">
 <dt id="parts.rnns.gnmt.GNMTAttentionMultiCell">
 <em class="property">class </em><code class="descclassname">parts.rnns.gnmt.</code><code class="descname">GNMTAttentionMultiCell</code><span class="sig-paren">(</span><em>attention_cell</em>, <em>cells</em>, <em>use_new_attention=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/gnmt.html#GNMTAttentionMultiCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.gnmt.GNMTAttentionMultiCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.MultiRNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.MultiRNNCell</span></code></p>
 <p>A MultiCell with GNMT attention style.</p>
 <dl class="method">
 <dt id="parts.rnns.gnmt.GNMTAttentionMultiCell.__init__">
@@ -1057,10 +1066,10 @@ static shape inference.</td>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>attention_cell</strong> &#8211; An instance of AttentionWrapper.</li>
-<li><strong>cells</strong> &#8211; A list of RNNCell wrapped with AttentionInputWrapper.</li>
-<li><strong>use_new_attention</strong> &#8211; Whether to use the attention generated from current
-step bottom layer&#8217;s output. Default is False.</li>
+<li><strong>attention_cell</strong> – An instance of AttentionWrapper.</li>
+<li><strong>cells</strong> – A list of RNNCell wrapped with AttentionInputWrapper.</li>
+<li><strong>use_new_attention</strong> – Whether to use the attention generated from current
+step bottom layer’s output. Default is False.</li>
 </ul>
 </td>
 </tr>
@@ -1079,9 +1088,9 @@ step bottom layer&#8217;s output. Default is False.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; cell inputs, this is actual inputs concatenated with the attention
+<li><strong>inputs</strong> – cell inputs, this is actual inputs concatenated with the attention
 vector.</li>
-<li><strong>outputs</strong> &#8211; cell outputs</li>
+<li><strong>outputs</strong> – cell outputs</li>
 </ul>
 </td>
 </tr>
@@ -1099,19 +1108,19 @@ vector.</li>
 <dl class="class">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput">
 <em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">BeamSearchDecoderOutput</code><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoderOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput" title="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput"><code class="xref py py-class docutils literal"><span class="pre">parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput" title="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderOutput</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState">
 <em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">BeamSearchDecoderState</code><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoderState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState" title="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState"><code class="xref py py-class docutils literal"><span class="pre">parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState" title="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.rnn_beam_search_decoder.BeamSearchDecoderState</span></code></a></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder">
 <em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">BeamSearchDecoder</code><span class="sig-paren">(</span><em>cell</em>, <em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>initial_state</em>, <em>beam_width</em>, <em>output_layer=None</em>, <em>length_penalty_weight=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
 <p>BeamSearch sampling decoder.</p>
 <p><strong>NOTE</strong> If you are using the <cite>BeamSearchDecoder</cite> with a cell wrapped in
 <cite>AttentionWrapper</cite>, then you must ensure that:</p>
@@ -1139,7 +1148,7 @@ tiled_encoder_outputs = tf.contrib.seq2seq.tile_batch(</p>
 memory=tiled_inputs,
 memory_sequence_length=tiled_sequence_length)</dd>
 </dl>
-<p>attention_cell = AttentionWrapper(cell, attention_mechanism, ...)
+<p>attention_cell = AttentionWrapper(cell, attention_mechanism, …)
 decoder_initial_state = attention_cell.zero_state(</p>
 <blockquote>
 <div>dtype, batch_size=true_batch_size * beam_width)</div></blockquote>
@@ -1157,24 +1166,24 @@ decoder_initial_state = attention_cell.zero_state(</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cell</strong> &#8211; An <cite>RNNCell</cite> instance.</li>
-<li><strong>embedding</strong> &#8211; A callable that takes a vector tensor of <cite>ids</cite> (argmax ids),
+<li><strong>cell</strong> – An <cite>RNNCell</cite> instance.</li>
+<li><strong>embedding</strong> – A callable that takes a vector tensor of <cite>ids</cite> (argmax ids),
 or the <cite>params</cite> argument for <cite>embedding_lookup</cite>.</li>
-<li><strong>start_tokens</strong> &#8211; <cite>int32</cite> vector shaped <cite>[batch_size]</cite>, the start tokens.</li>
-<li><strong>end_token</strong> &#8211; <cite>int32</cite> scalar, the token that marks end of decoding.</li>
-<li><strong>initial_state</strong> &#8211; A (possibly nested tuple of...) tensors and TensorArrays.</li>
-<li><strong>beam_width</strong> &#8211; Python integer, the number of beams.</li>
-<li><strong>output_layer</strong> &#8211; (Optional) An instance of <cite>tf.layers.Layer</cite>, i.e.,
+<li><strong>start_tokens</strong> – <cite>int32</cite> vector shaped <cite>[batch_size]</cite>, the start tokens.</li>
+<li><strong>end_token</strong> – <cite>int32</cite> scalar, the token that marks end of decoding.</li>
+<li><strong>initial_state</strong> – A (possibly nested tuple of…) tensors and TensorArrays.</li>
+<li><strong>beam_width</strong> – Python integer, the number of beams.</li>
+<li><strong>output_layer</strong> – (Optional) An instance of <cite>tf.layers.Layer</cite>, i.e.,
 <cite>tf.layers.Dense</cite>.  Optional layer to apply to the RNN output prior
 to storing the result or sampling.</li>
-<li><strong>length_penalty_weight</strong> &#8211; Float weight to penalize length. Disabled with 0.0.</li>
+<li><strong>length_penalty_weight</strong> – Float weight to penalize length. Disabled with 0.0.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; if <cite>cell</cite> is not an instance of <cite>RNNCell</cite>,
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – if <cite>cell</cite> is not an instance of <cite>RNNCell</cite>,
 or <cite>output_layer</cite> is not an instance of <cite>tf.layers.Layer</cite>.</li>
-<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If <cite>start_tokens</cite> is not a vector or
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If <cite>start_tokens</cite> is not a vector or
 <cite>end_token</cite> is not a scalar.</li>
 </ul>
 </td>
@@ -1194,8 +1203,8 @@ then we reshape it to <cite>[batch_size, beam_width] + s</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>t</strong> &#8211; <cite>Tensor</cite> of dimension <cite>[batch_size * beam_width] + s</cite>.</li>
-<li><strong>s</strong> &#8211; <cite>Tensor</cite>, Python int, or <cite>TensorShape</cite>.</li>
+<li><strong>t</strong> – <cite>Tensor</cite> of dimension <cite>[batch_size * beam_width] + s</cite>.</li>
+<li><strong>s</strong> – <cite>Tensor</cite>, Python int, or <cite>TensorShape</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -1203,8 +1212,8 @@ then we reshape it to <cite>[batch_size, beam_width] + s</cite>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If <cite>t</cite> is an instance of <cite>TensorArray</cite>.</li>
-<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the rank of <cite>t</cite> is not statically known.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>t</cite> is an instance of <cite>TensorArray</cite>.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the rank of <cite>t</cite> is not statically known.</li>
 </ul>
 </td>
 </tr>
@@ -1222,8 +1231,8 @@ then we reshape it to <cite>[batch_size, beam_width] + s</cite>.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>t</strong> &#8211; <cite>Tensor</cite>, either scalar or shaped <cite>[batch_size * beam_width] + s</cite>.</li>
-<li><strong>s</strong> &#8211; <cite>Tensor</cite>, Python int, or <cite>TensorShape</cite>.</li>
+<li><strong>t</strong> – <cite>Tensor</cite>, either scalar or shaped <cite>[batch_size * beam_width] + s</cite>.</li>
+<li><strong>s</strong> – <cite>Tensor</cite>, Python int, or <cite>TensorShape</cite>.</li>
 </ul>
 </td>
 </tr>
@@ -1233,8 +1242,8 @@ returned unchanged.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">TypeError</span></code> &#8211; If <cite>t</cite> is an instance of <cite>TensorArray</cite>.</li>
-<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If the rank of <cite>t</cite> is not statically known.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>t</cite> is an instance of <cite>TensorArray</cite>.</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If the rank of <cite>t</cite> is not statically known.</li>
 </ul>
 </td>
 </tr>
@@ -1253,8 +1262,8 @@ reshape this into [batch_size*beam_width, s]</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>t</strong> &#8211; Tensor of dimension [batch_size, beam_width, s]</li>
-<li><strong>s</strong> &#8211; (Possibly known) depth shape.</li>
+<li><strong>t</strong> – Tensor of dimension [batch_size, beam_width, s]</li>
+<li><strong>s</strong> – (Possibly known) depth shape.</li>
 </ul>
 </td>
 </tr>
@@ -1276,15 +1285,15 @@ reshape this into [batch_size, beam_width, s]</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>t</strong> &#8211; Tensor of dimension [batch_size*beam_width, s].</li>
-<li><strong>s</strong> &#8211; (Possibly known) depth shape.</li>
+<li><strong>t</strong> – Tensor of dimension [batch_size*beam_width, s].</li>
+<li><strong>s</strong> – (Possibly known) depth shape.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A reshaped version of t with dimension [batch_size, beam_width, s].</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; If, after reshaping, the new tensor is not shaped
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – If, after reshaping, the new tensor is not shaped
 <cite>[batch_size, beam_width, s]</cite> (assuming batch_size and beam_width
 are known statically).</p>
 </td>
@@ -1296,7 +1305,8 @@ are known statically).</p>
 <dl class="attribute">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.batch_size">
 <code class="descname">batch_size</code><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.batch_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>The batch size of input values.</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.finalize">
@@ -1307,10 +1317,10 @@ are known statically).</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>outputs</strong> &#8211; An instance of BeamSearchDecoderOutput.</li>
-<li><strong>final_state</strong> &#8211; An instance of BeamSearchDecoderState. Passed through to the
+<li><strong>outputs</strong> – An instance of BeamSearchDecoderOutput.</li>
+<li><strong>final_state</strong> – An instance of BeamSearchDecoderState. Passed through to the
 output.</li>
-<li><strong>sequence_lengths</strong> &#8211; An <cite>int64</cite> tensor shaped <cite>[batch_size, beam_width]</cite>.
+<li><strong>sequence_lengths</strong> – An <cite>int64</cite> tensor shaped <cite>[batch_size, beam_width]</cite>.
 The sequence lengths determined for each beam during decode.
 <strong>NOTE</strong> These are ignored; the updated sequence lengths are stored in
 <cite>final_state.lengths</cite>.</li>
@@ -1341,7 +1351,7 @@ The sequence lengths determined for each beam during decode.
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> &#8211; Name scope for any created operations.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – Name scope for any created operations.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><cite>(finished, start_inputs, initial_state)</cite>.</td>
 </tr>
@@ -1352,12 +1362,14 @@ The sequence lengths determined for each beam during decode.
 <dl class="attribute">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_dtype">
 <code class="descname">output_dtype</code><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_dtype" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A (possibly nested tuple of…) dtype[s].</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>A (possibly nested tuple of…) integer[s] or <cite>TensorShape</cite> object[s].</p>
+</dd></dl>
 
 <dl class="method">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.step">
@@ -1368,10 +1380,10 @@ The sequence lengths determined for each beam during decode.
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>time</strong> &#8211; scalar <cite>int32</cite> tensor.</li>
-<li><strong>inputs</strong> &#8211; A (structure of) input tensors.</li>
-<li><strong>state</strong> &#8211; A (structure of) state tensors and TensorArrays.</li>
-<li><strong>name</strong> &#8211; Name scope for any created operations.</li>
+<li><strong>time</strong> – scalar <cite>int32</cite> tensor.</li>
+<li><strong>inputs</strong> – A (structure of) input tensors.</li>
+<li><strong>state</strong> – A (structure of) state tensors and TensorArrays.</li>
+<li><strong>name</strong> – Name scope for any created operations.</li>
 </ul>
 </td>
 </tr>
@@ -1386,7 +1398,7 @@ The sequence lengths determined for each beam during decode.
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.tracks_own_finished">
 <code class="descname">tracks_own_finished</code><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.tracks_own_finished" title="Permalink to this definition">¶</a></dt>
 <dd><p>The BeamSearchDecoder shuffles its beams and their finished state.</p>
-<p>For this reason, it conflicts with the <cite>dynamic_decode</cite> function&#8217;s
+<p>For this reason, it conflicts with the <cite>dynamic_decode</cite> function’s
 tracking of finished states.  Setting this property to true avoids
 early stopping of decoding due to mismanagement of the finished state
 in <cite>dynamic_decode</cite>.</p>
@@ -1405,17 +1417,17 @@ in <cite>dynamic_decode</cite>.</p>
 <dl class="class">
 <dt id="parts.rnns.rnn_beam_search_decoder.FinalBeamSearchDecoderOutput">
 <em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">FinalBeamSearchDecoderOutput</code><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#FinalBeamSearchDecoderOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.FinalBeamSearchDecoderOutput" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">parts.rnns.rnn_beam_search_decoder.FinalBeamDecoderOutput</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.rnn_beam_search_decoder.FinalBeamDecoderOutput</span></code></p>
 <p>Final outputs returned by the beam search after all decoding is finished.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>predicted_ids</strong> &#8211; The final prediction. A tensor of shape
+<li><strong>predicted_ids</strong> – The final prediction. A tensor of shape
 <cite>[batch_size, T, beam_width]</cite> (or <cite>[T, batch_size, beam_width]</cite> if
 <cite>output_time_major</cite> is True). Beams are ordered from best to worst.</li>
-<li><strong>beam_search_decoder_output</strong> &#8211; An instance of <cite>BeamSearchDecoderOutput</cite> that
+<li><strong>beam_search_decoder_output</strong> – An instance of <cite>BeamSearchDecoderOutput</cite> that
 describes the state of the beam search.</li>
 </ul>
 </td>
@@ -1429,28 +1441,28 @@ describes the state of the beam search.</li>
 <code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">tile_batch</code><span class="sig-paren">(</span><em>t</em>, <em>multiplier</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#tile_batch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.tile_batch" title="Permalink to this definition">¶</a></dt>
 <dd><p>Tile the batch dimension of a (possibly nested structure of) tensor(s) t.</p>
 <p>For each tensor t in a (possibly nested structure) of tensors,
-this function takes a tensor t shaped <cite>[batch_size, s0, s1, ...]</cite> composed of
-minibatch entries <cite>t[0], ..., t[batch_size - 1]</cite> and tiles it to have a shape
-<cite>[batch_size * multiplier, s0, s1, ...]</cite> composed of minibatch entries
-<cite>t[0], t[0], ..., t[1], t[1], ...</cite> where each minibatch entry is repeated
+this function takes a tensor t shaped <cite>[batch_size, s0, s1, …]</cite> composed of
+minibatch entries <cite>t[0], …, t[batch_size - 1]</cite> and tiles it to have a shape
+<cite>[batch_size * multiplier, s0, s1, …]</cite> composed of minibatch entries
+<cite>t[0], t[0], …, t[1], t[1], …</cite> where each minibatch entry is repeated
 <cite>multiplier</cite> times.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>t</strong> &#8211; <cite>Tensor</cite> shaped <cite>[batch_size, ...]</cite>.</li>
-<li><strong>multiplier</strong> &#8211; Python int.</li>
-<li><strong>name</strong> &#8211; Name scope for any created operations.</li>
+<li><strong>t</strong> – <cite>Tensor</cite> shaped <cite>[batch_size, …]</cite>.</li>
+<li><strong>multiplier</strong> – Python int.</li>
+<li><strong>name</strong> – Name scope for any created operations.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A (possibly nested structure of) <cite>Tensor</cite> shaped
-<cite>[batch_size * multiplier, ...]</cite>.</p>
+<cite>[batch_size * multiplier, …]</cite>.</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><ul class="first last simple">
-<li><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if tensor(s) <cite>t</cite> do not have a statically known rank or</li>
+<li><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if tensor(s) <cite>t</cite> do not have a statically known rank or</li>
 <li>the rank is &lt; 1.</li>
 </ul>
 </td>
@@ -1467,7 +1479,7 @@ minibatch entries <cite>t[0], ..., t[batch_size - 1]</cite> and tiles it to have
 <dl class="class">
 <dt id="parts.rnns.slstm.BasicSLSTMCell">
 <em class="property">class </em><code class="descclassname">parts.rnns.slstm.</code><code class="descname">BasicSLSTMCell</code><span class="sig-paren">(</span><em>num_units</em>, <em>forget_bias=1.0</em>, <em>state_is_tuple=True</em>, <em>activation=None</em>, <em>reuse=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/slstm.html#BasicSLSTMCell"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.slstm.BasicSLSTMCell" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Basic SLSTM recurrent network cell.</p>
 <p>The implementation is based on: <a class="reference external" href="https://arxiv.org/abs/1709.02755">https://arxiv.org/abs/1709.02755</a>.</p>
 <dl class="method">
@@ -1479,15 +1491,15 @@ minibatch entries <cite>t[0], ..., t[batch_size - 1]</cite> and tiles it to have
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>num_units</strong> &#8211; int, The number of units in the SLSTM cell.</li>
-<li><strong>forget_bias</strong> &#8211; float, The bias added to forget gates (see above).
+<li><strong>num_units</strong> – int, The number of units in the SLSTM cell.</li>
+<li><strong>forget_bias</strong> – float, The bias added to forget gates (see above).
 Must set to <cite>0.0</cite> manually when restoring from CudnnLSTM-trained
 checkpoints.</li>
-<li><strong>state_is_tuple</strong> &#8211; If True, accepted and returned states are 2-tuples of
+<li><strong>state_is_tuple</strong> – If True, accepted and returned states are 2-tuples of
 the <cite>c_state</cite> and <cite>m_state</cite>.  If False, they are concatenated
 along the column axis.  The latter behavior will soon be deprecated.</li>
-<li><strong>activation</strong> &#8211; Activation function of the inner states.  Default: <cite>tanh</cite>.</li>
-<li><strong>reuse</strong> &#8211; (optional) Python boolean describing whether to reuse variables
+<li><strong>activation</strong> – Activation function of the inner states.  Default: <cite>tanh</cite>.</li>
+<li><strong>reuse</strong> – (optional) Python boolean describing whether to reuse variables
 in an existing scope.  If not <cite>True</cite>, and the existing scope already has
 the given variables, an error is raised.</li>
 </ul>
@@ -1506,8 +1518,8 @@ the given variables, an error is raised.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; <cite>2-D</cite> tensor with shape <cite>[batch_size x input_size]</cite>.</li>
-<li><strong>state</strong> &#8211; An <cite>LSTMStateTuple</cite> of state tensors, each shaped
+<li><strong>inputs</strong> – <cite>2-D</cite> tensor with shape <cite>[batch_size x input_size]</cite>.</li>
+<li><strong>state</strong> – An <cite>LSTMStateTuple</cite> of state tensors, each shaped
 <cite>[batch_size x self.state_size]</cite>, if <cite>state_is_tuple</cite> has been set to
 <cite>True</cite>.  Otherwise, a <cite>Tensor</cite> shaped
 <cite>[batch_size x 2 * self.state_size]</cite>.</li>
@@ -1530,12 +1542,16 @@ the given variables, an error is raised.</li>
 <dl class="attribute">
 <dt id="parts.rnns.slstm.BasicSLSTMCell.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.slstm.BasicSLSTMCell.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.slstm.BasicSLSTMCell.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.rnns.slstm.BasicSLSTMCell.state_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>size(s) of state(s) used by this cell.</p>
+<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
+or TensorShapes.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1548,12 +1564,12 @@ the given variables, an error is raised.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>args</strong> &#8211; a 2D Tensor or a list of 2D, batch x n, Tensors.</li>
-<li><strong>output_size</strong> &#8211; int, second dimension of W[i].</li>
-<li><strong>bias</strong> &#8211; boolean, whether to add a bias term or not.</li>
-<li><strong>bias_initializer</strong> &#8211; starting value to initialize the bias
+<li><strong>args</strong> – a 2D Tensor or a list of 2D, batch x n, Tensors.</li>
+<li><strong>output_size</strong> – int, second dimension of W[i].</li>
+<li><strong>bias</strong> – boolean, whether to add a bias term or not.</li>
+<li><strong>bias_initializer</strong> – starting value to initialize the bias
 (default is all zeros).</li>
-<li><strong>kernel_initializer</strong> &#8211; starting value to initialize the weight.</li>
+<li><strong>kernel_initializer</strong> – starting value to initialize the weight.</li>
 </ul>
 </td>
 </tr>
@@ -1561,7 +1577,7 @@ the given variables, an error is raised.</li>
 sum_i(args[i] * W[i]), where W[i]s are newly created matrices.</p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal"><span class="pre">ValueError</span></code> &#8211; if some of the arguments has unspecified or wrong shape.</p>
+<tr class="field-odd field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">ValueError</span></code> – if some of the arguments has unspecified or wrong shape.</p>
 </td>
 </tr>
 </tbody>
@@ -1582,15 +1598,15 @@ and/or dropout</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>cell_class</strong> &#8211; Tensorflow RNN cell class</li>
-<li><strong>cell_params</strong> (<em>dict</em>) &#8211; cell parameters</li>
-<li><strong>dp_input_keep_prob</strong> (<em>float</em>) &#8211; (default: 1.0) input dropout keep
+<li><strong>cell_class</strong> – Tensorflow RNN cell class</li>
+<li><strong>cell_params</strong> (<em>dict</em>) – cell parameters</li>
+<li><strong>dp_input_keep_prob</strong> (<em>float</em>) – (default: 1.0) input dropout keep
 probability.</li>
-<li><strong>dp_output_keep_prob</strong> (<em>float</em>) &#8211; (default: 1.0) output dropout keep
+<li><strong>dp_output_keep_prob</strong> (<em>float</em>) – (default: 1.0) output dropout keep
 probability.</li>
-<li><strong>zoneout_prob</strong> (<em>float</em>) &#8211; zoneout probability. Applying both zoneout and
+<li><strong>zoneout_prob</strong> (<em>float</em>) – zoneout probability. Applying both zoneout and
 droupout is currently not supported</li>
-<li><strong>residual_connections</strong> (<em>bool</em>) &#8211; whether to add residual connection</li>
+<li><strong>residual_connections</strong> (<em>bool</em>) – whether to add residual connection</li>
 </ul>
 </td>
 </tr>
@@ -1607,19 +1623,23 @@ droupout is currently not supported</li>
 <dl class="class">
 <dt id="parts.rnns.zoneout.ZoneoutWrapper">
 <em class="property">class </em><code class="descclassname">parts.rnns.zoneout.</code><code class="descname">ZoneoutWrapper</code><span class="sig-paren">(</span><em>cell</em>, <em>zoneout_prob</em>, <em>is_training=True</em>, <em>seed=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/zoneout.html#ZoneoutWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.ops.rnn_cell_impl.RNNCell</span></code></p>
 <p>Operator adding zoneout to all states (states+cells) of the given cell.
 Code taken from <a class="reference external" href="https://github.com/teganmaharaj/zoneout">https://github.com/teganmaharaj/zoneout</a>
 applying zoneout as described in <a class="reference external" href="https://arxiv.org/pdf/1606.01305.pdf">https://arxiv.org/pdf/1606.01305.pdf</a></p>
 <dl class="attribute">
 <dt id="parts.rnns.zoneout.ZoneoutWrapper.output_size">
 <code class="descname">output_size</code><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper.output_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p><em>Integer or TensorShape</em> – size of outputs produced by this cell.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="parts.rnns.zoneout.ZoneoutWrapper.state_size">
 <code class="descname">state_size</code><a class="headerlink" href="#parts.rnns.zoneout.ZoneoutWrapper.state_size" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>size(s) of state(s) used by this cell.</p>
+<p>It can be represented by an Integer, a TensorShape or a tuple of Integers
+or TensorShapes.</p>
+</dd></dl>
 
 </dd></dl>
 
@@ -1679,7 +1699,7 @@ applying zoneout as described in <a class="reference external" href="https://arx
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

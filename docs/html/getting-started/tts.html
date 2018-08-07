@@ -172,32 +172,32 @@
 <h2>How to train the model on <a class="reference external" href="https://keithito.com/LJ-Speech-Dataset/">LJSpeech</a> dataset<a class="headerlink" href="#how-to-train-the-model-on-ljspeech-dataset" title="Permalink to this headline">¶</a></h2>
 <p>First, you need to download the dataset. The dataset consists of metadata.csv
 and a directory of wav files. metadata-csv lists all the wavs filename and their
-corresponding transcripts delimited by the &#8216;|&#8217; character.</p>
+corresponding transcripts delimited by the ‘|’ character.</p>
 <p>In order to train the model, a vocab file must be specified. The vocab file
 should contain all the characters present in the dataset plus a special end of
-sentence token &#8216;~&#8217;. The vocab file should have one character per line. An
+sentence token ‘~’. The vocab file should have one character per line. An
 example vocab file is present inside the openseq2seq/test_utils folder called
-&#8220;vocab_tts.txt&#8221;.</p>
-<p>Inside the configuration files, be sure to change <code class="docutils literal"><span class="pre">vocab_file</span></code>, and
-<code class="docutils literal"><span class="pre">dataset_location</span></code> to point to the location of the vocab file and the
+“vocab_tts.txt”.</p>
+<p>Inside the configuration files, be sure to change <code class="docutils literal notranslate"><span class="pre">vocab_file</span></code>, and
+<code class="docutils literal notranslate"><span class="pre">dataset_location</span></code> to point to the location of the vocab file and the
 directory containing the wav files.</p>
 <p>The example configuration files assume that the the dataset is split into train,
 val, and test sets. you would have to split metadata.csv into three separate
 csvs on your own called train.csv, val.csv, and test.csv. You can train the
 model via:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>If you do not want to split the dataset and want to train the model using the
-entire dataset, change <code class="docutils literal"><span class="pre">dataset_files</span></code> inside train_params to point to
+entire dataset, change <code class="docutils literal notranslate"><span class="pre">dataset_files</span></code> inside train_params to point to
 metadata.csv and run:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
 </pre></div>
 </div>
 <p>If you want to run evaluation/inference with the trained model, replace
-<code class="docutils literal"><span class="pre">--mode=train_eval</span></code> with <code class="docutils literal"><span class="pre">--mode=eval</span></code> or <code class="docutils literal"><span class="pre">--mode=infer</span></code>.
+<code class="docutils literal notranslate"><span class="pre">--mode=train_eval</span></code> with <code class="docutils literal notranslate"><span class="pre">--mode=eval</span></code> or <code class="docutils literal notranslate"><span class="pre">--mode=infer</span></code>.
 For inference you will need to provide additional
-<code class="docutils literal"><span class="pre">--infer_output_file</span></code> argument. However this argument is ignored to text to
+<code class="docutils literal notranslate"><span class="pre">--infer_output_file</span></code> argument. However this argument is ignored to text to
 speech. The generated audio filew will be logged to the logdir.</p>
 </div>
 </div>
@@ -255,7 +255,7 @@ speech. The generated audio filew will be logged to the logdir.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

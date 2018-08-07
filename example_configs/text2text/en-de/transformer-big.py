@@ -32,10 +32,10 @@ base_params = {
   "print_samples_steps": 50,
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
-  "logdir": "Transformer-FP32",
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "logdir": "Transformer-4GPUs-FP32",
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -100,6 +100,7 @@ train_params = {
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
     "shuffle": True,
+    "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 2,

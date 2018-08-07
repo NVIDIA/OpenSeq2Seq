@@ -22,17 +22,18 @@ We plan to extend it with other modalities
 in the future.
 
 ## Features
-1. Sequence to sequence learning
-   1. Neural Machine Translation
-   2. Automatic Speech Recognition
+1. Sequence to sequence learning. Currently implemented:
+   1. Neural Machine Translation (text2text)
+   2. Automatic Speech Recognition (speech2text)
+   3. Speech Synthesis (text2speech)
 2. Data-parallel distributed training
    1. Multi-GPU
    2. Multi-node
 3. Mixed precision training for NVIDIA Volta GPUs
 
 
-## Requirements
-1. TensorFlow >= 1.7
+## Software Requirements
+1. TensorFlow >= 1.9
 2. Horovod >= 0.12.0 (using Horovod is not required, but is highly recommended for multi-GPU setup)
 
 ## Acknowledgments

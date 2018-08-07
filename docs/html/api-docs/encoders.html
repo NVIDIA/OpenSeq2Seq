@@ -189,28 +189,28 @@ An encoder typically takes data and produces representation.</p>
 <dl class="class">
 <dt id="encoders.encoder.Encoder">
 <em class="property">class </em><code class="descclassname">encoders.encoder.</code><code class="descname">Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Abstract class from which all encoders must inherit.</p>
 <dl class="method">
 <dt id="encoders.encoder.Encoder.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Encoder constructor.
 Note that encoder constructors should not modify TensorFlow graph, all
-graph construction should happen in the <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a>
+graph construction should happen in the <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a>
 method.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>params</strong> (<em>dict</em>) &#8211; parameters describing the encoder.
-All supported parameters are listed in <a class="reference internal" href="#encoders.encoder.Encoder.get_required_params" title="encoders.encoder.Encoder.get_required_params"><code class="xref py py-meth docutils literal"><span class="pre">get_required_params()</span></code></a>,
-<a class="reference internal" href="#encoders.encoder.Encoder.get_optional_params" title="encoders.encoder.Encoder.get_optional_params"><code class="xref py py-meth docutils literal"><span class="pre">get_optional_params()</span></code></a> functions.</li>
-<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal"><span class="pre">Model</span></code></a>) &#8211; parent model that created this encoder.
+<li><strong>params</strong> (<em>dict</em>) – parameters describing the encoder.
+All supported parameters are listed in <a class="reference internal" href="#encoders.encoder.Encoder.get_required_params" title="encoders.encoder.Encoder.get_required_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_required_params()</span></code></a>,
+<a class="reference internal" href="#encoders.encoder.Encoder.get_optional_params" title="encoders.encoder.Encoder.get_optional_params"><code class="xref py py-meth docutils literal notranslate"><span class="pre">get_optional_params()</span></code></a> functions.</li>
+<li><strong>model</strong> (instance of a class derived from <a class="reference internal" href="models.html#models.model.Model" title="models.model.Model"><code class="xref py py-class docutils literal notranslate"><span class="pre">Model</span></code></a>) – parent model that created this encoder.
 Could be None if no model access is required for the use case.</li>
-<li><strong>name</strong> (<em>str</em>) &#8211; name for encoder variable scope.</li>
-<li><strong>mode</strong> (<em>str</em>) &#8211; mode encoder is going to be run in.
-Could be &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.</li>
+<li><strong>name</strong> (<em>str</em>) – name for encoder variable scope.</li>
+<li><strong>mode</strong> (<em>str</em>) – mode encoder is going to be run in.
+Could be “train”, “eval” or “infer”.</li>
 </ul>
 </td>
 </tr>
@@ -218,16 +218,16 @@ Could be &#8220;train&#8221;, &#8220;eval&#8221; or &#8220;infer&#8221;.</li>
 </table>
 <p>Config parameters:</p>
 <ul class="simple">
-<li><strong>initializer</strong> &#8212; any valid TensorFlow initializer. If no initializer
+<li><strong>initializer</strong> — any valid TensorFlow initializer. If no initializer
 is provided, model initializer will be used.</li>
-<li><strong>initializer_params</strong> (dict) &#8212; dictionary that will be passed to
-initializer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>regularizer</strong> &#8212; and valid TensorFlow regularizer. If no regularizer
+<li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
+initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>regularizer</strong> — and valid TensorFlow regularizer. If no regularizer
 is provided, model regularizer will be used.</li>
-<li><strong>regularizer_params</strong> (dict) &#8212; dictionary that will be passed to
-regularizer <code class="docutils literal"><span class="pre">__init__</span></code> method.</li>
-<li><strong>dtype</strong> &#8212; model dtype. Could be either <code class="docutils literal"><span class="pre">tf.float16</span></code>, <code class="docutils literal"><span class="pre">tf.float32</span></code>
-or &#8220;mixed&#8221;. For details see
+<li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
+regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>dtype</strong> — model dtype. Could be either <code class="docutils literal notranslate"><span class="pre">tf.float16</span></code>, <code class="docutils literal notranslate"><span class="pre">tf.float32</span></code>
+or “mixed”. For details see
 <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs. If no
 dtype is provided, model dtype will be used.</li>
 </ul>
@@ -241,7 +241,7 @@ dtype is provided, model dtype will be used.</li>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; dictionary passed to <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – dictionary passed to <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a>
 method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">same as input_dict, but with all Tensors cast to encoder dtype.</td>
@@ -262,10 +262,10 @@ produce some hidden representation as an output.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; <p>dictionary containing encoder inputs.
-If the encoder is used with <a class="reference internal" href="models.html#module-models.encoder_decoder" title="models.encoder_decoder"><code class="xref py py-class docutils literal"><span class="pre">models.encoder_decoder</span></code></a> class,
-<code class="docutils literal"><span class="pre">input_dict</span></code> will have the following content:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary containing encoder inputs.
+If the encoder is used with <a class="reference internal" href="models.html#module-models.encoder_decoder" title="models.encoder_decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder</span></code></a> class,
+<code class="docutils literal notranslate"><span class="pre">input_dict</span></code> will have the following content:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
@@ -273,7 +273,7 @@ If the encoder is used with <a class="reference internal" href="models.html#modu
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary of encoder outputs. Return all necessary outputs.
-Typically this will be just:<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+Typically this will be just:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
   <span class="s2">&quot;state&quot;</span><span class="p">:</span> <span class="n">state</span><span class="p">,</span>
 <span class="p">}</span>
@@ -290,16 +290,16 @@ Typically this will be just:<div class="highlight-default"><div class="highlight
 <dl class="method">
 <dt id="encoders.encoder.Encoder.encode">
 <code class="descname">encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/encoder.html#Encoder.encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.encoder.Encoder.encode" title="Permalink to this definition">¶</a></dt>
-<dd><p>Wrapper around <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a> method.
+<dd><p>Wrapper around <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> method.
 Here name, initializer and dtype are set in the variable scope and then
-<a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a> method is called.</p>
+<a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> method is called.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; see <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a> docs.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – see <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> docs.</td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">see <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal"><span class="pre">self._encode()</span></code></a> docs.</td>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">see <a class="reference internal" href="#encoders.encoder.Encoder._encode" title="encoders.encoder.Encoder._encode"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self._encode()</span></code></a> docs.</td>
 </tr>
 </tbody>
 </table>
@@ -314,8 +314,8 @@ Here name, initializer and dtype are set in the variable scope and then
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" title="encoders.encoder.Encoder.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" title="encoders.encoder.Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -332,8 +332,8 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" title="encoders.encoder.Encoder.__init__"><code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code></a> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" title="encoders.encoder.Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -367,7 +367,7 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 <dl class="class">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder">
 <em class="property">class </em><code class="descclassname">encoders.ds2_encoder.</code><code class="descname">DeepSpeech2Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='ds2_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>DeepSpeech-2 like encoder.</p>
 <dl class="method">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder.__init__">
@@ -376,11 +376,11 @@ class <a class="reference internal" href="#encoders.encoder.Encoder.__init__" ti
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>dropout_keep_prop</strong> (float) &#8212; keep probability for dropout.</p>
+<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
 </li>
-<li><p class="first"><strong>conv_layers</strong> (list) &#8212; list with the description of convolutional
+<li><p class="first"><strong>conv_layers</strong> (list) — list with the description of convolutional
 layers. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
   <span class="p">{</span>
     <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">,</span> <span class="mi">41</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
     <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">32</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
@@ -397,33 +397,33 @@ layers. For example:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><strong>activation_fn</strong> &#8212; activation function to use.</p>
+<li><p class="first"><strong>activation_fn</strong> — activation function to use.</p>
 </li>
-<li><p class="first"><strong>num_rnn_layers</strong> &#8212; number of RNN layers to use.</p>
+<li><p class="first"><strong>num_rnn_layers</strong> — number of RNN layers to use.</p>
 </li>
-<li><p class="first"><strong>rnn_type</strong> (string) &#8212; could be &#8220;lstm&#8221;, &#8220;gru&#8221;, &#8220;cudnn_gru&#8221;,
-&#8220;cudnn_lstm&#8221; or &#8220;layernorm_lstm&#8221;.</p>
+<li><p class="first"><strong>rnn_type</strong> (string) — could be “lstm”, “gru”, “cudnn_gru”,
+“cudnn_lstm” or “layernorm_lstm”.</p>
 </li>
-<li><p class="first"><strong>rnn_unidirectional</strong> (bool) &#8212; whether to use uni-directional or
+<li><p class="first"><strong>rnn_unidirectional</strong> (bool) — whether to use uni-directional or
 bi-directional RNNs.</p>
 </li>
-<li><p class="first"><strong>rnn_cell_dim</strong> (int) &#8212; dimension of RNN cells.</p>
+<li><p class="first"><strong>rnn_cell_dim</strong> (int) — dimension of RNN cells.</p>
 </li>
-<li><p class="first"><strong>row_conv</strong> (bool) &#8212; whether to use a &#8220;row&#8221; (&#8220;in plane&#8221;) convolutional
+<li><p class="first"><strong>row_conv</strong> (bool) — whether to use a “row” (“in plane”) convolutional
 layer after RNNs.</p>
 </li>
-<li><p class="first"><strong>row_conv_width</strong> (int) &#8212; width parameter for &#8220;row&#8221;
+<li><p class="first"><strong>row_conv_width</strong> (int) — width parameter for “row”
 convolutional layer.</p>
 </li>
-<li><p class="first"><strong>n_hidden</strong> (int) &#8212; number of hidden units for the last fully connected
+<li><p class="first"><strong>n_hidden</strong> (int) — number of hidden units for the last fully connected
 layer.</p>
 </li>
-<li><p class="first"><strong>data_format</strong> (string) &#8212; could be either &#8220;channels_first&#8221; or
-&#8220;channels_last&#8221;. Defaults to &#8220;channels_last&#8221;.</p>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
 </li>
-<li><p class="first"><strong>bn_momentum</strong> (float) &#8212; momentum for batch norm. Defaults to 0.99.</p>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.99.</p>
 </li>
-<li><p class="first"><strong>bn_epsilon</strong> (float) &#8212; epsilon for batch norm. Defaults to 1e-3.</p>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-3.</p>
 </li>
 </ul>
 </dd></dl>
@@ -436,9 +436,9 @@ layer.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; <p>input dictionary that has to contain
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
 the following fields:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="p">[</span>
     <span class="n">src_sequence</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]),</span>
     <span class="n">src_length</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">])</span>
@@ -448,7 +448,7 @@ the following fields:</p>
 </div>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">hidden</span> <span class="n">state</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">n_hidden</span><span class="p">]</span>
   <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
 <span class="p">}</span>
@@ -465,12 +465,38 @@ the following fields:</p>
 <dl class="staticmethod">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encoder.__init__" title="encoders.ds2_encoder.DeepSpeech2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#DeepSpeech2Encoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.DeepSpeech2Encoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encoder.__init__" title="encoders.ds2_encoder.DeepSpeech2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -483,7 +509,7 @@ the following fields:</p>
 <dl class="function">
 <dt id="encoders.ds2_encoder.row_conv">
 <code class="descclassname">encoders.ds2_encoder.</code><code class="descname">row_conv</code><span class="sig-paren">(</span><em>name</em>, <em>input_layer</em>, <em>batch</em>, <em>channels</em>, <em>width</em>, <em>activation_fn</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/ds2_encoder.html#row_conv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.ds2_encoder.row_conv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function that applies &#8220;row&#8221; or &#8220;in plane&#8221; convolution.</p>
+<dd><p>Helper function that applies “row” or “in plane” convolution.</p>
 </dd></dl>
 
 </div>
@@ -492,7 +518,7 @@ the following fields:</p>
 <dl class="class">
 <dt id="encoders.w2l_encoder.Wave2LetterEncoder">
 <em class="property">class </em><code class="descclassname">encoders.w2l_encoder.</code><code class="descname">Wave2LetterEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='w2l_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Wave2Letter like encoder. Fully convolutional model</p>
 <dl class="method">
 <dt id="encoders.w2l_encoder.Wave2LetterEncoder.__init__">
@@ -501,11 +527,11 @@ the following fields:</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>dropout_keep_prop</strong> (float) &#8212; keep probability for dropout.</p>
+<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
 </li>
-<li><p class="first"><strong>convnet_layers</strong> (list) &#8212; list with the description of convolutional
+<li><p class="first"><strong>convnet_layers</strong> (list) — list with the description of convolutional
 layers. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;convnet_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;convnet_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
   <span class="p">{</span>
     <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
     <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
@@ -530,17 +556,17 @@ layers. For example:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><strong>activation_fn</strong> &#8212; activation function to use.</p>
+<li><p class="first"><strong>activation_fn</strong> — activation function to use.</p>
 </li>
-<li><p class="first"><strong>data_format</strong> (string) &#8212; could be either &#8220;channels_first&#8221; or
-&#8220;channels_last&#8221;. Defaults to &#8220;channels_last&#8221;.</p>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
 </li>
-<li><p class="first"><strong>normalization</strong> &#8212; normalization to use. Accepts [None, &#8216;batch_norm&#8217;].
-Use None if you don&#8217;t want to use normalization. Defaults to &#8216;batch_norm&#8217;.</p>
+<li><p class="first"><strong>normalization</strong> — normalization to use. Accepts [None, ‘batch_norm’].
+Use None if you don’t want to use normalization. Defaults to ‘batch_norm’.</p>
 </li>
-<li><p class="first"><strong>bn_momentum</strong> (float) &#8212; momentum for batch norm. Defaults to 0.90.</p>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.90.</p>
 </li>
-<li><p class="first"><strong>bn_epsilon</strong> (float) &#8212; epsilon for batch norm. Defaults to 1e-3.</p>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-3.</p>
 </li>
 </ul>
 </dd></dl>
@@ -553,9 +579,9 @@ Use None if you don&#8217;t want to use normalization. Defaults to &#8216;batch_
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; <p>input dictionary that has to contain
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
 the following fields:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
   <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="p">[</span>
     <span class="n">src_sequence</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]),</span>
     <span class="n">src_length</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">])</span>
@@ -565,7 +591,7 @@ the following fields:</p>
 </div>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">{</span>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
   <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">hidden</span> <span class="n">state</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">n_hidden</span><span class="p">]</span>
   <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
 <span class="p">}</span>
@@ -582,12 +608,38 @@ the following fields:</p>
 <dl class="staticmethod">
 <dt id="encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.w2l_encoder.Wave2LetterEncoder.__init__" title="encoders.w2l_encoder.Wave2LetterEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/w2l_encoder.html#Wave2LetterEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.w2l_encoder.Wave2LetterEncoder.__init__" title="encoders.w2l_encoder.Wave2LetterEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -598,7 +650,7 @@ the following fields:</p>
 <dl class="class">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding">
 <em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">BidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='bidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Bi-directional RNN-based encoder with embeddings.
 Can support various RNN cell types.</p>
 <dl class="method">
@@ -609,7 +661,7 @@ Can support various RNN cell types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) &#8211; <p>dictionary with encoder parameters
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>dictionary with encoder parameters
 Must define:</p>
 <blockquote>
 <div><ul class="simple">
@@ -625,7 +677,7 @@ Must define:</p>
 <li>use_swap_memory (optional)</li>
 <li>mode - train or infer</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
+<p>… add any cell-specific parameters here as well</p>
 </div></blockquote>
 </td>
 </tr>
@@ -684,12 +736,38 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#BidirectionalRNNEncoderWithEmbedding.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="encoders.rnn_encoders.BidirectionalRNNEncoderWithEmbedding.src_emb_size">
@@ -706,7 +784,7 @@ Must define:</p>
 <dl class="class">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding">
 <em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">GNMTLikeEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Encoder similar to the one used in
 GNMT model: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.
 Must have at least 2 layers</p>
@@ -718,7 +796,7 @@ Must have at least 2 layers</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) &#8211; <p>a Python dictionary.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>a Python dictionary.
 Must define:</p>
 <blockquote>
 <div><ul class="simple">
@@ -759,12 +837,38 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding.src_emb_size">
@@ -781,7 +885,7 @@ Must define:</p>
 <dl class="class">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN">
 <em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">GNMTLikeEncoderWithEmbedding_cuDNN</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='gnmt_encoder_with_emb_cudnn'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Encoder similar to the one used in
 GNMT model: <a class="reference external" href="https://arxiv.org/abs/1609.08144">https://arxiv.org/abs/1609.08144</a>.
 Must have at least 2 layers. Uses cuDNN RNN blocks for efficiency</p>
@@ -793,7 +897,7 @@ Must have at least 2 layers. Uses cuDNN RNN blocks for efficiency</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) &#8211; <p>a Python dictionary.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>a Python dictionary.
 Must define:</p>
 <blockquote>
 <div><ul class="simple">
@@ -834,12 +938,38 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__" title="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="encoders.rnn_encoders.GNMTLikeEncoderWithEmbedding_cuDNN.src_emb_size">
@@ -856,7 +986,7 @@ Must define:</p>
 <dl class="class">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding">
 <em class="property">class </em><code class="descclassname">encoders.rnn_encoders.</code><code class="descname">UnidirectionalRNNEncoderWithEmbedding</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='unidir_rnn_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Uni-directional RNN decoder with embeddings.
 Can support various RNN cell types.</p>
 <dl class="method">
@@ -867,7 +997,7 @@ Can support various RNN cell types.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) &#8211; <p>dictionary with encoder parameters
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>params</strong> (<em>dict</em>) – <p>dictionary with encoder parameters
 Must define:</p>
 <blockquote>
 <div><ul class="simple">
@@ -883,7 +1013,7 @@ Must define:</p>
 <li>use_swap_memory (optional)</li>
 <li>mode - train or infer</li>
 </ul>
-<p>... add any cell-specific parameters here as well</p>
+<p>… add any cell-specific parameters here as well</p>
 </div></blockquote>
 </td>
 </tr>
@@ -899,7 +1029,7 @@ Must define:</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> &#8211; <p>a Python dictionary.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> – <p>a Python dictionary.
 Must define:</p>
 <blockquote>
 <div><ul class="simple">
@@ -940,12 +1070,38 @@ Must define:</p>
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/rnn_encoders.html#UnidirectionalRNNEncoderWithEmbedding.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__" title="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.src_emb_size">
@@ -965,7 +1121,7 @@ Must define:</p>
 <dl class="class">
 <dt id="encoders.transformer_encoder.TransformerEncoder">
 <em class="property">class </em><code class="descclassname">encoders.transformer_encoder.</code><code class="descname">TransformerEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='transformer_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/transformer_encoder.html#TransformerEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.transformer_encoder.TransformerEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">open_seq2seq.encoders.encoder.Encoder</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.encoders.encoder.Encoder</span></code></p>
 <p>Transformer model encoder</p>
 <dl class="staticmethod">
 <dt id="encoders.transformer_encoder.TransformerEncoder.get_optional_params">
@@ -976,8 +1132,8 @@ Must define:</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -994,8 +1150,8 @@ class <code class="xref py py-meth docutils literal"><span class="pre">__init__(
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
-included into the <code class="docutils literal"><span class="pre">params</span></code> parameter of the
-class <code class="xref py py-meth docutils literal"><span class="pre">__init__()</span></code> method.</td>
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>
@@ -1012,17 +1168,43 @@ class <code class="xref py py-meth docutils literal"><span class="pre">__init__(
 <dl class="class">
 <dt id="encoders.convs2s_encoder.ConvS2SEncoder">
 <em class="property">class </em><code class="descclassname">encoders.convs2s_encoder.</code><code class="descname">ConvS2SEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='convs2s_encoder_with_emb'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Fully convolutional Encoder of ConvS2S</p>
 <dl class="staticmethod">
 <dt id="encoders.convs2s_encoder.ConvS2SEncoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.convs2s_encoder.ConvS2SEncoder.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/convs2s_encoder.html#ConvS2SEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.convs2s_encoder.ConvS2SEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="encoders.convs2s_encoder.ConvS2SEncoder.src_emb_size">
@@ -1042,11 +1224,24 @@ class <code class="xref py py-meth docutils literal"><span class="pre">__init__(
 <dl class="class">
 <dt id="encoders.resnet_encoder.ResNetEncoder">
 <em class="property">class </em><code class="descclassname">encoders.resnet_encoder.</code><code class="descname">ResNetEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='resnet_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/resnet_encoder.html#ResNetEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.resnet_encoder.ResNetEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <dl class="staticmethod">
 <dt id="encoders.resnet_encoder.ResNetEncoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/resnet_encoder.html#ResNetEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.resnet_encoder.ResNetEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1054,16 +1249,16 @@ class <code class="xref py py-meth docutils literal"><span class="pre">__init__(
 <div class="section" id="module-encoders.resnet_blocks">
 <span id="resnet-blocks"></span><h2>resnet_blocks<a class="headerlink" href="#module-encoders.resnet_blocks" title="Permalink to this headline">¶</a></h2>
 <p>Contains definitions for Residual Networks.</p>
-<p>Residual networks (&#8216;v1&#8217; ResNets) were originally proposed in:
+<p>Residual networks (‘v1’ ResNets) were originally proposed in:
 [1] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</p>
 <blockquote>
 <div>Deep Residual Learning for Image Recognition. arXiv:1512.03385</div></blockquote>
-<p>The full preactivation &#8216;v2&#8217; ResNet variant was introduced by:
+<p>The full preactivation ‘v2’ ResNet variant was introduced by:
 [2] Kaiming He, Xiangyu Zhang, Shaoqing Ren, Jian Sun</p>
 <blockquote>
 <div>Identity Mappings in Deep Residual Networks. arXiv: 1603.05027</div></blockquote>
-<p>The key difference of the full preactivation &#8216;v2&#8217; variant compared to the
-&#8216;v1&#8217; variant in [1] is the use of batch normalization before every weight layer
+<p>The key difference of the full preactivation ‘v2’ variant compared to the
+‘v1’ variant in [1] is the use of batch normalization before every weight layer
 rather than after.</p>
 <dl class="function">
 <dt id="encoders.resnet_blocks.batch_norm">
@@ -1080,19 +1275,19 @@ rather than after.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>filters</strong> &#8211; The number of filters for the first convolution of the layer.</li>
-<li><strong>bottleneck</strong> &#8211; Is the block created a bottleneck block.</li>
-<li><strong>block_fn</strong> &#8211; The block to use within the model, either <cite>building_block</cite> or
+<li><strong>filters</strong> – The number of filters for the first convolution of the layer.</li>
+<li><strong>bottleneck</strong> – Is the block created a bottleneck block.</li>
+<li><strong>block_fn</strong> – The block to use within the model, either <cite>building_block</cite> or
 <cite>bottleneck_block</cite>.</li>
-<li><strong>blocks</strong> &#8211; The number of blocks contained in the layer.</li>
-<li><strong>strides</strong> &#8211; The stride to use for the first convolution of the layer. If
+<li><strong>blocks</strong> – The number of blocks contained in the layer.</li>
+<li><strong>strides</strong> – The stride to use for the first convolution of the layer. If
 greater than 1, this layer will ultimately downsample the input.</li>
-<li><strong>training</strong> &#8211; Either True or False, whether we are currently training the
+<li><strong>training</strong> – Either True or False, whether we are currently training the
 model. Needed for batch norm.</li>
-<li><strong>name</strong> &#8211; A string name for the tensor output of the block layer.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>name</strong> – A string name for the tensor output of the block layer.</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1107,7 +1302,7 @@ model. Needed for batch norm.</li>
 <dt id="encoders.resnet_blocks.bottleneck_block_v1">
 <code class="descclassname">encoders.resnet_blocks.</code><code class="descname">bottleneck_block_v1</code><span class="sig-paren">(</span><em>inputs</em>, <em>filters</em>, <em>training</em>, <em>projection_shortcut</em>, <em>strides</em>, <em>data_format</em>, <em>regularizer</em>, <em>bn_regularizer</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/resnet_blocks.html#bottleneck_block_v1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.resnet_blocks.bottleneck_block_v1" title="Permalink to this definition">¶</a></dt>
 <dd><p>A single block for ResNet v1, with a bottleneck.</p>
-<p>Similar to _building_block_v1(), except using the &#8220;bottleneck&#8221; blocks
+<p>Similar to _building_block_v1(), except using the “bottleneck” blocks
 described in:</p>
 <blockquote>
 <div><dl class="docutils">
@@ -1122,16 +1317,16 @@ by Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, Dec 2015.</dd>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>filters</strong> &#8211; The number of filters for the convolutions.</li>
-<li><strong>training</strong> &#8211; A Boolean for whether the model is in training or inference
+<li><strong>filters</strong> – The number of filters for the convolutions.</li>
+<li><strong>training</strong> – A Boolean for whether the model is in training or inference
 mode. Needed for batch normalization.</li>
-<li><strong>projection_shortcut</strong> &#8211; The function to use for projection shortcuts
+<li><strong>projection_shortcut</strong> – The function to use for projection shortcuts
 (typically a 1x1 convolution when downsampling the input).</li>
-<li><strong>strides</strong> &#8211; The block&#8217;s stride. If greater than 1, this block will ultimately
+<li><strong>strides</strong> – The block’s stride. If greater than 1, this block will ultimately
 downsample the input.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1146,7 +1341,7 @@ downsample the input.</li>
 <dt id="encoders.resnet_blocks.bottleneck_block_v2">
 <code class="descclassname">encoders.resnet_blocks.</code><code class="descname">bottleneck_block_v2</code><span class="sig-paren">(</span><em>inputs</em>, <em>filters</em>, <em>training</em>, <em>projection_shortcut</em>, <em>strides</em>, <em>data_format</em>, <em>regularizer</em>, <em>bn_regularizer</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/resnet_blocks.html#bottleneck_block_v2"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.resnet_blocks.bottleneck_block_v2" title="Permalink to this definition">¶</a></dt>
 <dd><p>A single block for ResNet v2, without a bottleneck.</p>
-<p>Similar to _building_block_v2(), except using the &#8220;bottleneck&#8221; blocks
+<p>Similar to _building_block_v2(), except using the “bottleneck” blocks
 described in:</p>
 <blockquote>
 <div><dl class="docutils">
@@ -1171,16 +1366,16 @@ by Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, Jul 2016.</dd>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>filters</strong> &#8211; The number of filters for the convolutions.</li>
-<li><strong>training</strong> &#8211; A Boolean for whether the model is in training or inference
+<li><strong>filters</strong> – The number of filters for the convolutions.</li>
+<li><strong>training</strong> – A Boolean for whether the model is in training or inference
 mode. Needed for batch normalization.</li>
-<li><strong>projection_shortcut</strong> &#8211; The function to use for projection shortcuts
+<li><strong>projection_shortcut</strong> – The function to use for projection shortcuts
 (typically a 1x1 convolution when downsampling the input).</li>
-<li><strong>strides</strong> &#8211; The block&#8217;s stride. If greater than 1, this block will ultimately
+<li><strong>strides</strong> – The block’s stride. If greater than 1, this block will ultimately
 downsample the input.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1206,16 +1401,16 @@ by Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, Dec 2015.</dd>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>filters</strong> &#8211; The number of filters for the convolutions.</li>
-<li><strong>training</strong> &#8211; A Boolean for whether the model is in training or inference
+<li><strong>filters</strong> – The number of filters for the convolutions.</li>
+<li><strong>training</strong> – A Boolean for whether the model is in training or inference
 mode. Needed for batch normalization.</li>
-<li><strong>projection_shortcut</strong> &#8211; The function to use for projection shortcuts
+<li><strong>projection_shortcut</strong> – The function to use for projection shortcuts
 (typically a 1x1 convolution when downsampling the input).</li>
-<li><strong>strides</strong> &#8211; The block&#8217;s stride. If greater than 1, this block will ultimately
+<li><strong>strides</strong> – The block’s stride. If greater than 1, this block will ultimately
 downsample the input.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1241,16 +1436,16 @@ by Kaiming He, Xiangyu Zhang, Shaoqing Ren, and Jian Sun, Jul 2016.</dd>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>filters</strong> &#8211; The number of filters for the convolutions.</li>
-<li><strong>training</strong> &#8211; A Boolean for whether the model is in training or inference
+<li><strong>filters</strong> – The number of filters for the convolutions.</li>
+<li><strong>training</strong> – A Boolean for whether the model is in training or inference
 mode. Needed for batch normalization.</li>
-<li><strong>projection_shortcut</strong> &#8211; The function to use for projection shortcuts
+<li><strong>projection_shortcut</strong> – The function to use for projection shortcuts
 (typically a 1x1 convolution when downsampling the input).</li>
-<li><strong>strides</strong> &#8211; The block&#8217;s stride. If greater than 1, this block will ultimately
+<li><strong>strides</strong> – The block’s stride. If greater than 1, this block will ultimately
 downsample the input.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1276,11 +1471,11 @@ downsample the input.</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; A tensor of size [batch, channels, height_in, width_in] or
+<li><strong>inputs</strong> – A tensor of size [batch, channels, height_in, width_in] or
 [batch, height_in, width_in, channels] depending on data_format.</li>
-<li><strong>kernel_size</strong> &#8211; The kernel to be used in the conv2d or max_pool2d operation.
+<li><strong>kernel_size</strong> – The kernel to be used in the conv2d or max_pool2d operation.
 Should be a positive integer.</li>
-<li><strong>data_format</strong> &#8211; The input format (&#8216;channels_last&#8217; or &#8216;channels_first&#8217;).</li>
+<li><strong>data_format</strong> – The input format (‘channels_last’ or ‘channels_first’).</li>
 </ul>
 </td>
 </tr>
@@ -1295,12 +1490,12 @@ Should be a positive integer.</li>
 </div>
 <div class="section" id="module-encoders.cnn_encoder">
 <span id="cnn-encoder"></span><h2>cnn_encoder<a class="headerlink" href="#module-encoders.cnn_encoder" title="Permalink to this headline">¶</a></h2>
-<p>This module contains classes and functions to build &#8220;general&#8221; convolutional
-neural networks from the description of arbitrary &#8220;layers&#8221;.</p>
+<p>This module contains classes and functions to build “general” convolutional
+neural networks from the description of arbitrary “layers”.</p>
 <dl class="class">
 <dt id="encoders.cnn_encoder.CNNEncoder">
 <em class="property">class </em><code class="descclassname">encoders.cnn_encoder.</code><code class="descname">CNNEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='cnn_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>General CNN encoder that can be used to construct various different models.</p>
 <dl class="method">
 <dt id="encoders.cnn_encoder.CNNEncoder.__init__">
@@ -1309,9 +1504,9 @@ neural networks from the description of arbitrary &#8220;layers&#8221;.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>cnn_layers</strong> (list) &#8212; list with the description of &#8220;convolutional&#8221;
+<li><p class="first"><strong>cnn_layers</strong> (list) — list with the description of “convolutional”
 layers. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv2d</span><span class="p">,</span> <span class="p">{</span>
         <span class="s1">&#39;filters&#39;</span><span class="p">:</span> <span class="mi">64</span><span class="p">,</span> <span class="s1">&#39;kernel_size&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">11</span><span class="p">,</span> <span class="mi">11</span><span class="p">),</span>
         <span class="s1">&#39;strides&#39;</span><span class="p">:</span> <span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span> <span class="s1">&#39;padding&#39;</span><span class="p">:</span> <span class="s1">&#39;VALID&#39;</span><span class="p">,</span>
@@ -1329,16 +1524,16 @@ layers. For example:</p>
 <span class="p">]</span>
 </pre></div>
 </div>
-<p>Note that you don&#8217;t need to provide &#8220;regularizer&#8221;, &#8220;training&#8221;,
-&#8220;data_format&#8221; and &#8220;axis&#8221; parameters since they will be
-automatically added. &#8220;axis&#8221; will be derived from &#8220;data_format&#8221; and will
-be <code class="docutils literal"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">&quot;channels_first&quot;</span> <span class="pre">else</span> <span class="pre">3</span></code>.</p>
+<p>Note that you don’t need to provide “regularizer”, “training”,
+“data_format” and “axis” parameters since they will be
+automatically added. “axis” will be derived from “data_format” and will
+be <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">&quot;channels_first&quot;</span> <span class="pre">else</span> <span class="pre">3</span></code>.</p>
 </li>
-<li><p class="first"><strong>fc_layers</strong> (list) &#8212; list with the description of &#8220;fully-connected&#8221;
+<li><p class="first"><strong>fc_layers</strong> (list) — list with the description of “fully-connected”
 layers. The only different from convolutional layers is that the input
 will be automatically reshaped to 2D (batch size x num features).
 For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s1">&#39;fc_layers&#39;</span><span class="p">:</span> <span class="p">[</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s1">&#39;fc_layers&#39;</span><span class="p">:</span> <span class="p">[</span>
     <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">,</span> <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">}),</span>
     <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;rate&#39;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">}),</span>
     <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dense</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;units&#39;</span><span class="p">:</span> <span class="mi">4096</span><span class="p">,</span> <span class="s1">&#39;activation&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">}),</span>
@@ -1346,13 +1541,13 @@ For example:</p>
 <span class="p">],</span>
 </pre></div>
 </div>
-<p>Note that you don&#8217;t need to provide &#8220;regularizer&#8221;, &#8220;training&#8221;,
-&#8220;data_format&#8221; and &#8220;axis&#8221; parameters since they will be
-automatically added. &#8220;axis&#8221; will be derived from &#8220;data_format&#8221; and will
-be <code class="docutils literal"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">&quot;channels_first&quot;</span> <span class="pre">else</span> <span class="pre">3</span></code>.</p>
+<p>Note that you don’t need to provide “regularizer”, “training”,
+“data_format” and “axis” parameters since they will be
+automatically added. “axis” will be derived from “data_format” and will
+be <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">&quot;channels_first&quot;</span> <span class="pre">else</span> <span class="pre">3</span></code>.</p>
 </li>
-<li><p class="first"><strong>data_format</strong> (string) &#8212; could be either &#8220;channels_first&#8221; or
-&#8220;channels_last&#8221;. Defaults to &#8220;channels_first&#8221;.</p>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_first”.</p>
 </li>
 </ul>
 </dd></dl>
@@ -1360,44 +1555,70 @@ be <code class="docutils literal"><span class="pre">1</span> <span class="pre">i
 <dl class="staticmethod">
 <dt id="encoders.cnn_encoder.CNNEncoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.cnn_encoder.CNNEncoder.__init__" title="encoders.cnn_encoder.CNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.cnn_encoder.CNNEncoder.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#CNNEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.CNNEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.cnn_encoder.CNNEncoder.__init__" title="encoders.cnn_encoder.CNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="encoders.cnn_encoder.build_layer">
 <code class="descclassname">encoders.cnn_encoder.</code><code class="descname">build_layer</code><span class="sig-paren">(</span><em>inputs</em>, <em>layer</em>, <em>layer_params</em>, <em>data_format</em>, <em>regularizer</em>, <em>training</em>, <em>verbose=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/cnn_encoder.html#build_layer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.cnn_encoder.build_layer" title="Permalink to this definition">¶</a></dt>
-<dd><p>This function builds a layer from the layer function and it&#8217;s parameters.</p>
+<dd><p>This function builds a layer from the layer function and it’s parameters.</p>
 <p>It will automatically add regularizer parameter to the layer_params if the
 layer supports regularization. To check this, it will look for the
-&#8220;regularizer&#8221;, &#8220;kernel_regularizer&#8221; and &#8220;gamma_regularizer&#8221; names in this
-order in the <code class="docutils literal"><span class="pre">layer</span></code> call signature. If one of this parameters is supported
+“regularizer”, “kernel_regularizer” and “gamma_regularizer” names in this
+order in the <code class="docutils literal notranslate"><span class="pre">layer</span></code> call signature. If one of this parameters is supported
 it will pass regularizer object as a value for that parameter. Based on the
-same &#8220;checking signature&#8221; technique &#8220;data_format&#8221; and &#8220;training&#8221; parameters
-will try to be added. Finally, &#8220;axis&#8221; parameter will try to be specified with
-axis = <code class="docutils literal"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">'channels_first'</span> <span class="pre">else</span> <span class="pre">3</span></code>. This is required for
+same “checking signature” technique “data_format” and “training” parameters
+will try to be added. Finally, “axis” parameter will try to be specified with
+axis = <code class="docutils literal notranslate"><span class="pre">1</span> <span class="pre">if</span> <span class="pre">data_format</span> <span class="pre">==</span> <span class="pre">'channels_first'</span> <span class="pre">else</span> <span class="pre">3</span></code>. This is required for
 automatic building batch normalization layer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> &#8211; input Tensor that will be passed to the layer. Note that layer has
+<li><strong>inputs</strong> – input Tensor that will be passed to the layer. Note that layer has
 to accept input as the first parameter.</li>
-<li><strong>layer</strong> &#8211; layer function or class with <code class="docutils literal"><span class="pre">__call__</span></code> method defined.</li>
-<li><strong>layer_params</strong> (<em>dict</em>) &#8211; parameters passed to the <code class="docutils literal"><span class="pre">layer</span></code>.</li>
-<li><strong>data_format</strong> (<em>string</em>) &#8211; data format (&#8220;channels_first&#8221; or &#8220;channels_last&#8221;)
+<li><strong>layer</strong> – layer function or class with <code class="docutils literal notranslate"><span class="pre">__call__</span></code> method defined.</li>
+<li><strong>layer_params</strong> (<em>dict</em>) – parameters passed to the <code class="docutils literal notranslate"><span class="pre">layer</span></code>.</li>
+<li><strong>data_format</strong> (<em>string</em>) – data format (“channels_first” or “channels_last”)
 that will be tried to be passed as an additional argument.</li>
-<li><strong>regularizer</strong> &#8211; regularizer instance that will be tried to be passed as an
+<li><strong>regularizer</strong> – regularizer instance that will be tried to be passed as an
 additional argument.</li>
-<li><strong>training</strong> (<em>bool</em>) &#8211; whether layer is built in training mode. Will be tried to
+<li><strong>training</strong> (<em>bool</em>) – whether layer is built in training mode. Will be tried to
 be passed as an additional argument.</li>
-<li><strong>verbose</strong> (<em>bool</em>) &#8211; whether to print information about built layers.</li>
+<li><strong>verbose</strong> (<em>bool</em>) – whether to print information about built layers.</li>
 </ul>
 </td>
 </tr>
@@ -1414,7 +1635,7 @@ be passed as an additional argument.</li>
 <dl class="class">
 <dt id="encoders.tacotron2_encoder.Tacotron2Encoder">
 <em class="property">class </em><code class="descclassname">encoders.tacotron2_encoder.</code><code class="descname">Tacotron2Encoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='tacotron2_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tacotron2_encoder.html#Tacotron2Encoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tacotron2_encoder.Tacotron2Encoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
 <p>Tacotron-2 like encoder.</p>
 <p>Consists of an embedding layer followed by a convolutional layer followed by
 a recurrent layer.</p>
@@ -1425,13 +1646,13 @@ a recurrent layer.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>dropout_keep_prop</strong> (float) &#8212; keep probability for dropout.</p>
+<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
 </li>
-<li><p class="first"><strong>src_emb_size</strong> (int) &#8212; dimensionality of character embedding.</p>
+<li><p class="first"><strong>src_emb_size</strong> (int) — dimensionality of character embedding.</p>
 </li>
-<li><p class="first"><strong>conv_layers</strong> (list) &#8212; list with the description of convolutional
+<li><p class="first"><strong>conv_layers</strong> (list) — list with the description of convolutional
 layers. For example:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;conv_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
   <span class="p">{</span>
     <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">5</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
     <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">512</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
@@ -1448,30 +1669,30 @@ layers. For example:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first"><strong>activation_fn</strong> (callable) &#8212; activation function to use for conv
+<li><p class="first"><strong>activation_fn</strong> (callable) — activation function to use for conv
 layers.</p>
 </li>
-<li><p class="first"><strong>num_rnn_layers</strong> &#8212; number of RNN layers to use.</p>
+<li><p class="first"><strong>num_rnn_layers</strong> — number of RNN layers to use.</p>
 </li>
-<li><p class="first"><strong>rnn_cell_dim</strong> (int) &#8212; dimension of RNN cells.</p>
+<li><p class="first"><strong>rnn_cell_dim</strong> (int) — dimension of RNN cells.</p>
 </li>
-<li><p class="first"><strong>rnn_type</strong> (callable) &#8212; Any valid RNN Cell class. Suggested class is
+<li><p class="first"><strong>rnn_type</strong> (callable) — Any valid RNN Cell class. Suggested class is
 lstm</p>
 </li>
-<li><p class="first"><strong>rnn_unidirectional</strong> (bool) &#8212; whether to use uni-directional or
+<li><p class="first"><strong>rnn_unidirectional</strong> (bool) — whether to use uni-directional or
 bi-directional RNNs.</p>
 </li>
-<li><p class="first"><strong>zoneout_prob</strong> (float) &#8212; zoneout probability. Defaults to 0.</p>
+<li><p class="first"><strong>zoneout_prob</strong> (float) — zoneout probability. Defaults to 0.</p>
 </li>
-<li><p class="first"><strong>use_cudnn_rnn</strong> (bool) &#8212; need to be enabled in rnn_type is a Cudnn
+<li><p class="first"><strong>use_cudnn_rnn</strong> (bool) — need to be enabled in rnn_type is a Cudnn
 class.</p>
 </li>
-<li><p class="first"><strong>data_format</strong> (string) &#8212; could be either &#8220;channels_first&#8221; or
-&#8220;channels_last&#8221;. Defaults to &#8220;channels_last&#8221;.</p>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
 </li>
-<li><p class="first"><strong>bn_momentum</strong> (float) &#8212; momentum for batch norm. Defaults to 0.1.</p>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.1.</p>
 </li>
-<li><p class="first"><strong>bn_epsilon</strong> (float) &#8212; epsilon for batch norm. Defaults to 1e-5.</p>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-5.</p>
 </li>
 </ul>
 </dd></dl>
@@ -1484,7 +1705,7 @@ class.</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) &#8211; <p>dictionary with inputs.
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary with inputs.
 Must define:</p>
 <blockquote>
 <div><dl class="docutils">
@@ -1519,12 +1740,38 @@ attention layer</li>
 <dl class="staticmethod">
 <dt id="encoders.tacotron2_encoder.Tacotron2Encoder.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tacotron2_encoder.html#Tacotron2Encoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tacotron2_encoder.Tacotron2Encoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.tacotron2_encoder.Tacotron2Encoder.__init__" title="encoders.tacotron2_encoder.Tacotron2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="staticmethod">
 <dt id="encoders.tacotron2_encoder.Tacotron2Encoder.get_required_params">
 <em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tacotron2_encoder.html#Tacotron2Encoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tacotron2_encoder.Tacotron2Encoder.get_required_params" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.tacotron2_encoder.Tacotron2Encoder.__init__" title="encoders.tacotron2_encoder.Tacotron2Encoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1584,7 +1831,7 @@ attention layer</li>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
