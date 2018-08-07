@@ -33,7 +33,7 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed"  # "mixed" or tf.float32
-shuffle_train = True
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
@@ -66,7 +66,7 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 9,
     "max_lr": 1e-3,
-    "warmup_steps": 1000,
+    "warmup_steps": 4000,
     "d_model": d_model,
   },
 
