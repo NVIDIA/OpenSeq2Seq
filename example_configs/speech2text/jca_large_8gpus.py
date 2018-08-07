@@ -81,20 +81,21 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [11], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
-            },
-            {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 2,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
         ],
 
-        "recurrent_layers": [],
+        "recurrent_layers": [
+            {
+                "type": "lstm", "num_layers": 1,
+                "hidden_dim": 256, "dropout_keep_prob": 0.8,
+                "pool": False, "pool_size":[2], "stride": [2],
+						},
+        ],
+
         "dropout_keep_prob": 0.8,
 
         "residual_connections": False,
@@ -114,7 +115,7 @@ base_params = {
         "las_params": {
           "tgt_emb_size": 256,
 
-          "pos_embedding": True,
+          "pos_embedding": False,
 
           "attention_params": {
               "attention_dim": 256,
