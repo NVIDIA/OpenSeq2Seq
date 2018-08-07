@@ -29,7 +29,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
     """
     super(AttentionLayerNormalized, self).__init__()
     #changed
-    normalization_type = None
+    normalization_type = "weight_norm"
 
     self.add_res = add_res
     self.scaling_factor = scaling_factor
