@@ -22,8 +22,8 @@ data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
 num_layers = 15
-d_model = 1024 #512
-hidden_before_last = 1024 #512
+d_model = 512 #512
+hidden_before_last = 512 #512 #if shared embedding is used, it should be d_model
 max_length = 64
 pad_2_eight = True
 
@@ -33,8 +33,8 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed"  # "mixed" or tf.float32
-shuffle_train = False
-use_horovod = False
+shuffle_train = True
+use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
@@ -115,7 +115,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024*2, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -143,7 +143,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024*2, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
