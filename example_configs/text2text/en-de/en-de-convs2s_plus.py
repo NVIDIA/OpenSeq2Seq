@@ -66,7 +66,7 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 9,
     "max_lr": 1e-3,
-    "warmup_steps": 4000,
+    "warmup_steps": 1000,
     "d_model": d_model,
   },
 
@@ -83,7 +83,7 @@ base_params = {
   #    "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 10.0,
+  "max_grad_norm": 0.1,
 
   # "larc_params": {
   #   "larc_eta": 0.00001,
