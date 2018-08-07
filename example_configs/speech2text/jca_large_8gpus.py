@@ -114,7 +114,7 @@ base_params = {
         "las_params": {
           "tgt_emb_size": 256,
 
-          "pos_embedding": False,
+          "pos_embedding": True,
 
           "attention_params": {
               "attention_dim": 256,
