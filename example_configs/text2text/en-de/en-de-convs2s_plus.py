@@ -66,7 +66,7 @@ base_params = {
   "lr_policy_params": {
     "learning_rate": 9,
     "max_lr": 1e-3,
-    "warmup_steps": 2000,
+    "warmup_steps": 4000,
     "d_model": d_model,
   },
 
