@@ -90,6 +90,7 @@ base_params = {
 
         "recurrent_layers": [],
 
+        "recurrent_layers": [],
         "dropout_keep_prob": 0.8,
 
         "residual_connections": False,
@@ -109,7 +110,7 @@ base_params = {
         "las_params": {
           "tgt_emb_size": 256,
 
-          "pos_embedding": False,
+          "pos_embedding": True,
 
           "attention_params": {
               "attention_dim": 256,
