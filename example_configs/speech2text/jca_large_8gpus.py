@@ -11,7 +11,7 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
+    "use_horovod": False,
     "num_epochs": 50,
 
     "num_gpus": 8,
@@ -20,8 +20,8 @@ base_params = {
 
     "save_summaries_steps": 1000,
     "print_loss_steps": 10,
-    "print_samples_steps": 1000,
-    "eval_steps": 4400,
+    "print_samples_steps": 100,
+    "eval_steps": 50,
     "save_checkpoint_steps": 1100,
     "logdir": "jca_log_folder",
 
@@ -81,20 +81,14 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 2,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
         ],
 
-        "recurrent_layers": [
-            {
-                "type": "lstm", "num_layers": 1,
-                "hidden_dim": 256, "dropout_keep_prob": 0.8,
-                "pool": False, "pool_size":[2], "stride": [2],
-						},
-        ],
+        "recurrent_layers": [],
 
         "dropout_keep_prob": 0.8,
 
@@ -153,7 +147,7 @@ base_params = {
       "seq_loss_params": {
         "offset_target_by_one": False,
         "average_across_timestep": True,
-        "do_mask": True
+        "do_mask": False
       },
 
     	"ctc_loss_params": {
@@ -170,9 +164,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "../librispeech/librivox-train-clean-100.csv",
+            "../librispeech/librivox-train-clean-360.csv",
+            "../librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -187,7 +181,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            "../librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,

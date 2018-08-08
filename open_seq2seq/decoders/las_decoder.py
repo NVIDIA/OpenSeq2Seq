@@ -226,7 +226,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         decoder=decoder,
-        impute_finished=True,
+        impute_finished=False,
         maximum_iterations=maximum_iterations,
     )
 
