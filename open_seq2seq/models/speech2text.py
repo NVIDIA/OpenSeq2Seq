@@ -27,8 +27,12 @@ def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
   batch_size = len(tensor)
   text = [''] * batch_size
   for batch_num in range(batch_size):
-    text[batch_num] = "".join([idx2char[idx] for idx in tensor[batch_num]
-                               if idx not in [startindex, endindex]])
+    '''text[batch_num] = "".join([idx2char[idx] for idx in tensor[batch_num]
+                               if idx not in [startindex, endindex]])'''
+
+    text[batch_num] = ""
+    for idx in tensor[batch_num]:
+      text[batch_num] += idx2char[idx]
   return text
 
 
@@ -150,9 +154,11 @@ class Speech2Text(EncoderDecoderModel):
   def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
-    for word_lev, word_count in results_per_batch:
+    for word_lev, word_count, true_text, pred_text in results_per_batch:
       total_word_lev += word_lev
       total_word_count += word_count
+      deco_print("Validation target:     " + true_text, offset=4)
+      deco_print("Validation prediction: " + pred_text, offset=4)
 
     total_wer = 1.0 * total_word_lev / total_word_count
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
@@ -177,13 +183,13 @@ class Speech2Text(EncoderDecoderModel):
       y = input_values['target_tensors'][0][sample_id]
       len_y = input_values['target_tensors'][1][sample_id]
       true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
-                              y[:len_y]))
+                              y[:]))
       pred_text = "".join(decoded_texts[sample_id])
 
       total_word_lev += levenshtein(true_text.split(), pred_text.split())
       total_word_count += len(true_text.split())
 
-    return total_word_lev, total_word_count
+    return total_word_lev, total_word_count, true_text, pred_text
 
   def infer(self, input_values, output_values):
     preds = []
