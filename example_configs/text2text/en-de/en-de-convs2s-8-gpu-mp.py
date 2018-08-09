@@ -31,8 +31,8 @@ hidden_before_last = 512
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
-max_steps = 310000
-max_length = 64
+max_steps = 154000
+max_length = 128
 
 base_params = {
   "use_horovod": True,
@@ -156,7 +156,7 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 16,
+  "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "src_vocab_file": data_root+"m_common.vocab",
@@ -165,14 +165,14 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": max_length,
     "prefetch_buffer_size": 1,
     },
 }
 
 infer_params = {
-  "batch_size_per_gpu": 1,
+  "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "src_vocab_file": data_root+"m_common.vocab",
