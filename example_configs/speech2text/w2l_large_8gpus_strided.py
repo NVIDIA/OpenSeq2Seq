@@ -58,30 +58,36 @@ base_params = {
         "convnet_layers": [
             {
                 "type": "conv1d", "repeat": 1,
+                "kernel_size": [9], "stride": [1],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
+            },
+            {
+                "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
@@ -89,6 +95,12 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
+                "num_channels": 768, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.7,
+            },
+            {
+                "type": "conv1d", "repeat": 3,
+                "kernel_size": [27], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
             },
