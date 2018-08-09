@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 import tensorflow as tf
 import math
+from open_seq2seq.parts.transformer.common import LayerNormalization
 
 
 class FeedFowardNetworkNormalized(tf.layers.Layer):
@@ -19,7 +20,9 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
                dropout,
                var_scope_name,
                mode,
-               normalization_type="weight_norm"):
+               normalization_type="weight_norm",
+               regularizer=None, #tf.contrib.layers.l2_regularizer(scale=1e-4)
+               ):
     """initializes the linear layer.
     This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
     It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
@@ -39,6 +42,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     self.out_dim = out_dim
     self.in_dim = in_dim
     self.normalization_type = normalization_type
+    self.regularizer = regularizer
     self.var_scope_name = var_scope_name
     self.mode = mode
 
@@ -55,7 +59,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
     elif normalization_type == "layer_norm":
       self.apply_batch_norm = False
       self.bias_enabled = False
-      self.wn_enabled = True
+      self.wn_enabled = False
       self.apply_layer_norm = True
     elif normalization_type is None:
       self.apply_batch_norm = False
@@ -82,7 +86,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
             'W',
             shape=[in_dim, out_dim],
             initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.contrib.layers.variance_scaling_initializer(),
-            trainable=True)
+            trainable=True, regularizer=self.regularizer)
 
       if self.bias_enabled:
         self.b = tf.get_variable(
@@ -92,6 +96,12 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
             trainable=True)
       else:
         self.b = None
+
+      if self.apply_layer_norm:
+        self.layer_norm = LayerNormalization(out_dim)
+      else:
+        self.layer_norm = None
+
 
   def call(self, x):
     """Projects x with its linear transformation.
@@ -127,14 +137,15 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       output = tf.squeeze(norm_output, axis=1)
 
     elif self.apply_layer_norm:
-      y = tf.expand_dims(y, axis=1)
-      norm_output = tf.contrib.layers.layer_norm(
-          inputs=y,
-          begin_norm_axis=1,
-          begin_params_axis=-1,
-          scope=self.var_scope_name + "_layer_norm",
-      )
-      output = tf.squeeze(norm_output, axis=1)
+      # ln_input = tf.expand_dims(y, axis=1)
+      # ln_output = tf.contrib.layers.layer_norm(
+      #     inputs=ln_input,
+      #     begin_norm_axis=1,
+      #     begin_params_axis=-1,
+      #     scope=self.var_scope_name + "_layer_norm",
+      # )
+      # output = tf.squeeze(ln_output, axis=1)
+      output = self.layer_norm(y)
     else:
       output = y
 

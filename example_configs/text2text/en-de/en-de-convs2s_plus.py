@@ -32,14 +32,14 @@ epoch_num = 35
 num_gpus = 8
 
 iter_size = 1
-dtype = "mixed"  # "mixed" or tf.float32
-shuffle_train = True
+dtype = "mixed" #tf.float32 #tf.float32 #  #
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
+normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = 1.0 #math.sqrt(0.5) #changed here
 
 base_params = {
@@ -76,33 +76,32 @@ base_params = {
   # },
   #
   # "lr_policy": fixed_lr,
-  # "lr_policy": poly_decay,
+  # # "lr_policy": poly_decay,
   # "lr_policy_params": {
-  #    "learning_rate": 1.0,
-  #    "power": 2.0,
-  #    "decay_steps":max_steps,
+  #    "learning_rate": 0.0001,
+  #    # "power": 2.0,
+  #    # "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 0.1,
+  "max_grad_norm": 10.0,
 
   # "larc_params": {
-  #   "larc_eta": 0.00001,
+  #   "larc_eta": 0.0001,
   # },
 
-  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
-
-  #"regularizer": tf.contrib.layers.l2_regularizer,
-
+  # "regularizer": tf.contrib.layers.l2_regularizer,
   # "regularizer_params": {
-  #   "scale": 0.001
+  #   "scale": 1e-4
   # },
 
   "loss_scaling": "Backoff",
   # "loss_scaling_params": {
   #    "scale_min": 1.0,
-  #    "scale_max": 10., #2.**24., #100., #1024.0, #2.**24,
+  #    "scale_max": 2000., #2.**24., #100., #1024.0, #2.**24,
   #  },
+
+  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+                'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
 
   "encoder": ConvS2SEncoder2,
   "encoder_params": {
@@ -205,7 +204,6 @@ eval_params = {
     "repeat": True,
     "max_length": max_length,
   },
-
 }
 
 infer_params = {

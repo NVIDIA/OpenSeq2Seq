@@ -44,7 +44,7 @@ base_params = {
   "batch_size_per_gpu": 64,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 100,
+  "print_samples_steps": 500,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
   "logdir": "WMT16_EN_DT",

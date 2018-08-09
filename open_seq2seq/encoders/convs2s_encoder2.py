@@ -104,7 +104,8 @@ class ConvS2SEncoder2(Encoder):
                 dropout=self.params["embedding_dropout_keep_prob"],
                 var_scope_name="linear_mapping_before_cnn_layers",
                 mode=self.mode,
-                normalization_type=self.normalization_type))
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer))
 
         for i in range(len(knum_list)):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -119,7 +120,8 @@ class ConvS2SEncoder2(Encoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=self.normalization_type)
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer)
           else:
             linear_proj = None
 
@@ -146,7 +148,8 @@ class ConvS2SEncoder2(Encoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=self.normalization_type))
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer))
 
       encoder_inputs = self.embedding_softmax_layer(inputs)
       inputs_attention_bias = get_padding_bias(
@@ -219,10 +222,12 @@ class ConvS2SEncoder2(Encoder):
       # Gradients are scaled as the gradients from
       # all decoder attention layers enters the encoder
       #changed
-      scale = 1.0 / (
-          2.0 * self.params.get("att_layer_num", 1))
-      outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
+      #scale = 1.0 / (
+      #    2.0 * self.params.get("att_layer_num", 1))
+      #outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
+      #changed
+      #outputs_b = outputs
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor
 
       if padding_mask is not None:

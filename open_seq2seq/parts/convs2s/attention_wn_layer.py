@@ -15,7 +15,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
 
   def __init__(self, in_dim, embed_size, layer_id, add_res, mode,
-               normalization_type="weight_norm", scaling_factor=math.sqrt(0.5)):
+               normalization_type="weight_norm",
+               scaling_factor=math.sqrt(0.5),
+               regularizer=None):
     """initializes the attention layer.
     It uses weight normalization for linear projections
     (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
@@ -28,11 +30,11 @@ class AttentionLayerNormalized(tf.layers.Layer):
       mode: str current mode
     """
     super(AttentionLayerNormalized, self).__init__()
-    #changed
-    normalization_type = "weight_norm"
 
     self.add_res = add_res
     self.scaling_factor = scaling_factor
+    self.regularizer = regularizer
+
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
@@ -42,7 +44,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
           mode=mode,
-          normalization_type=normalization_type) #changed here
+          normalization_type=None,
+          regularizer=self.regularizer,
+      ) #changed here
 
       # linear projection layer to project back to the input space
       self.out_proj = FeedFowardNetworkNormalized(
@@ -51,7 +55,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_out",
           mode=mode,
-          normalization_type=normalization_type) #changed here
+          normalization_type=normalization_type,
+          regularizer=self.regularizer,
+      ) #changed here
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_b,
            input_attention_bias):
