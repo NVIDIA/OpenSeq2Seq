@@ -15,6 +15,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
+import math
 """
 This configuration file describes a variant of ConvS2S model from
 https://arxiv.org/pdf/1705.03122
@@ -30,6 +31,7 @@ hidden_before_last = 512
 
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
+scaling_factor = math.sqrt(0.5)
 
 max_steps = 154000
 max_length = 128
@@ -70,7 +72,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
 
     "src_emb_size": d_model,
     "pad_embeddings_2_eight": True,
@@ -91,12 +92,12 @@ base_params = {
 
     "conv_activation": conv_act,
     'normalization_type': normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
 
     "shared_embed": True,
     "tgt_emb_size": d_model,
@@ -126,6 +127,7 @@ base_params = {
 
     "conv_activation": conv_act,
     'normalization_type': normalization_type,
+    "scaling_factor": scaling_factor,
   },
 
   "loss": BasicSequenceLoss,
