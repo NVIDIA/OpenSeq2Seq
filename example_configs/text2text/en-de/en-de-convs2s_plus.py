@@ -18,7 +18,7 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt/"
+data_root = "./wmt16_en_dt_old/"
 
 base_model = Text2Text
 num_layers = 15
@@ -32,7 +32,7 @@ epoch_num = 35
 num_gpus = 8
 
 iter_size = 1
-dtype = "mixed" #tf.float32 #tf.float32 #  #
+dtype = tf.float32 #tf.float32 #tf.float32 #  #
 shuffle_train = True
 use_horovod = True
 
