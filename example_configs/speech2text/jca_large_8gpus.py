@@ -119,7 +119,7 @@ base_params = {
           
           "rnn_type": "lstm",
           "hidden_dim": 512,
-          "num_layers": 1,
+          "num_layers": 2,
 
           "dropout_keep_prob": 1.0,
         },
