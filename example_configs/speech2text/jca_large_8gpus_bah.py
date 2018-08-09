@@ -113,8 +113,8 @@ base_params = {
 
           "attention_params": {
               "attention_dim": 256,
-              "attention_type": "chorowski",
-              "use_coverage": True,
+              "attention_type": "bahadanu",
+              #"use_coverage": True,
           },
           
           "rnn_type": "lstm",

@@ -113,7 +113,7 @@ base_params = {
 
           "attention_params": {
               "attention_dim": 256,
-              "attention_type": "chorowski",
+              "attention_type": "zhaopeng",
               "use_coverage": True,
           },
           
