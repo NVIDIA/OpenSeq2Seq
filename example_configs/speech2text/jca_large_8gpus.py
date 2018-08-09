@@ -119,7 +119,7 @@ base_params = {
           
           "rnn_type": "lstm",
           "hidden_dim": 512,
-          "num_layers": 2,
+          "num_layers": 1,
 
           "dropout_keep_prob": 1.0,
         },
@@ -155,8 +155,8 @@ base_params = {
 
       "lambda_value" : 0.5,
       "lambda_params": {
-        "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-        "boundaries": [2000, 4000, 6000, 8000, 12000],
+        "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.001],
+        "boundaries": [4000, 6000, 8000, 12000, 14000],
       }
     }
 }
