@@ -21,14 +21,13 @@ https://arxiv.org/pdf/1705.03122
 """
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16-ende-sp/"
 
 base_model = Text2Text
 num_layers = 15
 d_model = 512
 hidden_before_last = 512
 
-dtype = tf.float32
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
@@ -66,7 +65,7 @@ base_params = {
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
 
-  "dtype": dtype,
+  "dtype": "mixed",
   "loss_scaling": "Backoff",
 
   "encoder": ConvS2SEncoder,
@@ -142,10 +141,10 @@ train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "train.tok.clean.bpe.32000.en",
-    "target_file": data_root + "train.tok.clean.bpe.32000.de",
+    "src_vocab_file": data_root + "m_common.vocab",
+    "tgt_vocab_file": data_root + "m_common.vocab",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
     "shuffle_buffer_size": 25000,
@@ -157,35 +156,33 @@ train_params = {
 }
 
 eval_params = {
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-    "target_file": data_root + "newstest2014.tok.bpe.32000.de",
-    "delimiter": " ",
-    "shuffle": False,
-    "repeat": True,
-    "max_length": max_length,
-  },
-
-}
-
-infer_params = {
-  "batch_size_per_gpu": 64,
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-    # this is intentional to be sure that model is not using target
-    "target_file": data_root + "newstest2014.tok.bpe.32000.en",
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt13-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
     "max_length": max_length,
+    "prefetch_buffer_size": 1,
+    },
+}
+
+infer_params = {
+  "batch_size_per_gpu": 1,
+  "data_layer": ParallelTextDataLayer,
+  "data_layer_params": {
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "delimiter": " ",
+    "shuffle": False,
+    "repeat": False,
+    "max_length": max_length,
+    "prefetch_buffer_size": 1,
   },
 }
