@@ -57,6 +57,7 @@ class ParallelTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
       'shuffle_buffer_size': int,
+      'special_tokens_already_in_vocab': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -94,44 +95,46 @@ class ParallelTextDataLayer(DataLayer):
       return i + 1
 
     self.dataset_size = file_len(self.source_file)
+    special_tokens_already_in_vocab = self.params.get('special_tokens_already_in_vocab', True)
 
     # load source and target vocabularies to RAM
     self.src_seq2idx = load_pre_existing_vocabulary(
-      self.src_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.src_vocab_file, min_idx=0 if special_tokens_already_in_vocab
+      else SpecialTextTokens.UNK_ID.value + 1)
     self.tgt_seq2idx = load_pre_existing_vocabulary(
-      self.tgt_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.tgt_vocab_file, min_idx=0 if special_tokens_already_in_vocab
+      else SpecialTextTokens.UNK_ID.value + 1)
 
-    # unknown symbol
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
-      SpecialTextTokens.UNK_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
-      SpecialTextTokens.UNK_ID.value
-
-    # sentence start
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
-      SpecialTextTokens.S_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
-      SpecialTextTokens.S_ID.value
-    # sentence end
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
-      SpecialTextTokens.EOS_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
-      SpecialTextTokens.EOS_ID.value
-    # padding
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
-      SpecialTextTokens.PAD_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
-      SpecialTextTokens.PAD_ID.value
+    if not special_tokens_already_in_vocab:
+      # manually add special tokens
+      # unknown symbol
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+        SpecialTextTokens.UNK_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+        SpecialTextTokens.UNK_ID.value
+      # sentence start
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+        SpecialTextTokens.S_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+        SpecialTextTokens.S_ID.value
+      # sentence end
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+        SpecialTextTokens.EOS_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+        SpecialTextTokens.EOS_ID.value
+      # padding
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+        SpecialTextTokens.PAD_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+        SpecialTextTokens.PAD_ID.value
 
     if self.params.get('pad_vocab_to_eight', False):
       self.src_seq2idx = pad_vocab_to_eight(self.src_seq2idx)
