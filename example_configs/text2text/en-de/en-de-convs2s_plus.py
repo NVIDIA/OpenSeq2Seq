@@ -39,7 +39,7 @@ use_horovod = True
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
+normalization_type = "bacth_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = 1.0 #math.sqrt(0.5) #changed here
 
 base_params = {
@@ -89,10 +89,10 @@ base_params = {
   #   "larc_eta": 0.0001,
   # },
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   "scale": 1e-4
-  # },
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    "scale": 1e-4
+  },
 
   "loss_scaling": "Backoff",
   # "loss_scaling_params": {
