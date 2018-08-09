@@ -57,6 +57,7 @@ class ParallelTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
       'shuffle_buffer_size': int,
+      'special_tokens_already_in_vocab': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
