@@ -183,7 +183,7 @@ class Speech2Text(EncoderDecoderModel):
       y = input_values['target_tensors'][0][sample_id]
       len_y = input_values['target_tensors'][1][sample_id]
       true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
-                              y[:]))
+                              y[:len_y]))
       pred_text = "".join(decoded_texts[sample_id])
 
       total_word_lev += levenshtein(true_text.split(), pred_text.split())

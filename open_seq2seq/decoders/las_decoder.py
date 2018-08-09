@@ -226,7 +226,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         decoder=decoder,
-        impute_finished=False,
+        impute_finished=True,
         maximum_iterations=maximum_iterations,
     )
 
@@ -248,8 +248,33 @@ class ListenAttendSpellDecoder(Decoder):
     values = tf.reshape(outputs, [-1])
     sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''
 
+    '''if self.mode == "eval":
+      if tf.reduce_max(tgt_lengths) > tf.shape(final_outputs.rnn_output)[1]:
+        padding = tf.fill([tf.shape(final_outputs.rnn_output)[0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)
+        final_outputs.rnn_output = tf.concat([final_outputs.rnn_output, padding], 1)'''
+
+    '''if self.mode == "eval":
+      final_outputs.rnn_output = tf.cond(
+          tf.greater(tf.reduce_max(tgt_lengths),
+                     tf.shape(final_outputs.rnn_output)[1]),
+          lambda: tf.concat([final_outputs.rnn_output, tf.fill([tf.shape(final_outputs.rnn_output)[
+                                                       0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)], 1),
+          lambda: tf.identity(final_outputs.rnn_output),
+      )'''
+
+    logits = final_outputs.rnn_output
+    if self.mode == "eval":
+      max_len = tf.reduce_max(tgt_lengths)
+      logits = tf.while_loop(
+          lambda logits: max_len > tf.shape(logits)[1],
+          lambda logits: tf.concat([logits, tf.fill(
+              [tf.shape(logits)[0], 1, tf.shape(logits)[2]], 1.0)], 1),
+          loop_vars=[logits],
+          back_prop=False,
+      )
+
     return {
         'outputs': [outputs, alignments, enc_src_lengths],
-        'logits': final_outputs.rnn_output,
+        'logits': logits,
         'tgt_length': final_sequence_lengths,
     }

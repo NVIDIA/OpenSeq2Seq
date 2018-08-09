@@ -11,7 +11,7 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": False,
+    "use_horovod": True,
     "num_epochs": 50,
 
     "num_gpus": 8,
@@ -148,13 +148,17 @@ base_params = {
       "seq_loss_params": {
         "offset_target_by_one": False,
         "average_across_timestep": True,
-        "do_mask": False
+        "do_mask": True
       },
 
-    	"ctc_loss_params": {
+      "ctc_loss_params": {
       },
 
       "lambda_value" : 0.5,
+      "lambda_params": {
+        "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
+        "boundaries": [2000, 4000, 6000, 8000, 12000],
+      }
     }
 }
 
@@ -165,9 +169,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "../librispeech/librivox-train-clean-100.csv",
-            "../librispeech/librivox-train-clean-360.csv",
-            "../librispeech/librivox-train-other-500.csv",
+            "/data/librispeech/librivox-train-clean-100.csv",
+            "/data/librispeech/librivox-train-clean-360.csv",
+            "/data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -182,7 +186,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "../librispeech/librivox-dev-clean.csv",
+            "/data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,

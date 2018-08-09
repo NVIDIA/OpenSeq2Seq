@@ -19,6 +19,7 @@ class MultiTaskCTCEntropyLoss(Loss):
         'ctc_loss_params': dict,
         'seq_loss_params': dict,
         'lambda_value': float,
+        'lambda_params': dict,
         'tgt_vocab_size': int,
         'batch_size': int,        
     })
@@ -37,9 +38,11 @@ class MultiTaskCTCEntropyLoss(Loss):
     self.ctc_loss_params = self.params["ctc_loss_params"]
     self.seq_loss_params = self.params["seq_loss_params"]
     self.lambda_value = self.params["lambda_value"] 
+    self.lambda_params = self.params["lambda_params"] 
 
     self.seq_loss_params["batch_size"] = self.params["batch_size"]
     self.seq_loss_params["tgt_vocab_size"] = self.params["tgt_vocab_size"]
+
 
     self.ctc_loss = CTCLoss(self.ctc_loss_params, model)
     self.seq_loss = BasicSequenceLoss(self.seq_loss_params, model)
@@ -60,5 +63,10 @@ class MultiTaskCTCEntropyLoss(Loss):
 
     ctc_loss_value = self.ctc_loss.compute_loss(ctc_loss_input_dict)
     sequence_loss_value = self.seq_loss.compute_loss(seq_loss_input_dict)
+
+    global_step = tf.train.get_or_create_global_step()
+    values = self.lambda_params["values"]
+    boundaries = self.lambda_params["boundaries"]
+    self.lambda_value = tf.train.piecewise_constant(global_step, boundaries, values)
 
     return (1-self.lambda_value)*sequence_loss_value + self.lambda_value*ctc_loss_value
