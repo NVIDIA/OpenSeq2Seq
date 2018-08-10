@@ -22,7 +22,7 @@ https://arxiv.org/pdf/1705.03122
 """
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "/data/wmt16_en_dt/"
+data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
 num_layers = 15

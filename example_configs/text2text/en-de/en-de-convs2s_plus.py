@@ -61,10 +61,10 @@ base_params = {
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    "scale": 1e-4
-  },
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   "scale": 1e-4
+  # },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -89,11 +89,11 @@ base_params = {
   #    # "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 10.0,
+  #"max_grad_norm": 0.2,
 
-  # "larc_params": {
-  #   "larc_eta": 0.0001,
-  # },
+  "larc_params": {
+    "larc_eta": 1e-4,
+  },
 
   "loss_scaling": "Backoff",
   # "loss_scaling_params": {
