@@ -86,6 +86,7 @@ class ConvS2SDecoder2(Decoder):
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
     self.scaling_factor = self.params.get("scaling_factor", math.sqrt(0.5))
+    self.max_input_length = self.params.get("max_input_length", MAX_INPUT_LENGTH)
 
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] \
@@ -132,7 +133,7 @@ class ConvS2SDecoder2(Decoder):
                 input_dict['encoder_output']['position_embedding_layer']
             else:
               self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
-                  vocab_size=self.params.get("max_input_length", MAX_INPUT_LENGTH),
+                  vocab_size=self.max_input_length,
                   hidden_size=self._tgt_emb_size,
                   pad_vocab_to_eight=self._pad2eight,
                   init_var=0.1,
@@ -334,7 +335,8 @@ class ConvS2SDecoder2(Decoder):
     """Return predicted sequence."""
     batch_size = tf.shape(encoder_outputs)[0]
     input_length = tf.shape(encoder_outputs)[1]
-    max_decode_length = input_length + self.params["extra_decode_length"]
+    max_decode_length = min(input_length + self.params["extra_decode_length"],
+                            self.max_input_length)
 
     symbols_to_logits_fn = self._get_symbols_to_logits_fn()
 
