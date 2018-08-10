@@ -158,6 +158,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     attention_dim = attention_params["attention_dim"]
     attention_type = attention_params["attention_type"]
+    num_heads = attention_params["num_heads"]
 
     attention_params_dict = {}
     if attention_type == "bahadanu":
@@ -173,19 +174,24 @@ class ListenAttendSpellDecoder(Decoder):
       attention_params_dict["query_dim"] = hidden_dim
       attention_params_dict["location_attn_type"] = attention_type
 
-    attention_mechanism = AttentionMechanism(
-        num_units=attention_dim,
-        memory=encoder_outputs,
-        memory_sequence_length=enc_src_lengths,
-        probability_fn=tf.nn.softmax,
-        dtype=tf.get_variable_scope().dtype,
-        **attention_params_dict
-    )
+    attention_mechanism = []
+
+    for head in range(num_heads):
+      attention_mechanism.append(
+          AttentionMechanism(
+              num_units=attention_dim,
+              memory=encoder_outputs,
+              memory_sequence_length=enc_src_lengths,
+              probability_fn=tf.nn.softmax,
+              dtype=tf.get_variable_scope().dtype,
+              **attention_params_dict
+          )
+      )
 
     multirnn_cell_with_attention = AttentionWrapper(
         cell=multirnn_cell,
         attention_mechanism=attention_mechanism,
-        attention_layer_size=hidden_dim,
+        attention_layer_size=[hidden_dim for i in range(num_heads)],
         output_attention=True,
         alignment_history=True,
     )
@@ -232,7 +238,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
     alignments = tf.transpose(
-        final_state.alignment_history.stack(), [1, 0, 2]
+        final_state.alignment_history[0].stack(), [1, 0, 2]
     )
     '''alignments = tf.expand_dims(alignments, axis=-1)
     alignments = tf.expand_dims(alignments, axis=1)
