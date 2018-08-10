@@ -314,6 +314,7 @@ class ConvS2SDecoder2(Decoder):
         with tf.variable_scope("attention_layer"):
           outputs = att_layer(outputs, target_embed, encoder_outputs_a,
                               encoder_outputs_b, input_attention_bias)
+
         outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
 
