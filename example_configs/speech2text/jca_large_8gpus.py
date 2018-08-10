@@ -20,8 +20,8 @@ base_params = {
 
     "save_summaries_steps": 1000,
     "print_loss_steps": 10,
-    "print_samples_steps": 100,
-    "eval_steps": 50,
+    "print_samples_steps": 200,
+    "eval_steps": 1100,
     "save_checkpoint_steps": 1100,
     "logdir": "jca_log_folder",
 
@@ -119,7 +119,7 @@ base_params = {
           
           "rnn_type": "lstm",
           "hidden_dim": 512,
-          "num_layers": 2,
+          "num_layers": 1,
 
           "dropout_keep_prob": 1.0,
         },
@@ -156,7 +156,7 @@ base_params = {
       "lambda_value" : 0.5,
       "lambda_params": {
         "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-        "boundaries": [2000, 4000, 6000, 8000, 12000],
+        "boundaries": [1000, 2000, 3000, 5000, 7000],
       }
     }
 }
