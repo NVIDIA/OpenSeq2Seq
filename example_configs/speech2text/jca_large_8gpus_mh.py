@@ -173,7 +173,7 @@ train_params = {
             "/data/librispeech/librivox-train-clean-360.csv",
             "/data/librispeech/librivox-train-other-500.csv",
         ],
-        "max_duration": 16.7,
+        "max_duration": 10.7,
         "shuffle": True,
         "autoregressive": True,
     },
