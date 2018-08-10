@@ -30,14 +30,12 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 1e-3,
+        "learning_rate": 1e-4,
         "power": 2.0,
-        "min_lr": 1e-5
+        "min_lr": 1e-6
     },
 
-    "larc_params": {
-        "larc_eta": 0.001,
-    },
+    "max_grad_norm": 1.0,
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
@@ -63,7 +61,7 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 7,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
@@ -75,7 +73,7 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
@@ -173,7 +171,7 @@ train_params = {
             "/data/librispeech/librivox-train-clean-360.csv",
             "/data/librispeech/librivox-train-other-500.csv",
         ],
-        "max_duration": 10.7,
+        "max_duration": 16.7,
         "shuffle": True,
         "autoregressive": True,
     },
