@@ -124,17 +124,17 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       output = tf.reshape(scaler, [1, self.out_dim]) * y
 
     elif self.apply_batch_norm:
-      y = tf.expand_dims(y, axis=1)
-      norm_output = tf.layers.batch_normalization(
+      bn_input = tf.expand_dims(y, axis=1)
+      bn_output = tf.layers.batch_normalization(
           name=self.var_scope_name + "_batch_norm",
-          inputs=y,
+          inputs=bn_input,
           #gamma_regularizer=regularizer,
           training=self.mode == 'train',
           axis=-1,
           momentum=0.95,
           epsilon=1e-4
       )
-      output = tf.squeeze(norm_output, axis=1)
+      output = tf.squeeze(bn_output, axis=1)
 
     elif self.apply_layer_norm:
       # ln_input = tf.expand_dims(y, axis=1)

@@ -19,7 +19,7 @@ set -e
 
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-OUTPUT_DIR="${1:-wmt16_de_en}"
+OUTPUT_DIR="${1:-wmt16_en_dt}"
 VOCAB_SIZE=32768
 echo "Writing to ${OUTPUT_DIR}. To change this, set the OUTPUT_DIR environment variable."
 

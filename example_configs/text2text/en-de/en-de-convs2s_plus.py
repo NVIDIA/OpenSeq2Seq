@@ -29,17 +29,17 @@ pad_2_eight = True
 
 batch_size = 128
 epoch_num = 35
-num_gpus = 8
+num_gpus = 1
 
 iter_size = 1
-dtype = tf.float32 #tf.float32 #tf.float32 #  #
-shuffle_train = True
-use_horovod = True
+dtype = "mixed" #tf.float32 #tf.float32 #  #
+shuffle_train = False
+use_horovod = False
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
+normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = 1.0 #math.sqrt(0.5) #changed here
 
 base_params = {
@@ -52,13 +52,17 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": 1, #50,#max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": max(1, int(max_steps/1000.0)),
   "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   "scale": 1e-4
+  # },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -88,11 +92,6 @@ base_params = {
   # "larc_params": {
   #   "larc_eta": 0.0001,
   # },
-
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    "scale": 1e-4
-  },
 
   "loss_scaling": "Backoff",
   # "loss_scaling_params": {

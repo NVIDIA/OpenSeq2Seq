@@ -69,6 +69,7 @@ class ConvS2SDecoder(Decoder):
             'END_SYMBOL': int,
             'conv_activation': None,
             'normalization_type': str,
+            'scaling_factor': float,
         })
 
   def _cast_types(self, input_dict):
@@ -84,6 +85,9 @@ class ConvS2SDecoder(Decoder):
     self._mode = mode
     self._pad_sym = self.params.get('PAD_SYMBOL', 0)
     self._pad2eight = params.get('pad_embeddings_2_eight', False)
+    self.scaling_factor = self.params.get("scaling_factor", math.sqrt(0.5))
+    self.normalization_type = self.params.get("normalization_type", "weight_norm")
+    self.conv_activation = self.params.get("conv_activation", gated_linear_units)
 
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] \
@@ -101,10 +105,6 @@ class ConvS2SDecoder(Decoder):
       if len(self.layers) == 0:
         knum_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[0]
         kwidth_list = list(zip(*self.params.get("conv_nchannels_kwidth")))[1]
-
-        normalization_type = self.params.get("normalization_type",
-                                             "weight_norm")
-        conv_activation = self.params.get("conv_activation", gated_linear_units)
 
         # preparing embedding layers
         with tf.variable_scope("embedding"):
@@ -148,7 +148,7 @@ class ConvS2SDecoder(Decoder):
                 dropout=self.params["embedding_dropout_keep_prob"],
                 var_scope_name="linear_mapping_before_cnn_layers",
                 mode=self.mode,
-                normalization_type=normalization_type))
+                normalization_type=self.normalization_type))
 
         for i in range(len(knum_list)):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -163,7 +163,7 @@ class ConvS2SDecoder(Decoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=normalization_type)
+                normalization_type=self.normalization_type)
           else:
             linear_proj = None
 
@@ -176,8 +176,8 @@ class ConvS2SDecoder(Decoder):
               hidden_dropout=self.params["hidden_dropout_keep_prob"],
               conv_padding="VALID",
               decode_padding=True,
-              activation=conv_activation,
-              normalization_type=normalization_type)
+              activation=self.conv_activation,
+              normalization_type=self.normalization_type)
 
           att_layer = attention_wn_layer.AttentionLayerNormalized(
               out_dim,
@@ -196,7 +196,7 @@ class ConvS2SDecoder(Decoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=normalization_type))
+                normalization_type=self.normalization_type))
 
         if not self.params['shared_embed']:
           self.layers.append(
@@ -206,7 +206,7 @@ class ConvS2SDecoder(Decoder):
                   dropout=self.params["out_dropout_keep_prob"],
                   var_scope_name="linear_mapping_to_vocabspace",
                   mode=self.mode,
-                  normalization_type=normalization_type))
+                  normalization_type=self.normalization_type))
         else:
           # if embedding is shared,
           # the shared embedding is used as the final linear projection to vocab space
@@ -300,7 +300,7 @@ class ConvS2SDecoder(Decoder):
         with tf.variable_scope("attention_layer"):
           outputs = att_layer(outputs, target_embed, encoder_outputs_a,
                               encoder_outputs_b, input_attention_bias)
-        outputs = (outputs + res_inputs) * math.sqrt(0.5)
+        outputs = (outputs + res_inputs) * self.scaling_factor
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)

@@ -226,8 +226,6 @@ class ConvS2SEncoder2(Encoder):
       #    2.0 * self.params.get("att_layer_num", 1))
       #outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
-      #changed
-      #outputs_b = outputs
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor
 
       if padding_mask is not None:
