@@ -59,10 +59,10 @@ base_params = {
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   "scale": 1e-4
-  # },
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    "scale": 1e-4
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
