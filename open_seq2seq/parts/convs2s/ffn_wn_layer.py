@@ -22,6 +22,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
                mode,
                normalization_type="weight_norm",
                regularizer=None, #tf.contrib.layers.l2_regularizer(scale=1e-4)
+               init_var=None
                ):
     """initializes the linear layer.
     This layer projects from in_dim-dimenstional space to out_dim-dimentional space.
@@ -70,7 +71,11 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
       raise ValueError("Wrong normalization type: {}".format(normalization_type))
 
     with tf.variable_scope(var_scope_name):
-      V_std = 1e-4 #math.sqrt(dropout * 1.0 / in_dim)
+      if init_var is None:
+        V_std = math.sqrt(dropout * 1.0 / in_dim)
+      else:
+        V_std = init_var
+
       if self.wn_enabled:
         V_initializer = \
           tf.random_normal_initializer(mean=0, stddev=V_std)

@@ -17,7 +17,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
   def __init__(self, in_dim, embed_size, layer_id, add_res, mode,
                normalization_type="weight_norm",
                scaling_factor=math.sqrt(0.5),
-               regularizer=None):
+               regularizer=None,
+               init_var=None,
+               ):
     """initializes the attention layer.
     It uses weight normalization for linear projections
     (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
@@ -44,8 +46,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
           mode=mode,
-          normalization_type=None,
+          normalization_type=normalization_type,
           regularizer=self.regularizer,
+          init_var=init_var
       ) #changed here
 
       # linear projection layer to project back to the input space
@@ -57,6 +60,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
           mode=mode,
           normalization_type=normalization_type,
           regularizer=self.regularizer,
+          init_var=init_var
       ) #changed here
 
   def call(self, input, target_embed, encoder_output_a, encoder_output_b,

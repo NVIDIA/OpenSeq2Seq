@@ -27,7 +27,8 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
                activation=gated_linear_units,
                normalization_type="weight_norm",
                regularizer=None, #tf.contrib.layers.l2_regularizer(scale=1e-4)
-):
+               init_var=None,
+               ):
     """initializes the 1D convolution layer.
     It uses weight normalization (Salimans & Kingma, 2016)  w = g * v/2-norm(v)
 
@@ -91,7 +92,10 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       conv_out_size = out_dim
 
     with tf.variable_scope("conv_layer_" + str(layer_id)):
-      V_std = 1e-4 #math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
+      if init_var is None:
+        V_std = math.sqrt(4.0 * hidden_dropout / (kernel_width * in_dim))
+      else:
+        V_std = init_var
       if self.wn_enabled:
         self.V = tf.get_variable(
             'V',

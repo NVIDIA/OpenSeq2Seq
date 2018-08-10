@@ -42,6 +42,8 @@ conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = 1.0 #math.sqrt(0.5) #changed here
 
+inti_var = 1e-4
+
 base_params = {
   # iter_size can be used just with horovod
   #"iter_size": iter_size,
@@ -59,10 +61,10 @@ base_params = {
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    "scale": 1e-4
-  },
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   "scale": 1e-4
+  # },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -125,6 +127,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
+    "init_var": 1e-4,
   },
 
 
@@ -160,6 +163,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
+    "init_var": 1e-4,
   },
 
   "loss": BasicSequenceLoss,
