@@ -33,7 +33,7 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = False
+shuffle_train = True
 use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
@@ -61,10 +61,10 @@ base_params = {
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   "scale": 1e-4
-  # },
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    "scale": 1e-4
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
