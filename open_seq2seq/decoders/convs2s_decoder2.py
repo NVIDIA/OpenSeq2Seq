@@ -89,6 +89,9 @@ class ConvS2SDecoder2(Decoder):
     self.scaling_factor = self.params.get("scaling_factor", math.sqrt(0.5))
     self.max_input_length = self.params.get("max_input_length", MAX_INPUT_LENGTH)
     self.init_var = self.params.get('init_var', None)
+    self.conv_activation = self.params.get("conv_activation", gated_linear_units)
+    self.normalization_type = self.params.get("normalization_type", "weight_norm")
+    self.regularizer = self.params.get('regularizer', None)
 
   def _decode(self, input_dict):
     targets = input_dict['target_tensors'][0] \
@@ -100,10 +103,6 @@ class ConvS2SDecoder2(Decoder):
 
     inputs_attention_bias = input_dict['encoder_output'].get(
         'inputs_attention_bias_cs2s', None)
-
-    self.conv_activation = self.params.get("conv_activation", gated_linear_units)
-    self.normalization_type = self.params.get("normalization_type", "weight_norm")
-    self.regularizer = self.params.get('regularizer', None)
 
     with tf.name_scope("decode"):
       # prepare decoder layers
@@ -184,7 +183,7 @@ class ConvS2SDecoder2(Decoder):
               hidden_dropout=self.params["hidden_dropout_keep_prob"],
               conv_padding="VALID",
               decode_padding=True,
-              activation=self.conv_activation,
+              activation=tf.nn.relu, #changed here
               normalization_type=self.normalization_type,
               regularizer=self.regularizer,
               init_var=self.init_var)
@@ -315,14 +314,14 @@ class ConvS2SDecoder2(Decoder):
         with tf.variable_scope("conv_layer"):
           outputs = conv_layer(outputs)
 
-        outputs = (outputs + res_inputs) * self.scaling_factor
-
         with tf.variable_scope("attention_layer"):
           outputs = att_layer(outputs, target_embed, encoder_outputs_a,
                               encoder_outputs_b, input_attention_bias)
 
+        outputs = (outputs + res_inputs) * self.scaling_factor
+
         # changed here
-        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        #outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
