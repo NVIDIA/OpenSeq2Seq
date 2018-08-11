@@ -67,6 +67,6 @@ class MultiTaskCTCEntropyLoss(Loss):
     global_step = tf.train.get_or_create_global_step()
     values = self.lambda_params["values"]
     boundaries = self.lambda_params["boundaries"]
-    self.lambda_value = tf.train.piecewise_constant(global_step, boundaries, values)
+    #self.lambda_value = tf.train.piecewise_constant(global_step, boundaries, values)
 
     return (1-self.lambda_value)*sequence_loss_value + self.lambda_value*ctc_loss_value

@@ -32,7 +32,8 @@ def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
 
     text[batch_num] = ""
     for idx in tensor[batch_num]:
-      text[batch_num] += idx2char[idx]
+      if idx != endindex:
+        text[batch_num] += idx2char[idx]
   return text
 
 
@@ -184,6 +185,8 @@ class Speech2Text(EncoderDecoderModel):
       len_y = input_values['target_tensors'][1][sample_id]
       true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
                               y[:len_y]))
+      if self.get_data_layer().params['autoregressive']:
+        true_text = true_text[:-4]
       pred_text = "".join(decoded_texts[sample_id])
 
       total_word_lev += levenshtein(true_text.split(), pred_text.split())
