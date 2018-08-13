@@ -1433,6 +1433,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       ValueError: if `attention_layer_size` is not None, `attention_mechanism`
         is a list, and its length does not match that of `attention_layer_size`.
     """
+    super(AttentionWrapper, self).__init__(name=name)
     rnn_cell_impl.assert_like_rnncell("cell",cell)
     if isinstance(attention_mechanism, (list, tuple)):
       self._is_multi = True
