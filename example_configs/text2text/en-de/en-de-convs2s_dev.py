@@ -18,7 +18,7 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt_old/"
+data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
 num_layers = 15
