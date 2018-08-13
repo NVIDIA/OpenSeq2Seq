@@ -29,6 +29,7 @@ def single_cell(
     training=True,
     residual_connections=False,
     awd_initializer=False,
+    variational_recurrent=False, # in case they want to use DropoutWrapper
     dtype=None,
 ):
   """Creates an instance of the rnn cell.
@@ -65,6 +66,7 @@ def single_cell(
       cell_params['weight_variational'] = weight_variational # which is basically True
     if dropout_seed:
       cell_params['dropout_seed'] = dropout_seed
+
 
   cell = cell_class(**cell_params)
   if residual_connections:

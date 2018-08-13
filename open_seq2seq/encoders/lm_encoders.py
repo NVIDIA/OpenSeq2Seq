@@ -228,7 +228,6 @@ class AWDLSTMEncoder(Encoder):
                   dropout_seed=self.params['dropout_seed'],
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
-                  variational_recurrent=self.params['variational_recurrent'],
                   dtype=self._params['dtype']
                   ) for _ in range(self.params['encoder_layers'] - 1)]
 
@@ -244,7 +243,6 @@ class AWDLSTMEncoder(Encoder):
                   dropout_seed=self.params['dropout_seed'],
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
-                  variational_recurrent=self.params['variational_recurrent'],
                   dtype=self._params['dtype']
                   )
       )
