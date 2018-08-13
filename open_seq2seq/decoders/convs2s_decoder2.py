@@ -321,7 +321,7 @@ class ConvS2SDecoder2(Decoder):
         outputs = (outputs + res_inputs) * self.scaling_factor
 
         # changed here
-        #outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):

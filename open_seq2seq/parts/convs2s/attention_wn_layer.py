@@ -37,6 +37,9 @@ class AttentionLayerNormalized(tf.layers.Layer):
     self.scaling_factor = scaling_factor
     self.regularizer = regularizer
 
+    #changed
+    normalization_type = "weight_norm"
+
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
       # linear projection layer to project the attention input to target space
