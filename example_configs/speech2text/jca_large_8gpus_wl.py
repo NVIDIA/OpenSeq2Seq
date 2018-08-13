@@ -75,14 +75,14 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 384, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "num_channels": 768, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
             },
         ],
 
@@ -120,7 +120,7 @@ base_params = {
           "hidden_dim": 512,
           "num_layers": 1,
 
-          "dropout_keep_prob": 1.0,
+          "dropout_keep_prob": 0.8,
         },
         
         "ctc_params": {
