@@ -42,7 +42,7 @@ conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = 1 #math.sqrt(0.5) #changed here
 
-inti_var = 1e-4
+inti_var = 1e-3
 
 base_params = {
   # iter_size can be used just with horovod
@@ -127,7 +127,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
-    "init_var": 1e-4,
+    "init_var": inti_var,
   },
 
 
@@ -163,7 +163,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
-    "init_var": 1e-4,
+    "init_var": inti_var,
   },
 
   "loss": BasicSequenceLoss,

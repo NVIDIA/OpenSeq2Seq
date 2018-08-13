@@ -100,7 +100,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
-    "init_var": 1e-4,
+    "init_var": inti_var,
   },
 
 
@@ -136,7 +136,7 @@ base_params = {
     "conv_activation": conv_act,
     "normalization_type": normalization_type,
     "scaling_factor": scaling_factor,
-    "init_var": 1e-4,
+    "init_var": inti_var,
   },
 
   "loss": BasicSequenceLoss,
