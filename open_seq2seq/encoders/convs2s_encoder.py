@@ -45,6 +45,7 @@ class ConvS2SEncoder(Encoder):
             'conv_activation': None,
             'normalization_type': str,
             'scaling_factor': float,
+            'init_var': None,
       })
 
   def __init__(self,
@@ -63,6 +64,8 @@ class ConvS2SEncoder(Encoder):
     self.scaling_factor = self.params.get("scaling_factor", math.sqrt(0.5))
     self.normalization_type = self.params.get("normalization_type", "weight_norm")
     self.conv_activation = self.params.get("conv_activation", gated_linear_units)
+    self.regularizer = self.params.get('regularizer', None)
+    self.init_var = self.params.get('init_var', None)
 
   def _encode(self, input_dict):
     inputs = input_dict['source_tensors'][0]
@@ -102,7 +105,9 @@ class ConvS2SEncoder(Encoder):
                 dropout=self.params["embedding_dropout_keep_prob"],
                 var_scope_name="linear_mapping_before_cnn_layers",
                 mode=self.mode,
-                normalization_type=self.normalization_type))
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer,
+                init_var=self.init_var))
 
         for i in range(len(knum_list)):
           in_dim = knum_list[i] if i == 0 else knum_list[i - 1]
@@ -117,7 +122,9 @@ class ConvS2SEncoder(Encoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=self.normalization_type)
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer,
+                init_var=self.init_var)
           else:
             linear_proj = None
 
@@ -131,7 +138,9 @@ class ConvS2SEncoder(Encoder):
               conv_padding="SAME",
               decode_padding=False,
               activation=self.conv_activation,
-              normalization_type=self.normalization_type)
+              normalization_type=self.normalization_type,
+              regularizer=self.regularizer,
+              init_var=self.init_var)
 
           self.layers.append([linear_proj, conv_layer])
 
@@ -143,7 +152,9 @@ class ConvS2SEncoder(Encoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=self.normalization_type))
+                normalization_type=self.normalization_type,
+                regularizer=self.regularizer,
+                init_var=self.init_var))
 
       encoder_inputs = self.embedding_softmax_layer(inputs)
       inputs_attention_bias = get_padding_bias(

@@ -70,7 +70,7 @@ class ConvS2SDecoder2(Decoder):
             'conv_activation': None,
             'normalization_type': str,
             'scaling_factor': float,
-            'init_var': None
+            'init_var': None,
         })
 
   def _cast_types(self, input_dict):
