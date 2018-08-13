@@ -30,7 +30,7 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 1e-4,
+        "learning_rate": 1e-3,
         "power": 2.0,
         "min_lr": 1e-6
     },
@@ -61,7 +61,7 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 7,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
@@ -75,14 +75,14 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 384, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "num_channels": 768, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
             },
         ],
 
@@ -113,14 +113,14 @@ base_params = {
               "attention_dim": 256,
               "attention_type": "chorowski",
               "use_coverage": True,
-              "num_heads": 1,
+              "num_heads": 2,
           },
           
           "rnn_type": "lstm",
           "hidden_dim": 512,
           "num_layers": 1,
 
-          "dropout_keep_prob": 1.0,
+          "dropout_keep_prob": 0.8,
         },
         
         "ctc_params": {
@@ -152,10 +152,10 @@ base_params = {
       "ctc_loss_params": {
       },
 
-      "lambda_value" : 0.5,
+      "lambda_value" : 0.2,
       "lambda_params": {
-        "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-        "boundaries": [4000, 6000, 8000, 10000, 12000],
+        "values": [],
+        "boundaries": [],
       }
     }
 }
