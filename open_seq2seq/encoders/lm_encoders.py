@@ -13,7 +13,7 @@ from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
-from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
+# from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 
 
 class AWDLSTMEncoder(Encoder):
@@ -57,7 +57,10 @@ class AWDLSTMEncoder(Encoder):
       'weight_tied': bool,
       'awd_initializer': bool,
       "recurrent_keep_prob": float,
-      "weight_keep_prob": float,
+      "input_weight_keep_prob": float,
+      "recurrent_weight_keep_prob": float,
+      "weight_variational": bool,
+      "dropout_seed": int,
     })
 
   def __init__(self, params, model,
@@ -94,7 +97,10 @@ class AWDLSTMEncoder(Encoder):
     self.params['variational_recurrent'] = self.params.get('variational_recurrent', False)
     self.params['awd_initializer'] = self.params.get('awd_initializer', False)
     self.params['recurrent_keep_prob'] = self.params.get('recurrent_keep_prob', 1.0)
-    self.params['weight_keep_prob'] = self.params.get('weight_keep_prob', 1.0)
+    self.params['input_weight_keep_prob'] = self.params.get('input_weight_keep_prob', 1.0)
+    self.params['recurrent_weight_keep_prob'] = self.params.get('recurrent_weight_keep_prob', 1.0)
+    self.params['weight_variational'] = self.params.get('weight_variational', False)
+    self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
 
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
@@ -174,12 +180,14 @@ class AWDLSTMEncoder(Encoder):
       last_output_keep_prob = self.params['encoder_last_output_keep_prob']
       emb_keep_prob = self.params['encoder_emb_keep_prob']
       recurrent_keep_prob = self.params['recurrent_keep_prob']
-      weight_keep_prob = self.params['weight_keep_prob']
+      input_weight_keep_prob = self.params['input_weight_keep_prob']
+      recurrent_weight_keep_prob = self.params['recurrent_weight_keep_prob']
 
     else:
       dp_input_keep_prob, dp_output_keep_prob = 1.0, 1.0
-      last_input_keep_prob, last_output_keep_prob, emb_keep_prob = 1.0, 1.0, 1.0
-      recurrent_keep_prob, weight_keep_prob = 1.0, 1.0
+      last_input_keep_prob, last_output_keep_prob = 1.0, 1.0
+      emb_keep_prob, recurrent_keep_prob = 1.0, 1.0
+      input_weight_keep_prob, recurrent_weight_keep_prob = 1.0, 1.0
 
     self._output_layer = tf.layers.Dense(
       self._vocab_size, 
@@ -214,7 +222,10 @@ class AWDLSTMEncoder(Encoder):
                   dp_input_keep_prob=dp_input_keep_prob,
                   dp_output_keep_prob=dp_output_keep_prob,
                   recurrent_keep_prob=recurrent_keep_prob,
-                  weight_keep_prob=weight_keep_prob,
+                  input_weight_keep_prob=input_weight_keep_prob,
+                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                  weight_variational=self.params['weight_variational'],
+                  dropout_seed=self.params['dropout_seed'],
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],
@@ -227,7 +238,10 @@ class AWDLSTMEncoder(Encoder):
                   dp_input_keep_prob=last_input_keep_prob,
                   dp_output_keep_prob=last_output_keep_prob,
                   recurrent_keep_prob=recurrent_keep_prob,
-                  weight_keep_prob=weight_keep_prob,
+                  input_weight_keep_prob=input_weight_keep_prob,
+                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                  weight_variational=self.params['weight_variational'],
+                  dropout_seed=self.params['dropout_seed'],
                   residual_connections=self.params['encoder_use_skip_connections'],
                   awd_initializer=self.params['awd_initializer'],
                   variational_recurrent=self.params['variational_recurrent'],

@@ -82,15 +82,17 @@ base_params = {
     "encoder_last_output_keep_prob": 1.0, # output droput at last layer is 0.4
     'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
-    "recurrent_keep_prob": 1.0,
-    "weight_keep_prob": 1.0,
+    "recurrent_keep_prob": 0.6, # dropout on g or h_tilde (right before the final memory cell)
+    "input_weight_keep_prob": 0.6, # drop out on w
+    "recurrent_weight_keep_prob": 0.6, # drop out on u
+    "dropout_seed": 128,
     "emb_size": 320,
     "vocab_size": 33278,
-    "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
     "weight_tied": True,
-    "variational_recurrent": False,
+    "variational_recurrent": False, # variational on recurrent_keep_prob or no
+    "weight_variational": False, # variational on weightdrop
     "awd_initializer": False,
   },
 

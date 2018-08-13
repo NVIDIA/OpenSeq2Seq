@@ -29,7 +29,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP45",
+  "logdir": "AWDLSTM-EXP44",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -69,12 +69,12 @@ base_params = {
     "core_cell_params": {
         "num_units": 1024, # paper 1150
         "forget_bias": 1.0,
-        "dropout_keep_prob": 0.7,
+        "dropout_keep_prob": 0.75,
     },
     "last_cell_params": {
         "num_units": 320,
         "forget_bias": 1.0,
-        "dropout_keep_prob": 0.7,
+        "dropout_keep_prob": 0.75,
     },
     "encoder_layers": 3,
     "encoder_dp_input_keep_prob": 1.0,

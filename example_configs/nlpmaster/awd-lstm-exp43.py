@@ -15,7 +15,7 @@ data_root = "/data/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
-steps = 40
+steps = 20
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
