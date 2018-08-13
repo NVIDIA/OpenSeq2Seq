@@ -214,8 +214,9 @@ class ConvS2SEncoder2(Encoder):
         outputs = conv_layer(outputs)
         outputs = (outputs + res_inputs) * self.scaling_factor
 
+        if i < len(self.layers) - 2:
         #changed here
-        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+          outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)
@@ -228,9 +229,9 @@ class ConvS2SEncoder2(Encoder):
       # Gradients are scaled as the gradients from
       # all decoder attention layers enters the encoder
       #changed
-      scale = 1.0 / (
-         2.0 * self.params.get("att_layer_num", 1))
-      outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
+      # scale = 1.0 / (
+      #    2.0 * self.params.get("att_layer_num", 1))
+      # outputs = (1.0 - scale) * tf.stop_gradient(outputs) + scale * outputs
 
       outputs_b = (outputs + encoder_inputs) * self.scaling_factor
 

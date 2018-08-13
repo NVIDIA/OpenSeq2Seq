@@ -40,7 +40,7 @@ max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
-scaling_factor = math.sqrt(0.5) #changed here
+scaling_factor = 1 #math.sqrt(0.5) #changed here
 
 inti_var = 1e-4
 
@@ -63,7 +63,7 @@ base_params = {
 
   # "regularizer": tf.contrib.layers.l2_regularizer,
   # "regularizer_params": {
-  #   "scale": 1e-4
+  #   "scale": 1e-5
   # },
 
   "optimizer": "Adam",
