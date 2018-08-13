@@ -90,10 +90,10 @@ class Text2Text(EncoderDecoderModel):
             S_ID=self.decoder.params.get('GO_SYMBOL',
                                          SpecialTextTokens.S_ID.value),
             EOS_ID=self.decoder.params.get('END_SYMBOL',
-                                           SpecialTextTokens.EOS_ID.value),
+                                           SpecialTextTokens.EOS_ID),
             PAD_ID=self.decoder.params.get('PAD_SYMBOL',
-                                           SpecialTextTokens.PAD_ID.value),
-            ignore_special=True, delim=' ',
+                                           SpecialTextTokens.PAD_ID),
+          ignore_special=True, delim=' ',
         ))
         input_strings.append(text_ids_to_string(
             input_sample[i],
@@ -103,7 +103,7 @@ class Text2Text(EncoderDecoderModel):
             EOS_ID=self.decoder.params.get('END_SYMBOL',
                                            SpecialTextTokens.EOS_ID.value),
             PAD_ID=self.decoder.params.get('PAD_SYMBOL',
-                                           SpecialTextTokens.PAD_ID.value),
+                                           SpecialTextTokens.PAD_ID),
             ignore_special=True, delim=' ',
         ))
     return input_strings, output_strings
