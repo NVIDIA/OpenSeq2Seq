@@ -21,7 +21,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
                var_scope_name,
                mode,
                normalization_type="weight_norm",
-               regularizer=None, #tf.contrib.layers.l2_regularizer(scale=1e-4)
+               regularizer=None,
                init_var=None
                ):
     """initializes the linear layer.

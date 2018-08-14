@@ -38,7 +38,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
     self.regularizer = regularizer
 
     #changed
-    normalization_type = None
+    normalization_type = "weight_norm"
 
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 
