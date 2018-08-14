@@ -33,13 +33,13 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = True
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = gated_linear_units #tf.nn.relu tf.nn.tanh gated_linear_units
-normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
+conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
+normalization_type = "layer_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 inti_var = None
 
@@ -88,7 +88,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -117,7 +117,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
