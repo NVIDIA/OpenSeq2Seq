@@ -90,7 +90,7 @@ base_params = {
 
         "dropout_keep_prob": 0.8,
 
-        "residual_connections": True,
+        "residual_connections": False,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
