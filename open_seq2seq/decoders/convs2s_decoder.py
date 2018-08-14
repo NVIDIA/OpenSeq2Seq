@@ -324,6 +324,9 @@ class ConvS2SDecoder(Decoder):
                               encoder_outputs_b, input_attention_bias)
         outputs = (outputs + res_inputs) * self.scaling_factor
 
+        #changed here
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)
 
