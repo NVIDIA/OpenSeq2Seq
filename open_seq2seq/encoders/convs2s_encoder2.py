@@ -182,6 +182,9 @@ class ConvS2SEncoder2(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
+      # with tf.variable_scope("linear_layer_before_cnn_layers"):
+      #   encoder_inputs = self.layers[0](encoder_inputs)
+
       outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
     return {
@@ -196,8 +199,11 @@ class ConvS2SEncoder2(Encoder):
 
   def _call(self, encoder_inputs, padding_mask):
     # Run inputs through the sublayers.
+
+    #changed here
     with tf.variable_scope("linear_layer_before_cnn_layers"):
       outputs = self.layers[0](encoder_inputs)
+    #outputs = encoder_inputs
 
     for i in range(1, len(self.layers) - 1):
       linear_proj, conv_layer = self.layers[i]
@@ -214,9 +220,9 @@ class ConvS2SEncoder2(Encoder):
         outputs = conv_layer(outputs)
         outputs = (outputs + res_inputs) * self.scaling_factor
 
-        if i < len(self.layers) - 2:
+        #if i < len(self.layers) - 2:
         #changed here
-          outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-1](outputs)

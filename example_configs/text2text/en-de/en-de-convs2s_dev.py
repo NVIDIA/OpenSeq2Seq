@@ -8,8 +8,8 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 
-from open_seq2seq.encoders import ConvS2SEncoder
-from open_seq2seq.decoders import ConvS2SDecoder
+from open_seq2seq.encoders import ConvS2SEncoder, ConvS2SEncoder2
+from open_seq2seq.decoders import ConvS2SDecoder, ConvS2SDecoder2
 
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay, fixed_lr
@@ -22,8 +22,8 @@ data_root = "./wmt16_en_dt/"
 
 base_model = Text2Text
 num_layers = 15
-d_model = 512
-hidden_before_last = 512
+d_model = 2*512
+hidden_before_last = 2*512
 max_length = 64
 pad_2_eight = True
 
@@ -38,7 +38,7 @@ use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = gated_linear_units #tf.nn.relu tf.nn.tanh gated_linear_units
+conv_act = gated_linear_units #gated_linear_units #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 inti_var = None
@@ -54,8 +54,8 @@ base_params = {
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
   "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": max(1, int(max_steps/1000.0)),
-  "print_samples_steps": max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
+  "print_samples_steps": None, #max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
@@ -88,7 +88,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*(9+5) + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -111,13 +111,13 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
-    "pos_embed": True,
+    "pos_embed": False,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512, 3)]*9 + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*2, 3)]*(9+5) + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -157,7 +157,7 @@ train_params = {
     "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
-    "shuffle": True,
+    "shuffle": shuffle_train,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,

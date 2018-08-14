@@ -209,7 +209,7 @@ class ConvS2SDecoder2(Decoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=None,
+                normalization_type=None, #changed here
                 regularizer=self.regularizer,
                 init_var=self.init_var))
 
@@ -221,7 +221,7 @@ class ConvS2SDecoder2(Decoder):
                   dropout=self.params["out_dropout_keep_prob"],
                   var_scope_name="linear_mapping_to_vocabspace",
                   mode=self.mode,
-                  normalization_type=None,
+                  normalization_type=None, #changed here
                   regularizer=self.regularizer,
                   init_var=self.init_var)) #changed here self.normalization_type
         else:
@@ -320,9 +320,7 @@ class ConvS2SDecoder2(Decoder):
 
         outputs = (outputs + res_inputs) * self.scaling_factor
 
-        # changed here
-        if i < len(self.layers) - 2:
-          outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
