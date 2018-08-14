@@ -10,8 +10,8 @@ from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
     AttentionWrapper
 from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
 from open_seq2seq.parts.rnns.utils import single_cell
+from open_seq2seq.parts.rnns.helper import TrainingHelper, GreedyEmbeddingHelper
 from .decoder import Decoder
-
 
 cells_dict = {
     "lstm": tf.nn.rnn_cell.BasicLSTMCell,
@@ -122,10 +122,10 @@ class ListenAttendSpellDecoder(Decoder):
     )
 
     if self.params['pos_embedding']:
-      self._pos_emb_size = int(encoder_outputs.get_shape()[-1])
-      self._pos_emb_layer = tf.get_variable(
-          name='PositionEmbeddingMatrix',
-          shape=[1024, self._pos_emb_size],
+      self.enc_pos_emb_size = int(encoder_outputs.get_shape()[-1])
+      self.enc_pos_emb_layer = tf.get_variable(
+          name='EncoderPositionEmbeddingMatrix',
+          shape=[1024, self.enc_pos_emb_size],
           dtype=tf.float32,
       )
       encoder_output_positions = tf.range(
@@ -137,10 +137,24 @@ class ListenAttendSpellDecoder(Decoder):
       )
       encoder_position_embeddings = tf.cast(
           tf.nn.embedding_lookup(
-              self._pos_emb_layer, encoder_output_positions),
+              self.enc_pos_emb_layer, encoder_output_positions),
           dtype=encoder_outputs.dtype
       )
-      encoder_outputs = encoder_outputs + encoder_position_embeddings
+      encoder_outputs += encoder_position_embeddings
+
+      self.dec_pos_emb_size = self._tgt_emb_size
+      self.dec_pos_emb_layer = tf.get_variable(
+          name='DecoderPositionEmbeddingMatrix',
+          shape=[1024, self.dec_pos_emb_size],
+          dtype=tf.float32,
+      )
+      decoder_output_positions = tf.range(
+          0,
+          tf.shape(tgt_inputs)[1],
+          delta=1,
+          dtype=tf.int32,
+          name='positional_inputs'
+      )
 
     output_projection_layer = FullyConnected(
         [self._tgt_vocab_size]
@@ -198,10 +212,13 @@ class ListenAttendSpellDecoder(Decoder):
 
     if self._mode == "train":
       tgt_input_vectors = tf.cast(
-          tf.nn.embedding_lookup(self._target_emb_layer, tgt_inputs),
+          tf.nn.embedding_lookup(self._target_emb_layer, tgt_inputs) +
+          tf.nn.embedding_lookup(self.dec_pos_emb_layer,
+                                 decoder_output_positions),
           dtype=self.params['dtype'],
       )
-      helper = tf.contrib.seq2seq.TrainingHelper(
+      #helper = tf.contrib.seq2seq.TrainingHelper(
+      helper = TrainingHelper(
           inputs=tgt_input_vectors,
           sequence_length=tgt_lengths,
       )
@@ -210,7 +227,8 @@ class ListenAttendSpellDecoder(Decoder):
           tf.nn.embedding_lookup(self._target_emb_layer, ids),
           dtype=self.params['dtype'],
       )
-      helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
+      #helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
+      helper = GreedyEmbeddingHelper(
           embedding=embedding_fn,
           start_tokens=tf.fill([self._batch_size], self.GO_SYMBOL),
           end_token=self.END_SYMBOL,
