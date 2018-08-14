@@ -26,7 +26,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
                decode_padding,
                activation=gated_linear_units,
                normalization_type="weight_norm",
-               regularizer=None, #tf.contrib.layers.l2_regularizer(scale=1e-4)
+               regularizer=None, # tf.contrib.layers.l2_regularizer(scale=1e-4)
                init_var=None,
                ):
     """initializes the 1D convolution layer.

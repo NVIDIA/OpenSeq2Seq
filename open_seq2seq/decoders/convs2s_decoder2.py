@@ -183,7 +183,7 @@ class ConvS2SDecoder2(Decoder):
               hidden_dropout=self.params["hidden_dropout_keep_prob"],
               conv_padding="VALID",
               decode_padding=True,
-              activation=tf.nn.relu, #changed here
+              activation=self.conv_activation, #changed here
               normalization_type=self.normalization_type,
               regularizer=self.regularizer,
               init_var=self.init_var)
@@ -194,8 +194,8 @@ class ConvS2SDecoder2(Decoder):
               layer_id=i + 1,
               add_res=True,
               mode=self.mode,
-              normalization_type=self.normalization_type,
               scaling_factor=self.scaling_factor,
+              normalization_type=self.normalization_type,
               regularizer=self.regularizer,
               init_var=self.init_var)
 
@@ -321,7 +321,8 @@ class ConvS2SDecoder2(Decoder):
         outputs = (outputs + res_inputs) * self.scaling_factor
 
         # changed here
-        outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
+        if i < len(self.layers) - 2:
+          outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):

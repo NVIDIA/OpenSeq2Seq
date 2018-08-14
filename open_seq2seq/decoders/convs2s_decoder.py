@@ -198,6 +198,8 @@ class ConvS2SDecoder(Decoder):
               layer_id=i + 1,
               add_res=True,
               mode=self.mode,
+              normalization_type=self.normalization_type,
+              scaling_factor=self.scaling_factor,
               regularizer=self.regularizer,
               init_var=self.init_var
           )

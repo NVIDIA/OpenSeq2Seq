@@ -15,8 +15,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
   """Attention layer for convs2s with weight normalization"""
 
   def __init__(self, in_dim, embed_size, layer_id, add_res, mode,
-               normalization_type="weight_norm",
                scaling_factor=math.sqrt(0.5),
+               normalization_type="weight_norm",
                regularizer=None,
                init_var=None,
                ):
