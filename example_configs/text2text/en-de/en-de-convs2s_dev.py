@@ -21,14 +21,18 @@ import math
 data_root = "./wmt16_en_dt_old/"
 
 base_model = Text2Text
+
+factor = 1 # 1 2
+factor_layer = 0 #0 5
+
 num_layers = 15
-d_model = 2*512
-hidden_before_last = 2*512
+d_model = factor*512
+hidden_before_last = factor*512
 max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-epoch_num = 45
+epoch_num = 35
 num_gpus = 8
 
 iter_size = 1
@@ -38,10 +42,10 @@ use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = gated_linear_units #gated_linear_units #tf.nn.relu tf.nn.tanh
+conv_act = None #gated_linear_units #gated_linear_units #tf.nn.relu tf.nn.tanh
 normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
-inti_var = None #1e-3
+inti_var = 1e-3
 
 base_params = {
   # iter_size can be used just with horovod
@@ -88,7 +92,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512*2, 3)]*(9+5) + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*factor, 3)]*(9+factor_layer) + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
@@ -117,7 +121,7 @@ base_params = {
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
 
     # fairseq config
-    "conv_nchannels_kwidth": [(512*2, 3)]*(9+5) + [(1024, 3)]*4 + [(2048, 1)]*2,
+    "conv_nchannels_kwidth": [(512*factor, 3)]*(9+factor_layer) + [(1024, 3)]*4 + [(2048, 1)]*2,
 
     "embedding_dropout_keep_prob": 0.8,
     "hidden_dropout_keep_prob": 0.8,
