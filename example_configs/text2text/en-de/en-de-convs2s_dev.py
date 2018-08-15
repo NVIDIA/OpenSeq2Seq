@@ -18,7 +18,7 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt/"
+data_root = "./wmt16_en_dt_old/"
 
 base_model = Text2Text
 num_layers = 15
@@ -38,10 +38,10 @@ use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
 
-conv_act = None #gated_linear_units #tf.nn.relu tf.nn.tanh
+conv_act = gated_linear_units #gated_linear_units #tf.nn.relu tf.nn.tanh
 normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
-inti_var = 1e-3
+inti_var = None #1e-3
 
 base_params = {
   # iter_size can be used just with horovod
@@ -54,7 +54,7 @@ base_params = {
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
   "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None, #max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
