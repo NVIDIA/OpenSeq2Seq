@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
+set -e
 # This will take quite some time
-pip install -r ../requirements.txt
-./create_toy_data.sh
+pip install -r requirements.txt
+echo '**********>>>> CREATE TOY DATA <<<< ************'
+scripts/create_toy_data.sh
 echo '**********>>>> RUNNING UNIT TESTS <<<< ************'
-cd ..
 python -m unittest discover -s open_seq2seq -p '*_test.py'
 
 echo '**********>>>> RUNNING SMALL Models <<<< ************'
