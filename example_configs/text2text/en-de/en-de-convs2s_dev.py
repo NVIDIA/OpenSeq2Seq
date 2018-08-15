@@ -153,65 +153,14 @@ base_params = {
 }
 
 
-# train_params = {
-#   "data_layer": ParallelTextDataLayer,
-#   "data_layer_params": {
-#     "pad_vocab_to_eight": pad_2_eight,
-#     "src_vocab_file": data_root + "vocab.bpe.32000",
-#     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-#     "source_file": data_root + "train.tok.clean.bpe.32000.en",
-#     "target_file": data_root + "train.tok.clean.bpe.32000.de",
-#     "delimiter": " ",
-#     "shuffle": shuffle_train,
-#     "shuffle_buffer_size": 25000,
-#     "repeat": True,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 2,
-#     "max_length": max_length,
-#   },
-# }
-#
-# eval_params = {
-#   "batch_size_per_gpu": 64,
-#   "data_layer": ParallelTextDataLayer,
-#   "data_layer_params": {
-#     "pad_vocab_to_eight": pad_2_eight,
-#     "src_vocab_file": data_root + "vocab.bpe.32000",
-#     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-#     "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-#     "target_file": data_root + "newstest2014.tok.bpe.32000.de",
-#     "delimiter": " ",
-#     "shuffle": False,
-#     "repeat": True,
-#     "max_length": max_length,
-#   },
-# }
-#
-# infer_params = {
-#   "batch_size_per_gpu": 64,
-#   "data_layer": ParallelTextDataLayer,
-#   "data_layer_params": {
-#     "pad_vocab_to_eight": pad_2_eight,
-#     "src_vocab_file": data_root + "vocab.bpe.32000",
-#     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-#     "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-#     # this is intentional to be sure that model is not using target
-#     "target_file": data_root + "newstest2014.tok.bpe.32000.en",
-#     "delimiter": " ",
-#     "shuffle": False,
-#     "repeat": False,
-#     "max_length": max_length,
-#   },
-
-
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "m_common.vocab",
-    "tgt_vocab_file": data_root + "m_common.vocab",
-    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
-    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+    "pad_vocab_to_eight": pad_2_eight,
+    "src_vocab_file": data_root + "vocab.bpe.32000",
+    "tgt_vocab_file": data_root + "vocab.bpe.32000",
+    "source_file": data_root + "train.tok.clean.bpe.32000.en",
+    "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
     "shuffle": shuffle_train,
     "shuffle_buffer_size": 25000,
@@ -226,32 +175,83 @@ eval_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"m_common.vocab",
-    "tgt_vocab_file": data_root+"m_common.vocab",
-    "source_file": data_root+"wmt13-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
+    "pad_vocab_to_eight": pad_2_eight,
+    "src_vocab_file": data_root + "vocab.bpe.32000",
+    "tgt_vocab_file": data_root + "vocab.bpe.32000",
+    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
+    "target_file": data_root + "newstest2014.tok.bpe.32000.de",
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
     "max_length": max_length,
-    "prefetch_buffer_size": 1,
-    },
+  },
 }
 
 infer_params = {
   "batch_size_per_gpu": 64,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"m_common.vocab",
-    "tgt_vocab_file": data_root+"m_common.vocab",
-    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "pad_vocab_to_eight": pad_2_eight,
+    "src_vocab_file": data_root + "vocab.bpe.32000",
+    "tgt_vocab_file": data_root + "vocab.bpe.32000",
+    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
+    # this is intentional to be sure that model is not using target
+    "target_file": data_root + "newstest2014.tok.bpe.32000.en",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
     "max_length": max_length,
-    "prefetch_buffer_size": 1,
   },
+
+
+# train_params = {
+#   "data_layer": ParallelTextDataLayer,
+#   "data_layer_params": {
+#     "pad_vocab_to_eight": True,
+#     "src_vocab_file": data_root + "m_common.vocab",
+#     "tgt_vocab_file": data_root + "m_common.vocab",
+#     "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+#     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+#     "delimiter": " ",
+#     "shuffle": shuffle_train,
+#     "shuffle_buffer_size": 25000,
+#     "repeat": True,
+#     "map_parallel_calls": 16,
+#     "prefetch_buffer_size": 2,
+#     "max_length": max_length,
+#   },
+# }
+#
+# eval_params = {
+#   "batch_size_per_gpu": 64,
+#   "data_layer": ParallelTextDataLayer,
+#   "data_layer_params": {
+#     "src_vocab_file": data_root+"m_common.vocab",
+#     "tgt_vocab_file": data_root+"m_common.vocab",
+#     "source_file": data_root+"wmt13-en-de.src.BPE_common.32K.tok",
+#     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
+#     "delimiter": " ",
+#     "shuffle": False,
+#     "repeat": True,
+#     "max_length": max_length,
+#     "prefetch_buffer_size": 1,
+#     },
+# }
+#
+# infer_params = {
+#   "batch_size_per_gpu": 64,
+#   "data_layer": ParallelTextDataLayer,
+#   "data_layer_params": {
+#     "src_vocab_file": data_root+"m_common.vocab",
+#     "tgt_vocab_file": data_root+"m_common.vocab",
+#     "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+#     "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+#     "delimiter": " ",
+#     "shuffle": False,
+#     "repeat": False,
+#     "max_length": max_length,
+#     "prefetch_buffer_size": 1,
+#   },
 
 
 }
