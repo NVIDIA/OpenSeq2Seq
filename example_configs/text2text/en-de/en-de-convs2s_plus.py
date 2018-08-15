@@ -55,7 +55,7 @@ base_params = {
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
   "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
