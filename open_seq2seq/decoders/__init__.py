@@ -13,3 +13,4 @@ from .tacotron2_decoder import Tacotron2Decoder
 from .convs2s_decoder import ConvS2SDecoder
 from .las_decoder import ListenAttendSpellDecoder
 from .jca_decoder import JointCTCAttentionDecoder
+from .c2l_decoder import Conv2LetterDecoder

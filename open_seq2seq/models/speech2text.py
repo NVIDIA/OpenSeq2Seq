@@ -133,7 +133,8 @@ class Speech2Text(EncoderDecoderModel):
         len(true_text.split())
 
     self.autoregressive = self.get_data_layer().params['autoregressive']
-    if self.autoregressive:
+    self.plot_attention = False
+    if self.plot_attention:
       attention_summary = plot_attention(
           output_values[1][0], pred_text, output_values[2][0], training_step)
       deco_print("Encoder Length: {}".format(output_values[2][0]), offset=4)
@@ -142,7 +143,7 @@ class Speech2Text(EncoderDecoderModel):
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
 
-    if self.autoregressive:
+    if self.plot_attention:
       return {
           'Sample WER': sample_wer,
           'Attention Summary': attention_summary,

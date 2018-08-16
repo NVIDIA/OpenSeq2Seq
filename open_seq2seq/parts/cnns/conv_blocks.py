@@ -6,15 +6,17 @@ from __future__ import unicode_literals
 from six.moves import range
 
 import tensorflow as tf
+from .tcn import tcn
 
 layers_dict = {
     "conv1d": tf.layers.conv1d,
-    "conv2d": tf.layers.conv2d
+    "conv2d": tf.layers.conv2d,
+    "tcn": tcn,
 }
 
 
 def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-              padding, regularizer, training, data_format):
+              padding, regularizer, training, data_format, use_residual):
   """Helper function that applies convolution and activation.
     Args:
       layer_type: the following types are supported

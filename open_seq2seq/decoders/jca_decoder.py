@@ -5,9 +5,6 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .decoder import Decoder
-from .las_decoder import ListenAttendSpellDecoder
-from .fc_decoders import FullyConnectedCTCDecoder
-
 
 class JointCTCAttentionDecoder(Decoder):
   """Joint CTC Attention like decoder.
@@ -15,11 +12,13 @@ class JointCTCAttentionDecoder(Decoder):
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
-        'las_params': dict,
+        'attn_params': dict,
         'ctc_params': dict,
         'GO_SYMBOL': int,  # symbol id
         'END_SYMBOL': int,  # symbol id
         'tgt_vocab_size': int,
+        'ctc_decoder': None,
+        'attn_decoder': None,
     })
 
   @staticmethod
@@ -37,15 +36,15 @@ class JointCTCAttentionDecoder(Decoder):
     super(JointCTCAttentionDecoder, self).__init__(params, model, name, mode)
 
     self.ctc_params = self.params['ctc_params']
-    self.las_params = self.params['las_params']
+    self.attn_params = self.params['attn_params']
 
     self.ctc_params['tgt_vocab_size'] = self.params['tgt_vocab_size'] - 1
-    self.las_params['tgt_vocab_size'] = self.params['tgt_vocab_size']
-    self.las_params['GO_SYMBOL'] = self.params['GO_SYMBOL']
-    self.las_params['END_SYMBOL'] = self.params['END_SYMBOL']
+    self.attn_params['tgt_vocab_size'] = self.params['tgt_vocab_size']
+    self.attn_params['GO_SYMBOL'] = self.params['GO_SYMBOL']
+    self.attn_params['END_SYMBOL'] = self.params['END_SYMBOL']
 
-    self.ctc_decoder = FullyConnectedCTCDecoder(params=self.ctc_params, mode=mode, model=model)
-    self.las_decoder = ListenAttendSpellDecoder(params=self.las_params, mode=mode, model=model)
+    self.ctc_decoder = self.params['ctc_decoder'](params=self.ctc_params, mode=mode, model=model)
+    self.attn_decoder = self.params['attn_decoder'](params=self.attn_params, mode=mode, model=model)
 
 
   def _decode(self, input_dict):
@@ -57,7 +56,7 @@ class JointCTCAttentionDecoder(Decoder):
     Config parameters:
     """
     
-    las_outputs = self.las_decoder.decode(input_dict=input_dict)
+    las_outputs = self.attn_decoder.decode(input_dict=input_dict)
     ctc_outputs = self.ctc_decoder.decode(input_dict=input_dict)
 
     return {

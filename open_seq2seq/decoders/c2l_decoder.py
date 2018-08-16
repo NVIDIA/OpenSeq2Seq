@@ -4,19 +4,10 @@ from __future__ import unicode_literals
 
 import tensorflow as tf
 
-from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
-    LuongAttention, \
-    LocationSensitiveAttention, \
-    AttentionWrapper
-from open_seq2seq.parts.rnns.rnn_beam_search_decoder import BeamSearchDecoder
-from open_seq2seq.parts.rnns.utils import single_cell
-from open_seq2seq.parts.rnns.helper import TrainingHelper, GreedyEmbeddingHelper
 from .decoder import Decoder
-
-cells_dict = {
-    "lstm": tf.nn.rnn_cell.BasicLSTMCell,
-    "gru": tf.nn.rnn_cell.GRUCell,
-}
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
+from open_seq2seq.parts.cnns.attention_wrapper import BahdanauAttention, \
+    _compute_attention
 
 
 class FullyConnected(tf.layers.Layer):
@@ -26,6 +17,8 @@ class FullyConnected(tf.layers.Layer):
   def __init__(
       self,
       hidden_dims,
+      dropout_keep_prob=1.0,
+      mode='train',
       name="fully_connected",
   ):
     super(FullyConnected, self).__init__(name=name)
@@ -40,10 +33,15 @@ class FullyConnected(tf.layers.Layer):
         name="{}_{}".format(name, i + 1), units=hidden_dims[i + 1], use_bias=True)
     )
     self.output_dim = hidden_dims[i + 1]
+    self.mode = mode
+    self.dropout_keep_prob = dropout_keep_prob
 
   def call(self, inputs):
+    training = (self.mode == "train")
+    dropout_keep_prob = self.dropout_keep_prob if training else 1.0
     for layer in self.dense_layers:
       inputs = layer(inputs)
+      inputs = tf.nn.dropout(x=inputs, keep_prob=dropout_keep_prob)
     return inputs
 
   def compute_output_shape(self, input_shape):
@@ -51,8 +49,8 @@ class FullyConnected(tf.layers.Layer):
     return tf.TensorShape([input_shape[0], self.output_dim])
 
 
-class ListenAttendSpellDecoder(Decoder):
-  """Listen Attend Spell like decoder.
+class Conv2LetterDecoder(Decoder):
+  """Convolution based attention decoder.
   """
   @staticmethod
   def get_required_params():
@@ -62,9 +60,8 @@ class ListenAttendSpellDecoder(Decoder):
         'tgt_vocab_size': int,
         'tgt_emb_size': int,
         'attention_params': dict,
-        'rnn_type': None,
-        'hidden_dim': int,
-        'num_layers': int,
+        'convnet_params': dict,
+        'fc_params': list,
     })
 
   @staticmethod
@@ -74,14 +71,14 @@ class ListenAttendSpellDecoder(Decoder):
         'pos_embedding': bool,
     })
 
-  def __init__(self, params, model, name='las_decoder', mode='train'):
-    """Initializes RNN decoder with embedding.
+  def __init__(self, params, model, name='c2l_decoder', mode='train'):
+    """Initializes CNN decoder with embedding.
 
     See parent class for arguments description.
 
     Config parameters:
     """
-    super(ListenAttendSpellDecoder, self).__init__(params, model, name, mode)
+    super(Conv2LetterDecoder, self).__init__(params, model, name, mode)
     self.GO_SYMBOL = self.params['GO_SYMBOL']
     self.END_SYMBOL = self.params['END_SYMBOL']
     self._tgt_vocab_size = self.params['tgt_vocab_size']
@@ -108,12 +105,13 @@ class ListenAttendSpellDecoder(Decoder):
       tgt_inputs = tf.concat(
           [tf.fill([self._batch_size, 1], self.GO_SYMBOL), tgt_inputs[:, :-1]], -1)
 
-    layer_type = self.params['rnn_type']
-    num_layers = self.params['num_layers']
+    convnet_params = self.params['convnet_params']
     attention_params = self.params['attention_params']
-    hidden_dim = self.params['hidden_dim']
+    fc_params = self.params['fc_params']
+    regularizer = self.params.get('regularizer', None)
+    training = (self._mode == "train")
     dropout_keep_prob = self.params.get(
-        'dropout_keep_prob', 1.0) if self._mode == "train" else 1.0
+        'dropout_keep_prob', 1.0) if training else 1.0
 
     self._target_emb_layer = tf.get_variable(
         name='TargetEmbeddingMatrix',
@@ -121,7 +119,7 @@ class ListenAttendSpellDecoder(Decoder):
         dtype=tf.float32,
     )
 
-    if self.params['pos_embedding']:
+    '''if self.params['pos_embedding']:
       self.enc_pos_emb_size = int(encoder_outputs.get_shape()[-1])
       self.enc_pos_emb_layer = tf.get_variable(
           name='EncoderPositionEmbeddingMatrix',
@@ -154,25 +152,32 @@ class ListenAttendSpellDecoder(Decoder):
           delta=1,
           dtype=tf.int32,
           name='positional_inputs'
-      )
+      )'''
 
     output_projection_layer = FullyConnected(
-        [self._tgt_vocab_size]
+        [hdim for hdim in fc_params] + [self._tgt_vocab_size],
+        dropout_keep_prob=dropout_keep_prob,
+        mode=self._mode,
     )
 
-    rnn_cell = cells_dict[layer_type]
-
-    dropout = tf.nn.rnn_cell.DropoutWrapper
-
-    multirnn_cell = tf.nn.rnn_cell.MultiRNNCell(
-        [dropout(rnn_cell(hidden_dim),
-                 output_keep_prob=dropout_keep_prob)
-         for _ in range(num_layers)]
-    )
+    normalization = convnet_params["normalization"]
+    activation_fn = convnet_params["activation_fn"]
+    convnet_layers = convnet_params["convnet_layers"]
+    data_format = convnet_params["data_format"]
+    normalization_params = {}
+    if normalization is None:
+      conv_block = conv_actv
+    elif normalization == "batch_norm":
+      conv_block = conv_bn_actv
+      normalization_params['bn_momentum'] = self.params.get(
+          'bn_momentum', 0.90)
+      normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
+    else:
+      raise ValueError("Incorrect normalization")
 
     attention_dim = attention_params["attention_dim"]
     attention_type = attention_params["attention_type"]
-    num_heads = attention_params["num_heads"]
+    #num_heads = attention_params["num_heads"]
 
     attention_params_dict = {}
     if attention_type == "bahadanu":
@@ -188,116 +193,77 @@ class ListenAttendSpellDecoder(Decoder):
       attention_params_dict["query_dim"] = hidden_dim
       attention_params_dict["location_attn_type"] = attention_type
 
-    attention_mechanism = []
-
-    for head in range(num_heads):
-      attention_mechanism.append(
-          AttentionMechanism(
-              num_units=attention_dim,
-              memory=encoder_outputs,
-              memory_sequence_length=enc_src_lengths,
-              probability_fn=tf.nn.softmax,
-              dtype=tf.get_variable_scope().dtype,
-              **attention_params_dict
-          )
-      )
-
-    multirnn_cell_with_attention = AttentionWrapper(
-        cell=multirnn_cell,
-        attention_mechanism=attention_mechanism,
-        attention_layer_size=[hidden_dim for i in range(num_heads)],
-        output_attention=True,
-        alignment_history=True,
+    attention_mechanism = AttentionMechanism(
+        num_units=attention_dim,
+        memory=encoder_outputs,
+        memory_sequence_length=enc_src_lengths,
+        probability_fn=tf.nn.softmax,
+        dtype=tf.get_variable_scope().dtype,
+        **attention_params_dict
     )
 
     if self._mode == "train":
-      tgt_input_vectors = tf.nn.embedding_lookup(self._target_emb_layer, tgt_inputs)
+      tgt_input_vectors = tf.nn.embedding_lookup(
+          self._target_emb_layer, tgt_inputs)
       if self.params['pos_embedding']:
         tgt_input_vectors += tf.nn.embedding_lookup(self.dec_pos_emb_layer,
-                                 decoder_output_positions)
+                                                    decoder_output_positions)
       tgt_input_vectors = tf.cast(
           tgt_input_vectors,
           dtype=self.params['dtype'],
       )
-      #helper = tf.contrib.seq2seq.TrainingHelper(
-      helper = TrainingHelper(
-          inputs=tgt_input_vectors,
-          sequence_length=tgt_lengths,
-      )
-    elif self._mode == "infer" or self._mode == "eval":
+    '''elif self._mode == "infer" or self._mode == "eval":
       embedding_fn = lambda ids: tf.cast(
           tf.nn.embedding_lookup(self._target_emb_layer, ids),
           dtype=self.params['dtype'],
-      )
-      #helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
-      helper = GreedyEmbeddingHelper(
-          embedding=embedding_fn,
-          start_tokens=tf.fill([self._batch_size], self.GO_SYMBOL),
-          end_token=self.END_SYMBOL,
-      )
-
-    if self._mode != "infer":
-      maximum_iterations = tf.reduce_max(tgt_lengths)
-    else:
-      maximum_iterations = tf.reduce_max(enc_src_lengths)
-
-    decoder = tf.contrib.seq2seq.BasicDecoder(
-        cell=multirnn_cell_with_attention,
-        helper=helper,
-        initial_state=multirnn_cell_with_attention.zero_state(
-            batch_size=self._batch_size, dtype=encoder_outputs.dtype,
-        ),
-        output_layer=output_projection_layer,
-    )
-
-    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
-        decoder=decoder,
-        impute_finished=True,
-        maximum_iterations=maximum_iterations,
-    )
-
-    outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
-    alignments = tf.transpose(
-        final_state.alignment_history[0].stack(), [1, 0, 2]
-    )
-    '''alignments = tf.expand_dims(alignments, axis=-1)
-    alignments = tf.expand_dims(alignments, axis=1)
-
-    summary = tf.summary.image(
-      name='alignments',
-      tensor=alignments[0],
-      max_outputs=1,
-    )'''
-
-    '''bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
-    indices = tf.constant([[i, j] for i in tf.range(bs) for j in tf.range(ln)])
-    values = tf.reshape(outputs, [-1])
-    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''
-
-    '''if self.mode == "eval":
-      if tf.reduce_max(tgt_lengths) > tf.shape(final_outputs.rnn_output)[1]:
-        padding = tf.fill([tf.shape(final_outputs.rnn_output)[0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)
-        final_outputs.rnn_output = tf.concat([final_outputs.rnn_output, padding], 1)'''
-
-    '''if self.mode == "eval":
-      final_outputs.rnn_output = tf.cond(
-          tf.greater(tf.reduce_max(tgt_lengths),
-                     tf.shape(final_outputs.rnn_output)[1]),
-          lambda: tf.concat([final_outputs.rnn_output, tf.fill([tf.shape(final_outputs.rnn_output)[
-                                                       0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)], 1),
-          lambda: tf.identity(final_outputs.rnn_output),
       )'''
 
-    logits = final_outputs.rnn_output
-    if self.mode == "eval":
-      max_len = tf.reduce_max(tgt_lengths)
-      logits = tf.while_loop(
-          lambda logits: max_len > tf.shape(logits)[1],
-          lambda logits: tf.concat([logits, tf.fill(
-              [tf.shape(logits)[0], 1, tf.shape(logits)[2]], 1.0)], 1),
-          loop_vars=[logits],
-          back_prop=False,
+    '''if self._mode != "infer":
+      maximum_iterations = tf.reduce_max(tgt_lengths)
+    else:
+      maximum_iterations = tf.reduce_max(enc_src_lengths)'''
+
+    if self._mode == "train":
+      conv_feats = tgt_input_vectors
+      idx_convnet = 0
+      idx_layer = 0
+      layer_type = convnet_layers[idx_convnet]['type']
+      layer_repeat = convnet_layers[idx_convnet]['repeat']
+      ch_out = convnet_layers[idx_convnet]['num_channels']
+      kernel_size = convnet_layers[idx_convnet]['kernel_size']
+      strides = convnet_layers[idx_convnet]['stride']
+      padding = convnet_layers[idx_convnet]['padding']
+      dropout_keep = convnet_layers[idx_convnet].get(
+          'dropout_keep_prob', dropout_keep_prob) if training else 1.0
+
+      conv_feats = conv_block(
+            layer_type=layer_type,
+            name="conv{}{}".format(
+                idx_convnet + 1, idx_layer + 1),
+            inputs=conv_feats,
+            filters=ch_out,
+            kernel_size=kernel_size,
+            activation_fn=activation_fn,
+            strides=strides,
+            padding=padding,
+            regularizer=regularizer,
+            training=training,
+            data_format=data_format,
+            use_residual=False,
+            **normalization_params
       )
+      #conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
+      #conv_output = tf.reshape(conv_feats, [-1, int(conv_feats.get_shape()[-1])])
+      conv_output = conv_feats
+      print(conv_output)
+      attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_output, None, None)
+      print(attn_output)
+      #attn_output = tf.reshape(attn_output, [tf.shape(conv_feats)[0], tf.shape(conv_feats)[1], int(encoder_outputs.get_shape()[2])])
+
+      logits = output_projection_layer(tf.concat([conv_feats, attn_output], -1))      
+      outputs = tf.argmax(logits, axis=-1)
+      final_sequence_lengths = tgt_lengths
+      print(alignments)
 
     return {
         'outputs': [outputs, alignments, enc_src_lengths],
