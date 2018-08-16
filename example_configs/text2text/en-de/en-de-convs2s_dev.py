@@ -18,14 +18,15 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "./wmt16_en_dt_old/"
+data_root = "./wmt16_en_dt/"
+data_size = 40660000 #4500000 40660000
 
 base_model = Text2Text
 
 factor = 1 # 1 2
 factor_layer = 0 #0 5
 
-num_layers = 15
+num_layers = 15 + factor_layer
 d_model = factor*512
 hidden_before_last = factor*512
 max_length = 64
@@ -40,7 +41,7 @@ dtype = "mixed" #tf.float32 #tf.float32 #  #
 shuffle_train = True
 use_horovod = True
 
-max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
+max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
 
 conv_act = gated_linear_units #gated_linear_units #gated_linear_units #tf.nn.relu tf.nn.tanh
 normalization_type = "weight_norm"  #weight_norm or "batch_norm" or None
