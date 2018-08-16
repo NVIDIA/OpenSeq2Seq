@@ -28,7 +28,7 @@ class TemporalConvolutionalLayer(tf.layers.Conv1D):
       bias_constraint=None,
       trainable=True,
       padding='valid',
-      **kwargs,
+      **kwargs
   ):
     super(TemporalConvolutionalLayer, self).__init__(
         filters=filters,
@@ -48,7 +48,7 @@ class TemporalConvolutionalLayer(tf.layers.Conv1D):
         data_format=data_format,
         name=name,
         padding='valid',
-        **kwargs,
+        **kwargs
     )
 
   def call(self, inputs):
