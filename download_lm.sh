@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 set -e
 if [ ! -d "language_model" ]; then
   mkdir language_model

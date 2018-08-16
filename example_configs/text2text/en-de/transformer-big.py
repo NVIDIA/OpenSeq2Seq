@@ -24,7 +24,7 @@ data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 1,
+  "num_gpus": 4,
   "batch_size_per_gpu": 128,  # this size is in sentence pairs
   "max_steps": 500000,
   "save_summaries_steps": 50,
@@ -47,7 +47,7 @@ base_params = {
   "lr_policy": transformer_policy,
   "lr_policy_params": {
     "learning_rate": 2.0,
-    "warmup_steps": 8000,
+    "warmup_steps": 16000,
     "d_model": d_model,
   },
 
