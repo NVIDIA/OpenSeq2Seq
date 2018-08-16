@@ -13,7 +13,6 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/home/chipn/dev/nlp-master/wikitext-2/"
-# data_root = "/data/wikitext-2/"
 
 base_model = AWDLSTM
 bptt = 72
@@ -31,7 +30,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP47",
+  "logdir": "AWDLSTM-EXP49",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -70,7 +69,7 @@ base_params = {
     # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 2048, # paper 1150
+        "num_units": 1024, # paper 1150
         "forget_bias": 1.0,
     },
     "last_cell_params": {
@@ -82,9 +81,8 @@ base_params = {
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
     "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
-    "recurrent_keep_prob": 0.7,
+    "recurrent_keep_prob": 0.67,
     'encoder_emb_keep_prob': 0.4,
-    "input_weight_keep_prob": 0.8,
     "encoder_use_skip_connections": False,
     "emb_size": 320,
     "vocab_size": 33278,

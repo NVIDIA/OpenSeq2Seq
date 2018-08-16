@@ -32,7 +32,8 @@ class AWDLSTM(EncoderDecoderModel):
     self.params['loss_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['vocab_size']
     )
-
+    if not self._mode == 'train':
+      self.params['loss_params']['num_sampled'] = -1
     return super(AWDLSTM, self)._create_loss()
 
 

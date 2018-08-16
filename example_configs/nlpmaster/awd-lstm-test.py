@@ -8,7 +8,7 @@ from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 
 # from open_seq2seq.losses import CrossEntropyLoss
-from open_seq2seq.losses import BasicSequenceLoss
+from open_seq2seq.losses import BasicSequenceLoss, BasicSampledSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
@@ -104,11 +104,12 @@ base_params = {
   # }
 
   # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
-  "loss": BasicSequenceLoss,
+  "loss": BasicSampledSequenceLoss,
   "loss_params": {
     "offset_target_by_one": False,
     "average_across_timestep": True,
     "do_mask": False,
+    "num_sampled": 7680,
   }
 }
 

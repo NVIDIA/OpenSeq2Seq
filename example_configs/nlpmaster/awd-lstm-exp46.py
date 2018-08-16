@@ -39,7 +39,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 1e-4
+    "learning_rate": 1e-5
   },
 
   # "lr_policy": exp_decay,
