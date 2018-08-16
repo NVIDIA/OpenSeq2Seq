@@ -65,7 +65,7 @@ base_params = {
     "attention_dropout": 0.1,
     "relu_dropout": 0.1,
     "filter_size": 4*d_model,
-    "beam_size": 1,
+    "beam_size": 5,
     "alpha": 1.0,
     "extra_decode_length": 2,
     "EOS_ID": SpecialTextTokens.EOS_ID.value,
