@@ -181,7 +181,7 @@ train_params = {
     "pad_vocab_to_eight": pad_2_eight,
     "src_vocab_file": data_root + "vocab.bpe.32000",
     "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "train.tok.clean.bpe.32000.en",
+    "source_file": data_root + "",
     "target_file": data_root + "train.tok.clean.bpe.32000.de",
     "delimiter": " ",
     "shuffle": shuffle_train,
@@ -222,6 +222,6 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
-    "max_length": max_length,
+    "max_length": max_length*2,
   },
 }

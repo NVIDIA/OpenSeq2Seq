@@ -64,42 +64,42 @@ OUTPUT_DIR_DATA="${OUTPUT_DIR}/data"
 #tar -xvzf "${OUTPUT_DIR_DATA}/test.tgz" -C "${OUTPUT_DIR_DATA}/test"
 
 # Concatenate Training data
-cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.en" \
-  "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
-  "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.en" \
-  "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.en" \
-  > "${OUTPUT_DIR}/train.en"
-wc -l "${OUTPUT_DIR}/train.en"
-
-cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.de" \
-  "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.de" \
-  "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.de" \
-  "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.de" \
-  > "${OUTPUT_DIR}/train.de"
-wc -l "${OUTPUT_DIR}/train.de"
-
-# Get Eval Data
-sacrebleu -t wmt13 -l en-de --echo src > ${OUTPUT_DIR}/wmt13-en-de.src
-sacrebleu -t wmt13 -l en-de --echo ref > ${OUTPUT_DIR}/wmt13-en-de.ref
-
-# Get Test Data
-sacrebleu -t wmt14 -l en-de --echo src > ${OUTPUT_DIR}/wmt14-en-de.src
-sacrebleu -t wmt14 -l en-de --echo ref > ${OUTPUT_DIR}/wmt14-en-de.ref
-
-# Clean data
-wget -N https://raw.githubusercontent.com/moses-smt/mosesdecoder/master/scripts/training/clean-corpus-n.perl
-chmod +x clean-corpus-n.perl
-./clean-corpus-n.perl ${OUTPUT_DIR}/train en de ${OUTPUT_DIR}/train.clean 1 80
-
-echo 'Shuffling'
-shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.en > ${OUTPUT_DIR}/train.clean.en.shuffled
-shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.de > ${OUTPUT_DIR}/train.clean.de.shuffled
-cat ${OUTPUT_DIR}/train.clean.en.shuffled ${OUTPUT_DIR}/train.clean.de.shuffled > ${OUTPUT_DIR}/train.clean.en-de.shuffled.common
+#cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.en" \
+#  "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
+#  "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.en" \
+#  "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.en" \
+#  > "${OUTPUT_DIR}/train.en"
+#wc -l "${OUTPUT_DIR}/train.en"
+#
+#cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.de" \
+#  "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.de" \
+#  "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.de" \
+#  "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.de" \
+#  > "${OUTPUT_DIR}/train.de"
+#wc -l "${OUTPUT_DIR}/train.de"
+#
+## Get Eval Data
+#sacrebleu -t wmt13 -l en-de --echo src > ${OUTPUT_DIR}/wmt13-en-de.src
+#sacrebleu -t wmt13 -l en-de --echo ref > ${OUTPUT_DIR}/wmt13-en-de.ref
+#
+## Get Test Data
+#sacrebleu -t wmt14 -l en-de --echo src > ${OUTPUT_DIR}/wmt14-en-de.src
+#sacrebleu -t wmt14 -l en-de --echo ref > ${OUTPUT_DIR}/wmt14-en-de.ref
+#
+## Clean data
+#wget -N https://raw.githubusercontent.com/moses-smt/mosesdecoder/master/scripts/training/clean-corpus-n.perl
+#chmod +x clean-corpus-n.perl
+#./clean-corpus-n.perl ${OUTPUT_DIR}/train en de ${OUTPUT_DIR}/train.clean 1 80
+#
+#echo 'Shuffling'
+#shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.en > ${OUTPUT_DIR}/train.clean.en.shuffled
+#shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.de > ${OUTPUT_DIR}/train.clean.de.shuffled
+#cat ${OUTPUT_DIR}/train.clean.en.shuffled ${OUTPUT_DIR}/train.clean.de.shuffled > ${OUTPUT_DIR}/train.clean.en-de.shuffled.common
 
 echo 'TOKENIZATION'
 ## Common
 
-TOKENIZER="../open_seq2seq/data/text2text/tokenizer_wrapper.py"
+TOKENIZER="tokenizer_wrapper.py"
 
 python ${TOKENIZER}  \
   --text_input=${OUTPUT_DIR}/train.clean.en-de.shuffled.common \
