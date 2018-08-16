@@ -59,16 +59,16 @@ base_params = {
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
   "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None, #max(1, int(max_steps/1000.0)),
-  "eval_steps": max(1, int(max_steps/10.0)),
+  "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  "regularizer": tf.contrib.layers.l2_regularizer,
-  "regularizer_params": {
-    "scale": 1e-3
-  },
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   "scale": 1e-3
+  # },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -159,6 +159,56 @@ base_params = {
 }
 
 
+train_params = {
+  "data_layer": ParallelTextDataLayer,
+  "data_layer_params": {
+    "pad_vocab_to_eight": True,
+    "src_vocab_file": data_root + "m_common.vocab",
+    "tgt_vocab_file": data_root + "m_common.vocab",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+    "delimiter": " ",
+    "shuffle": shuffle_train,
+    "shuffle_buffer_size": 25000,
+    "repeat": True,
+    "map_parallel_calls": 16,
+    "prefetch_buffer_size": 2,
+    "max_length": max_length,
+  },
+}
+
+eval_params = {
+  "batch_size_per_gpu": 64,
+  "data_layer": ParallelTextDataLayer,
+  "data_layer_params": {
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt14-en-de.ref.BPE_common.32K.tok",
+    "delimiter": " ",
+    "shuffle": False,
+    "repeat": True,
+    "max_length": max_length,
+    "prefetch_buffer_size": 1,
+    },
+}
+
+infer_params = {
+  "batch_size_per_gpu": 64,
+  "data_layer": ParallelTextDataLayer,
+  "data_layer_params": {
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "delimiter": " ",
+    "shuffle": False,
+    "repeat": False,
+    "max_length": max_length*2,
+    "prefetch_buffer_size": 1,
+  },
+
+
 # train_params = {
 #   "data_layer": ParallelTextDataLayer,
 #   "data_layer_params": {
@@ -208,55 +258,5 @@ base_params = {
 #     "repeat": False,
 #     "max_length": max_length*2,
 #   },
-
-
-train_params = {
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "m_common.vocab",
-    "tgt_vocab_file": data_root + "m_common.vocab",
-    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
-    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
-    "delimiter": " ",
-    "shuffle": shuffle_train,
-    "shuffle_buffer_size": 25000,
-    "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
-    "max_length": max_length,
-  },
-}
-
-eval_params = {
-  "batch_size_per_gpu": 64,
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "src_vocab_file": data_root+"m_common.vocab",
-    "tgt_vocab_file": data_root+"m_common.vocab",
-    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root+"wmt14-en-de.ref.BPE_common.32K.tok",
-    "delimiter": " ",
-    "shuffle": False,
-    "repeat": True,
-    "max_length": max_length,
-    "prefetch_buffer_size": 1,
-    },
-}
-
-infer_params = {
-  "batch_size_per_gpu": 64,
-  "data_layer": ParallelTextDataLayer,
-  "data_layer_params": {
-    "src_vocab_file": data_root+"m_common.vocab",
-    "tgt_vocab_file": data_root+"m_common.vocab",
-    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
-    "delimiter": " ",
-    "shuffle": False,
-    "repeat": False,
-    "max_length": max_length*2,
-    "prefetch_buffer_size": 1,
-  },
 
 }
