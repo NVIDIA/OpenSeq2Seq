@@ -11,7 +11,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/data/wmt16-ende-sp/"
+data_root = "/mnt/shared/dldata/translation/wmt16_de_en/"
 
 base_model = Text2Text
 
@@ -123,7 +123,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 32,
     "prefetch_buffer_size": 1,
     },
