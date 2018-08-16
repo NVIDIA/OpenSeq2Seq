@@ -61,6 +61,7 @@ class AWDLSTMEncoder(Encoder):
       "recurrent_weight_keep_prob": float,
       "weight_variational": bool,
       "dropout_seed": int,
+      "num_sampled": int,
     })
 
   def __init__(self, params, model,
@@ -101,6 +102,7 @@ class AWDLSTMEncoder(Encoder):
     self.params['recurrent_weight_keep_prob'] = self.params.get('recurrent_weight_keep_prob', 1.0)
     self.params['weight_variational'] = self.params.get('weight_variational', False)
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
+    self._num_sampled = self.params.get('num_sampled', self._vocab_size) # if num_sampled not define then just take full softmax
 
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
@@ -200,7 +202,9 @@ class AWDLSTMEncoder(Encoder):
       fake_input = tf.zeros(shape=(1, self._emb_size))
       fake_output = self._output_layer.apply(fake_input)
       with tf.variable_scope("dense", reuse=True):
-        enc_emb_w = tf.transpose(tf.get_variable("kernel"))
+        dense_weights = tf.get_variable("kernel")
+        dense_biases = tf.get_variable("bias")
+      enc_emb_w = tf.transpose(dense_weights)
         
     else:
       enc_emb_w = tf.get_variable(
@@ -256,38 +260,63 @@ class AWDLSTMEncoder(Encoder):
     source_length = input_dict['source_tensors'][1]
 
     if self._mode == 'train' or self._mode == 'eval':
-      input_vectors = tf.cast(tf.nn.embedding_lookup(
+      embedded_inputs = tf.cast(tf.nn.embedding_lookup(
         self.enc_emb_w,
         source_sequence,
       ), self.params['dtype'])
 
-      if self._schedule_learning:
-        embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
-                                            self.enc_emb_w,
-                                            ids,
-                                          ), self.params['dtype'])
-
-        helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
-          inputs=source_sequence,
-          sequence_length=source_length,
-          time_major=time_major,
-          embedding=embedding_fn,
-          sampling_probability=tf.constant(self._sampling_prob))
-      else:
-        helper = tf.contrib.seq2seq.TrainingHelper(
-          inputs=input_vectors,
-          sequence_length=source_length,
-          time_major=time_major)
-      
-      decoder = tf.contrib.seq2seq.BasicDecoder(
+      encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
         cell=self._encoder_cell_fw,
-        helper=helper,
-        output_layer=self._output_layer,
-        initial_state=self._encoder_cell_fw.zero_state(
-          self._batch_size, dtype=self._params['dtype'],
-        ),
+        inputs=embedded_inputs,
+        sequence_length=source_length,
+        time_major=time_major,
+        swap_memory=use_swap_memory,
+        dtype=embedded_inputs.dtype,
+        scope='decoder',
       )
-      maximum_iterations = tf.reduce_max(source_length)
+      if self._mode == 'eval' or self._num_sampled >= self._vocab_size:
+        logits = self._output_layer.apply(encoder_outputs) # full softmax
+        output_dict = {'logits': logits, 'outputs': [tf.argmax(logits, axis=-1)]}
+      else:
+        output_dict = {'weights': enc_emb_w,
+                    'bias': dense_biases,
+                    'inputs': encoder_outputs,
+                    'logits': encoder_outputs,
+                    'outputs': [encoder_outputs],
+                    'num_sampled': self._num_sampled}
+
+      # input_vectors = tf.cast(tf.nn.embedding_lookup(
+      #   self.enc_emb_w,
+      #   source_sequence,
+      # ), self.params['dtype'])
+
+      # if self._schedule_learning:
+      #   embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
+      #                                       self.enc_emb_w,
+      #                                       ids,
+      #                                     ), self.params['dtype'])
+
+      #   helper = tf.contrib.seq2seq.ScheduledEmbeddingTrainingHelper(
+      #     inputs=source_sequence,
+      #     sequence_length=source_length,
+      #     time_major=time_major,
+      #     embedding=embedding_fn,
+      #     sampling_probability=tf.constant(self._sampling_prob))
+      # else:
+      #   helper = tf.contrib.seq2seq.TrainingHelper(
+      #     inputs=input_vectors,
+      #     sequence_length=source_length,
+      #     time_major=time_major)
+      
+      # decoder = tf.contrib.seq2seq.BasicDecoder(
+      #   cell=self._encoder_cell_fw,
+      #   helper=helper,
+      #   output_layer=self._output_layer,
+      #   initial_state=self._encoder_cell_fw.zero_state(
+      #     self._batch_size, dtype=self._params['dtype'],
+      #   ),
+      # )
+      # maximum_iterations = tf.reduce_max(source_length)
 
     else:
       embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
@@ -310,18 +339,19 @@ class AWDLSTMEncoder(Encoder):
       )
       maximum_iterations = tf.constant(200)
 
-    final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
-      decoder=decoder,
-      impute_finished=False,
-      maximum_iterations=maximum_iterations,
-      swap_memory=use_swap_memory,
-      output_time_major=time_major,
-    )
+      final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
+        decoder=decoder,
+        impute_finished=False,
+        maximum_iterations=maximum_iterations,
+        swap_memory=use_swap_memory,
+        output_time_major=time_major,
+      )
 
-    output_dict = {'logits': final_outputs.rnn_output,
-          'outputs': [tf.argmax(final_outputs.rnn_output, axis=-1)],
-          'final_state': final_state,
-          'final_sequence_lengths': final_sequence_lengths}
+      print(final_outputs.rnn_output)
+      output_dict = {'logits': final_outputs.rnn_output,
+            'outputs': [tf.argmax(final_outputs.rnn_output, axis=-1)],
+            'final_state': final_state,
+            'final_sequence_lengths': final_sequence_lengths}
 
     # for v in tf.trainable_variables():
     #   print(v.name)

@@ -32,30 +32,31 @@ class AWDLSTM(EncoderDecoderModel):
     self.params['loss_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['vocab_size']
     )
-    if not self._mode == 'train':
-      self.params['loss_params']['num_sampled'] = -1
+    self.params['loss_params']['hid_dim'] = self.params['encoder_params']['last_cell_params']['num_units']
+
     return super(AWDLSTM, self)._create_loss()
 
 
   def infer(self, input_values, output_values):
-  	vocab = self.get_data_layer().corp.dictionary.idx2word
-  	seed_tokens = self.params['encoder_params']['seed_tokens']
-  	for i in range(len(seed_tokens)):
-  		print(output_values[0][0][i].shape)
-  		print('Seed:', vocab[seed_tokens[i]] + '\n')
-	  	deco_print(
-	  	  "Output: " + array_to_string(
-	  	    output_values[0][0][i],
-	  	    vocab=self.get_data_layer().corp.dictionary.idx2word,
-	  	    delim=self.get_data_layer().params["delimiter"],
-	  	  ),
-	  	  offset=4,
-	  	)
+    print(len(output_values[0][0]))
+    vocab = self.get_data_layer().corp.dictionary.idx2word
+    seed_tokens = self.params['encoder_params']['seed_tokens']
+    for i in range(len(seed_tokens)):
+      print(output_values[0][i].shape)
+      print('Seed:', vocab[seed_tokens[i]] + '\n')
+      deco_print(
+        "Output: " + array_to_string(
+          output_values[0][i],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     x, len_x = input_values['source_tensors']
     y, len_y = input_values['target_tensors']
-    samples = output_values[0][0]
+    # samples = output_values[0][0]
 
     x_sample = x[0]
     len_x_sample = len_x[0]
@@ -78,14 +79,14 @@ class AWDLSTM(EncoderDecoderModel):
       ),
       offset=4,
     )
-    deco_print(
-      "Train Prediction[0]: " + array_to_string(
-        samples[0],
-        vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
-      ),
-      offset=4,
-    )
+    # deco_print(
+    #   "Train Prediction[0]: " + array_to_string(
+    #     samples[0],
+    #     vocab=self.get_data_layer().corp.dictionary.idx2word,
+    #     delim=self.get_data_layer().params["delimiter"],
+    #   ),
+    #   offset=4,
+    # )
     return {}
 
   def evaluate(self, input_values, output_values):
@@ -113,7 +114,7 @@ class AWDLSTM(EncoderDecoderModel):
       ),
       offset=4,
     )
-    samples = output_values[0][0][0]
+    samples = output_values[0][0]
     deco_print(
       "*****EVAL Prediction[0]: " + array_to_string(
         samples,

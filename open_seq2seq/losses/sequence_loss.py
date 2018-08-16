@@ -325,7 +325,7 @@ class BasicSampledSequenceLoss(Loss):
         'offset_target_by_one': bool,
         'average_across_timestep': bool,
         'do_mask': bool,
-        'num_sampled': int,
+        'hid_dim': int,
     })
 
   def __init__(self, params, model, name="basic_sampled_sequence_loss"):
@@ -349,8 +349,8 @@ class BasicSampledSequenceLoss(Loss):
     self._batch_size = self.params["batch_size"]
     self._offset_target_by_one = self.params.get("offset_target_by_one", True)
     self._average_across_timestep = self.params.get("average_across_timestep", False)
-    self._num_sampled = self.params.get('num_sampled', self._tgt_vocab_size)
     self._do_mask = self.params.get("do_mask", True)
+    self._hid_dim = self.params['hid_dim']
 
   def _compute_loss(self, input_dict):
     """Computes cross entropy based sequence-to-sequence loss.
@@ -366,57 +366,72 @@ class BasicSampledSequenceLoss(Loss):
     Returns:
        Singleton loss tensor
     """
-    logits = input_dict["decoder_output"]["logits"]
     target_sequence = input_dict['target_tensors'][0]
     tgt_lengths = input_dict['target_tensors'][1]
 
-    if self._offset_target_by_one:
-      # this is necessary for auto-regressive models
-      current_ts = tf.to_int32(tf.minimum(
-          tf.shape(target_sequence)[1],
-          tf.shape(logits)[1],
-      )) - 1
+    if 'weights' in input_dict['decoder_output']:
+      inputs = input_dict["decoder_output"]['inputs']
+      inputs = tf.reshape(inputs, (-1, self._hid_dim))
+      targets = tf.reshape(target_sequence, (-1, 1))
+      crossent = tf.nn.sampled_softmax_loss(input_dict["decoder_output"]['weights'], 
+                                            input_dict["decoder_output"]['bias'], 
+                                            targets, 
+                                            inputs,
+                                            input_dict['decoder_output']['num_sampled'],
+                                            self._tgt_vocab_size)
+      if self._average_across_timestep:
+        loss = tf.reduce_mean(crossent)
+      else:
+        loss = tf.reduce_sum(crossent)
+        loss /= self._batch_size
 
-      logits = tf.slice(
-          logits,
-          begin=[0, 0, 0],
-          size=[-1, current_ts, -1],
-      )                                 
-      target_sequence = tf.slice(target_sequence,
-                                 begin=[0, 1],
-                                 size=[-1, current_ts])
     else:
-      current_ts = tf.to_int32(tf.minimum(
-          tf.shape(target_sequence)[1],
-          tf.shape(logits)[1],
-      ))
+      logits = input_dict["decoder_output"]["logits"]
 
-    # Cast logits after potential slice
-    if logits.dtype.base_dtype != tf.float32:
-      logits = tf.cast(logits, tf.float32)
+      if self._offset_target_by_one:
+        # this is necessary for auto-regressive models
+        current_ts = tf.to_int32(tf.minimum(
+            tf.shape(target_sequence)[1],
+            tf.shape(logits)[1],
+        )) - 1
 
-    if self._do_mask:
-      if tgt_lengths is None:
-        raise ValueError("If you are masking loss, tgt_lengths can't be None")
-      mask = tf.sequence_mask(lengths=tgt_lengths - 1,
-                              maxlen=current_ts,
-                              dtype=logits.dtype)
-    else:
-      mask = tf.cast(tf.ones_like(target_sequence), logits.dtype)
+        logits = tf.slice(
+            logits,
+            begin=[0, 0, 0],
+            size=[-1, current_ts, -1],
+        )                                 
+        target_sequence = tf.slice(target_sequence,
+                                   begin=[0, 1],
+                                   size=[-1, current_ts])
+      else:
+        current_ts = tf.to_int32(tf.minimum(
+            tf.shape(target_sequence)[1],
+            tf.shape(logits)[1],
+        ))
 
-    if self._num_sampled == self._tgt_vocab_size: # just do the full softmax
+      # Cast logits after potential slice
+      if logits.dtype.base_dtype != tf.float32:
+        logits = tf.cast(logits, tf.float32)
+
+      if self._do_mask:
+        if tgt_lengths is None:
+          raise ValueError("If you are masking loss, tgt_lengths can't be None")
+        mask = tf.sequence_mask(lengths=tgt_lengths - 1,
+                                maxlen=current_ts,
+                                dtype=logits.dtype)
+      else:
+        mask = tf.cast(tf.ones_like(target_sequence), logits.dtype)
+
       crossent = tf.nn.sparse_softmax_cross_entropy_with_logits(
           labels=tf.reshape(target_sequence, shape=[-1]),
           logits=tf.reshape(logits, shape=[-1, self._tgt_vocab_size]),
       )
-    elif self._num_sampled == -1: # inference mode
-      
 
 
-    if self._average_across_timestep:
-      loss = tf.reduce_mean(crossent * tf.reshape(mask, shape=[-1]))
-    else:
-      loss = tf.reduce_sum(crossent * tf.reshape(mask, shape=[-1]))
-      loss /= self._batch_size
+      if self._average_across_timestep:
+        loss = tf.reduce_mean(crossent * tf.reshape(mask, shape=[-1]))
+      else:
+        loss = tf.reduce_sum(crossent * tf.reshape(mask, shape=[-1]))
+        loss /= self._batch_size
     return loss
- 
+   
