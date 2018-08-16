@@ -19,7 +19,7 @@ import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "./wmt16_en_dt/"
-data_size = 4500000 #4500000 40660000
+data_size = 40660000 #4500000 40660000
 
 base_model = Text2Text
 
