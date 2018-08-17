@@ -10,6 +10,8 @@ import numpy as np
 import tensorflow as tf
 import pandas as pd
 
+from six import string_types
+
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_mel,\
@@ -27,7 +29,6 @@ class Text2SpeechDataLayer(DataLayer):
             'num_audio_features': int,
             'output_type': ['magnitude', 'mel', 'magnitude_disk', 'mel_disk'],
             'vocab_file': str,
-            'dataset_files': list,
             'dataset_location': str,
             'feature_normalize': bool,
         }
@@ -37,6 +38,7 @@ class Text2SpeechDataLayer(DataLayer):
   def get_optional_params():
     return dict(
         DataLayer.get_optional_params(), **{
+            'dataset_files': list,
             'pad_to': int,
             'mag_power': int,
             'pad_EOS': bool,
@@ -93,13 +95,6 @@ class Text2SpeechDataLayer(DataLayer):
     # add one for implied blank token
     self.params['src_vocab_size'] = len(self.params['char2idx']) + 1
 
-    names = ['wav_filename', 'transcript', 'transcript_normalized']
-
-    if "disk" in self.params["output_type"]:
-      self._load_from_disk = True
-    else:
-      self._load_from_disk = False
-
     # This assumes that the LJSpeech dataset is used
     if "mel" in self.params["output_type"]:
       self._mel = True
@@ -108,6 +103,20 @@ class Text2SpeechDataLayer(DataLayer):
       )
     else:
       self._mel = False
+
+    # The rest of the code is not needed for interactive infer
+    if self.params["interactive"]:
+      return
+
+    if "dataset_files" not in self.params:
+      raise ValueError("dataset_files parameter has to be specified")
+
+    names = ['wav_filename', 'transcript', 'transcript_normalized']
+
+    if "disk" in self.params["output_type"]:
+      self._load_from_disk = True
+    else:
+      self._load_from_disk = False
 
     # Load csv files
     self._files = None
@@ -339,6 +348,44 @@ class Text2SpeechDataLayer(DataLayer):
 
     return np.int32(text_input), \
            np.int32([len(text_input)])
+
+  def create_interactive_placeholders(self):
+    self._text = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params["batch_size"], None]
+    )
+    self._text_length = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params["batch_size"]]
+    )
+
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [self._text, self._text_length]
+
+  def create_feed_dict(self, model_in):
+    """ Creates the feed dict for interactive infer
+
+    Args:
+      model_in (str): The string to be spoken.
+
+    Returns:
+      feed_dict (dict): Dictionary with values for the placeholders.
+    """
+    if not isinstance(model_in, string_types):
+      raise ValueError(
+          "Text2Speech's interactive inference mode only supports string.",
+          "Got {}". format(type(model_in))
+      )
+    text, text_length = self._parse_transcript_element(model_in)
+
+    text = np.reshape(text, [self.params["batch_size"], -1])
+    text_length = np.reshape(text_length, [self.params["batch_size"]])
+
+    feed_dict = {
+        self._text: text,
+        self._text_length: text_length,
+    }
+    return feed_dict
 
   @property
   def input_tensors(self):

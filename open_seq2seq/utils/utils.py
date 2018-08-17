@@ -2,8 +2,18 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import argparse
+import ast
+import copy
+import datetime
+import os
+import pprint
+import runpy
+import shutil
 import subprocess
+import sys
 import time
+
 
 import numpy as np
 import six
@@ -44,7 +54,7 @@ def collect_if_horovod(value, hvd, mode='sum'):
     mode: could be "sum", "mean" or "gather", indicating reduce_sum or gather.
         For "sum" and "mean" value has to be numerical, for "gather", value has
         to be iterable.
-        
+
   Returns:
     collected results if run on Horovod or value otherwise.
   """
@@ -440,3 +450,290 @@ def cast_types(input_dict, dtype):
       continue
     cast_input_dict[key] = input_dict[key]
   return cast_input_dict
+
+def get_interactive_infer_results(model, sess, model_in):
+  fetches = [
+      model.get_data_layer().input_tensors,
+      model.get_output_tensors(),
+  ]
+
+  feed_dict = model.get_data_layer().create_feed_dict(model_in)
+
+  inputs, outputs = sess.run(fetches, feed_dict=feed_dict)
+
+  return model.infer(inputs, outputs)
+
+def get_base_config(args):
+  """This function parses the command line arguments, reads the config file, and
+  gets the base_model from the config.
+
+  Args:
+    args (str): The command line arugments
+
+  Returns
+    args (dict): The arguments parsed into a dictionary
+    base_config (dict): The config read from the file and ammended with the
+      command line arguments
+    base_model (OpenSeq2Seq model): The model specified in the config file
+    config_module (dict): The raw config file processed by runpy
+  """
+  parser = argparse.ArgumentParser(description='Experiment parameters')
+  parser.add_argument("--config_file", required=True,
+                      help="Path to the configuration file")
+  parser.add_argument("--mode", default='train',
+                      help="Could be \"train\", \"eval\", "
+                           "\"train_eval\" or \"infer\"")
+  parser.add_argument("--infer_output_file",
+                      help="Path to the output of inference")
+  parser.add_argument('--continue_learning', dest='continue_learning',
+                      action='store_true', help="whether to continue learning")
+  parser.add_argument('--no_dir_check', dest='no_dir_check',
+                      action='store_true',
+                      help="whether to check that everything is correct "
+                           "with log directory")
+  parser.add_argument('--benchmark', dest='benchmark', action='store_true',
+                      help='automatic config change for benchmarking')
+  parser.add_argument('--bench_steps', type=int, default='20',
+                      help='max_steps for benchmarking')
+  parser.add_argument('--bench_start', type=int,
+                      help='first step to start counting time for benchmarking')
+  parser.add_argument('--debug_port', type=int,
+                      help='run TensorFlow in debug mode on specified port')
+  parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
+                      help='whether to log output, git info, cmd args, etc.')
+  args, unknown = parser.parse_known_args(args)
+
+  if args.mode not in [
+      'train',
+      'eval',
+      'train_eval',
+      'infer',
+      'interactive_infer'
+  ]:
+    raise ValueError("Mode has to be one of "
+                     "['train', 'eval', 'train_eval', 'infer', "
+                     "'interactive_infer']")
+  config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
+
+  base_config = config_module.get('base_params', None)
+  if base_config is None:
+    raise ValueError('base_config dictionary has to be '
+                     'defined in the config file')
+  base_model = config_module.get('base_model', None)
+  if base_model is None:
+    raise ValueError('base_config class has to be defined in the config file')
+
+  # after we read the config, trying to overwrite some of the properties
+  # with command line arguments that were passed to the script
+  parser_unk = argparse.ArgumentParser()
+  for pm, value in flatten_dict(base_config).items():
+    if type(value) == int or type(value) == float or \
+       isinstance(value, string_types):
+      parser_unk.add_argument('--' + pm, default=value, type=type(value))
+    elif type(value) == bool:
+      parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
+  config_update = parser_unk.parse_args(unknown)
+  nested_update(base_config, nest_dict(vars(config_update)))
+
+  return args, base_config, base_model, config_module
+
+def check_logdir(args, base_config):
+  """A helper function that ensures the logdir is setup correctly
+
+  Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+
+  Returns:
+    checkpoint: Either None if continue-learning is not set and training, or
+      the name of the checkpoint used to restore the model
+  """
+  # checking that everything is correct with log directory
+  logdir = base_config['logdir']
+  if args.benchmark:
+    args.no_dir_check = True
+  try:
+    if args.enable_logs:
+      ckpt_dir = os.path.join(logdir, 'logs')
+    else:
+      ckpt_dir = logdir
+    if args.mode == 'train' or args.mode == 'train_eval':
+      if os.path.isfile(logdir):
+        raise IOError("There is a file with the same name as \"logdir\" "
+                      "parameter. You should change the log directory path "
+                      "or delete the file to continue.")
+
+      # check if "logdir" directory exists and non-empty
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        if not args.continue_learning:
+          raise IOError("Log directory is not empty. If you want to continue "
+                        "learning, you should provide "
+                        "\"--continue_learning\" flag")
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if checkpoint is None:
+          raise IOError(
+              "There is no valid TensorFlow checkpoint in the "
+              "{} directory. Can't load model".format(ckpt_dir)
+          )
+      else:
+        if args.continue_learning:
+          raise IOError("The log directory is empty or does not exist. "
+                        "You should probably not provide "
+                        "\"--continue_learning\" flag?")
+        checkpoint = None
+    elif (args.mode == 'infer' or args.mode == 'eval' or
+        args.mode == 'interactive_infer'):
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if checkpoint is None:
+          raise IOError(
+              "There is no valid TensorFlow checkpoint in the "
+              "{} directory. Can't load model".format(ckpt_dir)
+          )
+      else:
+        raise IOError(
+            "{} does not exist or is empty, can't restore model".format(
+                ckpt_dir
+            )
+        )
+  except IOError as e:
+    if args.no_dir_check:
+      print("Warning: {}".format(e))
+      print("Resuming operation since no_dir_check argument was provided")
+    else:
+      raise
+
+  return checkpoint
+
+def create_logdir(args, base_config):
+  """A helper function that ensures the logdir and log files are setup corretly.
+  Only called in --enable_logs is set.
+
+   Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+
+  Returns:
+    Some objects that need to be cleaned up in run.py
+  """
+  logdir = base_config['logdir']
+  if not os.path.exists(logdir):
+    os.makedirs(logdir)
+
+  tm_suf = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+  shutil.copy(
+      args.config_file,
+      os.path.join(logdir, 'config_{}.py'.format(tm_suf)),
+  )
+
+  with open(os.path.join(logdir, 'cmd-args_{}.log'.format(tm_suf)),
+            'w') as f:
+    f.write(" ".join(sys.argv))
+
+  with open(os.path.join(logdir, 'git-info_{}.log'.format(tm_suf)),
+            'w') as f:
+    f.write('commit hash: {}'.format(get_git_hash()))
+    f.write(get_git_diff())
+
+  old_stdout = sys.stdout
+  old_stderr = sys.stderr
+  stdout_log = open(
+      os.path.join(logdir, 'stdout_{}.log'.format(tm_suf)), 'a', 1
+  )
+  stderr_log = open(
+      os.path.join(logdir, 'stderr_{}.log'.format(tm_suf)), 'a', 1
+  )
+  sys.stdout = Logger(sys.stdout, stdout_log)
+  sys.stderr = Logger(sys.stderr, stderr_log)
+
+  return old_stdout, old_stderr, stdout_log, stderr_log
+
+def create_model(args, base_config, config_module, base_model, hvd):
+  """A helpful function that creates the train, eval, and infer models as
+  needed.
+
+  Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+    config_module: config_module as returned from get_base_config()
+    base_model (OpenSeq2Seq model): Dictionary as returned from
+      get_base_config()
+    hvd: Either None if Horovod is not enabled, or the Horovod library
+
+  Returns:
+    model: A compiled model. For the 'train_eval' mode, a tuple containing the
+      (train_model, eval_model) is returned.
+  """
+  train_config = copy.deepcopy(base_config)
+  eval_config = copy.deepcopy(base_config)
+  infer_config = copy.deepcopy(base_config)
+
+  if args.mode == 'train' or args.mode == 'train_eval':
+    if 'train_params' in config_module:
+      nested_update(train_config, copy.deepcopy(config_module['train_params']))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Training config:")
+      pprint.pprint(train_config)
+  if args.mode == 'eval' or args.mode == 'train_eval':
+    if 'eval_params' in config_module:
+      nested_update(eval_config, copy.deepcopy(config_module['eval_params']))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Evaluation config:")
+      pprint.pprint(eval_config)
+  if args.mode == "infer":
+    if args.infer_output_file is None:
+      raise ValueError("\"infer_output_file\" command line parameter is "
+                       "required in inference mode")
+    if "infer_params" in config_module:
+      nested_update(infer_config, copy.deepcopy(config_module['infer_params']))
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
+  if args.mode == "interactive_infer":
+    if "interactive_infer_params" in config_module:
+      nested_update(
+          infer_config,
+          copy.deepcopy(config_module['interactive_infer_params'])
+      )
+    if hvd is None or hvd.rank() == 0:
+      deco_print("Inference config:")
+      pprint.pprint(infer_config)
+
+
+  if args.benchmark:
+    deco_print("Adjusting config for benchmarking")
+    train_config['print_samples_steps'] = None
+    train_config['print_loss_steps'] = 1
+    train_config['save_summaries_steps'] = None
+    train_config['save_checkpoint_steps'] = None
+    train_config['logdir'] = str("")
+    if 'num_epochs' in train_config:
+      del train_config['num_epochs']
+    train_config['max_steps'] = args.bench_steps
+    if args.bench_start:
+      train_config['bench_start'] = args.bench_start
+    elif 'bench_start' not in train_config:
+      train_config['bench_start'] = 10  # default value
+
+    if hvd is None or hvd.rank() == 0:
+      deco_print("New benchmarking config:")
+      pprint.pprint(train_config)
+    args.mode = "train"
+
+  if args.mode == 'train_eval':
+    train_model = base_model(params=train_config, mode="train", hvd=hvd)
+    train_model.compile()
+    eval_model = base_model(params=eval_config, mode="eval", hvd=hvd)
+    eval_model.compile(force_var_reuse=True)
+    model = (train_model, eval_model)
+  elif args.mode == 'train':
+    model = base_model(params=train_config, mode="train", hvd=hvd)
+    model.compile()
+  elif args.mode == 'eval':
+    model = base_model(params=eval_config, mode="eval", hvd=hvd)
+    model.compile(force_var_reuse=False)
+  else:
+    model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
+    model.compile()
+
+  return model

@@ -11,13 +11,13 @@ from open_seq2seq.test_utils.create_reversed_examples import create_data, \
 
 class ParallelTextDataLayerTests(tf.test.TestCase):
   def setUp(self):
-    create_data()
+    create_data(train_corpus_size=1000, data_path="tmp1")
     batch_size = 2
     self.params = {
-        'src_vocab_file': "./toy_data/vocab/source.txt",
-        'tgt_vocab_file': "./toy_data/vocab/target.txt",
-        'source_file': "./toy_data/train/source.txt",
-        'target_file': "./toy_data/train/target.txt",
+        'src_vocab_file': "tmp1/vocab/source.txt",
+        'tgt_vocab_file': "tmp1/vocab/target.txt",
+        'source_file': "tmp1/train/source.txt",
+        'target_file': "tmp1/train/target.txt",
         'shuffle': True,
         'batch_size': batch_size,
         'max_length': 56,
@@ -29,7 +29,7 @@ class ParallelTextDataLayerTests(tf.test.TestCase):
     }
 
   def tearDown(self):
-    remove_data()
+    remove_data(data_path='tmp1')
 
   def test_init_test4(self):
     dl = ParallelTextDataLayer(params=self.params, model=None)

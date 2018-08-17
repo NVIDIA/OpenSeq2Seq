@@ -56,7 +56,7 @@ def create_directory(path):
 
 
 def create_data(train_corpus_size=10000, dev_corpus_size=1000,
-                test_corpus_size=2000, data_path="./toy_data"):
+                test_corpus_size=2000, data_path="./toy_text_data"):
 
   train_path = os.path.join(data_path, "train")
   dev_path = os.path.join(data_path, "dev")
@@ -113,9 +113,9 @@ def create_data(train_corpus_size=10000, dev_corpus_size=1000,
   write_vocab_to_file(vocab_target_path, source_vocab, vocab_map)
 
 
-def remove_data(data_path="./toy_data"):
+def remove_data(data_path="./toy_text_data"):
   shutil.rmtree(data_path)
 
 
 if __name__ == '__main__':
-  create_data(data_path='toy_text_data')
+  create_data(data_path='./toy_text_data')
