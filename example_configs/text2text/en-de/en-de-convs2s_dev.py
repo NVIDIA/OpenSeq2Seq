@@ -19,11 +19,11 @@ import math
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "./wmt16_en_dt/"
-data_size = 40660000 #4500000 40660000
+data_size = 4500000 #4500000 40660000 (bigadata)
 
 base_model = Text2Text
 
-factor = 2 # 1 2
+factor = 1 # 1 2
 factor_layer = 0 #0 5
 
 num_layers = 15 + factor_layer
@@ -34,12 +34,12 @@ pad_2_eight = True
 
 batch_size = 128
 epoch_num = 20
-num_gpus = 8
+num_gpus = 4
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = True
-use_horovod = True
+shuffle_train = False
+use_horovod = False
 
 max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
 
