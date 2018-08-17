@@ -33,7 +33,7 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 1e-3,
+        "learning_rate": 1e-4,
         "power": 2.0,
         "min_lr": 1e-6
     },
@@ -87,6 +87,12 @@ base_params = {
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,
             },
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [1], "stride": [1],
+                "num_channels": 512, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
+            },
         ],
 
         "recurrent_layers": [],
@@ -110,11 +116,11 @@ base_params = {
         "attn_params": {
           "tgt_emb_size": 256,
 
-          "pos_embedding": False,
+          "pos_embedding": True,
 
           "attention_params": {
               "attention_dim": 256,
-              "attention_type": "bahadanu",
+              "attention_type": "luong",
               #"use_coverage": True,
           },
 
@@ -126,8 +132,8 @@ base_params = {
               "data_format": 'channels_last',
               "convnet_layers": [
                 {
-                  "type": "tcn", "repeat": 1,
-                  "kernel_size": [11], "stride": [1],
+                  "type": "tcn", "repeat": 2,
+                  "kernel_size": [9], "stride": [1],
                   "num_channels": 512, "padding": "VALID",
                   "dropout_keep_prob": 0.8,
                 },
