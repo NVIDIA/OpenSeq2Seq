@@ -44,7 +44,6 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
                  padding, dilation, regularizer, training, data_format, bn_momentum,
                  bn_epsilon):
   """Helper function that applies convolution, batch norm and activation.
-    Accepts inputs in 'channels_last' format only.
     Args:
       layer_type: the following types are supported
         'conv1d', 'conv2d'
@@ -68,7 +67,8 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
   if layer_type == "conv1d":
-    conv = tf.expand_dims(conv, axis=1)  # NWC --> NHWC
+    axis = 1 if data_format == 'channels_last' else 2
+    conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
     squeeze = True
 
   bn = tf.layers.batch_normalization(
@@ -93,7 +93,6 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
 def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
                  padding, dilation, regularizer, training, data_format):
   """Helper function that applies convolution, layer norm and activation.
-    Accepts inputs in 'channels_last' format only.
     Args:
       layer_type: the following types are supported
         'conv1d', 'conv2d'
@@ -125,7 +124,6 @@ def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
 def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
                  padding, dilation, regularizer, training, data_format):
   """Helper function that applies convolution, instance norm and activation.
-    Accepts inputs in 'channels_last' format only.
     Args:
       layer_type: the following types are supported
         'conv1d', 'conv2d'
