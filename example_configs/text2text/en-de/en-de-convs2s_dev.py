@@ -23,7 +23,7 @@ data_size = 40660000 #4500000 40660000
 
 base_model = Text2Text
 
-factor = 1 # 1 2
+factor = 2 # 1 2
 factor_layer = 0 #0 5
 
 num_layers = 15 + factor_layer
@@ -33,12 +33,12 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-epoch_num = 25
+epoch_num = 20
 num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = True
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
@@ -61,7 +61,7 @@ base_params = {
   "save_summaries_steps": max(1, int(max_steps/1000.0)),
   "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None, #max(1, int(max_steps/1000.0)),
-  "eval_steps": max(1, int(max_steps/100.0)),
+  "eval_steps": max(1, int(max_steps/25.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
