@@ -262,7 +262,8 @@ class Conv2LetterDecoder(Decoder):
           print(attn_output)
           print(conv_feats)
 
-      logits = output_projection_layer(tf.concat([conv_feats, attn_output], -1))      
+      #logits = output_projection_layer(tf.concat([conv_feats, attn_output], -1))
+      logits = output_projection_layer(conv_feats)      
       outputs = tf.argmax(logits, axis=-1)
       final_sequence_lengths = tgt_lengths
       print(alignments)

@@ -75,13 +75,19 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 5,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 4,
+                "type": "conv1d", "repeat": 5,
+                "kernel_size": [11], "stride": [1],
+                "num_channels": 768, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
+            },
+            {
+                "type": "conv1d", "repeat": 5,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,
@@ -115,7 +121,7 @@ base_params = {
               "attention_dim": 256,
               "attention_type": "chorowski",
               "use_coverage": True,
-              "num_heads": 2,
+              "num_heads": 1,
           },
           
           "rnn_type": "lstm",
@@ -154,7 +160,7 @@ base_params = {
       "ctc_loss_params": {
       },
 
-      "lambda_value" : 0.2,
+      "lambda_value" : 0.25,
       "lambda_params": {
         "values": [],
         "boundaries": [],

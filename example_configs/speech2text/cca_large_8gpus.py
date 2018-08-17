@@ -14,7 +14,7 @@ base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
+    "use_horovod": False,
     "num_epochs": 50,
 
     "num_gpus": 8,
@@ -33,7 +33,7 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 1e-4,
+        "learning_rate": 0.0005,
         "power": 2.0,
         "min_lr": 1e-6
     },
@@ -187,9 +187,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "../librispeech/librivox-train-clean-100.csv",
+            "../librispeech/librivox-train-clean-360.csv",
+            "../librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
