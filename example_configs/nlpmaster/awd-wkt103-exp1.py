@@ -25,12 +25,13 @@ base_params = {
   "num_gpus": 2,
 
   "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 64,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP51",
+  "logdir": "AWDWKT103-1",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -115,8 +116,8 @@ train_params = {
     "pad_vocab_to_eight": False,
     "vocab_file": data_root+"vocab.txt",
     "content_file": data_root+"train.ids",
-    "rand_start": True,
-    "shuffle": True,
+    "rand_start": False,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,

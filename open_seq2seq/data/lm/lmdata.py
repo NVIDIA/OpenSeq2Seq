@@ -42,6 +42,7 @@ class LMTextDataLayer(DataLayer):
     super(LMTextDataLayer, self).__init__(params, model,
                                           num_workers, worker_id)
 
+    
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
       self._batch_size = self.params['batch_size']
     else:
@@ -94,6 +95,14 @@ class LMTextDataLayer(DataLayer):
     self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
 
     self._input_tensors = {}
+
+    # if self.params['mode'] == 'eval' and self.params['vocab_size'] > 100000:
+    #   self.params['batch_size'] = 32
+
+    # elif self.params['mode'] == 'infer':
+    #   self.params['batch_size'] = 1
+
+    self._batch_size
 
   def gen(self):
     while True:

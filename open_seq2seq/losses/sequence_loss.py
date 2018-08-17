@@ -350,7 +350,6 @@ class BasicSampledSequenceLoss(Loss):
     self._offset_target_by_one = self.params.get("offset_target_by_one", True)
     self._average_across_timestep = self.params.get("average_across_timestep", False)
     self._do_mask = self.params.get("do_mask", True)
-    self._hid_dim = self.params['hid_dim']
 
   def _compute_loss(self, input_dict):
     """Computes cross entropy based sequence-to-sequence loss.
@@ -370,7 +369,9 @@ class BasicSampledSequenceLoss(Loss):
     tgt_lengths = input_dict['target_tensors'][1]
 
     if 'weights' in input_dict['decoder_output']:
+      print('DOING SAMPLED LOSS')
       inputs = input_dict["decoder_output"]['inputs']
+      self._hid_dim = inputs.get_shape().as_list()[-1]
       inputs = tf.reshape(inputs, (-1, self._hid_dim))
       targets = tf.reshape(target_sequence, (-1, 1))
       crossent = tf.nn.sampled_softmax_loss(input_dict["decoder_output"]['weights'], 

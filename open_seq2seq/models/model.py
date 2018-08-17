@@ -66,6 +66,7 @@ class Model:
       'eval_steps': int,
       'base_logdir': str,
       'finetune': bool,
+      'eval_batch_size_per_gpu': int,
 
       'random_seed': int,
       'num_epochs': int,
@@ -228,6 +229,7 @@ class Model:
 
     self._params['finetune'] = self._params.get('finetune', False)
     self._params['base_logdir'] = self._params.get('base_logdir', None)
+    self._params['eval_batch_size_per_gpu'] = self._params.get('eval_batch_size_per_gpu', self._params['batch_size_per_gpu'])
 
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
@@ -259,7 +261,10 @@ class Model:
       self._params['dtype'] = tf.float32
 
     dl_params = self._params.get('data_layer_params', {})
-    dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    if mode == 'train':
+      dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    else:
+      dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
     dl_params['mode'] = self._mode
 
     if self.on_horovod:

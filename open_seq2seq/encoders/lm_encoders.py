@@ -110,6 +110,8 @@ class AWDLSTMEncoder(Encoder):
     else:
       self.num_tokens_gen = 1
       self._batch_size = self.params['batch_size']
+      # if self._vocab_size > 100000 and mode == 'eval':
+      #   self._batch_size = 2
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
@@ -122,6 +124,8 @@ class AWDLSTMEncoder(Encoder):
     Returns:
       see :meth:`self._encode() <_encode>` docs.
     """
+
+    print('BATCH SIZE', self._batch_size)
     if not self._compiled:
       if 'regularizer' not in self._params:
         if self._model and 'regularizer' in self._model.params:

@@ -27,12 +27,12 @@ class AWDLSTM(EncoderDecoderModel):
     return super(AWDLSTM, self)._create_encoder()
 
   def _create_loss(self):
-    self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
+    # self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
+    self.params['loss_params']['batch_size'] = self.get_data_layer().params['batch_size']
     
     self.params['loss_params']['tgt_vocab_size'] = (
       self.get_data_layer().params['vocab_size']
     )
-    self.params['loss_params']['hid_dim'] = self.params['encoder_params']['last_cell_params']['num_units']
 
     return super(AWDLSTM, self)._create_loss()
 
