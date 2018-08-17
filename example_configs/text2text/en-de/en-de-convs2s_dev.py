@@ -38,7 +38,7 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = False
+shuffle_train = True
 use_horovod = True
 
 max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
