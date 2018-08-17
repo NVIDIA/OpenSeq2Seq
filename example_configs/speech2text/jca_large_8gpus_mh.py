@@ -6,6 +6,8 @@ from open_seq2seq.decoders import JointCTCAttentionDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import MultiTaskCTCEntropyLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.decoders import ListenAttendSpellDecoder
+from open_seq2seq.decoders import FullyConnectedCTCDecoder
 
 base_model = Speech2Text
 
@@ -103,8 +105,8 @@ base_params = {
 
     "decoder": JointCTCAttentionDecoder,
     "decoder_params": {
-
-        "las_params": {
+        "attn_decoder": ListenAttendSpellDecoder,
+        "attn_params": {
           "tgt_emb_size": 256,
 
           "pos_embedding": True,
@@ -122,7 +124,7 @@ base_params = {
 
           "dropout_keep_prob": 0.8,
         },
-        
+        "ctc_decoder": FullyConnectedCTCDecoder,
         "ctc_params": {
           "initializer": tf.contrib.layers.xavier_initializer,
           "use_language_model": False,
