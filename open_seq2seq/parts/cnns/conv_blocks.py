@@ -82,7 +82,7 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   )
 
   if squeeze:
-    bn = tf.squeeze(bn, axis=1)
+    bn = tf.squeeze(bn, axis=axis)
 
   output = bn
   if activation_fn is not None:
