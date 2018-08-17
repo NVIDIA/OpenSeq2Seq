@@ -314,6 +314,175 @@ class _BaseAttentionMechanism(AttentionMechanism):
     return self.initial_alignments(batch_size, dtype)
 
 
+def _multidim_dense(inputs, dense_layer):
+  if inputs.get_shape().ndims == 3:
+    batch_size = inputs.shape[0].value or array_ops.shape(inputs)[0]
+    max_len = inputs.shape[1].value or array_ops.shape(inputs)[1]
+    hidden_dim = inputs.shape[2].value or array_ops.shape(inputs)[2]
+    processed_inputs = array_ops.reshape(inputs, [-1, hidden_dim])
+  processed_inputs = dense_layer(processed_inputs)
+  if inputs.get_shape().ndims == 3:
+    processed_inputs = array_ops.reshape(processed_inputs, [batch_size, max_len, -1])
+  return processed_inputs
+
+def _luong_score(query, keys, scale):
+  """Implements Luong-style (multiplicative) scoring function.
+
+  This attention has two forms.  The first is standard Luong attention,
+  as described in:
+
+  Minh-Thang Luong, Hieu Pham, Christopher D. Manning.
+  "Effective Approaches to Attention-based Neural Machine Translation."
+  EMNLP 2015.  https://arxiv.org/abs/1508.04025
+
+  The second is the scaled form inspired partly by the normalized form of
+  Bahdanau attention.
+
+  To enable the second form, call this function with `scale=True`.
+
+  Args:
+    query: Tensor, shape `[batch_size, num_units]` to compare to keys.
+    keys: Processed memory, shape `[batch_size, max_time, num_units]`.
+    scale: Whether to apply a scale to the score function.
+
+  Returns:
+    A `[batch_size, max_time]` tensor of unnormalized score values.
+
+  Raises:
+    ValueError: If `key` and `query` depths do not match.
+  """
+  depth = query.get_shape()[-1]
+  key_units = keys.get_shape()[-1]
+  if depth != key_units:
+    raise ValueError(
+        "Incompatible or unknown inner dimensions between query and keys.  "
+        "Query (%s) has units: %s.  Keys (%s) have units: %s.  "
+        "Perhaps you need to set num_units to the keys' dimension (%s)?" %
+        (query, depth, keys, key_units, key_units)
+    )
+  dtype = query.dtype
+
+  # Reshape from [batch_size, depth] to [batch_size, 1, depth]
+  # for matmul.
+
+  squeeze = False
+  if query.get_shape().ndims == 2:
+    query = array_ops.expand_dims(query, 1)
+    squeeze = True
+
+  # Inner product along the query units dimension.
+  # matmul shapes: query is [batch_size, 1, depth] and
+  #                keys is [batch_size, max_time, depth].
+  # the inner product is asked to **transpose keys' inner shape** to get a
+  # batched matmul on:
+  #   [batch_size, 1, depth] . [batch_size, depth, max_time]
+  # resulting in an output shape of:
+  #   [batch_size, 1, max_time].
+  # we then squeeze out the center singleton dimension.
+  score = math_ops.matmul(query, keys, transpose_b=True)
+  if squeeze == True:
+    score = array_ops.squeeze(score, [1])
+
+  if scale:
+    # Scalar used in weight scaling
+    g = variable_scope.get_variable("attention_g", dtype=dtype, initializer=1.)
+    score = g * score
+  return score
+
+class LuongAttention(_BaseAttentionMechanism):
+  """Implements Luong-style (multiplicative) attention scoring.
+
+  This attention has two forms.  The first is standard Luong attention,
+  as described in:
+
+  Minh-Thang Luong, Hieu Pham, Christopher D. Manning.
+  "Effective Approaches to Attention-based Neural Machine Translation."
+  EMNLP 2015.  https://arxiv.org/abs/1508.04025
+
+  The second is the scaled form inspired partly by the normalized form of
+  Bahdanau attention.
+
+  To enable the second form, construct the object with parameter
+  `scale=True`.
+  """
+
+  def __init__(
+      self,
+      num_units,
+      memory,
+      memory_sequence_length=None,
+      scale=False,
+      probability_fn=None,
+      score_mask_value=None,
+      dtype=None,
+      name="LuongAttention"
+  ):
+    """Construct the AttentionMechanism mechanism.
+
+    Args:
+      num_units: The depth of the attention mechanism.
+      memory: The memory to query; usually the output of an RNN encoder.  This
+        tensor should be shaped `[batch_size, max_time, ...]`.
+      memory_sequence_length: (optional) Sequence lengths for the batch entries
+        in memory.  If provided, the memory tensor rows are masked with zeros
+        for values past the respective sequence lengths.
+      scale: Python boolean.  Whether to scale the energy term.
+      probability_fn: (optional) A `callable`.  Converts the score to
+        probabilities.  The default is @{tf.nn.softmax}. Other options include
+        @{tf.contrib.seq2seq.hardmax} and @{tf.contrib.sparsemax.sparsemax}.
+        Its signature should be: `probabilities = probability_fn(score)`.
+      score_mask_value: (optional) The mask value for score before passing into
+        `probability_fn`. The default is -inf. Only used if
+        `memory_sequence_length` is not None.
+      dtype: The data type for the memory layer of the attention mechanism.
+      name: Name to use when creating ops.
+    """
+    # For LuongAttention, we only transform the memory layer; thus
+    # num_units **must** match expected the query depth.
+    if probability_fn is None:
+      probability_fn = nn_ops.softmax
+    if dtype is None:
+      dtype = dtypes.float32
+    wrapped_probability_fn = lambda score, _: probability_fn(score)
+    super(LuongAttention, self).__init__(
+        query_layer=layers_core.Dense(
+            num_units, name="query_layer", use_bias=False, dtype=dtype
+        ),
+        memory_layer=layers_core.Dense(
+            num_units, name="memory_layer", use_bias=False, dtype=dtype
+        ),
+        memory=memory,
+        probability_fn=wrapped_probability_fn,
+        memory_sequence_length=memory_sequence_length,
+        score_mask_value=score_mask_value,
+        name=name
+    )
+    self._num_units = num_units
+    self._scale = scale
+    self._name = name
+
+  def __call__(self, query, state):
+    """Score the query based on the keys and values.
+
+    Args:
+      query: Tensor of dtype matching `self.values` and shape
+        `[batch_size, query_depth]`.
+      state: Tensor of dtype matching `self.values` and shape
+        `[batch_size, alignments_size]`
+        (`alignments_size` is memory's `max_time`).
+
+    Returns:
+      alignments: Tensor of dtype matching `self.values` and shape
+        `[batch_size, alignments_size]` (`alignments_size` is memory's
+        `max_time`).
+    """
+    with variable_scope.variable_scope(None, "luong_attention", [query]):
+      processed_query = _multidim_dense(query, self.query_layer) if self.query_layer else query
+      score = _luong_score(processed_query, self._keys, self._scale)
+    alignments = self._probability_fn(score, state)
+    next_state = alignments
+    return alignments, next_state
+
 def _bahdanau_score(processed_query, keys, normalize):
   """Implements Bahdanau-style (additive) scoring function.
 
@@ -475,19 +644,11 @@ class BahdanauAttention(_BaseAttentionMechanism):
         `max_time`).
     """
     with variable_scope.variable_scope(None, "bahdanau_attention", [query]):
-      if query.get_shape().ndims == 3:
-        batch_size = query.shape[0].value or array_ops.shape(query)[0]
-        max_len = query.shape[1].value or array_ops.shape(query)[1]
-        hidden_dim = query.shape[2].value or array_ops.shape(query)[2]
-        query = array_ops.reshape(query, [-1, hidden_dim])
-        processed_query = self.query_layer(query) if self.query_layer else query
-        processed_query = array_ops.reshape(processed_query, [batch_size, max_len, -1])
-        print(processed_query)
-
+      processed_query = _multidim_dense(query, self.query_layer) if self.query_layer else query
       score = _bahdanau_score(processed_query, self._keys, self._normalize)
     alignments = self._probability_fn(score, state)
     next_state = alignments
-    return alignments, next_state, self._values
+    return alignments, next_state
 
 
 def hardmax(logits, name=None):
@@ -516,17 +677,17 @@ def _compute_attention(
     attention_mechanism, cell_output, attention_state, attention_layer
 ):
   """Computes the attention and alignments for a given attention_mechanism."""
-  alignments, next_attention_state, values = attention_mechanism(
+  alignments, next_attention_state = attention_mechanism(
       cell_output, state=attention_state
   )
+  values = attention_mechanism.values
+  
+  if alignments.get_shape().ndims == 2:
+    # Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]
+    expanded_alignments = array_ops.expand_dims(alignments, -2)
+  elif alignments.get_shape().ndims == 3:
+    expanded_alignments = alignments
 
-  if alignments.get_shape().ndims == 3:
-    max_len = alignments.shape[1].value or array_ops.shape(alignments)[1]
-    values = array_ops.expand_dims(values, 1)
-    values = array_ops.tile(values, [1, max_len, 1, 1])
-
-  # Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]
-  expanded_alignments = array_ops.expand_dims(alignments, -2)
   # Context is the inner product of alignments and values along the
   # memory time dimension.
   # alignments shape is
@@ -540,7 +701,8 @@ def _compute_attention(
   print(values)
   context = math_ops.matmul(expanded_alignments, values)
   print(context)
-  context = array_ops.squeeze(context, [-2])
+  if alignments.get_shape().ndims == 2:
+    context = array_ops.squeeze(context, [-2])
 
   if attention_layer is not None:
     attention = attention_layer(array_ops.concat([cell_output, context], -1))

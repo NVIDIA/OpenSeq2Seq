@@ -32,8 +32,9 @@ def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
 
     text[batch_num] = ""
     for idx in tensor[batch_num]:
-      if idx != endindex:
-        text[batch_num] += idx2char[idx]
+      #if idx == endindex:
+        #break
+      text[batch_num] += idx2char[idx]
   return text
 
 
@@ -133,7 +134,7 @@ class Speech2Text(EncoderDecoderModel):
         len(true_text.split())
 
     self.autoregressive = self.get_data_layer().params['autoregressive']
-    self.plot_attention = False
+    self.plot_attention = True
     if self.plot_attention:
       attention_summary = plot_attention(
           output_values[1][0], pred_text, output_values[2][0], training_step)
@@ -142,6 +143,10 @@ class Speech2Text(EncoderDecoderModel):
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
+    deco_print("Output Shape: {}".format(decoded_sequence[0].shape), offset=4)
+    deco_print("Alignment Shape: {}".format(decoded_sequence[1].shape), offset=4)
+    deco_print("Encoder Lengths: {}".format(decoded_sequence[2]), offset=4)
+    #deco_print("Target Lengths: {}".format(decoded_sequence[3]), offset=4)
 
     if self.plot_attention:
       return {

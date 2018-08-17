@@ -58,11 +58,6 @@ class TemporalConvolutionalLayer(tf.layers.Conv1D):
     inputs = tf.concat([padding, inputs], 1)
     return super(TemporalConvolutionalLayer, self).call(inputs)
 
-  def compute_output_shape(self, input_shape):
-    input_shape = tf.TensorShape(input_shape).as_list()
-    length = (input_shape[1] + self.strides[0] - 1) // strides[0]
-    return tf.TensorShape([input_shape[0], length, self.filters])
-
 
 def tcn(inputs,
         filters,

@@ -7,6 +7,7 @@ import tensorflow as tf
 from .decoder import Decoder
 from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
 from open_seq2seq.parts.cnns.attention_wrapper import BahdanauAttention, \
+    LuongAttention, \
     _compute_attention
 
 
@@ -119,7 +120,7 @@ class Conv2LetterDecoder(Decoder):
         dtype=tf.float32,
     )
 
-    '''if self.params['pos_embedding']:
+    if self.params['pos_embedding']:
       self.enc_pos_emb_size = int(encoder_outputs.get_shape()[-1])
       self.enc_pos_emb_layer = tf.get_variable(
           name='EncoderPositionEmbeddingMatrix',
@@ -152,7 +153,7 @@ class Conv2LetterDecoder(Decoder):
           delta=1,
           dtype=tf.int32,
           name='positional_inputs'
-      )'''
+      )
 
     output_projection_layer = FullyConnected(
         [hdim for hdim in fc_params] + [self._tgt_vocab_size],
@@ -182,7 +183,10 @@ class Conv2LetterDecoder(Decoder):
     attention_params_dict = {}
     if attention_type == "bahadanu":
       AttentionMechanism = BahdanauAttention
-      attention_params_dict["normalize"] = False,
+      attention_params_dict["normalize"] = False
+    elif attention_type == "luong":
+      AttentionMechanism = LuongAttention
+      attention_params_dict["scale"] = False
     elif attention_type == "chorowski":
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
@@ -225,40 +229,38 @@ class Conv2LetterDecoder(Decoder):
 
     if self._mode == "train":
       conv_feats = tgt_input_vectors
-      idx_convnet = 0
-      idx_layer = 0
-      layer_type = convnet_layers[idx_convnet]['type']
-      layer_repeat = convnet_layers[idx_convnet]['repeat']
-      ch_out = convnet_layers[idx_convnet]['num_channels']
-      kernel_size = convnet_layers[idx_convnet]['kernel_size']
-      strides = convnet_layers[idx_convnet]['stride']
-      padding = convnet_layers[idx_convnet]['padding']
-      dropout_keep = convnet_layers[idx_convnet].get(
-          'dropout_keep_prob', dropout_keep_prob) if training else 1.0
-
-      conv_feats = conv_block(
-            layer_type=layer_type,
-            name="conv{}{}".format(
-                idx_convnet + 1, idx_layer + 1),
-            inputs=conv_feats,
-            filters=ch_out,
-            kernel_size=kernel_size,
-            activation_fn=activation_fn,
-            strides=strides,
-            padding=padding,
-            regularizer=regularizer,
-            training=training,
-            data_format=data_format,
-            use_residual=False,
-            **normalization_params
-      )
-      #conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
-      #conv_output = tf.reshape(conv_feats, [-1, int(conv_feats.get_shape()[-1])])
-      conv_output = conv_feats
-      print(conv_output)
-      attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_output, None, None)
-      print(attn_output)
-      #attn_output = tf.reshape(attn_output, [tf.shape(conv_feats)[0], tf.shape(conv_feats)[1], int(encoder_outputs.get_shape()[2])])
+      for idx_convnet in range(len(convnet_layers)):
+        layer_type = convnet_layers[idx_convnet]['type']
+        layer_repeat = convnet_layers[idx_convnet]['repeat']
+        ch_out = convnet_layers[idx_convnet]['num_channels']
+        kernel_size = convnet_layers[idx_convnet]['kernel_size']
+        strides = convnet_layers[idx_convnet]['stride']
+        padding = convnet_layers[idx_convnet]['padding']
+        dropout_keep = convnet_layers[idx_convnet].get(
+            'dropout_keep_prob', dropout_keep_prob) if training else 1.0
+        
+        for idx_layer in range(layer_repeat):
+          conv_feats = conv_block(
+                layer_type=layer_type,
+                name="conv{}{}".format(
+                    idx_convnet + 1, idx_layer + 1),
+                inputs=conv_feats,
+                filters=ch_out,
+                kernel_size=kernel_size,
+                activation_fn=activation_fn,
+                strides=strides,
+                padding=padding,
+                regularizer=regularizer,
+                training=training,
+                data_format=data_format,
+                use_residual=False,
+                **normalization_params
+          )
+          #conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
+          attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_feats, None, None)
+          conv_feats = conv_feats + attn_output
+          print(attn_output)
+          print(conv_feats)
 
       logits = output_projection_layer(tf.concat([conv_feats, attn_output], -1))      
       outputs = tf.argmax(logits, axis=-1)
@@ -266,7 +268,7 @@ class Conv2LetterDecoder(Decoder):
       print(alignments)
 
     return {
-        'outputs': [outputs, alignments, enc_src_lengths],
+        'outputs': [outputs, alignments, enc_src_lengths, tgt_lengths],
         'logits': logits,
         'tgt_length': final_sequence_lengths,
     }
