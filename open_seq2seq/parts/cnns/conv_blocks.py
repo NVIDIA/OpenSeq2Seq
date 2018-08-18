@@ -112,9 +112,19 @@ def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
       data_format=data_format,
   )
 
+  if data_format == 'channels_first':
+    if layer_type == "conv1d":
+      conv = tf.transpose(conv, [0, 2, 1])
+    elif layer_type == "conv2d":
+      conv = tf.transpose(conv, [0, 2, 3, 1])
   ln = tf.contrib.layers.layer_norm(
       inputs=conv,
   )
+  if data_format == 'channels_first':
+    if layer_type == "conv1d":
+      ln = tf.transpose(ln, [0, 2, 1])
+    elif layer_type == "conv2d":
+      ln = tf.transpose(ln, [0, 3, 1, 2])
 
   output = ln
   if activation_fn is not None:
@@ -145,6 +155,7 @@ def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
 
   sn = tf.contrib.layers.instance_norm(
       inputs=conv,
+      data_format="NHWC" if data_format == 'channels_last' else "NCHW"
   )
 
   output = sn

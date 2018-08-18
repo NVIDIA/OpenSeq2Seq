@@ -13,10 +13,10 @@ base_model = Speech2Text
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 50,
+    "num_epochs": 200,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 32,
+    "batch_size_per_gpu": 64,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -32,11 +32,8 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.1,
+        "learning_rate": 0.05,
         "power": 2.0,
-    },
-    "larc_params": {
-        "larc_eta": 0.001,
     },
     "larc_params": {
         "larc_eta": 0.001,
@@ -56,6 +53,12 @@ base_params = {
     "encoder": Wave2LetterEncoder,
     "encoder_params": {
         "convnet_layers": [
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
+            },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
@@ -97,18 +100,18 @@ base_params = {
                 "kernel_size": [1], "stride": [1],
                 "num_channels": 1024, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.6,
-            },
+            }
         ],
 
-        "dropout_keep_prob": 0.8,
+        "dropout_keep_prob": 0.7,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
             'uniform': False,
         },
-        "normalization": "batch_norm",
+        "normalization": "layer_norm",
         "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
-        "data_format": "channels_last",
+        "data_format": "channels_first",
     },
 
     "decoder": FullyConnectedCTCDecoder,
