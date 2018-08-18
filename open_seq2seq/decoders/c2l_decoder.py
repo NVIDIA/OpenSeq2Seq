@@ -41,8 +41,8 @@ class FullyConnected(tf.layers.Layer):
     training = (self.mode == "train")
     dropout_keep_prob = self.dropout_keep_prob if training else 1.0
     for layer in self.dense_layers:
-      inputs = layer(inputs)
       inputs = tf.nn.dropout(x=inputs, keep_prob=dropout_keep_prob)
+      inputs = layer(inputs)
     return inputs
 
   def compute_output_shape(self, input_shape):
