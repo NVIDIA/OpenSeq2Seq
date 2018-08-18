@@ -155,7 +155,7 @@ base_params = {
     "dataset": "LJ",
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
+    "vocab_file": "open_seq2seq/test_utils/vocab_tts.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
