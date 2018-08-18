@@ -56,14 +56,12 @@ def plot_spectrograms(
   num_figs = len(specs) + 1
   fig, ax = plt.subplots(nrows=num_figs, figsize=(8, num_figs * 3))
 
-  figures = []
   for i, (spec, title) in enumerate(zip(specs, titles)):
     spec = np.pad(spec, ((1, 1), (1, 1)), "constant", constant_values=0.)
     spec = spec.astype(float)
     colour = ax[i].imshow(
         spec.T, cmap='viridis', interpolation=None, aspect='auto'
     )
-    figures.append(colour)
     ax[i].invert_yaxis()
     ax[i].set_title(title)
     fig.colorbar(colour, ax=ax[i])
@@ -74,10 +72,14 @@ def plot_spectrograms(
   ax[-1].plot(stop_token_pred, 'g.')
   ax[-1].axvline(x=audio_length)
   ax[-1].set_xlim(0, len(specs[0]))
+  ax[-1].set_title("stop token")
+
+  plt.xlabel('time')
+  plt.tight_layout()
+
   cb = fig.colorbar(colour, ax=ax[-1])
   cb.remove()
 
-  plt.xlabel('time')
 
   if save_to_tensorboard:
     tag = "{}_image".format(append)
@@ -112,6 +114,8 @@ def save_audio(
     magnitudes,
     logdir,
     step,
+    sampling_rate,
+    n_fft=1024,
     mode="train",
     number=0,
     save_format="tensorboard",
@@ -136,13 +140,13 @@ def save_audio(
   Returns:
     tf.Summary or None
   """
-  signal = griffin_lim(magnitudes.T**1.2)
+  signal = griffin_lim(magnitudes.T**1.2, n_fft=n_fft)
   if save_format == "np.array":
     return signal
   elif save_format == "tensorboard":
     tag = "{}_audio".format(mode)
     s = StringIO()
-    write(s, 22050, signal)
+    write(s, sampling_rate, signal)
     summary = tf.Summary.Audio(encoded_audio_string=s.getvalue())
     summary = tf.Summary.Value(tag=tag, audio=summary)
     return summary
@@ -150,7 +154,7 @@ def save_audio(
     file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
     if logdir[0] != '/':
       file_name = "./" + file_name
-    write(file_name, 22050, signal)
+    write(file_name, sampling_rate, signal)
     return None
   else:
     print((
@@ -161,7 +165,7 @@ def save_audio(
     ).format(save_format))
 
 
-def griffin_lim(magnitudes, n_iters=50):
+def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
   """
   Griffin-Lim algorithm to convert magnitude spectrograms to audio signals
   """
@@ -171,7 +175,7 @@ def griffin_lim(magnitudes, n_iters=50):
   signal = librosa.istft(complex_spec)
 
   for _ in range(n_iters):
-    _, phase = librosa.magphase(librosa.stft(signal, n_fft=1024))
+    _, phase = librosa.magphase(librosa.stft(signal, n_fft=n_fft))
     complex_spec = magnitudes * phase
     signal = librosa.istft(complex_spec)
   return signal
@@ -190,12 +194,6 @@ class Text2Speech(EncoderDecoderModel):
   def __init__(self, params, mode="train", hvd=None):
     super(Text2Speech, self).__init__(params, mode=mode, hvd=hvd)
     self._save_to_tensorboard = self.params["save_to_tensorboard"]
-
-  def _create_decoder(self):
-    self.params['decoder_params']['num_audio_features'] = (
-        self.get_data_layer().params['num_audio_features']
-    )
-    return super(Text2Speech, self)._create_decoder()
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     dict_to_log = {}
@@ -251,6 +249,8 @@ class Text2Speech(EncoderDecoderModel):
         predicted_final_spec,
         self.params["logdir"],
         step,
+        n_fft=self.get_data_layer().n_fft,
+        sampling_rate=self.get_data_layer().sampling_rate,
         save_format=save_format
     )
     dict_to_log['audio'] = wav_summary
@@ -312,6 +312,8 @@ class Text2Speech(EncoderDecoderModel):
           predicted_final_spec,
           self.params["logdir"],
           step,
+          n_fft=self.get_data_layer().n_fft,
+          sampling_rate=self.get_data_layer().sampling_rate,
           mode="eval",
           save_format=save_format
       )
@@ -346,7 +348,15 @@ class Text2Speech(EncoderDecoderModel):
       stop_tokens = output_values[3]
       sequence_lengths = output_values[4]
 
+      # predicted_final_specs = sample[0]["source_tensors"][0]
+
       for j in range(len(predicted_final_specs)):
+
+        # encoded_txt = sample[0]["source_tensors"][0][j]
+        # # print(encoded_txt)
+        # txt = self.get_data_layer().parse_text_output(encoded_txt)
+        # print(txt)
+        
         predicted_final_spec = predicted_final_specs[j]
         attention_mask_sample = attention_mask[j]
         stop_tokens_sample = stop_tokens[j]
@@ -357,7 +367,7 @@ class Text2Speech(EncoderDecoderModel):
 
         if "mel" in self.get_data_layer().params['output_type']:
           mag_spec = self.get_data_layer(
-          ).inverse_mel(predicted_final_spec)
+          ).get_magnitude_spec(predicted_final_spec)
           log_mag_spec = np.log(np.clip(mag_spec, a_min=1e-5, a_max=None))
           specs.append(log_mag_spec)
           titles.append("linear spectrogram")
@@ -382,6 +392,8 @@ class Text2Speech(EncoderDecoderModel):
               predicted_final_spec,
               self.params["logdir"],
               0,
+              n_fft=self.get_data_layer().n_fft,
+              sampling_rate=self.get_data_layer().sampling_rate,
               mode="infer",
               number=i * batch_size + j,
               save_format="disk"
@@ -389,4 +401,53 @@ class Text2Speech(EncoderDecoderModel):
 
           dict_to_log['audio'] = wav_summary
 
-    return {}
+  # def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
+  #   """TensorFlow graph for encoder-decoder-loss model is created here.
+  #   This function connects encoder, decoder and loss together. As an input for
+  #   encoder it will specify source tensors (as returned from
+  #   the data layer). As an input for decoder it will specify target tensors
+  #   as well as all output returned from encoder. For loss it
+  #   will also specify target tensors and all output returned from
+  #   decoder. Note that loss will only be built for mode == "train" or "eval".
+
+  #   Args:
+  #     input_tensors (dict): ``input_tensors`` dictionary that has to contain
+  #         ``source_tensors`` key with the list of all source tensors, and
+  #         ``target_tensors`` with the list of all target tensors. Note that
+  #         ``target_tensors`` only need to be provided if mode is
+  #         "train" or "eval".
+  #     gpu_id (int, optional): id of the GPU where the current copy of the model
+  #         is constructed. For Horovod this is always zero.
+
+  #   Returns:
+  #     tuple: tuple containing loss tensor as returned from
+  #     ``loss.compute_loss()`` and list of outputs tensors, which is taken from
+  #     ``decoder.decode()['outputs']``. When ``mode == 'infer'``, loss will
+  #     be None.
+  #   """
+  #   source_tensors = input_tensors['source_tensors']
+
+  #   with tf.variable_scope("ForwardPass"):
+  #     encoder_input = {"source_tensors": source_tensors}
+  #     encoder_output = [0]
+
+  #     decoder_input = {"encoder_output": encoder_output}
+  #     if self.mode == "train":
+  #       decoder_input['target_tensors'] = target_tensors
+  #     decoder_output = {
+  #       "outputs": [tf.zeros([1])]
+  #     }
+  #     model_outputs = decoder_output.get("outputs", None)
+
+  #     if self.mode == "train" or self.mode == "eval":
+  #       with tf.variable_scope("Loss"):
+  #         loss_input_dict = {
+  #             "decoder_output": decoder_output,
+  #             "target_tensors": target_tensors,
+  #         }
+  #         loss = self.loss_computator.compute_loss(loss_input_dict)
+  #     else:
+  #       loss = None
+  #     return loss, model_outputs
+
+  #   return {}

@@ -46,6 +46,8 @@ class Tacotron2Encoder(Encoder):
             'bn_momentum': float,
             'bn_epsilon': float,
             'zoneout_prob': float,
+            'style_embedding_enable': bool, #Todo: add documentation
+            'style_embedding_params': dict, #Todo: add documentation
         }
     )
 
@@ -96,22 +98,23 @@ class Tacotron2Encoder(Encoder):
     """Creates TensorFlow graph for Tacotron-2 like encoder.
 
     Args:
-       input_dict (dict): dictionary with inputs.
-          Must define:
-              source_tensors - array containing [
-                * source_sequence: tensor of shape [batch_size, sequence length]
-                * src_length: tensor of shape [batch_size]
-              ]
+      input_dict (dict): dictionary with inputs
+
+      Must define:
+        *source_tensors - array containing [
+          text: tensor of shape [batch_size, sequence length],
+          text_len: tensor of shape [batch_size]
+        ]
 
     Returns:
-      dict:
-        A python dictionary containing:
-          * outputs - tensor containing the encoded text to be passed to the
-            attention layer
-          * src_length - the length of the encoded text
+      a Python dictionary with:
+        * outputs - tensor containing the encoded text to be passed to the
+          attention layer
+        * src_length - the length of the encoded text
     """
 
-    source_sequence, src_length = input_dict['source_tensors']
+    text = input_dict['source_tensors'][0]
+    text_len = input_dict['source_tensors'][1]
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
@@ -119,6 +122,10 @@ class Tacotron2Encoder(Encoder):
     data_format = self.params.get('data_format', 'channels_last')
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
     zoneout_prob = self.params.get('zoneout_prob', 0.)
+    batch_size = text.get_shape().as_list()[0]
+
+    # if src_vocab_size % 8 != 0:
+    #   src_vocab_size += 8 - (src_vocab_size % 8)
 
     # ----- Embedding layer -----------------------------------------------
     enc_emb_w = tf.get_variable(
@@ -131,9 +138,32 @@ class Tacotron2Encoder(Encoder):
     embedded_inputs = tf.cast(
         tf.nn.embedding_lookup(
             enc_emb_w,
-            source_sequence,
+            text,
         ), self.params['dtype']
     )
+
+    if self.params.get("style_embedding_enable", False):
+      if "style_embedding_params" not in self.params:
+        raise ValueError(
+            "style_embedding_params must be passed if style embedding is",
+            "enabled"
+        )
+      style_spec = input_dict['source_tensors'][2]
+      style_len = input_dict['source_tensors'][3]
+      with tf.variable_scope("style_encoder"):
+        style_embedding, mean, log_std = self._embed_style(
+            style_spec,
+            style_len
+        )
+        style_embedding = tf.expand_dims(style_embedding, 1)
+        style_embedding = tf.tile(
+            style_embedding,
+            [1, tf.reduce_max(text_len), 1]
+        )
+        embedded_inputs = tf.concat([embedded_inputs, style_embedding], axis=-1)
+    else:
+      mean = 1
+      log_std = 0
 
     # ----- Convolutional layers -----------------------------------------------
     input_layer = embedded_inputs
@@ -150,9 +180,9 @@ class Tacotron2Encoder(Encoder):
       padding = conv_params['padding']
 
       if padding == "VALID":
-        src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
+        text_len = (text_len - kernel_size[0] + strides[0]) // strides[0]
       else:
-        src_length = (src_length + strides[0] - 1) // strides[0]
+        text_len = (text_len + strides[0] - 1) // strides[0]
 
       top_layer = conv_bn_actv(
           layer_type="conv1d",
@@ -231,7 +261,7 @@ class Tacotron2Encoder(Encoder):
           top_layer, _ = tf.nn.dynamic_rnn(
               cell=multirnn_cell_fw,
               inputs=rnn_input,
-              sequence_length=src_length,
+              sequence_length=text_len,
               dtype=rnn_input.dtype,
               time_major=False,
           )
@@ -251,7 +281,7 @@ class Tacotron2Encoder(Encoder):
               cell_fw=multirnn_cell_fw,
               cell_bw=multirnn_cell_bw,
               inputs=rnn_input,
-              sequence_length=src_length,
+              sequence_length=text_len,
               dtype=rnn_input.dtype,
               time_major=False
           )
@@ -281,5 +311,197 @@ class Tacotron2Encoder(Encoder):
 
     return {
         'outputs': outputs,
-        'src_length': src_length,
+        'src_length': text_len,
+        'mean': mean,
+        'log_std': log_std
     }
+
+  def _embed_style(self, style_spec, style_len):
+    """
+    """
+    training = (self._mode == "train")
+    dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
+    regularizer = self.params.get('regularizer', None)
+    data_format = self.params.get('data_format', 'channels_last')
+    batch_size = style_spec.get_shape().as_list()[0]
+
+    top_layer = tf.expand_dims(style_spec, -1)
+    params = self.params['style_embedding_params']
+    if "conv_layers" in params:
+      for i, conv_params in enumerate(params['conv_layers']):
+        ch_out = conv_params['num_channels']
+        kernel_size = conv_params['kernel_size']  # [time, freq]
+        strides = conv_params['stride']
+        padding = conv_params['padding']
+
+        if padding == "VALID":
+          style_len = (style_len - kernel_size[0] + strides[0]) // strides[0]
+        else:
+          style_len = (style_len + strides[0] - 1) // strides[0]
+
+        top_layer = conv_bn_actv(
+            layer_type="conv2d",
+            name="conv{}".format(i + 1),
+            inputs=top_layer,
+            filters=ch_out,
+            kernel_size=kernel_size,
+            activation_fn=self.params['activation_fn'],
+            strides=strides,
+            padding=padding,
+            regularizer=regularizer,
+            training=training,
+            data_format=data_format,
+            bn_momentum=self.params.get('bn_momentum', 0.1),
+            bn_epsilon=self.params.get('bn_epsilon', 1e-5),
+        )
+        # top_layer = tf.layers.dropout(
+        #     top_layer, rate=1. - dropout_keep_prob, training=training
+        # )
+
+      if data_format == 'channels_first':
+        top_layer = tf.transpose(top_layer, [0, 2, 1])
+
+    top_layer = tf.concat(tf.unstack(top_layer, axis=2), axis=-1)
+
+    num_rnn_layers = params['num_rnn_layers']
+    if num_rnn_layers > 0:
+      cell_params = {}
+      cell_params["num_units"] = params['rnn_cell_dim']
+      rnn_type = params['rnn_type']
+      rnn_input = top_layer
+      rnn_vars = []
+
+      multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
+          [
+              single_cell(
+                  cell_class=rnn_type,
+                  cell_params=cell_params,
+                  training=training,
+                  residual_connections=False
+              ) for _ in range(num_rnn_layers)
+          ]
+      )
+      rnn_vars += multirnn_cell_fw.trainable_variables
+      if params['rnn_unidirectional']:
+        top_layer, final_state = tf.nn.dynamic_rnn(
+            cell=multirnn_cell_fw,
+            inputs=rnn_input,
+            sequence_length=style_len,
+            dtype=rnn_input.dtype,
+            time_major=False,
+        )
+        final_state = final_state[0].h
+      else:
+        multirnn_cell_bw = tf.nn.rnn_cell.MultiRNNCell(
+            [
+                single_cell(
+                    cell_class=rnn_type,
+                    cell_params=cell_params,
+                    training=training,
+                    residual_connections=False
+                ) for _ in range(num_rnn_layers)
+            ]
+        )
+        top_layer, final_state = tf.nn.bidirectional_dynamic_rnn(
+            cell_fw=multirnn_cell_fw,
+            cell_bw=multirnn_cell_bw,
+            inputs=rnn_input,
+            sequence_length=style_len,
+            dtype=rnn_input.dtype,
+            time_major=False
+        )
+        # concat 2 tensors [B, T, n_cell_dim] --> [B, T, 2*n_cell_dim]
+        final_state = tf.concat((final_state[0][0].h, final_state[1][0].h), 1)
+        rnn_vars += multirnn_cell_bw.trainable_variables
+
+      top_layer = final_state
+      if regularizer and training:
+        cell_weights = rnn_vars
+        for weights in cell_weights:
+          if "bias" not in weights.name:
+            # print("Added regularizer to {}".format(weights.name))
+            if weights.dtype.base_dtype == tf.float16:
+              tf.add_to_collection(
+                  'REGULARIZATION_FUNCTIONS', (weights, regularizer)
+              )
+            else:
+              tf.add_to_collection(
+                  ops.GraphKeys.REGULARIZATION_LOSSES, regularizer(weights)
+              )
+
+    if params["mode"] == "vae":
+      num_units = params["num_tokens"]
+      mean = tf.layers.dense(
+          top_layer,
+          num_units,
+          activation=tf.nn.tanh,
+          kernel_regularizer=regularizer,
+          name="mean"
+      )
+      log_std = tf.layers.dense(
+          top_layer,
+          num_units,
+          activation=tf.nn.sigmoid,
+          kernel_regularizer=regularizer,
+          name="std"
+      )
+      epsilon = tf.random_normal(
+          (batch_size, num_units),
+          0,
+          1,
+          self.params['dtype']
+      )
+      tokens = tf.add(mean, tf.multiply(tf.exp(log_std), epsilon))
+
+      token_embeddings = tf.layers.dense(
+          tokens,
+          params["emb_size"],
+          kernel_regularizer=regularizer,
+          name="style_embed"
+      )
+    elif params["mode"] == "attention":
+      num_units = params["num_tokens"]
+
+      top_layer = tf.nn.tanh(top_layer)
+
+      # Query layer
+      query = tf.layers.dense(
+          top_layer,
+          num_units,
+          kernel_regularizer=regularizer,
+          name="tokens"
+      )
+
+      # Randomly initilized tokens
+      random_tokens = tf.get_variable(
+          "token_embeddings",
+          shape=[num_units, params["emb_size"]],
+          dtype=self.params["dtype"],
+          initializer=tf.random_uniform_initializer(
+              minval=-1.,
+              maxval=1.,
+              dtype=self.params["dtype"]
+          ),
+          trainable=False
+      )
+
+      query = tf.expand_dims(query, 2)
+      random_tokens = tf.expand_dims(random_tokens, 0)
+      random_tokens = tf.tile(random_tokens, [batch_size, 1, 1])
+      v = tf.get_variable(
+          "attention_v", [params["emb_size"]], dtype=self.params["dtype"]
+      )
+
+      energy = tf.reduce_sum(
+          tf.nn.softmax(v * tf.nn.tanh(random_tokens + query)), 2
+      )
+
+      energy = tf.expand_dims(energy, 1)
+      tokens = tf.matmul(energy, random_tokens)
+      token_embeddings = tf.squeeze(tokens, [1])
+      mean = 0.
+      log_std = 0.
+    else:
+      raise ValueError("Other modes are not yet implemented.")
+
+    return token_embeddings, mean, log_std

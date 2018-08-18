@@ -11,12 +11,14 @@ def get_speech_features_from_file(
     filename,
     num_features,
     features_type='magnitude',
-    window_size=1024,
-    window_stride=256,
+    n_fft=1024,
+    hop_length=None,
     mag_power=2,
     feature_normalize=False,
     mean=0.,
-    std=1.
+    std=1.,
+    trim=False,
+    data_min=1e-5
 ):
   """ Helper function to retrieve spectrograms from wav files
 
@@ -41,9 +43,19 @@ def get_speech_features_from_file(
   """
   # load audio signal
   signal, fs = librosa.core.load(filename, sr=None)
+  # signal = librosa.core.resample(signal, orig_sr=16000, target_sr=22050)
+  # fs = 22050
+  if hop_length is None:
+    hop_length = int(n_fft / 4)
+  if trim:
+    signal, _ = librosa.effects.trim(
+        signal,
+        frame_length=int(n_fft/2),
+        hop_length=int(hop_length/2)
+    )
   return get_speech_features(
-      signal, fs, num_features, features_type, window_size,
-      window_stride, mag_power, feature_normalize, mean, std
+      signal, fs, num_features, features_type, n_fft,
+      hop_length, mag_power, feature_normalize, mean, std, data_min
   )
 
 
@@ -52,12 +64,13 @@ def get_speech_features(
     fs,
     num_features,
     features_type='magnitude',
-    n_window_size=1024,
-    n_window_stride=256,
+    n_fft=1024,
+    hop_length=256,
     mag_power=2,
     feature_normalize=False,
     mean=0.,
-    std=1.
+    std=1.,
+    data_min=1e-5
 ):
   """ Helper function to retrieve spectrograms from loaded wav
 
@@ -81,30 +94,40 @@ def get_speech_features(
     np.array: np.array of audio features with shape=[num_time_steps,
       num_features].
   """
-  if features_type == 'magnitude':
-    complex_spec = librosa.stft(y=signal, n_fft=n_window_size)
+  if features_type == 'magnitude' or features_type == "both":
+    complex_spec = librosa.stft(y=signal, n_fft=n_fft)
     mag, _ = librosa.magphase(complex_spec, power=mag_power)
-    features = np.log(np.clip(mag, a_min=1e-5, a_max=None)).T
-    assert num_features <= n_window_size // 2 + 1, \
+    features = np.log(np.clip(mag, a_min=data_min, a_max=None)).T
+    assert num_features <= n_fft // 2 + 1, \
         "num_features for spectrogram should be <= (fs * window_size // 2 + 1)"
 
     # cut high frequency part
     features = features[:, :num_features]
-  elif features_type == 'mel':
+  if 'mel' in features_type or features_type == "both":
+    if features_type == "both":
+      mag_features = features
+    htk = True
+    norm = None
+    if 'slaney' in features_type:
+      htk = False
+      norm = 1
     features = librosa.feature.melspectrogram(
         y=signal,
         sr=fs,
-        n_fft=n_window_size,
-        hop_length=n_window_stride,
+        n_fft=n_fft,
+        hop_length=hop_length,
         n_mels=num_features,
-        power=mag_power
+        power=mag_power,
+        htk=htk,
+        norm=norm
     )
-    features = np.log(np.clip(features, a_min=1e-5, a_max=None)).T
-  else:
-    raise ValueError('Unknown features type: {}'.format(features_type))
+    features = np.log(np.clip(features, a_min=data_min, a_max=None)).T
 
   if feature_normalize:
     features = normalize(features, mean, std)
+
+  if features_type == "both":
+    features = np.concatenate((features, mag_features), axis=1)
 
   return features
 
@@ -118,7 +141,10 @@ def get_mel(
     feature_normalize=False,
     mean=0,
     std=1,
-    mel_basis=None
+    mel_basis=None,
+    data_min=1e-5,
+    htk=True,
+    norm=None
 ):
   """
   Method to get mel spectrograms from magnitude spectrograms
@@ -139,11 +165,11 @@ def get_mel(
     np.array: mel_spec with shape [time, n_mels]
   """
   if mel_basis is None:
-    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
+    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels, htk=htk, norm=norm)
   log_mag_spec = log_mag_spec * power
   mag_spec = np.exp(log_mag_spec)
   mel_spec = np.dot(mag_spec, mel_basis.T)
-  mel_spec = np.log(np.clip(mel_spec, a_min=1e-5, a_max=None))
+  mel_spec = np.log(np.clip(mel_spec, a_min=data_min, a_max=None))
   if feature_normalize:
     mel_spec = normalize(mel_spec, mean, std)
   return mel_spec
@@ -158,7 +184,9 @@ def inverse_mel(
     feature_normalize=False,
     mean=0,
     std=1,
-    mel_basis=None
+    mel_basis=None,
+    htk=True,
+    norm=None
 ):
   """
   Very hacky method to reconstruct mag spec from mel
@@ -180,12 +208,19 @@ def inverse_mel(
     np.array: mag_spec with shape [time, n_fft/2 + 1]
   """
   if mel_basis is None:
-    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels)
+    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels, htk=htk, norm=norm)
   if feature_normalize:
     log_mel_spec = denormalize(log_mel_spec, mean, std)
   mel_spec = np.exp(log_mel_spec)
   mag_spec = np.dot(mel_spec, mel_basis)
-  mag_spec = mag_spec * 876
+  if htk:
+    # htk, not norm
+    # there is clipping in audio, try decreasing factor. Maybe 0.9?
+    mag_spec = mag_spec * 0.95
+  else:
+    # not htk, norm
+    # This needs to be multiplied by the norm factor, 876 is just an estimate
+    mag_spec = mag_spec * 876
   mag_spec = np.power(mag_spec, 1. / power)
   return mag_spec
 

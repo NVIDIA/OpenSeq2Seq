@@ -13,19 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""A powerful dynamic attention wrapper object.
-
-Modified by blisc too add support for LocationSensitiveAttention and changed
-the AttentionWrapper class to output both the cell_output and attention context
-concatenated together.
-
-New classes:
-  LocationSensitiveAttention
-  LocationLayer
-
-New functions:
-  _bahdanau_score_with_location
-"""
+"""A powerful dynamic attention wrapper object."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -735,6 +723,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       dtype=None,
       use_bias=False,
       name="LocationSensitiveAttention",
+      use_state=True
   ):
     """Construct the Attention mechanism.
 
@@ -757,6 +746,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         mechanism.
       use_bias (bool): Whether to use a bias when computing alignments
       name: Name to use when creating ops.
+      use_state (bool): see tacotron 2 decoder params.
     """
     if probability_fn is None:
       probability_fn = nn_ops.softmax
@@ -776,10 +766,14 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
-    self.location_layer = LocationLayer(32, 31, num_units)
+    self.location_layer = LocationLayer(32, 32, num_units)
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
+    self._use_state = use_state
+    self.cumulative_location = self.initial_state(
+        self._batch_size, dtype
+    )
 
   def __call__(self, query, state):
     """Score the query based on the keys, values, and location.
@@ -798,16 +792,35 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     """
     with variable_scope.variable_scope(None, "location_attention", [query]):
       processed_query = self.query_layer(query) if self.query_layer else query
-      location = array_ops.expand_dims(state, axis=-1)
+      if self._use_state:
+        location = array_ops.expand_dims(state, axis=-1)
+      else:
+        location = array_ops.stack(
+            (state, self.cumulative_location), axis=-1
+        )
       processed_location = self.location_layer(location)
+      if not self._use_state:
+        self.cumulative_location = processed_location + self.cumulative_location
       score = _bahdanau_score_with_location(
           processed_query, self._keys, processed_location, self.use_bias
       )
     alignments = self._probability_fn(score, state)
-
-    next_state = alignments + state
+    if self._use_state:
+      next_state = alignments + state
+    else:
+      next_state = alignments
 
     return alignments, next_state
+
+  def initialize_location(self, dtype):
+    """
+    Used to initialize the cumulative location information to 0
+    """
+    if self._use_state:
+      pass
+    self.cumulative_location = self.initial_state(
+        self._batch_size, dtype
+    )
 
 
 def safe_cumprod(x, *args, **kwargs):
@@ -1434,7 +1447,10 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         is a list, and its length does not match that of `attention_layer_size`.
     """
     super(AttentionWrapper, self).__init__(name=name)
-    rnn_cell_impl.assert_like_rnncell("cell",cell)
+    if not rnn_cell_impl._like_rnncell(cell):  # pylint: disable=protected-access
+      raise TypeError(
+          "cell must be an RNNCell, saw type: %s" % type(cell).__name__
+      )
     if isinstance(attention_mechanism, (list, tuple)):
       self._is_multi = True
       attention_mechanisms = attention_mechanism
