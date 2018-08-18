@@ -32,8 +32,8 @@ def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
 
     text[batch_num] = ""
     for idx in tensor[batch_num]:
-      #if idx == endindex:
-        #break
+      if idx == endindex:
+        break
       text[batch_num] += idx2char[idx]
   return text
 
