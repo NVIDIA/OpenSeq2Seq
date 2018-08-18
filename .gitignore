@@ -88,3 +88,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+AWD*/*
+GNMT*/*
+ngc*
+outputs/*
+.gitignore
+pics/*
+example_configs/nlpmaster/*
