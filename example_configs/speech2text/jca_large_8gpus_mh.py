@@ -22,7 +22,7 @@ base_params = {
 
     "save_summaries_steps": 1000,
     "print_loss_steps": 10,
-    "print_samples_steps": 200,
+    "print_samples_steps": 400,
     "eval_steps": 1100,
     "save_checkpoint_steps": 1100,
     "logdir": "jca_log_folder",
@@ -34,7 +34,7 @@ base_params = {
     "lr_policy_params": {
         "learning_rate": 1e-3,
         "power": 2.0,
-        "min_lr": 1e-6
+        "min_lr": 1e-5
     },
 
     "max_grad_norm": 1.0,
@@ -75,19 +75,19 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,

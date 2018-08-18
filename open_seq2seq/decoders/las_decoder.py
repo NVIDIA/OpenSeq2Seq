@@ -26,6 +26,8 @@ class FullyConnected(tf.layers.Layer):
   def __init__(
       self,
       hidden_dims,
+      dropout_keep_prob=1.0,
+      mode='train',
       name="fully_connected",
   ):
     super(FullyConnected, self).__init__(name=name)
@@ -40,9 +42,14 @@ class FullyConnected(tf.layers.Layer):
         name="{}_{}".format(name, i + 1), units=hidden_dims[i + 1], use_bias=True)
     )
     self.output_dim = hidden_dims[i + 1]
+    self.mode = mode
+    self.dropout_keep_prob = dropout_keep_prob
 
   def call(self, inputs):
+    training = (self.mode == "train")
+    dropout_keep_prob = self.dropout_keep_prob if training else 1.0
     for layer in self.dense_layers:
+      inputs = tf.nn.dropout(x=inputs, keep_prob=dropout_keep_prob)
       inputs = layer(inputs)
     return inputs
 
@@ -157,7 +164,9 @@ class ListenAttendSpellDecoder(Decoder):
       )
 
     output_projection_layer = FullyConnected(
-        [self._tgt_vocab_size]
+        [3*self._tgt_vocab_size, self._tgt_vocab_size],
+        dropout_keep_prob=dropout_keep_prob,
+        mode=self._mode,
     )
 
     rnn_cell = cells_dict[layer_type]
@@ -260,33 +269,6 @@ class ListenAttendSpellDecoder(Decoder):
     alignments = tf.transpose(
         final_state.alignment_history[0].stack(), [1, 0, 2]
     )
-    '''alignments = tf.expand_dims(alignments, axis=-1)
-    alignments = tf.expand_dims(alignments, axis=1)
-
-    summary = tf.summary.image(
-      name='alignments',
-      tensor=alignments[0],
-      max_outputs=1,
-    )'''
-
-    '''bs, ln = tf.shape(encoder_outputs)[0], tf.shape(encoder_outputs)[1]
-    indices = tf.constant([[i, j] for i in tf.range(bs) for j in tf.range(ln)])
-    values = tf.reshape(outputs, [-1])
-    sparse_outputs = tf.SparseTensor(indices, values, [bs, ln])'''
-
-    '''if self.mode == "eval":
-      if tf.reduce_max(tgt_lengths) > tf.shape(final_outputs.rnn_output)[1]:
-        padding = tf.fill([tf.shape(final_outputs.rnn_output)[0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)
-        final_outputs.rnn_output = tf.concat([final_outputs.rnn_output, padding], 1)'''
-
-    '''if self.mode == "eval":
-      final_outputs.rnn_output = tf.cond(
-          tf.greater(tf.reduce_max(tgt_lengths),
-                     tf.shape(final_outputs.rnn_output)[1]),
-          lambda: tf.concat([final_outputs.rnn_output, tf.fill([tf.shape(final_outputs.rnn_output)[
-                                                       0], tf.reduce_max(tgt_lengths) - tf.shape(final_outputs.rnn_output)[1], tf.shape(final_outputs.rnn_output)[2]], 1.0)], 1),
-          lambda: tf.identity(final_outputs.rnn_output),
-      )'''
 
     logits = final_outputs.rnn_output
     if self.mode == "eval":
