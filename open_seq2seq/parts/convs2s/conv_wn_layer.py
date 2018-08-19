@@ -163,7 +163,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
           gamma_regularizer=self.regularizer,
           training=self.mode == 'train',
           axis=-1,
-          momentum=0.99,
+          momentum=0.95,
           epsilon=1e-4
       )
       output = tf.squeeze(bn_output, axis=1)
