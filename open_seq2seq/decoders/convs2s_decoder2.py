@@ -124,7 +124,8 @@ class ConvS2SDecoder2(Decoder):
                 init_var=0.1, #changed here None or 0.1
                 embed_scale=False,
                 pad_sym=self._pad_sym,
-                mask_paddings=True)
+                mask_paddings=True,
+                regularizer=None)
 
         if self.params.get("pos_embed", True):
           with tf.variable_scope("pos_embedding"):
@@ -140,7 +141,8 @@ class ConvS2SDecoder2(Decoder):
                   init_var=0.1,
                   embed_scale=False,
                   pad_sym=self._pad_sym,
-                  mask_paddings=True)
+                  mask_paddings=True,
+                  regularizer=None)
         else:
           self.position_embedding_layer = None
 
@@ -209,7 +211,7 @@ class ConvS2SDecoder2(Decoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=None, #changed here
+                normalization_type=self.normalization_type, #changed here
                 regularizer=self.regularizer,
                 init_var=self.init_var))
 
@@ -286,6 +288,9 @@ class ConvS2SDecoder2(Decoder):
         targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype)
     decoder_inputs *= tf.expand_dims(1.0 - inputs_padding, 2)
 
+    with tf.variable_scope("linear_layer_before_cnn_layers"):
+      decoder_inputs = self.layers[0](decoder_inputs)
+
     # do decode
     logits = self._call(
         decoder_inputs=decoder_inputs,
@@ -299,8 +304,12 @@ class ConvS2SDecoder2(Decoder):
             input_attention_bias):
     # run input into the decoder layers and returns the logits
     target_embed = decoder_inputs
-    with tf.variable_scope("linear_layer_before_cnn_layers"):
-      outputs = self.layers[0](decoder_inputs)
+
+
+    #changed here
+    # with tf.variable_scope("linear_layer_before_cnn_layers"):
+    #   outputs = self.layers[0](decoder_inputs)
+    outputs = decoder_inputs
 
     for i in range(1, len(self.layers) - 2):
       linear_proj, conv_layer, att_layer = self.layers[i]
@@ -341,8 +350,10 @@ class ConvS2SDecoder2(Decoder):
     """Return predicted sequence."""
     batch_size = tf.shape(encoder_outputs)[0]
     input_length = tf.shape(encoder_outputs)[1]
-    max_decode_length = tf.minimum(input_length + self.params["extra_decode_length"],
-                            self.max_input_length)
+
+    max_decode_length = input_length + self.params["extra_decode_length"]
+    #max_decode_length = tf.minimum(input_length + self.params["extra_decode_length"],
+    #                        self.max_input_length)
 
     symbols_to_logits_fn = self._get_symbols_to_logits_fn()
 

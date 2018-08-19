@@ -86,7 +86,8 @@ class ConvS2SEncoder2(Encoder):
               init_var=0.1, #0.1, changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
-              mask_paddings=True)
+              mask_paddings=True,
+              regularizer=None)
 
         with tf.variable_scope("pos_embedding"):
           self.position_embedding_layer = embedding_layer.EmbeddingSharedWeights(
@@ -96,7 +97,8 @@ class ConvS2SEncoder2(Encoder):
               init_var=0.1, #0.1,changed here
               embed_scale=False,
               pad_sym=self._pad_sym,
-              mask_paddings=True)
+              mask_paddings=True,
+              regularizer=None)
 
         # linear projection before cnn layers
         self.layers.append(
@@ -182,8 +184,8 @@ class ConvS2SEncoder2(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
-      # with tf.variable_scope("linear_layer_before_cnn_layers"):
-      #   encoder_inputs = self.layers[0](encoder_inputs)
+      with tf.variable_scope("linear_layer_before_cnn_layers"):
+        encoder_inputs = self.layers[0](encoder_inputs)
 
       outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
@@ -201,9 +203,9 @@ class ConvS2SEncoder2(Encoder):
     # Run inputs through the sublayers.
 
     #changed here
-    with tf.variable_scope("linear_layer_before_cnn_layers"):
-      outputs = self.layers[0](encoder_inputs)
-    #outputs = encoder_inputs
+    # with tf.variable_scope("linear_layer_before_cnn_layers"):
+    #   outputs = self.layers[0](encoder_inputs)
+    outputs = encoder_inputs
 
     for i in range(1, len(self.layers) - 1):
       linear_proj, conv_layer = self.layers[i]

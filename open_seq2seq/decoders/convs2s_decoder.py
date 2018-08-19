@@ -345,8 +345,10 @@ class ConvS2SDecoder(Decoder):
     """Return predicted sequence."""
     batch_size = tf.shape(encoder_outputs)[0]
     input_length = tf.shape(encoder_outputs)[1]
-    max_decode_length = tf.minimum(input_length + self.params["extra_decode_length"],
-                            self.max_input_length)
+
+    max_decode_length = input_length + self.params["extra_decode_length"]
+    #max_decode_length = tf.minimum(input_length + self.params["extra_decode_length"],
+    #                        self.max_input_length)
 
     symbols_to_logits_fn = self._get_symbols_to_logits_fn()
 

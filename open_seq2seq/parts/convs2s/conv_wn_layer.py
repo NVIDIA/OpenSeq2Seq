@@ -160,10 +160,10 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       bn_output = tf.layers.batch_normalization(
           name="batch_norm_" + str(self.layer_id),
           inputs=bn_input,
-          #gamma_regularizer=self.regularizer,
+          gamma_regularizer=self.regularizer,
           training=self.mode == 'train',
           axis=-1,
-          momentum=0.95,
+          momentum=0.99,
           epsilon=1e-4
       )
       output = tf.squeeze(bn_output, axis=1)

@@ -33,7 +33,7 @@ num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = True
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((4500000 / (num_gpus * batch_size * iter_size)) * epoch_num)
@@ -42,7 +42,7 @@ conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 
-inti_var = 1e-5
+inti_var = 1e-2
 
 base_params = {
   # iter_size can be used just with horovod
@@ -54,17 +54,17 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": 10, #max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 1, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None,# max(1, int(max_steps/1000.0)),
   "eval_steps": max(1, int(max_steps/100.0)),
   "save_checkpoint_steps": int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   "scale": 1e-5
-  # },
+  "regularizer": tf.contrib.layers.l2_regularizer,
+  "regularizer_params": {
+    "scale": 1e-4
+  },
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -89,10 +89,10 @@ base_params = {
   #    # "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 0.2,
+  "max_grad_norm": 0.2, #0.2,
 
   # "larc_params": {
-  #   "larc_eta": 1e-5,
+  #   "larc_eta": 1e-4,
   # },
 
   "loss_scaling": "Backoff",
@@ -134,7 +134,7 @@ base_params = {
   "decoder": ConvS2SDecoder2,
   "decoder_params": {
 
-    "shared_embed": True,
+    "shared_embed": False,
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,

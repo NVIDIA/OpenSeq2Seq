@@ -23,7 +23,7 @@ data_size = 4500000 #4500000 40660000 (bigadata)
 
 base_model = Text2Text
 
-factor = 1 # 1 2
+factor = 2 # 1 2
 factor_layer = 0 #0 5
 
 num_layers = 15 + factor_layer
@@ -33,13 +33,13 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-epoch_num = 20
+epoch_num = 45
 num_gpus = 4
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = False
-use_horovod = False
+shuffle_train = True
+use_horovod = True
 
 max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
 
@@ -80,7 +80,7 @@ base_params = {
     "d_model": d_model,
   },
 
-  "max_grad_norm": 0.1,
+  "max_grad_norm": 0.2,
 
   "loss_scaling": "Backoff",
 
