@@ -42,7 +42,7 @@ base_params = {
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
-        'scale': 0.0001
+        'scale': 0.00001
     },
 
     #"dtype": "mixed",
@@ -65,25 +65,25 @@ base_params = {
             },
             {
                 "type": "conv1d", "repeat": 7,
-                "kernel_size": [11], "stride": [1],
+                "kernel_size": [9], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 1,
-                "kernel_size": [11], "stride": [2],
+                "kernel_size": [9], "stride": [2],
                 "num_channels": 384, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [11], "stride": [1],
+                "type": "conv1d", "repeat": 4,
+                "kernel_size": [7], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 4,
-                "kernel_size": [11], "stride": [1],
+                "type": "conv1d", "repeat": 5,
+                "kernel_size": [5], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,
             },
@@ -124,16 +124,16 @@ base_params = {
               #"use_coverage": True,
           },
 
-          "fc_params": [512, 384],
+          "fc_params": [384],
 
           "convnet_params": {
-              "normalization": None,
+              "normalization": "batch_norm",
               "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
               "data_format": 'channels_last',
               "convnet_layers": [
                 {
                   "type": "tcn", "repeat": 2,
-                  "kernel_size": [9], "stride": [1],
+                  "kernel_size": [5], "stride": [1],
                   "num_channels": 512, "padding": "VALID",
                   "dropout_keep_prob": 0.8,
                 },
@@ -166,7 +166,7 @@ base_params = {
       "seq_loss_params": {
         "offset_target_by_one": False,
         "average_across_timestep": True,
-        "do_mask": False
+        "do_mask": True
       },
 
       "ctc_loss_params": {
