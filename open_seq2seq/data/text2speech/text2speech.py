@@ -52,7 +52,8 @@ class Text2SpeechDataLayer(DataLayer):
             'duration_min': int,
             'duration_max': int,
             'text_cleaners': bool,
-            'mel_type': ['slaney', 'htk']
+            'mel_type': ['slaney', 'htk'],
+            'style_input': [None, 'wav', 'token']
         }
     )
 
@@ -193,7 +194,7 @@ class Text2SpeechDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    if self.params['mode'] != 'infer':
+    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'transcript'
@@ -228,8 +229,6 @@ class Text2SpeechDataLayer(DataLayer):
 
   def build_graph(self):
     """Builds data reading graph."""
-    if self.params['mode'] == 'interactive_infer':
-      return self._build_interactive_graph()
     self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
     if self.params['shuffle']:
       self._dataset = self._dataset.shuffle(self._size)
@@ -241,7 +240,7 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       num_audio_features = self.params['num_audio_features']
 
-    if self.params['mode'] != 'infer':
+    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
               self._parse_audio_transcript_element,
@@ -299,7 +298,7 @@ class Text2SpeechDataLayer(DataLayer):
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
                                   .make_initializable_iterator()
 
-    if self.params['mode'] != 'infer':
+    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
       text, text_length, spec, stop_token_target, spec_length = self._iterator\
                                                                     .get_next()
       # need to explicitly set batch size dimension
@@ -316,14 +315,21 @@ class Text2SpeechDataLayer(DataLayer):
 
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [text, text_length]
-    if self.params['mode'] != 'infer':
+    if self.params.get("style_input", None) == "token":
+      tokens = tf.one_hot(indices=list(range(10)), depth=10)
+      random_tokens = tf.nn.softmax(tf.random_uniform([6,10]))
+      tokens = tf.concat([tokens, random_tokens], axis=0)
+      tokens = tf.tile(tokens, [2, 1])
+      self._input_tensors["source_tensors"].extend([tokens])
+    elif self.params.get("style_input", None) == "wav":
       self._input_tensors["source_tensors"].extend([spec, spec_length])
+    if self.params['mode'] != 'infer':
       self._input_tensors['target_tensors'] = [
           spec, stop_token_target, spec_length
       ]
 
   def get_mel(self, txt, txt_len, spec, stop, spec_len, mel_basis):
-    if self._mel and self._mel_basis:
+    if self._mel and self._mel_basis is not None:
       mag_spec = tf.exp(spec)
       mel_spec = tf.matmul(mag_spec, mel_basis)
       spec = tf.log(tf.clip_by_value(mel_spec, 1e-2, 1000))
@@ -340,11 +346,10 @@ class Text2SpeechDataLayer(DataLayer):
       .
     """
     audio_filename, transcript = element
-    if not six.PY2:
-      transcript = str(transcript, 'utf-8')
     transcript = transcript.lower()
+    audio_filename = str(audio_filename, "utf-8")
     text_input = np.array(
-        [self.params['char2idx'][c] for c in unicode(transcript, "utf-8")]
+        [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
@@ -366,12 +371,12 @@ class Text2SpeechDataLayer(DataLayer):
       if self.params.get("trim", False):
         audio_filename = audio_filename + "_trimmed"
       # audio_filename = audio_filename + "_800"
-      if self.params['dataset'] != 'Librispeech':
+      if "/" in audio_filename:
+        file_path = os.path.join(audio_filename + ".npy")
+      else:
         file_path = os.path.join(
             self.params['dataset_location'], audio_filename + ".npy"
         )
-      else:
-        file_path = os.path.join(audio_filename + ".npy")
         # raise ValueError(
         #     "Librispeech does not support this mode yet."
         # )
@@ -387,7 +392,7 @@ class Text2SpeechDataLayer(DataLayer):
           n_mels = self.params['num_audio_features']
           data_min = self.params.get("data_min", 1e-2)
 
-        if not self._mel_basis or self._both:
+        if self._mel_basis is None or self._both:
           htk = True
           norm = None
           if self.params.get('mel_type', 'htk') == 'slaney':
@@ -491,7 +496,7 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       stop_token_target[-1] = 1.
 
-    if self._mel_basis:
+    if self._mel_basis is not None:
       mel_basis = self._mel_basis.T.astype(self.params['dtype'].as_numpy_dtype())
     else:
       mel_basis = np.array([0.]).astype(self.params['dtype'].as_numpy_dtype())
@@ -514,14 +519,12 @@ class Text2SpeechDataLayer(DataLayer):
     """
     if self.params.get("text_cleaners", None):
       # Run Keith Ito's text preprocessing
-      transcript = unicode(transcript, "utf-8")
+      transcript = str(transcript, "utf-8")
       text_input = text_to_sequence(transcript, ["english_cleaners"])
     else:
-      if not six.PY2:
-        transcript = str(transcript, 'utf-8')
       transcript = transcript.lower()
       text_input = np.array(
-          [self.params['char2idx'][c] for c in unicode(transcript, "utf-8")]
+          [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
       )
       pad_to = self.params.get('pad_to', 8)
       if self.params.get("pad_EOS", True):

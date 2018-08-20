@@ -15,6 +15,7 @@ data_root = replace
 
 # data_root = "/raid2/MAILABS/de_DE/by_book/female/eva_k/toten_seelen/"
 # data_root = "/raid2/MAILABS/en_US/by_book/female/mary_ann/northandsouth/"
+# data_root = "/raid2/MAILABS/en_UK/by_book/female/elizabeth_klett/jane_eyre/"
 # data_root = "/data/speech/LJSpeech/"
 # data_root = "/data/librispeech/"
 
@@ -24,12 +25,15 @@ style_mode = None
 if style_mode == None:
   style_enable = False
   add_kl = False
+  style_in = None
 elif style_mode == "vae":
   style_enable = True
   add_kl = True
+  style_in = "token"
 elif style_mode == "attention":
   style_enable = True
   add_kl = False
+  style_in = "token"
 else:
   raise ValueError("Unknown style mode")
 
@@ -292,6 +296,7 @@ train_params = {
       os.path.join(data_root, "train{}.csv".format(append)),
     ],
     "shuffle": True,
+    "style_input": "wav",
   },
 }
 
@@ -301,6 +306,7 @@ eval_params = {
       os.path.join(data_root, "val{}.csv".format(append)),
     ],
     "shuffle": False,
+    "style_input": "wav",
   },
 }
 
@@ -310,5 +316,6 @@ infer_params = {
       os.path.join(data_root, "test.csv"),
     ],
     "shuffle": False,
+    "style_input": style_in,
   },
 }

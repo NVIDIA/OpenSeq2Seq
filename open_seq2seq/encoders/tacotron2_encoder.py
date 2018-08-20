@@ -148,13 +148,38 @@ class Tacotron2Encoder(Encoder):
             "style_embedding_params must be passed if style embedding is",
             "enabled"
         )
-      style_spec = input_dict['source_tensors'][2]
-      style_len = input_dict['source_tensors'][3]
       with tf.variable_scope("style_encoder"):
-        style_embedding, mean, log_std = self._embed_style(
-            style_spec,
-            style_len
-        )
+        if self._model.get_data_layer().params.get("style_input", None) == "wav":
+          style_spec = input_dict['source_tensors'][2]
+          style_len = input_dict['source_tensors'][3]
+          style_embedding, mean, log_std = self._embed_style(
+              style_spec,
+              style_len
+          )
+        elif self._model.get_data_layer().params.get("style_input", None) == "token":
+          energy = input_dict['source_tensors'][2]
+          num_units = self.params["style_embedding_params"]["num_tokens"]
+          emb_size = self.params["style_embedding_params"]["emb_size"]
+          random_tokens = tf.get_variable(
+            "token_embeddings",
+            shape=[num_units, emb_size],
+            dtype=self.params["dtype"],
+            initializer=tf.random_uniform_initializer(
+                minval=-1.,
+                maxval=1.,
+                dtype=self.params["dtype"]
+            ),
+            trainable=False
+          )
+          # random_tokens = tf.expand_dims(random_tokens, 0)
+          # random_tokens = tf.tile(random_tokens, [batch_size, 1, 1])
+          # energy = tf.expand_dims(energy, 1)
+          style_embedding = tf.matmul(energy, random_tokens)
+          # style_embedding = tf.squeeze(tokens, [1])
+          mean = 0.
+          log_std = 0.
+        else:
+          raise ValueError("The data layer's style input parameter must be set.")
         style_embedding = tf.expand_dims(style_embedding, 1)
         style_embedding = tf.tile(
             style_embedding,
