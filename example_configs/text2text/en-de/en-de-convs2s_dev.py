@@ -23,7 +23,7 @@ data_size = 4500000 #4500000 40660000 (bigadata)
 
 base_model = Text2Text
 
-factor = 2 # 1 2
+factor = 1 # 1 2
 factor_layer = 0 #0 5
 
 num_layers = 15 + factor_layer
@@ -121,7 +121,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
-    "pos_embed": False,
+    "pos_embed": True,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,

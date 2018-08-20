@@ -42,7 +42,7 @@ conv_act = None #tf.nn.relu tf.nn.tanh gated_linear_units
 normalization_type = "batch_norm"  #weight_norm or "batch_norm" or None
 scaling_factor = math.sqrt(0.5) #changed here
 
-inti_var = 1e-2
+inti_var = 1e-3
 
 base_params = {
   # iter_size can be used just with horovod
@@ -63,7 +63,7 @@ base_params = {
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    "scale": 1e-4
+    "scale": 1e-5
   },
 
   "optimizer": "Adam",
@@ -89,7 +89,7 @@ base_params = {
   #    # "decay_steps":max_steps,
   # },
 
-  "max_grad_norm": 0.2, #0.2,
+  "max_grad_norm": 10.0, #0.2,
 
   # "larc_params": {
   #   "larc_eta": 1e-4,
@@ -134,7 +134,7 @@ base_params = {
   "decoder": ConvS2SDecoder2,
   "decoder_params": {
 
-    "shared_embed": False,
+    "shared_embed": True,
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
