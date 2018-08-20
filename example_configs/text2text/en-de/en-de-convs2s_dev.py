@@ -33,7 +33,7 @@ max_length = 64
 pad_2_eight = True
 
 batch_size = 128
-epoch_num = 45
+epoch_num = 35
 num_gpus = 4
 
 iter_size = 1
