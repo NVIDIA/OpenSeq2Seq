@@ -407,4 +407,4 @@ analyse-fallback-blocks=no
 overgeneral-exceptions=Exception
 
 [pre-commit-hook]
-limit=8.0
+limit=9.5

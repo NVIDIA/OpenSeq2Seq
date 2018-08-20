@@ -1,7 +1,6 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import os
 import six
@@ -14,10 +13,8 @@ from six import string_types
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
-from .speech_utils import get_speech_features_from_file, get_mel,\
+from .speech_utils import get_speech_features_from_file,\
                           inverse_mel, normalize, denormalize
-from .text import text_to_sequence, sequence_to_text
-
 
 class Text2SpeechDataLayer(DataLayer):
   """Text-to-speech data layer class
@@ -27,9 +24,9 @@ class Text2SpeechDataLayer(DataLayer):
   def get_required_params():
     return dict(
         DataLayer.get_required_params(), **{
-            'dataset': ['LJ', 'Librispeech', 'MAILABS-16'],
+            'dataset': ['LJ'],
             'num_audio_features': None,
-            'output_type': ['magnitude', 'mel', 'magnitude_disk', 'mel_disk', 'both', 'both_disk'],
+            'output_type': ['magnitude', 'mel'],
             'vocab_file': str,
             'dataset_files': list,
             'feature_normalize': bool,
@@ -48,12 +45,10 @@ class Text2SpeechDataLayer(DataLayer):
             'feature_normalize_mean': float,
             'feature_normalize_std': float,
             'trim': bool,
-            'data_min': None,
+            'data_min': float,
             'duration_min': int,
             'duration_max': int,
-            'text_cleaners': bool,
-            'mel_type': ['slaney', 'htk'],
-            'style_input': [None, 'wav', 'token']
+            'mel_type': ['slaney', 'htk']
         }
     )
 
@@ -95,29 +90,17 @@ class Text2SpeechDataLayer(DataLayer):
         worker_id
     )
 
-    if self.params['dataset'] == 'LJ' or self.params['dataset'] == 'MAILABS-16':
-      if self.params.get('dataset_location', None) is None:
-        raise ValueError(
-            "dataset_location must be specified when using the LJSpeech or",
-            "MAILABS datasets"
-        )
-      names = ['wav_filename', 'raw_transcript', 'transcript']
-      sep = '\x7c'
-      header = None
-    elif self.params["dataset"] == "Librispeech":
-      names = None
-      sep = ','
-      header = 0
+    if self.params.get('dataset_location', None) is None:
+      raise ValueError(
+          "dataset_location must be specified when using the LJSpeech",
+          "dataset"
+      )
+    names = ['wav_filename', 'raw_transcript', 'transcript']
+    sep = '\x7c'
+    header = None
 
-    if self.params['dataset'] == 'LJ':
-      self._sampling_rate = 22050
-      self._n_fft = 1024
-    elif (self.params['dataset'] == 'MAILABS-16' or
-          self.params['dataset'] == 'Librispeech'):
-      self._sampling_rate = 16000
-      self._n_fft = 800
-      # self._sampling_rate = 22050
-      # self._n_fft = 1024
+    self._sampling_rate = 22050
+    self._n_fft = 1024
 
     # Character level vocab
     self.params['char2idx'] = load_pre_existing_vocabulary(
@@ -132,34 +115,10 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     self.params['src_vocab_size'] = len(self.params['char2idx'])
 
-    if "disk" in self.params["output_type"]:
-      self._load_from_disk = True
-    else:
-      self._load_from_disk = False
-    
-    if "both" in self.params["output_type"]:
-      self._both = True
-      n_mels = self.params['num_audio_features']['mel']
-      if self.params["feature_normalize"]:
-        raise ValueError(
-            "feature normalize is not currently enabled for both mode"
-        )
-      if not isinstance(self.params["num_audio_features"], dict):
-        raise ValueError(
-            "num_audio_features must be a dictionary for both mode"
-        )
-      # Need to check that num_audio_features contains correct keys
-      # Need to check data_min
-    else:
-      self._both = False
-      n_mels = self.params['num_audio_features']
+    n_mels = self.params['num_audio_features']
 
     if "mel" in self.params["output_type"]:
       self._mel = True
-    else:
-      self._mel = False
-
-    if self._mel or self._both:
       htk = True
       norm = None
       if self.params.get('mel_type', 'htk') == 'slaney':
@@ -173,6 +132,7 @@ class Text2SpeechDataLayer(DataLayer):
           norm=norm
       )
     else:
+      self._mel = False
       self._mel_basis = None
 
     if self.params["interactive"]:
@@ -194,7 +154,7 @@ class Text2SpeechDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
+    if self.params['mode'] != 'infer':
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'transcript'
@@ -234,40 +194,35 @@ class Text2SpeechDataLayer(DataLayer):
       self._dataset = self._dataset.shuffle(self._size)
     self._dataset = self._dataset.repeat()
 
-    if self._both:
-      num_audio_features = self.params['num_audio_features']['mel'] 
-      num_audio_features += self.params['num_audio_features']['magnitude']
-    else:
-      num_audio_features = self.params['num_audio_features']
+    num_audio_features = self.params['num_audio_features']
 
-    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
+    if self.params['mode'] != 'infer':
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
               self._parse_audio_transcript_element,
               [line],
               [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'],\
-               tf.int32, self.params['dtype']],
+               tf.int32],
               stateful=False,
           ),
           num_parallel_calls=8,
       )
-      self._dataset = self._dataset.map(
-          self.get_mel,
-          num_parallel_calls=8,
-      )
-      if (self.params.get("duration_max", None) or 
+      if (self.params.get("duration_max", None) or
           self.params.get("duration_max", None)):
         self._dataset = self._dataset.filter(
-            lambda txt, txt_len, spec, stop, spec_len: 
+            lambda txt, txt_len, spec, stop, spec_len:
                 tf.logical_and(
-                    tf.less_equal(spec_len, self.params.get("duration_max", np.inf)),
-                    tf.greater_equal(spec_len, self.params.get("duration_min", 0))
+                    tf.less_equal(
+                        spec_len,
+                        self.params.get("duration_max", 4000)
+                    ),
+                    tf.greater_equal(
+                        spec_len,
+                        self.params.get("duration_min", 0)
+                    )
                 )
         )
-      if self._both:
-        default_pad_value = 0.
-      else:
-        default_pad_value = np.log(self.params.get("data_min", 1e-5))
+      default_pad_value = np.log(self.params.get("data_min", 1e-5))
       pad_value = self.params.get("pad_value", default_pad_value)
       if self.params["feature_normalize"]:
         pad_value = self._normalize(pad_value)
@@ -298,7 +253,7 @@ class Text2SpeechDataLayer(DataLayer):
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
                                   .make_initializable_iterator()
 
-    if self.params['mode'] != 'infer' or self.params.get("style_input", None) == "wav":
+    if self.params['mode'] != 'infer':
       text, text_length, spec, stop_token_target, spec_length = self._iterator\
                                                                     .get_next()
       # need to explicitly set batch size dimension
@@ -315,25 +270,10 @@ class Text2SpeechDataLayer(DataLayer):
 
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [text, text_length]
-    if self.params.get("style_input", None) == "token":
-      tokens = tf.one_hot(indices=list(range(10)), depth=10)
-      random_tokens = tf.nn.softmax(tf.random_uniform([6,10]))
-      tokens = tf.concat([tokens, random_tokens], axis=0)
-      tokens = tf.tile(tokens, [2, 1])
-      self._input_tensors["source_tensors"].extend([tokens])
-    elif self.params.get("style_input", None) == "wav":
-      self._input_tensors["source_tensors"].extend([spec, spec_length])
     if self.params['mode'] != 'infer':
       self._input_tensors['target_tensors'] = [
           spec, stop_token_target, spec_length
       ]
-
-  def get_mel(self, txt, txt_len, spec, stop, spec_len, mel_basis):
-    if self._mel and self._mel_basis is not None:
-      mag_spec = tf.exp(spec)
-      mel_spec = tf.matmul(mag_spec, mel_basis)
-      spec = tf.log(tf.clip_by_value(mel_spec, 1e-2, 1000))
-    return txt, txt_len, spec, stop, spec_len
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
@@ -353,7 +293,6 @@ class Text2SpeechDataLayer(DataLayer):
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
-      # num_pad = pad_to - (len(text_input) % pad_to)
       num_pad = pad_to - ((len(text_input) + 2) % pad_to)
       text_input = np.pad(
           text_input, ((1, 1)),
@@ -367,114 +306,37 @@ class Text2SpeechDataLayer(DataLayer):
           "constant",
           constant_values=self.params['char2idx']["<p>"]
       )
-    if self._load_from_disk:
-      if self.params.get("trim", False):
-        audio_filename = audio_filename + "_trimmed"
-      # audio_filename = audio_filename + "_800"
-      if "/" in audio_filename:
-        file_path = os.path.join(audio_filename + ".npy")
-      else:
-        file_path = os.path.join(
-            self.params['dataset_location'], audio_filename + ".npy"
-        )
-        # raise ValueError(
-        #     "Librispeech does not support this mode yet."
-        # )
-      mag_spectrogram = np.load(file_path)
-      mag_power = self.params.get('mag_power', 2)
-      if self._mel or self._both:
-        if self._both:
-          n_mels = self.params['num_audio_features']['mel']
-          data_min = self.params.get("data_min", 1e-2)
-          if not isinstance(data_min, float):
-            data_min = data_min["mel"]
-        else:
-          n_mels = self.params['num_audio_features']
-          data_min = self.params.get("data_min", 1e-2)
 
-        if self._mel_basis is None or self._both:
-          htk = True
-          norm = None
-          if self.params.get('mel_type', 'htk') == 'slaney':
-            htk = False
-            norm = 1
 
-          spectrogram = get_mel(
-              mag_spectrogram,
-              fs=self._sampling_rate,
-              n_fft=self._n_fft,
-              power=mag_power,
-              feature_normalize=self.params["feature_normalize"],
-              mean=self.params.get("feature_normalize_mean", 0.),
-              std=self.params.get("feature_normalize_std", 1.),
-              mel_basis=self._mel_basis,
-              n_mels=n_mels,
-              data_min=data_min,
-              htk=htk,
-              norm=norm
-          )
-        else:
-          spectrogram = mag_spectrogram
-      if not self._mel or self._both:
-        if self._both:
-          num_feats = self.params['num_audio_features']['magnitude']
-          data_min = self.params.get("data_min", 1e-5)
-          if not isinstance(data_min, float):
-            data_min = data_min["magnitude"]
-          mel_spectrogram = spectrogram
-        else:
-          num_feats = self.params['num_audio_features']
-          data_min = self.params.get("data_min", 1e-5)
-
-        if mag_power != 1:
-          mag_spectrogram = mag_spectrogram * mag_power
-          mag_spectrogram = np.clip(
-              mag_spectrogram,
-              a_min=np.log(data_min),
-              a_max=None
-          )
-        # Else it is a magnitude spec, and we need to normalize
-        if self.params["feature_normalize"]:
-          mag_spectrogram = self._normalize(mag_spectrogram)
-        spectrogram = mag_spectrogram[:, :num_feats]
-      if self._both:
-        spectrogram = np.concatenate((mel_spectrogram, spectrogram), axis=1)
+    file_path = os.path.join(
+        self.params['dataset_location'], audio_filename + ".wav"
+    )
+    if self._mel:
+      features_type = "mel_htk"
+      if self.params.get('mel_type', 'htk') == 'slaney':
+        features_type = "mel_slaney"
     else:
-      if self.params["dataset"] == "Librispeech":
-        file_path = audio_filename
-      else:
-        file_path = os.path.join(
-            self.params['dataset_location'], audio_filename + ".wav"
-        )
-      if self._mel:
-        features_type = "mel_htk"
-        if self.params.get('mel_type', 'htk') == 'slaney':
-          features_type = "mel_slaney"
-      else:
-        features_type = self.params['output_type']
+      features_type = self.params['output_type']
 
-      spectrogram = get_speech_features_from_file(
-          file_path,
-          self.params['num_audio_features'],
-          features_type=features_type,
-          n_fft=self._n_fft,
-          mag_power=self.params.get('mag_power', 2),
-          feature_normalize=self.params["feature_normalize"],
-          mean=self.params.get("feature_normalize_mean", 0.),
-          std=self.params.get("feature_normalize_std", 1.),
-          trim=self.params.get("trim", False),
-          data_min=self.params.get("data_min", 1e-5)
-      )
+    spectrogram = get_speech_features_from_file(
+        file_path,
+        self.params['num_audio_features'],
+        features_type=features_type,
+        n_fft=self._n_fft,
+        mag_power=self.params.get('mag_power', 2),
+        feature_normalize=self.params["feature_normalize"],
+        mean=self.params.get("feature_normalize_mean", 0.),
+        std=self.params.get("feature_normalize_std", 1.),
+        trim=self.params.get("trim", False),
+        data_min=self.params.get("data_min", 1e-5)
+    )
     stop_token_target = np.zeros(
         [len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype()
     )
     if self.params.get("pad_EOS", True):
-      # num_pad = pad_to - (len(spectrogram) % pad_to)
       num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
 
       data_min = self.params.get("data_min", 1e-5)
-      if not isinstance(data_min, float):
-        data_min = min(data_min["magnitude"], data_min["mel"])
 
       pad_value = self.params.get("pad_value", np.log(data_min))
       if self.params["feature_normalize"]:
@@ -482,24 +344,15 @@ class Text2SpeechDataLayer(DataLayer):
 
       spectrogram = np.pad(
           spectrogram,
-          # ((8, num_pad), (0, 0)),
           ((0, num_pad), (0, 0)),
           "constant",
           constant_values=pad_value
       )
-      # stop_token_target = np.pad(
-      #     stop_token_target, ((8, 0)), "constant", constant_values=0
-      # )
       stop_token_target = np.pad(
           stop_token_target, ((0, num_pad)), "constant", constant_values=1
       )
     else:
       stop_token_target[-1] = 1.
-
-    if self._mel_basis is not None:
-      mel_basis = self._mel_basis.T.astype(self.params['dtype'].as_numpy_dtype())
-    else:
-      mel_basis = np.array([0.]).astype(self.params['dtype'].as_numpy_dtype())
 
     assert len(text_input) % pad_to == 0
     assert len(spectrogram) % pad_to == 0
@@ -507,8 +360,7 @@ class Text2SpeechDataLayer(DataLayer):
            np.int32([len(text_input)]), \
            spectrogram.astype(self.params['dtype'].as_numpy_dtype()), \
            stop_token_target.astype(self.params['dtype'].as_numpy_dtype()), \
-           np.int32([len(spectrogram)]), \
-           mel_basis
+           np.int32([len(spectrogram)])
 
   def _parse_transcript_element(self, transcript):
     """Parses text from file and returns array of text features.
@@ -517,45 +369,32 @@ class Text2SpeechDataLayer(DataLayer):
     Returns:
       tuple: target text as `np.array` of ids, target text length.
     """
-    if self.params.get("text_cleaners", None):
-      # Run Keith Ito's text preprocessing
-      transcript = str(transcript, "utf-8")
-      text_input = text_to_sequence(transcript, ["english_cleaners"])
-    else:
-      transcript = transcript.lower()
-      text_input = np.array(
-          [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
+
+    transcript = transcript.lower()
+    text_input = np.array(
+        [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
+    )
+    pad_to = self.params.get('pad_to', 8)
+    if self.params.get("pad_EOS", True):
+      num_pad = pad_to - ((len(text_input) + 2) % pad_to)
+      text_input = np.pad(
+          text_input, ((1, 1)),
+          "constant",
+          constant_values=(
+              (self.params['char2idx']["<s>"], self.params['char2idx']["</s>"])
+          )
       )
-      pad_to = self.params.get('pad_to', 8)
-      if self.params.get("pad_EOS", True):
-        # num_pad = pad_to - (len(text_input) % pad_to)
-        num_pad = pad_to - ((len(text_input) + 2) % pad_to)
-        text_input = np.pad(
-            text_input, ((1, 1)),
-            "constant",
-            constant_values=(
-                (self.params['char2idx']["<s>"], self.params['char2idx']["</s>"])
-            )
-        )
-        text_input = np.pad(
-            text_input, ((0, num_pad)),
-            "constant",
-            constant_values=self.params['char2idx']["<p>"]
-        )
+      text_input = np.pad(
+          text_input, ((0, num_pad)),
+          "constant",
+          constant_values=self.params['char2idx']["<p>"]
+      )
 
     return np.int32(text_input), \
            np.int32([len(text_input)])
 
   def parse_text_output(self, text):
-    if self.params.get("text_cleaners", None):
-      # Run Keith Ito's text preprocessing
-      text = sequence_to_text(text)
-      # text = text.replace("_","")
-    else:
-      text = "".join([self.params['idx2char'][k] for k in text])
-      # text = text.replace("<p>","")
-      # text = text.replace("</s>","~")
-      # text = text.replace("<s>","")
+    text = "".join([self.params['idx2char'][k] for k in text])
     return text
 
   def create_interactive_placeholders(self):
@@ -619,10 +458,6 @@ class Text2SpeechDataLayer(DataLayer):
       mag_spec: mag spec
     """
     spectrogram = spectrogram.astype(float)
-    ### No longer needed
-    # If outputting both, just trim the mel part and revert the magnitude portion
-    # if self._both:
-    #   spectrogram = spectrogram[:, self.params['num_audio_features']['mel']:]
     if self._mel:
       htk = True
       norm = None
@@ -671,4 +506,4 @@ class Text2SpeechDataLayer(DataLayer):
         spectrogram,
         mean=self.params.get("feature_normalize_mean", 0.),
         std=self.params.get("feature_normalize_std", 1.)
-)
+    )

@@ -1,4 +1,3 @@
-# pylint: skip-file
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -723,7 +722,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       dtype=None,
       use_bias=False,
       name="LocationSensitiveAttention",
-      use_state=True
   ):
     """Construct the Attention mechanism.
 
@@ -770,10 +768,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
-    self._use_state = use_state
-    self.cumulative_location = self.initial_state(
-        self._batch_size, dtype
-    )
 
   def __call__(self, query, state):
     """Score the query based on the keys, values, and location.
@@ -792,36 +786,15 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     """
     with variable_scope.variable_scope(None, "location_attention", [query]):
       processed_query = self.query_layer(query) if self.query_layer else query
-      if self._use_state:
-        location = array_ops.expand_dims(state, axis=-1)
-      else:
-        location = array_ops.stack(
-            (state, self.cumulative_location), axis=-1
-        )
+      location = array_ops.expand_dims(state, axis=-1)
       processed_location = self.location_layer(location)
-      if not self._use_state:
-        self.cumulative_location = processed_location + self.cumulative_location
       score = _bahdanau_score_with_location(
           processed_query, self._keys, processed_location, self.use_bias
       )
     alignments = self._probability_fn(score, state)
-    if self._use_state:
-      next_state = alignments + state
-    else:
-      next_state = alignments
+    next_state = alignments + state
 
     return alignments, next_state
-
-  def initialize_location(self, dtype):
-    """
-    Used to initialize the cumulative location information to 0
-    """
-    if self._use_state:
-      pass
-    self.cumulative_location = self.initial_state(
-        self._batch_size, dtype
-    )
-
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.

@@ -1,7 +1,6 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import numpy as np
 import librosa
@@ -43,8 +42,6 @@ def get_speech_features_from_file(
   """
   # load audio signal
   signal, fs = librosa.core.load(filename, sr=None)
-  # signal = librosa.core.resample(signal, orig_sr=16000, target_sr=22050)
-  # fs = 22050
   if hop_length is None:
     hop_length = int(n_fft / 4)
   if trim:
@@ -94,7 +91,7 @@ def get_speech_features(
     np.array: np.array of audio features with shape=[num_time_steps,
       num_features].
   """
-  if features_type == 'magnitude' or features_type == "both":
+  if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal, n_fft=n_fft)
     mag, _ = librosa.magphase(complex_spec, power=mag_power)
     features = np.log(np.clip(mag, a_min=data_min, a_max=None)).T
@@ -103,9 +100,7 @@ def get_speech_features(
 
     # cut high frequency part
     features = features[:, :num_features]
-  if 'mel' in features_type or features_type == "both":
-    if features_type == "both":
-      mag_features = features
+  if 'mel' in features_type:
     htk = True
     norm = None
     if 'slaney' in features_type:
@@ -125,9 +120,6 @@ def get_speech_features(
 
   if feature_normalize:
     features = normalize(features, mean, std)
-
-  if features_type == "both":
-    features = np.concatenate((features, mag_features), axis=1)
 
   return features
 
@@ -165,7 +157,13 @@ def get_mel(
     np.array: mel_spec with shape [time, n_mels]
   """
   if mel_basis is None:
-    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels, htk=htk, norm=norm)
+    mel_basis = librosa.filters.mel(
+        fs,
+        n_fft,
+        n_mels=n_mels,
+        htk=htk,
+        norm=norm
+    )
   log_mag_spec = log_mag_spec * power
   mag_spec = np.exp(log_mag_spec)
   mel_spec = np.dot(mag_spec, mel_basis.T)
@@ -208,7 +206,13 @@ def inverse_mel(
     np.array: mag_spec with shape [time, n_fft/2 + 1]
   """
   if mel_basis is None:
-    mel_basis = librosa.filters.mel(fs, n_fft, n_mels=n_mels, htk=htk, norm=norm)
+    mel_basis = librosa.filters.mel(
+        fs,
+        n_fft,
+        n_mels=n_mels,
+        htk=htk,
+        norm=norm
+    )
   if feature_normalize:
     log_mel_spec = denormalize(log_mel_spec, mean, std)
   mel_spec = np.exp(log_mel_spec)

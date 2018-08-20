@@ -1,21 +1,19 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+from six import BytesIO
 from six.moves import range
 
+from scipy.io.wavfile import write
+
 import librosa
-
 import numpy as np
-import tensorflow as tf
-
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from scipy.io.wavfile import write
+import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
-from six import StringIO
-
 
 def plot_spectrograms(
     specs,
@@ -83,10 +81,10 @@ def plot_spectrograms(
 
   if save_to_tensorboard:
     tag = "{}_image".format(append)
-    s = StringIO()
-    fig.savefig(s, dpi=300)
+    iostream = BytesIO()
+    fig.savefig(iostream, dpi=300)
     summary = tf.Summary.Image(
-        encoded_image_string=s.getvalue(),
+        encoded_image_string=iostream.getvalue(),
         height=int(fig.get_figheight() * 300),
         width=int(fig.get_figwidth() * 300)
     )
@@ -145,9 +143,9 @@ def save_audio(
     return signal
   elif save_format == "tensorboard":
     tag = "{}_audio".format(mode)
-    s = StringIO()
-    write(s, sampling_rate, signal)
-    summary = tf.Summary.Audio(encoded_audio_string=s.getvalue())
+    iostream = BytesIO()
+    write(iostream, sampling_rate, signal)
+    summary = tf.Summary.Audio(encoded_audio_string=iostream.getvalue())
     summary = tf.Summary.Value(tag=tag, audio=summary)
     return summary
   elif save_format == "disk":
@@ -163,6 +161,7 @@ def save_audio(
         "Received '{}'."
         "Expected one of 'np.array', 'tensorboard', or 'disk'"
     ).format(save_format))
+    return None
 
 
 def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
@@ -348,15 +347,7 @@ class Text2Speech(EncoderDecoderModel):
       stop_tokens = output_values[3]
       sequence_lengths = output_values[4]
 
-      # predicted_final_specs = sample[0]["source_tensors"][0]
-
       for j in range(len(predicted_final_specs)):
-
-        # encoded_txt = sample[0]["source_tensors"][0][j]
-        # # print(encoded_txt)
-        # txt = self.get_data_layer().parse_text_output(encoded_txt)
-        # print(txt)
-        
         predicted_final_spec = predicted_final_specs[j]
         attention_mask_sample = attention_mask[j]
         stop_tokens_sample = stop_tokens[j]
@@ -400,54 +391,3 @@ class Text2Speech(EncoderDecoderModel):
           )
 
           dict_to_log['audio'] = wav_summary
-
-  # def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-  #   """TensorFlow graph for encoder-decoder-loss model is created here.
-  #   This function connects encoder, decoder and loss together. As an input for
-  #   encoder it will specify source tensors (as returned from
-  #   the data layer). As an input for decoder it will specify target tensors
-  #   as well as all output returned from encoder. For loss it
-  #   will also specify target tensors and all output returned from
-  #   decoder. Note that loss will only be built for mode == "train" or "eval".
-
-  #   Args:
-  #     input_tensors (dict): ``input_tensors`` dictionary that has to contain
-  #         ``source_tensors`` key with the list of all source tensors, and
-  #         ``target_tensors`` with the list of all target tensors. Note that
-  #         ``target_tensors`` only need to be provided if mode is
-  #         "train" or "eval".
-  #     gpu_id (int, optional): id of the GPU where the current copy of the model
-  #         is constructed. For Horovod this is always zero.
-
-  #   Returns:
-  #     tuple: tuple containing loss tensor as returned from
-  #     ``loss.compute_loss()`` and list of outputs tensors, which is taken from
-  #     ``decoder.decode()['outputs']``. When ``mode == 'infer'``, loss will
-  #     be None.
-  #   """
-  #   source_tensors = input_tensors['source_tensors']
-
-  #   with tf.variable_scope("ForwardPass"):
-  #     encoder_input = {"source_tensors": source_tensors}
-  #     encoder_output = [0]
-
-  #     decoder_input = {"encoder_output": encoder_output}
-  #     if self.mode == "train":
-  #       decoder_input['target_tensors'] = target_tensors
-  #     decoder_output = {
-  #       "outputs": [tf.zeros([1])]
-  #     }
-  #     model_outputs = decoder_output.get("outputs", None)
-
-  #     if self.mode == "train" or self.mode == "eval":
-  #       with tf.variable_scope("Loss"):
-  #         loss_input_dict = {
-  #             "decoder_output": decoder_output,
-  #             "target_tensors": target_tensors,
-  #         }
-  #         loss = self.loss_computator.compute_loss(loss_input_dict)
-  #     else:
-  #       loss = None
-  #     return loss, model_outputs
-
-  #   return {}
