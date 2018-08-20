@@ -10,5 +10,3 @@ matplotlib
 joblib==0.11
 sentencepiece
 sacrebleu
-unidecode
-inflect
