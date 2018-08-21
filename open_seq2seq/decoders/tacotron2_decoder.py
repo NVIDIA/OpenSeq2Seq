@@ -196,7 +196,7 @@ class Tacotron2Decoder(Decoder):
       "channels_last". Defaults to "channels_last".
     * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in
       the postnet conv layers. Default to 0.5.
-    * **mask_decoder_sequence** (bool) --- Defaults to Truee.
+    * **mask_decoder_sequence** (bool) --- Defaults to True.
     * **attention_bias** (bool) --- Wether to use a bias term when calculating
       the attention. Only works for "location" attention. Defaults to False.
     * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.1
