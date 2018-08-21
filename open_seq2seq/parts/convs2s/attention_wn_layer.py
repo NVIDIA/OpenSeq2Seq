@@ -51,7 +51,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
           mode=mode,
-          normalization_type=None, #changed here
+          normalization_type=normalization_type, #changed here
           regularizer=self.regularizer,
           init_var=init_var
       ) #changed here
