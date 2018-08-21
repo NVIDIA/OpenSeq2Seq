@@ -34,7 +34,7 @@ pad_2_eight = True
 
 batch_size = 256
 epoch_num = 1
-num_gpus = 4
+num_gpus = 1
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
