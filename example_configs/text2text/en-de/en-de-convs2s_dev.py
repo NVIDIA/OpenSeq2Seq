@@ -32,13 +32,13 @@ hidden_before_last = factor*512
 max_length = 64
 pad_2_eight = True
 
-batch_size = 128
-epoch_num = 50
-num_gpus = 4
+batch_size = 256
+epoch_num = 1
+num_gpus = 8
 
 iter_size = 1
 dtype = "mixed" #tf.float32 #tf.float32 #  #
-shuffle_train = True
+shuffle_train = False
 use_horovod = True
 
 max_steps = int((data_size / (num_gpus * batch_size * iter_size)) * epoch_num)
@@ -58,11 +58,11 @@ base_params = {
   # set max_step to achieve the given epoch_num, 4.5M is the size of the dataset
   "max_steps": max_steps,
   "batch_size_per_gpu": batch_size,
-  "save_summaries_steps": max(1, int(max_steps/1000.0)),
-  "print_loss_steps": 100, #max(1, int(max_steps/1000.0)),
+  "save_summaries_steps": None, #max(1, int(max_steps/1000.0)),
+  "print_loss_steps": 50, #max(1, int(max_steps/1000.0)),
   "print_samples_steps": None, #max(1, int(max_steps/1000.0)),
-  "eval_steps": max(1, int(max_steps/25.0)),
-  "save_checkpoint_steps": int((max_steps-1)/5.0),
+  "eval_steps": 10000000, #max(1, int(max_steps/25.0)),
+  "save_checkpoint_steps": None, #int((max_steps-1)/5.0),
   "logdir": "WMT16_EN_DT",
 
   # "regularizer": tf.contrib.layers.l2_regularizer,
@@ -80,12 +80,12 @@ base_params = {
     "d_model": d_model,
   },
 
-  "max_grad_norm": 0.2,
+  "max_grad_norm": 0.1,
 
   "loss_scaling": "Backoff",
 
-  "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
+  # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+  #               'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
@@ -121,7 +121,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": pad_2_eight,
     "out_emb_size": hidden_before_last,
-    "pos_embed": True,
+    "pos_embed": False,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
