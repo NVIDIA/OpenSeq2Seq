@@ -54,6 +54,9 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
     """
 
     super(Conv1DNetworkNormalized, self).__init__()
+
+    normalization_type = None
+
     self.mode = mode
     self.conv_padding = conv_padding
     self.decode_padding = decode_padding

@@ -170,7 +170,7 @@ class ConvS2SDecoder2(Decoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=self.normalization_type,
+                normalization_type=None, #self.normalization_type, #changed
                 regularizer=self.regularizer,
                 init_var=self.init_var)
           else:
@@ -211,7 +211,7 @@ class ConvS2SDecoder2(Decoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=self.normalization_type, #changed here
+                normalization_type=None, #changed here
                 regularizer=self.regularizer,
                 init_var=self.init_var))
 
@@ -288,8 +288,8 @@ class ConvS2SDecoder2(Decoder):
         targets, padding_value=self._pad_sym, dtype=decoder_inputs.dtype)
     decoder_inputs *= tf.expand_dims(1.0 - inputs_padding, 2)
 
-    with tf.variable_scope("linear_layer_before_cnn_layers"):
-      decoder_inputs = self.layers[0](decoder_inputs)
+    # with tf.variable_scope("linear_layer_before_cnn_layers"):
+    #   decoder_inputs = self.layers[0](decoder_inputs)
 
     # do decode
     logits = self._call(
@@ -307,9 +307,9 @@ class ConvS2SDecoder2(Decoder):
 
 
     #changed here
-    # with tf.variable_scope("linear_layer_before_cnn_layers"):
-    #   outputs = self.layers[0](decoder_inputs)
-    outputs = decoder_inputs
+    with tf.variable_scope("linear_layer_before_cnn_layers"):
+      outputs = self.layers[0](decoder_inputs)
+    # outputs = decoder_inputs
 
     for i in range(1, len(self.layers) - 2):
       linear_proj, conv_layer, att_layer = self.layers[i]

@@ -137,7 +137,7 @@ class FeedFowardNetworkNormalized(tf.layers.Layer):
           training=self.mode == 'train',
           axis=-1,
           momentum=0.99,
-          epsilon=1e-4
+          epsilon=1e-4,
       )
       output = tf.squeeze(bn_output, axis=1)
 

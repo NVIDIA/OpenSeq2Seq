@@ -33,6 +33,8 @@ class AttentionLayerNormalized(tf.layers.Layer):
     """
     super(AttentionLayerNormalized, self).__init__()
 
+    #add_res = False
+
     self.add_res = add_res
     self.scaling_factor = scaling_factor
     self.regularizer = regularizer
@@ -49,7 +51,7 @@ class AttentionLayerNormalized(tf.layers.Layer):
           dropout=1.0,
           var_scope_name="att_linear_mapping_tgt_embed",
           mode=mode,
-          normalization_type=normalization_type, #changed here
+          normalization_type=None, #changed here
           regularizer=self.regularizer,
           init_var=init_var
       ) #changed here

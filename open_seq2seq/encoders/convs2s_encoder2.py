@@ -125,7 +125,7 @@ class ConvS2SEncoder2(Encoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=self.normalization_type,
+                normalization_type=None, #changed
                 regularizer=self.regularizer,
                 init_var=self.init_var)
           else:
@@ -184,8 +184,8 @@ class ConvS2SEncoder2(Encoder):
       padding_mask = tf.expand_dims(1 - inputs_padding, 2)
       encoder_inputs *= padding_mask
 
-      with tf.variable_scope("linear_layer_before_cnn_layers"):
-        encoder_inputs = self.layers[0](encoder_inputs)
+      # with tf.variable_scope("linear_layer_before_cnn_layers"):
+      #   encoder_inputs = self.layers[0](encoder_inputs)
 
       outputs, outputs_b, final_state = self._call(encoder_inputs, padding_mask)
 
@@ -203,9 +203,9 @@ class ConvS2SEncoder2(Encoder):
     # Run inputs through the sublayers.
 
     #changed here
-    # with tf.variable_scope("linear_layer_before_cnn_layers"):
-    #   outputs = self.layers[0](encoder_inputs)
-    outputs = encoder_inputs
+    with tf.variable_scope("linear_layer_before_cnn_layers"):
+      outputs = self.layers[0](encoder_inputs)
+    # outputs = encoder_inputs
 
     for i in range(1, len(self.layers) - 1):
       linear_proj, conv_layer = self.layers[i]
