@@ -125,7 +125,7 @@ class ConvS2SEncoder2(Encoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=None, #changed
+                normalization_type=self.normalization_type, #changed
                 regularizer=self.regularizer,
                 init_var=self.init_var)
           else:

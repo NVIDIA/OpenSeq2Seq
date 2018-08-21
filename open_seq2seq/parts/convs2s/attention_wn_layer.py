@@ -33,14 +33,12 @@ class AttentionLayerNormalized(tf.layers.Layer):
     """
     super(AttentionLayerNormalized, self).__init__()
 
-    #add_res = False
-
     self.add_res = add_res
     self.scaling_factor = scaling_factor
     self.regularizer = regularizer
 
     #changed
-    #normalization_type = "weight_norm"
+    normalization_type = "weight_norm"
 
     with tf.variable_scope("attention_layer_" + str(layer_id)):
 

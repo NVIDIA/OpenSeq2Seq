@@ -170,7 +170,7 @@ class ConvS2SDecoder2(Decoder):
                 var_scope_name="linear_mapping_cnn_" + str(i + 1),
                 dropout=1.0,
                 mode=self.mode,
-                normalization_type=None, #self.normalization_type, #changed
+                normalization_type=self.normalization_type, #changed
                 regularizer=self.regularizer,
                 init_var=self.init_var)
           else:
@@ -211,7 +211,7 @@ class ConvS2SDecoder2(Decoder):
                 dropout=1.0,
                 var_scope_name="linear_mapping_after_cnn_layers",
                 mode=self.mode,
-                normalization_type=None, #changed here
+                normalization_type=self.normalization_type, #changed here
                 regularizer=self.regularizer,
                 init_var=self.init_var))
 
