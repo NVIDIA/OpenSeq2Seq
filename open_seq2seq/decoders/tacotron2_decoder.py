@@ -140,22 +140,12 @@ class Tacotron2Decoder(Decoder):
     * **attention_type** (string) --- Determines whether attention mechanism to
       use, should be one of 'bahdanau', 'location', or None.
       Use of 'location'-sensitive attention is strongly recommended.
-    * **attention_rnn_enable** (bool) --- Whether to create a rnn layer for the
-      attention mechanism. If false, the attention mechanism is wrapped around
-      the decoder rnn
-    * **attention_rnn_units** (int) --- dimension of attention RNN cells if
-      enabled. Defaults to 1024.
-    * **attention_rnn_layers** (int) --- number of attention RNN layers to use
-      if enabled. Defaults to 1.
-    * **attention_rnn_cell_type** (callable) --- Any valid RNN cell class.
-      Currently, only 'lstm' has been tested. Defaults to 'lstm'.
-    * **bahdanau_normalize** (bool) ---  Defaults to False.
+    * **bahdanau_normalize** (bool) --- Whether to enable weight norm on the
+      attention parameters. Defaults to False.
     * **decoder_cell_units** (int) --- dimension of decoder RNN cells.
     * **decoder_layers** (int) --- number of decoder RNN layers to use.
     * **decoder_cell_type** (callable) --- could be "lstm", "gru", "glstm", or
       "slstm". Currently, only 'lstm' has been tested. Defaults to 'lstm'.
-    * **scheduled_sampling_prob** (float) --- probability for scheduled
-      sampling. Set to 0 for teacher forcing.
     * **time_major** (bool) --- whether to output as time major or batch major.
       Default is False for batch major.
     * **use_swap_memory** (bool) --- default is False.
@@ -206,27 +196,12 @@ class Tacotron2Decoder(Decoder):
       "channels_last". Defaults to "channels_last".
     * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in
       the postnet conv layers. Default to 0.5.
-    * **anneal_teacher_forcing** (bool) --- Whether to use scheduled sampling
-      and increase the probability / anneal the use of teacher forcing as
-      training progresses. Currently only a fixed staircase increase is
-      supported. If True, it will override the scheduled_sampling_prob
-      parameter. Defaults to False.
-    * **anneal_teacher_forcing_stop_gradient** (bool) --- If
-      anneal_teacher_forcing is True, tf.stop_gradient is called on the inputs
-      to the decoder to prevent back propogation through the scheduled sampler.
-      Defaults to False
-    * **mask_decoder_sequence** (bool) --- Defaults to True
-    * **use_prenet_output** (bool) --- Wether to pass the prenet output to the
-      attention rnn. Defaults to True.
+    * **mask_decoder_sequence** (bool) --- Defaults to Truee.
     * **attention_bias** (bool) --- Wether to use a bias term when calculating
       the attention. Only works for "location" attention. Defaults to False.
     * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.1
-    * **stop_token_choice** (int) --- 1 for paper, 2 for post decrnn, 3 for post
-      postnet. **DOCUMENTATION NEEDS TO BE UPDATED**
     * **parallel_iterations** (int) --- Number of parallel_iterations for
       tf.while loop inside dynamic_decode. Defaults to 32.
-    * **use_state_for_location** (bool) --- Use attention state to store
-      cumulative location. If false, stores inside self var
     """
 
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
@@ -273,37 +248,37 @@ class Tacotron2Decoder(Decoder):
     Decodes representation into data
 
     Args:
-      input_dict (dict): Python dictionary with inputs to decoder
+      input_dict (dict): Python dictionary with inputs to decoder. Must define:
+          * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
+            or [time, batch_size, dim]
+          * src_lengths - decoder input lengths Tensor of shape [batch_size]
+          * tgt_inputs - Only during training. labels Tensor of the
+            shape [batch_size, time, num_features] or
+            [time, batch_size, num_features]
+          * stop_token_inputs - Only during training. labels Tensor of the
+            shape [batch_size, time, 1] or [time, batch_size, 1]
+          * tgt_lengths - Only during training. labels lengths
+            Tensor of the shape [batch_size]
 
-    Must define:
-      * src_inputs - decoder input Tensor of shape [batch_size, time, dim]
-                     or [time, batch_size, dim]
-      * src_lengths - decoder input lengths Tensor of shape [batch_size]
-      * tgt_inputs - Only during training. labels Tensor of the
-                     shape [batch_size, time, num_features] or
-                     [time, batch_size, num_features]
-      * stop_token_inputs - Only during training. labels Tensor of the
-                     shape [batch_size, time, 1] or [time, batch_size, 1]
-      * tgt_lengths - Only during training. labels lengths
-                      Tensor of the shape [batch_size]
     Returns:
-      a Python dictionary with:
-        * outputs - array containing
-          * decoder_output - tensor of shape [batch_size, time, num_features]
-            or [time, batch_size, num_features]. Spectrogram representation
-            learned by the decoder rnn
-          * spectrogram_prediction - tensor of shape [batch_size, time,
-            num_features] or [time, batch_size, num_features]. Spectrogram
-            containing the residual corrections from the postnet if enabled
-          * alignments - tensor of shape [batch_size, time, memory_size]
-            or [time, batch_size, memory_size]. The alignments learned by the
-            attention layer
-          * stop_token_prediction - tensor of shape [batch_size, time, 1]
-            or [time, batch_size, 1]. The stop token predictions
-          * final_sequence_lengths - tensor of shape [batch_size]
-        * stop_token_predictions - tensor of shape [batch_size, time, 1]
-          or [time, batch_size, 1]. The stop token predictions for use inside
-          the loss function.
+      dict:
+        A python dictionary containing:
+          * outputs - array containing:
+              * decoder_output - tensor of shape [batch_size, time,
+                num_features] or [time, batch_size, num_features]. Spectrogram
+                representation learned by the decoder rnn
+              * spectrogram_prediction - tensor of shape [batch_size, time,
+                num_features] or [time, batch_size, num_features]. Spectrogram
+                containing the residual corrections from the postnet if enabled
+              * alignments - tensor of shape [batch_size, time, memory_size]
+                or [time, batch_size, memory_size]. The alignments learned by
+                the attention layer
+              * stop_token_prediction - tensor of shape [batch_size, time, 1]
+                or [time, batch_size, 1]. The stop token predictions
+              * final_sequence_lengths - tensor of shape [batch_size]
+          * stop_token_predictions - tensor of shape [batch_size, time, 1]
+            or [time, batch_size, 1]. The stop token predictions for use inside
+            the loss function.
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']

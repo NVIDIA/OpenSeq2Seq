@@ -13,6 +13,7 @@
 # limitations under the License.
 # ==============================================================================
 """
+Modified by blisc to enable support for tacotron models
 Custom Helper class that implements the tacotron decoder pre and post nets
 """
 from __future__ import absolute_import, division, print_function
@@ -65,8 +66,6 @@ class TacotronTrainingHelper(Helper):
       prenet: prenet to use, currently disabled and used in tacotron decoder
         instead.
       sampling_prob (float): see tacotron 2 decoder
-      anneal_teacher_forcing (float): see tacotron 2 decoder
-      stop_gradient (float): see tacotron 2 decoder
       time_major (bool): (float): see tacotron 2 decoder
       mask_decoder_sequence (bool): whether to pass finished when the decoder
         passed the sequence_length input or to pass unfinished to dynamic_decode

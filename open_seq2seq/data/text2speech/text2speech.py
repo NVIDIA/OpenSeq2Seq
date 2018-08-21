@@ -54,17 +54,20 @@ class Text2SpeechDataLayer(DataLayer):
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
     """Text-to-speech data layer constructor.
+
     See parent class for arguments description.
+
     Config parameters:
+
     * **dataset** (str) --- The dataset to use. Currently 'LJ' for the LJSpeech
-      1.1 dataset and 'Librispeech' for the Librispeech dataset are supported.
+      1.1 dataset is supported.
     * **num_audio_features** (int) --- number of audio features to extract.
     * **output_type** (str) --- could be either "magnitude", or "mel".
     * **vocab_file** (str) --- path to vocabulary file.
     * **dataset_files** (list) --- list with paths to all dataset .csv files.
       File is assumed to be separated by "|".
     * **dataset_location** (string) --- string with path to directory where wavs
-      are stored. Required if using LJ dataset but not used for Librispeech.
+      are stored.
     * **feature_normalize** (bool) --- whether to normlize the data with a
       preset mean and std
     * **feature_normalize_mean** (bool) --- used for feature normalize.
@@ -82,6 +85,7 @@ class Text2SpeechDataLayer(DataLayer):
     * **pad_to** (int) --- we pad such that the resulting datapoint is a
       multiple of pad_to.
       Defaults to 8.
+
     """
     super(Text2SpeechDataLayer, self).__init__(
         params,
@@ -277,13 +281,15 @@ class Text2SpeechDataLayer(DataLayer):
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
+
     Args:
       element: tf.data element from TextLineDataset.
+
     Returns:
       tuple: text_input text as `np.array` of ids, text_input length,
       target audio features as `np.array`, stop token targets as `np.array`,
-      length of target sequence,
-      .
+      length of target sequence.
+
     """
     audio_filename, transcript = element
     transcript = transcript.lower()
@@ -364,8 +370,10 @@ class Text2SpeechDataLayer(DataLayer):
 
   def _parse_transcript_element(self, transcript):
     """Parses text from file and returns array of text features.
+
     Args:
       transcript: the string to parse.
+
     Returns:
       tuple: target text as `np.array` of ids, target text length.
     """
@@ -412,8 +420,10 @@ class Text2SpeechDataLayer(DataLayer):
 
   def create_feed_dict(self, model_in):
     """ Creates the feed dict for interactive infer
+
     Args:
       model_in (str): The string to be spoken.
+
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
@@ -452,8 +462,10 @@ class Text2SpeechDataLayer(DataLayer):
   def get_magnitude_spec(self, spectrogram):
     """Returns an energy magnitude spectrogram. The processing depends on the
     data leyer params.
+
     Args:
       spectrogram: output spec from model
+
     Returns:
       mag_spec: mag spec
     """

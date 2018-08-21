@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
+"""
+Modified by blisc to enable support for tacotron models, specfically enables
+the prenet
+"""
 
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
@@ -54,12 +58,9 @@ class TacotronDecoder(decoder.Decoder):
 
     Args:
       decoder_cell: An `RNNCell` instance.
-      attention_cell: An `RNNCell` instance.
       helper: A `Helper` instance.
       initial_decoder_state: A (possibly nested tuple of...) tensors and
         TensorArrays. The initial state of the RNNCell.
-      initial_attention_state: A (possibly nested tuple of...) tensors and
-        TensorArrays.The initial state of the RNNCell.
       attention_type: The type of attention used
       stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
@@ -67,11 +68,6 @@ class TacotronDecoder(decoder.Decoder):
       spec_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Output layer to apply to the RNN output to map
         the ressult to a spectrogram
-      use_prenet_output: (Optional), whether to use the prenet output
-        in the attention mechanism
-      stop_token_choice (int): Current debug parameter to experiment with stop
-        token projection. **DOCUMENTATION NEEDS TO BE UPDATED**
-      stop_token_full: See tacotron 2 decoder for more details.
       prenet: The prenet to apply to inputs
 
     Raises:
