@@ -25,8 +25,8 @@ def get_speech_features_from_file(
     filename (string): WAVE filename.
     num_features (int): number of speech features in frequency domain.
     features_type (string): 'magnitude' or 'mel'.
-    window_size (int): size of analysis window in samples.
-    window_stride (int): stride of analysis window in samples.
+    n_fft (int): size of analysis window in samples.
+    hop_length (int): stride of analysis window in samples.
     mag_power (int): power to raise magnitude spectrograms (prior to dot product
       with mel basis)
       1 for energy spectrograms
@@ -72,14 +72,13 @@ def get_speech_features(
 ):
   """ Helper function to retrieve spectrograms from loaded wav
 
-
   Args:
     signal: signal loaded with librosa.
     fs (int): sampling frequency in Hz.
     num_features (int): number of speech features in frequency domain.
     features_type (string): 'magnitude' or 'mel'.
-    window_size (int): size of analysis window in samples.
-    window_stride (int): stride of analysis window in samples.
+    n_fft (int): size of analysis window in samples.
+    hop_length (int): stride of analysis window in samples.
     mag_power (int): power to raise magnitude spectrograms (prior to dot product
       with mel basis)
       1 for energy spectrograms
@@ -87,10 +86,11 @@ def get_speech_features(
     feature_normalize(bool): whether to normalize the data with mean and std
     mean(float): if normalize is enabled, the mean to normalize to
     std(float): if normalize is enabled, the deviation to normalize to
+    data_min (float): min clip value prior to taking the log.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,
-      num_features].
+    num_features].
   """
   if features_type == 'magnitude':
     complex_spec = librosa.stft(y=signal, n_fft=n_fft)
@@ -153,6 +153,9 @@ def get_mel(
     std (float): normalization param of mag spec
     mel_basis (np.array): optional pre-computed mel basis to save computational
       time if passed. If not passed, it will call librosa to construct one
+    data_min (float): min clip value prior to taking the log.
+    htk (bool): whther to compute the mel spec with the htk or slaney algorithm
+    norm: Should be None for htk, and 1 for slaney
 
   Returns:
     np.array: mel_spec with shape [time, n_mels]
@@ -202,6 +205,8 @@ def inverse_mel(
     std (float): normalization param of mel spec
     mel_basis (np.array): optional pre-computed mel basis to save computational
       time if passed. If not passed, it will call librosa to construct one
+    htk (bool): whther to compute the mel spec with the htk or slaney algorithm
+    norm: Should be None for htk, and 1 for slaney
 
   Returns:
     np.array: mag_spec with shape [time, n_fft/2 + 1]
