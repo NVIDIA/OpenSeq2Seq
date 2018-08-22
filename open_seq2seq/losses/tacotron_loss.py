@@ -31,19 +31,26 @@ class TacotronLoss(Loss):
 
     Args:
       input_dict (dict): inputs to compute loss. Contains:
-          "decoder_output": dicionary containing:
+
+          * "decoder_output": dicionary containing:
+
               "outputs": array containing [
+
                   * decoder_predictions: spectrogram predicted by the decoder
                     rnn of shape [batch, time, feats]
                   * post_net_predictions: spectrogram after adding the residual
                     corrections from the post net of shape [batch, time, feats]
                   * stop_token_predictions: stop_token predictions of shape
                     [batch, time, 1]
+
               ]
-          "target_tensors": array containing [
+
+          * "target_tensors": array containing [
+
               * spec: the true spectrogram of shape [batch, time, feats]
               * stop_token: the stop_token of shape [batch, time]
-          ]
+
+            ]
 
     Returns:
        Singleton loss tensor

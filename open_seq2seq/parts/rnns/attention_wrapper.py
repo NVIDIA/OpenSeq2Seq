@@ -756,7 +756,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         mechanism.
       use_bias (bool): Whether to use a bias when computing alignments
       name: Name to use when creating ops.
-      use_state (bool): see tacotron 2 decoder params.
     """
     if probability_fn is None:
       probability_fn = nn_ops.softmax

@@ -199,7 +199,10 @@ class Tacotron2Decoder(Decoder):
     * **mask_decoder_sequence** (bool) --- Defaults to True.
     * **attention_bias** (bool) --- Wether to use a bias term when calculating
       the attention. Only works for "location" attention. Defaults to False.
-    * **zoneout_prob** (float) --- zoneout probability. Defaults to 0.1
+    * **zoneout_prob** (float) --- zoneout probability for rnn layers.
+      Defaults to 0.
+    * **dropout_prob** (float) --- dropout probability for rnn layers.
+      Defaults to 0.1
     * **parallel_iterations** (int) --- Number of parallel_iterations for
       tf.while loop inside dynamic_decode. Defaults to 32.
     """
@@ -263,7 +266,9 @@ class Tacotron2Decoder(Decoder):
     Returns:
       dict:
         A python dictionary containing:
+
           * outputs - array containing:
+
               * decoder_output - tensor of shape [batch_size, time,
                 num_features] or [time, batch_size, num_features]. Spectrogram
                 representation learned by the decoder rnn

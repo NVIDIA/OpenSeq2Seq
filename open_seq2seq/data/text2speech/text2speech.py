@@ -75,16 +75,31 @@ class Text2SpeechDataLayer(DataLayer):
     * **feature_normalize_std** (bool) --- used for feature normalize.
       Defaults to 1.
     * **mag_power** (int) --- the power to which the magnitude spectrogram is
-      scaled to:
+      scaled to. Defaults to 1.
       1 for energy spectrogram
       2 for power spectrogram
       Defaults to 2.
     * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and
       the speech signal. Will pad at least 1 token regardless of pad_to value.
       Defaults to True.
+    * **pad_value** (float) --- The value we pad the spectrogram with. Defaults
+      to np.log(data_min).
     * **pad_to** (int) --- we pad such that the resulting datapoint is a
       multiple of pad_to.
       Defaults to 8.
+    * **trim** (bool) --- Whether to trim silence via librosa or not. Defaults
+      to False.
+    * **data_min** (float) --- min clip value prior to taking the log. Defaults
+      to 1e-5. Please change to 1e-2 if using htk mels.
+    * **duration_min** (int) --- Minimum duration in steps for speech signal.
+      All signals less than this will be cut from the training set. Defaults to
+      0.
+    * **duration_max** (int) --- Maximum duration in steps for speech signal.
+      All signals greater than this will be cut from the training set. Defaults 
+      to 4000.
+    * **mel_type** (str): One of ['slaney', 'htk']. Decides which algorithm to
+      use to compute mel specs.
+      Defaults to htk.
 
     """
     super(Text2SpeechDataLayer, self).__init__(
@@ -461,7 +476,7 @@ class Text2SpeechDataLayer(DataLayer):
 
   def get_magnitude_spec(self, spectrogram):
     """Returns an energy magnitude spectrogram. The processing depends on the
-    data leyer params.
+    data layer params.
 
     Args:
       spectrogram: output spec from model

@@ -127,6 +127,8 @@ def save_audio(
       energy spectrogram.
     logdir (str): dir to save image file is save_to_tensorboard is disabled.
     step (int): current training step
+    sampling_rate (int): samplng rate in Hz of the audio to be saved.
+    n_fft (int): number of filters for fft and ifft.
     number (int): Current sample number (used if evaluating more than 1 sample
     mode (str): Optional string to append to file name eg. train, eval, infer
       from a batch)

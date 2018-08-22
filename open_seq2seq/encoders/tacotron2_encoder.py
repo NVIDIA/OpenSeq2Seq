@@ -56,7 +56,7 @@ class Tacotron2Encoder(Encoder):
 
     Config parameters:
 
-    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **dropout_keep_prob** (float) --- keep probability for dropout.
     * **src_emb_size** (int) --- dimensionality of character embedding.
     * **conv_layers** (list) --- list with the description of convolutional
       layers. For example::
@@ -97,15 +97,18 @@ class Tacotron2Encoder(Encoder):
 
     Args:
        input_dict (dict): dictionary with inputs.
-          Must define:
-              source_tensors - array containing [
-                * source_sequence: tensor of shape [batch_size, sequence length]
-                * src_length: tensor of shape [batch_size]
-              ]
+        Must define:
+
+            source_tensors - array containing [
+
+              * source_sequence: tensor of shape [batch_size, sequence length]
+              * src_length: tensor of shape [batch_size]
+
+            ]
 
     Returns:
-      dict:
-        A python dictionary containing:
+      dict: A python dictionary containing:
+
           * outputs - tensor containing the encoded text to be passed to the
             attention layer
           * src_length - the length of the encoded text
