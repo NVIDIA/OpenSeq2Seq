@@ -176,12 +176,6 @@ class RNNDecoderWithAttention(Decoder):
     tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
                                                      input_dict else None
 
-    # self._dec_emb_w = tf.get_variable(
-    #     name='DecoderEmbeddingMatrix',
-    #     shape=[self._tgt_vocab_size, self._tgt_emb_size],
-    #     dtype=tf.float32,
-    # )
-
     self._output_projection_layer = tf.layers.Dense(
         self._tgt_vocab_size, use_bias=False,
     )
