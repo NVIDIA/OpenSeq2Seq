@@ -5,6 +5,8 @@ RNN-based decoders.
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import copy
+
 import tensorflow as tf
 
 from open_seq2seq.parts.rnns.attention_wrapper import BahdanauAttention, \
@@ -48,6 +50,7 @@ class RNNDecoderWithAttention(Decoder):
         'proj_size': int,
         'num_groups': int,
         'PAD_SYMBOL': int,  # symbol id
+        'weight_tied': bool,
     })
 
   def __init__(self, params, model,
@@ -81,6 +84,7 @@ class RNNDecoderWithAttention(Decoder):
     self.END_SYMBOL = self.params['END_SYMBOL']
     self._tgt_vocab_size = self.params['tgt_vocab_size']
     self._tgt_emb_size = self.params['tgt_emb_size']
+    self._weight_tied = self.params.get('weight_tied', False)
 
   def _build_attention(self,
                        encoder_outputs,
@@ -172,15 +176,22 @@ class RNNDecoderWithAttention(Decoder):
     tgt_lengths = input_dict['target_tensors'][1] if 'target_tensors' in \
                                                      input_dict else None
 
-    self._dec_emb_w = tf.get_variable(
-        name='DecoderEmbeddingMatrix',
-        shape=[self._tgt_vocab_size, self._tgt_emb_size],
-        dtype=tf.float32,
-    )
-
     self._output_projection_layer = tf.layers.Dense(
         self._tgt_vocab_size, use_bias=False,
     )
+
+    if not self._weight_tied:
+      self._dec_emb_w = tf.get_variable(
+          name='DecoderEmbeddingMatrix',
+          shape=[self._tgt_vocab_size, self._tgt_emb_size],
+          dtype=tf.float32
+      )
+    else:
+      fake_input = tf.zeros(shape=(1, self._tgt_emb_size))
+      fake_output = self._output_projection_layer.apply(fake_input)
+      with tf.variable_scope("dense", reuse=True):
+        dense_weights = tf.get_variable("kernel")
+        self._dec_emb_w = tf.transpose(dense_weights)
 
     if self._mode == "train":
       dp_input_keep_prob = self.params['decoder_dp_input_keep_prob']
@@ -192,6 +203,7 @@ class RNNDecoderWithAttention(Decoder):
     residual_connections = self.params['decoder_use_skip_connections']
 
     # list of cells
+    cell_params = self.params.get('core_cell_params', {})
     self._decoder_cells = [
         single_cell(
             cell_class=self.params['core_cell'],
@@ -201,8 +213,25 @@ class RNNDecoderWithAttention(Decoder):
             # residual connections are added a little differently for GNMT
             residual_connections=False if self.params['attention_type'].startswith('gnmt')
                                  else residual_connections,
-        ) for _ in range(self.params['decoder_layers'])
+        ) for _ in range(self.params['decoder_layers'] - 1)
     ]
+
+    last_cell_params = copy.deepcopy(cell_params)
+    if self._weight_tied:
+      last_cell_params['num_units'] = self._tgt_emb_size
+
+    last_cell = single_cell(
+            cell_class=self.params['core_cell'],
+            cell_params=last_cell_params,
+            dp_input_keep_prob=dp_input_keep_prob,
+            dp_output_keep_prob=dp_output_keep_prob,
+            # residual connections are added a little differently for GNMT
+            residual_connections=False if self.params['attention_type'].startswith('gnmt')
+                                 else residual_connections,
+        )
+    self._decoder_cells.append(last_cell)
+
+
 
     attention_mechanism = self._build_attention(
         encoder_outputs,
@@ -348,6 +377,7 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
     else:
       self._beam_width = self.params["beam_width"]
 
+
   def _decode(self, input_dict):
     """Decodes representation into data.
 
@@ -371,15 +401,26 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_lengths']
 
-    self._dec_emb_w = tf.get_variable(
-        name='DecoderEmbeddingMatrix',
-        shape=[self._tgt_vocab_size, self._tgt_emb_size],
-        dtype=tf.float32
-    )
+    
 
     self._output_projection_layer = tf.layers.Dense(
         self._tgt_vocab_size, use_bias=False,
     )
+
+    if not self._weight_tied:
+      self._dec_emb_w = tf.get_variable(
+          name='DecoderEmbeddingMatrix',
+          shape=[self._tgt_vocab_size, self._tgt_emb_size],
+          dtype=tf.float32
+      )
+    else:
+      fake_input = tf.zeros(shape=(1, self._tgt_emb_size))
+      fake_output = self._output_projection_layer.apply(fake_input)
+      with tf.variable_scope("dense", reuse=True):
+        dense_weights = tf.get_variable("kernel")
+        self._dec_emb_w = tf.transpose(dense_weights)
+
+
 
     if self._mode == "train":
       dp_input_keep_prob = self.params['decoder_dp_input_keep_prob']
@@ -390,17 +431,35 @@ class BeamSearchRNNDecoderWithAttention(RNNDecoderWithAttention):
 
     residual_connections = self.params['decoder_use_skip_connections']
     # list of cells
+    cell_params = self.params.get('core_cell_params', {})
+    
+
     self._decoder_cells = [
         single_cell(
             cell_class=self.params['core_cell'],
-            cell_params=self.params.get('core_cell_params', {}),
+            cell_params=cell_params,
             dp_input_keep_prob=dp_input_keep_prob,
             dp_output_keep_prob=dp_output_keep_prob,
             # residual connections are added a little differently for GNMT
             residual_connections=False if self.params['attention_type'].startswith('gnmt')
                                  else residual_connections,
-        ) for _ in range(self.params['decoder_layers'])
+        ) for _ in range(self.params['decoder_layers'] - 1)
     ]
+
+    last_cell_params = copy.deepcopy(cell_params)
+    if self._weight_tied:
+      last_cell_params['num_units'] = self._tgt_emb_size
+
+    last_cell = single_cell(
+            cell_class=self.params['core_cell'],
+            cell_params=last_cell_params,
+            dp_input_keep_prob=dp_input_keep_prob,
+            dp_output_keep_prob=dp_output_keep_prob,
+            # residual connections are added a little differently for GNMT
+            residual_connections=False if self.params['attention_type'].startswith('gnmt')
+                                 else residual_connections,
+        )
+    self._decoder_cells.append(last_cell)
 
     # pylint: disable=no-member
     tiled_enc_outputs = tf.contrib.seq2seq.tile_batch(
