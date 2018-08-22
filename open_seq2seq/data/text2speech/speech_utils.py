@@ -21,7 +21,6 @@ def get_speech_features_from_file(
 ):
   """ Helper function to retrieve spectrograms from wav files
 
-
   Args:
     filename (string): WAVE filename.
     num_features (int): number of speech features in frequency domain.
@@ -32,13 +31,15 @@ def get_speech_features_from_file(
       with mel basis)
       1 for energy spectrograms
       2 fot power spectrograms
-    feature_normalize(bool): whether to normalize the data with mean and std
-    mean(float): if normalize is enabled, the mean to normalize to
-    std(float): if normalize is enabled, the deviation to normalize to
+    feature_normalize (bool): whether to normalize the data with mean and std
+    mean (float): if normalize is enabled, the mean to normalize to
+    std (float): if normalize is enabled, the deviation to normalize to
+    trim (bool): Whether to trim silence via librosa or not
+    data_min (float): min clip value prior to taking the log.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,
-      num_features].
+    num_features].
   """
   # load audio signal
   signal, fs = librosa.core.load(filename, sr=None)
