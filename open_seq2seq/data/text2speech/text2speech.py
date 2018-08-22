@@ -308,9 +308,14 @@ class Text2SpeechDataLayer(DataLayer):
     """
     audio_filename, transcript = element
     transcript = transcript.lower()
-    audio_filename = str(audio_filename, "utf-8")
+    if six.PY2:
+      audio_filename = unicode(audio_filename, "utf-8")
+      transcript = unicode(transcript, "utf-8")
+    else:
+      audio_filename = str(audio_filename, "utf-8")
+      transcript = str(transcript, "utf-8")
     text_input = np.array(
-        [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
+        [self.params['char2idx'][c] for c in transcript]
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
@@ -394,8 +399,12 @@ class Text2SpeechDataLayer(DataLayer):
     """
 
     transcript = transcript.lower()
+    if six.PY2:
+      transcript = unicode(transcript, "utf-8")
+    else:
+      transcript = str(transcript, "utf-8")
     text_input = np.array(
-        [self.params['char2idx'][c] for c in str(transcript, "utf-8")]
+        [self.params['char2idx'][c] for c in transcript]
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):

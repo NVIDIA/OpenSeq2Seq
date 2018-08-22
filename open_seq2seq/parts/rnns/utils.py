@@ -3,10 +3,7 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 from six.moves import range
 
-from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
-                                           MultiRNNCell
-from open_seq2seq.parts.rnns.slstm import BasicSLSTMCell
-from open_seq2seq.parts.rnns.glstm import GLSTMCell
+from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper
 from open_seq2seq.parts.rnns.zoneout import ZoneoutWrapper
 
 
@@ -47,7 +44,7 @@ def single_cell(
         "Currently applying both dropout and zoneout on the same cell."
         "This is not recommended"
     )
-  if dp_input_keep_prob != 1.0 or dp_output_keep_prob != 1.0:
+  if dp_input_keep_prob != 1.0 or dp_output_keep_prob != 1.0 and training:
     cell = DropoutWrapper(
         cell,
         input_keep_prob=dp_input_keep_prob,
