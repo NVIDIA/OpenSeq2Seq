@@ -50,6 +50,11 @@ def main():
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
                       help='whether to log output, git info, cmd args, etc.')
+  parser.add_argument('--use_trt', dest='use_trt', action='store_true',
+                      help='use TF-TRT to optimize graph for inference (mode must be infer)')
+  parser.add_argument('--precision', type=str, default='fp32',
+                      choices=['fp32', 'fp16', 'int8'],
+                      help='precision for TF-TRT (only valid with --use_trt')  
   args, unknown = parser.parse_known_args()
 
   if args.mode not in ['train', 'eval', 'train_eval', 'infer']:
@@ -64,6 +69,9 @@ def main():
   base_model = config_module.get('base_model', None)
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
+
+  if args.use_trt and args.mode != 'infer':
+    raise ValueError("TensorRT is only supported for inference mode.")
 
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
@@ -249,8 +257,8 @@ def main():
       evaluate(eval_model, checkpoint)
     elif args.mode == "infer":
       infer_model = base_model(params=infer_config, mode="infer", hvd=hvd)
-      infer_model.compile()
-      infer(infer_model, checkpoint, args.infer_output_file)
+      infer_model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
+      infer(infer_model, checkpoint, args.infer_output_file, args.use_trt)
 
   if args.enable_logs and (hvd is None or hvd.rank() == 0):
     sys.stdout = old_stdout
