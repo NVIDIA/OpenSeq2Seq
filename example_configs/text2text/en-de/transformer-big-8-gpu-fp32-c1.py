@@ -26,13 +26,13 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 1, # use 8 Horovod workers
   "batch_size_per_gpu": 128,  # this size is in sentence pairs
-  "max_steps": 310000,
+  "max_steps": 300000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 4001,
   "save_checkpoint_steps": 4000,
-  "logdir": "Transformer-8GPUs-MP",
+  "logdir": "Transformer-8GPUs-FP32",
   "dtype": tf.float32,
   #"dtype": "mixed",
   #"loss_scaling": "Backoff",
@@ -47,7 +47,7 @@ base_params = {
   "lr_policy": transformer_policy,
   "lr_policy_params": {
     "learning_rate": 2.0,
-    "warmup_steps": 16000,
+    "warmup_steps": 8000,
     "d_model": d_model,
   },
 
@@ -99,9 +99,9 @@ train_params = {
     "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
+    "map_parallel_calls": 32,
     "max_length": 56,
+    "use_start_token": False,
   },
 }
 
@@ -117,7 +117,7 @@ eval_params = {
     "shuffle": False,
     "repeat": False,
     "max_length": 256,
-    "prefetch_buffer_size": 1,
+    "use_start_token": False,
     },
 }
 
@@ -133,6 +133,6 @@ infer_params = {
     "shuffle": False,
     "repeat": False,
     "max_length": 256,
-    "prefetch_buffer_size": 1,
+    "use_start_token": False,
   },
 }
