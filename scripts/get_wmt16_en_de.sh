@@ -20,7 +20,7 @@ set -e
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
 OUTPUT_DIR="${1:-alldata_en_dt}"
-VOCAB_SIZE=32768
+VOCAB_SIZE=40000 #32768
 echo "Writing to ${OUTPUT_DIR}. To change this, set the OUTPUT_DIR environment variable."
 
 OUTPUT_DIR_DATA="${OUTPUT_DIR}/data"
