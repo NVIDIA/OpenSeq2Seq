@@ -17,7 +17,7 @@ Currently we support following models:
      - Config file
      - Checkpoint
    * - :doc:`Tacotron-2 </speech-synthesis/tacotron-2>`
-     - `tacotron_LJ_floats.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
      - To be added
 
 The model specification and training parameters can be found in the corresponding config file.
@@ -43,7 +43,7 @@ Get data
 
 First, you need to download and extract the dataset into a directory of your
 choice. The extracted file should consist of a metadata.csv file and a directory
-of wav files. metadata.csv lists all the wavs filename and their corresponding
+of wav files. metadata.csv lists all the wav filename and their corresponding
 transcripts delimited by the '|' character.
 
 

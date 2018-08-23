@@ -12,8 +12,8 @@ matches what is presented in the paper. There are a few differences listed
 below.
 
 The first change is the location of the stop token linear projection layer. In
-the paper, it is connected to the output of the decoder rnn. Wheras in our
-implementation, it is connected to the output of the spectorgram projection
+the paper, it is connected to the output of the decoder rnn. Whereas in our
+implementation, it is connected to the output of the spectrogram projection
 layer.
 
 We replace zoneout with dropout in the decoder rnn and remove it entirely from
@@ -32,7 +32,7 @@ Model Description
    Tacotron 2 Model
 
 Tacotron 2 follows a simple encoder decoder structure that has seen great
-success in sequence-to-sequence modelling. The encoder is made of three parts.
+success in sequence-to-sequence modeling. The encoder is made of three parts.
 First a word embedding is learned. The embedding is then passed through a
 convolutional prenet. Lastly, the results are consumed by a bi-direction rnn.
 The encoder and decoder structure is connected via an attention mechanism which
@@ -43,7 +43,7 @@ The decoder is comprised of a 2 layer LSTM network, a convolutional postnet, and
 a fully connected prenet. During training, the ground frame is fed through the
 prenet and passed as input to the LSTM layers. In addition, an attention context
 is computed by the attention layer at each step and concatenated with the prenet
-output. The output of the LSTM network concatenated with the attention is semt
+output. The output of the LSTM network concatenated with the attention is sent
 through two projection layers. The first projects the information to a
 spectrogram while the other projects it to a stop token. The spectrogram is then
 sent through the convolutional postnet to compute a residual to add to the
@@ -72,13 +72,13 @@ The model allows for two representations of the spectrogram. The first is the
 magnitude spectrogram (also called an energy spectrogram) and the second is the
 mel spectrogram (which is used in the original paper). The mel spectrogram is a 
 lossy compression of the magnitude spectrogram. It is advised to use the htk
-algorithm to compute mels and to leave it unnormalized. From experience, it is
-easier to learn attention with mel spectrograms, hence easier to generate audio.
-However, training with magnitude spectrograms results in better sound quality as
-the audio is recontrusted via Griffin-Lim which takes as input a magnitude
-spectrogram.
+algorithm to compute mel spectrograms and to leave it unnormalized. From
+experience, it is easier to learn attention with mel spectrograms, and hence
+easier to learn to generate audio. However, training with magnitude spectrograms
+results in better sound quality as the audio is reconstructed via Griffin-Lim
+which takes magnitude spectrograms as input.
 
-A peusdo metric for audio quality is how well attention is learned. Ideally, we
+A pseudo metric for audio quality is how well attention is learned. Ideally, we
 want a nice clear diagonal alignment. The current models should learn attention
 between 10k - 20k steps.
 
