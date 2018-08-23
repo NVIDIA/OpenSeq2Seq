@@ -82,7 +82,7 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
-def iterate_data(model, sess, compute_loss, mode, verbose):
+def iterate_data(model, sess, compute_loss, mode, verbose, num_steps=None):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
   results_per_batch = []
@@ -201,6 +201,9 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     if len(fetches_vals) == 0:
       break
     step += 1
+    # break early in the case of INT8 calibration
+    if num_steps is not None and step >= num_steps:
+      break
 
   if verbose:
     if step > bench_start:
