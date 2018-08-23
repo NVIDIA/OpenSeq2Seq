@@ -40,7 +40,7 @@ base_params = {
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
   "max_steps": 310000,
-  "batch_size_per_gpu": 256,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
