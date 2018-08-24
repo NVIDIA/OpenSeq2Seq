@@ -110,7 +110,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
         self.W = tf.get_variable(
             'W',
             shape=[kernel_width, in_dim, conv_out_size],
-            initializer=tf.random_normal_initializer(mean=0, stddev=V_std), #tf.contrib.layers.variance_scaling_initializer()
+            initializer=tf.random_normal_initializer(mean=0, stddev=V_std),
             trainable=True,
             regularizer=self.regularizer)
 
@@ -160,7 +160,6 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       bn_output = tf.layers.batch_normalization(
           name="batch_norm_" + str(self.layer_id),
           inputs=bn_input,
-          #gamma_regularizer=self.regularizer,
           training=self.mode == 'train',
           axis=-1,
           momentum=0.95,
@@ -169,17 +168,7 @@ class Conv1DNetworkNormalized(tf.layers.Layer):
       output = tf.squeeze(bn_output, axis=1)
 
     if self.apply_layer_norm:
-
-      # ln_input = tf.expand_dims(output, axis=1)
-      # ln_output = tf.contrib.layers.layer_norm(
-      #     inputs=ln_input,
-      #     begin_norm_axis=1,
-      #     begin_params_axis=-1,
-      #     scope="layer_norm_" + str(self.layer_id),
-      # )
-      # output = tf.squeeze(ln_output, axis=1)
       output = self.layer_norm(output)
-
     if self.b is not None:
       output = tf.nn.bias_add(output, self.b)
 
