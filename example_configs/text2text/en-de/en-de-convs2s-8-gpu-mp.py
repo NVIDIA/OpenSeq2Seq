@@ -174,7 +174,7 @@ eval_params = {
 }
 
 infer_params = {
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 1,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "src_vocab_file": data_root+"m_common.vocab",
