@@ -13,7 +13,7 @@ layers_dict = {
 }
 
 def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-              padding, dilation, regularizer, training, data_format):
+              padding, regularizer, training, data_format, dilation=1):
   """Helper function that applies convolution and activation.
     Args:
       layer_type: the following types are supported
@@ -41,8 +41,8 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, str
 
 
 def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, dilation, regularizer, training, data_format, bn_momentum,
-                 bn_epsilon):
+                 padding, regularizer, training, data_format, bn_momentum,
+                 bn_epsilon, dilation=1):
   """Helper function that applies convolution, batch norm and activation.
     Args:
       layer_type: the following types are supported
@@ -91,7 +91,7 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
 
 
 def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, dilation, regularizer, training, data_format):
+                 padding, regularizer, training, data_format, dilation=1):
   """Helper function that applies convolution, layer norm and activation.
     Args:
       layer_type: the following types are supported
@@ -132,7 +132,7 @@ def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   return output
 
 def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
-                 padding, dilation, regularizer, training, data_format):
+                 padding, regularizer, training, data_format, dilation=1):
   """Helper function that applies convolution, instance norm and activation.
     Args:
       layer_type: the following types are supported
@@ -162,3 +162,4 @@ def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   if activation_fn is not None:
     output = activation_fn(output)
   return output
+
