@@ -58,6 +58,7 @@ class ParallelTextDataLayer(DataLayer):
       'pad_vocab_to_eight': bool,
       'shuffle_buffer_size': int,
       'special_tokens_already_in_vocab': bool,
+      'use_start_token': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -84,6 +85,7 @@ class ParallelTextDataLayer(DataLayer):
     self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
     self._num_workers = num_workers
     self._worker_id = worker_id
+    self._use_start_token = self.params.get('use_start_token', True)
     if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
       raise ValueError("If padding to 8 in data layer, then "
                        "max_length should be multiple of 8")
@@ -160,15 +162,25 @@ class ParallelTextDataLayer(DataLayer):
 
   def _src_token_to_id(self, line):
     tokens = line.decode("utf-8").split(self._delimiter)
-    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
-           [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+    if self._use_start_token:
+      return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+    else:
+      return np.array(self._pad2eight([self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in
+                                       tokens[:self.max_len - 2]] + \
+                                      [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
   def _tgt_token_to_id(self, line):
     tokens = line.decode("utf-8").split(self._delimiter)
-    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
-           [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+    if self._use_start_token:
+      return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+    else:
+      return np.array(self._pad2eight([self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in
+                                       tokens[:self.max_len - 2]] + \
+                                      [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
   def build_graph(self):
     _sources = tf.data.TextLineDataset(self.source_file)\
