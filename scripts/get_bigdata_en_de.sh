@@ -17,9 +17,11 @@
 
 set -e
 
+TOKENIZER="tokenizer_wrapper.py"
+
 BASE_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
 
-OUTPUT_DIR="${1:-merged_data_en_dt}"
+OUTPUT_DIR="${1:-alldata_en_dt}"
 VOCAB_SIZE=32768
 echo "Writing to ${OUTPUT_DIR}. To change this, set the OUTPUT_DIR environment variable."
 
@@ -63,7 +65,7 @@ tar -xvzf "${OUTPUT_DIR_DATA}/dev.tgz" -C "${OUTPUT_DIR_DATA}/dev"
 mkdir -p "${OUTPUT_DIR_DATA}/test"
 tar -xvzf "${OUTPUT_DIR_DATA}/test.tgz" -C "${OUTPUT_DIR_DATA}/test"
 
-# Concatenate Training data
+ Concatenate Training data
 cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.en" \
   "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
   "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.en" \
@@ -78,6 +80,21 @@ cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-
   > "${OUTPUT_DIR}/train.de"
 wc -l "${OUTPUT_DIR}/train.de"
 
+
+# Concatenating for tokenizer learning process
+cat "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
+  "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.en" \
+  "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.en" \
+  > "${OUTPUT_DIR}/train.small.en"
+wc -l "${OUTPUT_DIR}/train.small.en"
+
+cat "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.de" \
+    "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.de" \
+    "${OUTPUT_DIR_DATA}/nc-v11/training-parallel-nc-v11/news-commentary-v11.de-en.de" \
+    > "${OUTPUT_DIR}/train.small.de"
+wc -l "${OUTPUT_DIR}/train.small.de"
+
+
 # Get Eval Data
 sacrebleu -t wmt13 -l en-de --echo src > ${OUTPUT_DIR}/wmt13-en-de.src
 sacrebleu -t wmt13 -l en-de --echo ref > ${OUTPUT_DIR}/wmt13-en-de.ref
@@ -91,18 +108,23 @@ wget -N https://raw.githubusercontent.com/moses-smt/mosesdecoder/master/scripts/
 chmod +x clean-corpus-n.perl
 ./clean-corpus-n.perl ${OUTPUT_DIR}/train en de ${OUTPUT_DIR}/train.clean 1 80
 
+./clean-corpus-n.perl ${OUTPUT_DIR}/train.small en de ${OUTPUT_DIR}/train.small.clean 1 80
+
 echo 'Shuffling'
 shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.en > ${OUTPUT_DIR}/train.clean.en.shuffled
 shuf --random-source=${OUTPUT_DIR}/train.clean.en ${OUTPUT_DIR}/train.clean.de > ${OUTPUT_DIR}/train.clean.de.shuffled
 cat ${OUTPUT_DIR}/train.clean.en.shuffled ${OUTPUT_DIR}/train.clean.de.shuffled > ${OUTPUT_DIR}/train.clean.en-de.shuffled.common
 
+shuf --random-source=${OUTPUT_DIR}/train.small.clean.en ${OUTPUT_DIR}/train.small.clean.en > ${OUTPUT_DIR}/train.small.clean.en.shuffled
+shuf --random-source=${OUTPUT_DIR}/train.small.clean.en ${OUTPUT_DIR}/train.small.clean.de > ${OUTPUT_DIR}/train.small.clean.de.shuffled
+cat ${OUTPUT_DIR}/train.small.clean.en.shuffled ${OUTPUT_DIR}/train.small.clean.de.shuffled > ${OUTPUT_DIR}/train.small.clean.en-de.shuffled.common
+
+
 echo 'TOKENIZATION'
 ## Common
 
-TOKENIZER="tokenizer_wrapper.py"
-
 python ${TOKENIZER}  \
-  --text_input=${OUTPUT_DIR}/train.clean.en-de.shuffled.common \
+  --text_input=${OUTPUT_DIR}/train.small.clean.en-de.shuffled.common \
   --model_prefix=${OUTPUT_DIR}/m_common --vocab_size=${VOCAB_SIZE} --mode=train
 
 # Training Set

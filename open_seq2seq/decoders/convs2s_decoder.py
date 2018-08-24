@@ -324,8 +324,6 @@ class ConvS2SDecoder(Decoder):
                               encoder_outputs_b, input_attention_bias)
         outputs = (outputs + res_inputs) * self.scaling_factor
 
-        #changed here
-        #outputs = tf.nn.relu(outputs) #self.conv_activation(outputs)
 
     with tf.variable_scope("linear_layer_after_cnn_layers"):
       outputs = self.layers[-2](outputs)
@@ -347,8 +345,6 @@ class ConvS2SDecoder(Decoder):
     input_length = tf.shape(encoder_outputs)[1]
 
     max_decode_length = input_length + self.params["extra_decode_length"]
-    #max_decode_length = tf.minimum(input_length + self.params["extra_decode_length"],
-    #                        self.max_input_length)
 
     symbols_to_logits_fn = self._get_symbols_to_logits_fn()
 

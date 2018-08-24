@@ -49,7 +49,7 @@ base_params = {
   "print_samples_steps": 100,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
-  "logdir": "ConvSeq2Seq-8GPUs-FP32",
+  "logdir": "ConvSeq2Seq-8GPUs-MP",
 
 
   "optimizer": "Adam",
