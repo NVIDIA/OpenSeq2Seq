@@ -489,7 +489,8 @@ class Model:
             precision_mode=precision,
             minimum_segment_size=3
           )
-          print('Nodes before and after TF-TRT conversion:', num_nodes, '->', len(frozen_graph.node))
+          print('Total node count before and after TF-TRT conversion:', num_nodes, '->', len(frozen_graph.node))
+          print('TRT node count:', len([1 for n in frozen_graph.node if str(n.op)=='TRTEngineOp']))
       # Perform calibration for INT8 precision mode
       if precision == 'int8':
           with tf.Session(config=tf_config) as tf_sess:

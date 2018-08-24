@@ -745,6 +745,7 @@ def create_model(args, base_config, config_module, base_model, hvd):
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision()
+    checkpoint = check_logdir(args, base_config)
+    model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
 
   return model
