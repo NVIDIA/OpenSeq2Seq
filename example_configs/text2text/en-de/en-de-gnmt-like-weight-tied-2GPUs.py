@@ -11,7 +11,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/data/wmt16_en_de/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_model = Text2Text
 
@@ -25,7 +25,7 @@ base_params = {
   "print_samples_steps": 10,
   "eval_steps": 40,
   "save_checkpoint_steps": 40,
-  "logdir": "GNMT-4GPUs-FP32",
+  "logdir": "GNMT-2GPUs-WT",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
@@ -53,14 +53,14 @@ base_params = {
     },
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 400,
+        "num_units": 200,
         "forget_bias": 1.0,
     },
     "encoder_layers": 7,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": True,
-    "src_emb_size": 160,
+    "src_emb_size": 80,
   },
 
   "decoder": RNNDecoderWithAttention,
@@ -72,7 +72,7 @@ base_params = {
      },
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 400,
+        "num_units": 200,
         "forget_bias": 1.0,
     },
     "decoder_layers": 8,
@@ -82,7 +82,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
 
-    "tgt_emb_size": 160,
+    "tgt_emb_size": 80,
     "attention_type": "gnmt_v2",
     "attention_layer_size": 1024,
     "weight_tied": True,
@@ -139,7 +139,7 @@ infer_params = {
     "length_penalty": 1.0,
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 400,
+        "num_units": 200,
         "forget_bias": 1.0,
     },
     "decoder_layers": 8,
@@ -149,7 +149,7 @@ infer_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-    "tgt_emb_size": 160,
+    "tgt_emb_size": 80,
     "attention_type": "gnmt_v2",
     "attention_layer_size": 1024,
     "weight_tied": True, # make sure that weight tied for Training/eval is true too
@@ -166,6 +166,6 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
-    "max_length": 512,
+    "max_length": 64,
   },
 }
