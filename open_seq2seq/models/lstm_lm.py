@@ -3,7 +3,7 @@ import tensorflow as tf
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print, array_to_string
 
-class AWDLSTM(EncoderDecoderModel):
+class LSTMLM(EncoderDecoderModel):
   """
   An example class implementing classical text-to-text model.
   """
@@ -24,7 +24,7 @@ class AWDLSTM(EncoderDecoderModel):
     self.params['encoder_params']['batch_size'] = (
       self.get_data_layer().params['batch_size']
     )
-    return super(AWDLSTM, self)._create_encoder()
+    return super(LSTMLM, self)._create_encoder()
 
   def _create_loss(self):
     # self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
@@ -34,11 +34,10 @@ class AWDLSTM(EncoderDecoderModel):
       self.get_data_layer().params['vocab_size']
     )
 
-    return super(AWDLSTM, self)._create_loss()
+    return super(LSTMLM, self)._create_loss()
 
 
   def infer(self, input_values, output_values):
-    print(len(output_values[0][0]))
     vocab = self.get_data_layer().corp.dictionary.idx2word
     seed_tokens = self.params['encoder_params']['seed_tokens']
     for i in range(len(seed_tokens)):
@@ -79,14 +78,7 @@ class AWDLSTM(EncoderDecoderModel):
       ),
       offset=4,
     )
-    # deco_print(
-    #   "Train Prediction[0]: " + array_to_string(
-    #     samples[0],
-    #     vocab=self.get_data_layer().corp.dictionary.idx2word,
-    #     delim=self.get_data_layer().params["delimiter"],
-    #   ),
-    #   offset=4,
-    # )
+
     return {}
 
   def evaluate(self, input_values, output_values):

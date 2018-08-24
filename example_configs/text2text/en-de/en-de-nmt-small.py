@@ -11,7 +11,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/home/chipn/data/wmt16_en_de/"
 
 # This model should run fine on single GPU such as 1080ti or better
 base_model = Text2Text

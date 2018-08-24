@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
-  """LSTM unit with layer normalization and recurrent dropout.
+  """LSTM unit with layer normalization, weight dropout, and recurrent dropout.
   This class adds layer normalization and recurrent dropout to a
   basic LSTM unit. Layer normalization implementation is based on:
     https://arxiv.org/abs/1607.06450.
@@ -12,6 +12,8 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
     https://arxiv.org/abs/1603.05118
   "Recurrent Dropout without Memory Loss"
   Stanislau Semeniuta, Aliaksei Severyn, Erhardt Barth.
+
+  Code is basd on TensorFlow's LayerNormBasicLSTMCell
   """
 
   def __init__(self,
@@ -74,35 +76,6 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
         raise ValueError(
             "When weight_variational=True, dtype must be provided")
 
-
-      # def convert_to_batch_shape(s):
-      #   # Prepend a 1 for the batch dimension; for recurrent
-      #   # variational dropout we use the same dropout mask for all
-      #   # batch elements.
-      #   return tf.concat(([1], s.get_shape().as_list()), 0)
-
-      # def batch_noise(s, seed):
-      #   shape = convert_to_batch_shape(s)
-      #   return random_ops.random_uniform(shape, seed=seed, dtype=dtype)
-
-      # self._input_weight_noise = enumerated_map_structure_up_to(
-      #     cell.state_size,
-      #     lambda i, s: batch_noise(s, seed=self._dropout_seed),
-      #     cell.state_size)
-      # self._recurrent_weight_noise = _enumerated_map_structure_up_to(
-      #     cell.output_size,
-      #     lambda i, s: batch_noise(s, seed=self._gen_seed("output", i)),
-      #     cell.output_size)
-
-  # def _enumerated_map_structure_up_to(shallow_structure, map_fn, *args, **kwargs):
-  #   ix = [0]
-  #   def enumerated_fn(*inner_args, **inner_kwargs):
-  #     r = map_fn(ix[0], *inner_args, **inner_kwargs)
-  #     ix[0] += 1
-  #     return r
-  #   return nest.map_structure_up_to(shallow_structure,
-  #                                   enumerated_fn, *args, **kwargs)
-
   @property
   def state_size(self):
     return tf.contrib.rnn.LSTMStateTuple(self._num_units, self._num_units)
@@ -144,15 +117,6 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
     return out
 
   def _variational_dropout(self, values, noise, keep_prob):
-    """Performs dropout given the pre-calculated noise tensor."""
-    # uniform [keep_prob, 1.0 + keep_prob)
-    # random_tensor = keep_prob + noise
-
-    # # 0. if [keep_prob, 1.0) and 1. if [1.0, 1.0 + keep_prob)
-    # binary_tensor = tf.floor(random_tensor)
-    # ret = tf.div(value, keep_prob) * binary_tensor
-    # ret.set_shape(value.get_shape())
-    # return ret
     return tf.nn.dropout(values, keep_prob, seed=self._dropout_seed)
 
   def _dropout(self, values, dropout_noise, keep_prob):

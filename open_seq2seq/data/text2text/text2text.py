@@ -219,7 +219,6 @@ class ParallelTextDataLayer(DataLayer):
       t1, t2 = self.iterator.get_next()
       x, x_length = t1[0], t1[1]
       y, y_length = t2[0], t2[1]
-      print(x, x_length)
       self._input_tensors['source_tensors'] = [x, x_length]
       self._input_tensors['target_tensors'] = [y, y_length]
     else:

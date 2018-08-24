@@ -65,6 +65,9 @@ def main():
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
 
+  if not 'restore_best_checkpoint' in base_config:
+    base_config['restore_best_checkpoint'] = False
+
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
   parser_unk = argparse.ArgumentParser()
@@ -98,11 +101,6 @@ def main():
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
                         "\"--continue_learning\" flag")
-        # if base_config['restore_best_checkpoint']:
-        #   print('restoring best checkpoint')
-        #   checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
-        # else:
-        #   checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
@@ -117,8 +115,8 @@ def main():
         checkpoint = None
     elif args.mode == 'infer' or args.mode == 'eval':
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        if base_config['restore_best_checkpoint']:
-          print('restoring best checkpoint')
+        if base_config['restore_best_checkpoint'] and os.path.isdir(ckpt_dir + '/best_models'):
+          print('Restoring from the best checkpoint ...')
           checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
         else:
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)

@@ -15,8 +15,8 @@ class LMTextDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
-      'content_file': str,
-      'vocab_file': str,
+      # 'content_file': str,
+      # 'vocab_file': str,
       'shuffle': bool,
       'repeat': bool,
       'bptt': int,
@@ -25,6 +25,7 @@ class LMTextDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
+      'data_root': str,
       'rand_start': bool,
       'small': bool,
       'use_targets': bool,
@@ -36,19 +37,27 @@ class LMTextDataLayer(DataLayer):
       'pad_vocab_to_eight': bool,
       'seed_tokens': str,
       'shuffle_buffer_size': int,
+      'processed_data_folder': str,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
     super(LMTextDataLayer, self).__init__(params, model,
                                           num_workers, worker_id)
 
-    
-    if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
+    self._processed_data_folder = self.params.get('processed_data_folder', 'processed_data')
+    self._data_root = self.params.get('data_root', None)
+    self.corp = Corpus(self._data_root, self._processed_data_folder)
+    if self.params['mode'] == 'train':
       self._batch_size = self.params['batch_size']
+      self.corp.content = self.corp.train
+    elif self.params['mode'] == 'eval':
+      self._batch_size = self.params['batch_size']
+      self.corp.content = self.corp.valid
     else:
       self._batch_size = 1
-    self.content_file = self.params['content_file']
-    self.vocab_file = self.params['vocab_file']
+      self.corp.content = self.corp.test
+
+    self.vocab_file = (self._processed_data_folder, 'vocab.txt')
     self.bptt = self.params['bptt']
     self.rand_start = self.params.get('rand_start', False)
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
@@ -69,7 +78,7 @@ class LMTextDataLayer(DataLayer):
     # load source and target vocabularies to RAM
 
     seed_tokens = self.params.get('seed_tokens', 'The').split()
-    self.corp = Corpus(self.params['vocab_file'], self.params['content_file'])
+    
     self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
     if self.params["small"]:
@@ -95,13 +104,6 @@ class LMTextDataLayer(DataLayer):
     self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
 
     self._input_tensors = {}
-
-    # if self.params['mode'] == 'eval' and self.params['vocab_size'] > 100000:
-    #   self.params['batch_size'] = 32
-
-    # elif self.params['mode'] == 'infer':
-    #   self.params['batch_size'] = 1
-
     self._batch_size
 
   def gen(self):
@@ -116,8 +118,6 @@ class LMTextDataLayer(DataLayer):
         yield (self.corp.content[begin : begin + self.bptt], self.corp.content[begin + 1 : begin + self.bptt + 1])
 
   def gen_infer(self):
-    # if len(self.corp.content) > self.bptt:
-    #   self.corp.content = self.corp.content[-self.bptt:]
     while True:
       yield (self.corp.content, self.corp.content)
     
@@ -162,8 +162,6 @@ class LMTextDataLayer(DataLayer):
     else: # this is unncessary
       t1, _ = self.iterator.get_next()
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
-      # self._input_tensors['source_tensors'] = [None, None]
-      # print('inferencing')
 
   def get_size_in_samples(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':

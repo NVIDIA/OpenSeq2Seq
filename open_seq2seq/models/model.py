@@ -224,8 +224,6 @@ class Model:
       self._params['save_summaries_steps'] = None
     if 'print_bench_info_steps' not in self._params:
       self._params['print_bench_info_steps'] = None
-    if 'restore_best_checkpoint' not in self._params:
-      self._params['restore_best_checkpoint'] = False
 
     self._params['finetune'] = self._params.get('finetune', False)
     self._params['base_logdir'] = self._params.get('base_logdir', None)

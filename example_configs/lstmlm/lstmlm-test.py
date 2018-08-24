@@ -1,7 +1,7 @@
 import tensorflow as tf
 
-from open_seq2seq.models import AWDLSTM
-from open_seq2seq.encoders import AWDLSTMEncoder
+from open_seq2seq.models import LSTMLM
+from open_seq2seq.encoders import LMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
@@ -12,25 +12,24 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/data/wikitext-2/"
+data_root = "/home/chipn/data/wikitext-2/"
 
-base_model = AWDLSTM
+base_model = LSTMLM
 bptt = 72
 steps = 40
 
 base_params = {
-  # "seed": 1882, # conforming to AWD-LSTM paper
-  "restore_best_checkpoint": True,
-  "use_horovod": True,
+  "restore_best_checkpoint": True, # best checkpoint is only saved when using train_eval mode
+  "use_horovod": False,
   "num_gpus": 2,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
-  "num_epochs": 750, # conforming to AWD-LSTM paper 750
+  "batch_size_per_gpu": 160, 
+  "num_epochs": 1500,
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDLSTM-EXP65",
+  "logdir": "LSTM-FP32-2GPU",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -42,23 +41,13 @@ base_params = {
     "learning_rate": 9e-4
   },
 
-  # "lr_policy": exp_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.0008,
-  #   "begin_decay_at": 170000,
-  #   "decay_steps": 17000,
-  #   "decay_rate": 0.5,
-  #   "use_staircase_decay": True,
-  #   "min_lr": 0.0000005,
-  # },
   "summaries": ['learning_rate', 'variables', 'gradients', 
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-  # "grad_clip":0.25, # conforming to AWD-LSTM paper
-  # "max_grad_norm": 0.25, # conform to paper 0.25
+
   "dtype": tf.float32,
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
-  "encoder": AWDLSTMEncoder,
+  "encoder": LMEncoder,
   # "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
@@ -66,10 +55,9 @@ base_params = {
       "minval": -0.1,
       "maxval": 0.1,
     },
-    # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 640, # paper 1150
+        "num_units": 800, # paper 1150
         "forget_bias": 1.0,
     },
     "last_cell_params": {
@@ -81,8 +69,8 @@ base_params = {
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
     "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
-    "recurrent_keep_prob": 0.5,
-    'encoder_emb_keep_prob': 0.5,
+    "recurrent_keep_prob": 0.7,
+    'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
     "emb_size": 320,
     "vocab_size": 33278,
@@ -112,11 +100,10 @@ base_params = {
 train_params = {
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
+    "data_root": data_root,
     "pad_vocab_to_eight": False,
-    "vocab_file": data_root+"vocab.txt",
-    "content_file": data_root+"train.ids",
     "rand_start": True,
-    "shuffle": True,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
@@ -125,12 +112,10 @@ train_params = {
   },
 }
 eval_params = {
-  # "batch_size_per_gpu": 320,
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
+    # "data_root": data_root,
     "pad_vocab_to_eight": False,
-    "vocab_file": data_root+"vocab.txt",
-    "content_file": data_root+"valid.ids",
     "shuffle": False,
     "repeat": False,
     "map_parallel_calls": 16,
@@ -142,9 +127,8 @@ eval_params = {
 infer_params = {
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
+    # "data_root": data_root,
     "pad_vocab_to_eight": False,
-    "vocab_file": data_root+"vocab.txt",
-    "content_file": data_root+"test.ids",
     "shuffle": False,
     "repeat": False,
     "rand_start": False,
