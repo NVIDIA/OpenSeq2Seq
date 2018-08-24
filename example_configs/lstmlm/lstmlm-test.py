@@ -12,7 +12,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/data/wikitext-2/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WIKITEXT DATA]"
 
 base_model = LSTMLM
 bptt = 72

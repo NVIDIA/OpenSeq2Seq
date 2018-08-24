@@ -78,7 +78,6 @@ class EncoderDecoderModel(Model):
       self._loss_computator = self._create_loss()
     else:
       self._loss_computator = None
-    print(self.params)
 
   def _create_encoder(self):
     """This function should return encoder class.
