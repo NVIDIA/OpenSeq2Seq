@@ -6,14 +6,16 @@ Installation
 General installation
 --------------------
 
-Clone OpenSeq2Seq  and install Python requirements::
+OpenSeq2Seq supports Python >= 3.5.
+We recommend to use `Anaconda Python distribution <https://www.anaconda.com/download>`_.
+Clone OpenSeq2Seq and install Python requirements::
 
    git clone https://github.com/NVIDIA/OpenSeq2Seq
    cd OpenSeq2Seq
    pip install -r requirements.txt
 
-If you need speech recognition, you have to build TensorFlow from sources as described 
-in the 
+If you would like to get higher speech recognition accuracy with custom CTC beam search decoder, 
+you have to build TensorFlow from sources as described in the 
 :ref:`Installation for speech recognition <installation_speech>`. 
 Otherwise you can just install TensorFlow using pip::
 
@@ -30,11 +32,14 @@ use CTC decoder with language model. Since TensorFlow does not support it by
 default, you will need to build TensorFlow from sources with
 custom CTC decoder with language model operation. In order to do that, follow
 the steps below. Alternatively, you can disable language model by setting
-"use_language_model" parameter of decoder to False, but that will lead to a much
-worse model accuracy.
+"use_language_model" parameter of decoder to False, but that will lead to lower model accuracy.
 
 How to add CTC decoder with language model to TensorFlow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+
+First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.2.
 
 1. Install `boost <http://www.boost.org>`_::
 
@@ -66,7 +71,11 @@ How to add CTC decoder with language model to TensorFlow
         cd tensorflow
         ./configure
         ln -s <OpenSeq2Seq location>/ctc_decoder_with_lm ./
-        bazel build -c opt --copt=-O3 --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
+        sudo apt-get update
+        sudo apt-get install bazel | link to Bazel https://docs.bazel.build/versions/master/install-ubuntu.html#install-on-ubuntu
+
+        
+        bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --copt=-O3 --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
         cp bazel-bin/ctc_decoder_with_lm/generate_trie ctc_decoder_with_lm/
         bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
@@ -82,6 +91,15 @@ How to add CTC decoder with language model to TensorFlow
         bazel build -c opt --copt=-O3  --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
         cp bazel-bin/ctc_decoder_with_lm/generate_trie ctc_decoder_with_lm/
+
+
+
+4. Validate TensorFlow installation []
+
+
+
+
+
 
 How to download language model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -99,10 +117,10 @@ After that you should be able to run toy speech example::
 
 Horovod installation
 --------------------
-For multi-GPU and distribuited training we recommended install `Horovod <https://github.com/uber/horovod>`_ . 
-After TensorFlow and all other requirements are installed,  install mpi:
+For multi-GPU and distribuited training we recommended to use Horovod with GPU support.
+After TensorFlow and all other requirements are installed, install mpi:
 ```pip install mpi4py``` and then follow
-`these steps <https://github.com/uber/horovod#install>`_ to install
+`these steps <https://github.com/uber/horovod/blob/master/docs/gpus.md>`_ to install
 Horovod.
 
 

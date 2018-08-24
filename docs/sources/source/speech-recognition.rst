@@ -20,12 +20,12 @@ Currently we support following models:
      - Checkpoint
 
    * - :doc:`DeepSpeech2 </speech-recognition/deepspeech2>`
-     - 9.28
+     - 7.58
      - `ds2_large <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py>`_
-     - `link <https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX>`_
+     - `link <ADD_LINK>`_
 
    * - :doc:`Wavel2Letter </speech-recognition/wave2letter>`
-     - XXX
+     - 7.19
      - `w2l_large <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus.py>`_
      - `link <https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing>`_
 
@@ -36,7 +36,7 @@ For the evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 
 For more details about model and training parameters,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_ and specific model's documentation.
 
 .. toctree::
    :hidden:
@@ -50,7 +50,14 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
 Getting started
 ################
 
-You can start with a :doc:`toy model </speech-recognition/get_started_with_toy_model>`.
+You can start with :doc:`these instructions </speech-recognition/get_started_toy_model>`
+to play with a very small model on a toy dataset.
+
+Now let's consider a relatively lightweight version of DeepSpeech2 based model for
+English speech recognition on LibriSpeech dataset.
+First of all, it is important to build a custom CTC beam search decoder in order
+to get lower WER.
+
 Let's build a English speech recognition engine based on DeepSpeech2 model.
 
 ********
@@ -61,9 +68,9 @@ Download and preprocess Librispeech dataset::
 
 ./get_librispeech.sh
 
-Download and preprocess OpenSLR mode::
+Download and preprocess OpenSLR language model::
 
-./download_lm.sh
+ scripts/download_lm.sh
 
 
 ********

@@ -21,7 +21,7 @@ OpenSeq2Seq
 OpenSeq2Seq is a TensorFlow toolkit based on the sequence-to-sequence paradigm for
 
  * :ref:`machine translation <machine_translation>` (GNMT, Transformer, ConvS2S, ...)
- * :ref:`speech recogtnition <speech_recognition>` (DeepSpeech2, Wave2Letter, ...)
+ * :ref:`speech recognition <speech_recognition>` (DeepSpeech2, Wave2Letter, ...)
  * :ref:`speech synthesis <speech_synthesis>` (Tacotron2, ...)
 
 **Main features**:
