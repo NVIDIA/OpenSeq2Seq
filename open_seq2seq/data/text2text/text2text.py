@@ -57,6 +57,7 @@ class ParallelTextDataLayer(DataLayer):
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
       'shuffle_buffer_size': int,
+      'special_tokens_already_in_vocab': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
@@ -94,44 +95,46 @@ class ParallelTextDataLayer(DataLayer):
       return i + 1
 
     self.dataset_size = file_len(self.source_file)
+    special_tokens_already_in_vocab = self.params.get('special_tokens_already_in_vocab', True)
 
     # load source and target vocabularies to RAM
     self.src_seq2idx = load_pre_existing_vocabulary(
-      self.src_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.src_vocab_file, min_idx=0 if special_tokens_already_in_vocab
+      else SpecialTextTokens.UNK_ID.value + 1)
     self.tgt_seq2idx = load_pre_existing_vocabulary(
-      self.tgt_vocab_file,
-      min_idx=SpecialTextTokens.UNK_ID.value + 1)
+      self.tgt_vocab_file, min_idx=0 if special_tokens_already_in_vocab
+      else SpecialTextTokens.UNK_ID.value + 1)
 
-    # unknown symbol
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
-      SpecialTextTokens.UNK_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
-      SpecialTextTokens.UNK_ID.value
-
-    # sentence start
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
-      SpecialTextTokens.S_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
-      SpecialTextTokens.S_ID.value
-    # sentence end
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
-      SpecialTextTokens.EOS_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
-      SpecialTextTokens.EOS_ID.value
-    # padding
-    self.src_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
-      SpecialTextTokens.PAD_ID.value
-    self.tgt_seq2idx[
-      SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
-      SpecialTextTokens.PAD_ID.value
+    if not special_tokens_already_in_vocab:
+      # manually add special tokens
+      # unknown symbol
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+        SpecialTextTokens.UNK_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.UNK_ID.value)] = \
+        SpecialTextTokens.UNK_ID.value
+      # sentence start
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+        SpecialTextTokens.S_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.S_ID.value)] = \
+        SpecialTextTokens.S_ID.value
+      # sentence end
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+        SpecialTextTokens.EOS_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.EOS_ID.value)] = \
+        SpecialTextTokens.EOS_ID.value
+      # padding
+      self.src_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+        SpecialTextTokens.PAD_ID.value
+      self.tgt_seq2idx[
+        SpecialTextTokens.to_string(SpecialTextTokens.PAD_ID.value)] = \
+        SpecialTextTokens.PAD_ID.value
 
     if self.params.get('pad_vocab_to_eight', False):
       self.src_seq2idx = pad_vocab_to_eight(self.src_seq2idx)
@@ -149,34 +152,34 @@ class ParallelTextDataLayer(DataLayer):
 
     self._input_tensors = {}
 
+  def _pad2eight(self, lst, do_pad_eight):
+    if len(lst) % 8 == 0 or not do_pad_eight:
+      return lst
+    else:
+      return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
+
+  def _src_token_to_id(self, line):
+    tokens = line.decode("utf-8").split(self._delimiter)
+    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+           [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
+  def _tgt_token_to_id(self, line):
+    tokens = line.decode("utf-8").split(self._delimiter)
+    return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
+           [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
+           [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
+
   def build_graph(self):
-    def pad2eight(lst, do_pad_eight):
-      if len(lst) % 8 == 0 or not do_pad_eight:
-        return lst
-      else:
-        return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
-
-    def src_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
-
-    def tgt_token_to_id(line):
-      tokens = line.decode("utf-8").split(self._delimiter)
-      return np.array(pad2eight([SpecialTextTokens.S_ID.value] + \
-             [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
-             [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
-
     _sources = tf.data.TextLineDataset(self.source_file)\
-      .map(lambda line: tf.py_func(func=src_token_to_id, inp=[line],
+      .map(lambda line: tf.py_func(func=self._src_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
            num_parallel_calls=self._map_parallel_calls)
 
     _targets = tf.data.TextLineDataset(self.target_file) \
-      .map(lambda line: tf.py_func(func=tgt_token_to_id, inp=[line],
+      .map(lambda line: tf.py_func(func=self._tgt_token_to_id, inp=[line],
                                    Tout=[tf.int32], stateful=False),
            num_parallel_calls=self._map_parallel_calls) \
       .map(lambda tokens: (tokens, tf.size(tokens)),
@@ -225,6 +228,33 @@ class ParallelTextDataLayer(DataLayer):
       t1, _ = self.iterator.get_next()
       self._input_tensors['source_tensors'] = [t1[0], t1[1]]
 
+  def create_interactive_placeholders(self):
+    self._text = tf.placeholder(dtype=tf.int32, shape=[self._batch_size, None])
+    self._text_length = tf.placeholder(dtype=tf.int32, shape=[self._batch_size])
+
+    self._input_tensors = {}
+    self._input_tensors['source_tensors'] = [self._text, self._text_length]
+
+  def create_feed_dict(self, model_in):
+    """ Creates the feed dict for interactive infer
+
+    Args:
+      model_in (str): the string to be translated. Should be in bpe format.
+
+    Returns:
+      feed_dict (dict): Dictionary with values for the placeholders.
+    """
+    text = self._src_token_to_id(model_in)
+    text_length = text.shape[0]
+
+    text = np.reshape(text, [self._batch_size, -1])
+    text_length = np.reshape(text_length, [self._batch_size])
+
+    feed_dict = {
+        self._text: text,
+        self._text_length: text_length
+    }
+    return feed_dict
 
   def get_size_in_samples(self):
     return self.dataset_size

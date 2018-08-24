@@ -87,17 +87,23 @@ class Text2Text(EncoderDecoderModel):
         output_strings.append(text_ids_to_string(
             output_sample[i],
             self.get_data_layer().params['target_idx2seq'],
-            S_ID=self.decoder.params['GO_SYMBOL'],
-            EOS_ID=self.decoder.params['END_SYMBOL'],
-            PAD_ID=self.decoder.params['PAD_SYMBOL'],
-            ignore_special=True, delim=' ',
+            S_ID=self.decoder.params.get('GO_SYMBOL',
+                                         SpecialTextTokens.S_ID.value),
+            EOS_ID=self.decoder.params.get('END_SYMBOL',
+                                           SpecialTextTokens.EOS_ID),
+            PAD_ID=self.decoder.params.get('PAD_SYMBOL',
+                                           SpecialTextTokens.PAD_ID),
+          ignore_special=True, delim=' ',
         ))
         input_strings.append(text_ids_to_string(
             input_sample[i],
             self.get_data_layer().params['source_idx2seq'],
-            S_ID=self.decoder.params['GO_SYMBOL'],
-            EOS_ID=self.decoder.params['END_SYMBOL'],
-            PAD_ID=self.decoder.params['PAD_SYMBOL'],
+            S_ID=self.decoder.params.get('GO_SYMBOL',
+                                         SpecialTextTokens.S_ID.value),
+            EOS_ID=self.decoder.params.get('END_SYMBOL',
+                                           SpecialTextTokens.EOS_ID.value),
+            PAD_ID=self.decoder.params.get('PAD_SYMBOL',
+                                           SpecialTextTokens.PAD_ID),
             ignore_special=True, delim=' ',
         ))
     return input_strings, output_strings

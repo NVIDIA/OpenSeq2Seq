@@ -203,6 +203,11 @@ class Model:
 
     # parameter checks
     self._mode = mode
+    self._interactive = False
+    if self._mode == "interactive_infer":
+      self._mode = "infer"
+      self._interactive = True
+
     if self._mode not in ["train", "infer", "eval"]:
       raise ValueError("Mode has to be one of ['train', 'infer', 'eval']")
 
@@ -248,6 +253,9 @@ class Model:
         raise ValueError('Either "gpu_ids" or "num_gpus" has to '
                          'be specified in the config')
 
+    if self._interactive and len(self._gpu_ids) > 1:
+      raise ValueError("Interactive infer is meant to be used with 1 gpu")
+
     # setting random seed
     rs = self._params.get('random_seed', int(time.time()))
     if self.on_horovod:
@@ -264,6 +272,7 @@ class Model:
     else:
       dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
     dl_params['mode'] = self._mode
+    dl_params['interactive'] = self._interactive
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -333,7 +342,10 @@ class Model:
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
-          self.get_data_layer(gpu_cnt).build_graph()
+          if self._interactive:
+            self.get_data_layer(gpu_cnt).create_interactive_placeholders()
+          else:
+            self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(

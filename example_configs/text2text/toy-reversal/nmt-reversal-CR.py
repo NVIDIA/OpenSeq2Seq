@@ -110,6 +110,7 @@ train_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -124,6 +125,7 @@ eval_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -131,8 +133,10 @@ infer_params = {
   "batch_size_per_gpu": 1,
   "decoder": BeamSearchRNNDecoderWithAttention,
   "decoder_params": {
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": d_model,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+      "num_units": d_model,
+    },
     "decoder_layers": num_layers,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,
@@ -158,6 +162,6 @@ infer_params = {
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
-
 }
