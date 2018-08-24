@@ -13,10 +13,10 @@ base_model = Speech2Text
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 50,
+    "num_epochs": 200,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -32,11 +32,8 @@ base_params = {
     },
     "lr_policy": poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.1,
+        "learning_rate": 0.05,
         "power": 2.0,
-    },
-    "larc_params": {
-        "larc_eta": 0.001,
     },
     "larc_params": {
         "larc_eta": 0.001,
@@ -59,47 +56,47 @@ base_params = {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
             },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dropout_keep_prob": 0.6,
+                "dilation":[1], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
                 "num_channels": 1024, "padding": "SAME",
-                "dropout_keep_prob": 0.6,
-            },
+                "dilation":[1], "dropout_keep_prob": 0.6,
+            }
         ],
 
-        "dropout_keep_prob": 0.8,
+        "dropout_keep_prob": 0.7,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {

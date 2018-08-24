@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv
 
 
 class Wave2LetterEncoder(Encoder):
@@ -23,7 +23,7 @@ class Wave2LetterEncoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
         'data_format': ['channels_first', 'channels_last'],
-        'normalization': [None, 'batch_norm'],
+        'normalization': [None, 'batch_norm', 'layer_norm', 'instance_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
     })
@@ -108,6 +108,10 @@ class Wave2LetterEncoder(Encoder):
       normalization_params['bn_momentum'] = self.params.get(
           'bn_momentum', 0.90)
       normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
+    elif normalization == "layer_norm":
+      conv_block = conv_ln_actv
+    elif normalization == "instance_norm":
+      conv_block = conv_in_actv
     else:
       raise ValueError("Incorrect normalization")
 
@@ -127,10 +131,15 @@ class Wave2LetterEncoder(Encoder):
       kernel_size = convnet_layers[idx_convnet]['kernel_size']
       strides = convnet_layers[idx_convnet]['stride']
       padding = convnet_layers[idx_convnet]['padding']
+      dilation = convnet_layers[idx_convnet]['dilation']
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
 
       for idx_layer in range(layer_repeat):
+        if padding == "VALID":
+          src_length = (src_length - kernel_size[0]) // strides[0] + 1
+        else:
+          src_length = (src_length + strides[0] - 1) // strides[0]
         conv_feats = conv_block(
             layer_type=layer_type,
             name="conv{}{}".format(
@@ -141,6 +150,7 @@ class Wave2LetterEncoder(Encoder):
             activation_fn=self.params['activation_fn'],
             strides=strides,
             padding=padding,
+            dilation=dilation,
             regularizer=regularizer,
             training=training,
             data_format=data_format,
