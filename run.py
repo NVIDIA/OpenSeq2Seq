@@ -115,9 +115,10 @@ def main():
         checkpoint = None
     elif args.mode == 'infer' or args.mode == 'eval':
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        if base_config['restore_best_checkpoint'] and os.path.isdir(ckpt_dir + '/best_models'):
+        best_model_logdir = ckpt_dir + '/best_models'
+        if base_config['restore_best_checkpoint'] and os.path.isdir(best_model_logdir):
           print('Restoring from the best checkpoint ...')
-          checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
+          checkpoint = tf.train.latest_checkpoint(best_model_logdir)
         else:
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
