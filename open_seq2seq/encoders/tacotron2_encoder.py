@@ -56,7 +56,7 @@ class Tacotron2Encoder(Encoder):
 
     Config parameters:
 
-    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **dropout_keep_prob** (float) --- keep probability for dropout.
     * **src_emb_size** (int) --- dimensionality of character embedding.
     * **conv_layers** (list) --- list with the description of convolutional
       layers. For example::
@@ -97,21 +97,25 @@ class Tacotron2Encoder(Encoder):
 
     Args:
        input_dict (dict): dictionary with inputs.
-          Must define:
-              source_tensors - array containing [
-                * source_sequence: tensor of shape [batch_size, sequence length]
-                * src_length: tensor of shape [batch_size]
-              ]
+        Must define:
+
+            source_tensors - array containing [
+
+              * source_sequence: tensor of shape [batch_size, sequence length]
+              * src_length: tensor of shape [batch_size]
+
+            ]
 
     Returns:
-      dict:
-        A python dictionary containing:
+      dict: A python dictionary containing:
+
           * outputs - tensor containing the encoded text to be passed to the
             attention layer
           * src_length - the length of the encoded text
     """
 
-    source_sequence, src_length = input_dict['source_tensors']
+    text = input_dict['source_tensors'][0]
+    text_len = input_dict['source_tensors'][1]
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
@@ -119,6 +123,9 @@ class Tacotron2Encoder(Encoder):
     data_format = self.params.get('data_format', 'channels_last')
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
     zoneout_prob = self.params.get('zoneout_prob', 0.)
+
+    # if src_vocab_size % 8 != 0:
+    #   src_vocab_size += 8 - (src_vocab_size % 8)
 
     # ----- Embedding layer -----------------------------------------------
     enc_emb_w = tf.get_variable(
@@ -131,7 +138,7 @@ class Tacotron2Encoder(Encoder):
     embedded_inputs = tf.cast(
         tf.nn.embedding_lookup(
             enc_emb_w,
-            source_sequence,
+            text,
         ), self.params['dtype']
     )
 
@@ -150,9 +157,9 @@ class Tacotron2Encoder(Encoder):
       padding = conv_params['padding']
 
       if padding == "VALID":
-        src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
+        text_len = (text_len - kernel_size[0] + strides[0]) // strides[0]
       else:
-        src_length = (src_length + strides[0] - 1) // strides[0]
+        text_len = (text_len + strides[0] - 1) // strides[0]
 
       top_layer = conv_bn_actv(
           layer_type="conv1d",
@@ -231,7 +238,7 @@ class Tacotron2Encoder(Encoder):
           top_layer, _ = tf.nn.dynamic_rnn(
               cell=multirnn_cell_fw,
               inputs=rnn_input,
-              sequence_length=src_length,
+              sequence_length=text_len,
               dtype=rnn_input.dtype,
               time_major=False,
           )
@@ -251,7 +258,7 @@ class Tacotron2Encoder(Encoder):
               cell_fw=multirnn_cell_fw,
               cell_bw=multirnn_cell_bw,
               inputs=rnn_input,
-              sequence_length=src_length,
+              sequence_length=text_len,
               dtype=rnn_input.dtype,
               time_major=False
           )
@@ -281,5 +288,5 @@ class Tacotron2Encoder(Encoder):
 
     return {
         'outputs': outputs,
-        'src_length': src_length,
+        'src_length': text_len
     }
