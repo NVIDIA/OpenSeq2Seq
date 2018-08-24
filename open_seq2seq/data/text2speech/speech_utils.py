@@ -191,7 +191,8 @@ def inverse_mel(
     norm=None
 ):
   """
-  Very hacky method to reconstruct mag spec from mel
+  Reconstructs magnitude spectrogram from a mel spectrogram by multiplying it
+  with the transposed mel basis.
 
   Args:
     log_mel_spec (np.array): log of the mel spec
@@ -223,14 +224,6 @@ def inverse_mel(
     log_mel_spec = denormalize(log_mel_spec, mean, std)
   mel_spec = np.exp(log_mel_spec)
   mag_spec = np.dot(mel_spec, mel_basis)
-  if htk:
-    # htk, not norm
-    # there is clipping in audio, try decreasing factor. Maybe 0.9?
-    mag_spec = mag_spec * 0.95
-  else:
-    # not htk, norm
-    # This needs to be multiplied by the norm factor, 876 is just an estimate
-    mag_spec = mag_spec * 876
   mag_spec = np.power(mag_spec, 1. / power)
   return mag_spec
 
