@@ -88,17 +88,3 @@ ENV/
 
 # Rope project settings
 .ropeproject
-
-
-# chip's setting
-GNMT*/*
-AWD*/*
-LSTM*/*
-pics/*
-TEST-AWD*/*
-outputs/*
-ngc*.json
-*.zip
-test_load.py
-nmt*/*
-processed_data*/*
