@@ -109,7 +109,12 @@ def plot_spectrograms(
 
 
 def save_audio(
-    magnitudes, logdir, step, mode="train", number=0, save_to_tensorboard=False
+    magnitudes,
+    logdir,
+    step,
+    mode="train",
+    number=0,
+    save_format="tensorboard",
 ):
   """
   Helper function to create a wav file to be logged to disk or a tf.Summary to
@@ -123,27 +128,37 @@ def save_audio(
     number (int): Current sample number (used if evaluating more than 1 sample
     mode (str): Optional string to append to file name eg. train, eval, infer
       from a batch)
-    save_to_tensorboard (bool): If False, the created file is saved to the
-      logdir as a wav file. If True, the function returns a tf.Summary object
-      containing the wav file and will be logged to the current tensorboard file.
+    save_format: save_audio can either return the np.array containing the
+      generated sound, log the wav file to the disk, or return a tensorboard
+      summary object. Each method can be enabled by passing save_format as
+      "np.array", "tensorboard", or "disk" respectively.
 
   Returns:
     tf.Summary or None
   """
   signal = griffin_lim(magnitudes.T**1.2)
-  if save_to_tensorboard:
+  if save_format == "np.array":
+    return signal
+  elif save_format == "tensorboard":
     tag = "{}_audio".format(mode)
     s = StringIO()
     write(s, 22050, signal)
     summary = tf.Summary.Audio(encoded_audio_string=s.getvalue())
     summary = tf.Summary.Value(tag=tag, audio=summary)
     return summary
-  else:
+  elif save_format == "disk":
     file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
     if logdir[0] != '/':
       file_name = "./" + file_name
     write(file_name, 22050, signal)
     return None
+  else:
+    print((
+        "WARN: The save format passed to save_audio was not understood. No "
+        "sound files will be saved for the current step. "
+        "Received '{}'."
+        "Expected one of 'np.array', 'tensorboard', or 'disk'"
+    ).format(save_format))
 
 
 def griffin_lim(magnitudes, n_iters=50):
@@ -228,11 +243,15 @@ class Text2Speech(EncoderDecoderModel):
     predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
     predicted_final_spec = self.get_data_layer(
     ).get_magnitude_spec(predicted_final_spec)
+    if self._save_to_tensorboard:
+      save_format = "tensorboard"
+    else:
+      save_format = "disk"
     wav_summary = save_audio(
         predicted_final_spec,
         self.params["logdir"],
         step,
-        save_to_tensorboard=self._save_to_tensorboard
+        save_format=save_format
     )
     dict_to_log['audio'] = wav_summary
 
@@ -285,12 +304,16 @@ class Text2Speech(EncoderDecoderModel):
 
       predicted_final_spec = self.get_data_layer(
       ).get_magnitude_spec(predicted_final_spec)
+      if self._save_to_tensorboard:
+        save_format = "tensorboard"
+      else:
+        save_format = "disk"
       wav_summary = save_audio(
           predicted_final_spec,
           self.params["logdir"],
           step,
           mode="eval",
-          save_to_tensorboard=self._save_to_tensorboard
+          save_format=save_format
       )
       dict_to_log['audio'] = wav_summary
 
@@ -361,7 +384,7 @@ class Text2Speech(EncoderDecoderModel):
               0,
               mode="infer",
               number=i * batch_size + j,
-              save_to_tensorboard=False
+              save_format="disk"
           )
 
           dict_to_log['audio'] = wav_summary

@@ -266,7 +266,15 @@ have a look at the <a class="reference external" href="https://github.com/NVIDIA
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py">ds2_large_8gpus.py</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus_mp.py">w2l_large_8gpus_mp.py</a></td>
+<td>7.19%</td>
+<td>This model was trained for 200 epochs using SGD with Momentum and LARC on
+the full LibriSpeech in three days on eight GPUs using mixed precision.</td>
+<td>The model has 17 convolutional layers (256–1024 units, 11–29 kernel size).
+We use batch norm between all layers.</td>
+<td><a class="reference external" href="https://drive.google.com/file/d/140edZXuzehCCaOxgEixJEesvo97EB5i1/view?usp=sharing">link</a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus.py">ds2_large_8gpus.py</a></td>
 <td>9.28%</td>
 <td>This model was trained for 50 epochs using SGD with Momentum and LARC on
 the full LibriSpeech in a few days using Horovod on eight GPUs.</td>
@@ -274,7 +282,7 @@ the full LibriSpeech in a few days using Horovod on eight GPUs.</td>
 GRU layers with 800 units.</td>
 <td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py">ds2_medium_4gpus.py</a></td>
+<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_medium_4gpus.py">ds2_medium_4gpus.py</a></td>
 <td>22.60%</td>
 <td>This model was trained for 50 epochs using Adam on the full
 LibriSpeech in a few days using Horovod on four GPUs.</td>
@@ -282,22 +290,13 @@ LibriSpeech in a few days using Horovod on four GPUs.</td>
 GRU layers with 1024 units.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1XpnyZzMaO38RE4dSOJZkcaJ3T8B0lxKe/view?usp=sharing">link</a></td>
 </tr>
-<tr class="row-even"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py">ds2_small_1gpu.py</a></td>
+<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_small_1gpu.py">ds2_small_1gpu.py</a></td>
 <td>39.08%</td>
 <td>This model was trained for 12 epochs using Adam on a “clean” subset of
 LibriSpeech in less than a day using a single GPU.</td>
 <td>This model has 2 convolutional layers and 2 bidirectional
 GRU layers with 512 units.</td>
 <td><a class="reference external" href="https://drive.google.com/file/d/1-OEvxyg7rCogZhejen7pNuKkgvuwCdbk/view?usp=sharing">link</a></td>
-</tr>
-<tr class="row-odd"><td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2l_large_8gpus.py">w2l_large_8gpus.py</a></td>
-<td>15.44%</td>
-<td>This model was trained for 18 epochs (with early stopping based on
-validation loss) using SGD with Momentum and LARC on
-the full LibriSpeech in a few days on eight GPUs.</td>
-<td>The model has 19 convolutional layers (200–1000 units, 7–21 kernel size).
-We use batch norm between all layers.</td>
-<td><a class="reference external" href="https://drive.google.com/open?id=1gVdi8am_a3bNUQo4SZGItqNrIeV8MSqA">link</a></td>
 </tr>
 </tbody>
 </table>

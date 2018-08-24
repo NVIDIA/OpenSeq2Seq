@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
-from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding_cuDNN
+from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
@@ -11,29 +11,29 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/mnt/shared/dldata/translation/wmt16_de_en/"
+data_root = "/home/chipn/data/wmt16_en_de/"
 
 base_model = Text2Text
 
 base_params = {
-  "use_horovod": True,
-  "num_gpus": 1,
-  "max_steps": 310000,
-  "batch_size_per_gpu": 64,
-  "save_summaries_steps": 50,
-  "print_loss_steps": 48,
-  "print_samples_steps": 48,
-  "eval_steps": 4001,
-  "save_checkpoint_steps": 4000,
-  "logdir": "GNMT-8GPUs-MP",
+  "use_horovod": False,
+  "num_gpus": 2,
+  "max_steps": 340000,
+  "batch_size_per_gpu": 32,
+  "save_summaries_steps": 10,
+  "print_loss_steps": 10,
+  "print_samples_steps": 10,
+  "eval_steps": 40,
+  "save_checkpoint_steps": 40,
+  "logdir": "GNMT-4GPUs-FP32",
   "optimizer": "Adam",
   "optimizer_params": {},
   # luong10 decay scheme
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 0.0008,
-    "begin_decay_at": 155000,
-    "decay_steps": 15500,
+    "begin_decay_at": 170000,
+    "decay_steps": 17000,
     "decay_rate": 0.5,
     "use_staircase_decay": True,
     "min_lr": 0.0000005,
@@ -41,21 +41,26 @@ base_params = {
   #"summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   "max_grad_norm": 32768.0,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
-  "encoder": GNMTLikeEncoderWithEmbedding_cuDNN,
+  "dtype": tf.float32,
+  #"dtype": "mixed",
+  #"automatic_loss_scaling": "Backoff",
+  "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
     "initializer": tf.random_uniform_initializer,
     "initializer_params": {
       "minval": -0.1,
       "maxval": 0.1,
     },
-    "encoder_cell_type": "lstm",
-    "encoder_cell_units": 1024,
-    "encoder_layers": 8,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 400,
+        "forget_bias": 1.0,
+    },
+    "encoder_layers": 7,
+    "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
-    "src_emb_size": 1024,
+    "encoder_use_skip_connections": True,
+    "src_emb_size": 160,
   },
 
   "decoder": RNNDecoderWithAttention,
@@ -67,7 +72,7 @@ base_params = {
      },
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 1024,
+        "num_units": 400,
         "forget_bias": 1.0,
     },
     "decoder_layers": 8,
@@ -77,9 +82,10 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
 
-    "tgt_emb_size": 1024,
+    "tgt_emb_size": 160,
     "attention_type": "gnmt_v2",
     "attention_layer_size": 1024,
+    "weight_tied": True,
   },
 
   "loss": BasicSequenceLoss,
@@ -94,34 +100,35 @@ train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "m_en.vocab",
-    "tgt_vocab_file": data_root + "m_de.vocab",
-    "source_file": data_root + "train.clean.en.shuffled.BPE.32K.tok",
-    "target_file": data_root + "train.clean.de.shuffled.BPE.32K.tok",
+    "src_vocab_file": data_root+"vocab.bpe.32000",
+    "tgt_vocab_file": data_root+"vocab.bpe.32000",
+    "source_file": data_root+"train.tok.clean.bpe.32000.en",
+    "target_file": data_root+"train.tok.clean.bpe.32000.de",
     "delimiter": " ",
     "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
+    "prefetch_buffer_size": 8,
     "max_length": 50,
   },
 }
-
 eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"m_en.vocab",
-    "tgt_vocab_file": data_root+"m_de.vocab",
-    "source_file": data_root+"wmt13-en-de.src.BPE.32K.tok",
-    "target_file": data_root+"wmt13-en-de.ref.BPE.32K.tok",
+    "pad_vocab_to_eight": True,
+    "src_vocab_file": data_root+"vocab.bpe.32000",
+    "tgt_vocab_file": data_root+"vocab.bpe.32000",
+    "source_file": data_root+"newstest2013.tok.bpe.32000.en",
+    "target_file": data_root+"newstest2013.tok.bpe.32000.de",
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
-    "max_length": 32,
+    "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
-    },
+    "max_length": 32,
+  },
 }
 
 infer_params = {
@@ -132,7 +139,7 @@ infer_params = {
     "length_penalty": 1.0,
     "core_cell": tf.nn.rnn_cell.LSTMCell,
     "core_cell_params": {
-        "num_units": 1024,
+        "num_units": 400,
         "forget_bias": 1.0,
     },
     "decoder_layers": 8,
@@ -142,21 +149,23 @@ infer_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-    "tgt_emb_size": 1024,
+    "tgt_emb_size": 160,
     "attention_type": "gnmt_v2",
     "attention_layer_size": 1024,
+    "weight_tied": True, # make sure that weight tied for Training/eval is true too
   },
 
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"m_en.vocab",
-    "tgt_vocab_file": data_root+"m_de.vocab",
-    "source_file": data_root+"wmt14-en-de.src.BPE.32K.tok",
-    "target_file": data_root+"wmt14-en-de.src.BPE.32K.tok",
+    "pad_vocab_to_eight": True,
+    "src_vocab_file": data_root+"vocab.bpe.32000",
+    "tgt_vocab_file": data_root+"vocab.bpe.32000",
+    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
+    # this is intentional
+    "target_file": data_root+"newstest2014.tok.bpe.32000.en",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
     "max_length": 512,
-    "prefetch_buffer_size": 1,
   },
 }

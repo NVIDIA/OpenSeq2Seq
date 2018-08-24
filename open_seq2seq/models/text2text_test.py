@@ -13,11 +13,11 @@ from open_seq2seq.test_utils.create_reversed_examples import create_data, \
 class BasicText2TextWithAttentionTest(tf.test.TestCase):
   def setUp(self):
     print("Setting Up BasicSeq2SeqWithAttention")
-    create_data(train_corpus_size=500)
+    create_data(train_corpus_size=500, data_path='tmp2')
 
   def tearDown(self):
     print("Tear down BasicSeq2SeqWithAttention")
-    remove_data()
+    remove_data(data_path='tmp2')
 
   def test_train(self):
     config_module = runpy.run_path(
@@ -29,16 +29,16 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
 
     # TODO: should we maybe have just a single directory parameter?
     train_config['data_layer_params']['src_vocab_file'] = (
-        "./toy_data/vocab/source.txt"
+        "tmp2/vocab/source.txt"
     )
     train_config['data_layer_params']['tgt_vocab_file'] = (
-        "./toy_data/vocab/target.txt"
+        "tmp2/vocab/target.txt"
     )
     train_config['data_layer_params']['source_file'] = (
-        "./toy_data/train/source.txt"
+        "tmp2/train/source.txt"
     )
     train_config['data_layer_params']['target_file'] = (
-        "./toy_data/train/target.txt"
+        "tmp2/train/target.txt"
     )
 
     step = 0
@@ -61,11 +61,11 @@ class BasicText2TextWithAttentionTest(tf.test.TestCase):
 class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
   def setUp(self):
     print("Setting Up BasicSeq2SeqWithAttention on Horovod")
-    create_data(train_corpus_size=500)
+    create_data(train_corpus_size=500, data_path='tmp3')
 
   def tearDown(self):
     print("Tear down BasicSeq2SeqWithAttention on Horovod")
-    remove_data()
+    remove_data(data_path='tmp3')
 
   def test_train(self):
     try:
@@ -84,16 +84,16 @@ class BasicText2TextWithAttentionTestOnHorovod(tf.test.TestCase):
       train_config.update(config_module['train_params'])
 
     train_config['data_layer_params']['src_vocab_file'] = (
-        "./toy_data/vocab/source.txt"
+        "tmp3/vocab/source.txt"
     )
     train_config['data_layer_params']['tgt_vocab_file'] = (
-        "./toy_data/vocab/target.txt"
+        "tmp3/vocab/target.txt"
     )
     train_config['data_layer_params']['source_file'] = (
-        "./toy_data/train/source.txt"
+        "tmp3/train/source.txt"
     )
     train_config['data_layer_params']['target_file'] = (
-        "./toy_data/train/target.txt"
+        "tmp3/train/target.txt"
     )
     train_config["use_horovod"] = True
     step = 0
