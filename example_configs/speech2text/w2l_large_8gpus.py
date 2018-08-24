@@ -53,12 +53,6 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [11], "stride": [2],
-                "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
-            },
-            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
@@ -92,7 +86,7 @@ base_params = {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[2], "dropout_keep_prob": 0.6,
+                "dilation":[1], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
@@ -140,9 +134,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "data/librispeech/librivox-train-clean-100.csv",
+            "data/librispeech/librivox-train-clean-360.csv",
+            "data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -156,7 +150,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
     },
@@ -169,7 +163,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-test-clean.csv",
+            "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
     },

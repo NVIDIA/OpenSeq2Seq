@@ -16,7 +16,7 @@ base_params = {
     "num_epochs": 200,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -44,8 +44,7 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": "mixed",
-    "loss_scaling": "Backoff",
+    "dtype": tf.float32,
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -53,6 +52,12 @@ base_params = {
     "encoder": Wave2LetterEncoder,
     "encoder_params": {
         "convnet_layers": [
+            {
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
+            },
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
@@ -87,7 +92,7 @@ base_params = {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.6,
+                "dilation":[2], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
