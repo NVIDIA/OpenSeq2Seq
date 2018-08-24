@@ -3,40 +3,80 @@
 Speech Synthesis
 ================
 
-The table below contains description and results of
-text-to-speech models available in OpenSeq2Seq.
-Currently, we have a Tacotron2-based model.
+######
+Models
+######
+
+Currently we support following models:
 
 .. list-table::
-   :widths: 1 1 1 1 1
+   :widths: 1 2 1 
    :header-rows: 1
 
-   * - Config file
-     - Samples
-     - Training setup and additional comments
-     - Short description of the model
+   * - Model description
+     - Config file
      - Checkpoint
-   * - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
-     - Coming soon.
-     - Learns magnitude spectrograms. Trained on 1 gpu for 100,000 steps with ADAM.
-     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
-       The only difference is that the stop token projection layer is placed after
-       the spectrogram projection layer.
-     - Coming soon.
-   * - `tacotron_LJ_float_8gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float_8gpu.py>`_
-     - Coming soon.
-     - Learns magnitude spectrograms. Trained on 8 gpus for 30,000 steps with ADAM and larc.
-     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
-       The only difference is that the stop token projection layer is placed after
-       the spectrogram projection layer.
-     - Coming soon.
-   * - `tacotron_LJ_mixed.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_mixed.py>`_
-     - Coming soon.
-     - Learns magnitude spectrograms. Trained on 1 gpu for 100,000 steps with ADAM and larc.
-     - Model tries to match the model description in https://arxiv.org/abs/1712.05884.
-       The only difference is that the stop token projection layer is placed after
-       the spectrogram projection layer.
-     - Coming soon.
+   * - :doc:`Tacotron-2 </speech-synthesis/tacotron-2>`
+     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - To be added
+
+The model specification and training parameters can be found in the corresponding config file.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   speech-synthesis/tacotron-2
+
+################
+Getting started 
+################
+
+The current tacotron 2 implementation supports the 
+`LJSpeech <https://keithito.com/LJ-Speech-Dataset/>`_ dataset. For more details
+about the model including hyperparameters and tips, see 
+:doc:`Tacotron-2 </speech-synthesis/tacotron-2>`.
+
+********
+Get data
+********
+
+First, you need to download and extract the dataset into a directory of your
+choice. The extracted file should consist of a metadata.csv file and a directory
+of wav files. metadata.csv lists all the wav filename and their corresponding
+transcripts delimited by the '|' character.
 
 
-Tacotron 2 model description: https://arxiv.org/abs/1712.05884.
+********
+Training
+********
+
+Next let's train a tacotron 2 model. For this: 
+
+* change ``dataset_location`` under ``data_layer_params`` to point to the
+  directory containing the wav files
+* change ``dataset_files`` under ``train_params`` to point to metadata.csv
+
+Start training::
+
+    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=train
+
+If your GPU does not have enough memory, reduce the ``batch_size_per_gpu``
+parameter.
+
+*************
+Inference
+*************
+
+Once training is done (this can take a while on a single GPU), you can run
+inference. To do some, first create a csv file with lines in the following
+format::
+
+    UNUSED | UNUSED | This is an example sentence that I want to generate.
+
+You can put as many lines inside the csv as you want. The model will produce
+one audio sample per line and save the audio sample inside your ``log_dir``.
+Change ``dataset_files`` under ``infer_params`` to point to your newly created
+csv. Lastly, run ::
+
+    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=infer --infer_output_file=unused
