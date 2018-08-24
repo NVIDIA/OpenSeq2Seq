@@ -12,6 +12,7 @@
    distr-training
    mixed-precision
    in-depth-tutorials
+   interactive-infer-demos
    api-docs/modules
 
 
