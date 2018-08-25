@@ -20,26 +20,26 @@ class DS2ModelTests(Speech2TextModelTests):
   def tearDown(self):
     pass
 
-  # def test_regularizer(self):
-  #   return self.regularizer_test()
-  #
-  # def test_convergence(self):
-  #   return self.convergence_test(5.0, 30.0, 0.1)
-  #
-  # def test_convergence_with_iter_size(self):
-  #   return self.convergence_with_iter_size_test()
-  #
-  # def test_infer(self):
-  #   return self.infer_test()
-  #
-  # def test_mp_collection(self):
-  #   return self.mp_collection_test(14, 7)
-  #
-  # def test_levenshtein(self):
-  #   return self.levenshtein_test()
-  #
-  # def test_maybe_functions(self):
-  #   return self.maybe_functions_test()
+  def test_regularizer(self):
+    return self.regularizer_test()
+
+  def test_convergence(self):
+    return self.convergence_test(5.0, 30.0, 0.1)
+
+  def test_convergence_with_iter_size(self):
+    return self.convergence_with_iter_size_test()
+
+  def test_infer(self):
+    return self.infer_test()
+
+  def test_mp_collection(self):
+    return self.mp_collection_test(14, 7)
+
+  def test_levenshtein(self):
+    return self.levenshtein_test()
+
+  def test_maybe_functions(self):
+    return self.maybe_functions_test()
 
 
 if __name__ == '__main__':
