@@ -8,7 +8,7 @@ echo '**********>>>> RUNNING UNIT TESTS <<<< ************'
 python -m unittest discover -s open_seq2seq -p '*_test.py'
 
 echo '**********>>>> RUNNING SMALL Models <<<< ************'
-
+chmod +x scripts/multi-bleu.perl
 python run.py --config_file=example_configs/text2text/toy-reversal/nmt-reversal-RR.py \
   --mode=train_eval --logdir=RR
 python run.py --config_file=example_configs/text2text/toy-reversal/nmt-reversal-RR.py \
