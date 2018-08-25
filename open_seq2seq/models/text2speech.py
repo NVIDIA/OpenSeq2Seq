@@ -1,21 +1,19 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+from six import BytesIO
 from six.moves import range
 
+from scipy.io.wavfile import write
+
 import librosa
-
 import numpy as np
-import tensorflow as tf
-
 import matplotlib as mpl
 mpl.use('Agg')
 import matplotlib.pyplot as plt
-from scipy.io.wavfile import write
+import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
-from six import StringIO
-
 
 def plot_spectrograms(
     specs,
@@ -56,14 +54,12 @@ def plot_spectrograms(
   num_figs = len(specs) + 1
   fig, ax = plt.subplots(nrows=num_figs, figsize=(8, num_figs * 3))
 
-  figures = []
   for i, (spec, title) in enumerate(zip(specs, titles)):
     spec = np.pad(spec, ((1, 1), (1, 1)), "constant", constant_values=0.)
     spec = spec.astype(float)
     colour = ax[i].imshow(
         spec.T, cmap='viridis', interpolation=None, aspect='auto'
     )
-    figures.append(colour)
     ax[i].invert_yaxis()
     ax[i].set_title(title)
     fig.colorbar(colour, ax=ax[i])
@@ -74,17 +70,21 @@ def plot_spectrograms(
   ax[-1].plot(stop_token_pred, 'g.')
   ax[-1].axvline(x=audio_length)
   ax[-1].set_xlim(0, len(specs[0]))
+  ax[-1].set_title("stop token")
+
+  plt.xlabel('time')
+  plt.tight_layout()
+
   cb = fig.colorbar(colour, ax=ax[-1])
   cb.remove()
 
-  plt.xlabel('time')
 
   if save_to_tensorboard:
     tag = "{}_image".format(append)
-    s = StringIO()
-    fig.savefig(s, dpi=300)
+    iostream = BytesIO()
+    fig.savefig(iostream, dpi=300)
     summary = tf.Summary.Image(
-        encoded_image_string=s.getvalue(),
+        encoded_image_string=iostream.getvalue(),
         height=int(fig.get_figheight() * 300),
         width=int(fig.get_figwidth() * 300)
     )
@@ -112,9 +112,12 @@ def save_audio(
     magnitudes,
     logdir,
     step,
+    sampling_rate,
+    n_fft=1024,
     mode="train",
     number=0,
     save_format="tensorboard",
+    power=1.5
 ):
   """
   Helper function to create a wav file to be logged to disk or a tf.Summary to
@@ -125,6 +128,8 @@ def save_audio(
       energy spectrogram.
     logdir (str): dir to save image file is save_to_tensorboard is disabled.
     step (int): current training step
+    sampling_rate (int): samplng rate in Hz of the audio to be saved.
+    n_fft (int): number of filters for fft and ifft.
     number (int): Current sample number (used if evaluating more than 1 sample
     mode (str): Optional string to append to file name eg. train, eval, infer
       from a batch)
@@ -136,21 +141,21 @@ def save_audio(
   Returns:
     tf.Summary or None
   """
-  signal = griffin_lim(magnitudes.T**1.2)
+  signal = griffin_lim(magnitudes.T**power, n_fft=n_fft)
   if save_format == "np.array":
     return signal
   elif save_format == "tensorboard":
     tag = "{}_audio".format(mode)
-    s = StringIO()
-    write(s, 22050, signal)
-    summary = tf.Summary.Audio(encoded_audio_string=s.getvalue())
+    iostream = BytesIO()
+    write(iostream, sampling_rate, signal)
+    summary = tf.Summary.Audio(encoded_audio_string=iostream.getvalue())
     summary = tf.Summary.Value(tag=tag, audio=summary)
     return summary
   elif save_format == "disk":
     file_name = '{}/sample_step{}_{}_{}.wav'.format(logdir, step, number, mode)
     if logdir[0] != '/':
       file_name = "./" + file_name
-    write(file_name, 22050, signal)
+    write(file_name, sampling_rate, signal)
     return None
   else:
     print((
@@ -159,9 +164,10 @@ def save_audio(
         "Received '{}'."
         "Expected one of 'np.array', 'tensorboard', or 'disk'"
     ).format(save_format))
+    return None
 
 
-def griffin_lim(magnitudes, n_iters=50):
+def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
   """
   Griffin-Lim algorithm to convert magnitude spectrograms to audio signals
   """
@@ -171,7 +177,7 @@ def griffin_lim(magnitudes, n_iters=50):
   signal = librosa.istft(complex_spec)
 
   for _ in range(n_iters):
-    _, phase = librosa.magphase(librosa.stft(signal, n_fft=1024))
+    _, phase = librosa.magphase(librosa.stft(signal, n_fft=n_fft))
     complex_spec = magnitudes * phase
     signal = librosa.istft(complex_spec)
   return signal
@@ -190,12 +196,6 @@ class Text2Speech(EncoderDecoderModel):
   def __init__(self, params, mode="train", hvd=None):
     super(Text2Speech, self).__init__(params, mode=mode, hvd=hvd)
     self._save_to_tensorboard = self.params["save_to_tensorboard"]
-
-  def _create_decoder(self):
-    self.params['decoder_params']['num_audio_features'] = (
-        self.get_data_layer().params['num_audio_features']
-    )
-    return super(Text2Speech, self)._create_decoder()
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     dict_to_log = {}
@@ -251,6 +251,8 @@ class Text2Speech(EncoderDecoderModel):
         predicted_final_spec,
         self.params["logdir"],
         step,
+        n_fft=self.get_data_layer().n_fft,
+        sampling_rate=self.get_data_layer().sampling_rate,
         save_format=save_format
     )
     dict_to_log['audio'] = wav_summary
@@ -312,6 +314,8 @@ class Text2Speech(EncoderDecoderModel):
           predicted_final_spec,
           self.params["logdir"],
           step,
+          n_fft=self.get_data_layer().n_fft,
+          sampling_rate=self.get_data_layer().sampling_rate,
           mode="eval",
           save_format=save_format
       )
@@ -357,7 +361,7 @@ class Text2Speech(EncoderDecoderModel):
 
         if "mel" in self.get_data_layer().params['output_type']:
           mag_spec = self.get_data_layer(
-          ).inverse_mel(predicted_final_spec)
+          ).get_magnitude_spec(predicted_final_spec)
           log_mag_spec = np.log(np.clip(mag_spec, a_min=1e-5, a_max=None))
           specs.append(log_mag_spec)
           titles.append("linear spectrogram")
@@ -382,11 +386,11 @@ class Text2Speech(EncoderDecoderModel):
               predicted_final_spec,
               self.params["logdir"],
               0,
+              n_fft=self.get_data_layer().n_fft,
+              sampling_rate=self.get_data_layer().sampling_rate,
               mode="infer",
               number=i * batch_size + j,
               save_format="disk"
           )
 
           dict_to_log['audio'] = wav_summary
-
-    return {}

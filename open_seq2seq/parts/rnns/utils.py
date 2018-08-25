@@ -7,8 +7,7 @@ import math
 from six.moves import range
 import tensorflow as tf
 
-from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper,\
-                                           MultiRNNCell
+from tensorflow.python.ops.rnn_cell import ResidualWrapper, DropoutWrapper
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.parts.rnns.slstm import BasicSLSTMCell
 from open_seq2seq.parts.rnns.glstm import GLSTMCell
@@ -24,7 +23,7 @@ def single_cell(
     input_weight_keep_prob=1.0,
     recurrent_weight_keep_prob=1.0,
     weight_variational=False,
-    dropout_seed=1822,
+    dropout_seed=None,
     zoneout_prob=0.,
     training=True,
     residual_connections=False,
@@ -76,9 +75,9 @@ def single_cell(
   ):
     raise ValueError(
         "Currently applying both dropout and zoneout on the same cell."
-        "This is not recommended"
+        "This is currently not supported."
     )
-  if dp_input_keep_prob != 1.0 or dp_output_keep_prob != 1.0:
+  if dp_input_keep_prob != 1.0 or dp_output_keep_prob != 1.0 and training:
     cell = DropoutWrapper(
         cell,
         input_keep_prob=dp_input_keep_prob,

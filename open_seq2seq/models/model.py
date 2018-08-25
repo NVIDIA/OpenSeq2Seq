@@ -11,9 +11,9 @@ import copy
 import time
 
 try:
-    from inspect import signature
+  from inspect import signature
 except ImportError:
-    from funcsigs import signature
+  from funcsigs import signature
 
 from open_seq2seq.utils.utils import deco_print, clip_last_batch
 from open_seq2seq.optimizers import optimize_loss, get_regularization_loss
@@ -37,9 +37,9 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'use_horovod': bool,
-      'batch_size_per_gpu': int,
-      'data_layer': None,  # could be any user defined class
+        'use_horovod': bool,
+        'batch_size_per_gpu': int,
+        'data_layer': None,  # could be any user defined class
     }
 
   @staticmethod
@@ -53,41 +53,42 @@ class Model:
             class :meth:`__init__` method.
     """
     return {
-      'logdir': str,
-      'num_gpus': int,  # cannot be used when gpu_ids is specified
-      'gpu_ids': list,  # cannot be used when num_gpus is specified
+        'logdir': str,
+        'num_gpus': int,  # cannot be used when gpu_ids is specified
+        'gpu_ids': list,  # cannot be used when num_gpus is specified
 
-      'save_summaries_steps': None,  # could be int or None
-      'print_loss_steps': None,  # could be int or None
-      'print_samples_steps': None,  # could be int or None
-      'print_bench_info_steps': None,  # could be int or None
-      'save_checkpoint_steps': None,  # could be int or None
-      'restore_best_checkpoint': bool, # whether to restore best check point
-      'eval_steps': int,
-      'base_logdir': str,
-      'finetune': bool,
-      'eval_batch_size_per_gpu': int,
+        'save_summaries_steps': None,  # could be int or None
+        'print_loss_steps': None,  # could be int or None
+        'print_samples_steps': None,  # could be int or None
+        'print_bench_info_steps': None,  # could be int or None
+        'save_checkpoint_steps': None,  # could be int or None
+        'restore_best_checkpoint': bool, # whether to restore best check point
+        'eval_steps': int,
+        'base_logdir': str,
+        'finetune': bool,
+        'eval_batch_size_per_gpu': int,
 
-      'random_seed': int,
-      'num_epochs': int,
-      'max_steps': int,
-      'bench_start': int,
+        'random_seed': int,
+        'num_epochs': int,
+        'max_steps': int,
+        'bench_start': int,
 
-      'data_layer_params': dict,
-      'optimizer': None,  # could be class or string
-      'optimizer_params': dict,
-      'initializer': None,  # any valid TensorFlow initializer
-      'initializer_params': dict,
-      'regularizer': None,  # any valid TensorFlow regularizer
-      'regularizer_params': dict,
-      'dtype': [tf.float16, tf.float32, 'mixed'],
-      'lr_policy': None,  # any valid learning rate policy function
-      'lr_policy_params': dict,
-      'max_grad_norm': float,
-      'larc_params': dict,
-      'loss_scaling': None,  # float, "Backoff" or "LogMax"
-      'summaries': list,
-      'iter_size': int,
+        'data_layer_params': dict,
+        'optimizer': None,  # could be class or string
+        'optimizer_params': dict,
+        'initializer': None,  # any valid TensorFlow initializer
+        'initializer_params': dict,
+        'regularizer': None,  # any valid TensorFlow regularizer
+        'regularizer_params': dict,
+        'dtype': [tf.float16, tf.float32, 'mixed'],
+        'lr_policy': None,  # any valid learning rate policy function
+        'lr_policy_params': dict,
+        'max_grad_norm': float,
+        'larc_params': dict,
+        'loss_scaling': None,  # float, "Backoff" or "LogMax"
+        'loss_scaling_params': dict,
+        'summaries': list,
+        'iter_size': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -176,9 +177,11 @@ class Model:
       loss scaling algorithm is used. Must be one of 'Backoff'
       of 'LogMax' (case insensitive). Only used when dtype="mixed". For details
       see :ref:`mixed precision training <mixed_precision>` section in docs.
+    * **loss_scaling_params** (dict) --- dictionary containing loss scaling
+      parameters.
     * **summaries** (list) --- which summaries to log. Could contain
       "learning_rate", "gradients", "gradient_norm", "global_gradient_norm",
-      "variables", "variable_norm".
+      "variables", "variable_norm", "loss_scale".
     * **iter_size** (int) --- use this parameter to emulate large batches.
       The gradients will be accumulated for ``iter_size`` number of steps before
       applying update.
@@ -232,7 +235,10 @@ class Model:
 
     self._params['finetune'] = self._params.get('finetune', False)
     self._params['base_logdir'] = self._params.get('base_logdir', None)
-    self._params['eval_batch_size_per_gpu'] = self._params.get('eval_batch_size_per_gpu', self._params['batch_size_per_gpu'])
+    self._params['eval_batch_size_per_gpu'] = self._params.get(
+        'eval_batch_size_per_gpu',
+        self._params['batch_size_per_gpu']
+    )
 
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
@@ -243,7 +249,7 @@ class Model:
 
     self._hvd = hvd
     if self._hvd:
-        self._gpu_ids = range(1)
+      self._gpu_ids = range(1)
     else:
       if 'gpu_ids' in self._params:
         self._gpu_ids = self._params['gpu_ids']
@@ -276,15 +282,15 @@ class Model:
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
-        params=dl_params, model=self,
-        num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
+          params=dl_params, model=self,
+          num_workers=self._hvd.size(), worker_id=self._hvd.rank(),
       )
     else:
       self._data_layers = []
       for worker_id in range(self.num_gpus):
         self._data_layers.append(self._params['data_layer'](
-          params=dl_params, model=self,
-          num_workers=self.num_gpus, worker_id=worker_id,
+            params=dl_params, model=self,
+            num_workers=self.num_gpus, worker_id=worker_id,
         ))
 
     if self._mode == "train":
@@ -334,11 +340,11 @@ class Model:
       losses = []
       for gpu_cnt, gpu_id in enumerate(self._gpu_ids):
         with tf.device("/gpu:{}".format(gpu_id)), tf.variable_scope(
-          name_or_scope=tf.get_variable_scope(),
-          # re-using variables across GPUs.
-          reuse=force_var_reuse or (gpu_cnt > 0),
-          initializer=initializer,
-          dtype=self.get_tf_dtype(),
+            name_or_scope=tf.get_variable_scope(),
+            # re-using variables across GPUs.
+            reuse=force_var_reuse or (gpu_cnt > 0),
+            initializer=initializer,
+            dtype=self.get_tf_dtype(),
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
@@ -349,8 +355,8 @@ class Model:
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
           loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
-            input_tensors,
-            gpu_id=gpu_cnt,
+              input_tensors,
+              gpu_id=gpu_cnt,
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
@@ -372,7 +378,7 @@ class Model:
           dtype=self.get_tf_dtype(),
       ):
         deco_print(
-          "Building graph in Horovod rank: {}".format(self._hvd.rank())
+            "Building graph in Horovod rank: {}".format(self._hvd.rank())
         )
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
@@ -413,25 +419,26 @@ class Model:
         self.skip_update_ph = tf.placeholder(tf.bool)
 
       self.train_op = optimize_loss(
-        loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
-        dtype=self.params['dtype'],
-        optimizer=self.params['optimizer'],
-        optimizer_params=self.params.get('optimizer_params', {}),
-        clip_gradients=self.params.get('max_grad_norm', None),
-        learning_rate_decay_fn=lr_policy,
-        summaries=self.params.get('summaries', None),
-        larc_params=self.params.get('larc_params', None),
-        loss_scaling=self.params.get('loss_scaling', 1.0),
-        on_horovod=self.on_horovod,
-        iter_size=self.params.get('iter_size', 1),
-        skip_update_ph=self.skip_update_ph,
+          loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
+          dtype=self.params['dtype'],
+          optimizer=self.params['optimizer'],
+          optimizer_params=self.params.get('optimizer_params', {}),
+          clip_gradients=self.params.get('max_grad_norm', None),
+          learning_rate_decay_fn=lr_policy,
+          summaries=self.params.get('summaries', None),
+          larc_params=self.params.get('larc_params', None),
+          loss_scaling=self.params.get('loss_scaling', 1.0),
+          loss_scaling_params=self.params.get('loss_scaling_params', None),
+          on_horovod=self.on_horovod,
+          iter_size=self.params.get('iter_size', 1),
+          skip_update_ph=self.skip_update_ph,
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:
         tf.summary.scalar(
-          name="epoch",
-          tensor=tf.floor(tf.train.get_global_step() /
-                          tf.constant(self.steps_in_epoch, dtype=tf.int64)),
+            name="epoch",
+            tensor=tf.floor(tf.train.get_global_step() /
+                            tf.constant(self.steps_in_epoch, dtype=tf.int64)),
         )
 
       if not self.on_horovod or self._hvd.rank() == 0:
@@ -562,7 +569,7 @@ class Model:
     derived classes. But if evaluation functionality is required,
     overwriting these methods can be a useful way to add it.
 
-    Args:d
+    Args:
       results_per_batch (list): aggregation of values returned from all calls
           to :meth:`self.evaluate()<evaluate>` method (number of calls will be
           equal to number of evaluation batches).

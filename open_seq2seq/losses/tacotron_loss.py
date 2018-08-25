@@ -1,7 +1,6 @@
 # Copyright (c) 2018 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
-from six.moves import range
 
 import tensorflow as tf
 
@@ -12,6 +11,7 @@ class TacotronLoss(Loss):
 
   def __init__(self, params, model, name="tacotron_loss"):
     super(TacotronLoss, self).__init__(params, model, name)
+    self._n_feats = self._model.get_data_layer().params['num_audio_features']
 
   def get_optional_params(self):
     """Static method with description of optional parameters.
@@ -32,19 +32,25 @@ class TacotronLoss(Loss):
     Args:
       input_dict (dict): inputs to compute loss. Contains:
 
-          "decoder_output": dicionary containing:
+          * "decoder_output": dicionary containing:
+
               "outputs": array containing [
+
                   * decoder_predictions: spectrogram predicted by the decoder
                     rnn of shape [batch, time, feats]
                   * post_net_predictions: spectrogram after adding the residual
                     corrections from the post net of shape [batch, time, feats]
                   * stop_token_predictions: stop_token predictions of shape
                     [batch, time, 1]
+
               ]
-          "target_tensors": array containing [
+
+          * "target_tensors": array containing [
+
               * spec: the true spectrogram of shape [batch, time, feats]
               * stop_token: the stop_token of shape [batch, time]
-          ]
+
+            ]
 
     Returns:
        Singleton loss tensor
@@ -75,7 +81,7 @@ class TacotronLoss(Loss):
         )
     )
 
-    predictions_pad = tf.zeros(
+    post_net_pad = decoder_pad = tf.zeros(
         [batch_size, max_length - tf.shape(decoder_predictions)[1], num_feats]
     )
     stop_token_pred_pad = tf.zeros(
@@ -84,10 +90,10 @@ class TacotronLoss(Loss):
     spec_pad = tf.zeros([batch_size, max_length - tf.shape(spec)[1], num_feats])
     stop_token_pad = tf.zeros([batch_size, max_length - tf.shape(spec)[1], 1])
     decoder_predictions = tf.concat(
-        [decoder_predictions, predictions_pad], axis=1
+        [decoder_predictions, decoder_pad], axis=1
     )
     post_net_predictions = tf.concat(
-        [post_net_predictions, predictions_pad], axis=1
+        [post_net_predictions, post_net_pad], axis=1
     )
     stop_token_predictions = tf.concat(
         [stop_token_predictions, stop_token_pred_pad], axis=1
@@ -95,16 +101,19 @@ class TacotronLoss(Loss):
     spec = tf.concat([spec, spec_pad], axis=1)
     stop_token = tf.concat([stop_token, stop_token_pad], axis=1)
 
+    decoder_target = spec
+    post_net_target = spec
+
     if self.params.get("use_mask", True):
       mask = tf.sequence_mask(
           lengths=spec_lengths, maxlen=max_length, dtype=tf.float32
       )
       mask = tf.expand_dims(mask, axis=-1)
       decoder_loss = tf.losses.mean_squared_error(
-          labels=spec, predictions=decoder_predictions, weights=mask
+          labels=decoder_target, predictions=decoder_predictions, weights=mask
       )
       post_net_loss = tf.losses.mean_squared_error(
-          labels=spec, predictions=post_net_predictions, weights=mask
+          labels=post_net_target, predictions=post_net_predictions, weights=mask
       )
       stop_token_loss = tf.nn.sigmoid_cross_entropy_with_logits(
           labels=stop_token, logits=stop_token_predictions
@@ -114,10 +123,10 @@ class TacotronLoss(Loss):
 
     else:
       decoder_loss = tf.losses.mean_squared_error(
-          labels=spec, predictions=decoder_predictions
+          labels=decoder_target, predictions=decoder_predictions
       )
       post_net_loss = tf.losses.mean_squared_error(
-          labels=spec, predictions=post_net_predictions
+          labels=post_net_target, predictions=post_net_predictions
       )
       stop_token_loss = tf.nn.sigmoid_cross_entropy_with_logits(
           labels=stop_token, logits=stop_token_predictions
