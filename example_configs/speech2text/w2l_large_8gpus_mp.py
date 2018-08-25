@@ -144,7 +144,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "../librispeech/librivox-dev-clean.csv",
+            "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
     },
