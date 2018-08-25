@@ -79,6 +79,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
+    "pos_embed": True,
 
     "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 

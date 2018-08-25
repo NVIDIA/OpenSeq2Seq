@@ -19,7 +19,6 @@ import math
 """
 This configuration file describes a variant of ConvS2S model from
 https://arxiv.org/pdf/1705.03122
-Mixed precision training
 """
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
@@ -34,22 +33,22 @@ conv_act = gated_linear_units
 normalization_type = "weight_norm"
 scaling_factor = math.sqrt(0.5)
 
-max_length = 128
+max_length = 64
 
 base_params = {
   "use_horovod": True,
   "num_gpus": 1, # Use 8 horovod workers to train on 8 GPUs
 
-  # max_step is set for 35 epochs on 8 gpus with batch size of 128,
+  # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
-  "max_steps": 154000,
-  "batch_size_per_gpu": 128,
+  "max_steps": 310000,
+  "batch_size_per_gpu": 64,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
-  "logdir": "ConvSeq2Seq-8GPUs-MP",
+  "logdir": "ConvSeq2Seq-8GPUs-FP32",
 
 
   "optimizer": "Adam",
@@ -65,10 +64,9 @@ base_params = {
   "max_grad_norm": 0.1,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-                'variable_norm', 'gradient_norm', 'global_gradient_norm', 'loss_scale'],
+                'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "dtype": tf.float32,
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
