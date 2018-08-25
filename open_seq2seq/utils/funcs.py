@@ -14,6 +14,7 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
+from open_seq2seq.models import LSTMLM
 
 
 def train(train_model, eval_model=None, debug_port=None):
@@ -51,6 +52,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
+            print_ppl=isinstance(eval_model, LSTMLM),
         ),
     )
 
@@ -68,6 +70,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks.append(PrintLossAndTimeHook(
           every_steps=train_model.params['print_loss_steps'],
           model=train_model,
+          print_ppl=isinstance(train_model, LSTMLM)
       ))
     if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker

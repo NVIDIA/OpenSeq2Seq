@@ -125,13 +125,13 @@ class Wave2LetterEncoder(Encoder):
     convnet_layers = self.params['convnet_layers']
 
     for idx_convnet in range(len(convnet_layers)):
-      layer_type = convnet_layers[idx_convnet].get('type', 'conv1d')
-      layer_repeat = convnet_layers[idx_convnet].get('repeat', 1)
+      layer_type = convnet_layers[idx_convnet]['type']
+      layer_repeat = convnet_layers[idx_convnet]['repeat']
       ch_out = convnet_layers[idx_convnet]['num_channels']
       kernel_size = convnet_layers[idx_convnet]['kernel_size']
-      strides = convnet_layers[idx_convnet].get('stride', [1])
-      padding = convnet_layers[idx_convnet].get('padding', 'SAME')
-      dilation = convnet_layers[idx_convnet].get('dilation', [1])
+      strides = convnet_layers[idx_convnet]['stride']
+      padding = convnet_layers[idx_convnet]['padding']
+      dilation = convnet_layers[idx_convnet]['dilation']
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
 

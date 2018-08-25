@@ -103,7 +103,7 @@ class PrintSamplesHook(tf.train.SessionRunHook):
 class PrintLossAndTimeHook(tf.train.SessionRunHook):
   """Session hook that prints training samples and prediction from time to time
   """
-  def __init__(self, every_steps, model):
+  def __init__(self, every_steps, model, print_ppl=False):
     super(PrintLossAndTimeHook, self).__init__()
     self._timer = tf.train.SecondOrStepTimer(every_steps=every_steps)
     self._every_steps = every_steps
@@ -112,6 +112,7 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
     self._model = model
     self._fetches = [model.loss]
     self._last_time = time.time()
+    self._print_ppl = print_ppl
 
   def begin(self):
     self._iter_count = 0
@@ -140,7 +141,16 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       )
 
     loss = results[0]
-    deco_print("loss = {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(loss, math.exp(loss), loss/math.log(2)), start="", end=", ")
+    #deco_print("loss = {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(loss, math.exp(loss/100), loss/math.log(2)), start="", end=", ")
+    if not self._model.on_horovod or self._model.hvd.rank() == 0:
+      if self._print_ppl:
+        deco_print("Validation loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}"
+                   .format(loss, math.exp(loss),
+                           loss/math.log(2)), offset=4)
+      else:
+        deco_print(
+          "Validation loss: {:.4f} ".format(loss),
+          offset=4)
 
     tm = (time.time() - self._last_time) / self._every_steps
     m, s = divmod(tm, 60)
@@ -156,7 +166,7 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
 class RunEvaluationHook(tf.train.SessionRunHook):
   """Session hook that runs evaluation on a validation set
   """
-  def __init__(self, every_steps, model, last_step=-1):
+  def __init__(self, every_steps, model, last_step=-1, print_ppl=False):
     super(RunEvaluationHook, self).__init__()
     self._timer = tf.train.SecondOrStepTimer(every_steps=every_steps)
     self._iter_count = 0
@@ -166,6 +176,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     self._last_step = last_step
     self._eval_saver = tf.train.Saver(save_relative_paths=True)
     self._best_eval_loss = 1e9
+    self._print_ppl = print_ppl
 
   def begin(self):
     self._iter_count = 0
@@ -191,7 +202,15 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     )
 
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
-      deco_print("Validation loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(total_loss, math.exp(total_loss), total_loss/math.log(2)), offset=4)
+      if self._print_ppl:
+        deco_print("Validation loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}"
+                   .format(total_loss, math.exp(total_loss),
+                           total_loss/math.log(2)), offset=4)
+      else:
+        deco_print(
+          "Validation loss: {:.4f} ".format(total_loss),
+          offset=4)
+
 
       dict_to_log = self._model.finalize_evaluation(results_per_batch, step)
       dict_to_log['eval_loss'] = total_loss

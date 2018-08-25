@@ -17,14 +17,14 @@ class W2LModelTests(Speech2TextModelTests):
     self.train_params = train_params
     self.eval_params = eval_params
 
-  # def tearDown(self):
-  #   pass
-  #
-  # def test_convergence(self):
-  #   return self.convergence_test(5.0, 30.0, 0.1)
-  #
-  # def test_mp_collection(self):
-  #   return self.mp_collection_test(14, 6)
+  def tearDown(self):
+    pass
+
+  def test_convergence(self):
+    return self.convergence_test(5.0, 30.0, 0.1)
+
+  def test_mp_collection(self):
+    return self.mp_collection_test(14, 6)
 
 
 if __name__ == '__main__':
