@@ -537,13 +537,13 @@ def get_base_config(args):
 
   return args, base_config, base_model, config_module
 
-def check_logdir(args, base_config):
+def check_logdir(args, base_config, restore_best_checkpoint=False):
   """A helper function that ensures the logdir is setup correctly
 
   Args:
     args (dict): Dictionary as returned from get_base_config()
     base_config (dict): Dictionary as returned from get_base_config()
-
+    restore_best_checkpoint (bool): If True, will look for ckpt_dir + /best_models
   Returns:
     checkpoint: Either None if continue-learning is not set and training, or
       the name of the checkpoint used to restore the model
@@ -584,7 +584,11 @@ def check_logdir(args, base_config):
     elif (args.mode == 'infer' or args.mode == 'eval' or
         args.mode == 'interactive_infer'):
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        if restore_best_checkpoint:
+          deco_print("Restoring from best checkpoint")
+          checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
+        else:
+          checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(
               "There is no valid TensorFlow checkpoint in the "

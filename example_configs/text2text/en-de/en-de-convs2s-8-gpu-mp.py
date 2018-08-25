@@ -21,7 +21,7 @@ https://arxiv.org/pdf/1705.03122
 """
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "/data/wmt16-ende-sp/"
+data_root = "/mnt/shared/dldata/translation/wmt16_de_en/"
 
 base_model = Text2Text
 num_layers = 15
@@ -31,7 +31,6 @@ hidden_before_last = 512
 conv_act = gated_linear_units
 normalization_type = "weight_norm"
 
-max_steps = 310000
 max_length = 64
 
 base_params = {
@@ -41,13 +40,13 @@ base_params = {
   # max_step is set for 35 epochs on 8 gpus with batch size of 64,
   # 4.5M is the size of the dataset
   "max_steps": 310000,
-  "batch_size_per_gpu": 64,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 4000,
   "save_checkpoint_steps": 4000,
-  "logdir": "ConvSeq2Seq-8GPUs-FP32",
+  "logdir": "ConvSeq2Seq-8GPUs-MP",
 
 
   "optimizer": "Adam",
@@ -102,7 +101,7 @@ base_params = {
     "tgt_emb_size": d_model,
     "pad_embeddings_2_eight": True,
     "out_emb_size": hidden_before_last,
-    "pos_embed": True,
+    "pos_embed": False,
 
     # original ConvS2S paper
     #"conv_nchannels_kwidth": [(512, 3)]*10 + [(768, 3)]*3 + [(2048, 1)]*2,
@@ -150,7 +149,7 @@ train_params = {
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
+    #"prefetch_buffer_size": 2,
     "max_length": max_length,
   },
 }
@@ -167,7 +166,7 @@ eval_params = {
     "shuffle": False,
     "repeat": False,
     "max_length": max_length,
-    "prefetch_buffer_size": 1,
+    #"prefetch_buffer_size": 1,
     },
 }
 
@@ -182,7 +181,7 @@ infer_params = {
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
-    "max_length": max_length,
-    "prefetch_buffer_size": 1,
+    "max_length": 2*max_length,
+    #"prefetch_buffer_size": 1,
   },
 }

@@ -16,7 +16,7 @@ base_params = {
     "num_epochs": 200,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 32,
+    "batch_size_per_gpu": 64,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -44,7 +44,8 @@ base_params = {
         'scale': 0.001
     },
 
-    "dtype": tf.float32,
+    "dtype": "mixed",
+    "loss_scaling": "Backoff",
 
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -53,39 +54,52 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [11], "num_channels": 256,
-                "dropout_keep_prob": 0.8,
+                "type": "conv1d", "repeat": 1,
+                "kernel_size": [11], "stride": [2],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [13], "num_channels": 384,
-                "dropout_keep_prob": 0.8,
+                "kernel_size": [11], "stride": [1],
+                "num_channels": 256, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [17], "num_channels": 512,
-                "dropout_keep_prob": 0.8,
+                "kernel_size": [13], "stride": [1],
+                "num_channels": 384, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [21], "num_channels": 640,
-                "dropout_keep_prob": 0.7,
+                "kernel_size": [17], "stride": [1],
+                "num_channels": 512, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [25], "num_channels": 768,
-                "dropout_keep_prob": 0.7,
+                "kernel_size": [21], "stride": [1],
+                "num_channels": 640, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.7,
+            },
+            {
+                "type": "conv1d", "repeat": 3,
+                "kernel_size": [25], "stride": [1],
+                "num_channels": 768, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.7,
             },
             {
                 "type": "conv1d", "repeat": 1,
-                "kernel_size": [29], "num_channels": 896,
-                "dropout_keep_prob": 0.6,
+                "kernel_size": [29], "stride": [1],
+                "num_channels": 896, "padding": "SAME",
+                "dilation":[2], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
-                "kernel_size": [1], "num_channels": 1024,
-                "dropout_keep_prob": 0.6,
+                "kernel_size": [1], "stride": [1],
+                "num_channels": 1024, "padding": "SAME",
+                "dilation":[1], "dropout_keep_prob": 0.6,
             }
         ],
 

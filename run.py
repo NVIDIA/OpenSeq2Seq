@@ -6,9 +6,7 @@ from __future__ import unicode_literals
 
 import os
 import sys
-
 import tensorflow as tf
-
 from open_seq2seq.utils.utils import deco_print, get_base_config, check_logdir,\
                                      create_logdir, create_model
 from open_seq2seq.utils import train, infer, evaluate
@@ -32,8 +30,10 @@ def main():
   else:
     hvd = None
 
+  restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
+
   # Check logdir and create it if necessary
-  checkpoint = check_logdir(args, base_config)
+  checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
   if args.enable_logs:
     if hvd is None or hvd.rank() == 0:
       old_stdout, old_stderr, stdout_log, stderr_log = create_logdir(
