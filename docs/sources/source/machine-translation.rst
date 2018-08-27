@@ -14,24 +14,24 @@ Currently we support following models:
    :header-rows: 1
 
    * - Model description
-     - BLEU
+     - SacreBLEU
      - Config file
      - Checkpoint
    * - :doc:`GNMT </machine-translation/gnmt>`
-     - 23.89
+     - 23.0
      - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_     
-     - `link <https://drive.google.com/file/d/1HVc4S8-wv1-AZK1JeWgn6YNITSFAMes_/view?usp=sharing>`_
+     - TBD
    * - :doc:`Transformer </machine-translation/transformer>`
-     - 26.17
+     - 26.4
      - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py>`_     
-     - `link <https://drive.google.com/file/d/151R6iCCtehRLpnH3nBmhEi_nhNO2mXW8/view?usp=sharing>`_
+     - TBD
    * - :doc:`ConvS2S </machine-translation/convs2s>`
-     - 25.40
+     - 25.0
      - `en-de-convs2s.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s.py>`_
-     - link
+     - TBD
 
-The model specification and training parameters can be found in the corresponding config file.
-The BLEU score for these models was measured on newstest2014.tok.de file with ``multi-bleu.perl`` script from Mosses). 
+The model specification and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU.
+
 
 .. toctree::
    :hidden:
@@ -54,7 +54,7 @@ Get data
 
 Download (this will take some time) and preprocess WMT16 English-German dataset::
 
-./get_wmt16_en_dt.sh
+ scripts/get_en_de.sh
 
 
 ********
@@ -78,7 +78,7 @@ Inference
 
 Once training is done (this can take a while on a single GPU), you can run inference::
 
-    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=file_with_BPE_segmentation.txt --num_gpus=1
+    python run.py --config_file=example_configs/text2text/en-de-nmt-small.py --mode=infer --infer_output_file=raw.txt --num_gpus=1
 
 Note that because BPE-based vocabularies were used during training, the results will contain BPE segmentation.
 Also, make sure you use only 1 GPU for inference (``-num_gpus=1``) because otherwise the order of lines in output file is not defined.
@@ -87,13 +87,13 @@ Also, make sure you use only 1 GPU for inference (``-num_gpus=1``) because other
 Computing BLEU scores
 *********************
 
-Before computing BLEU scores you need to remove BPE segmentation::
+Before computing BLEU scores you need to detokenize::
 
-  cat file_with_BPE_segmentation.txt | sed -r 's/(@@ )|(@@ ?$)//g' > cleaned_file.txt
+  python tokenizer_wrapper.py --mode=detokenize --model_prefix=.../Data/wmt16_de_en/m_common --decoded_output=result.txt --text_input=raw.txt
 
-Then run ```multi-blue.perl``` script on cleaned data::
 
-  ./multi-bleu.perl newstest2014.tok.de < cleaned_file.txt
+Then run SacreBleu on detokenized data::
 
-You should get a BLEU score above 20 for GNMT-small model on newstest2014.tok.de.
+  cat result.txt | sacrebleu -t wmt14 -l en-de > result.txt.BLEU
+
 

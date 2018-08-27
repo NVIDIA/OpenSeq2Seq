@@ -19,7 +19,7 @@
 OpenSeq2Seq
 ===========
 
-OpenSeq2Seq is a TensorFlow toolkit based on the sequence-to-sequence paradigm for
+OpenSeq2Seq is a TensorFlow-based toolkit for training various sequence-to-sequence models:
 
  * :ref:`machine translation <machine_translation>` (GNMT, Transformer, ConvS2S, ...)
  * :ref:`speech recognition <speech_recognition>` (DeepSpeech2, Wave2Letter, ...)
@@ -27,9 +27,9 @@ OpenSeq2Seq is a TensorFlow toolkit based on the sequence-to-sequence paradigm f
 
 **Main features**:
 
-* Modular design and flexible configuration makes it easy to build new encoder-decoder models
-* multi-GPU and multi-node training
+* Modular design and flexible configuration makes it easy to build new encoder-decoder models 
 * efficient mixed-precision training on GPUs
+* multi-GPU and multi-node training
 
 To install this toolkit, look at :ref:`installation instructions <installation>`.
 For more detailed tutorials you can look into :ref:`in-depth tutorials <in_depth>` section.
