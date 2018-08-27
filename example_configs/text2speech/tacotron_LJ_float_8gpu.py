@@ -33,6 +33,7 @@ base_params = {
   "save_checkpoint_steps": 2500,
   "save_to_tensorboard": True,
   "logdir": "result/tacotron-LJ-float-8gpu",
+  # "max_grad_norm":1.,
   "larc_params": {
     "larc_eta": 0.001,
   },
