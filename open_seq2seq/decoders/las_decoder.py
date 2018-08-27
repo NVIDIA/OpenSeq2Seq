@@ -164,7 +164,7 @@ class ListenAttendSpellDecoder(Decoder):
       )
 
     output_projection_layer = FullyConnected(
-        [3*self._tgt_vocab_size, self._tgt_vocab_size],
+        [3 * self._tgt_vocab_size, self._tgt_vocab_size],
         dropout_keep_prob=dropout_keep_prob,
         mode=self._mode,
     )
@@ -220,15 +220,16 @@ class ListenAttendSpellDecoder(Decoder):
     )
 
     if self._mode == "train":
-      tgt_input_vectors = tf.nn.embedding_lookup(self._target_emb_layer, tgt_inputs)
+      tgt_input_vectors = tf.nn.embedding_lookup(
+          self._target_emb_layer, tgt_inputs)
       if self.params['pos_embedding']:
         tgt_input_vectors += tf.nn.embedding_lookup(self.dec_pos_emb_layer,
-                                 decoder_output_positions)
+                                                    decoder_output_positions)
       tgt_input_vectors = tf.cast(
           tgt_input_vectors,
           dtype=self.params['dtype'],
       )
-      #helper = tf.contrib.seq2seq.TrainingHelper(
+      # helper = tf.contrib.seq2seq.TrainingHelper(
       helper = TrainingHelper(
           inputs=tgt_input_vectors,
           sequence_length=tgt_lengths,
@@ -238,7 +239,7 @@ class ListenAttendSpellDecoder(Decoder):
           tf.nn.embedding_lookup(self._target_emb_layer, ids),
           dtype=self.params['dtype'],
       )
-      #helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
+      # helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
       helper = GreedyEmbeddingHelper(
           embedding=embedding_fn,
           start_tokens=tf.fill([self._batch_size], self.GO_SYMBOL),

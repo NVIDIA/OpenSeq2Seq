@@ -187,15 +187,6 @@ class Conv2LetterDecoder(Decoder):
     elif attention_type == "luong":
       AttentionMechanism = LuongAttention
       attention_params_dict["scale"] = False
-    elif attention_type == "chorowski":
-      AttentionMechanism = LocationSensitiveAttention
-      attention_params_dict["use_coverage"] = attention_params["use_coverage"]
-      attention_params_dict["location_attn_type"] = attention_type
-    elif attention_type == "zhaopeng":
-      AttentionMechanism = LocationSensitiveAttention
-      attention_params_dict["use_coverage"] = attention_params["use_coverage"]
-      attention_params_dict["query_dim"] = hidden_dim
-      attention_params_dict["location_attn_type"] = attention_type
 
     attention_mechanism = AttentionMechanism(
         num_units=attention_dim,
@@ -269,7 +260,7 @@ class Conv2LetterDecoder(Decoder):
       print(alignments)
 
     return {
-        'outputs': [outputs, alignments, enc_src_lengths, tgt_lengths],
+        'outputs': [outputs, alignments, enc_src_lengths],
         'logits': logits,
         'tgt_length': final_sequence_lengths,
     }

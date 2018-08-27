@@ -56,11 +56,11 @@ class JointCTCAttentionDecoder(Decoder):
     Config parameters:
     """
     
-    las_outputs = self.attn_decoder.decode(input_dict=input_dict)
+    seq_outputs = self.attn_decoder.decode(input_dict=input_dict)
     ctc_outputs = self.ctc_decoder.decode(input_dict=input_dict)
 
     return {
-    		'outputs' : las_outputs['outputs'],
-    		'las_outputs' : las_outputs,
+    		'outputs' : seq_outputs['outputs'],
+    		'seq_outputs' : seq_outputs,
     		'ctc_outputs' : ctc_outputs,
     }

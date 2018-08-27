@@ -57,7 +57,7 @@ class MultiTaskCTCEntropyLoss(Loss):
     }
 
     seq_loss_input_dict = {
-              "decoder_output": input_dict['decoder_output']['las_outputs'],
+              "decoder_output": input_dict['decoder_output']['seq_outputs'],
               "target_tensors": input_dict['target_tensors'],
     }
 
