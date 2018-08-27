@@ -3,7 +3,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
-from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+#from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 
 import argparse
 import sentencepiece as spm
@@ -20,9 +20,9 @@ def train_tokenizer_model(args):
   spm.SentencePieceTrainer.Train(
     "--input={0} --model_type=bpe --model_prefix={1} --vocab_size={2} --pad_id={3} --eos_id={4} --bos_id={5} --unk_id={6}"
       .format(input_file,
-              model_prefix, vocab_size, SpecialTextTokens.PAD_ID.value,
-              SpecialTextTokens.EOS_ID.value, SpecialTextTokens.S_ID.value,
-              SpecialTextTokens.UNK_ID.value)
+              model_prefix, vocab_size, 0, # PAD. TODO: these should not be hardcoded
+              1, 2, # EOS, SID
+              3) # UNK 
   )
 
 def tokenize(args):
