@@ -12,11 +12,11 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/data/wikitext-2/"
+data_root = "/home/chipn/data/wikitext-2-raw/"
 processed_data_folder = 'wkt2_processed_data'
 
 base_model = LSTMLM
-bptt = 72
+bptt = 12
 steps = 40
 
 base_params = {
@@ -30,7 +30,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "LSTM-FP32-2GPU",
+  "logdir": "LSTM-FP32-2GPU-SMALL",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -58,14 +58,14 @@ base_params = {
     },
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 896, # paper 1150
+        "num_units": 128, # paper 1150
         "forget_bias": 1.0,
     },
     "last_cell_params": {
-        "num_units": 320,
+        "num_units": 64,
         "forget_bias": 1.0,
     },
-    "encoder_layers": 3,
+    "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 1.0,
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
@@ -73,7 +73,8 @@ base_params = {
     "recurrent_keep_prob": 0.7,
     'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
-    "emb_size": 320,
+    "emb_size": 64,
+    "vocab_size": 33278,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
@@ -104,12 +105,13 @@ train_params = {
     "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "rand_start": True,
-    "shuffle": True,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "bptt": bptt,
+    "small": True,
   },
 }
 eval_params = {
@@ -123,6 +125,7 @@ eval_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
     "bptt": bptt,
+    "small": True,
   },
 }
 
