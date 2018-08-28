@@ -483,7 +483,7 @@ def get_base_config(args):
   parser.add_argument("--mode", default='train',
                       help="Could be \"train\", \"eval\", "
                            "\"train_eval\" or \"infer\"")
-  parser.add_argument("--infer_output_file",
+  parser.add_argument("--infer_output_file", default='infer-out.txt',
                       help="Path to the output of inference")
   parser.add_argument('--continue_learning', dest='continue_learning',
                       action='store_true', help="whether to continue learning")
