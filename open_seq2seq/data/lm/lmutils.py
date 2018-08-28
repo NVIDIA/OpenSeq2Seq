@@ -65,7 +65,7 @@ class Corpus(object):
             self.preprocess(raw_path, proc_path)
             self.create_dictionary(proc_path, os.path.join(proc_path, 'train.txt'))
             self.dictionary = Dictionary(limit)
-            self.dictionary.read_vocab(os.path.join(proc_path, self.vocab_link))
+            self.dictionary.load_vocab(os.path.join(proc_path, self.vocab_link))
             self.train = self.tokenize(proc_path, proc_path, 'train.txt')
             self.valid = self.tokenize(proc_path, proc_path, 'valid.txt')
             self.test = self.tokenize(proc_path, proc_path, 'test.txt')
@@ -154,7 +154,7 @@ class Corpus(object):
 
     def load_corpus(self, proc_path):
         print('Loading corpus from processed data ...')
-        self.dictionary.read_vocab(os.path.join(proc_path, self.vocab_link))
+        self.dictionary.load_vocab(os.path.join(proc_path, self.vocab_link))
         self.train = self.load_ids(os.path.join(proc_path, 'train.ids'))
         self.valid = self.load_ids(os.path.join(proc_path, 'valid.ids'))
         self.test = self.load_ids(os.path.join(proc_path, 'test.ids'))
@@ -259,7 +259,7 @@ class IDMBCorpus(object):
 
     def load_corpus(self, proc_path):
         print('Loading corpus from processed data ...')
-        self.dictionary.read_vocab(os.path.join(proc_path, self.vocab_link))
+        self.dictionary.load_vocab(os.path.join(proc_path, self.vocab_link))
         self.train = self.load_ids(os.path.join(proc_path, 'train.ids'))
         self.valid = self.load_ids(os.path.join(proc_path, 'valid.ids'))
         self.test = self.load_ids(os.path.join(proc_path, 'test.ids'))

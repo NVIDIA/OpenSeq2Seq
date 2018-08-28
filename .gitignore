@@ -88,3 +88,7 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+LSTM*/*
+*processed_data/*
+outputs*/*
