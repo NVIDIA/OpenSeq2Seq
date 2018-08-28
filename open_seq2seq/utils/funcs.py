@@ -172,7 +172,7 @@ def train(train_model, eval_model=None, debug_port=None):
 
 
 def restore_and_get_results(model, checkpoint, mode, use_trt=False):
-   if not use_trt:
+  if not use_trt:
     # Checkpoint is restored prior to freezing graph when using TRT
     saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
