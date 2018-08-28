@@ -88,3 +88,10 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+AWD*/*
+LSTM*/*
+pics/*
+outputs/*
+*.json
+*processed_data*/*
