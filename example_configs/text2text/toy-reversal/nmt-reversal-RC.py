@@ -68,8 +68,6 @@ base_params = {
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
-
     "shared_embed": True,
     "tgt_emb_size": d_model,
 
