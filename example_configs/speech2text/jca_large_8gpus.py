@@ -6,6 +6,8 @@ from open_seq2seq.decoders import JointCTCAttentionDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import MultiTaskCTCEntropyLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.decoders import ListenAttendSpellDecoder
+from open_seq2seq.decoders import FullyConnectedCTCDecoder
 
 base_model = Speech2Text
 
@@ -18,7 +20,7 @@ base_params = {
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 1000,
+    "save_summaries_steps": 1100,
     "print_loss_steps": 10,
     "print_samples_steps": 200,
     "eval_steps": 1100,
@@ -35,9 +37,7 @@ base_params = {
         "min_lr": 1e-5
     },
 
-    "larc_params": {
-        "larc_eta": 0.001,
-    },
+    "max_grad_norm": 1.0,
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
@@ -63,7 +63,7 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 7,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
@@ -77,14 +77,14 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 384, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
+                "num_channels": 768, "padding": "SAME",
+                "dropout_keep_prob": 0.7,
             },
         ],
 
@@ -106,39 +106,41 @@ base_params = {
     "decoder": JointCTCAttentionDecoder,
     "decoder_params": {
 
-        "las_params": {
+        "attn_decoder": ListenAttendSpellDecoder,
+        "attn_decoder_params": {
           "tgt_emb_size": 256,
-
           "pos_embedding": True,
 
           "attention_params": {
               "attention_dim": 256,
               "attention_type": "chorowski",
               "use_coverage": True,
+              "num_heads": 1,
+              "plot_attention": True,
           },
           
           "rnn_type": "lstm",
           "hidden_dim": 512,
           "num_layers": 1,
 
-          "dropout_keep_prob": 1.0,
+          "dropout_keep_prob": 0.8,
         },
-        
-        "ctc_params": {
+
+        "ctc_decoder": FullyConnectedCTCDecoder,
+        "ctc_decoder_params": {
           "initializer": tf.contrib.layers.xavier_initializer,
           "use_language_model": False,
-
-          # params for decoding the sequence with language model
-          "beam_width": 512,
-          "lm_weight": 1.0,
-          "word_count_weight": 1.5,
-          "valid_word_count_weight": 2.5,
-
-          "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
-          "lm_binary_path": "language_model/lm.binary",
-          "lm_trie_path": "language_model/trie",
-          "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         },
+
+        "beam_search_params": {
+            "beam_width": 4,            
+        },
+
+        "language_model_params": {
+            # params for decoding the sequence with language model
+            "use_language_model": False,
+        },
+
     },
 
     "loss": MultiTaskCTCEntropyLoss,
@@ -153,11 +155,7 @@ base_params = {
       "ctc_loss_params": {
       },
 
-      "lambda_value" : 0.5,
-      "lambda_params": {
-        "values": [0.5, 0.4, 0.3, 0.2, 0.1, 0.0],
-        "boundaries": [1000, 2000, 3000, 5000, 7000],
-      }
+      "lambda_value" : 0.25,
     }
 }
 
@@ -168,9 +166,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "data/librispeech/librivox-train-clean-100.csv",
+            "data/librispeech/librivox-train-clean-360.csv",
+            "data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -185,7 +183,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,
@@ -199,7 +197,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-test-clean.csv",
+            "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,
