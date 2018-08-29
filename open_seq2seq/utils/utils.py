@@ -564,7 +564,8 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
                       "or delete the file to continue.")
 
       # check if "logdir" directory exists and non-empty
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+      # if os.path.isdir(logdir) and os.listdir(logdir) != []:
+      if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
         if not args.continue_learning:
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
@@ -583,11 +584,14 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
         checkpoint = None
     elif (args.mode == 'infer' or args.mode == 'eval' or
         args.mode == 'interactive_infer'):
-      if os.path.isdir(logdir) and os.listdir(logdir) != []:
-        if restore_best_checkpoint:
-          deco_print("Restoring from best checkpoint")
-          checkpoint = tf.train.latest_checkpoint(ckpt_dir + '/best_models')
+      # if os.path.isdir(logdir) and os.listdir(logdir) != []:
+      if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
+        best_ckpt_dir = os.path.join(ckpt_dir, 'best_models')
+        if restore_best_checkpoint and os.path.isdir(best_ckpt_dir):
+          deco_print("Restoring from the best checkpoint")
+          checkpoint = tf.train.latest_checkpoint(best_ckpt_dir)
         else:
+          deco_print("Restoring from the latest checkpoint")
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
         if checkpoint is None:
           raise IOError(

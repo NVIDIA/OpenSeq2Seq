@@ -198,10 +198,11 @@ class LMEncoder(Encoder):
       kernel_regularizer=regularizer,
       kernel_initializer=initializer,
       use_bias=fc_use_bias,
+      dtype=self._params['dtype']
     )
 
     if self._weight_tied:
-      fake_input = tf.zeros(shape=(1, self._emb_size))
+      fake_input = tf.zeros(shape=(1, self._emb_size), dtype=self._params['dtype'])
       fake_output = self._output_layer.apply(fake_input)
       with tf.variable_scope("dense", reuse=True):
         dense_weights = tf.get_variable("kernel")
@@ -273,7 +274,8 @@ class LMEncoder(Encoder):
         sequence_length=source_length,
         time_major=time_major,
         swap_memory=use_swap_memory,
-        dtype=embedded_inputs.dtype,
+        # dtype=embedded_inputs.dtype,
+        dtype=self._params['dtype'],
         scope='decoder',
       )
       if self._mode == 'eval' or self._num_sampled >= self._vocab_size:
