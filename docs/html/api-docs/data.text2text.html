@@ -358,6 +358,32 @@ repeated forever.</li>
 <dd><p>Here all TensorFlow graph construction should happen.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the feed dict for interactive infer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_in</strong> (<em>str</em>) – the string to be translated. Should be in bpe format.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with values for the placeholders.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">feed_dict (dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="data.text2text.text2text.ParallelTextDataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>

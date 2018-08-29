@@ -251,6 +251,25 @@ Typically will be True for train and False for inference and evaluation.</li>
 <dd><p>Here all TensorFlow graph construction should happen.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="data.data_layer.DataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. Given input which is an abstract data element to be defined by the
+data layer. The intended use is for the user to build and pass model_in from
+the jupyter notebook. Given model_in, the data layer must preprocess the raw
+data, and create the feed dict that defines the placeholders defined in
+create_interactive_placeholders().</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.data_layer.DataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="data.data_layer.DataLayer.get_optional_params">
 <em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/data_layer.html#DataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.data_layer.DataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>

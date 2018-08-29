@@ -17,7 +17,7 @@ Currently we support following models:
      - Config file
      - Checkpoint
    * - :doc:`Tacotron-2 </speech-synthesis/tacotron-2>`
-     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2speech/tacotron_LJ_float.py>`_
      - To be added
 
 The model specification and training parameters can be found in the corresponding config file.

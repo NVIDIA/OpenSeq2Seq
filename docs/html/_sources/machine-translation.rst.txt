@@ -19,15 +19,15 @@ Currently we support following models:
      - Checkpoint
    * - :doc:`Transformer </machine-translation/transformer>`
      - 26.4
-     - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py>`_     
+     - `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/transformer-base.py>`_     
      - TBD
    * - :doc:`ConvS2S </machine-translation/convs2s>`
      - 25.0
-     - `en-de-convs2s.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s.py>`_
+     - `en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_
      - TBD
    * - :doc:`GNMT </machine-translation/gnmt>`
      - 23.0
-     - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
+     - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
      - TBD
 
 The model specification and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU.

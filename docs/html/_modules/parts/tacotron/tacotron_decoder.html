@@ -204,6 +204,7 @@
       <span class="n">decoder_cell</span><span class="p">,</span>
       <span class="n">helper</span><span class="p">,</span>
       <span class="n">initial_decoder_state</span><span class="p">,</span>
+      <span class="n">attention_type</span><span class="p">,</span>
       <span class="n">spec_layer</span><span class="p">,</span>
       <span class="n">stop_token_layer</span><span class="p">,</span>
       <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -217,6 +218,7 @@
 <span class="sd">      helper: A `Helper` instance.</span>
 <span class="sd">      initial_decoder_state: A (possibly nested tuple of...) tensors and</span>
 <span class="sd">        TensorArrays. The initial state of the RNNCell.</span>
+<span class="sd">      attention_type: The type of attention used</span>
 <span class="sd">      stop_token_layer: An instance of `tf.layers.Layer`, i.e.,</span>
 <span class="sd">        `tf.layers.Dense`. Stop token layer to apply to the RNN output to</span>
 <span class="sd">        predict when to stop the decoder</span>
@@ -243,6 +245,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_initial_state</span> <span class="o">=</span> <span class="n">initial_decoder_state</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="o">=</span> <span class="n">spec_layer</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span> <span class="o">=</span> <span class="n">stop_token_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_attention_type</span> <span class="o">=</span> <span class="n">attention_type</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span> <span class="o">=</span> <span class="n">dtype</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="o">=</span> <span class="n">prenet</span>
 
@@ -325,7 +328,7 @@
       <span class="n">cell_outputs</span><span class="p">,</span> <span class="n">cell_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cell</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
 
       <span class="c1"># If we are training and not using scheduled sampling, we can move</span>
-      <span class="c1"># all projection layers outside decoder, should be faster?</span>
+      <span class="c1"># all projection layers outside decoder,</span>
       <span class="c1"># else we must project inside decoder</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">spec_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span><span class="p">(</span><span class="n">cell_outputs</span><span class="p">)</span>
@@ -335,6 +338,7 @@
         <span class="n">stop_token_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span><span class="p">(</span><span class="n">spec_outputs</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">stop_token_output</span> <span class="o">=</span> <span class="n">cell_outputs</span>
+
 
       <span class="n">sample_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
           <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">cell_state</span>

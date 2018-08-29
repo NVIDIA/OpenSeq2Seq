@@ -386,16 +386,14 @@ used, <code class="docutils literal notranslate"><span class="pre">tf.nn.ctc_gre
 output text generation. If False, other config parameters are not used.</li>
 <li><strong>decoder_library_path</strong> (string) — path to the ctc decoder with
 language model library.</li>
-<li><strong>lm_binary_path</strong> (string) — path to the language model file.</li>
-<li><strong>lm_trie_path</strong> (string) — path to the language model trie file.</li>
+<li><strong>lm_path</strong> (string) — path to the language model file.</li>
+<li><strong>trie_path</strong> (string) — path to the prefix trie file.</li>
 <li><strong>alphabet_config_path</strong> (string) — path to the alphabet file.</li>
 <li><strong>beam_width</strong> (int) — beam width for beam search.</li>
-<li><strong>lm_weight</strong> (float) — weight that is assigned to language model
+<li><strong>alpha</strong> (float) — weight that is assigned to language model
 probabilities.</li>
-<li><strong>word_count_weight</strong> (float) — weight that is assigned to the
+<li><strong>beta</strong> (float) — weight that is assigned to the
 word count.</li>
-<li><strong>valid_word_count_weight</strong> (float) — weight that is assigned to the
-valid word count, i.e. words that exist in language model dictionary.</li>
 </ul>
 </dd></dl>
 
@@ -1057,7 +1055,8 @@ efault config is reccommended.</p>
 use, should be one of ‘bahdanau’, ‘location’, or None.
 Use of ‘location’-sensitive attention is strongly recommended.</p>
 </li>
-<li><p class="first"><strong>bahdanau_normalize</strong> (bool) —  Defaults to False.</p>
+<li><p class="first"><strong>bahdanau_normalize</strong> (bool) — Whether to enable weight norm on the
+attention parameters. Defaults to False.</p>
 </li>
 <li><p class="first"><strong>decoder_cell_units</strong> (int) — dimension of decoder RNN cells.</p>
 </li>
@@ -1130,12 +1129,16 @@ Defaults to 1e-5.</p>
 <li><p class="first"><strong>postnet_keep_dropout_prob</strong> (float) — keep probability for dropout in
 the postnet conv layers. Default to 0.5.</p>
 </li>
-<li><p class="first"><strong>mask_decoder_sequence</strong> (bool) — Defaults to True</p>
+<li><p class="first"><strong>mask_decoder_sequence</strong> (bool) — Defaults to True.</p>
 </li>
 <li><p class="first"><strong>attention_bias</strong> (bool) — Wether to use a bias term when calculating
 the attention. Only works for “location” attention. Defaults to False.</p>
 </li>
-<li><p class="first"><strong>zoneout_prob</strong> (float) — zoneout probability. Defaults to 0.1</p>
+<li><p class="first"><strong>zoneout_prob</strong> (float) — zoneout probability for rnn layers.
+Defaults to 0.</p>
+</li>
+<li><p class="first"><strong>dropout_prob</strong> (float) — dropout probability for rnn layers.
+Defaults to 0.1</p>
 </li>
 <li><p class="first"><strong>parallel_iterations</strong> (int) — Number of parallel_iterations for
 tf.while loop inside dynamic_decode. Defaults to 32.</p>
@@ -1158,10 +1161,11 @@ Currently supports “bahdanau”, and “location”</p>
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>Python dictionary with inputs to decoder. Must define:</p>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>Python dictionary with inputs to decoder. Must define:
+* src_inputs - decoder input Tensor of shape [batch_size, time, dim]</p>
+<blockquote>
+<div>or [time, batch_size, dim]</div></blockquote>
 <ul class="simple">
-<li>src_inputs - decoder input Tensor of shape [batch_size, time, dim]
-or [time, batch_size, dim]</li>
 <li>src_lengths - decoder input lengths Tensor of shape [batch_size]</li>
 <li>tgt_inputs - Only during training. labels Tensor of the
 shape [batch_size, time, num_features] or
@@ -1173,12 +1177,10 @@ Tensor of the shape [batch_size]</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>A python dictionary containing:</dt>
-<dd><ul class="first last simple">
-<li><dl class="first docutils">
-<dt>outputs - array containing:</dt>
-<dd><ul class="first last">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A python dictionary containing:<blockquote>
+<div><ul>
+<li>outputs - array containing:<blockquote>
+<div><ul class="simple">
 <li>decoder_output - tensor of shape [batch_size, time,
 num_features] or [time, batch_size, num_features]. Spectrogram
 representation learned by the decoder rnn</li>
@@ -1192,15 +1194,13 @@ the attention layer</li>
 or [time, batch_size, 1]. The stop token predictions</li>
 <li>final_sequence_lengths - tensor of shape [batch_size]</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </li>
 <li>stop_token_predictions - tensor of shape [batch_size, time, 1]
 or [time, batch_size, 1]. The stop token predictions for use inside
 the loss function.</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>

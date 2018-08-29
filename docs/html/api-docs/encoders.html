@@ -1648,7 +1648,7 @@ a recurrent layer.</p>
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul>
-<li><p class="first"><strong>dropout_keep_prop</strong> (float) — keep probability for dropout.</p>
+<li><p class="first"><strong>dropout_keep_prob</strong> (float) — keep probability for dropout.</p>
 </li>
 <li><p class="first"><strong>src_emb_size</strong> (int) — dimensionality of character embedding.</p>
 </li>
@@ -1710,27 +1710,23 @@ class.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>dictionary with inputs.
 Must define:</p>
 <blockquote>
-<div><dl class="docutils">
-<dt>source_tensors - array containing [</dt>
-<dd><ul class="first last simple">
+<div>source_tensors - array containing [<blockquote>
+<div><ul class="simple">
 <li>source_sequence: tensor of shape [batch_size, sequence length]</li>
 <li>src_length: tensor of shape [batch_size]</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 <p>]</p>
 </div></blockquote>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><dl class="docutils">
-<dt>A python dictionary containing:</dt>
-<dd><ul class="first last simple">
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">A python dictionary containing:<blockquote>
+<div><ul class="simple">
 <li>outputs - tensor containing the encoded text to be passed to the
 attention layer</li>
 <li>src_length - the length of the encoded text</li>
 </ul>
-</dd>
-</dl>
+</div></blockquote>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
