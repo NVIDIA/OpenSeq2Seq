@@ -19,7 +19,7 @@
 OpenSeq2Seq
 ===========
 
-OpenSeq2Seq is a TensorFlow-based toolkit for training various sequence-to-sequence models:
+OpenSeq2Seq is a TensorFlow-based toolkit for training sequence-to-sequence models:
 
  * :ref:`machine translation <machine_translation>` (GNMT, Transformer, ConvS2S, ...)
  * :ref:`speech recognition <speech_recognition>` (DeepSpeech2, Wave2Letter, ...)
@@ -32,13 +32,9 @@ OpenSeq2Seq is a TensorFlow-based toolkit for training various sequence-to-seque
 * multi-GPU and multi-node training
 
 To install this toolkit, look at :ref:`installation instructions <installation>`.
-For more detailed tutorials you can look into :ref:`in-depth tutorials <in_depth>` section.
-
-If you are already familiar with the basics and have
-everything set up, check out the available :ref:`models and recipes <models_and_recipes>`.
-You can also find some useful information in the :ref:`mixed precision training <mixed_precision>` and
-:ref:`distributed training <distributed_training>` sections or look through our
-:ref:`API documentation <api-docs>`.
+Next go to :ref:`in-depth tutorials <in_depth>` section. 
+You can also find some useful information in the :ref:`mixed precision  <mixed_precision>` and
+:ref:`distributed training <distributed_training>` sections.
 
 **Disclaimer**:
 This is a research project, not an official product by NVIDIA.

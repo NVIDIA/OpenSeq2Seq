@@ -57,7 +57,7 @@ How to add CTC decoder with language model to TensorFlow
         cd tensorflow
         ./configure
         ln -s <OpenSeq2Seq location>/ctc_decoder_with_lm ./
-        bazel build -c opt --copt=-O3 --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so
+        bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --copt=-O3  --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
         bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
         pip install /tmp/tensorflow_pkg/<your tensorflow build>.whl
@@ -68,7 +68,7 @@ How to add CTC decoder with language model to TensorFlow
    (assuming you are in tensorflow directory)::
 
         ln -s <OpenSeq2Seq location>/ctc_decoder_with_lm ./
-        bazel build -c opt --copt=-O3  --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
+        bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --copt=-O3   --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
         cp bazel-bin/ctc_decoder_with_lm/generate_trie ctc_decoder_with_lm/
 
@@ -107,11 +107,13 @@ in the end.
 
 Training
 --------
-When training with Horovod, you should use the following commands (don't forget to substitute
+To train without Horovod::
+
+    python run.py --config_file=... --mode=train_eval --enable_logs
+
+When training with Horovod, use the following commands (don't forget to substitute
 valid config_file path there and number of GPUs) ::
 
     mpiexec --allow-run-as-root -np <num_gpus> python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
 
-To train without Horovod::
 
-    python run.py --config_file=... --mode=train_eval --enable_logs
