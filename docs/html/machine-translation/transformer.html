@@ -34,7 +34,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="ConvS2S" href="convs2s.html" />
-    <link rel="prev" title="GNMT" href="gnmt.html" /> 
+    <link rel="prev" title="Machine Translation" href="../machine-translation.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -88,7 +88,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../machine-translation.html">Machine Translation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../machine-translation.html#models">Models</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">Transformer</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
@@ -96,6 +95,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="convs2s.html">ConvS2S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../machine-translation.html#getting-started">Getting started</a></li>
@@ -178,17 +178,52 @@
 <span id="id1"></span><h1>Transformer<a class="headerlink" href="#transformer" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="model">
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>This model is  based on <a class="reference external" href="https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html">Google Transformer</a> based on  <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention is all you need</a>) by A. Vaswani, etal.</p>
-<p>TODO: This model based solely on attention mechanisms, without recurrent or convolutional layers</p>
-<p>The model has BLEU 26.17 on WMT 2014 English-to-German translation task ( <a class="reference external" href="tbd">checkpoint</a> ).</p>
+<p>This model is based on <a class="reference external" href="https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html">Google Transformer</a>
+which was introduced in <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention is all you need</a> by A. Vaswani, etal.</p>
+<p>Baseline config: <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/transformer-base.py">transformer-base.py</a></p>
+<p>Transformer model is based solely on attention mechanisms, without any recurrent or convolutional layers.
+Common source and target vocabulary is used to share input/output embedding
+Tokenization of input and output is done with SentencePiece (<a class="reference external" href="https://github.com/google/sentencepiece">SentencePiece</a>)
+It is very good for neural machine translation tasks and this particular configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( <a class="reference external" href="tbd">checkpoint TBD</a> ).</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>TBD</p>
+<p>It also shows good multi-GPU scalability. Below are the scaling factors for batch size of 256 per GPU when training in mixed-precision and using or not using Horovod:</p>
+<img alt="../_images/transformer_scaling.png" src="../_images/transformer_scaling.png" />
+<p>Note that batch size of 256 per GPU results in the total batch size of X*256 when X GPUs are used. For example, if
+16 GPUs are used, then the total batch size (or algorithmic batch size) is 16*256=4,096.</p>
+<p>Here is an example command of how to train such model on a 4-GPU machine:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpirun</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">--</span><span class="n">mca</span> <span class="n">orte_base_help_aggregate</span> <span class="mi">0</span> <span class="o">-</span><span class="n">mca</span> <span class="n">btl</span> <span class="o">^</span><span class="n">openib</span> <span class="o">-</span><span class="n">np</span> <span class="mi">4</span> <span class="o">-</span><span class="n">H</span> <span class="n">localhost</span><span class="p">:</span><span class="mi">4</span> <span class="o">-</span><span class="n">bind</span><span class="o">-</span><span class="n">to</span> <span class="n">none</span> <span class="o">--</span><span class="nb">map</span><span class="o">-</span><span class="n">by</span> <span class="n">slot</span> <span class="o">-</span><span class="n">x</span> <span class="n">LD_LIBRARY_PATH</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">/</span><span class="n">transformer</span><span class="o">-</span><span class="n">bp</span><span class="o">-</span><span class="n">fp32</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
+</pre></div>
+</div>
+<p>Then run inference like this:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">/</span><span class="n">transformer</span><span class="o">-</span><span class="n">bp</span><span class="o">-</span><span class="n">fp32</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">raw_fp32</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span>
+</pre></div>
+</div>
+<p>De-tokenize output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">tokenizer_wrapper</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">detokenize</span> <span class="o">--</span><span class="n">model_prefix</span><span class="o">=</span><span class="n">wmt16_de_en</span><span class="o">/</span><span class="n">m_common</span> <span class="o">--</span><span class="n">decoded_output</span><span class="o">=</span><span class="n">fp32</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">text_input</span><span class="o">=</span><span class="n">raw_fp32</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>And compute BLEU score:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">fp32</span><span class="o">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">sacrebleu</span> <span class="o">-</span><span class="n">t</span> <span class="n">wmt14</span> <span class="o">-</span><span class="n">l</span> <span class="n">en</span><span class="o">-</span><span class="n">de</span> <span class="o">&gt;</span> <span class="n">fp32</span><span class="o">.</span><span class="n">BLEU</span>
+</pre></div>
+</div>
+<p>You should get around 26.4 after 300K iterations for the base model.</p>
 </div>
 <div class="section" id="mixed-precision">
 <h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
-<p>TBD</p>
+<p>OpenSeq2Seq allows you to train transformer-based model in mixed precision without changing code or any of the hyper-parameters.
+All you need to do is change <code class="docutils literal notranslate"><span class="pre">dtype</span></code> in the configuration file to: <code class="docutils literal notranslate"><span class="pre">mixed</span></code> and turn on automatic loss scaling: <code class="docutils literal notranslate"><span class="pre">&quot;loss_scaling&quot;:</span> <span class="pre">&quot;Backoff&quot;</span></code>.
+Below plot demonstrates that training curves for <em>float32</em> and <em>mixed precision</em> are nearly identical (same hyperparameters are used, only data type differ).</p>
+<img alt="../_images/transformer-fp32-vs-mp-tcurve.png" src="../_images/transformer-fp32-vs-mp-tcurve.png" />
+<p>These configurations are trained on 4 GPUs using batch size of 256 per GPU.
+While training curves per step look very similar, <em>mixed precision</em> model trains significantly faster. See plot below which shows
+how many steps per second each model achieves:</p>
+<img alt="../_images/transformer-fp32-vs-mp-speedcurve.png" src="../_images/transformer-fp32-vs-mp-speedcurve.png" />
+<p>Thus, in this particular configuration, <em>mixed precision</em> is about <em>x1.53</em> times faster. Note that this was measured on a pre-release versions of software.
+Your speedups will vary depending on the number of GPUs, batch size per GPU, interconnect between GPUs and software versions.
+Since <em>mixed precision</em> almost halves memory requirements per GPU, it is sometimes possible to fit a double batch size in <em>mixed precision</em> model, therefore,
+achieving even bigger speedups.</p>
 </div>
 </div>
 
@@ -203,7 +238,7 @@
         <a href="convs2s.html" class="btn btn-neutral float-right" title="ConvS2S" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="gnmt.html" class="btn btn-neutral" title="GNMT" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../machine-translation.html" class="btn btn-neutral" title="Machine Translation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

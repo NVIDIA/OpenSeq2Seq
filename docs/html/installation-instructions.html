@@ -157,7 +157,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="installation">
-<span id="id1"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
+<span id="installation-instructions"></span><h1>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="general-installation">
 <h2>General installation<a class="headerlink" href="#general-installation" title="Permalink to this headline">¶</a></h2>
 <p>OpenSeq2Seq supports Python &gt;= 3.5.
@@ -279,13 +279,13 @@ in the end.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>When training with Horovod, you should use the following commands (don’t forget to substitute
-valid config_file path there and number of GPUs)</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
-</pre></div>
-</div>
 <p>To train without Horovod:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
+</div>
+<p>When training with Horovod, use the following commands (don’t forget to substitute
+valid config_file path there and number of GPUs)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
 </pre></div>
 </div>
 </div>

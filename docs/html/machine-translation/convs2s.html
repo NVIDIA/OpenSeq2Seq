@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Speech Recognition" href="../speech-recognition.html" />
+    <link rel="next" title="GNMT" href="gnmt.html" />
     <link rel="prev" title="Transformer" href="transformer.html" /> 
 
   
@@ -88,7 +88,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../machine-translation.html">Machine Translation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../machine-translation.html#models">Models</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
 <li class="toctree-l3"><a class="reference internal" href="transformer.html">Transformer</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">ConvS2S</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
@@ -96,6 +95,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../machine-translation.html#getting-started">Getting started</a></li>
@@ -186,7 +186,7 @@ The BLEU score was done with SacreBLEU (<a class="reference external" href="http
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>The baseline config (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu-fp32.py">en-de-convs2s-8-gpu-fp32.py</a>) achieves
+<p>The baseline config (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py">en-de-convs2s-8-gpu.py</a>) achieves
 BLEU score of around 25 on WMT 2014 English-to-German translation task
 ( <a class="reference external" href="https://drive.google.com/file/...">checkpoint</a> ).</p>
 <p>In order to train the model we use:</p>
@@ -219,7 +219,7 @@ BLEU score of around 25 on WMT 2014 English-to-German translation task
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../speech-recognition.html" class="btn btn-neutral float-right" title="Speech Recognition" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="gnmt.html" class="btn btn-neutral float-right" title="GNMT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="transformer.html" class="btn btn-neutral" title="Transformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
