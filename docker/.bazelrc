@@ -1,2 +1,0 @@
-import %workspace%/.tf_configure.bazelrc
-
