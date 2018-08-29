@@ -15,7 +15,7 @@ The BLEU score was done with SacreBLEU (`A Call for Clarity in Reporting BLEU Sc
 
 Training
 ~~~~~~~~~
-The baseline config (`en-de-convs2s-8-gpu-fp32.py <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu-fp32.py>`_) achieves
+The baseline config (`en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_) achieves
 BLEU score of around 25 on WMT 2014 English-to-German translation task
 ( `checkpoint  <https://drive.google.com/file/...>`_ ).
 
