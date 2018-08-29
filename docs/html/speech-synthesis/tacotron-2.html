@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Tacotron 2 &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Distributed training" href="../distr-training.html" />
+    <link rel="prev" title="Speech Synthesis" href="../speech-synthesis.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../speech-synthesis.html#models">Models</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Tacotron 2</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-precision-and-multi-gpu">Mixed Precision and Multi-GPU</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#tips-and-tricks">Tips and Tricks</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-synthesis.html#getting-started">Getting started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../speech-synthesis.html">Speech Synthesis</a> &raquo;</li>
+        
+      <li>Tacotron 2</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/speech-synthesis/tacotron-2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="tacotron-2">
+<span id="id1"></span><h1>Tacotron 2<a class="headerlink" href="#tacotron-2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<p>This model is based on the
+<a class="reference external" href="https://ai.googleblog.com/2017/12/tacotron-2-generating-human-like-speech.html">Tacotron 2 model</a>
+(see also <a class="reference external" href="https://arxiv.org/abs/1712.05884">paper</a>). Our implementation mostly
+matches what is presented in the paper. There are a few differences listed
+below.</p>
+<p>The first change is the location of the stop token linear projection layer. In
+the paper, it is connected to the output of the decoder rnn. Whereas in our
+implementation, it is connected to the output of the spectrogram projection
+layer.</p>
+<p>We replace zoneout with dropout in the decoder rnn and remove it entirely from
+the encoder rnn.</p>
+<p>Lastly, the convolutional layer used inside the location layer of the attention
+has a kernel size of 32 as opposed to 31 as stated in the tacotron 2 paper.</p>
+</div>
+<div class="section" id="model-description">
+<h2>Model Description<a class="headerlink" href="#model-description" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center" id="id2">
+<a class="reference internal image-reference" href="../_images/Tacotron-2.png"><img alt="../_images/Tacotron-2.png" src="../_images/Tacotron-2.png" style="width: 713.5px; height: 381.0px;" /></a>
+<p class="caption"><span class="caption-text">Tacotron 2 Model</span></p>
+</div>
+<p>Tacotron 2 follows a simple encoder decoder structure that has seen great
+success in sequence-to-sequence modeling. The encoder is made of three parts.
+First a word embedding is learned. The embedding is then passed through a
+convolutional prenet. Lastly, the results are consumed by a bi-direction rnn.
+The encoder and decoder structure is connected via an attention mechanism which
+the Tacotron authors refer to as Location Sensitive Attention and is described
+in
+<a class="reference external" href="https://arxiv.org/abs/1506.07503">Attention-Based Models for Speech Recognition</a>.
+The decoder is comprised of a 2 layer LSTM network, a convolutional postnet, and
+a fully connected prenet. During training, the ground frame is fed through the
+prenet and passed as input to the LSTM layers. In addition, an attention context
+is computed by the attention layer at each step and concatenated with the prenet
+output. The output of the LSTM network concatenated with the attention is sent
+through two projection layers. The first projects the information to a
+spectrogram while the other projects it to a stop token. The spectrogram is then
+sent through the convolutional postnet to compute a residual to add to the
+generated spectrogram. The addition of the generated spectrogram and the
+residual results in a final spectrogram that is used to generate speech using
+Griffin-Lim.</p>
+</div>
+<div class="section" id="training">
+<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+<p>The model is trained with ADAM with an initial learning rate of 1e-3 with an
+exponential decay that starts at 45k steps. The learning rate decays at a rate
+of 0.1 every 20k steps until 85k when it reaches the minimum learning rate of
+1e-5.</p>
+<p>The model is regularized using l2 regularization with a weight of 1e-6.</p>
+</div>
+<div class="section" id="mixed-precision-and-multi-gpu">
+<h2>Mixed Precision and Multi-GPU<a class="headerlink" href="#mixed-precision-and-multi-gpu" title="Permalink to this headline">¶</a></h2>
+<p>For float32 training with 1 gpu, gradient clipping is sufficient in order to
+train the model, However in order to enable both mixed precision training and
+multi-GPU training, it advised to use LARC.</p>
+</div>
+<div class="section" id="tips-and-tricks">
+<h2>Tips and Tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this headline">¶</a></h2>
+<p>The model allows for two representations of the spectrogram. The first is the
+magnitude spectrogram (also called an energy spectrogram) and the second is the
+mel spectrogram (which is used in the original paper). The mel spectrogram is a
+lossy compression of the magnitude spectrogram. It is advised to use the htk
+algorithm to compute mel spectrograms and to leave it unnormalized. From
+experience, it is easier to learn attention with mel spectrograms, and hence
+easier to learn to generate audio. However, training with magnitude spectrograms
+results in better sound quality as the audio is reconstructed via Griffin-Lim
+which takes magnitude spectrograms as input.</p>
+<p>A pseudo metric for audio quality is how well attention is learned. Ideally, we
+want a nice clear diagonal alignment. The current models should learn attention
+between 10k - 20k steps.</p>
+<p>It seems that dropout is just as effective as zoneout when training. Since
+dropout is faster during training then zoneout, we have decided to switch to
+dropout.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../distr-training.html" class="btn btn-neutral float-right" title="Distributed training" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../speech-synthesis.html" class="btn btn-neutral" title="Speech Synthesis" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

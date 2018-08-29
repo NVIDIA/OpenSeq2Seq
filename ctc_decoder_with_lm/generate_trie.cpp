@@ -14,11 +14,11 @@
 #include <string>
 using namespace std;
 
-#include "lm/model.hh"
+#include "kenlm/lm/model.hh"
 #include "trie_node.h"
 #include "alphabet.h"
 
-typedef lm::ngram::ProbingModel Model;
+typedef lm::ngram::QuantArrayTrieModel Model;
 
 lm::WordIndex GetWordIndex(const Model& model, const std::string& word) {
   return model.GetVocabulary().Index(word);

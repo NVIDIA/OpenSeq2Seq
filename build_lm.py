@@ -28,16 +28,15 @@ if __name__ == '__main__':
   corpus_name = path_prefix + '.txt'
   arpa_name = path_prefix + '.arpa'
   lm_name = path_prefix + '-lm.binary'
-  trie_name = path_prefix + '-lm.trie'
   with open(corpus_name, 'w') as f:
     f.write(corpus)
 
-  command = 'lmplz --text {} --arpa {} --o {}'.format(
+  command = 'kenlm/build/bin/lmplz --text {} --arpa {} --o {}'.format(
     corpus_name, arpa_name, args.n)
   print(command)
   os.system(command)
 
-  command = 'build_binary -s {} {}'.format(
+  command = 'kenlm/build/bin/build_binary trie -q 8 -b 7 -a 256 {} {}'.format(
     arpa_name, lm_name)
   print(command)
   os.system(command)
@@ -47,3 +46,4 @@ if __name__ == '__main__':
       lm_name, corpus_name, trie_name)
   print(command)
   os.system(command)
+

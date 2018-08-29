@@ -55,8 +55,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
-
     "src_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
@@ -73,12 +71,11 @@ base_params = {
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
-
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
+    "pos_embed": True,
 
     "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 

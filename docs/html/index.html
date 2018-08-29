@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Installation instructions" href="installation-instructions.html" /> 
+    <link rel="next" title="Installation instructions" href="installation.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -84,12 +84,14 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -164,27 +166,26 @@
 </div>
 <div class="section" id="openseq2seq">
 <h1>OpenSeq2Seq<a class="headerlink" href="#openseq2seq" title="Permalink to this headline">¶</a></h1>
-<p><em>This is a research project, not an official product by NVIDIA</em></p>
-<p>OpenSeq2Seq is a toolkit for efficient experimentation with various sequence-to-sequence models.</p>
+<p>OpenSeq2Seq is a TensorFlow-based toolkit for training sequence-to-sequence models:</p>
+<blockquote>
+<div><ul class="simple">
+<li><a class="reference internal" href="machine-translation.html#machine-translation"><span class="std std-ref">machine translation</span></a> (GNMT, Transformer, ConvS2S, …)</li>
+<li><a class="reference internal" href="speech-recognition.html#speech-recognition"><span class="std std-ref">speech recognition</span></a> (DeepSpeech2, Wave2Letter, …)</li>
+<li><a class="reference internal" href="speech-synthesis.html#speech-synthesis"><span class="std std-ref">speech synthesis</span></a> (Tacotron2, …)</li>
+</ul>
+</div></blockquote>
 <p><strong>Main features</strong>:</p>
 <ul class="simple">
-<li>Distributed training: multi-GPU and multi-node support.</li>
-<li>A built-in support for efficient mixed-precision training on GPUs.</li>
-<li>Modular design and flexible configuration makes it easy to build new models and
-experiment with different encoder-decoder
-combinations - you can combine CNN-based encoder with RNN-based decoder, etc.</li>
-<li>Supports different input-output modalities: speech-to-text, text-to-text and designed to be extended with new ones.</li>
+<li>Modular design and flexible configuration makes it easy to build new encoder-decoder models</li>
+<li>efficient mixed-precision training on GPUs</li>
+<li>multi-GPU and multi-node training</li>
 </ul>
-<p>OpenSeq2Seq is built using TensorFlow. To start using this toolkit, look at the
-<a class="reference internal" href="installation-instructions.html#installation-instructions"><span class="std std-ref">installation instructions</span></a> and then
-see the <a class="reference internal" href="getting-started.html#getting-started"><span class="std std-ref">getting started</span></a> page. For more detailed
-tutorials you can look into <a class="reference internal" href="in-depth-tutorials.html#in-depth"><span class="std std-ref">in-depth tutorials</span></a> section.
-If you are already familiar with the basics and have
-everything set up, check out the list of available
-<a class="reference internal" href="models-and-recipes.html#models-and-recipes"><span class="std std-ref">models and recipes</span></a>. You can also find some useful
-information in the <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> and
-<a class="reference internal" href="distr-training.html#distributed-training"><span class="std std-ref">distributed training</span></a> sections or look through our
-<a class="reference internal" href="api-docs/modules.html#api-docs"><span class="std std-ref">API documentation</span></a>.</p>
+<p>To install this toolkit, look at <a class="reference internal" href="installation.html#installation"><span class="std std-ref">installation instructions</span></a>.
+Next go to <a class="reference internal" href="in-depth-tutorials.html#in-depth"><span class="std std-ref">in-depth tutorials</span></a> section.
+You can also find some useful information in the <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision</span></a> and
+<a class="reference internal" href="distr-training.html#distributed-training"><span class="std std-ref">distributed training</span></a> sections.</p>
+<p><strong>Disclaimer</strong>:
+This is a research project, not an official product by NVIDIA.</p>
 </div>
 
 
@@ -195,7 +196,7 @@ information in the <a class="reference internal" href="mixed-precision.html#mixe
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="installation-instructions.html" class="btn btn-neutral float-right" title="Installation instructions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation instructions" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
     </div>

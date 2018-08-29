@@ -65,7 +65,7 @@ base_params = {
     "attention_dropout": 0.1,
     "relu_dropout": 0.1,
     "filter_size": 4*d_model,
-    "beam_size": 1,
+    "beam_size": 5,
     "alpha": 1.0,
     "extra_decode_length": 2,
     "EOS_ID": SpecialTextTokens.EOS_ID.value,
@@ -89,6 +89,8 @@ train_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
+    "use_start_token": False,
   },
 }
 
@@ -104,6 +106,8 @@ eval_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
+    "use_start_token": False,
   },
 }
 
@@ -119,5 +123,7 @@ infer_params = {
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
+    "use_start_token": False,
   },
 }

@@ -8,11 +8,12 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import six
+from six import string_types
 from six.moves import range
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
-from .speech_utils import get_speech_features_from_file
+from .speech_utils import get_speech_features_from_file, get_speech_features
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -192,6 +193,64 @@ class Speech2TextDataLayer(DataLayer):
     else:
       self._input_tensors['source_ids'] = [x_id]
 
+  def create_interactive_placeholders(self):
+    self._x = tf.placeholder(
+        dtype=self.params['dtype'],
+        shape = [
+            self.params['batch_size'],
+            None,
+            self.params['num_audio_features']
+        ]
+    )
+    self._x_length = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params['batch_size']]
+    )
+    self._x_id = tf.placeholder(
+        dtype=tf.int32,
+        shape=[self.params['batch_size']]
+    )
+
+    self._input_tensors = {}
+    self._input_tensors["source_tensors"] = [self._x, self._x_length]
+    self._input_tensors['source_ids'] = [self._x_id]
+
+  def create_feed_dict(self, model_in):
+    """ Creates the feed dict for interactive infer
+
+    Args:
+      model_in (str or np.array): Either a str that contains the file path of the
+        wav file, or a numpy array containing 1-d wav file.
+
+    Returns:
+      feed_dict (dict): Dictionary with values for the placeholders.
+    """
+    if isinstance(model_in, string_types):
+      audio, audio_length, x_id, _ = self._parse_audio_element([0, model_in])
+    elif isinstance(model_in, np.ndarray):
+      audio, audio_length, x_id, _ = self._get_audio(model_in)
+    else:
+      raise ValueError(
+          "Speech2Text's interactive inference mode only supports string or",
+          "numpy array as input. Got {}". format(type(model_in))
+      )
+
+    audio = np.reshape(
+        audio,
+        [self.params['batch_size'],
+        -1,
+        self.params['num_audio_features']]
+    )
+    audio_length = np.reshape(audio_length, [self.params['batch_size']])
+    x_id = np.reshape(x_id, [self.params['batch_size']])
+
+    feed_dict = {
+        self._x: audio,
+        self._x_length: audio_length,
+        self._x_id:x_id,
+    }
+    return feed_dict
+
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.
     Args:
@@ -214,6 +273,25 @@ class Speech2TextDataLayer(DataLayer):
         np.int32([len(source)]), \
         np.int32(target), \
         np.int32([len(target)]), \
+        np.float32([audio_duration])
+
+  def _get_audio(self, wav):
+    """Parses audio from wav and returns array of audio features.
+    Args:
+      wav: numpy array containing wav
+
+    Returns:
+      tuple: source audio features as ``np.array``, length of source sequence,
+      sample id.
+    """
+    pad_to = self.params.get('pad_to', 8)
+    source, audio_duration = get_speech_features(
+        wav, 16000., self.params['num_audio_features'], pad_to,
+        features_type=self.params['input_type'],
+        augmentation=self.params.get('augmentation', None),
+    )
+    return source.astype(self.params['dtype'].as_numpy_dtype()), \
+        np.int32([len(source)]), np.int32([0]), \
         np.float32([audio_duration])
 
   def _parse_audio_element(self, id_and_audio_filename):

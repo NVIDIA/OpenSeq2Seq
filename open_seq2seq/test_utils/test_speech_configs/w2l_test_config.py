@@ -46,12 +46,14 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [7], "stride": [1],
-                "num_channels": 200, "padding": "SAME"
+                "num_channels": 200, "padding": "SAME",
+                "dilation":[1]
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
-                "num_channels": 400, "padding": "SAME"  # n_hidden=num_channels
+                "num_channels": 400, "padding": "SAME",
+                "dilation":[1]
             },
         ],
 

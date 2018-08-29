@@ -47,6 +47,7 @@ class TacotronDecoder(decoder.Decoder):
       decoder_cell,
       helper,
       initial_decoder_state,
+      attention_type,
       spec_layer,
       stop_token_layer,
       prenet=None,
@@ -60,6 +61,7 @@ class TacotronDecoder(decoder.Decoder):
       helper: A `Helper` instance.
       initial_decoder_state: A (possibly nested tuple of...) tensors and
         TensorArrays. The initial state of the RNNCell.
+      attention_type: The type of attention used
       stop_token_layer: An instance of `tf.layers.Layer`, i.e.,
         `tf.layers.Dense`. Stop token layer to apply to the RNN output to
         predict when to stop the decoder
@@ -86,6 +88,7 @@ class TacotronDecoder(decoder.Decoder):
     self._decoder_initial_state = initial_decoder_state
     self._spec_layer = spec_layer
     self._stop_token_layer = stop_token_layer
+    self._attention_type = attention_type
     self._dtype = dtype
     self._prenet = prenet
 
@@ -168,7 +171,7 @@ class TacotronDecoder(decoder.Decoder):
       cell_outputs, cell_state = self._decoder_cell(inputs, state)
 
       # If we are training and not using scheduled sampling, we can move
-      # all projection layers outside decoder, should be faster?
+      # all projection layers outside decoder,
       # else we must project inside decoder
       if self._spec_layer is not None:
         spec_outputs = self._spec_layer(cell_outputs)
@@ -178,6 +181,7 @@ class TacotronDecoder(decoder.Decoder):
         stop_token_output = self._stop_token_layer(spec_outputs)
       else:
         stop_token_output = cell_outputs
+
 
       sample_ids = self._helper.sample(
           time=time, outputs=spec_outputs, state=cell_state

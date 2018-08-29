@@ -23,17 +23,17 @@ num_layers = 6
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 4,
-  "batch_size_per_gpu": 128,  # this size is in sentence pairs
-  "max_steps": 500000,
-  "save_summaries_steps": 50,
-  "print_loss_steps": 50,
-  "print_samples_steps": 50,
+  "use_horovod": True,
+  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
+  "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps": 300000,
+  "save_summaries_steps": 100,
+  "print_loss_steps": 100,
+  "print_samples_steps": 100,
   "eval_steps": 4001,
-  "save_checkpoint_steps": 4000,
-  "logdir": "Transformer-4GPUs-FP32",
-  "dtype": tf.float32,
+  "save_checkpoint_steps": 299998,
+  "logdir": "Transformer-FP32-H-256",
+  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   #"dtype": "mixed",
   #"loss_scaling": "Backoff",
 
@@ -47,12 +47,9 @@ base_params = {
   "lr_policy": transformer_policy,
   "lr_policy_params": {
     "learning_rate": 2.0,
-    "warmup_steps": 16000,
+    "warmup_steps": 8000,
     "d_model": d_model,
   },
-
-  # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
-  #              'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": TransformerEncoder,
   "encoder_params": {
@@ -94,16 +91,15 @@ train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
     "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "train.tok.clean.bpe.32000.en",
-    "target_file": data_root + "train.tok.clean.bpe.32000.de",
+    "src_vocab_file": data_root + "m_common.vocab",
+    "tgt_vocab_file": data_root + "m_common.vocab",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
-    "prefetch_buffer_size": 2,
     "max_length": 56,
   },
 }
@@ -112,33 +108,28 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2013.tok.bpe.32000.en",
-    "target_file": data_root + "newstest2013.tok.bpe.32000.de",
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt13-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": True,
-    "map_parallel_calls": 16,
-    "prefetch_buffer_size": 1,
-    "max_length": 32,
-  },
+    "repeat": False,
+    "max_length": 256,
+    },
 }
 
 infer_params = {
   "batch_size_per_gpu": 1,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "pad_vocab_to_eight": True,
-    "src_vocab_file": data_root + "vocab.bpe.32000",
-    "tgt_vocab_file": data_root + "vocab.bpe.32000",
-    "source_file": data_root + "newstest2014.tok.bpe.32000.en",
-    # this is intentional
-    "target_file": data_root + "newstest2014.tok.bpe.32000.en",
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,
-    "max_length": 512,
+    "max_length": 256,
   },
 }

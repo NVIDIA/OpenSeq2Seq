@@ -1,15 +1,14 @@
 # Copyright (c) 2017 NVIDIA Corporation
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
+from six.moves import range
 
 import abc
+import six
+import tensorflow as tf
+import numpy as np
 import copy
 import time
-
-import numpy as np
-import six
-from six.moves import range
-import tensorflow as tf
 
 try:
   from inspect import signature
@@ -63,7 +62,11 @@ class Model:
         'print_samples_steps': None,  # could be int or None
         'print_bench_info_steps': None,  # could be int or None
         'save_checkpoint_steps': None,  # could be int or None
+        'restore_best_checkpoint': bool, # whether to restore best check point
         'eval_steps': int,
+        'base_logdir': str,
+        'finetune': bool,
+        'eval_batch_size_per_gpu': int,
 
         'random_seed': int,
         'num_epochs': int,
@@ -203,6 +206,11 @@ class Model:
 
     # parameter checks
     self._mode = mode
+    self._interactive = False
+    if self._mode == "interactive_infer":
+      self._mode = "infer"
+      self._interactive = True
+
     if self._mode not in ["train", "infer", "eval"]:
       raise ValueError("Mode has to be one of ['train', 'infer', 'eval']")
 
@@ -225,6 +233,13 @@ class Model:
     if 'print_bench_info_steps' not in self._params:
       self._params['print_bench_info_steps'] = None
 
+    self._params['finetune'] = self._params.get('finetune', False)
+    self._params['base_logdir'] = self._params.get('base_logdir', None)
+    self._params['eval_batch_size_per_gpu'] = self._params.get(
+        'eval_batch_size_per_gpu',
+        self._params['batch_size_per_gpu']
+    )
+
     # checking that frequencies of samples and loss are aligned
     s_fr = self._params['print_samples_steps']
     l_fr = self._params['print_loss_steps']
@@ -244,6 +259,9 @@ class Model:
         raise ValueError('Either "gpu_ids" or "num_gpus" has to '
                          'be specified in the config')
 
+    if self._interactive and len(self._gpu_ids) > 1:
+      raise ValueError("Interactive infer is meant to be used with 1 gpu")
+
     # setting random seed
     rs = self._params.get('random_seed', int(time.time()))
     if self.on_horovod:
@@ -255,8 +273,12 @@ class Model:
       self._params['dtype'] = tf.float32
 
     dl_params = self._params.get('data_layer_params', {})
-    dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    if mode == 'train':
+      dl_params['batch_size'] = self._params['batch_size_per_gpu']
+    else:
+      dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
     dl_params['mode'] = self._mode
+    dl_params['interactive'] = self._interactive
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -305,7 +327,7 @@ class Model:
     self._num_objects_per_step = None
     self.skip_update_ph = None
 
-  def compile(self, force_var_reuse=False):
+  def compile(self, force_var_reuse=False, checkpoint=None, use_trt=False, precision='FP32'):
     """TensorFlow graph is built here."""
     if 'initializer' not in self.params:
       initializer = None
@@ -326,12 +348,18 @@ class Model:
         ):
           deco_print("Building graph on GPU:{}".format(gpu_id))
 
-          self.get_data_layer(gpu_cnt).build_graph()
+          if self._interactive:
+            self.get_data_layer(gpu_cnt).create_interactive_placeholders()
+          else:
+            self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
 
-          loss, self._outputs[gpu_cnt] = self._build_forward_pass_graph(
+          loss, self._outputs[gpu_cnt] = self.build_forward_pass_graph(
               input_tensors,
               gpu_id=gpu_cnt,
+              checkpoint=checkpoint,
+              use_trt=use_trt,
+              precision=precision
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
@@ -437,9 +465,76 @@ class Model:
         else:
           deco_print('Total trainable parameters: {}'.format(total_params))
 
+  def build_forward_pass_graph(self, input_tensors, gpu_id=0, checkpoint=None, use_trt=False, precision='FP32'):
+    """Wrapper around _build_forward_pass_graph with option of using TF-TRT"""
+    if use_trt:
+      import tensorflow.contrib.tensorrt as trt
+      # Create temporary graph which will contain the native TF graph
+      tf_config = tf.ConfigProto()
+      tf_config.gpu_options.allow_growth = True
+      temp_graph = tf.Graph()
+      with temp_graph.as_default() as tf_graph:
+        with tf.Session(config=tf_config) as tf_sess:
+          input_placeholders = {'source_tensors': [
+            tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map1'),
+            tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map2')
+            ]}
+          loss, self._outputs[gpu_id] = self._build_forward_pass_graph(
+              input_placeholders,
+              gpu_id=gpu_id
+          )
+          output_node_names = [x.name.split(':0')[0] for x in self._outputs[gpu_id]]
+          # Restore checkpoint here because we have to freeze the graph
+          tf_saver = tf.train.Saver()
+          tf_saver.restore(save_path=checkpoint, sess=tf_sess)
+          frozen_graph = tf.graph_util.convert_variables_to_constants(
+                tf_sess,
+                tf_sess.graph_def,
+                output_node_names=output_node_names
+          )
+          num_nodes = len(frozen_graph.node)
+          print('Converting graph using TensorFlow-TensorRT...')
+          frozen_graph = trt.create_inference_graph(
+            input_graph_def=frozen_graph,
+            outputs=output_node_names,
+            max_batch_size=64,
+            max_workspace_size_bytes=4096 << 20,
+            precision_mode=precision,
+            minimum_segment_size=3
+          )
+          print('Total node count before and after TF-TRT conversion:', num_nodes, '->', len(frozen_graph.node))
+          print('TRT node count:', len([1 for n in frozen_graph.node if str(n.op)=='TRTEngineOp']))
+      # Perform calibration for INT8 precision mode
+      if precision == 'int8':
+          with tf.Session(config=tf_config) as tf_sess:
+            calib_graph = frozen_graph
+            num_iterations = 10
+            print('Calibrating INT8...')
+            self._outputs[gpu_id] = tf.import_graph_def(calib_graph,
+                input_map={'input_map1': input_tensors['source_tensors'][0]},
+                return_elements=[x+':0' for x in output_node_names],
+                name='')
+            self._num_objects_per_step = [self._get_num_objects_per_step(worker_id)
+                                    for worker_id in range(self.num_gpus)]
+            results_per_batch = iterate_data(
+              self, tf_sess, compute_loss=False, mode='infer', verbose=False, num_steps=num_iterations
+            )
+            frozen_graph = trt.calib_graph_to_infer_graph(calib_graph)
+            del calib_graph
+            print('INT8 graph created.')
+            print('Nodes INT8:', len(frozen_graph.node))
+      # Import TRT converted graph to default graph, mapping it to the original input tensors
+      self._outputs[gpu_id] = tf.import_graph_def(frozen_graph,
+          input_map={'input_map1': input_tensors['source_tensors'][0]},
+          return_elements=[x+':0' for x in output_node_names],
+          name='')
+      return loss, self._outputs[gpu_id]
+    else:
+      return self._build_forward_pass_graph(input_tensors, gpu_id)
+
   @abc.abstractmethod
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
-    """This method should create the graph of the forward pass of the model.
+    """Abstract method. Should create the graph of the forward pass of the model.
 
     Args:
       input_tensors: ``input_tensors`` defined by the data_layer class.

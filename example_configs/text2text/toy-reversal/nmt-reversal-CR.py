@@ -53,8 +53,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
-
     "src_emb_size": d_model,
     "att_layer_num": num_layers,
     "embedding_dropout_keep_prob": 0.9,
@@ -131,8 +129,10 @@ infer_params = {
   "batch_size_per_gpu": 1,
   "decoder": BeamSearchRNNDecoderWithAttention,
   "decoder_params": {
-    "decoder_cell_type": "lstm",
-    "decoder_cell_units": d_model,
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+      "num_units": d_model,
+    },
     "decoder_layers": num_layers,
     "decoder_dp_input_keep_prob": 0.8,
     "decoder_dp_output_keep_prob": 1.0,

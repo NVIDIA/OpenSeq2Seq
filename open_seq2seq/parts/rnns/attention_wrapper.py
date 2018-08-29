@@ -1,4 +1,3 @@
-# pylint: skip-file
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -776,7 +775,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
-    self.location_layer = LocationLayer(32, 31, num_units)
+    self.location_layer = LocationLayer(32, 32, num_units)
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
@@ -804,11 +803,9 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
           processed_query, self._keys, processed_location, self.use_bias
       )
     alignments = self._probability_fn(score, state)
-
     next_state = alignments + state
 
     return alignments, next_state
-
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.

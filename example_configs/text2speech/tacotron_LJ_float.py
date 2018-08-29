@@ -10,12 +10,14 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy, ex
 
 base_model = Text2Speech
 
-output_type = "magnitude"
+output_type = "mel"
 
 if output_type == "magnitude":
   num_audio_features = 513
+  data_min = 1e-5
 elif output_type == "mel":
   num_audio_features = 80
+  data_min = 1e-2
 
 base_params = {
   "random_seed": 0,
@@ -36,30 +38,16 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  # "lr_policy": fixed_lr,
-  # "lr_policy_params": {
-  #   "learning_rate": 1e-3,
-  # },
-  # "lr_policy": transformer_policy,
-  # "lr_policy_params": {
-  #   "learning_rate": 1.8,
-  #   "max_lr": 1e-3,
-  #   "warmup_steps": 5000,
-  #   "d_model": 64,
-  #   "coefficient": 1
-  # },
   "lr_policy": exp_decay,
   "lr_policy_params": {
     "learning_rate": 1e-3,
-    "decay_steps": 10000,
+    "decay_steps": 20000,
     "decay_rate": 0.1,
     "use_staircase_decay": False,
-    "begin_decay_at": 10000,
+    "begin_decay_at": 45000,
     "min_lr": 1e-5,
   },
-  # "dtype": tf.float32, "mixed", tf.float16
   "dtype": tf.float32,
-  # weight decay
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
     'scale': 1e-6
@@ -92,9 +80,6 @@ base_params = {
     "num_rnn_layers": 1,
     "rnn_cell_dim": 256,
     "rnn_unidirectional": False,
-    # "use_cudnn_rnn": False,
-    # "rnn_type": tf.nn.rnn_cell.LSTMCell,
-    # "zoneout_prob": 0.1,
     "use_cudnn_rnn": True,
     "rnn_type": tf.contrib.cudnn_rnn.CudnnLSTM,
     "zoneout_prob": 0.,
@@ -104,7 +89,8 @@ base_params = {
 
   "decoder": Tacotron2Decoder,
   "decoder_params": {
-    "zoneout_prob": 0.1,
+    "zoneout_prob": 0.,
+    "dropout_prob": 0.1,
     
     'attention_type': 'location',
     'attention_layer_size': 128,
@@ -159,15 +145,18 @@ base_params = {
 
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
+    "dataset": "LJ",
     "num_audio_features": num_audio_features,
     "output_type": output_type,
-    "vocab_file": "/data/speech/LJSpeech/vocab_tts.txt",
+    "vocab_file": "open_seq2seq/test_utils/vocab_tts.txt",
     'dataset_location':"/data/speech/LJSpeech/wavs/",
     "mag_power": 1,
     "pad_EOS": True,
     "feature_normalize": False,
     "feature_normalize_mean": 0.,
     "feature_normalize_std": 1.,
+    "data_min":data_min,
+    "mel_type":'htk',
   },
 }
 
@@ -194,6 +183,13 @@ infer_params = {
     "dataset_files": [
       "/data/speech/LJSpeech/test.csv",
     ],
+    "shuffle": False,
+  },
+}
+
+interactive_infer_params = {
+  "data_layer_params": {
+    "dataset_files": [],
     "shuffle": False,
   },
 }
