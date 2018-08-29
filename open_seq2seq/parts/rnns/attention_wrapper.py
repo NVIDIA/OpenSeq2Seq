@@ -802,8 +802,10 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       score = _bahdanau_score_with_location(
           processed_query, self._keys, processed_location, self.use_bias
       )
+    # Keep alignments in float32
+    score = math_ops.cast(score, dtypes.float32)
     alignments = self._probability_fn(score, state)
-    next_state = alignments + state
+    next_state = math_ops.cast(alignments, state.dtype) + state
 
     return alignments, next_state
 
@@ -1333,7 +1335,10 @@ def _compute_attention(
   # the batched matmul is over memory_time, so the output shape is
   #   [batch_size, 1, memory_size].
   # we then squeeze out the singleton dim.
-  context = math_ops.matmul(expanded_alignments, attention_mechanism.values)
+  values = math_ops.cast(attention_mechanism.values, dtypes.float32)
+  context = math_ops.matmul(expanded_alignments, values)
+  context = math_ops.cast(context, attention_mechanism.values.dtype)
+  alignments = math_ops.cast(alignments, attention_mechanism.values.dtype)
   context = array_ops.squeeze(context, [1])
 
   if attention_layer is not None:
