@@ -1,3 +1,4 @@
+# pylint: skip-file
 from __future__ import absolute_import, division, print_function
 from open_seq2seq.models import Text2Text
 from open_seq2seq.encoders import TransformerEncoder
@@ -19,23 +20,22 @@ d_model = 512
 num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "/mnt/shared/dldata/translation/wmt16_de_en/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": True,
-  "num_gpus": 1,
-  "batch_size_per_gpu": 256,  # this size is in sentence pairs
-  "max_steps":  18750, #300000,
+  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
+  "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps": 300000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 4001,
-  "save_checkpoint_steps": 37500, #299998,
-  "logdir": "Transformer-MP-H-16x128-18K-LR-6.0-ws-5K-is2",
-  #"iter_size": 2,
-  #"dtype": tf.float32,
-  "dtype": "mixed",
-  "loss_scaling": "Backoff",
+  "save_checkpoint_steps": 299998,
+  "logdir": "Transformer-FP32-H-256",
+  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  #"dtype": "mixed",
+  #"loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -46,8 +46,8 @@ base_params = {
 
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 7.0,
-    "warmup_steps": 5000,
+    "learning_rate": 2.0,
+    "warmup_steps": 8000,
     "d_model": d_model,
   },
 
@@ -101,7 +101,6 @@ train_params = {
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,
-    "use_start_token": False,
   },
 }
 
@@ -117,7 +116,6 @@ eval_params = {
     "shuffle": False,
     "repeat": False,
     "max_length": 256,
-    "use_start_token": False,
     },
 }
 
@@ -133,6 +131,5 @@ infer_params = {
     "shuffle": False,
     "repeat": False,
     "max_length": 256,
-    "use_start_token": False,
   },
 }
