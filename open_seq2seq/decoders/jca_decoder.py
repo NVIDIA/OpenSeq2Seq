@@ -12,8 +12,10 @@ class JointCTCAttentionDecoder(Decoder):
   @staticmethod
   def get_required_params():
     return dict(Decoder.get_required_params(), **{
-        'attn_params': dict,
-        'ctc_params': dict,
+        'attn_decoder_params': dict,
+        'ctc_decoder_params': dict,
+        'beam_search_params': dict,
+        'language_model_params': dict,
         'GO_SYMBOL': int,  # symbol id
         'END_SYMBOL': int,  # symbol id
         'tgt_vocab_size': int,
@@ -35,8 +37,13 @@ class JointCTCAttentionDecoder(Decoder):
     """
     super(JointCTCAttentionDecoder, self).__init__(params, model, name, mode)
 
-    self.ctc_params = self.params['ctc_params']
-    self.attn_params = self.params['attn_params']
+    self.ctc_params = self.params['ctc_decoder_params']
+    self.attn_params = self.params['attn_decoder_params']
+    self.beam_search_params = self.params['beam_search_params']
+    self.lang_model_params = self.params['language_model_params']
+
+    self.attn_params.update(self.beam_search_params)    
+    self.attn_params.update(self.lang_model_params)
 
     self.ctc_params['tgt_vocab_size'] = self.params['tgt_vocab_size'] - 1
     self.attn_params['tgt_vocab_size'] = self.params['tgt_vocab_size']

@@ -134,7 +134,7 @@ class Speech2Text(EncoderDecoderModel):
         len(true_text.split())
 
     self.autoregressive = self.get_data_layer().params['autoregressive']
-    self.plot_attention = True
+    self.plot_attention = (output_values[1] != None).all()
     if self.plot_attention:
       attention_summary = plot_attention(
           output_values[1][0], pred_text, output_values[2][0], training_step)

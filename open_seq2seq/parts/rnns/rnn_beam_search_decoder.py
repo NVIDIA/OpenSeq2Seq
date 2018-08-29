@@ -175,7 +175,8 @@ class BeamSearchDecoder(decoder.Decoder):
                initial_state,
                beam_width,
                output_layer=None,
-               length_penalty_weight=0.0):
+               length_penalty_weight=0.0,
+               positional_embedding=None):
     """Initialize the BeamSearchDecoder.
 
     Args:
@@ -212,6 +213,15 @@ class BeamSearchDecoder(decoder.Decoder):
       self._embedding_fn = (
           lambda ids: embedding_ops.embedding_lookup(embedding, ids))
 
+    self._use_pos_embedding = False
+    if positional_embedding is not None:
+      if callable(positional_embedding):
+        self._pos_embedding_fn = positional_embedding
+      else:
+        self._pos_embedding_fn = (
+            lambda ids: embedding_ops.embedding_lookup(positional_embedding, ids))
+      self._use_pos_embedding = True
+
     self._start_tokens = ops.convert_to_tensor(
         start_tokens, dtype=dtypes.int32, name="start_tokens")
     if self._start_tokens.get_shape().ndims != 1:
@@ -229,6 +239,9 @@ class BeamSearchDecoder(decoder.Decoder):
     self._start_tokens = array_ops.tile(
         array_ops.expand_dims(self._start_tokens, 1), [1, self._beam_width])
     self._start_inputs = self._embedding_fn(self._start_tokens)
+
+    if self._use_pos_embedding:
+      self._start_inputs += self._pos_embedding_fn(ops.convert_to_tensor(0))
 
     self._finished = array_ops.one_hot(
         array_ops.zeros([self._batch_size], dtype=dtypes.int32),
@@ -513,6 +526,8 @@ class BeamSearchDecoder(decoder.Decoder):
       next_inputs = control_flow_ops.cond(
           math_ops.reduce_all(finished), lambda: self._start_inputs,
           lambda: self._embedding_fn(sample_ids))
+      if self._use_pos_embedding:
+        next_inputs += self._pos_embedding_fn(ops.convert_to_tensor(time))
 
     return (beam_search_output, beam_search_state, next_inputs, finished)
 

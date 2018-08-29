@@ -475,7 +475,7 @@ class GreedyEmbeddingHelper(Helper):
       raise ValueError("end_token must be a scalar")
     self._start_inputs = self._embedding_fn(self._start_tokens)
     if self._use_pos_embedding:
-      self._start_inputs += self._pos_embedding_fn(math_ops.convert_to_tensor(0)) #change dtype for mixed precision
+      self._start_inputs += self._pos_embedding_fn(ops.convert_to_tensor(0)) #change dtype for mixed precision
 
   @property
   def batch_size(self):
@@ -514,7 +514,7 @@ class GreedyEmbeddingHelper(Helper):
         lambda: self._start_inputs,
         lambda: self._embedding_fn(sample_ids))
     if self._use_pos_embedding:
-      next_inputs += self._pos_embedding_fn(math_ops.convert_to_tensor(time))
+      next_inputs += self._pos_embedding_fn(ops.convert_to_tensor(time))
     return (finished, next_inputs, state)
 
 

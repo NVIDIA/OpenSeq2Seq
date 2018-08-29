@@ -20,9 +20,9 @@ base_params = {
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
-    "save_summaries_steps": 1000,
+    "save_summaries_steps": 1100,
     "print_loss_steps": 10,
-    "print_samples_steps": 400,
+    "print_samples_steps": 200,
     "eval_steps": 1100,
     "save_checkpoint_steps": 1100,
     "logdir": "jca_log_folder",
@@ -75,19 +75,13 @@ base_params = {
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 4,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 3,
-                "kernel_size": [11], "stride": [1],
-                "num_channels": 768, "padding": "SAME",
-                "dropout_keep_prob": 0.7,
-            },
-            {
-                "type": "conv1d", "repeat": 1,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dropout_keep_prob": 0.7,
@@ -111,10 +105,10 @@ base_params = {
 
     "decoder": JointCTCAttentionDecoder,
     "decoder_params": {
-        "attn_decoder": ListenAttendSpellDecoder,
-        "attn_params": {
-          "tgt_emb_size": 256,
 
+        "attn_decoder": ListenAttendSpellDecoder,
+        "attn_decoder_params": {
+          "tgt_emb_size": 256,
           "pos_embedding": True,
 
           "attention_params": {
@@ -122,6 +116,7 @@ base_params = {
               "attention_type": "chorowski",
               "use_coverage": True,
               "num_heads": 1,
+              "plot_attention": True,
           },
           
           "rnn_type": "lstm",
@@ -130,22 +125,22 @@ base_params = {
 
           "dropout_keep_prob": 0.8,
         },
+
         "ctc_decoder": FullyConnectedCTCDecoder,
-        "ctc_params": {
+        "ctc_decoder_params": {
           "initializer": tf.contrib.layers.xavier_initializer,
           "use_language_model": False,
-
-          # params for decoding the sequence with language model
-          "beam_width": 512,
-          "lm_weight": 1.0,
-          "word_count_weight": 1.5,
-          "valid_word_count_weight": 2.5,
-
-          "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
-          "lm_binary_path": "language_model/lm.binary",
-          "lm_trie_path": "language_model/trie",
-          "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         },
+
+        "beam_search_params": {
+            "beam_width": 4,            
+        },
+
+        "language_model_params": {
+            # params for decoding the sequence with language model
+            "use_language_model": False,
+        },
+
     },
 
     "loss": MultiTaskCTCEntropyLoss,
@@ -161,10 +156,6 @@ base_params = {
       },
 
       "lambda_value" : 0.25,
-      "lambda_params": {
-        "values": [],
-        "boundaries": [],
-      }
     }
 }
 
@@ -175,9 +166,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            "data/librispeech/librivox-train-clean-100.csv",
+            "data/librispeech/librivox-train-clean-360.csv",
+            "data/librispeech/librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -192,7 +183,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,
@@ -206,7 +197,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-test-clean.csv",
+            "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
         "autoregressive": True,

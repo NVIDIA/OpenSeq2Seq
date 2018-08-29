@@ -79,6 +79,8 @@ class ListenAttendSpellDecoder(Decoder):
     return dict(Decoder.get_optional_params(), **{
         'dropout_keep_prob': float,
         'pos_embedding': bool,
+        'beam_width': int,
+        'use_language_model': bool,
     })
 
   def __init__(self, params, model, name='las_decoder', mode='train'):
@@ -106,6 +108,7 @@ class ListenAttendSpellDecoder(Decoder):
     enc_src_lengths = input_dict['encoder_output']['src_length']
 
     self._batch_size = int(encoder_outputs.get_shape()[0])
+    self._beam_width = self.params.get("beam_width", 1)
 
     tgt_inputs = None
     tgt_lengths = None
@@ -121,6 +124,9 @@ class ListenAttendSpellDecoder(Decoder):
     hidden_dim = self.params['hidden_dim']
     dropout_keep_prob = self.params.get(
         'dropout_keep_prob', 1.0) if self._mode == "train" else 1.0
+
+    use_language_model = self.params.get("use_language_model", False)
+    use_beam_search_decoder = (self._beam_width != 1) and (self._mode == "infer")
 
     self._target_emb_layer = tf.get_variable(
         name='TargetEmbeddingMatrix',
@@ -155,16 +161,9 @@ class ListenAttendSpellDecoder(Decoder):
           shape=[1024, self.dec_pos_emb_size],
           dtype=tf.float32,
       )
-      decoder_output_positions = tf.range(
-          0,
-          tf.shape(tgt_inputs)[1],
-          delta=1,
-          dtype=tf.int32,
-          name='positional_inputs'
-      )
 
     output_projection_layer = FullyConnected(
-        [3 * self._tgt_vocab_size, self._tgt_vocab_size],
+        [self._tgt_vocab_size],
         dropout_keep_prob=dropout_keep_prob,
         mode=self._mode,
     )
@@ -179,9 +178,30 @@ class ListenAttendSpellDecoder(Decoder):
          for _ in range(num_layers)]
     )
 
+    if use_beam_search_decoder:
+      encoder_outputs = tf.contrib.seq2seq.tile_batch(
+          encoder_outputs,
+          multiplier=self._beam_width,
+      )
+      enc_src_lengths = tf.contrib.seq2seq.tile_batch(
+          enc_src_lengths,
+          multiplier=self._beam_width,
+      )
+
     attention_dim = attention_params["attention_dim"]
     attention_type = attention_params["attention_type"]
     num_heads = attention_params["num_heads"]
+    plot_attention = attention_params["plot_attention"]
+    if plot_attention:
+      if use_beam_search_decoder:
+        plot_attention = False
+        print("Plotting Attention is disabled for Beam Search Decoding")
+      if num_heads!=1:
+        plot_attention = False
+        print("Plotting Attention is disabled for Multi Head Attention")
+      if self.params['dtype'] != tf.float32:
+        plot_attention = False
+        print("Plotting Attention is disabled for Mixed Precision Mode")
 
     attention_params_dict = {}
     if attention_type == "bahadanu":
@@ -216,10 +236,17 @@ class ListenAttendSpellDecoder(Decoder):
         attention_mechanism=attention_mechanism,
         attention_layer_size=[hidden_dim for i in range(num_heads)],
         output_attention=True,
-        alignment_history=True,
+        alignment_history=plot_attention,
     )
 
     if self._mode == "train":
+      decoder_output_positions = tf.range(
+          0,
+          tf.shape(tgt_inputs)[1],
+          delta=1,
+          dtype=tf.int32,
+          name='positional_inputs'
+      )
       tgt_input_vectors = tf.nn.embedding_lookup(
           self._target_emb_layer, tgt_inputs)
       if self.params['pos_embedding']:
@@ -239,11 +266,19 @@ class ListenAttendSpellDecoder(Decoder):
           tf.nn.embedding_lookup(self._target_emb_layer, ids),
           dtype=self.params['dtype'],
       )
+      pos_embedding_fn = None
+      if self.params['pos_embedding']:
+        pos_embedding_fn = lambda ids: tf.cast(
+            tf.nn.embedding_lookup(self.dec_pos_emb_layer, ids),
+            dtype=self.params['dtype'],
+        )
+
       # helper = tf.contrib.seq2seq.GreedyEmbeddingHelper(
       helper = GreedyEmbeddingHelper(
           embedding=embedding_fn,
           start_tokens=tf.fill([self._batch_size], self.GO_SYMBOL),
           end_token=self.END_SYMBOL,
+          positional_embedding=pos_embedding_fn
       )
 
     if self._mode != "infer":
@@ -251,39 +286,65 @@ class ListenAttendSpellDecoder(Decoder):
     else:
       maximum_iterations = tf.reduce_max(enc_src_lengths)
 
-    decoder = tf.contrib.seq2seq.BasicDecoder(
-        cell=multirnn_cell_with_attention,
-        helper=helper,
-        initial_state=multirnn_cell_with_attention.zero_state(
-            batch_size=self._batch_size, dtype=encoder_outputs.dtype,
-        ),
-        output_layer=output_projection_layer,
-    )
+    if not use_beam_search_decoder:
+      decoder = tf.contrib.seq2seq.BasicDecoder(
+          cell=multirnn_cell_with_attention,
+          helper=helper,
+          initial_state=multirnn_cell_with_attention.zero_state(
+              batch_size=self._batch_size, dtype=encoder_outputs.dtype,
+          ),
+          output_layer=output_projection_layer,
+      )
+    else:
+      batch_size_tensor = tf.constant(self._batch_size)
+      decoder = BeamSearchDecoder(
+          cell=multirnn_cell_with_attention,
+          embedding=embedding_fn,
+          start_tokens=tf.tile([self.GO_SYMBOL], [self._batch_size]),
+          end_token=self.END_SYMBOL,
+          initial_state=multirnn_cell_with_attention.zero_state(
+              dtype=encoder_outputs.dtype,
+              batch_size=batch_size_tensor * self._beam_width,
+          ),
+          beam_width=self._beam_width,
+          output_layer=output_projection_layer,
+          length_penalty_weight=0.0,
+      )
 
     final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         decoder=decoder,
-        impute_finished=True,
+        impute_finished=self.mode != "infer",
         maximum_iterations=maximum_iterations,
     )
 
-    outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
-    alignments = tf.transpose(
+    if plot_attention:
+      alignments = tf.transpose(
         final_state.alignment_history[0].stack(), [1, 0, 2]
-    )
+      )
+    else:
+      alignments = None
 
-    logits = final_outputs.rnn_output
+    if not use_beam_search_decoder:
+      outputs = tf.argmax(final_outputs.rnn_output, axis=-1)
+      logits = final_outputs.rnn_output
+      return_outputs = [outputs, alignments, enc_src_lengths]
+    else:
+      outputs = final_outputs.predicted_ids[:, :, 0]
+      logits = final_outputs.predicted_ids[:, :, 0]
+      return_outputs = [outputs, enc_src_lengths]
+
     if self.mode == "eval":
       max_len = tf.reduce_max(tgt_lengths)
       logits = tf.while_loop(
           lambda logits: max_len > tf.shape(logits)[1],
           lambda logits: tf.concat([logits, tf.fill(
-              [tf.shape(logits)[0], 1, tf.shape(logits)[2]], 1.0)], 1),
+              [tf.shape(logits)[0], 1, tf.shape(logits)[2]], tf.cast(1.0, self.params['dtype']))], 1),
           loop_vars=[logits],
           back_prop=False,
       )
 
     return {
-        'outputs': [outputs, alignments, enc_src_lengths],
+        'outputs': return_outputs,
         'logits': logits,
         'tgt_length': final_sequence_lengths,
     }
