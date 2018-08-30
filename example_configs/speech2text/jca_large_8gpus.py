@@ -106,33 +106,33 @@ base_params = {
 
         "attn_decoder": ListenAttendSpellDecoder,
         "attn_decoder_params": {
-          "tgt_emb_size": 256,
-          "pos_embedding": True,
+            "tgt_emb_size": 256,
+            "pos_embedding": True,
 
-          "attention_params": {
-              "attention_dim": 256,
-              "attention_type": "chorowski",
-              "use_coverage": True,
-              "num_heads": 1,
-              "plot_attention": True,
+            "attention_params": {
+                "attention_dim": 256,
+                "attention_type": "chorowski",
+                "use_coverage": True,
+                "num_heads": 1,
+                "plot_attention": True,
 
-          },
-          
-          "rnn_type": "lstm",
-          "hidden_dim": 512,
-          "num_layers": 1,
+            },
 
-          "dropout_keep_prob": 0.8,
+            "rnn_type": "lstm",
+            "hidden_dim": 512,
+            "num_layers": 1,
+
+            "dropout_keep_prob": 0.8,
         },
 
         "ctc_decoder": FullyConnectedCTCDecoder,
         "ctc_decoder_params": {
-          "initializer": tf.contrib.layers.xavier_initializer,
-          "use_language_model": False,
+            "initializer": tf.contrib.layers.xavier_initializer,
+            "use_language_model": False,
         },
 
         "beam_search_params": {
-            "beam_width": 4,            
+            "beam_width": 4,
         },
 
         "language_model_params": {
@@ -145,16 +145,16 @@ base_params = {
     "loss": MultiTaskCTCEntropyLoss,
     "loss_params": {
 
-      "seq_loss_params": {
-        "offset_target_by_one": False,
-        "average_across_timestep": True,
-        "do_mask": True
-      },
+        "seq_loss_params": {
+            "offset_target_by_one": False,
+            "average_across_timestep": True,
+            "do_mask": True
+        },
 
-      "ctc_loss_params": {
-      },
+        "ctc_loss_params": {
+        },
 
-      "lambda_value" : 0.25,
+        "lambda_value": 0.25,
     }
 }
 

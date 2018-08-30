@@ -9,7 +9,9 @@ from .loss import Loss
 from .ctc_loss import CTCLoss
 from .sequence_loss import BasicSequenceLoss
 
-#To-Do Replace this with a generic multi-task loss.
+# To-Do Replace this with a generic multi-task loss.
+
+
 class MultiTaskCTCEntropyLoss(Loss):
   """
   MultiTask CTC and cross entropy loss.
@@ -21,7 +23,7 @@ class MultiTaskCTCEntropyLoss(Loss):
         'seq_loss_params': dict,
         'lambda_value': float,
         'tgt_vocab_size': int,
-        'batch_size': int,        
+        'batch_size': int,
     })
 
   @staticmethod
@@ -44,11 +46,10 @@ class MultiTaskCTCEntropyLoss(Loss):
     super(MultiTaskCTCEntropyLoss, self).__init__(params, model, name)
     self.ctc_loss_params = self.params["ctc_loss_params"]
     self.seq_loss_params = self.params["seq_loss_params"]
-    self.lambda_value = self.params["lambda_value"] 
+    self.lambda_value = self.params["lambda_value"]
 
     self.seq_loss_params["batch_size"] = self.params["batch_size"]
     self.seq_loss_params["tgt_vocab_size"] = self.params["tgt_vocab_size"]
-
 
     self.ctc_loss = CTCLoss(self.ctc_loss_params, model)
     self.seq_loss = BasicSequenceLoss(self.seq_loss_params, model)
@@ -69,16 +70,16 @@ class MultiTaskCTCEntropyLoss(Loss):
     """
 
     ctc_loss_input_dict = {
-              "decoder_output": input_dict['decoder_output']['ctc_outputs'],
-              "target_tensors": input_dict['target_tensors'],
+        "decoder_output": input_dict['decoder_output']['ctc_outputs'],
+        "target_tensors": input_dict['target_tensors'],
     }
 
     seq_loss_input_dict = {
-              "decoder_output": input_dict['decoder_output']['seq_outputs'],
-              "target_tensors": input_dict['target_tensors'],
+        "decoder_output": input_dict['decoder_output']['seq_outputs'],
+        "target_tensors": input_dict['target_tensors'],
     }
 
     ctc_loss_value = self.ctc_loss.compute_loss(ctc_loss_input_dict)
     sequence_loss_value = self.seq_loss.compute_loss(seq_loss_input_dict)
 
-    return (1-self.lambda_value)*sequence_loss_value + self.lambda_value*ctc_loss_value
+    return (1 - self.lambda_value) * sequence_loss_value + self.lambda_value * ctc_loss_value

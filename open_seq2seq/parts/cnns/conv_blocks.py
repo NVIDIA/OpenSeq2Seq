@@ -134,6 +134,7 @@ def conv_ln_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
     output = activation_fn(output)
   return output
 
+
 def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, strides,
                  padding, regularizer, training, data_format, dilation=1):
   """Helper function that applies convolution, instance norm and activation.
@@ -165,4 +166,3 @@ def conv_in_actv(layer_type, name, inputs, filters, kernel_size, activation_fn, 
   if activation_fn is not None:
     output = activation_fn(output)
   return output
-

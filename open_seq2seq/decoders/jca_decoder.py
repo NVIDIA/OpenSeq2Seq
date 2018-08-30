@@ -6,6 +6,7 @@ import tensorflow as tf
 
 from .decoder import Decoder
 
+
 class JointCTCAttentionDecoder(Decoder):
   """Joint CTC Attention like decoder.
   Combines CTC and Attention based decoder.
@@ -59,7 +60,7 @@ class JointCTCAttentionDecoder(Decoder):
     self.beam_search_params = self.params['beam_search_params']
     self.lang_model_params = self.params['language_model_params']
 
-    self.attn_params.update(self.beam_search_params)    
+    self.attn_params.update(self.beam_search_params)
     self.attn_params.update(self.lang_model_params)
 
     self.ctc_params['tgt_vocab_size'] = self.params['tgt_vocab_size'] - 1
@@ -67,9 +68,10 @@ class JointCTCAttentionDecoder(Decoder):
     self.attn_params['GO_SYMBOL'] = self.params['GO_SYMBOL']
     self.attn_params['END_SYMBOL'] = self.params['END_SYMBOL']
 
-    self.ctc_decoder = self.params['ctc_decoder'](params=self.ctc_params, mode=mode, model=model)
-    self.attn_decoder = self.params['attn_decoder'](params=self.attn_params, mode=mode, model=model)
-
+    self.ctc_decoder = self.params['ctc_decoder'](
+        params=self.ctc_params, mode=mode, model=model)
+    self.attn_decoder = self.params['attn_decoder'](
+        params=self.attn_params, mode=mode, model=model)
 
   def _decode(self, input_dict):
     """Joint decoder that combines Attention and CTC outputs.
@@ -92,12 +94,12 @@ class JointCTCAttentionDecoder(Decoder):
       * seq_outputs - output dictionary from the Attention decoder
       * ctc_outputs - output dictionary from the CTC decoder
     """
-    
+
     seq_outputs = self.attn_decoder.decode(input_dict=input_dict)
     ctc_outputs = self.ctc_decoder.decode(input_dict=input_dict)
 
     return {
-    		'outputs' : seq_outputs['outputs'],
-    		'seq_outputs' : seq_outputs,
-    		'ctc_outputs' : ctc_outputs,
+        'outputs': seq_outputs['outputs'],
+        'seq_outputs': seq_outputs,
+        'ctc_outputs': ctc_outputs,
     }

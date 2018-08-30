@@ -114,69 +114,65 @@ base_params = {
     "decoder_params": {
         "attn_decoder": Conv2LetterDecoder,
         "attn_params": {
-          "tgt_emb_size": 512,
+            "tgt_emb_size": 512,
 
-          "pos_embedding": True,
+            "pos_embedding": True,
 
-          "attention_params": {
-              "attention_dim": 256,
-              "attention_type": "luong",
-              #"use_coverage": True,
-          },
+            "attention_params": {
+                "attention_dim": 256,
+                "attention_type": "luong",
+                #"use_coverage": True,
+            },
 
-          "fc_params": [384],
+            "fc_params": [384],
 
-          "convnet_params": {
-              "normalization": "batch_norm",
-              "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
-              "data_format": 'channels_last',
-              "convnet_layers": [
-                {
-                  "type": "tcn", "repeat": 2,
-                  "kernel_size": [5], "stride": [1],
-                  "num_channels": 512, "padding": "VALID",
-                  "dropout_keep_prob": 0.8,
-                },
-              ]
-          },
+            "convnet_params": {
+                "normalization": "batch_norm",
+                "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+                "data_format": 'channels_last',
+                "convnet_layers": [
+                    {
+                        "type": "tcn", "repeat": 2,
+                        "kernel_size": [5], "stride": [1],
+                        "num_channels": 512, "padding": "VALID",
+                        "dropout_keep_prob": 0.8,
+                    },
+                ]
+            },
 
-          "dropout_keep_prob": 0.8,
+            "dropout_keep_prob": 0.8,
         },
         "ctc_decoder": FullyConnectedCTCDecoder,
         "ctc_params": {
-          "initializer": tf.contrib.layers.xavier_initializer,
-          "use_language_model": False,
+            "initializer": tf.contrib.layers.xavier_initializer,
+            "use_language_model": False,
 
-          # params for decoding the sequence with language model
-          "beam_width": 512,
-          "lm_weight": 1.0,
-          "word_count_weight": 1.5,
-          "valid_word_count_weight": 2.5,
+            # params for decoding the sequence with language model
+            "beam_width": 512,
+            "lm_weight": 1.0,
+            "word_count_weight": 1.5,
+            "valid_word_count_weight": 2.5,
 
-          "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
-          "lm_binary_path": "language_model/lm.binary",
-          "lm_trie_path": "language_model/trie",
-          "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+            "decoder_library_path": "ctc_decoder_with_lm/libctc_decoder_with_kenlm.so",
+            "lm_binary_path": "language_model/lm.binary",
+            "lm_trie_path": "language_model/trie",
+            "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         },
     },
 
     "loss": MultiTaskCTCEntropyLoss,
     "loss_params": {
 
-      "seq_loss_params": {
-        "offset_target_by_one": False,
-        "average_across_timestep": True,
-        "do_mask": True
-      },
+        "seq_loss_params": {
+            "offset_target_by_one": False,
+            "average_across_timestep": True,
+            "do_mask": True
+        },
 
-      "ctc_loss_params": {
-      },
+        "ctc_loss_params": {
+        },
 
-      "lambda_value": 0.25,
-      "lambda_params": {
-        "values": [],
-        "boundaries": [],
-      }
+        "lambda_value": 0.25,
     }
 }
 

@@ -730,7 +730,7 @@ class ZhaopengLocationLayer(layers_base.Layer):
     )
 
   def __call__(self, prev_attention, query):
-    #To-Do add mixed precision support.
+    # To-Do add mixed precision support.
     #query = math_ops.cast(query, dtypes.float32)
     fertility = math_ops.sigmoid(math_ops.reduce_sum(
         math_ops.multiply(self.vbeta, query)))
@@ -826,7 +826,8 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         kernel_size = location_attention_params["kernel_size"]
         filters = location_attention_params["filters"]
 
-      self.location_layer = ChorowskiLocationLayer(filters, kernel_size, num_units)
+      self.location_layer = ChorowskiLocationLayer(
+          filters, kernel_size, num_units)
     elif location_attn_type == "zhaopeng":
       self.location_layer = ZhaopengLocationLayer(num_units, query_dim)
       self._use_coverage = True
@@ -861,6 +862,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       next_state = alignments
 
     return alignments, next_state
+
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.
@@ -1486,7 +1488,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         is a list, and its length does not match that of `attention_layer_size`.
     """
     super(AttentionWrapper, self).__init__(name=name)
-    rnn_cell_impl.assert_like_rnncell("cell",cell)
+    rnn_cell_impl.assert_like_rnncell("cell", cell)
     if isinstance(attention_mechanism, (list, tuple)):
       self._is_multi = True
       attention_mechanisms = attention_mechanism

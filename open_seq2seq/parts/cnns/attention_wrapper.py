@@ -52,6 +52,7 @@ __all__ = [
     "AttentionMechanism", "BahdanauAttention"
 ]
 
+
 class AttentionMechanism(object):
 
   @property
@@ -225,7 +226,7 @@ class _BaseAttentionMechanism(AttentionMechanism):
       )
     if score_mask_value is None:
       score_mask_value = dtypes.as_dtype(self._memory_layer.dtype
-                                        ).as_numpy_dtype(-np.inf)
+                                         ).as_numpy_dtype(-np.inf)
     self._probability_fn = lambda score, prev: (  # pylint:disable=g-long-lambda
         probability_fn(
             _maybe_mask_score(score, memory_sequence_length, score_mask_value),
@@ -322,8 +323,10 @@ def _multidim_dense(inputs, dense_layer):
     processed_inputs = array_ops.reshape(inputs, [-1, hidden_dim])
   processed_inputs = dense_layer(processed_inputs)
   if inputs.get_shape().ndims == 3:
-    processed_inputs = array_ops.reshape(processed_inputs, [batch_size, max_len, -1])
+    processed_inputs = array_ops.reshape(
+        processed_inputs, [batch_size, max_len, -1])
   return processed_inputs
+
 
 def _luong_score(query, keys, scale):
   """Implements Luong-style (multiplicative) scoring function.
@@ -388,6 +391,7 @@ def _luong_score(query, keys, scale):
     g = variable_scope.get_variable("attention_g", dtype=dtype, initializer=1.)
     score = g * score
   return score
+
 
 class LuongAttention(_BaseAttentionMechanism):
   """Implements Luong-style (multiplicative) attention scoring.
@@ -477,11 +481,13 @@ class LuongAttention(_BaseAttentionMechanism):
         `max_time`).
     """
     with variable_scope.variable_scope(None, "luong_attention", [query]):
-      processed_query = _multidim_dense(query, self.query_layer) if self.query_layer else query
+      processed_query = _multidim_dense(
+          query, self.query_layer) if self.query_layer else query
       score = _luong_score(processed_query, self._keys, self._scale)
     alignments = self._probability_fn(score, state)
     next_state = alignments
     return alignments, next_state
+
 
 def _bahdanau_score(processed_query, keys, normalize):
   """Implements Bahdanau-style (additive) scoring function.
@@ -523,7 +529,8 @@ def _bahdanau_score(processed_query, keys, normalize):
     processed_query = array_ops.expand_dims(processed_query, 2)
     keys = array_ops.expand_dims(keys, 1)
   else:
-    raise ValueError("The rank of the query should be either 2 or 3 but recieved {}".format(query_rank))
+    raise ValueError(
+        "The rank of the query should be either 2 or 3 but recieved {}".format(query_rank))
 
   v = variable_scope.get_variable("attention_v", [num_units], dtype=dtype)
   if normalize:
@@ -532,7 +539,7 @@ def _bahdanau_score(processed_query, keys, normalize):
         "attention_g",
         dtype=dtype,
         shape=[1],
-        #initializer=math.sqrt((1. / num_units)))
+        # initializer=math.sqrt((1. / num_units)))
         initializer=init_ops.constant_initializer(
             math.sqrt(1. / num_units), dtype=dtype
         )
@@ -644,7 +651,8 @@ class BahdanauAttention(_BaseAttentionMechanism):
         `max_time`).
     """
     with variable_scope.variable_scope(None, "bahdanau_attention", [query]):
-      processed_query = _multidim_dense(query, self.query_layer) if self.query_layer else query
+      processed_query = _multidim_dense(
+          query, self.query_layer) if self.query_layer else query
       score = _bahdanau_score(processed_query, self._keys, self._normalize)
     alignments = self._probability_fn(score, state)
     next_state = alignments
@@ -681,7 +689,7 @@ def _compute_attention(
       cell_output, state=attention_state
   )
   values = attention_mechanism.values
-  
+
   if alignments.get_shape().ndims == 2:
     # Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]
     expanded_alignments = array_ops.expand_dims(alignments, -2)
@@ -710,4 +718,3 @@ def _compute_attention(
     attention = context
 
   return attention, alignments, next_attention_state
-

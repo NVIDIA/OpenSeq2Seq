@@ -79,7 +79,7 @@ def plot_attention(alignments, pred_text, encoder_len, training_step):
       width=int(fig.get_figwidth() * 2)
   )
   summary = tf.Summary.Value(
-      tag="attention_summary_step_{}".format(int(training_step/2200)), image=summary)
+      tag="attention_summary_step_{}".format(int(training_step / 2200)), image=summary)
 
   plt.close(fig)
   return summary

@@ -169,10 +169,11 @@ class ListenAttendSpellDecoder(Decoder):
     dropout_keep_prob = self.params.get(
         'dropout_keep_prob', 1.0) if self._mode == "train" else 1.0
 
-    #To-Do Seperate encoder and decoder position embeddings
+    # To-Do Seperate encoder and decoder position embeddings
     use_positional_embedding = self.params.get("pos_embedding", False)
     use_language_model = self.params.get("use_language_model", False)
-    use_beam_search_decoder = (self._beam_width != 1) and (self._mode == "infer")
+    use_beam_search_decoder = (
+        self._beam_width != 1) and (self._mode == "infer")
 
     self._target_emb_layer = tf.get_variable(
         name='TargetEmbeddingMatrix',
@@ -242,7 +243,7 @@ class ListenAttendSpellDecoder(Decoder):
       if use_beam_search_decoder:
         plot_attention = False
         print("Plotting Attention is disabled for Beam Search Decoding")
-      if num_heads!=1:
+      if num_heads != 1:
         plot_attention = False
         print("Plotting Attention is disabled for Multi Head Attention")
       if self.params['dtype'] != tf.float32:
@@ -257,7 +258,8 @@ class ListenAttendSpellDecoder(Decoder):
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
       attention_params_dict["location_attn_type"] = attention_type
-      attention_params_dict["location_attention_params"] = {'filters': 10, 'kernel_size': 101}
+      attention_params_dict["location_attention_params"] = {
+          'filters': 10, 'kernel_size': 101}
     elif attention_type == "zhaopeng":
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
@@ -366,7 +368,7 @@ class ListenAttendSpellDecoder(Decoder):
 
     if plot_attention:
       alignments = tf.transpose(
-        final_state.alignment_history[0].stack(), [1, 0, 2]
+          final_state.alignment_history[0].stack(), [1, 0, 2]
       )
     else:
       alignments = None

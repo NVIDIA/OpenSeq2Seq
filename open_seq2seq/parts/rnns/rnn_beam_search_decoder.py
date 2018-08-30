@@ -200,7 +200,7 @@ class BeamSearchDecoder(decoder.Decoder):
       ValueError: If `start_tokens` is not a vector or
         `end_token` is not a scalar.
     """
-    rnn_cell_impl.assert_like_rnncell("cell",cell)
+    rnn_cell_impl.assert_like_rnncell("cell", cell)
     if (output_layer is not None and
             not isinstance(output_layer, layers_base.Layer)):
       raise TypeError(

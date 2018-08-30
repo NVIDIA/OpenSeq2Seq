@@ -229,34 +229,36 @@ class Conv2LetterDecoder(Decoder):
         padding = convnet_layers[idx_convnet]['padding']
         dropout_keep = convnet_layers[idx_convnet].get(
             'dropout_keep_prob', dropout_keep_prob) if training else 1.0
-        
+
         for idx_layer in range(layer_repeat):
           conv_feats = conv_block(
-                layer_type=layer_type,
-                name="conv{}{}".format(
-                    idx_convnet + 1, idx_layer + 1),
-                inputs=conv_feats,
-                filters=ch_out,
-                kernel_size=kernel_size,
-                activation_fn=activation_fn,
-                strides=strides,
-                padding=padding,
-                regularizer=regularizer,
-                training=training,
-                data_format=data_format,
-                use_residual=False,
-                **normalization_params
+              layer_type=layer_type,
+              name="conv{}{}".format(
+                  idx_convnet + 1, idx_layer + 1),
+              inputs=conv_feats,
+              filters=ch_out,
+              kernel_size=kernel_size,
+              activation_fn=activation_fn,
+              strides=strides,
+              padding=padding,
+              regularizer=regularizer,
+              training=training,
+              data_format=data_format,
+              use_residual=False,
+              **normalization_params
           )
           #conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
-          conv_query = tf.layers.dense(conv_feats, ch_out, name="query{}".format(idx_layer), use_bias=True, activation=None)
+          conv_query = tf.layers.dense(conv_feats, ch_out, name="query{}".format(
+              idx_layer), use_bias=True, activation=None)
           conv_query = conv_query + tgt_input_vectors
-          attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_query, None, None)
+          attn_output, alignments, next_state = _compute_attention(
+              attention_mechanism, conv_query, None, None)
           conv_feats = conv_feats + attn_output
           print(attn_output)
           print(conv_feats)
 
       #logits = output_projection_layer(tf.concat([conv_feats, attn_output], -1))
-      logits = output_projection_layer(conv_feats)      
+      logits = output_projection_layer(conv_feats)
       outputs = tf.argmax(logits, axis=-1)
       final_sequence_lengths = tgt_lengths
       print(alignments)

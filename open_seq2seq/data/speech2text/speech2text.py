@@ -150,7 +150,8 @@ class Speech2TextDataLayer(DataLayer):
           self.params['batch_size'],
           padded_shapes=([None, self.params['num_audio_features']],
                          1, [None], 1),
-          padding_values=(tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
+          padding_values=(
+              tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
       )
     else:
       indices = self.split_data(
@@ -211,7 +212,7 @@ class Speech2TextDataLayer(DataLayer):
   def create_interactive_placeholders(self):
     self._x = tf.placeholder(
         dtype=self.params['dtype'],
-        shape = [
+        shape=[
             self.params['batch_size'],
             None,
             self.params['num_audio_features']
@@ -253,8 +254,8 @@ class Speech2TextDataLayer(DataLayer):
     audio = np.reshape(
         audio,
         [self.params['batch_size'],
-        -1,
-        self.params['num_audio_features']]
+         -1,
+         self.params['num_audio_features']]
     )
     audio_length = np.reshape(audio_length, [self.params['batch_size']])
     x_id = np.reshape(x_id, [self.params['batch_size']])
@@ -262,7 +263,7 @@ class Speech2TextDataLayer(DataLayer):
     feed_dict = {
         self._x: audio,
         self._x_length: audio_length,
-        self._x_id:x_id,
+        self._x_id: x_id,
     }
     return feed_dict
 

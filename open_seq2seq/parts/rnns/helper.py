@@ -1,4 +1,4 @@
- # Copyright 2016 The TensorFlow Authors. All Rights Reserved.
+# Copyright 2016 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,6 +57,7 @@ def _unstack_ta(inp):
       dtype=inp.dtype, size=array_ops.shape(inp)[0],
       element_shape=inp.get_shape()[1:]).unstack(inp)
 
+
 class CustomHelper(Helper):
   """Base abstract class that allows the user to customize sampling."""
 
@@ -105,12 +106,12 @@ class CustomHelper(Helper):
 
   def sample(self, time, outputs, state, name=None):
     with ops.name_scope(
-        name, "%sSample" % type(self).__name__, (time, outputs, state)):
+            name, "%sSample" % type(self).__name__, (time, outputs, state)):
       return self._sample_fn(time=time, outputs=outputs, state=state)
 
   def next_inputs(self, time, outputs, state, sample_ids, name=None):
     with ops.name_scope(
-        name, "%sNextInputs" % type(self).__name__, (time, outputs, state)):
+            name, "%sNextInputs" % type(self).__name__, (time, outputs, state)):
       return self._next_inputs_fn(
           time=time, outputs=outputs, state=state, sample_ids=sample_ids)
 
@@ -192,6 +193,7 @@ class TrainingHelper(Helper):
       next_time = time + 1
       finished = (next_time >= self._sequence_length)
       all_finished = math_ops.reduce_all(finished)
+
       def read_from_ta(inp):
         return inp.read(next_time)
       next_inputs = control_flow_ops.cond(
@@ -475,7 +477,8 @@ class GreedyEmbeddingHelper(Helper):
       raise ValueError("end_token must be a scalar")
     self._start_inputs = self._embedding_fn(self._start_tokens)
     if self._use_pos_embedding:
-      self._start_inputs += self._pos_embedding_fn(ops.convert_to_tensor(0)) #change dtype for mixed precision
+      # change dtype for mixed precision
+      self._start_inputs += self._pos_embedding_fn(ops.convert_to_tensor(0))
 
   @property
   def batch_size(self):
