@@ -54,12 +54,6 @@ base_params = {
     "encoder_params": {
         "convnet_layers": [
             {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [11], "stride": [2],
-                "num_channels": 256, "padding": "SAME",
-                "dropout_keep_prob": 0.8,
-            },
-            {
                 "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
@@ -146,7 +140,6 @@ train_params = {
         ],
         "max_duration": 16.7,
         "shuffle": True,
-        "autoregressive": False,
     },
 }
 
@@ -160,7 +153,6 @@ eval_params = {
             "data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,
-        "autoregressive": False,
     },
 }
 
@@ -174,6 +166,5 @@ infer_params = {
             "data/librispeech/librivox-test-clean.csv",
         ],
         "shuffle": False,
-        "autoregressive": False,
     },
 }
