@@ -1,0 +1,782 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data.text2speech.text2speech &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>data.text2speech.text2speech</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for data.text2speech.text2speech</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">librosa</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
+
+<span class="kn">from</span> <span class="nn">open_seq2seq.data.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.data.utils</span> <span class="k">import</span> <span class="n">load_pre_existing_vocabulary</span>
+<span class="kn">from</span> <span class="nn">.speech_utils</span> <span class="k">import</span> <span class="n">get_speech_features_from_file</span><span class="p">,</span>\
+                          <span class="n">inverse_mel</span><span class="p">,</span> <span class="n">normalize</span><span class="p">,</span> <span class="n">denormalize</span>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer">[docs]</a><span class="k">class</span> <span class="nc">Text2SpeechDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Text-to-speech data layer class</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;dataset&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;LJ&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;num_audio_features&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;output_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;magnitude&#39;</span><span class="p">,</span> <span class="s1">&#39;mel&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;vocab_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;dataset_files&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="s1">&#39;feature_normalize&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;dataset_location&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s1">&#39;pad_to&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;mag_power&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;pad_EOS&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;pad_value&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;feature_normalize_mean&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;feature_normalize_std&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;trim&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;data_min&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;duration_min&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;duration_max&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;mel_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;slaney&#39;</span><span class="p">,</span> <span class="s1">&#39;htk&#39;</span><span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.__init__"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Text-to-speech data layer constructor.</span>
+
+<span class="sd">    See parent class for arguments description.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **dataset** (str) --- The dataset to use. Currently &#39;LJ&#39; for the LJSpeech</span>
+<span class="sd">      1.1 dataset is supported.</span>
+<span class="sd">    * **num_audio_features** (int) --- number of audio features to extract.</span>
+<span class="sd">    * **output_type** (str) --- could be either &quot;magnitude&quot;, or &quot;mel&quot;.</span>
+<span class="sd">    * **vocab_file** (str) --- path to vocabulary file.</span>
+<span class="sd">    * **dataset_files** (list) --- list with paths to all dataset .csv files.</span>
+<span class="sd">      File is assumed to be separated by &quot;|&quot;.</span>
+<span class="sd">    * **dataset_location** (string) --- string with path to directory where wavs</span>
+<span class="sd">      are stored.</span>
+<span class="sd">    * **feature_normalize** (bool) --- whether to normlize the data with a</span>
+<span class="sd">      preset mean and std</span>
+<span class="sd">    * **feature_normalize_mean** (bool) --- used for feature normalize.</span>
+<span class="sd">      Defaults to 0.</span>
+<span class="sd">    * **feature_normalize_std** (bool) --- used for feature normalize.</span>
+<span class="sd">      Defaults to 1.</span>
+<span class="sd">    * **mag_power** (int) --- the power to which the magnitude spectrogram is</span>
+<span class="sd">      scaled to. Defaults to 1.</span>
+<span class="sd">      1 for energy spectrogram</span>
+<span class="sd">      2 for power spectrogram</span>
+<span class="sd">      Defaults to 2.</span>
+<span class="sd">    * **pad_EOS** (bool) --- whether to apply EOS tokens to both the text and</span>
+<span class="sd">      the speech signal. Will pad at least 1 token regardless of pad_to value.</span>
+<span class="sd">      Defaults to True.</span>
+<span class="sd">    * **pad_value** (float) --- The value we pad the spectrogram with. Defaults</span>
+<span class="sd">      to np.log(data_min).</span>
+<span class="sd">    * **pad_to** (int) --- we pad such that the resulting datapoint is a</span>
+<span class="sd">      multiple of pad_to.</span>
+<span class="sd">      Defaults to 8.</span>
+<span class="sd">    * **trim** (bool) --- Whether to trim silence via librosa or not. Defaults</span>
+<span class="sd">      to False.</span>
+<span class="sd">    * **data_min** (float) --- min clip value prior to taking the log. Defaults</span>
+<span class="sd">      to 1e-5. Please change to 1e-2 if using htk mels.</span>
+<span class="sd">    * **duration_min** (int) --- Minimum duration in steps for speech signal.</span>
+<span class="sd">      All signals less than this will be cut from the training set. Defaults to</span>
+<span class="sd">      0.</span>
+<span class="sd">    * **duration_max** (int) --- Maximum duration in steps for speech signal.</span>
+<span class="sd">      All signals greater than this will be cut from the training set. Defaults </span>
+<span class="sd">      to 4000.</span>
+<span class="sd">    * **mel_type** (str): One of [&#39;slaney&#39;, &#39;htk&#39;]. Decides which algorithm to</span>
+<span class="sd">      use to compute mel specs.</span>
+<span class="sd">      Defaults to htk.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Text2SpeechDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="n">params</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span>
+        <span class="n">num_workers</span><span class="p">,</span>
+        <span class="n">worker_id</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dataset_location&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+          <span class="s2">&quot;dataset_location must be specified when using the LJSpeech&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;dataset&quot;</span>
+      <span class="p">)</span>
+    <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;raw_transcript&#39;</span><span class="p">,</span> <span class="s1">&#39;transcript&#39;</span><span class="p">]</span>
+    <span class="n">sep</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="se">\x7c</span><span class="s1">&#39;</span>
+    <span class="n">header</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span> <span class="o">=</span> <span class="mi">22050</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">=</span> <span class="mi">1024</span>
+
+    <span class="c1"># Character level vocab</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_pre_existing_vocabulary</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">],</span>
+        <span class="n">min_idx</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span>
+        <span class="n">read_chars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="c1"># Add the pad, start, and end chars</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;p&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;s&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;/s&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span>
+
+    <span class="n">n_mels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s2">&quot;mel&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;output_type&quot;</span><span class="p">]:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mel</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">htk</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;htk&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;slaney&#39;</span><span class="p">:</span>
+        <span class="n">htk</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span>
+          <span class="n">sr</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
+          <span class="n">n_mels</span><span class="o">=</span><span class="n">n_mels</span><span class="p">,</span>
+          <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+          <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mel</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;interactive&quot;</span><span class="p">]:</span>
+      <span class="k">return</span>
+
+    <span class="c1"># Load csv files</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">csvs</span> <span class="ow">in</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;dataset_files&#39;</span><span class="p">]:</span>
+      <span class="n">files</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span>
+          <span class="n">csvs</span><span class="p">,</span>
+          <span class="n">encoding</span><span class="o">=</span><span class="s1">&#39;utf-8&#39;</span><span class="p">,</span>
+          <span class="n">sep</span><span class="o">=</span><span class="n">sep</span><span class="p">,</span>
+          <span class="n">header</span><span class="o">=</span><span class="n">header</span><span class="p">,</span>
+          <span class="n">names</span><span class="o">=</span><span class="n">names</span><span class="p">,</span>
+          <span class="n">quoting</span><span class="o">=</span><span class="mi">3</span>
+      <span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="n">files</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+      <span class="n">cols</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;transcript&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">cols</span> <span class="o">=</span> <span class="s1">&#39;transcript&#39;</span>
+
+    <span class="n">all_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="n">cols</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span><span class="n">all_files</span><span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.split_data"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.split_data">[docs]</a>  <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;train&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="c1">#Decrease num_eval for dev, since most data is thrown out anyways</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">start</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+      <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+      <span class="n">start</span> <span class="o">=</span> <span class="n">size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">size</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">end</span> <span class="o">=</span> <span class="n">size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">*</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">data</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">end</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">data</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.build_graph"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Builds data reading graph.&quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shuffle&#39;</span><span class="p">]:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">shuffle</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_size</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
+
+    <span class="n">num_audio_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+          <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_transcript_element</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">line</span><span class="p">],</span>
+              <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>\
+               <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+              <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="p">),</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_max&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_max&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">txt</span><span class="p">,</span> <span class="n">txt_len</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">stop</span><span class="p">,</span> <span class="n">spec_len</span><span class="p">:</span>
+                <span class="n">tf</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span>
+                        <span class="n">spec_len</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_max&quot;</span><span class="p">,</span> <span class="mi">4000</span><span class="p">)</span>
+                    <span class="p">),</span>
+                    <span class="n">tf</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span>
+                        <span class="n">spec_len</span><span class="p">,</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;duration_min&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+                    <span class="p">)</span>
+                <span class="p">)</span>
+        <span class="p">)</span>
+      <span class="n">default_pad_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">))</span>
+      <span class="n">pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_value&quot;</span><span class="p">,</span> <span class="n">default_pad_value</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">]:</span>
+        <span class="n">pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span><span class="p">(</span><span class="n">pad_value</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+          <span class="n">padded_shapes</span><span class="o">=</span><span class="p">(</span>
+              <span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_audio_features</span><span class="p">],</span> <span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span>
+          <span class="p">),</span>
+          <span class="n">padding_values</span><span class="o">=</span><span class="p">(</span>
+              <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">pad_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]),</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="mf">1.</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]),</span> <span class="mi">0</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+          <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_parse_transcript_element</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">line</span><span class="p">],</span>
+              <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+              <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="p">),</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="n">padded_shapes</span><span class="o">=</span><span class="p">([</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>\
+                                  <span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+      <span class="n">text</span><span class="p">,</span> <span class="n">text_length</span><span class="p">,</span> <span class="n">spec</span><span class="p">,</span> <span class="n">stop_token_target</span><span class="p">,</span> <span class="n">spec_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span>\
+                                                                    <span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
+      <span class="c1"># need to explicitly set batch size dimension</span>
+      <span class="c1"># (it is employed in the model)</span>
+      <span class="n">spec</span><span class="o">.</span><span class="n">set_shape</span><span class="p">(</span>
+          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="n">num_audio_features</span><span class="p">]</span>
+      <span class="p">)</span>
+      <span class="n">stop_token_target</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span>
+      <span class="n">spec_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">spec_length</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]])</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">text</span><span class="p">,</span> <span class="n">text_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
+    <span class="n">text</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">])</span>
+    <span class="n">text_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">text_length</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]])</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">text</span><span class="p">,</span> <span class="n">text_length</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span>
+          <span class="n">spec</span><span class="p">,</span> <span class="n">stop_token_target</span><span class="p">,</span> <span class="n">spec_length</span>
+      <span class="p">]</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer._parse_audio_transcript_element"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer._parse_audio_transcript_element">[docs]</a>  <span class="k">def</span> <span class="nf">_parse_audio_transcript_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses tf.data element from TextLineDataset into audio and text.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      element: tf.data element from TextLineDataset.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      tuple: text_input text as `np.array` of ids, text_input length,</span>
+<span class="sd">      target audio features as `np.array`, stop token targets as `np.array`,</span>
+<span class="sd">      length of target sequence.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">audio_filename</span><span class="p">,</span> <span class="n">transcript</span> <span class="o">=</span> <span class="n">element</span>
+    <span class="n">transcript</span> <span class="o">=</span> <span class="n">transcript</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+      <span class="n">audio_filename</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">audio_filename</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+      <span class="n">transcript</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">audio_filename</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">audio_filename</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+      <span class="n">transcript</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_EOS&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">num_pad</span> <span class="o">=</span> <span class="n">pad_to</span> <span class="o">-</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">text_input</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="n">pad_to</span><span class="p">)</span>
+      <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">text_input</span><span class="p">,</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+          <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+          <span class="n">constant_values</span><span class="o">=</span><span class="p">(</span>
+              <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;s&gt;&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;/s&gt;&quot;</span><span class="p">])</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+      <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">text_input</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">)),</span>
+          <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+          <span class="n">constant_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;p&gt;&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+
+
+    <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dataset_location&#39;</span><span class="p">],</span> <span class="n">audio_filename</span> <span class="o">+</span> <span class="s2">&quot;.wav&quot;</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mel</span><span class="p">:</span>
+      <span class="n">features_type</span> <span class="o">=</span> <span class="s2">&quot;mel_htk&quot;</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;htk&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;slaney&#39;</span><span class="p">:</span>
+        <span class="n">features_type</span> <span class="o">=</span> <span class="s2">&quot;mel_slaney&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">features_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]</span>
+
+    <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+        <span class="n">file_path</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span>
+        <span class="n">features_type</span><span class="o">=</span><span class="n">features_type</span><span class="p">,</span>
+        <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
+        <span class="n">mag_power</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_power&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+        <span class="n">feature_normalize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">],</span>
+        <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+        <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+        <span class="n">trim</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;trim&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">data_min</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">stop_token_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)],</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_EOS&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">num_pad</span> <span class="o">=</span> <span class="n">pad_to</span> <span class="o">-</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">%</span> <span class="n">pad_to</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+      <span class="n">data_min</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">)</span>
+
+      <span class="n">pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_value&quot;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">data_min</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">]:</span>
+        <span class="n">pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_normalize</span><span class="p">(</span><span class="n">pad_value</span><span class="p">)</span>
+
+      <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">spectrogram</span><span class="p">,</span>
+          <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
+          <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+          <span class="n">constant_values</span><span class="o">=</span><span class="n">pad_value</span>
+      <span class="p">)</span>
+      <span class="n">stop_token_target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">stop_token_target</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">)),</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mi">1</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">stop_token_target</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>
+
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">text_input</span><span class="p">)</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">text_input</span><span class="p">),</span> \
+           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">text_input</span><span class="p">)]),</span> \
+           <span class="n">spectrogram</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
+           <span class="n">stop_token_target</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
+           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer._parse_transcript_element"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer._parse_transcript_element">[docs]</a>  <span class="k">def</span> <span class="nf">_parse_transcript_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">transcript</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses text from file and returns array of text features.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      transcript: the string to parse.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      tuple: target text as `np.array` of ids, target text length.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">transcript</span> <span class="o">=</span> <span class="n">transcript</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
+      <span class="n">transcript</span> <span class="o">=</span> <span class="n">unicode</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">transcript</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">)</span>
+    <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_EOS&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">num_pad</span> <span class="o">=</span> <span class="n">pad_to</span> <span class="o">-</span> <span class="p">((</span><span class="nb">len</span><span class="p">(</span><span class="n">text_input</span><span class="p">)</span> <span class="o">+</span> <span class="mi">2</span><span class="p">)</span> <span class="o">%</span> <span class="n">pad_to</span><span class="p">)</span>
+      <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">text_input</span><span class="p">,</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span>
+          <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+          <span class="n">constant_values</span><span class="o">=</span><span class="p">(</span>
+              <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;s&gt;&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;/s&gt;&quot;</span><span class="p">])</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+      <span class="n">text_input</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">text_input</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">)),</span>
+          <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+          <span class="n">constant_values</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s2">&quot;&lt;p&gt;&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">text_input</span><span class="p">),</span> \
+           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">text_input</span><span class="p">)])</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.parse_text_output"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.parse_text_output">[docs]</a>  <span class="k">def</span> <span class="nf">parse_text_output</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">text</span><span class="p">):</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">][</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">text</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">text</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.create_interactive_placeholders"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.create_interactive_placeholders">[docs]</a>  <span class="k">def</span> <span class="nf">create_interactive_placeholders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_text</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> <span class="kc">None</span><span class="p">]</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_text_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]]</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_text</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_text_length</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.create_feed_dict"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.create_feed_dict">[docs]</a>  <span class="k">def</span> <span class="nf">create_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the feed dict for interactive infer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      model_in (str): The string to be spoken.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      feed_dict (dict): Dictionary with values for the placeholders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_in</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+          <span class="s2">&quot;Text2Speech&#39;s interactive inference mode only supports string.&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;Got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model_in</span><span class="p">))</span>
+      <span class="p">)</span>
+    <span class="n">text</span><span class="p">,</span> <span class="n">text_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_transcript_element</span><span class="p">(</span><span class="n">model_in</span><span class="p">)</span>
+
+    <span class="n">text</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">text_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">text_length</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]])</span>
+
+    <span class="n">feed_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_text</span><span class="p">:</span> <span class="n">text</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_text_length</span><span class="p">:</span> <span class="n">text_length</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">feed_dict</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">sampling_rate</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">n_fft</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns the number of audio files.&quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Text2SpeechDataLayer.get_magnitude_spec"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec">[docs]</a>  <span class="k">def</span> <span class="nf">get_magnitude_spec</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrogram</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Returns an energy magnitude spectrogram. The processing depends on the</span>
+<span class="sd">    data layer params.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      spectrogram: output spec from model</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      mag_spec: mag spec</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">spectrogram</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mel</span><span class="p">:</span>
+      <span class="n">htk</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mel_type&#39;</span><span class="p">,</span> <span class="s1">&#39;htk&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;slaney&#39;</span><span class="p">:</span>
+        <span class="n">htk</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="k">return</span> <span class="n">inverse_mel</span><span class="p">(</span>
+          <span class="n">spectrogram</span><span class="p">,</span>
+          <span class="n">fs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_rate</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span><span class="p">,</span>
+          <span class="n">n_mels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span>
+          <span class="n">power</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_power&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+          <span class="n">feature_normalize</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">],</span>
+          <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+          <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">),</span>
+          <span class="n">mel_basis</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_mel_basis</span><span class="p">,</span>
+          <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+          <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+      <span class="p">)</span>
+    <span class="c1"># Else it is a mag spec</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;feature_normalize&quot;</span><span class="p">]:</span>
+        <span class="n">spectrogram</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_denormalize</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)</span>
+      <span class="c1"># Ensure that num_features is consistent with n_fft</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">num_pad</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_fft</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">spectrogram</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+            <span class="n">spectrogram</span><span class="p">,</span>
+            <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">)),</span>
+            <span class="s2">&quot;constant&quot;</span><span class="p">,</span>
+            <span class="n">constant_values</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_min&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">))</span>
+        <span class="p">)</span>
+      <span class="n">spectrogram</span> <span class="o">=</span> <span class="n">spectrogram</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mag_power&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+      <span class="n">mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">mag_spec</span></div>
+
+  <span class="k">def</span> <span class="nf">_normalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrogram</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">normalize</span><span class="p">(</span>
+        <span class="n">spectrogram</span><span class="p">,</span>
+        <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+        <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_denormalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">spectrogram</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">denormalize</span><span class="p">(</span>
+        <span class="n">spectrogram</span><span class="p">,</span>
+        <span class="n">mean</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_mean&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+        <span class="n">std</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;feature_normalize_std&quot;</span><span class="p">,</span> <span class="mf">1.</span><span class="p">)</span>
+    <span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

@@ -1,0 +1,468 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>parts.tacotron.tacotron_helper &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>parts.tacotron.tacotron_helper</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for parts.tacotron.tacotron_helper</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2016 The TensorFlow Authors. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Modified by blisc to enable support for tacotron models</span>
+<span class="sd">Custom Helper class that implements the tacotron decoder pre and post nets</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops</span> <span class="k">import</span> <span class="n">decoder</span>
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops.helper</span> <span class="k">import</span> <span class="n">Helper</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">tensor_shape</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">dtypes</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">control_flow_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">tensor_array_ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.util</span> <span class="k">import</span> <span class="n">nest</span>
+
+<span class="n">_transpose_batch_time</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">_transpose_batch_time</span>
+
+
+<span class="k">def</span> <span class="nf">_unstack_ta</span><span class="p">(</span><span class="n">inp</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">tensor_array_ops</span><span class="o">.</span><span class="n">TensorArray</span><span class="p">(</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="n">inp</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+      <span class="n">size</span><span class="o">=</span><span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">inp</span><span class="p">)[</span><span class="mi">0</span><span class="p">],</span>
+      <span class="n">element_shape</span><span class="o">=</span><span class="n">inp</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="mi">1</span><span class="p">:]</span>
+  <span class="p">)</span><span class="o">.</span><span class="n">unstack</span><span class="p">(</span><span class="n">inp</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="TacotronTrainingHelper"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper">[docs]</a><span class="k">class</span> <span class="nc">TacotronTrainingHelper</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Helper funciton for training. Can be used for teacher forcing or scheduled</span>
+<span class="sd">  sampling&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TacotronTrainingHelper.__init__"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">inputs</span><span class="p">,</span>
+      <span class="n">sequence_length</span><span class="p">,</span>
+      <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">sample_ids_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">sample_ids_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">model_dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+      <span class="n">mask_decoder_sequence</span><span class="o">=</span><span class="kc">None</span>
+  <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initializer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      inputs (Tensor): inputs of shape [batch, time, n_feats]</span>
+<span class="sd">      sequence_length (Tensor): length of each input. shape [batch]</span>
+<span class="sd">      prenet: prenet to use, currently disabled and used in tacotron decoder</span>
+<span class="sd">        instead.</span>
+<span class="sd">      sampling_prob (float): see tacotron 2 decoder</span>
+<span class="sd">      time_major (bool): (float): see tacotron 2 decoder</span>
+<span class="sd">      mask_decoder_sequence (bool): whether to pass finished when the decoder</span>
+<span class="sd">        passed the sequence_length input or to pass unfinished to dynamic_decode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_shape</span> <span class="o">=</span> <span class="n">tensor_shape</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_ids_shape</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_dtype</span> <span class="o">=</span> <span class="n">sample_ids_dtype</span> <span class="ow">or</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">time_major</span><span class="p">:</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="n">_transpose_batch_time</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tas</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="n">_unstack_ta</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_length</span> <span class="o">=</span> <span class="n">sequence_length</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">sequence_length</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_mask_decoder_sequence</span> <span class="o">=</span> <span class="n">mask_decoder_sequence</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="o">=</span> <span class="n">prenet</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_zero_inputs</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">inp</span><span class="p">:</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]),</span> <span class="n">inputs</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_inputs</span>
+    <span class="k">if</span> <span class="n">prenet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_zero_inputs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_last_dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span> <span class="o">=</span> <span class="n">model_dtype</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">sample_ids_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_shape</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">sample_ids_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_dtype</span>
+
+<div class="viewcode-block" id="TacotronTrainingHelper.initialize"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TacotronTrainingHelper.sample"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample">[docs]</a>  <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Fully deterministic, output should already be projected</span>
+    <span class="k">del</span> <span class="n">time</span><span class="p">,</span> <span class="n">state</span>
+    <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_ids</span></div>
+
+<div class="viewcode-block" id="TacotronTrainingHelper.next_inputs"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs">[docs]</a>  <span class="k">def</span> <span class="nf">next_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>
+    <span class="c1"># Applies the fully connected pre-net to the decoder</span>
+    <span class="c1"># Also decides whether the decoder is finished</span>
+    <span class="n">next_time</span> <span class="o">=</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask_decoder_sequence</span><span class="p">:</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="p">(</span><span class="n">next_time</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_length</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">])</span>
+    <span class="n">all_finished</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">finished</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_next_input</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">out</span><span class="p">):</span>
+      <span class="n">next_input</span> <span class="o">=</span> <span class="n">inp</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">next_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">next_input</span><span class="p">)</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">next_input</span>
+
+    <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">control_flow_ops</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+        <span class="n">all_finished</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="p">,</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">get_next_input</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_input_tas</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="TacotronHelper"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper">[docs]</a><span class="k">class</span> <span class="nc">TacotronHelper</span><span class="p">(</span><span class="n">Helper</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Helper for use during eval and infer. Does not use teacher forcing&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TacotronHelper.__init__"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">inputs</span><span class="p">,</span>
+      <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">sample_ids_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">sample_ids_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">mask_decoder_sequence</span><span class="o">=</span><span class="kc">None</span>
+  <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initializer.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      inputs (Tensor): inputs of shape [batch, time, n_feats]</span>
+<span class="sd">      prenet: prenet to use, currently disabled and used in tacotron decoder</span>
+<span class="sd">        instead.</span>
+<span class="sd">      sampling_prob (float): see tacotron 2 decoder</span>
+<span class="sd">      anneal_teacher_forcing (float): see tacotron 2 decoder</span>
+<span class="sd">      stop_gradient (float): see tacotron 2 decoder</span>
+<span class="sd">      time_major (bool): (float): see tacotron 2 decoder</span>
+<span class="sd">      mask_decoder_sequence (bool): whether to pass finished when the decoder</span>
+<span class="sd">        passed the sequence_length input or to pass unfinished to dynamic_decode</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_shape</span> <span class="o">=</span> <span class="n">tensor_shape</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">(</span><span class="n">sample_ids_shape</span> <span class="ow">or</span> <span class="p">[])</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_dtype</span> <span class="o">=</span> <span class="n">sample_ids_dtype</span> <span class="ow">or</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_mask_decoder_sequence</span> <span class="o">=</span> <span class="n">mask_decoder_sequence</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">time_major</span><span class="p">:</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="n">_transpose_batch_time</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="o">=</span> <span class="n">prenet</span>
+    <span class="k">if</span> <span class="n">prenet</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">=</span> <span class="n">inputs</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">sample_ids_shape</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_shape</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">sample_ids_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sample_ids_dtype</span>
+
+<div class="viewcode-block" id="TacotronHelper.initialize"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">finished</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">])</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="TacotronHelper.sample"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.sample">[docs]</a>  <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Fully deterministic, output should already be projected</span>
+    <span class="k">del</span> <span class="n">time</span><span class="p">,</span> <span class="n">state</span>
+    <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">sample_ids</span></div>
+
+<div class="viewcode-block" id="TacotronHelper.next_inputs"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.next_inputs">[docs]</a>  <span class="k">def</span> <span class="nf">next_inputs</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">time</span><span class="p">,</span>
+      <span class="n">outputs</span><span class="p">,</span>
+      <span class="n">state</span><span class="p">,</span>
+      <span class="n">stop_token_predictions</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="o">**</span><span class="n">unused_kwargs</span>
+  <span class="p">):</span>
+    <span class="c1"># Applies the fully connected pre-net to the decoder</span>
+    <span class="c1"># Also decides whether the decoder is finished</span>
+    <span class="n">next_time</span> <span class="o">=</span> <span class="n">time</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask_decoder_sequence</span><span class="p">:</span>
+      <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">stop_token_predictions</span><span class="p">)</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">stop_token_predictions</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">bool</span><span class="p">)</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">finished</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">finished</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">tile</span><span class="p">([</span><span class="kc">False</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">])</span>
+    <span class="n">all_finished</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">finished</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">get_next_input</span><span class="p">(</span><span class="n">out</span><span class="p">):</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">out</span>
+
+    <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">control_flow_ops</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+        <span class="n">all_finished</span><span class="p">,</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="p">,</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">get_next_input</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

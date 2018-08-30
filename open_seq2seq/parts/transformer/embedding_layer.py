@@ -27,12 +27,13 @@ class EmbeddingSharedWeights(tf.layers.Layer):
   """Calculates input embeddings and pre-softmax linear with shared weights."""
 
   def __init__(self, vocab_size, hidden_size, pad_vocab_to_eight=False, init_var=None,
-               embed_scale=True, pad_sym=0, mask_paddings=True):
+               embed_scale=True, pad_sym=0, mask_paddings=True, regularizer=None):
     super(EmbeddingSharedWeights, self).__init__()
     self.hidden_size = hidden_size
     self.embed_scale = embed_scale
     self.pad_sym = pad_sym
     self.mask_paddings = mask_paddings
+    self.regularizer = regularizer
 
     padf = lambda x: x if x % 8 == 0 else x + 8 - x % 8
     if pad_vocab_to_eight:
@@ -50,7 +51,8 @@ class EmbeddingSharedWeights(tf.layers.Layer):
       # Create and initialize weights. The random normal initializer was chosen
       # randomly, and works well.
       self.shared_weights = tf.get_variable("weights", [self.vocab_size, self.hidden_size],
-                                            initializer=tf.random_normal_initializer(0., self.init_var))
+                                            initializer=tf.random_normal_initializer(0., self.init_var), \
+                                            regularizer=self.regularizer)
 
     self.built = True
 
@@ -65,6 +67,11 @@ class EmbeddingSharedWeights(tf.layers.Layer):
         locations of the padding tokens in x.
     """
     with tf.name_scope("embedding"):
+      # fills out of bound values with padding symbol
+      out_bound_mask = tf.to_int32(x > (self.vocab_size - 1))
+      x *= 1 - out_bound_mask
+      x += out_bound_mask * tf.to_int32(self.pad_sym)
+
       embeddings = tf.gather(self.shared_weights, x)
       if self.embed_scale:
         # Scale embedding by the sqrt of the hidden size

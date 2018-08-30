@@ -85,9 +85,10 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Mixed precision training</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#prerequisites">Prerequisites</a></li>
@@ -101,6 +102,7 @@
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -256,9 +258,9 @@ situations, in some cases it is important to keep the gradient in float32 from
 the beginning of the computation. One common case when this is necessary is
 weight decay regularization. This regularization results in the following
 addition to the usual gradients with respect to the loss:
-<span class="math notranslate">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
-where <span class="math notranslate">\(\lambda\)</span> is usually on the order of
-<span class="math notranslate">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
+<span class="math notranslate nohighlight">\(\frac{\partial L}{\partial w} \mathrel{+}= 2\lambda w\)</span>,
+where <span class="math notranslate nohighlight">\(\lambda\)</span> is usually on the order of
+<span class="math notranslate nohighlight">\(\left[10^{-5}, 10^{-3}\right]\)</span>.
 Given that the weights are commonly initialized with small values, multiplying
 them with weight decay coefficient $lambda$ can result in numerical underflow.
 To overcome this problem we implemented the following design principles. First,

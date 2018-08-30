@@ -32,9 +32,7 @@
   <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
   <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Machine Translation" href="getting-started/nmt.html" />
-    <link rel="prev" title="Installation instructions" href="installation-instructions.html" /> 
+    <link rel="search" title="Search" href="search.html" /> 
 
   
   <script src="_static/js/modernizr.min.js"></script>
@@ -83,18 +81,16 @@
               
             
             
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting started</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="getting-started/nmt.html">Machine Translation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="getting-started/asr.html">Speech Recognition</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -162,6 +158,9 @@
             
   <div class="section" id="getting-started">
 <span id="id1"></span><h1>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<p>OpenSeq2Seq has models for <a class="reference internal" href="machine-translation.html#machine-translation"><span class="std std-ref">machine translation</span></a>,
+<a class="reference internal" href="speech-recognition.html#speech-recognition"><span class="std std-ref">speech recogtnition</span></a>, and <a class="reference internal" href="speech-synthesis.html#speech-synthesis"><span class="std std-ref">speech synthesis</span></a>.
+You can find detailed tutorials here:</p>
 <div class="toctree-wrapper compound">
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="getting-started/nmt.html">Machine Translation</a><ul>
@@ -174,7 +173,22 @@
 <li class="toctree-l2"><a class="reference internal" href="getting-started/asr.html#how-to-build-your-own-language-model">How to build your own language model</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="getting-started/tts.html">Text-To-Speech</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="getting-started/tts.html#how-to-train-the-model-on-ljspeech-dataset">How to train the model on LJSpeech dataset</a></li>
 </ul>
+</li>
+</ul>
+</div>
+<p>All models can be trained in float32 and  <a class="reference internal" href="mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision</span></a> on Volta GPUs.</p>
+<p>For multi-GPU and distribuited training we recommended install <a class="reference external" href="https://github.com/uber/horovod">Horovod</a> .
+When training with Horovod, you should use the following commands (don’t forget to substitute
+valid config_file path there and number of GPUs)</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
+</div>
+<p>To train without Horovod:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
 </div>
 </div>
 
@@ -183,15 +197,6 @@
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="getting-started/nmt.html" class="btn btn-neutral float-right" title="Machine Translation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="installation-instructions.html" class="btn btn-neutral" title="Installation instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

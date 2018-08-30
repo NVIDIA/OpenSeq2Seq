@@ -1,0 +1,633 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>models.text2speech &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>models.text2speech</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for models.text2speech</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">BytesIO</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
+<span class="kn">from</span> <span class="nn">scipy.io.wavfile</span> <span class="k">import</span> <span class="n">write</span>
+
+<span class="kn">import</span> <span class="nn">librosa</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
+<span class="n">mpl</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+
+<span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
+
+<div class="viewcode-block" id="plot_spectrograms"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.plot_spectrograms">[docs]</a><span class="k">def</span> <span class="nf">plot_spectrograms</span><span class="p">(</span>
+    <span class="n">specs</span><span class="p">,</span>
+    <span class="n">titles</span><span class="p">,</span>
+    <span class="n">stop_token_pred</span><span class="p">,</span>
+    <span class="n">audio_length</span><span class="p">,</span>
+    <span class="n">logdir</span><span class="p">,</span>
+    <span class="n">train_step</span><span class="p">,</span>
+    <span class="n">stop_token_target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">append</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="kc">False</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Helper function to create a image to be logged to disk or a tf.Summary to be</span>
+<span class="sd">  logged to tensorboard.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    specs (array): array of images to show</span>
+<span class="sd">    titles (array): array of titles. Must match lengths of specs array</span>
+<span class="sd">    stop_token_pred (np.array): np.array of size [time, 1] containing the stop</span>
+<span class="sd">      token predictions from the model.</span>
+<span class="sd">    audio_length (int): lenth of the predicted spectrogram</span>
+<span class="sd">    logdir (str): dir to save image file is save_to_tensorboard is disabled.</span>
+<span class="sd">    train_step (int): current training step</span>
+<span class="sd">    stop_token_target (np.array): np.array of size [time, 1] containing the stop</span>
+<span class="sd">      token target.</span>
+<span class="sd">    number (int): Current sample number (used if evaluating more than 1 sample</span>
+<span class="sd">      from a batch)</span>
+<span class="sd">    append (str): Optional string to append to file name eg. train, eval, infer</span>
+<span class="sd">    save_to_tensorboard (bool): If False, the created image is saved to the</span>
+<span class="sd">      logdir as a png file. If True, the function returns a tf.Summary object</span>
+<span class="sd">      containing the image and will be logged to the current tensorboard file.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    tf.Summary or None</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">num_figs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">specs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+  <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">num_figs</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">num_figs</span> <span class="o">*</span> <span class="mi">3</span><span class="p">))</span>
+
+  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">titles</span><span class="p">)):</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
+    <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">colour</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
+        <span class="n">spec</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span>
+    <span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
+    <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">colour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+  <span class="k">if</span> <span class="n">stop_token_target</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">stop_token_target</span> <span class="o">=</span> <span class="n">stop_token_target</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">stop_token_target</span><span class="p">,</span> <span class="s1">&#39;r.&#39;</span><span class="p">)</span>
+  <span class="n">stop_token_pred</span> <span class="o">=</span> <span class="n">stop_token_pred</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+  <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">stop_token_pred</span><span class="p">,</span> <span class="s1">&#39;g.&#39;</span><span class="p">)</span>
+  <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">audio_length</span><span class="p">)</span>
+  <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+  <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;stop token&quot;</span><span class="p">)</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
+  <span class="n">cb</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">colour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+  <span class="n">cb</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
+
+
+  <span class="k">if</span> <span class="n">save_to_tensorboard</span><span class="p">:</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_image&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">append</span><span class="p">)</span>
+    <span class="n">iostream</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">iostream</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span>
+        <span class="n">encoded_image_string</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span>
+        <span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figheight</span><span class="p">()</span> <span class="o">*</span> <span class="mi">300</span><span class="p">),</span>
+        <span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figwidth</span><span class="p">()</span> <span class="o">*</span> <span class="mi">300</span><span class="p">)</span>
+    <span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">image</span><span class="o">=</span><span class="n">summary</span><span class="p">)</span>
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">summary</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">append</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/Output_step</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+          <span class="n">logdir</span><span class="p">,</span> <span class="n">train_step</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">append</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/Output_step</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.png&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="n">train_step</span><span class="p">,</span> <span class="n">number</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">logdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+      <span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;./&quot;</span> <span class="o">+</span> <span class="n">name</span>
+    <span class="c1">#save</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+
+    <span class="n">plt</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="n">fig</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="save_audio"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.save_audio">[docs]</a><span class="k">def</span> <span class="nf">save_audio</span><span class="p">(</span>
+    <span class="n">magnitudes</span><span class="p">,</span>
+    <span class="n">logdir</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">,</span>
+    <span class="n">sampling_rate</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span>
+    <span class="n">number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;tensorboard&quot;</span><span class="p">,</span>
+    <span class="n">power</span><span class="o">=</span><span class="mf">1.5</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Helper function to create a wav file to be logged to disk or a tf.Summary to</span>
+<span class="sd">  be logged to tensorboard.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    magnitudes (np.array): np.array of size [time, n_fft/2 + 1] containing the</span>
+<span class="sd">      energy spectrogram.</span>
+<span class="sd">    logdir (str): dir to save image file is save_to_tensorboard is disabled.</span>
+<span class="sd">    step (int): current training step</span>
+<span class="sd">    sampling_rate (int): samplng rate in Hz of the audio to be saved.</span>
+<span class="sd">    n_fft (int): number of filters for fft and ifft.</span>
+<span class="sd">    number (int): Current sample number (used if evaluating more than 1 sample</span>
+<span class="sd">    mode (str): Optional string to append to file name eg. train, eval, infer</span>
+<span class="sd">      from a batch)</span>
+<span class="sd">    save_format: save_audio can either return the np.array containing the</span>
+<span class="sd">      generated sound, log the wav file to the disk, or return a tensorboard</span>
+<span class="sd">      summary object. Each method can be enabled by passing save_format as</span>
+<span class="sd">      &quot;np.array&quot;, &quot;tensorboard&quot;, or &quot;disk&quot; respectively.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    tf.Summary or None</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">signal</span> <span class="o">=</span> <span class="n">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="n">power</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;np.array&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">signal</span>
+  <span class="k">elif</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;tensorboard&quot;</span><span class="p">:</span>
+    <span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_audio&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
+    <span class="n">iostream</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">iostream</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Audio</span><span class="p">(</span><span class="n">encoded_audio_string</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">audio</span><span class="o">=</span><span class="n">summary</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">summary</span>
+  <span class="k">elif</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;disk&quot;</span><span class="p">:</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/sample_step</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.wav&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">logdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
+      <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;./&quot;</span> <span class="o">+</span> <span class="n">file_name</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">((</span>
+        <span class="s2">&quot;WARN: The save format passed to save_audio was not understood. No &quot;</span>
+        <span class="s2">&quot;sound files will be saved for the current step. &quot;</span>
+        <span class="s2">&quot;Received &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span>
+        <span class="s2">&quot;Expected one of &#39;np.array&#39;, &#39;tensorboard&#39;, or &#39;disk&#39;&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_format</span><span class="p">))</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="griffin_lim"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.griffin_lim">[docs]</a><span class="k">def</span> <span class="nf">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="p">,</span> <span class="n">n_iters</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Griffin-Lim algorithm to convert magnitude spectrograms to audio signals</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">phase</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="mi">2</span><span class="n">j</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="o">*</span><span class="n">magnitudes</span><span class="o">.</span><span class="n">shape</span><span class="p">))</span>
+  <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">magnitudes</span> <span class="o">*</span> <span class="n">phase</span>
+  <span class="n">signal</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">)</span>
+
+  <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iters</span><span class="p">):</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">))</span>
+    <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">magnitudes</span> <span class="o">*</span> <span class="n">phase</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">signal</span></div>
+
+
+<div class="viewcode-block" id="Text2Speech"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech">[docs]</a><span class="k">class</span> <span class="nc">Text2Speech</span><span class="p">(</span><span class="n">EncoderDecoderModel</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Text2Speech.get_required_params"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">EncoderDecoderModel</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;save_to_tensorboard&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">Text2Speech</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;save_to_tensorboard&quot;</span><span class="p">]</span>
+
+<div class="viewcode-block" id="Text2Speech.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">training_step</span><span class="p">):</span>
+    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">training_step</span>
+    <span class="n">spec</span><span class="p">,</span> <span class="n">stop_target</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
+    <span class="n">predicted_decoder_spec</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">stop_token_pred</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">y_sample</span> <span class="o">=</span> <span class="n">spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stop_target</span> <span class="o">=</span> <span class="n">stop_target</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">predicted_spec</span> <span class="o">=</span> <span class="n">predicted_decoder_spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_spec</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">attention_mask</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">stop_token_pred</span> <span class="o">=</span> <span class="n">stop_token_pred</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">audio_length</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">4</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">specs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">y_sample</span><span class="p">,</span>
+        <span class="n">predicted_spec</span><span class="p">,</span>
+        <span class="n">predicted_final_spec</span><span class="p">,</span>
+        <span class="n">attention_mask</span>
+    <span class="p">]</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;training data&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;decoder results&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;post net results&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;alignments&quot;</span>
+    <span class="p">]</span>
+
+    <span class="n">im_summary</span> <span class="o">=</span> <span class="n">plot_spectrograms</span><span class="p">(</span>
+        <span class="n">specs</span><span class="p">,</span>
+        <span class="n">titles</span><span class="p">,</span>
+        <span class="n">stop_token_pred</span><span class="p">,</span>
+        <span class="n">audio_length</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+        <span class="n">step</span><span class="p">,</span>
+        <span class="n">append</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span>
+        <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">,</span>
+        <span class="n">stop_token_target</span><span class="o">=</span><span class="n">stop_target</span>
+    <span class="p">)</span>
+
+    <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">im_summary</span>
+
+    <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_spec</span><span class="p">[:</span><span class="n">audio_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+      <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;tensorboard&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;disk&quot;</span>
+    <span class="n">wav_summary</span> <span class="o">=</span> <span class="n">save_audio</span><span class="p">(</span>
+        <span class="n">predicted_final_spec</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+        <span class="n">step</span><span class="p">,</span>
+        <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
+        <span class="n">save_format</span><span class="o">=</span><span class="n">save_format</span>
+    <span class="p">)</span>
+    <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">dict_to_log</span>
+    <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Text2Speech.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">training_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">step</span> <span class="o">=</span> <span class="n">training_step</span>
+    <span class="n">sample</span> <span class="o">=</span> <span class="n">results_per_batch</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">input_values</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">output_values</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">y_sample</span><span class="p">,</span> <span class="n">stop_target</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
+    <span class="n">predicted_spec</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+    <span class="n">stop_token_pred</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+    <span class="n">audio_length</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+    <span class="n">specs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">y_sample</span><span class="p">,</span>
+        <span class="n">predicted_spec</span><span class="p">,</span>
+        <span class="n">predicted_final_spec</span><span class="p">,</span>
+        <span class="n">attention_mask</span>
+    <span class="p">]</span>
+    <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s2">&quot;training data&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;decoder results&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;post net results&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;alignments&quot;</span>
+    <span class="p">]</span>
+
+    <span class="n">im_summary</span> <span class="o">=</span> <span class="n">plot_spectrograms</span><span class="p">(</span>
+        <span class="n">specs</span><span class="p">,</span>
+        <span class="n">titles</span><span class="p">,</span>
+        <span class="n">stop_token_pred</span><span class="p">,</span>
+        <span class="n">audio_length</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+        <span class="n">step</span><span class="p">,</span>
+        <span class="n">append</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span>
+        <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">,</span>
+        <span class="n">stop_token_target</span><span class="o">=</span><span class="n">stop_target</span>
+    <span class="p">)</span>
+
+    <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">im_summary</span>
+
+    <span class="k">if</span> <span class="n">audio_length</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+      <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_spec</span><span class="p">[:</span><span class="n">audio_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+
+      <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
+      <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+        <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;tensorboard&quot;</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;disk&quot;</span>
+      <span class="n">wav_summary</span> <span class="o">=</span> <span class="n">save_audio</span><span class="p">(</span>
+          <span class="n">predicted_final_spec</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+          <span class="n">step</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+          <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
+          <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span>
+          <span class="n">save_format</span><span class="o">=</span><span class="n">save_format</span>
+      <span class="p">)</span>
+      <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">dict_to_log</span>
+    <span class="k">return</span> <span class="p">{}</span></div>
+
+<div class="viewcode-block" id="Text2Speech.evaluate"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.evaluate">[docs]</a>  <span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="c1"># Need to reduce amount of data sent for horovod</span>
+    <span class="n">output_values</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span><span class="p">[</span><span class="o">-</span><span class="mi">3</span><span class="p">]</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">output_values</span><span class="p">]</span>
+    <span class="n">input_values</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">key</span><span class="p">:</span> <span class="p">[</span><span class="n">value</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">],</span> <span class="n">value</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="o">-</span><span class="mi">3</span><span class="p">]]</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">input_values</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Text2Speech.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Inference is not supported on horovod&#39;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Text2Speech.finalize_inference"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.finalize_inference">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;output_file is ignored for ts2&quot;</span><span class="p">)</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;results are logged to the logdir&quot;</span><span class="p">)</span>
+    <span class="n">dict_to_log</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">sample</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">):</span>
+      <span class="n">output_values</span> <span class="o">=</span> <span class="n">sample</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">predicted_final_specs</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">attention_mask</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+      <span class="n">stop_tokens</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span>
+      <span class="n">sequence_lengths</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span>
+
+      <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">predicted_final_specs</span><span class="p">)):</span>
+        <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_specs</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">attention_mask_sample</span> <span class="o">=</span> <span class="n">attention_mask</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+        <span class="n">stop_tokens_sample</span> <span class="o">=</span> <span class="n">stop_tokens</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+        <span class="n">specs</span> <span class="o">=</span> <span class="p">[</span><span class="n">predicted_final_spec</span><span class="p">,</span> <span class="n">attention_mask_sample</span><span class="p">]</span>
+        <span class="n">titles</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;final spectrogram&quot;</span><span class="p">,</span> <span class="s2">&quot;attention&quot;</span><span class="p">]</span>
+        <span class="n">audio_length</span> <span class="o">=</span> <span class="n">sequence_lengths</span><span class="p">[</span><span class="n">j</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="s2">&quot;mel&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]:</span>
+          <span class="n">mag_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
+          <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+          <span class="n">log_mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mag_spec</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+          <span class="n">specs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">log_mag_spec</span><span class="p">)</span>
+          <span class="n">titles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;linear spectrogram&quot;</span><span class="p">)</span>
+
+        <span class="n">im_summary</span> <span class="o">=</span> <span class="n">plot_spectrograms</span><span class="p">(</span>
+            <span class="n">specs</span><span class="p">,</span>
+            <span class="n">titles</span><span class="p">,</span>
+            <span class="n">stop_tokens_sample</span><span class="p">,</span>
+            <span class="n">audio_length</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+            <span class="mi">0</span><span class="p">,</span>
+            <span class="n">number</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="n">batch_size</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span>
+            <span class="n">append</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span>
+        <span class="p">)</span>
+        <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;image&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">im_summary</span>
+
+        <span class="k">if</span> <span class="n">audio_length</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+          <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_spec</span><span class="p">[:</span><span class="n">audio_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+          <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
+          <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+          <span class="n">wav_summary</span> <span class="o">=</span> <span class="n">save_audio</span><span class="p">(</span>
+              <span class="n">predicted_final_spec</span><span class="p">,</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
+              <span class="mi">0</span><span class="p">,</span>
+              <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+              <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
+              <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span>
+              <span class="n">number</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="n">batch_size</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span>
+              <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;disk&quot;</span>
+          <span class="p">)</span>
+
+          <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

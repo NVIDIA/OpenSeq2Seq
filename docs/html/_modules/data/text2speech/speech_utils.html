@@ -1,0 +1,479 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>data.text2speech.speech_utils &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>data.text2speech.speech_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for data.text2speech.speech_utils</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">librosa</span>
+<span class="kn">import</span> <span class="nn">librosa.filters</span>
+
+<div class="viewcode-block" id="get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_from_file</span><span class="p">(</span>
+    <span class="n">filename</span><span class="p">,</span>
+    <span class="n">num_features</span><span class="p">,</span>
+    <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;magnitude&#39;</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">hop_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">mag_power</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">feature_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">mean</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+    <span class="n">trim</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Helper function to retrieve spectrograms from wav files</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    filename (string): WAVE filename.</span>
+<span class="sd">    num_features (int): number of speech features in frequency domain.</span>
+<span class="sd">    features_type (string): &#39;magnitude&#39; or &#39;mel&#39;.</span>
+<span class="sd">    n_fft (int): size of analysis window in samples.</span>
+<span class="sd">    hop_length (int): stride of analysis window in samples.</span>
+<span class="sd">    mag_power (int): power to raise magnitude spectrograms (prior to dot product</span>
+<span class="sd">      with mel basis)</span>
+<span class="sd">      1 for energy spectrograms</span>
+<span class="sd">      2 fot power spectrograms</span>
+<span class="sd">    feature_normalize (bool): whether to normalize the data with mean and std</span>
+<span class="sd">    mean (float): if normalize is enabled, the mean to normalize to</span>
+<span class="sd">    std (float): if normalize is enabled, the deviation to normalize to</span>
+<span class="sd">    trim (bool): Whether to trim silence via librosa or not</span>
+<span class="sd">    data_min (float): min clip value prior to taking the log.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
+<span class="sd">    num_features].</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># load audio signal</span>
+  <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">sr</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">hop_length</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">hop_length</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">n_fft</span> <span class="o">/</span> <span class="mi">4</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">trim</span><span class="p">:</span>
+    <span class="n">signal</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">effects</span><span class="o">.</span><span class="n">trim</span><span class="p">(</span>
+        <span class="n">signal</span><span class="p">,</span>
+        <span class="n">frame_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_fft</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
+        <span class="n">hop_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hop_length</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+    <span class="p">)</span>
+  <span class="k">return</span> <span class="n">get_speech_features</span><span class="p">(</span>
+      <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span> <span class="n">n_fft</span><span class="p">,</span>
+      <span class="n">hop_length</span><span class="p">,</span> <span class="n">mag_power</span><span class="p">,</span> <span class="n">feature_normalize</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">data_min</span>
+  <span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="get_speech_features"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features</span><span class="p">(</span>
+    <span class="n">signal</span><span class="p">,</span>
+    <span class="n">fs</span><span class="p">,</span>
+    <span class="n">num_features</span><span class="p">,</span>
+    <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;magnitude&#39;</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">hop_length</span><span class="o">=</span><span class="mi">256</span><span class="p">,</span>
+    <span class="n">mag_power</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+    <span class="n">feature_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">mean</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
+    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot; Helper function to retrieve spectrograms from loaded wav</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    signal: signal loaded with librosa.</span>
+<span class="sd">    fs (int): sampling frequency in Hz.</span>
+<span class="sd">    num_features (int): number of speech features in frequency domain.</span>
+<span class="sd">    features_type (string): &#39;magnitude&#39; or &#39;mel&#39;.</span>
+<span class="sd">    n_fft (int): size of analysis window in samples.</span>
+<span class="sd">    hop_length (int): stride of analysis window in samples.</span>
+<span class="sd">    mag_power (int): power to raise magnitude spectrograms (prior to dot product</span>
+<span class="sd">      with mel basis)</span>
+<span class="sd">      1 for energy spectrograms</span>
+<span class="sd">      2 fot power spectrograms</span>
+<span class="sd">    feature_normalize(bool): whether to normalize the data with mean and std</span>
+<span class="sd">    mean(float): if normalize is enabled, the mean to normalize to</span>
+<span class="sd">    std(float): if normalize is enabled, the deviation to normalize to</span>
+<span class="sd">    data_min (float): min clip value prior to taking the log.</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
+<span class="sd">    num_features].</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;magnitude&#39;</span><span class="p">:</span>
+    <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
+    <span class="n">mag</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="n">mag_power</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mag</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">assert</span> <span class="n">num_features</span> <span class="o">&lt;=</span> <span class="n">n_fft</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> \
+        <span class="s2">&quot;num_features for spectrogram should be &lt;= (fs * window_size // 2 + 1)&quot;</span>
+
+    <span class="c1"># cut high frequency part</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features</span><span class="p">]</span>
+  <span class="k">if</span> <span class="s1">&#39;mel&#39;</span> <span class="ow">in</span> <span class="n">features_type</span><span class="p">:</span>
+    <span class="n">htk</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="s1">&#39;slaney&#39;</span> <span class="ow">in</span> <span class="n">features_type</span><span class="p">:</span>
+      <span class="n">htk</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">melspectrogram</span><span class="p">(</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+        <span class="n">sr</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
+        <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span><span class="p">,</span>
+        <span class="n">n_mels</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+        <span class="n">power</span><span class="o">=</span><span class="n">mag_power</span><span class="p">,</span>
+        <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+    <span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+  <span class="k">if</span> <span class="n">feature_normalize</span><span class="p">:</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">features</span></div>
+
+
+<div class="viewcode-block" id="get_mel"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.get_mel">[docs]</a><span class="k">def</span> <span class="nf">get_mel</span><span class="p">(</span>
+    <span class="n">log_mag_spec</span><span class="p">,</span>
+    <span class="n">fs</span><span class="o">=</span><span class="mi">22050</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">n_mels</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+    <span class="n">power</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span>
+    <span class="n">feature_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">htk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Method to get mel spectrograms from magnitude spectrograms</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    log_mag_spec (np.array): log of the magnitude spec</span>
+<span class="sd">    fs (int): sampling frequency in Hz</span>
+<span class="sd">    n_fft (int): size of fft window in samples</span>
+<span class="sd">    n_mels (int): number of mel features</span>
+<span class="sd">    power (float): power of the mag spectrogram</span>
+<span class="sd">    feature_normalize (bool): whether the mag spec was normalized</span>
+<span class="sd">    mean (float): normalization param of mag spec</span>
+<span class="sd">    std (float): normalization param of mag spec</span>
+<span class="sd">    mel_basis (np.array): optional pre-computed mel basis to save computational</span>
+<span class="sd">      time if passed. If not passed, it will call librosa to construct one</span>
+<span class="sd">    data_min (float): min clip value prior to taking the log.</span>
+<span class="sd">    htk (bool): whther to compute the mel spec with the htk or slaney algorithm</span>
+<span class="sd">    norm: Should be None for htk, and 1 for slaney</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: mel_spec with shape [time, n_mels]</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">mel_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">n_mels</span><span class="o">=</span><span class="n">n_mels</span><span class="p">,</span>
+        <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+    <span class="p">)</span>
+  <span class="n">log_mag_spec</span> <span class="o">=</span> <span class="n">log_mag_spec</span> <span class="o">*</span> <span class="n">power</span>
+  <span class="n">mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_mag_spec</span><span class="p">)</span>
+  <span class="n">mel_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mag_spec</span><span class="p">,</span> <span class="n">mel_basis</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+  <span class="n">mel_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mel_spec</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
+  <span class="k">if</span> <span class="n">feature_normalize</span><span class="p">:</span>
+    <span class="n">mel_spec</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">mel_spec</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">mel_spec</span></div>
+
+
+<div class="viewcode-block" id="inverse_mel"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.inverse_mel">[docs]</a><span class="k">def</span> <span class="nf">inverse_mel</span><span class="p">(</span>
+    <span class="n">log_mel_spec</span><span class="p">,</span>
+    <span class="n">fs</span><span class="o">=</span><span class="mi">22050</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">n_mels</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span>
+    <span class="n">power</span><span class="o">=</span><span class="mf">2.</span><span class="p">,</span>
+    <span class="n">feature_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">std</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+    <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">htk</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="n">norm</span><span class="o">=</span><span class="kc">None</span>
+<span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Reconstructs magnitude spectrogram from a mel spectrogram by multiplying it</span>
+<span class="sd">  with the transposed mel basis.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    log_mel_spec (np.array): log of the mel spec</span>
+<span class="sd">    fs (int): sampling frequency in Hz</span>
+<span class="sd">    n_fft (int): size of fft window in samples</span>
+<span class="sd">    n_mels (int): number of mel features</span>
+<span class="sd">    power (float): power of the mag spectrogram that was used to generate the</span>
+<span class="sd">      mel spec</span>
+<span class="sd">    feature_normalize (bool): whether the mel spec was normalized</span>
+<span class="sd">    mean (float): normalization param of mel spec</span>
+<span class="sd">    std (float): normalization param of mel spec</span>
+<span class="sd">    mel_basis (np.array): optional pre-computed mel basis to save computational</span>
+<span class="sd">      time if passed. If not passed, it will call librosa to construct one</span>
+<span class="sd">    htk (bool): whther to compute the mel spec with the htk or slaney algorithm</span>
+<span class="sd">    norm: Should be None for htk, and 1 for slaney</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: mag_spec with shape [time, n_fft/2 + 1]</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">mel_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">n_mels</span><span class="o">=</span><span class="n">n_mels</span><span class="p">,</span>
+        <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+        <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+    <span class="p">)</span>
+  <span class="k">if</span> <span class="n">feature_normalize</span><span class="p">:</span>
+    <span class="n">log_mel_spec</span> <span class="o">=</span> <span class="n">denormalize</span><span class="p">(</span><span class="n">log_mel_spec</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
+  <span class="n">mel_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">log_mel_spec</span><span class="p">)</span>
+  <span class="n">mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mel_spec</span><span class="p">,</span> <span class="n">mel_basis</span><span class="p">)</span>
+  <span class="n">mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">mag_spec</span><span class="p">,</span> <span class="mf">1.</span> <span class="o">/</span> <span class="n">power</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">mag_spec</span></div>
+
+
+<div class="viewcode-block" id="normalize"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.normalize">[docs]</a><span class="k">def</span> <span class="nf">normalize</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Normalizes features with the specificed mean and std</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">std</span></div>
+
+
+<div class="viewcode-block" id="denormalize"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.denormalize">[docs]</a><span class="k">def</span> <span class="nf">denormalize</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Normalizes features with the specificed mean and std</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">return</span> <span class="n">features</span> <span class="o">*</span> <span class="n">std</span> <span class="o">+</span> <span class="n">mean</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

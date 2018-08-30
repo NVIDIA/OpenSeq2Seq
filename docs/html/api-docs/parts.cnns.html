@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="utils" href="utils.html" />
+    <link rel="next" title="tacotron" href="parts.tacotron.html" />
     <link rel="prev" title="convs2s" href="parts.convs2s.html" /> 
 
   
@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
@@ -106,6 +108,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-parts.cnns.conv_blocks">conv_blocks</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -185,33 +188,38 @@
 <span id="conv-blocks"></span><h2>conv_blocks<a class="headerlink" href="#module-parts.cnns.conv_blocks" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="parts.cnns.conv_blocks.conv_actv">
-<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_actv</code><span class="sig-paren">(</span><em>type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_actv" title="Permalink to this definition">¶</a></dt>
-<dd><p>Helper function that applies convolution and activation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>type</strong> – the following types are supported
-‘conv1d’, ‘conv2d’</td>
-</tr>
-</tbody>
-</table>
+<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_actv</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>dilation=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_actv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that applies convolution and activation.
+:param layer_type: the following types are supported</p>
+<blockquote>
+<div>‘conv1d’, ‘conv2d’</div></blockquote>
 </dd></dl>
 
 <dl class="function">
 <dt id="parts.cnns.conv_blocks.conv_bn_actv">
-<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_bn_actv</code><span class="sig-paren">(</span><em>type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_bn_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_bn_actv" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_bn_actv</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em>, <em>dilation=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_bn_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_bn_actv" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function that applies convolution, batch norm and activation.
-Accepts inputs in ‘channels_last’ format only.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>type</strong> – the following types are supported
-‘conv1d’, ‘conv2d’</td>
-</tr>
-</tbody>
-</table>
+:param layer_type: the following types are supported</p>
+<blockquote>
+<div>‘conv1d’, ‘conv2d’</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.cnns.conv_blocks.conv_in_actv">
+<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_in_actv</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>dilation=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_in_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_in_actv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that applies convolution, instance norm and activation.
+:param layer_type: the following types are supported</p>
+<blockquote>
+<div>‘conv1d’, ‘conv2d’</div></blockquote>
+</dd></dl>
+
+<dl class="function">
+<dt id="parts.cnns.conv_blocks.conv_ln_actv">
+<code class="descclassname">parts.cnns.conv_blocks.</code><code class="descname">conv_ln_actv</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>dilation=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/cnns/conv_blocks.html#conv_ln_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.cnns.conv_blocks.conv_ln_actv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Helper function that applies convolution, layer norm and activation.
+:param layer_type: the following types are supported</p>
+<blockquote>
+<div>‘conv1d’, ‘conv2d’</div></blockquote>
 </dd></dl>
 
 </div>
@@ -225,7 +233,7 @@ Accepts inputs in ‘channels_last’ format only.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="utils.html" class="btn btn-neutral float-right" title="utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="parts.tacotron.html" class="btn btn-neutral float-right" title="tacotron" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="parts.convs2s.html" class="btn btn-neutral" title="convs2s" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

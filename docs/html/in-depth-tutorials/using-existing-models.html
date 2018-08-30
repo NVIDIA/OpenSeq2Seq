@@ -85,9 +85,10 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a><ul class="current">
@@ -101,6 +102,7 @@
 <li class="toctree-l2"><a class="reference internal" href="../extending.html">Adding new models</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -349,9 +351,11 @@ scaling is applied. If string, the corresponding automatic
 loss scaling algorithm is used. Must be one of ‘Backoff’
 of ‘LogMax’ (case insensitive). Only used when dtype=”mixed”. For details
 see <a class="reference internal" href="../mixed-precision.html#mixed-precision"><span class="std std-ref">mixed precision training</span></a> section in docs.</li>
+<li><strong>loss_scaling_params</strong> (dict) — dictionary containing loss scaling
+parameters.</li>
 <li><strong>summaries</strong> (list) — which summaries to log. Could contain
 “learning_rate”, “gradients”, “gradient_norm”, “global_gradient_norm”,
-“variables”, “variable_norm”.</li>
+“variables”, “variable_norm”, “loss_scale”.</li>
 <li><strong>iter_size</strong> (int) — use this parameter to emulate large batches.
 The gradients will be accumulated for <code class="docutils literal notranslate"><span class="pre">iter_size</span></code> number of steps before
 applying update.</li>

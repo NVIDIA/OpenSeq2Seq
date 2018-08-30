@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -157,12 +159,11 @@
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="kn">from</span> <span class="nn">.loss</span> <span class="k">import</span> <span class="n">Loss</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">mask_nans</span><span class="p">,</span> <span class="n">deco_print</span>
+<span class="kn">from</span> <span class="nn">.loss</span> <span class="k">import</span> <span class="n">Loss</span>
 
 
 <div class="viewcode-block" id="dense_to_sparse"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.dense_to_sparse">[docs]</a><span class="k">def</span> <span class="nf">dense_to_sparse</span><span class="p">(</span><span class="n">dense_tensor</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">):</span>
@@ -177,7 +178,7 @@
 <div class="viewcode-block" id="CTCLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;mask_nan&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;mask_nan&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="CTCLoss.__init__"><a class="viewcode-back" href="../../api-docs/losses.html#losses.ctc_loss.CTCLoss.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;ctc_loss&quot;</span><span class="p">):</span>
@@ -231,10 +232,10 @@
 
     <span class="c1"># Compute the CTC loss</span>
     <span class="n">total_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">ctc_loss</span><span class="p">(</span>
-      <span class="n">labels</span><span class="o">=</span><span class="n">dense_to_sparse</span><span class="p">(</span><span class="n">tgt_sequence</span><span class="p">,</span> <span class="n">tgt_length</span><span class="p">),</span>
-      <span class="n">inputs</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span>
-      <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
-      <span class="n">ignore_longer_outputs_than_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">labels</span><span class="o">=</span><span class="n">dense_to_sparse</span><span class="p">(</span><span class="n">tgt_sequence</span><span class="p">,</span> <span class="n">tgt_length</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span>
+        <span class="n">sequence_length</span><span class="o">=</span><span class="n">src_length</span><span class="p">,</span>
+        <span class="n">ignore_longer_outputs_than_inputs</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mask_nan</span><span class="p">:</span>

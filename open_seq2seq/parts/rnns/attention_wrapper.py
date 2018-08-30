@@ -1,4 +1,3 @@
-# pylint: skip-file
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -814,6 +813,7 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         score_mask_value=score_mask_value,
         name=name
     )
+
     self._num_units = num_units
     self._name = name
     self.use_bias = use_bias
@@ -861,7 +861,6 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       next_state = alignments
 
     return alignments, next_state
-
 
 def safe_cumprod(x, *args, **kwargs):
   """Computes cumprod of x in logspace using cumsum to avoid underflow.
@@ -1487,10 +1486,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
         is a list, and its length does not match that of `attention_layer_size`.
     """
     super(AttentionWrapper, self).__init__(name=name)
-    if not rnn_cell_impl._like_rnncell(cell):  # pylint: disable=protected-access
-      raise TypeError(
-          "cell must be an RNNCell, saw type: %s" % type(cell).__name__
-      )
+    rnn_cell_impl.assert_like_rnncell("cell",cell)
     if isinstance(attention_mechanism, (list, tuple)):
       self._is_multi = True
       attention_mechanisms = attention_mechanism

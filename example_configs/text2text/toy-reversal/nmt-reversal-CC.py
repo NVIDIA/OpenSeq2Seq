@@ -36,7 +36,7 @@ base_params = {
   "eval_steps": 50,
   "save_checkpoint_steps": 200,
 
-  "logdir": "ReversalTask-CC",
+  "logdir": "ReversalTask-Conv-Conv",
 
   "optimizer": "Adam",
   "optimizer_params": {"epsilon": 1e-9},
@@ -47,14 +47,14 @@ base_params = {
 
   "max_grad_norm": 3.0,
   "dtype": tf.float32,
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff",
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
-
     "src_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
@@ -71,12 +71,11 @@ base_params = {
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
-
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
+    "pos_embed": True,
 
     "conv_nchannels_kwidth": [(d_model, 3)] * num_layers,
 
@@ -113,6 +112,7 @@ train_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -127,6 +127,7 @@ eval_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -144,5 +145,6 @@ infer_params = {
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
+    "special_tokens_already_in_vocab": False,
   },
 }

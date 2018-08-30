@@ -86,12 +86,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -214,6 +216,21 @@
      <tr class="cg-1">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="api-docs/data.text2speech.html#module-data.text2speech"><code class="xref">data.text2speech</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/data.text2speech.html#module-data.text2speech.speech_utils"><code class="xref">data.text2speech.speech_utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/data.text2speech.html#module-data.text2speech.text2speech"><code class="xref">data.text2speech.text2speech</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-1">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="api-docs/data.text2text.html#module-data.text2text"><code class="xref">data.text2text</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-1">
@@ -262,6 +279,16 @@
        <td>&#160;&#160;&#160;
        <a href="api-docs/decoders.html#module-decoders.rnn_decoders"><code class="xref">decoders.rnn_decoders</code></a></td><td>
        <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/decoders.html#module-decoders.tacotron2_decoder"><code class="xref">decoders.tacotron2_decoder</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-2">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/decoders.html#module-decoders.transformer_decoder"><code class="xref">decoders.transformer_decoder</code></a></td><td>
+       <em></em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-e"><td></td><td>
        <strong>e</strong></td><td></td></tr>
@@ -309,6 +336,16 @@
      <tr class="cg-3">
        <td></td>
        <td>&#160;&#160;&#160;
+       <a href="api-docs/encoders.html#module-encoders.tacotron2_encoder"><code class="xref">encoders.tacotron2_encoder</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-3">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/encoders.html#module-encoders.transformer_encoder"><code class="xref">encoders.transformer_encoder</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-3">
+       <td></td>
+       <td>&#160;&#160;&#160;
        <a href="api-docs/encoders.html#module-encoders.w2l_encoder"><code class="xref">encoders.w2l_encoder</code></a></td><td>
        <em></em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
@@ -340,6 +377,11 @@
        <td>&#160;&#160;&#160;
        <a href="api-docs/losses.html#module-losses.sequence_loss"><code class="xref">losses.sequence_loss</code></a></td><td>
        <em></em></td></tr>
+     <tr class="cg-4">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/losses.html#module-losses.tacotron_loss"><code class="xref">losses.tacotron_loss</code></a></td><td>
+       <em></em></td></tr>
      <tr class="pcap"><td></td><td>&#160;</td><td></td></tr>
      <tr class="cap" id="cap-m"><td></td><td>
        <strong>m</strong></td><td></td></tr>
@@ -368,6 +410,11 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api-docs/models.html#module-models.speech2text"><code class="xref">models.speech2text</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-5">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/models.html#module-models.text2speech"><code class="xref">models.text2speech</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-5">
        <td></td>
@@ -481,6 +528,26 @@
        <td></td>
        <td>&#160;&#160;&#160;
        <a href="api-docs/parts.rnns.html#module-parts.rnns.utils"><code class="xref">parts.rnns.utils</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-7">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/parts.rnns.html#module-parts.rnns.zoneout"><code class="xref">parts.rnns.zoneout</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-7">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/parts.tacotron.html#module-parts.tacotron"><code class="xref">parts.tacotron</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-7">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/parts.tacotron.html#module-parts.tacotron.tacotron_decoder"><code class="xref">parts.tacotron.tacotron_decoder</code></a></td><td>
+       <em></em></td></tr>
+     <tr class="cg-7">
+       <td></td>
+       <td>&#160;&#160;&#160;
+       <a href="api-docs/parts.tacotron.html#module-parts.tacotron.tacotron_helper"><code class="xref">parts.tacotron.tacotron_helper</code></a></td><td>
        <em></em></td></tr>
      <tr class="cg-7">
        <td></td>

@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>DeepSpeech2 &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Wave2Letter+" href="wave2letter.html" />
+    <link rel="prev" title="Speech Recognition" href="../speech-recognition.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../speech-recognition.html#models">Models</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">DeepSpeech2</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#pre-trained-model">Pre-trained model</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="wave2letter.html">Wave2Letter+</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../speech-recognition.html">Speech Recognition</a> &raquo;</li>
+        
+      <li>DeepSpeech2</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/speech-recognition/deepspeech2.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="deepspeech2">
+<span id="id1"></span><h1>DeepSpeech2<a class="headerlink" href="#deepspeech2" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<p>DeepSpeech2 is a set of speech recognition models based on <a class="reference external" href="https://arxiv.org/abs/1512.02595">Baidu DeepSpeech2</a>. It is summarized in the following scheme:</p>
+<img alt="DeepSpeech2 architecture" class="align-center" src="../_images/ds2.png" />
+<p>The preprocessing part takes a raw audio waveform signal and converts it into a log-spectrogram of size (<em>N_timesteps</em>, <em>N_frequency_features</em>). <em>N_timesteps</em> depends on an original audio file’s duration, <em>N_frequency_features</em> can be assigned in the model’s configuration file as “<em>num_audio_features</em>” parameter.</p>
+<p>The Deep Neural Network (DNN) part produces a probability distribution <em>P_t(c)</em> over vocabulary characters <em>c</em> per each time step <em>t</em>.</p>
+<p>DeepSpeech2 is trained with CTC loss.</p>
+<p><a class="reference external" href="https://en.wikipedia.org/wiki/Word_error_rate">Word Error Rate (WER)</a> is the main evaluation metric. In order to get words out of a trained model one needs to use a decoder. Decoder converts a probability distribution over characters into text. There are two types of decoders that are usually employed with CTC-based models: greedy decoder and beam search decoder with language model re-scoring. A greedy decoder outputs the most probable character at each time step. It is very fast and it can produce transcripts that are very close to the original pronunciation. But it may introduce many small misspelling errors. But due to the nature of WER metric, even one character error makes a whole word incorrect. A beam search decoder with language model re-scoring allows checking many possible decodings (beams) at once with assigning a higher score for more probable N-grams according to a given language model. The language model helps to correct misspelling errors. The downside is that it is significantly slower than a greedy decoder.</p>
+<p>One of the best performing on LibriSpeech topologies can be found in <cite>example_configs/speech2text/ds2_large_8gpus.py</cite> configuration file.
+It consists of:</p>
+<ul class="simple">
+<li>two convolutional layers<ol class="arabic">
+<li>number of channels is 32, kernel size is [11, 41], stride is [2, 2]</li>
+<li>number of channels is 32, kernel size is [11, 21], stride is [1, 2]</li>
+</ol>
+</li>
+<li>five bidirectional GRU layers (size is 800)</li>
+<li>one fully connected layer (size is 1600)</li>
+<li>one projection layer (size is number of characters plus 1 for CTC blank symbol, 29)</li>
+</ul>
+<p>The model uses spectrograms where number of frequency features is 160 (that is, the frequency range without filtering).</p>
+</div>
+<div class="section" id="training">
+<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+<p>The model was trained with a Stochastic Gradient Descent with Momentum optimizer which was extended with Layer-wise Adaptive Rate Clipping (LARC) algorithm.
+The optimizer’s parameters are the following:</p>
+<ul class="simple">
+<li>learning rate policy is polynomial with initial learning rate = 0.001 and power = 0.5</li>
+<li>momentum is 0.9</li>
+<li>batch size per GPU is 16</li>
+</ul>
+<p>L2 weight decay (0.0005), dropout (0.5) and batch normalization were employed for regularization.</p>
+<p>In training mode preprocessing augments original audio clips with additive noise and slight time stretching (to make speech faster/slower and increase/decrease its pitch).
+Duration of audio samples in LibriSpeech train dataset varies from 0.8 to 30 seconds:</p>
+<img alt="LibriSpeech training samples' length" class="align-center" src="../_images/train_duration_histogram.png" />
+<p>Since 99.05% of the samples are shorter than 16.7 seconds, the preprocessing part ignores longer samples during the training. Such a filtering threshold can be set in the model’s configuration file as “<em>max_duration</em>” parameter.</p>
+</div>
+<div class="section" id="mixed-precision">
+<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
+<p>Mixed precision training works quite well for DeepSpeech2 even without dynamic loss scaling. It allows us to get the same WER level as float32.</p>
+</div>
+<div class="section" id="pre-trained-model">
+<h2>Pre-trained model<a class="headerlink" href="#pre-trained-model" title="Permalink to this headline">¶</a></h2>
+<p>Here is a pre-trained model which was trained for 200 epochs in a mixed precision mode.</p>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="40%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Model description</th>
+<th class="head">Greedy WER, %</th>
+<th class="head">Config file</th>
+<th class="head">Checkpoint</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="#"><span class="doc">DeepSpeech2</span></a></td>
+<td>6.71</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_8gpus_mp</a></td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="wave2letter.html" class="btn btn-neutral float-right" title="Wave2Letter+" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="../speech-recognition.html" class="btn btn-neutral" title="Speech Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

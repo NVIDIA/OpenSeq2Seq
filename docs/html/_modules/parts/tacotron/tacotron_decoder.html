@@ -1,0 +1,434 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>parts.tacotron.tacotron_decoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>parts.tacotron.tacotron_decoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for parts.tacotron.tacotron_decoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright 2016 The TensorFlow Authors. All Rights Reserved.</span>
+<span class="c1">#</span>
+<span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1"># you may not use this file except in compliance with the License.</span>
+<span class="c1"># You may obtain a copy of the License at</span>
+<span class="c1">#</span>
+<span class="c1">#     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">#</span>
+<span class="c1"># Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1"># distributed under the License is distributed on an &quot;AS IS&quot; BASIS,</span>
+<span class="c1"># WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.</span>
+<span class="c1"># See the License for the specific language governing permissions and</span>
+<span class="c1"># limitations under the License.</span>
+<span class="c1"># ==============================================================================</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Modified by blisc to enable support for tacotron models, specfically enables</span>
+<span class="sd">the prenet</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops</span> <span class="k">import</span> <span class="n">decoder</span>
+<span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops</span> <span class="k">import</span> <span class="n">helper</span> <span class="k">as</span> <span class="n">helper_py</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">tensor_shape</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">dtypes</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.layers</span> <span class="k">import</span> <span class="n">base</span> <span class="k">as</span> <span class="n">layers_base</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">rnn_cell_impl</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.util</span> <span class="k">import</span> <span class="n">nest</span>
+
+<div class="viewcode-block" id="BasicDecoderOutput"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.BasicDecoderOutput">[docs]</a><span class="k">class</span> <span class="nc">BasicDecoderOutput</span><span class="p">(</span>
+    <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span>
+        <span class="s2">&quot;BasicDecoderOutput&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;rnn_output&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_token_output&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_id&quot;</span><span class="p">)</span>
+    <span class="p">)</span>
+<span class="p">):</span>
+  <span class="k">pass</span></div>
+
+
+<div class="viewcode-block" id="TacotronDecoder"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder">[docs]</a><span class="k">class</span> <span class="nc">TacotronDecoder</span><span class="p">(</span><span class="n">decoder</span><span class="o">.</span><span class="n">Decoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Basic sampling decoder.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="TacotronDecoder.__init__"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">decoder_cell</span><span class="p">,</span>
+      <span class="n">helper</span><span class="p">,</span>
+      <span class="n">initial_decoder_state</span><span class="p">,</span>
+      <span class="n">attention_type</span><span class="p">,</span>
+      <span class="n">spec_layer</span><span class="p">,</span>
+      <span class="n">stop_token_layer</span><span class="p">,</span>
+      <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
+      <span class="n">train</span><span class="o">=</span><span class="kc">True</span>
+  <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize TacotronDecoder.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      decoder_cell: An `RNNCell` instance.</span>
+<span class="sd">      helper: A `Helper` instance.</span>
+<span class="sd">      initial_decoder_state: A (possibly nested tuple of...) tensors and</span>
+<span class="sd">        TensorArrays. The initial state of the RNNCell.</span>
+<span class="sd">      attention_type: The type of attention used</span>
+<span class="sd">      stop_token_layer: An instance of `tf.layers.Layer`, i.e.,</span>
+<span class="sd">        `tf.layers.Dense`. Stop token layer to apply to the RNN output to</span>
+<span class="sd">        predict when to stop the decoder</span>
+<span class="sd">      spec_layer: An instance of `tf.layers.Layer`, i.e.,</span>
+<span class="sd">        `tf.layers.Dense`. Output layer to apply to the RNN output to map</span>
+<span class="sd">        the ressult to a spectrogram</span>
+<span class="sd">      prenet: The prenet to apply to inputs</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">      TypeError: if `cell`, `helper` or `output_layer` have an incorrect type.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">assert_like_rnncell</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="n">decoder_cell</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">helper</span><span class="p">,</span> <span class="n">helper_py</span><span class="o">.</span><span class="n">Helper</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;helper must be a Helper, received: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">helper</span><span class="p">))</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">spec_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
+        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">spec_layer</span><span class="p">,</span> <span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">)</span>
+    <span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
+          <span class="s2">&quot;spec_layer must be a Layer, received: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">spec_layer</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cell</span> <span class="o">=</span> <span class="n">decoder_cell</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span> <span class="o">=</span> <span class="n">helper</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_initial_state</span> <span class="o">=</span> <span class="n">initial_decoder_state</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="o">=</span> <span class="n">spec_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span> <span class="o">=</span> <span class="n">stop_token_layer</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_attention_type</span> <span class="o">=</span> <span class="n">attention_type</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span> <span class="o">=</span> <span class="n">dtype</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="o">=</span> <span class="n">prenet</span>
+
+    <span class="k">if</span> <span class="n">train</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">batch_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">batch_size</span>
+
+  <span class="k">def</span> <span class="nf">_rnn_output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cell</span><span class="o">.</span><span class="n">output_size</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">size</span>
+
+    <span class="n">output_shape_with_unknown_batch</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">tensor_shape</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">size</span>
+    <span class="p">)</span>
+    <span class="n">layer_output_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span><span class="o">.</span><span class="n">compute_output_shape</span><span class="p">(</span>
+        <span class="n">output_shape_with_unknown_batch</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">layer_output_shape</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">_stop_token_output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="n">size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cell</span><span class="o">.</span><span class="n">output_size</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">return</span> <span class="n">size</span>
+
+    <span class="n">output_shape_with_unknown_batch</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
+        <span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">tensor_shape</span><span class="o">.</span><span class="n">TensorShape</span><span class="p">([</span><span class="kc">None</span><span class="p">])</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">size</span>
+    <span class="p">)</span>
+    <span class="n">layer_output_shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span><span class="o">.</span><span class="n">compute_output_shape</span><span class="p">(</span>
+        <span class="n">output_shape_with_unknown_batch</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">layer_output_shape</span><span class="p">)</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span>
+        <span class="n">rnn_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rnn_output_size</span><span class="p">(),</span>
+        <span class="n">stop_token_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_output_size</span><span class="p">(),</span>
+        <span class="n">sample_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample_ids_shape</span>
+    <span class="p">)</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_dtype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="c1"># dtype = nest.flatten(self._decoder_initial_state)[0].dtype</span>
+    <span class="k">return</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span>
+        <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rnn_output_size</span><span class="p">()),</span>
+        <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_output_size</span><span class="p">()),</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample_ids_dtype</span>
+    <span class="p">)</span>
+
+<div class="viewcode-block" id="TacotronDecoder.initialize"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Initialize the decoder.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      name: Name scope for any created operations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">state</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_decoder_initial_state</span><span class="p">,</span> <span class="p">)</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span> <span class="o">+</span> <span class="n">state</span></div>
+
+<div class="viewcode-block" id="TacotronDecoder.step"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.step">[docs]</a>  <span class="k">def</span> <span class="nf">step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Perform a decoding step.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      time: scalar `int32` tensor.</span>
+<span class="sd">      inputs: A (structure of) input tensors.</span>
+<span class="sd">      state: A (structure of) state tensors and TensorArrays.</span>
+<span class="sd">      name: Name scope for any created operations.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      `(outputs, next_state, next_inputs, finished)`.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;BasicDecoderStep&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">time</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">)):</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">inputs</span><span class="p">)</span>
+
+      <span class="n">cell_outputs</span><span class="p">,</span> <span class="n">cell_state</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_decoder_cell</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
+
+      <span class="c1"># If we are training and not using scheduled sampling, we can move</span>
+      <span class="c1"># all projection layers outside decoder,</span>
+      <span class="c1"># else we must project inside decoder</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">spec_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_spec_layer</span><span class="p">(</span><span class="n">cell_outputs</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">spec_outputs</span> <span class="o">=</span> <span class="n">cell_outputs</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">stop_token_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_layer</span><span class="p">(</span><span class="n">spec_outputs</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">stop_token_output</span> <span class="o">=</span> <span class="n">cell_outputs</span>
+
+
+      <span class="n">sample_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
+          <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">cell_state</span>
+      <span class="p">)</span>
+      <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">next_inputs</span><span class="p">(</span>
+          <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span>
+          <span class="n">outputs</span><span class="o">=</span><span class="n">spec_outputs</span><span class="p">,</span>
+          <span class="n">state</span><span class="o">=</span><span class="n">cell_state</span><span class="p">,</span>
+          <span class="n">sample_ids</span><span class="o">=</span><span class="n">sample_ids</span><span class="p">,</span>
+          <span class="n">stop_token_predictions</span><span class="o">=</span><span class="n">stop_token_output</span>
+      <span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">stop_token_output</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">finished</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

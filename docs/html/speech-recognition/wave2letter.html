@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Wave2Letter+ &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Speech Synthesis" href="../speech-synthesis.html" />
+    <link rel="prev" title="DeepSpeech2" href="deepspeech2.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../speech-recognition.html#models">Models</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="deepspeech2.html">DeepSpeech2</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Wave2Letter+</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../speech-recognition.html">Speech Recognition</a> &raquo;</li>
+        
+      <li>Wave2Letter+</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/speech-recognition/wave2letter.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="wave2letter">
+<span id="id1"></span><h1>Wave2Letter+<a class="headerlink" href="#wave2letter" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<p>This is a fully convolutional model, based on Facebook’s <a class="reference external" href="https://arxiv.org/abs/1609.03193">Wave2Letter</a> and <a class="reference external" href="https://arxiv.org/abs/1712.09444">Wave2LetterV2</a>  papers. The model consists of 17 1D-Convolutional Layers and 2 Fully Connected Layers:</p>
+<img alt="../_images/wave2letter.png" src="../_images/wave2letter.png" />
+<p>We preprocess the speech signal by sampling the raw audio waveform of the signal using a sliding window of 20ms with stride 10ms. We then extract log-mel filterbank energies of size 64 from these frames as input features to the model.</p>
+<p>We use Connectionist Temporal Classification (CTC) loss to train the model. The output of the model is a sequence of letters corresponding to the speech input. The vocabulary consists of all alphabets (a-z), space, and the apostrophe symbol, a total of 29 symbols including the blank symbol used by the CTC loss.</p>
+<p>We made the following changes to the original Wave2letter model:</p>
+<ul class="simple">
+<li>Clipped ReLU instead of Gated Linear Unit (GLU): ReLU allowed to almost half the number of model parameters, without decreasing the Word Error Rate (WER).</li>
+<li>Batch normalization(BN) instead of weight normalization (WN): we found that BN is more stable than WN, and the model is less sensitive to the weight intialziation.</li>
+<li>The CTC loss instead of the Auto SeGmentation (ASG).</li>
+<li>LARC instead of gradient clipping.</li>
+</ul>
+<p>In addition to this, we use stride 2 in the first convolutional layer. This decreased the time (T) dimension of the sequence, which reduced the model footprint and improved the training time by ~1.6x.
+We have also observed a slight improvement after adding a dilation 2 for the last convolutional layer to increase the receptive-field of the model.
+Both striding and dilation improved the WER from 7.17% to 6.67%.</p>
+</div>
+<div class="section" id="training">
+<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+<p>We achieved a WER of 6.58 (the WER in the paper is 6.7) on the librispeech test-clean dataset using greedy decoding:</p>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="33%" />
+<col width="33%" />
+<col width="33%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">LibriSpeech Dataset</th>
+<th class="head">WER %, Greedy Decoding</th>
+<th class="head">WER %, Beam Search: 2048</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td>dev-clean</td>
+<td>6.67%</td>
+<td>4.77%</td>
+</tr>
+<tr class="row-odd"><td>test-clean</td>
+<td>6.58%</td>
+<td>4.92%</td>
+</tr>
+<tr class="row-even"><td>dev-other</td>
+<td>18.68%</td>
+<td>13.88%</td>
+</tr>
+<tr class="row-odd"><td>test-other</td>
+<td>19.61%</td>
+<td>15.01%</td>
+</tr>
+</tbody>
+</table>
+<p>We used Open SLR language model while decoding with beam search using a beam width of 2048.</p>
+<p>The checkpoint for the model trained using the configuration <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a> can be found at <a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">Checkpoint</a>.</p>
+<p>Our best model was trained for 200 epochs on 8 GPUs. We use:</p>
+<ul class="simple">
+<li>SGD with momentum = 0.9</li>
+<li>a learning rate with polynomial decay using an initial learning rate of 0.05</li>
+<li>Layer-wise Adative Rate Control (LARC) with eta = 0.001</li>
+<li>weight-decay = 0.001</li>
+<li>dropout (varible per layer: 0.2-0.4)</li>
+<li>batch size of 32 per GPU for float32 and 64 for mixed-precision.</li>
+</ul>
+</div>
+<div class="section" id="mixed-precision">
+<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
+<p>To use mixed precision (float16) during training we made a few minor changes to the model. Tensorflow by default calls Keras Batch Normalization on 3D input (BxTxC) and cuDNN on 4D input (BxHxWxC). In order to use cuDNN’s BN we added an extra dimension to the 3D input to make it a 4D tensor (BxTx1xC).</p>
+<p>The mixed precison model reached the same WER for the same number of steps as float32. The training time decreased by ~1.5x on 8-GPU DGX1 system, and by ~3x on 1-GPU and 4-GPUs when using Horovod.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../speech-synthesis.html" class="btn btn-neutral float-right" title="Speech Synthesis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="deepspeech2.html" class="btn btn-neutral" title="DeepSpeech2" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

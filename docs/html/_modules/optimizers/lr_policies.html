@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -162,7 +164,6 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
@@ -232,15 +233,15 @@
 <span class="sd">    learning rate at step ``global_step``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">new_lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
-    <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">begin_decay_at</span><span class="p">,</span>
-    <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
-    <span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">exponential_decay</span><span class="p">(</span>
-      <span class="n">learning_rate</span><span class="p">,</span>
-      <span class="n">global_step</span> <span class="o">-</span> <span class="n">begin_decay_at</span><span class="p">,</span>
-      <span class="n">decay_steps</span><span class="p">,</span>
-      <span class="n">decay_rate</span><span class="p">,</span>
-      <span class="n">staircase</span><span class="o">=</span><span class="n">use_staircase_decay</span><span class="p">),</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span>
+      <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">begin_decay_at</span><span class="p">,</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">exponential_decay</span><span class="p">(</span>
+          <span class="n">learning_rate</span><span class="p">,</span>
+          <span class="n">global_step</span> <span class="o">-</span> <span class="n">begin_decay_at</span><span class="p">,</span>
+          <span class="n">decay_steps</span><span class="p">,</span>
+          <span class="n">decay_rate</span><span class="p">,</span>
+          <span class="n">staircase</span><span class="o">=</span><span class="n">use_staircase_decay</span><span class="p">),</span>
+      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">,</span>
   <span class="p">)</span>
   <span class="n">final_lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">min_lr</span><span class="p">,</span> <span class="n">new_lr</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">final_lr</span></div>
@@ -266,22 +267,23 @@
 <span class="sd">    learning rate at step ``global_step``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
-    <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">begin_decay_at</span><span class="p">,</span>
-    <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
-    <span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">polynomial_decay</span><span class="p">(</span>
-      <span class="n">learning_rate</span><span class="p">,</span>
-      <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="o">-</span><span class="n">begin_decay_at</span><span class="p">,</span>
-      <span class="n">decay_steps</span><span class="o">=</span><span class="n">decay_steps</span><span class="p">,</span>
-      <span class="n">end_learning_rate</span><span class="o">=</span><span class="n">min_lr</span><span class="p">,</span>
-      <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="p">),</span>
-    <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span>
+      <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">begin_decay_at</span><span class="p">,</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">polynomial_decay</span><span class="p">(</span>
+          <span class="n">learning_rate</span><span class="p">,</span>
+          <span class="n">global_step</span><span class="o">=</span><span class="n">global_step</span><span class="o">-</span><span class="n">begin_decay_at</span><span class="p">,</span>
+          <span class="n">decay_steps</span><span class="o">=</span><span class="n">decay_steps</span><span class="p">,</span>
+          <span class="n">end_learning_rate</span><span class="o">=</span><span class="n">min_lr</span><span class="p">,</span>
+          <span class="n">power</span><span class="o">=</span><span class="n">power</span><span class="p">),</span>
+      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span>
   <span class="p">)</span>
   <span class="k">return</span> <span class="n">lr</span></div>
 
 
 <div class="viewcode-block" id="transformer_policy"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.lr_policies.transformer_policy">[docs]</a><span class="k">def</span> <span class="nf">transformer_policy</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">,</span> <span class="n">d_model</span><span class="p">,</span> <span class="n">warmup_steps</span><span class="p">,</span>
                        <span class="n">max_lr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">coefficient</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
-  <span class="sd">&quot;&quot;&quot;Transformer&#39;s learning rate policy from https://arxiv.org/pdf/1706.03762.pdf</span>
+  <span class="sd">&quot;&quot;&quot;Transformer&#39;s learning rate policy from</span>
+<span class="sd">  https://arxiv.org/pdf/1706.03762.pdf</span>
 <span class="sd">  with a hat (max_lr) (also called &quot;noam&quot; learning rate decay scheme).</span>
 
 <span class="sd">  Args:</span>
@@ -301,13 +303,13 @@
   <span class="n">ws</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">warmup_steps</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span>
 
   <span class="n">decay</span> <span class="o">=</span> <span class="n">coefficient</span> <span class="o">*</span> <span class="n">d_model</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
-    <span class="p">(</span><span class="n">step_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ws</span> <span class="o">**</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="p">(</span><span class="n">step_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">)</span>
+      <span class="p">(</span><span class="n">step_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">ws</span> <span class="o">**</span> <span class="o">-</span><span class="mf">1.5</span><span class="p">,</span> <span class="p">(</span><span class="n">step_num</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">**</span> <span class="o">-</span><span class="mf">0.5</span>
+  <span class="p">)</span>
 
   <span class="n">new_lr</span> <span class="o">=</span> <span class="n">decay</span> <span class="o">*</span> <span class="n">learning_rate</span>
   <span class="k">if</span> <span class="n">max_lr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">max_lr</span><span class="p">,</span> <span class="n">new_lr</span><span class="p">)</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="k">return</span> <span class="n">new_lr</span></div>
+  <span class="k">return</span> <span class="n">new_lr</span></div>
 </pre></div>
 
            </div>

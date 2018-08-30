@@ -3,14 +3,14 @@
 This package contains various decoder.
 A Decoder typically takes representation and produces data.
 """
-from .convs2s_decoder import ConvS2SDecoder
 from .decoder import Decoder
 from .fc_decoders import FullyConnectedCTCDecoder, FullyConnectedDecoder
 from .rnn_decoders import RNNDecoderWithAttention, \
                           BeamSearchRNNDecoderWithAttention
 from .transformer_decoder import TransformerDecoder
-from .tacotron2_decoder import Tacotron2Decoder
 from .convs2s_decoder import ConvS2SDecoder
+from .lm_decoders import FakeDecoder
+from .tacotron2_decoder import Tacotron2Decoder
 from .las_decoder import ListenAttendSpellDecoder
 from .jca_decoder import JointCTCAttentionDecoder
 from .c2l_decoder import Conv2LetterDecoder

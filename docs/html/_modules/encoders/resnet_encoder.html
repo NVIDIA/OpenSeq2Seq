@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -156,7 +158,6 @@
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">.resnet_blocks</span> <span class="k">import</span> <span class="n">conv2d_fixed_padding</span><span class="p">,</span> <span class="n">batch_norm</span><span class="p">,</span> <span class="n">block_layer</span><span class="p">,</span> \
@@ -166,29 +167,24 @@
 
 
 <div class="viewcode-block" id="ResNetEncoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.resnet_encoder.ResNetEncoder">[docs]</a><span class="k">class</span> <span class="nc">ResNetEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
-<div class="viewcode-block" id="ResNetEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.resnet_encoder.ResNetEncoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
-  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
-    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-    <span class="p">})</span></div>
-
 <div class="viewcode-block" id="ResNetEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.resnet_encoder.ResNetEncoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;resnet_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;block_sizes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
-      <span class="s1">&#39;block_strides&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
-      <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-      <span class="s1">&#39;bottleneck&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;final_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;first_num_filters&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;first_kernel_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;first_conv_stride&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;first_pool_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;first_pool_stride&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
-      <span class="s1">&#39;regularize_bn&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
-      <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-      <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;resnet_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;block_sizes&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s1">&#39;block_strides&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s1">&#39;version&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+        <span class="s1">&#39;bottleneck&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;final_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;first_num_filters&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;first_kernel_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;first_conv_stride&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;first_pool_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;first_pool_stride&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;regularize_bn&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">})</span></div>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;resnet_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
@@ -210,12 +206,12 @@
         <span class="n">bottleneck</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bottleneck&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
         <span class="n">final_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;final_size&#39;</span><span class="p">,</span> <span class="mi">2048</span><span class="p">)</span>
       <span class="n">block_sizes_dict</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="mi">18</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
-        <span class="mi">34</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-        <span class="mi">50</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-        <span class="mi">101</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-        <span class="mi">152</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
-        <span class="mi">200</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+          <span class="mi">18</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span>
+          <span class="mi">34</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+          <span class="mi">50</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+          <span class="mi">101</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">23</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+          <span class="mi">152</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
+          <span class="mi">200</span><span class="p">:</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">24</span><span class="p">,</span> <span class="mi">36</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span>
       <span class="p">}</span>
       <span class="n">block_sizes</span> <span class="o">=</span> <span class="n">block_sizes_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;resnet_size&#39;</span><span class="p">]]</span>
     <span class="k">else</span><span class="p">:</span>
@@ -261,8 +257,8 @@
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
 
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">conv2d_fixed_padding</span><span class="p">(</span>
-      <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">num_filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
-      <span class="n">strides</span><span class="o">=</span><span class="n">conv_stride</span><span class="p">,</span> <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span> <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">num_filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">conv_stride</span><span class="p">,</span> <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span> <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
     <span class="p">)</span>
     <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="s1">&#39;initial_conv&#39;</span><span class="p">)</span>
 
@@ -274,21 +270,21 @@
 
     <span class="k">if</span> <span class="n">first_pool_size</span><span class="p">:</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">max_pooling2d</span><span class="p">(</span>
-        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">pool_size</span><span class="o">=</span><span class="n">first_pool_size</span><span class="p">,</span>
-        <span class="n">strides</span><span class="o">=</span><span class="n">first_pool_stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
-        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">pool_size</span><span class="o">=</span><span class="n">first_pool_size</span><span class="p">,</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">first_pool_stride</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="s1">&#39;SAME&#39;</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
       <span class="p">)</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">identity</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="s1">&#39;initial_max_pool&#39;</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">num_blocks</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">block_sizes</span><span class="p">):</span>
       <span class="n">cur_num_filters</span> <span class="o">=</span> <span class="n">num_filters</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">**</span><span class="n">i</span><span class="p">)</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">block_layer</span><span class="p">(</span>
-        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">cur_num_filters</span><span class="p">,</span> <span class="n">bottleneck</span><span class="o">=</span><span class="n">bottleneck</span><span class="p">,</span>
-        <span class="n">block_fn</span><span class="o">=</span><span class="n">block_fn</span><span class="p">,</span> <span class="n">blocks</span><span class="o">=</span><span class="n">num_blocks</span><span class="p">,</span>
-        <span class="n">strides</span><span class="o">=</span><span class="n">block_strides</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-        <span class="n">name</span><span class="o">=</span><span class="s1">&#39;block_layer</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
-        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span> <span class="n">bn_regularizer</span><span class="o">=</span><span class="n">bn_regularizer</span><span class="p">,</span>
-        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="n">cur_num_filters</span><span class="p">,</span> <span class="n">bottleneck</span><span class="o">=</span><span class="n">bottleneck</span><span class="p">,</span>
+          <span class="n">block_fn</span><span class="o">=</span><span class="n">block_fn</span><span class="p">,</span> <span class="n">blocks</span><span class="o">=</span><span class="n">num_blocks</span><span class="p">,</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">block_strides</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;block_layer</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span> <span class="n">bn_regularizer</span><span class="o">=</span><span class="n">bn_regularizer</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
       <span class="p">)</span>
     <span class="k">if</span> <span class="n">version</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">batch_norm</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span>

@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>tacotron &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="utils" href="utils.html" />
+    <link rel="prev" title="cnns" href="parts.cnns.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
+<li class="toctree-l2"><a class="reference internal" href="encoders.html">encoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
+<li class="toctree-l2"><a class="reference internal" href="losses.html">losses</a></li>
+<li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="parts.html">parts</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="parts.rnns.html">rnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.transformer.html">transformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">tacotron</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.tacotron.tacotron_decoder">tacotron_decoder</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-parts.tacotron.tacotron_helper">tacotron_helper</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API documentation</a> &raquo;</li>
+        
+          <li><a href="parts.html">parts</a> &raquo;</li>
+        
+      <li>tacotron</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api-docs/parts.tacotron.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="module-parts.tacotron">
+<span id="tacotron"></span><h1>tacotron<a class="headerlink" href="#module-parts.tacotron" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-parts.tacotron.tacotron_decoder">
+<span id="tacotron-decoder"></span><h2>tacotron_decoder<a class="headerlink" href="#module-parts.tacotron.tacotron_decoder" title="Permalink to this headline">¶</a></h2>
+<p>Modified by blisc to enable support for tacotron models, specfically enables
+the prenet</p>
+<dl class="class">
+<dt id="parts.tacotron.tacotron_decoder.BasicDecoderOutput">
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">BasicDecoderOutput</code><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#BasicDecoderOutput"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.BasicDecoderOutput" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#parts.tacotron.tacotron_decoder.BasicDecoderOutput" title="parts.tacotron.tacotron_decoder.BasicDecoderOutput"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.tacotron.tacotron_decoder.BasicDecoderOutput</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder">
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">TacotronDecoder</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>attention_type</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
+<p>Basic sampling decoder.</p>
+<dl class="method">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>attention_type</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize TacotronDecoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>decoder_cell</strong> – An <cite>RNNCell</cite> instance.</li>
+<li><strong>helper</strong> – A <cite>Helper</cite> instance.</li>
+<li><strong>initial_decoder_state</strong> – A (possibly nested tuple of…) tensors and
+TensorArrays. The initial state of the RNNCell.</li>
+<li><strong>attention_type</strong> – The type of attention used</li>
+<li><strong>stop_token_layer</strong> – An instance of <cite>tf.layers.Layer</cite>, i.e.,
+<cite>tf.layers.Dense</cite>. Stop token layer to apply to the RNN output to
+predict when to stop the decoder</li>
+<li><strong>spec_layer</strong> – An instance of <cite>tf.layers.Layer</cite>, i.e.,
+<cite>tf.layers.Dense</cite>. Output layer to apply to the RNN output to map
+the ressult to a spectrogram</li>
+<li><strong>prenet</strong> – The prenet to apply to inputs</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – if <cite>cell</cite>, <cite>helper</cite> or <cite>output_layer</cite> have an incorrect type.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.batch_size">
+<code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>The batch size of input values.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initialize the decoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>name</strong> – Name scope for any created operations.</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.output_dtype">
+<code class="descname">output_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.output_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>A (possibly nested tuple of…) dtype[s].</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.output_size">
+<code class="descname">output_size</code><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.output_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>A (possibly nested tuple of…) integer[s] or <cite>TensorShape</cite> object[s].</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.step">
+<code class="descname">step</code><span class="sig-paren">(</span><em>time</em>, <em>inputs</em>, <em>state</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder.step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.step" title="Permalink to this definition">¶</a></dt>
+<dd><p>Perform a decoding step.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>time</strong> – scalar <cite>int32</cite> tensor.</li>
+<li><strong>inputs</strong> – A (structure of) input tensors.</li>
+<li><strong>state</strong> – A (structure of) state tensors and TensorArrays.</li>
+<li><strong>name</strong> – Name scope for any created operations.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><cite>(outputs, next_state, next_inputs, finished)</cite>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-parts.tacotron.tacotron_helper">
+<span id="tacotron-helper"></span><h2>tacotron_helper<a class="headerlink" href="#module-parts.tacotron.tacotron_helper" title="Permalink to this headline">¶</a></h2>
+<p>Modified by blisc to enable support for tacotron models
+Custom Helper class that implements the tacotron decoder pre and post nets</p>
+<dl class="class">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper">
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
+<p>Helper for use during eval and infer. Does not use teacher forcing</p>
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputs</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inputs</strong> (<em>Tensor</em>) – inputs of shape [batch, time, n_feats]</li>
+<li><strong>prenet</strong> – prenet to use, currently disabled and used in tacotron decoder
+instead.</li>
+<li><strong>sampling_prob</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>anneal_teacher_forcing</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>stop_gradient</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>time_major</strong> (<em>bool</em>) – (float): see tacotron 2 decoder</li>
+<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) – whether to pass finished when the decoder
+passed the sequence_length input or to pass unfinished to dynamic_decode</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.batch_size">
+<code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch size of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a scalar int32 tensor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>(initial_finished, initial_inputs)</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.next_inputs">
+<code class="descname">next_inputs</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>stop_token_predictions</em>, <em>name=None</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.next_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.next_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>(finished, next_inputs, next_state)</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronHelper.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>sample_ids</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_dtype">
+<code class="descname">sample_ids_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>DType of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a DType.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_shape">
+<code class="descname">sample_ids_shape</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronHelper.sample_ids_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of tensor returned by <cite>sample</cite>, excluding the batch dimension.</p>
+<p>Returns a <cite>TensorShape</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper">
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronTrainingHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
+<p>Helper funciton for training. Can be used for teacher forcing or scheduled
+sampling</p>
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>inputs</strong> (<em>Tensor</em>) – inputs of shape [batch, time, n_feats]</li>
+<li><strong>sequence_length</strong> (<em>Tensor</em>) – length of each input. shape [batch]</li>
+<li><strong>prenet</strong> – prenet to use, currently disabled and used in tacotron decoder
+instead.</li>
+<li><strong>sampling_prob</strong> (<em>float</em>) – see tacotron 2 decoder</li>
+<li><strong>time_major</strong> (<em>bool</em>) – (float): see tacotron 2 decoder</li>
+<li><strong>mask_decoder_sequence</strong> (<em>bool</em>) – whether to pass finished when the decoder
+passed the sequence_length input or to pass unfinished to dynamic_decode</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.batch_size">
+<code class="descname">batch_size</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.batch_size" title="Permalink to this definition">¶</a></dt>
+<dd><p>Batch size of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a scalar int32 tensor.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize">
+<code class="descname">initialize</code><span class="sig-paren">(</span><em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>(initial_finished, initial_inputs)</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs">
+<code class="descname">next_inputs</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em>, <em>**unused_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.next_inputs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>(finished, next_inputs, next_state)</cite>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample">
+<code class="descname">sample</code><span class="sig-paren">(</span><em>time</em>, <em>outputs</em>, <em>state</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>sample_ids</cite>.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_dtype">
+<code class="descname">sample_ids_dtype</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_dtype" title="Permalink to this definition">¶</a></dt>
+<dd><p>DType of tensor returned by <cite>sample</cite>.</p>
+<p>Returns a DType.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_shape">
+<code class="descname">sample_ids_shape</code><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample_ids_shape" title="Permalink to this definition">¶</a></dt>
+<dd><p>Shape of tensor returned by <cite>sample</cite>, excluding the batch dimension.</p>
+<p>Returns a <cite>TensorShape</cite>.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="utils.html" class="btn btn-neutral float-right" title="utils" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="parts.cnns.html" class="btn btn-neutral" title="cnns" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

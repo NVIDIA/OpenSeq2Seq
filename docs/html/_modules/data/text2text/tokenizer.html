@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -314,7 +316,7 @@
         <span class="s2">&quot;Subtokens argument passed into decode() must be a list of integers.&quot;</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">_unicode_to_native</span><span class="p">(</span>
-        <span class="n">_join_tokens_to_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subtoken_ids_to_tokens</span><span class="p">(</span><span class="n">subtokens</span><span class="p">)))</span></div>
+        <span class="n">join_tokens_to_string</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_subtoken_ids_to_tokens</span><span class="p">(</span><span class="n">subtokens</span><span class="p">)))</span></div>
 
 <div class="viewcode-block" id="Subtokenizer._subtoken_ids_to_tokens"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer._subtoken_ids_to_tokens">[docs]</a>  <span class="k">def</span> <span class="nf">_subtoken_ids_to_tokens</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">subtokens</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Convert list of int subtoken ids to a list of string tokens.&quot;&quot;&quot;</span>
@@ -328,7 +330,7 @@
     <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">escaped_tokens</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">token</span><span class="p">:</span>
-        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">_unescape_token</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">unescape_token</span><span class="p">(</span><span class="n">token</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">ret</span></div></div>
 
 
@@ -390,7 +392,7 @@
   <span class="k">return</span> <span class="n">ret</span></div>
 
 
-<div class="viewcode-block" id="_join_tokens_to_string"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.tokenizer._join_tokens_to_string">[docs]</a><span class="k">def</span> <span class="nf">_join_tokens_to_string</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+<div class="viewcode-block" id="join_tokens_to_string"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.tokenizer.join_tokens_to_string">[docs]</a><span class="k">def</span> <span class="nf">join_tokens_to_string</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Join a list of string tokens into a single string.&quot;&quot;&quot;</span>
   <span class="n">token_is_alnum</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">_ALPHANUMERIC_CHAR_SET</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
   <span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
@@ -422,7 +424,7 @@
   <span class="k">return</span> <span class="sa">u</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;_&quot;</span></div>
 
 
-<div class="viewcode-block" id="_unescape_token"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.tokenizer._unescape_token">[docs]</a><span class="k">def</span> <span class="nf">_unescape_token</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
+<div class="viewcode-block" id="unescape_token"><a class="viewcode-back" href="../../../api-docs/data.text2text.html#data.text2text.tokenizer.unescape_token">[docs]</a><span class="k">def</span> <span class="nf">unescape_token</span><span class="p">(</span><span class="n">token</span><span class="p">):</span>
   <span class="sa">r</span><span class="sd">&quot;&quot;&quot;Replaces escaped characters in the token with their unescaped versions.</span>
 
 <span class="sd">  Applies inverse transformations as _escape_token():</span>

@@ -1,0 +1,353 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Machine Translation &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Transformer" href="machine-translation/transformer.html" />
+    <link rel="prev" title="Installation instructions" href="installation.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Machine Translation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#models">Models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="machine-translation/transformer.html">Transformer</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machine-translation/convs2s.html">ConvS2S</a></li>
+<li class="toctree-l3"><a class="reference internal" href="machine-translation/gnmt.html">GNMT</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#get-data">Get data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#inference">Inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#computing-bleu-scores">Computing BLEU scores</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Machine Translation</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/machine-translation.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="machine-translation">
+<span id="id1"></span><h1>Machine Translation<a class="headerlink" href="#machine-translation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="models">
+<h2>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h2>
+<p>Currently we support following models:</p>
+<table border="1" class="colwidths-given docutils">
+<colgroup>
+<col width="20%" />
+<col width="20%" />
+<col width="40%" />
+<col width="20%" />
+</colgroup>
+<thead valign="bottom">
+<tr class="row-odd"><th class="head">Model description</th>
+<th class="head">SacreBLEU</th>
+<th class="head">Config file</th>
+<th class="head">Checkpoint</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr class="row-even"><td><a class="reference internal" href="machine-translation/transformer.html"><span class="doc">Transformer</span></a></td>
+<td>26.4</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/transformer-base.py">transformer-base.py</a></td>
+<td>TBD</td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="machine-translation/convs2s.html"><span class="doc">ConvS2S</span></a></td>
+<td>25.0</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py">en-de-convs2s-8-gpu.py</a></td>
+<td>TBD</td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="machine-translation/gnmt.html"><span class="doc">GNMT</span></a></td>
+<td>23.0</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py">en-de-gnmt-like-4GPUs.py</a></td>
+<td>TBD</td>
+</tr>
+</tbody>
+</table>
+<p>The model specification and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU.</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+<div class="section" id="getting-started">
+<h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
+<p>For a simplest example using toy-data (string reversal task) please refer to <a class="reference internal" href="machine-translation/get_started_nmt.html"><span class="doc">toy models</span></a>.</p>
+<p>Next let’s build a small English-German translation model. This model should train in a reasonable time on a single GPU.</p>
+<div class="section" id="get-data">
+<h3>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h3>
+<p>Download (this will take some time):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">scripts</span><span class="o">/</span><span class="n">get_en_de</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+<p>This script will download English-German training data from WMT, clean it, and tokenize using <a class="reference external" href="https://github.com/google/sentencepiece">Google’s Sentencepiece library</a>
+By default, the vocabluary size we use is 32,768 for both English and German.</p>
+</div>
+<div class="section" id="training">
+<h3>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h3>
+<p>To train a small English-German model:</p>
+<ul class="simple">
+<li>change <code class="docutils literal notranslate"><span class="pre">data_root</span></code> inside <code class="docutils literal notranslate"><span class="pre">en-de-nmt-small.py</span></code> to the WMT data location</li>
+<li>adjust <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> to train on more than one GPU (if available).</li>
+</ul>
+<p>Start training:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+<p>If your GPU does not have enough memory, reduce the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>. Also, you might want to disable parallel evaluation by using <code class="docutils literal notranslate"><span class="pre">--mode=train</span></code>.</p>
+</div>
+<div class="section" id="inference">
+<h3>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h3>
+<p>Once training is done (this can take a while on a single GPU), you can run inference:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">en</span><span class="o">-</span><span class="n">de</span><span class="o">-</span><span class="n">nmt</span><span class="o">-</span><span class="n">small</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Note that the model output is tokenized. In our case it will output BPE segments instead of words. Therefore, the next step
+is to de-tokenize:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">tokenizer_wrapper</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">detokenize</span> <span class="o">--</span><span class="n">model_prefix</span><span class="o">=.../</span><span class="n">Data</span><span class="o">/</span><span class="n">wmt16_de_en</span><span class="o">/</span><span class="n">m_common</span> <span class="o">--</span><span class="n">decoded_output</span><span class="o">=</span><span class="n">result</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">text_input</span><span class="o">=</span><span class="n">raw</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="computing-bleu-scores">
+<h3>Computing BLEU scores<a class="headerlink" href="#computing-bleu-scores" title="Permalink to this headline">¶</a></h3>
+<p>We measure BLEU scores using SacreBLEU package: (<a class="reference external" href="https://arxiv.org/abs/1804.08771">A Call for Clarity in Reporting BLEU Scores</a>)
+Run SacreBleu on detokenized data:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="n">result</span><span class="o">.</span><span class="n">txt</span> <span class="o">|</span> <span class="n">sacrebleu</span> <span class="o">-</span><span class="n">t</span> <span class="n">wmt14</span> <span class="o">-</span><span class="n">l</span> <span class="n">en</span><span class="o">-</span><span class="n">de</span> <span class="o">&gt;</span> <span class="n">result</span><span class="o">.</span><span class="n">txt</span><span class="o">.</span><span class="n">BLEU</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="machine-translation/transformer.html" class="btn btn-neutral float-right" title="Transformer" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="installation.html" class="btn btn-neutral" title="Installation instructions" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

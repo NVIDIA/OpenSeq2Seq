@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -156,13 +158,13 @@
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
-<span class="kn">import</span> <span class="nn">scipy.io.wavfile</span> <span class="k">as</span> <span class="nn">wave</span>
-<span class="kn">import</span> <span class="nn">resampy</span> <span class="k">as</span> <span class="nn">rs</span>
-<span class="kn">import</span> <span class="nn">python_speech_features</span> <span class="k">as</span> <span class="nn">psf</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">math</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">python_speech_features</span> <span class="k">as</span> <span class="nn">psf</span>
+<span class="kn">import</span> <span class="nn">resampy</span> <span class="k">as</span> <span class="nn">rs</span>
+<span class="kn">import</span> <span class="nn">scipy.io.wavfile</span> <span class="k">as</span> <span class="nn">wave</span>
 
 
 <div class="viewcode-block" id="get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
@@ -192,8 +194,8 @@
   <span class="c1"># load audio signal</span>
   <span class="n">fs</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">get_speech_features</span><span class="p">(</span>
-    <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
-    <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span>
+      <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
+      <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span>
   <span class="p">)</span></div>
 
 
@@ -222,10 +224,10 @@
     <span class="n">stretch_amount</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> \
                      <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
     <span class="n">signal_float</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span>
-      <span class="n">signal_float</span><span class="p">,</span>
-      <span class="n">fs</span><span class="p">,</span>
-      <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">stretch_amount</span><span class="p">),</span>
-      <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;kaiser_fast&#39;</span><span class="p">,</span>
+        <span class="n">signal_float</span><span class="p">,</span>
+        <span class="n">fs</span><span class="p">,</span>
+        <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">stretch_amount</span><span class="p">),</span>
+        <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;kaiser_fast&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
   <span class="c1"># noise</span>
@@ -255,8 +257,10 @@
 <span class="sd">    window_stride (float): stride of analysis window in milli-seconds.</span>
 <span class="sd">    augmentation (dict, optional): dictionary of augmentation parameters. See</span>
 <span class="sd">        :func:`get_speech_features_from_file` for specification and example.</span>
+
 <span class="sd">  Returns:</span>
 <span class="sd">    np.array: np.array of audio features with shape=[num_time_steps, num_features].</span>
+<span class="sd">    audio_duration (float): duration of the signal in seconds</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">augmentation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">if</span> <span class="s1">&#39;time_stretch_ratio&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
@@ -269,14 +273,18 @@
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;noise_level_max has to be included in augmentation &#39;</span>
                        <span class="s1">&#39;when augmentation it is not None&#39;</span><span class="p">)</span>
     <span class="n">signal</span> <span class="o">=</span> <span class="n">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="p">(</span><span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="o">*</span> <span class="mf">32767.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span>
+
+  <span class="n">audio_duration</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">fs</span>
 
   <span class="n">n_window_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">window_size</span><span class="p">)</span>
   <span class="n">n_window_stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">window_stride</span><span class="p">)</span>
 
   <span class="c1"># making sure length of the audio is divisible by 8 (fp16 optimization)</span>
   <span class="n">length</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">+</span> <span class="nb">int</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span>
-    <span class="p">(</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">n_window_size</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_window_stride</span><span class="p">)</span>
-  <span class="p">)</span>
+      <span class="p">(</span><span class="mf">1.0</span> <span class="o">*</span> <span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">n_window_size</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_window_stride</span>
+  <span class="p">))</span>
   <span class="k">if</span> <span class="n">pad_to</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">length</span> <span class="o">%</span> <span class="n">pad_to</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
       <span class="n">pad_size</span> <span class="o">=</span> <span class="p">(</span><span class="n">pad_to</span> <span class="o">-</span> <span class="n">length</span> <span class="o">%</span> <span class="n">pad_to</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_window_stride</span>
@@ -327,7 +335,7 @@
   <span class="n">m</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">m</span><span class="p">)</span> <span class="o">/</span> <span class="n">s</span>
-  <span class="k">return</span> <span class="n">features</span></div>
+  <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">audio_duration</span></div>
 </pre></div>
 
            </div>

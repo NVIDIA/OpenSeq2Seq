@@ -14,6 +14,7 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
+from open_seq2seq.models import LSTMLM
 
 
 def train(train_model, eval_model=None, debug_port=None):
@@ -51,6 +52,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
+            print_ppl=isinstance(eval_model, LSTMLM),
         ),
     )
 
@@ -68,6 +70,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks.append(PrintLossAndTimeHook(
           every_steps=train_model.params['print_loss_steps'],
           model=train_model,
+          print_ppl=isinstance(train_model, LSTMLM)
       ))
     if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker
@@ -168,8 +171,10 @@ def train(train_model, eval_model=None, debug_port=None):
       deco_print("Not enough steps for benchmarking")
 
 
-def restore_and_get_results(model, checkpoint, mode):
-  saver = tf.train.Saver()
+def restore_and_get_results(model, checkpoint, mode, use_trt=False):
+  if not use_trt:
+    # Checkpoint is restored prior to freezing graph when using TRT
+    saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   # pylint: disable=no-member
   sess_config.gpu_options.allow_growth = True
@@ -177,19 +182,19 @@ def restore_and_get_results(model, checkpoint, mode):
     # pylint: disable=no-member
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
-    saver.restore(sess, checkpoint)
+    if not use_trt:
+      saver.restore(sess, checkpoint)
     results_per_batch = get_results_for_epoch(
         model, sess, mode=mode, compute_loss=False, verbose=True,
     )
   return results_per_batch
 
 
-def infer(model, checkpoint, output_file):
-  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer")
+def infer(model, checkpoint, output_file, use_trt=False):
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer", use_trt=use_trt)
   if not model.on_horovod or model.hvd.rank() == 0:
     model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")
-
 
 def evaluate(model, checkpoint):
   results_per_batch = restore_and_get_results(model, checkpoint, mode="eval")

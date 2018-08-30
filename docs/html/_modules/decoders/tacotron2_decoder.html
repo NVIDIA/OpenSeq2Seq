@@ -1,0 +1,742 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>decoders.tacotron2_decoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>decoders.tacotron2_decoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for decoders.tacotron2_decoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Tacotron2 decoder</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
+
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.utils</span> <span class="k">import</span> <span class="n">single_cell</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.rnns.attention_wrapper</span> <span class="k">import</span> <span class="n">BahdanauAttention</span><span class="p">,</span> \
+                                                 <span class="n">LocationSensitiveAttention</span><span class="p">,</span> \
+                                                 <span class="n">AttentionWrapper</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.tacotron.tacotron_helper</span> <span class="k">import</span> <span class="n">TacotronHelper</span><span class="p">,</span> \
+                                                        <span class="n">TacotronTrainingHelper</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.tacotron.tacotron_decoder</span> <span class="k">import</span> <span class="n">TacotronDecoder</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.cnns.conv_blocks</span> <span class="k">import</span> <span class="n">conv_bn_actv</span>
+<span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
+
+
+<div class="viewcode-block" id="Prenet"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Prenet">[docs]</a><span class="k">class</span> <span class="nc">Prenet</span><span class="p">():</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Fully connected prenet used in the decoder</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="Prenet.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Prenet.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">num_units</span><span class="p">,</span>
+      <span class="n">num_layers</span><span class="p">,</span>
+      <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span>
+  <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Prenet initializer</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      num_units (int): number of units in the fully connected layer</span>
+<span class="sd">      num_layers (int): number of fully connected layers</span>
+<span class="sd">      activation_fn (callable): any valid activation function</span>
+<span class="sd">      dtype (dtype): the data format for this layer</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">assert</span> <span class="p">(</span>
+        <span class="n">num_layers</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">),</span> <span class="s2">&quot;If the prenet is enabled, there must be at least 1 layer&quot;</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">prenet_layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span> <span class="o">=</span> <span class="n">num_units</span>
+
+    <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_layers</span><span class="p">):</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">prenet_layers</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+          <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;prenet_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+              <span class="n">units</span><span class="o">=</span><span class="n">num_units</span><span class="p">,</span>
+              <span class="n">activation</span><span class="o">=</span><span class="n">activation_fn</span><span class="p">,</span>
+              <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+          <span class="p">)</span>
+      <span class="p">)</span></div>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inputs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Applies the prenet to the inputs</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prenet_layers</span><span class="p">:</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">layer</span><span class="p">(</span><span class="n">inputs</span><span class="p">),</span> <span class="n">rate</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">inputs</span>
+
+  <span class="nd">@property</span>
+  <span class="k">def</span> <span class="nf">output_size</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output_size</span>
+
+<div class="viewcode-block" id="Prenet.add_regularization"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Prenet.add_regularization">[docs]</a>  <span class="k">def</span> <span class="nf">add_regularization</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Adds regularization to all prenet kernels</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">prenet_layers</span><span class="p">:</span>
+      <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">layer</span><span class="o">.</span><span class="n">trainable_variables</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;bias&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+          <span class="c1"># print(&quot;Added regularizer to {}&quot;.format(weights.name))</span>
+          <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span>
+                <span class="s1">&#39;REGULARIZATION_FUNCTIONS&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">)</span>
+            <span class="p">)</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span>
+                <span class="n">ops</span><span class="o">.</span><span class="n">GraphKeys</span><span class="o">.</span><span class="n">REGULARIZATION_LOSSES</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+            <span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="Tacotron2Decoder"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder">[docs]</a><span class="k">class</span> <span class="nc">Tacotron2Decoder</span><span class="p">(</span><span class="n">Decoder</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Tacotron 2 Decoder</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="Tacotron2Decoder.get_required_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">Decoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;attention_layer_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;attention_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;bahdanau&#39;</span><span class="p">,</span> <span class="s1">&#39;location&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">],</span>
+            <span class="s1">&#39;decoder_cell_units&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;decoder_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tacotron2Decoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+            <span class="s1">&#39;bahdanau_normalize&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;time_major&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;use_swap_memory&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;enable_prenet&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;prenet_layers&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;prenet_units&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s1">&#39;prenet_activation&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>
+            <span class="s1">&#39;enable_postnet&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;postnet_conv_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+            <span class="s1">&#39;postnet_bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;postnet_bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;postnet_data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+            <span class="s1">&#39;postnet_keep_dropout_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;mask_decoder_sequence&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;attention_bias&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+            <span class="s1">&#39;zoneout_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;dropout_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;parallel_iterations&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="Tacotron2Decoder.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;tacotron_2_decoder&#39;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Tacotron-2 like decoder constructor. A lot of optional configurations are</span>
+<span class="sd">    currently for testing. Not all configurations are supported. Use of thed</span>
+<span class="sd">    efault config is reccommended.</span>
+
+<span class="sd">    See parent class for arguments description.</span>
+
+<span class="sd">    Config parameters:</span>
+
+<span class="sd">    * **attention_layer_size** (int) --- size of attention layer.</span>
+<span class="sd">    * **attention_type** (string) --- Determines whether attention mechanism to</span>
+<span class="sd">      use, should be one of &#39;bahdanau&#39;, &#39;location&#39;, or None.</span>
+<span class="sd">      Use of &#39;location&#39;-sensitive attention is strongly recommended.</span>
+<span class="sd">    * **bahdanau_normalize** (bool) --- Whether to enable weight norm on the</span>
+<span class="sd">      attention parameters. Defaults to False.</span>
+<span class="sd">    * **decoder_cell_units** (int) --- dimension of decoder RNN cells.</span>
+<span class="sd">    * **decoder_layers** (int) --- number of decoder RNN layers to use.</span>
+<span class="sd">    * **decoder_cell_type** (callable) --- could be &quot;lstm&quot;, &quot;gru&quot;, &quot;glstm&quot;, or</span>
+<span class="sd">      &quot;slstm&quot;. Currently, only &#39;lstm&#39; has been tested. Defaults to &#39;lstm&#39;.</span>
+<span class="sd">    * **time_major** (bool) --- whether to output as time major or batch major.</span>
+<span class="sd">      Default is False for batch major.</span>
+<span class="sd">    * **use_swap_memory** (bool) --- default is False.</span>
+<span class="sd">    * **enable_prenet** (bool) --- whether to use the fully-connected prenet in</span>
+<span class="sd">      the decoder. Defaults to True</span>
+<span class="sd">    * **prenet_layers** (int) --- number of fully-connected layers to use.</span>
+<span class="sd">      Defaults to 2.</span>
+<span class="sd">    * **prenet_units** (int) --- number of units in each layer. Defaults to 256.</span>
+<span class="sd">    * **prenet_activation** (callable) --- activation function to use for the</span>
+<span class="sd">      prenet lyaers. Defaults to relu</span>
+<span class="sd">    * **enable_postnet** (bool) --- whether to use the convolutional postnet in</span>
+<span class="sd">      the decoder. Defaults to True</span>
+<span class="sd">    * **postnet_conv_layers** (bool) --- list with the description of</span>
+<span class="sd">      convolutional layers. Must be passed if postnet is enabled</span>
+<span class="sd">      For example::</span>
+<span class="sd">        &quot;postnet_conv_layers&quot;: [</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">            &quot;activation_fn&quot;: tf.nn.tanh</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">            &quot;activation_fn&quot;: tf.nn.tanh</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">            &quot;activation_fn&quot;: tf.nn.tanh</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 512, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">            &quot;activation_fn&quot;: tf.nn.tanh</span>
+<span class="sd">          },</span>
+<span class="sd">          {</span>
+<span class="sd">            &quot;kernel_size&quot;: [5], &quot;stride&quot;: [1],</span>
+<span class="sd">            &quot;num_channels&quot;: 80, &quot;padding&quot;: &quot;SAME&quot;,</span>
+<span class="sd">            &quot;activation_fn&quot;: None</span>
+<span class="sd">          }</span>
+<span class="sd">        ]</span>
+<span class="sd">    * **postnet_bn_momentum** (float) --- momentum for batch norm.</span>
+<span class="sd">      Defaults to 0.1.</span>
+<span class="sd">    * **postnet_bn_epsilon** (float) --- epsilon for batch norm.</span>
+<span class="sd">      Defaults to 1e-5.</span>
+<span class="sd">    * **postnet_data_format** (string) --- could be either &quot;channels_first&quot; or</span>
+<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_last&quot;.</span>
+<span class="sd">    * **postnet_keep_dropout_prob** (float) --- keep probability for dropout in</span>
+<span class="sd">      the postnet conv layers. Default to 0.5.</span>
+<span class="sd">    * **mask_decoder_sequence** (bool) --- Defaults to True.</span>
+<span class="sd">    * **attention_bias** (bool) --- Wether to use a bias term when calculating</span>
+<span class="sd">      the attention. Only works for &quot;location&quot; attention. Defaults to False.</span>
+<span class="sd">    * **zoneout_prob** (float) --- zoneout probability for rnn layers.</span>
+<span class="sd">      Defaults to 0.</span>
+<span class="sd">    * **dropout_prob** (float) --- dropout probability for rnn layers.</span>
+<span class="sd">      Defaults to 0.1</span>
+<span class="sd">    * **parallel_iterations** (int) --- Number of parallel_iterations for</span>
+<span class="sd">      tf.while loop inside dynamic_decode. Defaults to 32.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">super</span><span class="p">(</span><span class="n">Tacotron2Decoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Tacotron2Decoder._build_attention"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder._build_attention">[docs]</a>  <span class="k">def</span> <span class="nf">_build_attention</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">encoder_outputs</span><span class="p">,</span>
+      <span class="n">encoder_sequence_length</span><span class="p">,</span>
+      <span class="n">attention_bias</span><span class="p">,</span>
+  <span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Builds Attention part of the graph.</span>
+<span class="sd">    Currently supports &quot;bahdanau&quot;, and &quot;location&quot;</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;AttentionMechanism&quot;</span><span class="p">):</span>
+      <span class="n">attention_depth</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_layer_size&#39;</span><span class="p">]</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;location&#39;</span><span class="p">:</span>
+        <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="n">LocationSensitiveAttention</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="o">=</span><span class="n">attention_depth</span><span class="p">,</span>
+            <span class="n">memory</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
+            <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">encoder_sequence_length</span><span class="p">,</span>
+            <span class="n">probability_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">get_variable_scope</span><span class="p">()</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="n">attention_bias</span><span class="p">,</span>
+        <span class="p">)</span>
+      <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;bahdanau&#39;</span><span class="p">:</span>
+        <span class="n">bah_normalize</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bahdanau_normalize&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="n">BahdanauAttention</span><span class="p">(</span>
+            <span class="n">num_units</span><span class="o">=</span><span class="n">attention_depth</span><span class="p">,</span>
+            <span class="n">memory</span><span class="o">=</span><span class="n">encoder_outputs</span><span class="p">,</span>
+            <span class="n">normalize</span><span class="o">=</span><span class="n">bah_normalize</span><span class="p">,</span>
+            <span class="n">memory_sequence_length</span><span class="o">=</span><span class="n">encoder_sequence_length</span><span class="p">,</span>
+            <span class="n">probability_fn</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">get_variable_scope</span><span class="p">()</span><span class="o">.</span><span class="n">dtype</span>
+        <span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown Attention Type&#39;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">attention_mechanism</span></div>
+
+<div class="viewcode-block" id="Tacotron2Decoder._decode"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.tacotron2_decoder.Tacotron2Decoder._decode">[docs]</a>  <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decodes representation into data</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): Python dictionary with inputs to decoder. Must define:</span>
+<span class="sd">          * src_inputs - decoder input Tensor of shape [batch_size, time, dim]</span>
+<span class="sd">            or [time, batch_size, dim]</span>
+<span class="sd">          * src_lengths - decoder input lengths Tensor of shape [batch_size]</span>
+<span class="sd">          * tgt_inputs - Only during training. labels Tensor of the</span>
+<span class="sd">            shape [batch_size, time, num_features] or</span>
+<span class="sd">            [time, batch_size, num_features]</span>
+<span class="sd">          * stop_token_inputs - Only during training. labels Tensor of the</span>
+<span class="sd">            shape [batch_size, time, 1] or [time, batch_size, 1]</span>
+<span class="sd">          * tgt_lengths - Only during training. labels lengths</span>
+<span class="sd">            Tensor of the shape [batch_size]</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      dict:</span>
+<span class="sd">        A python dictionary containing:</span>
+
+<span class="sd">          * outputs - array containing:</span>
+
+<span class="sd">              * decoder_output - tensor of shape [batch_size, time,</span>
+<span class="sd">                num_features] or [time, batch_size, num_features]. Spectrogram</span>
+<span class="sd">                representation learned by the decoder rnn</span>
+<span class="sd">              * spectrogram_prediction - tensor of shape [batch_size, time,</span>
+<span class="sd">                num_features] or [time, batch_size, num_features]. Spectrogram</span>
+<span class="sd">                containing the residual corrections from the postnet if enabled</span>
+<span class="sd">              * alignments - tensor of shape [batch_size, time, memory_size]</span>
+<span class="sd">                or [time, batch_size, memory_size]. The alignments learned by</span>
+<span class="sd">                the attention layer</span>
+<span class="sd">              * stop_token_prediction - tensor of shape [batch_size, time, 1]</span>
+<span class="sd">                or [time, batch_size, 1]. The stop token predictions</span>
+<span class="sd">              * final_sequence_lengths - tensor of shape [batch_size]</span>
+<span class="sd">          * stop_token_predictions - tensor of shape [batch_size, time, 1]</span>
+<span class="sd">            or [time, batch_size, 1]. The stop token predictions for use inside</span>
+<span class="sd">            the loss function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">encoder_outputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">]</span>
+    <span class="n">enc_src_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;encoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;src_length&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+      <span class="n">spec</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">in</span> \
+                                                    <span class="n">input_dict</span> <span class="k">else</span> <span class="kc">None</span>
+      <span class="n">spec_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">in</span> \
+                                                    <span class="n">input_dict</span> <span class="k">else</span> <span class="kc">None</span>
+    <span class="n">_batch_size</span> <span class="o">=</span> <span class="n">encoder_outputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+    <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_postnet&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="k">if</span> <span class="s2">&quot;postnet_conv_layers&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;postnet_conv_layers must be passed from config file if postnet is&quot;</span>
+            <span class="s2">&quot;enabled&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">num_audio_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span>
+
+    <span class="n">output_projection_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;output_proj&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="n">num_audio_features</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">stop_token_projection_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;stop_token_proj&quot;</span><span class="p">,</span>
+        <span class="n">units</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="n">prenet</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_prenet&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">prenet</span> <span class="o">=</span> <span class="n">Prenet</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prenet_units&#39;</span><span class="p">,</span> <span class="mi">256</span><span class="p">),</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;prenet_layers&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">),</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;prenet_activation&quot;</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">),</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+
+    <span class="n">cell_params</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_units&#39;</span><span class="p">]</span>
+    <span class="n">decoder_cells</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">single_cell</span><span class="p">(</span>
+            <span class="n">cell_class</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_cell_type&#39;</span><span class="p">],</span>
+            <span class="n">cell_params</span><span class="o">=</span><span class="n">cell_params</span><span class="p">,</span>
+            <span class="n">zoneout_prob</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;zoneout_prob&quot;</span><span class="p">,</span> <span class="mf">0.</span><span class="p">),</span>
+            <span class="n">dp_output_keep_prob</span><span class="o">=</span><span class="mf">1.</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;dropout_prob&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_layers&#39;</span><span class="p">])</span>
+    <span class="p">]</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">attention_mechanism</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_attention</span><span class="p">(</span>
+          <span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">enc_src_lengths</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;attention_bias&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+      <span class="p">)</span>
+
+      <span class="n">attention_cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="n">decoder_cells</span><span class="p">)</span>
+
+      <span class="n">output_attention</span> <span class="o">=</span> <span class="s2">&quot;both&quot;</span>
+      <span class="n">attentive_cell</span> <span class="o">=</span> <span class="n">AttentionWrapper</span><span class="p">(</span>
+          <span class="n">cell</span><span class="o">=</span><span class="n">attention_cell</span><span class="p">,</span>
+          <span class="n">attention_mechanism</span><span class="o">=</span><span class="n">attention_mechanism</span><span class="p">,</span>
+          <span class="n">alignment_history</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">output_attention</span><span class="o">=</span><span class="n">output_attention</span><span class="p">,</span>
+      <span class="p">)</span>
+
+      <span class="n">decoder_cell</span> <span class="o">=</span> <span class="n">attentive_cell</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">decoder_cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span><span class="n">decoder_cells</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
+      <span class="n">train_and_not_sampling</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">helper</span> <span class="o">=</span> <span class="n">TacotronTrainingHelper</span><span class="p">(</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">spec</span><span class="p">,</span>
+          <span class="n">sequence_length</span><span class="o">=</span><span class="n">spec_length</span><span class="p">,</span>
+          <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">model_dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">],</span>
+          <span class="n">mask_decoder_sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_decoder_sequence&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;infer&quot;</span><span class="p">:</span>
+      <span class="n">train_and_not_sampling</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+          <span class="p">(</span><span class="n">_batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">num_audio_features</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+      <span class="n">helper</span> <span class="o">=</span> <span class="n">TacotronHelper</span><span class="p">(</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+          <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+          <span class="n">mask_decoder_sequence</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;mask_decoder_sequence&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Unknown mode for decoder: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span><span class="p">))</span>
+    <span class="n">decoder</span> <span class="o">=</span> <span class="n">TacotronDecoder</span><span class="p">(</span>
+        <span class="n">decoder_cell</span><span class="o">=</span><span class="n">decoder_cell</span><span class="p">,</span>
+        <span class="n">helper</span><span class="o">=</span><span class="n">helper</span><span class="p">,</span>
+        <span class="n">initial_decoder_state</span><span class="o">=</span><span class="n">decoder_cell</span><span class="o">.</span><span class="n">zero_state</span><span class="p">(</span>
+            <span class="n">_batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+        <span class="p">),</span>
+        <span class="n">attention_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;attention_type&quot;</span><span class="p">],</span>
+        <span class="n">spec_layer</span><span class="o">=</span><span class="n">output_projection_layer</span><span class="p">,</span>
+        <span class="n">stop_token_layer</span><span class="o">=</span><span class="n">stop_token_projection_layer</span><span class="p">,</span>
+        <span class="n">prenet</span><span class="o">=</span><span class="n">prenet</span><span class="p">,</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">],</span>
+        <span class="n">train</span><span class="o">=</span><span class="n">train_and_not_sampling</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+      <span class="n">maximum_iterations</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">spec_length</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">maximum_iterations</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">enc_src_lengths</span><span class="p">)</span> <span class="o">*</span> <span class="mi">5</span>
+
+    <span class="n">outputs</span><span class="p">,</span> <span class="n">final_state</span><span class="p">,</span> <span class="n">sequence_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">seq2seq</span><span class="o">.</span><span class="n">dynamic_decode</span><span class="p">(</span>
+        <span class="c1"># outputs, final_state, sequence_lengths, final_inputs = dynamic_decode(</span>
+        <span class="n">decoder</span><span class="o">=</span><span class="n">decoder</span><span class="p">,</span>
+        <span class="n">impute_finished</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">maximum_iterations</span><span class="o">=</span><span class="n">maximum_iterations</span><span class="p">,</span>
+        <span class="n">swap_memory</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_swap_memory&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">output_time_major</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;time_major&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">parallel_iterations</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;parallel_iterations&quot;</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+    <span class="p">)</span>
+
+    <span class="n">decoder_output</span> <span class="o">=</span> <span class="n">outputs</span><span class="o">.</span><span class="n">rnn_output</span>
+    <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="n">outputs</span><span class="o">.</span><span class="n">stop_token_output</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;decoder&quot;</span><span class="p">):</span>
+      <span class="c1"># If we are in train and doing sampling, we need to do the projections</span>
+      <span class="k">if</span> <span class="n">train_and_not_sampling</span><span class="p">:</span>
+        <span class="n">decoder_spec_output</span> <span class="o">=</span> <span class="n">output_projection_layer</span><span class="p">(</span><span class="n">decoder_output</span><span class="p">)</span>
+        <span class="n">stop_token_logits</span> <span class="o">=</span> <span class="n">stop_token_projection_layer</span><span class="p">(</span><span class="n">decoder_spec_output</span><span class="p">)</span>
+        <span class="n">decoder_output</span> <span class="o">=</span> <span class="n">decoder_spec_output</span>
+
+    <span class="c1">## Add the post net ##</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_postnet&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+      <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postnet_keep_dropout_prob&#39;</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">)</span>
+
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">decoder_output</span>
+      <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">conv_params</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;postnet_conv_layers&#39;</span><span class="p">]):</span>
+        <span class="n">ch_out</span> <span class="o">=</span> <span class="n">conv_params</span><span class="p">[</span><span class="s1">&#39;num_channels&#39;</span><span class="p">]</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">conv_params</span><span class="p">[</span><span class="s1">&#39;kernel_size&#39;</span><span class="p">]</span>  <span class="c1"># [time, freq]</span>
+        <span class="n">strides</span> <span class="o">=</span> <span class="n">conv_params</span><span class="p">[</span><span class="s1">&#39;stride&#39;</span><span class="p">]</span>
+        <span class="n">padding</span> <span class="o">=</span> <span class="n">conv_params</span><span class="p">[</span><span class="s1">&#39;padding&#39;</span><span class="p">]</span>
+        <span class="n">activation_fn</span> <span class="o">=</span> <span class="n">conv_params</span><span class="p">[</span><span class="s1">&#39;activation_fn&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ch_out</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+          <span class="n">ch_out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span>
+
+        <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv_bn_actv</span><span class="p">(</span>
+            <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;conv1d&quot;</span><span class="p">,</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
+            <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
+            <span class="n">filters</span><span class="o">=</span><span class="n">ch_out</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+            <span class="n">activation_fn</span><span class="o">=</span><span class="n">activation_fn</span><span class="p">,</span>
+            <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">data_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postnet_data_format&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">),</span>
+            <span class="n">bn_momentum</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postnet_bn_momentum&#39;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span>
+            <span class="n">bn_epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;postnet_bn_epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">),</span>
+        <span class="p">)</span>
+        <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span>
+            <span class="n">top_layer</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span>
+        <span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+          <span class="p">[</span>
+              <span class="n">_batch_size</span><span class="p">,</span> <span class="n">maximum_iterations</span><span class="p">,</span>
+              <span class="n">outputs</span><span class="o">.</span><span class="n">rnn_output</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+          <span class="p">],</span>
+          <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+      <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">regularizer</span> <span class="ow">and</span> <span class="n">training</span><span class="p">:</span>
+      <span class="n">vars_to_regularize</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">vars_to_regularize</span> <span class="o">+=</span> <span class="n">attentive_cell</span><span class="o">.</span><span class="n">trainable_variables</span>
+      <span class="n">vars_to_regularize</span> <span class="o">+=</span> <span class="n">attention_mechanism</span><span class="o">.</span><span class="n">memory_layer</span><span class="o">.</span><span class="n">trainable_variables</span>
+      <span class="n">vars_to_regularize</span> <span class="o">+=</span> <span class="n">output_projection_layer</span><span class="o">.</span><span class="n">trainable_variables</span>
+      <span class="n">vars_to_regularize</span> <span class="o">+=</span> <span class="n">stop_token_projection_layer</span><span class="o">.</span><span class="n">trainable_variables</span>
+
+      <span class="k">for</span> <span class="n">weights</span> <span class="ow">in</span> <span class="n">vars_to_regularize</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;bias&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">weights</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+          <span class="c1"># print(&quot;Added regularizer to {}&quot;.format(weights.name))</span>
+          <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">==</span> <span class="n">tf</span><span class="o">.</span><span class="n">float16</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span>
+                <span class="s1">&#39;REGULARIZATION_FUNCTIONS&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">)</span>
+            <span class="p">)</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">add_to_collection</span><span class="p">(</span>
+                <span class="n">ops</span><span class="o">.</span><span class="n">GraphKeys</span><span class="o">.</span><span class="n">REGULARIZATION_LOSSES</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
+            <span class="p">)</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;enable_prenet&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">):</span>
+        <span class="n">prenet</span><span class="o">.</span><span class="n">add_regularization</span><span class="p">(</span><span class="n">regularizer</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;attention_type&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">alignments</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span>
+          <span class="n">final_state</span><span class="o">.</span><span class="n">alignment_history</span><span class="o">.</span><span class="n">stack</span><span class="p">(),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">alignments</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">_batch_size</span><span class="p">,</span> <span class="n">_batch_size</span><span class="p">,</span> <span class="n">_batch_size</span><span class="p">])</span>
+
+    <span class="n">spectrogram_prediction</span> <span class="o">=</span> <span class="n">decoder_output</span> <span class="o">+</span> <span class="n">top_layer</span>
+    <span class="n">stop_token_prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">stop_token_logits</span><span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="n">decoder_output</span><span class="p">,</span> <span class="n">spectrogram_prediction</span><span class="p">,</span> <span class="n">alignments</span><span class="p">,</span>
+        <span class="n">stop_token_prediction</span><span class="p">,</span> <span class="n">sequence_lengths</span>
+    <span class="p">]</span>
+
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
+        <span class="s1">&#39;stop_token_prediction&#39;</span><span class="p">:</span> <span class="n">stop_token_logits</span>
+    <span class="p">}</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

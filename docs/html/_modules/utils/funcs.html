@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -156,17 +158,20 @@
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
 
-<span class="kn">from</span> <span class="nn">.hooks</span> <span class="k">import</span> <span class="n">PrintSamplesHook</span><span class="p">,</span> <span class="n">RunEvaluationHook</span><span class="p">,</span> <span class="n">PrintLossAndTimeHook</span><span class="p">,</span> \
-                   <span class="n">BroadcastGlobalVariablesHook</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="c1"># pylint: disable=no-name-in-module</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python</span> <span class="k">import</span> <span class="n">debug</span> <span class="k">as</span> <span class="n">tf_debug</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
+
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span><span class="p">,</span> <span class="n">get_results_for_epoch</span><span class="p">,</span> \
                                      <span class="n">collect_if_horovod</span>
-<span class="kn">from</span> <span class="nn">tensorflow.python</span> <span class="k">import</span> <span class="n">debug</span> <span class="k">as</span> <span class="n">tf_debug</span>
+<span class="kn">from</span> <span class="nn">.hooks</span> <span class="k">import</span> <span class="n">PrintSamplesHook</span><span class="p">,</span> <span class="n">RunEvaluationHook</span><span class="p">,</span> <span class="n">PrintLossAndTimeHook</span><span class="p">,</span> \
+                   <span class="n">BroadcastGlobalVariablesHook</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.models</span> <span class="k">import</span> <span class="n">LSTMLM</span>
 
 
 <div class="viewcode-block" id="train"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug_port</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -181,8 +186,10 @@
 
   <span class="c1"># initializing session parameters</span>
   <span class="n">sess_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span><span class="n">allow_soft_placement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="c1"># pylint: disable=no-member</span>
   <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">allow_growth</span> <span class="o">=</span> <span class="kc">True</span>
   <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="c1"># pylint: disable=no-member</span>
     <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">visible_device_list</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">hvd</span><span class="o">.</span><span class="n">local_rank</span><span class="p">())</span>
 
   <span class="c1"># defining necessary hooks</span>
@@ -198,11 +205,12 @@
   <span class="k">if</span> <span class="n">eval_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="c1"># noinspection PyTypeChecker</span>
     <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-      <span class="n">RunEvaluationHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">eval_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;eval_steps&#39;</span><span class="p">],</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">eval_model</span><span class="p">,</span>
-        <span class="n">last_step</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">last_step</span><span class="p">,</span>
-      <span class="p">),</span>
+        <span class="n">RunEvaluationHook</span><span class="p">(</span>
+            <span class="n">every_steps</span><span class="o">=</span><span class="n">eval_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;eval_steps&#39;</span><span class="p">],</span>
+            <span class="n">model</span><span class="o">=</span><span class="n">eval_model</span><span class="p">,</span>
+            <span class="n">last_step</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">last_step</span><span class="p">,</span>
+            <span class="n">print_ppl</span><span class="o">=</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">eval_model</span><span class="p">,</span> <span class="n">LSTMLM</span><span class="p">),</span>
+        <span class="p">),</span>
     <span class="p">)</span>
 
   <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
@@ -210,21 +218,22 @@
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">CheckpointSaverHook</span><span class="p">(</span>
-        <span class="n">checkpoint_dir</span><span class="p">,</span>
-        <span class="n">saver</span><span class="o">=</span><span class="n">saver</span><span class="p">,</span>
-        <span class="n">save_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]),</span>
-      <span class="p">)</span>
+          <span class="n">checkpoint_dir</span><span class="p">,</span>
+          <span class="n">saver</span><span class="o">=</span><span class="n">saver</span><span class="p">,</span>
+          <span class="n">save_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">],</span>
+      <span class="p">))</span>
     <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PrintLossAndTimeHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">],</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
+          <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">],</span>
+          <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
+          <span class="n">print_ppl</span><span class="o">=</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">LSTMLM</span><span class="p">)</span>
       <span class="p">))</span>
     <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">PrintSamplesHook</span><span class="p">(</span>
-        <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">],</span>
-        <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
+          <span class="n">every_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">],</span>
+          <span class="n">model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span>
       <span class="p">))</span>
 
   <span class="n">total_time</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -232,19 +241,19 @@
 
   <span class="k">if</span> <span class="n">debug_port</span><span class="p">:</span>
     <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
-      <span class="n">tf_debug</span><span class="o">.</span><span class="n">TensorBoardDebugHook</span><span class="p">(</span><span class="s2">&quot;localhost:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">debug_port</span><span class="p">))</span>
+        <span class="n">tf_debug</span><span class="o">.</span><span class="n">TensorBoardDebugHook</span><span class="p">(</span><span class="s2">&quot;localhost:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">debug_port</span><span class="p">))</span>
     <span class="p">)</span>
 
   <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
     <span class="n">init_data_layer</span> <span class="o">=</span> <span class="n">train_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">init_data_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span>
-      <span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span>
-       <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)]</span>
+        <span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">iterator</span><span class="o">.</span><span class="n">initializer</span>
+         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">train_model</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)]</span>
     <span class="p">)</span>
 
   <span class="n">scaffold</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Scaffold</span><span class="p">(</span>
-    <span class="n">local_init_op</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">(),</span> <span class="n">init_data_layer</span><span class="p">)</span>
+      <span class="n">local_init_op</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">local_variables_initializer</span><span class="p">(),</span> <span class="n">init_data_layer</span><span class="p">)</span>
   <span class="p">)</span>
   <span class="n">fetches</span> <span class="o">=</span> <span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">train_op</span><span class="p">]</span>
   <span class="k">try</span><span class="p">:</span>
@@ -258,16 +267,17 @@
 
   <span class="c1"># starting training</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">MonitoredTrainingSession</span><span class="p">(</span>
-    <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
-    <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
-    <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-    <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
-    <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-    <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
-    <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
-    <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
+      <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
+      <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
+      <span class="n">save_summaries_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+      <span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">,</span>
+      <span class="n">save_checkpoint_secs</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">log_step_count_steps</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">],</span>
+      <span class="n">stop_grace_period_secs</span><span class="o">=</span><span class="mi">300</span><span class="p">,</span>
+      <span class="n">hooks</span><span class="o">=</span><span class="n">hooks</span><span class="p">,</span>
   <span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
     <span class="n">step</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">num_bench_updates</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">sess</span><span class="o">.</span><span class="n">should_stop</span><span class="p">():</span>
         <span class="k">break</span>
@@ -278,6 +288,8 @@
         <span class="k">if</span> <span class="n">iter_size</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
           <span class="n">feed_dict</span><span class="p">[</span><span class="n">train_model</span><span class="o">.</span><span class="n">skip_update_ph</span><span class="p">]</span> <span class="o">=</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">!=</span> <span class="mi">0</span>
         <span class="k">if</span> <span class="n">step</span> <span class="o">%</span> <span class="n">iter_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">bench_start</span><span class="p">:</span>
+            <span class="n">num_bench_updates</span> <span class="o">+=</span> <span class="mi">1</span>
           <span class="n">fetches_vals</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
           <span class="c1"># necessary to skip &quot;no-update&quot; steps when iter_size &gt; 1</span>
@@ -307,7 +319,7 @@
   <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished training&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
-      <span class="n">avg_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="p">(</span><span class="n">step</span> <span class="o">-</span> <span class="n">bench_start</span><span class="p">)</span>
+      <span class="n">avg_time</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_time</span> <span class="o">/</span> <span class="n">num_bench_updates</span>
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Avg time per step: </span><span class="si">{:.3f}</span><span class="s2">s&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">avg_time</span><span class="p">))</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">avg_objects</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">*</span> <span class="n">total_objects</span> <span class="o">/</span> <span class="n">total_time</span>
@@ -316,26 +328,30 @@
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
-  <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+<div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">use_trt</span><span class="p">:</span>
+    <span class="c1"># Checkpoint is restored prior to freezing graph when using TRT</span>
+    <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
   <span class="n">sess_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span><span class="n">allow_soft_placement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+  <span class="c1"># pylint: disable=no-member</span>
   <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">allow_growth</span> <span class="o">=</span> <span class="kc">True</span>
   <span class="k">if</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="p">:</span>
+    <span class="c1"># pylint: disable=no-member</span>
     <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">visible_device_list</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">local_rank</span><span class="p">())</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
-    <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_trt</span><span class="p">:</span>
+      <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
     <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">get_results_for_epoch</span><span class="p">(</span>
-      <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
   <span class="k">return</span> <span class="n">results_per_batch</span></div>
 
 
-<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
-  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="n">use_trt</span><span class="p">)</span>
   <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">model</span><span class="o">.</span><span class="n">finalize_inference</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished inference&quot;</span><span class="p">)</span></div>
-
 
 <div class="viewcode-block" id="evaluate"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.evaluate">[docs]</a><span class="k">def</span> <span class="nf">evaluate</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">):</span>
   <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">)</span>
@@ -343,8 +359,7 @@
     <span class="n">eval_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">finalize_evaluation</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished evaluation&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">eval_dict</span>
-  <span class="k">else</span><span class="p">:</span>
-    <span class="k">return</span> <span class="kc">None</span></div>
+  <span class="k">return</span> <span class="kc">None</span></div>
 </pre></div>
 
            </div>

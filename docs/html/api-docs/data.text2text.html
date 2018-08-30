@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="encoders" href="encoders.html" />
+    <link rel="next" title="text2speech" href="data.text2speech.html" />
     <link rel="prev" title="speech2text" href="data.speech2text.html" /> 
 
   
@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="data.html">data</a><ul class="current">
@@ -102,6 +104,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#module-data.text2text.tokenizer">tokenizer</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="data.text2speech.html">text2speech</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html#module-data.data_layer">data_layer</a></li>
 <li class="toctree-l3"><a class="reference internal" href="data.html#module-data.utils">utils</a></li>
 </ul>
@@ -342,18 +345,6 @@ repeated forever.</li>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="data.text2text.t2t.eval_input_fn">
-<code class="descclassname">data.text2text.t2t.</code><code class="descname">eval_input_fn</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#eval_input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t.eval_input_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load and return dataset of batched examples for use during evaluation.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="data.text2text.t2t.train_input_fn">
-<code class="descclassname">data.text2text.t2t.</code><code class="descname">train_input_fn</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/t2t.html#train_input_fn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.t2t.train_input_fn" title="Permalink to this definition">¶</a></dt>
-<dd><p>Load and return dataset of batched examples for use during training.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="id1">
 <h2>text2text<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
@@ -365,6 +356,32 @@ repeated forever.</li>
 <dt id="data.text2text.text2text.ParallelTextDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Here all TensorFlow graph construction should happen.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the feed dict for interactive infer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_in</strong> (<em>str</em>) – the string to be translated. Should be in bpe format.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with values for the placeholders.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">feed_dict (dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -595,7 +612,7 @@ Should be created by <a class="reference internal" href="#data.text2text.text2te
 
 <dl class="staticmethod">
 <dt id="data.text2text.tokenizer.Subtokenizer.init_from_files">
-<em class="property">static </em><code class="descname">init_from_files</code><span class="sig-paren">(</span><em>files</em>, <em>target_vocab_size</em>, <em>threshold</em>, <em>min_count=None</em>, <em>file_byte_limit=1000000.0</em>, <em>reserved_tokens=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#Subtokenizer.init_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer.Subtokenizer.init_from_files" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">init_from_files</code><span class="sig-paren">(</span><em>vocab_file</em>, <em>files</em>, <em>target_vocab_size</em>, <em>threshold</em>, <em>min_count=None</em>, <em>file_byte_limit=1000000.0</em>, <em>reserved_tokens=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#Subtokenizer.init_from_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer.Subtokenizer.init_from_files" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create subtoken vocabulary based on files, and save vocab to file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -807,12 +824,6 @@ returned subtoken list.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="data.text2text.tokenizer._join_tokens_to_string">
-<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_join_tokens_to_string</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_join_tokens_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._join_tokens_to_string" title="Permalink to this definition">¶</a></dt>
-<dd><p>Join a list of string tokens into a single string.</p>
-</dd></dl>
-
-<dl class="function">
 <dt id="data.text2text.tokenizer._list_to_index_dict">
 <code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_list_to_index_dict</code><span class="sig-paren">(</span><em>lst</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_list_to_index_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._list_to_index_dict" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create dictionary mapping list items to their indices in the list.</p>
@@ -849,8 +860,20 @@ returned subtoken list.</li>
 </dd></dl>
 
 <dl class="function">
-<dt id="data.text2text.tokenizer._unescape_token">
-<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_unescape_token</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_unescape_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._unescape_token" title="Permalink to this definition">¶</a></dt>
+<dt id="data.text2text.tokenizer._unicode_to_native">
+<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_unicode_to_native</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_unicode_to_native"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._unicode_to_native" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert string from unicode to native format (required in Python 2).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2text.tokenizer.join_tokens_to_string">
+<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">join_tokens_to_string</code><span class="sig-paren">(</span><em>tokens</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#join_tokens_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer.join_tokens_to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Join a list of string tokens into a single string.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.text2text.tokenizer.unescape_token">
+<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">unescape_token</code><span class="sig-paren">(</span><em>token</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#unescape_token"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer.unescape_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Replaces escaped characters in the token with their unescaped versions.</p>
 <dl class="docutils">
 <dt>Applies inverse transformations as _escape_token():</dt>
@@ -872,12 +895,6 @@ returned subtoken list.</li>
 </table>
 </dd></dl>
 
-<dl class="function">
-<dt id="data.text2text.tokenizer._unicode_to_native">
-<code class="descclassname">data.text2text.tokenizer.</code><code class="descname">_unicode_to_native</code><span class="sig-paren">(</span><em>s</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/tokenizer.html#_unicode_to_native"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.tokenizer._unicode_to_native" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convert string from unicode to native format (required in Python 2).</p>
-</dd></dl>
-
 </div>
 </div>
 
@@ -889,7 +906,7 @@ returned subtoken list.</li>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="encoders.html" class="btn btn-neutral float-right" title="encoders" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="data.text2speech.html" class="btn btn-neutral float-right" title="text2speech" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="data.speech2text.html" class="btn btn-neutral" title="speech2text" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -172,11 +172,10 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
     return dict(FullyConnectedTimeDecoder.get_optional_params(), **{
         'decoder_library_path': str,
         'beam_width': int,
-        'lm_weight': float,
-        'word_count_weight': float,
-        'valid_word_count_weight': float,
-        'lm_binary_path': str,
-        'lm_trie_path': str,
+        'alpha': float,
+        'beta': float,
+        'lm_path': str,
+        'trie_path': str,
         'alphabet_config_path': str,
     })
 
@@ -192,16 +191,14 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
       output text generation. If False, other config parameters are not used.
     * **decoder_library_path** (string) --- path to the ctc decoder with
       language model library.
-    * **lm_binary_path** (string) --- path to the language model file.
-    * **lm_trie_path** (string) --- path to the language model trie file.
+    * **lm_path** (string) --- path to the language model file.
+    * **trie_path** (string) --- path to the prefix trie file.
     * **alphabet_config_path** (string) --- path to the alphabet file.
     * **beam_width** (int) --- beam width for beam search.
-    * **lm_weight** (float) --- weight that is assigned to language model
+    * **alpha** (float) --- weight that is assigned to language model
       probabilities.
-    * **word_count_weight** (float) --- weight that is assigned to the
+    * **beta** (float) --- weight that is assigned to the
       word count.
-    * **valid_word_count_weight** (float) --- weight that is assigned to the
-      valid word count, i.e. words that exist in language model dictionary.
     """
     super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
 
@@ -225,12 +222,10 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         decoded_ixs, decoded_vals, decoded_shapes, log_probabilities = (
             custom_op_module.ctc_beam_search_decoder_with_lm(
                 logits, sequence_length, beam_width=beam_width,
-                model_path=self.params['lm_binary_path'],
-                trie_path=self.params['lm_trie_path'],
+                model_path=self.params['lm_path'], trie_path=self.params['trie_path'],
                 alphabet_path=self.params['alphabet_config_path'],
-                lm_weight=self.params['lm_weight'],
-                word_count_weight=self.params['word_count_weight'],
-                valid_word_count_weight=self.params['valid_word_count_weight'],
+                alpha=self.params['alpha'],
+                beta=self.params['beta'],
                 top_paths=top_paths, merge_repeated=merge_repeated,
             )
         )

@@ -32,9 +32,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
-    <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Models and recipes" href="../models-and-recipes.html" />
-    <link rel="prev" title="Machine Translation" href="nmt.html" /> 
+    <link rel="search" title="Search" href="../search.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -83,22 +81,16 @@
               
             
             
-              <ul class="current">
+              <ul>
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../getting-started.html">Getting started</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="nmt.html">Machine Translation</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Speech Recognition</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-train-the-model-on-librispeech-dataset">How to train the model on LibriSpeech dataset</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#how-to-build-your-own-language-model">How to build your own language model</a></li>
-</ul>
-</li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -145,8 +137,6 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../getting-started.html">Getting started</a> &raquo;</li>
-        
       <li>Speech Recognition</li>
     
     
@@ -171,7 +161,7 @@
 <p>First, make sure you followed the <a class="reference internal" href="../installation-instructions.html#installation-speech"><span class="std std-ref">installation instructions</span></a>
 for the speech-to-text part of OpenSeq2Seq.</p>
 <p>After that you should be able to run toy speech example with no errors:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <div class="section" id="how-to-train-the-model-on-librispeech-dataset">
@@ -214,15 +204,6 @@ python build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-t
            
           </div>
           <footer>
-  
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="../models-and-recipes.html" class="btn btn-neutral float-right" title="Models and recipes" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
-      
-      
-        <a href="nmt.html" class="btn btn-neutral" title="Machine Translation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
-      
-    </div>
   
 
   <hr/>

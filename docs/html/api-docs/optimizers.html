@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
@@ -180,6 +182,56 @@
 <h2>optimizers<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <span class="target" id="module-optimizers.optimizers"></span><p>Optimizer ops for use in layers and tf.learn.</p>
 <dl class="function">
+<dt id="optimizers.optimizers._clip_by_global_norm">
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">_clip_by_global_norm</code><span class="sig-paren">(</span><em>t_list</em>, <em>clip_norm</em>, <em>use_norm</em>, <em>name=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_clip_by_global_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._clip_by_global_norm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clips values of multiple tensors by the ratio of the sum of their norms.
+Given a tuple or list of tensors <cite>t_list</cite>, and a clipping ratio <cite>clip_norm</cite>,
+this operation returns a list of clipped tensors <cite>list_clipped</cite>
+and the global norm (<cite>global_norm</cite>) of all tensors in <cite>t_list</cite>. The global
+norm is expected to be pre-computed and passed as use_norm.
+To perform the clipping, the values <cite>t_list[i]</cite> are set to:</p>
+<blockquote>
+<div>t_list[i] * clip_norm / max(global_norm, clip_norm)</div></blockquote>
+<dl class="docutils">
+<dt>where:</dt>
+<dd>global_norm = sqrt(sum([l2norm(t)**2 for t in t_list]))</dd>
+</dl>
+<p>If <cite>clip_norm &gt; global_norm</cite> then the entries in <cite>t_list</cite> remain as they are,
+otherwise they’re all shrunk by the global ratio.
+Any of the entries of <cite>t_list</cite> that are of type <cite>None</cite> are ignored.
+This is the correct way to perform gradient clipping (for example, see
+[Pascanu et al., 2012](<a class="reference external" href="http://arxiv.org/abs/1211.5063">http://arxiv.org/abs/1211.5063</a>)
+([pdf](<a class="reference external" href="http://arxiv.org/pdf/1211.5063.pdf">http://arxiv.org/pdf/1211.5063.pdf</a>))).
+However, it is slower than <cite>clip_by_norm()</cite> because all the parameters must be
+ready before the clipping operation can be performed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>t_list</strong> – A tuple or list of mixed <cite>Tensors</cite>, <cite>IndexedSlices</cite>, or None.</li>
+<li><strong>clip_norm</strong> – A 0-D (scalar) <cite>Tensor</cite> &gt; 0. The clipping ratio.</li>
+<li><strong>use_norm</strong> – A 0-D (scalar) <cite>Tensor</cite> of type <cite>float</cite> (optional). The global
+norm to use. If not provided, <cite>global_norm()</cite> is used to compute the norm.</li>
+<li><strong>name</strong> – A name for the operation (optional).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of <cite>Tensors</cite> of the same type as <cite>list_t</cite>.
+global_norm: A 0-D (scalar) <cite>Tensor</cite> representing the global norm.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first">list_clipped</p>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Raises:</th><td class="field-body"><p class="first last"><code class="xref py py-exc docutils literal notranslate"><span class="pre">TypeError</span></code> – If <cite>t_list</cite> is not a sequence.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="optimizers.optimizers._clip_gradients_by_norm">
 <code class="descclassname">optimizers.optimizers.</code><code class="descname">_clip_gradients_by_norm</code><span class="sig-paren">(</span><em>grads_and_vars</em>, <em>clip_gradients</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#_clip_gradients_by_norm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers._clip_gradients_by_norm" title="Permalink to this definition">¶</a></dt>
 <dd><p>Clips gradients by global norm.</p>
@@ -188,14 +240,19 @@
 <dl class="function">
 <dt id="optimizers.optimizers.get_regularization_loss">
 <code class="descclassname">optimizers.optimizers.</code><code class="descname">get_regularization_loss</code><span class="sig-paren">(</span><em>scope=None</em>, <em>name='total_regularization_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#get_regularization_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.get_regularization_loss" title="Permalink to this definition">¶</a></dt>
-<dd><p>Gets the total regularization loss.
-:param scope: An optional scope name for filtering the losses to return.
-:param name: The name of the returned tensor.</p>
+<dd><p>Gets the total regularization loss.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">A scalar regularization loss.</td>
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>scope</strong> – An optional scope name for filtering the losses to return.</li>
+<li><strong>name</strong> – The name of the returned tensor.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A scalar regularization loss.</p>
+</td>
 </tr>
 </tbody>
 </table>
@@ -203,7 +260,7 @@
 
 <dl class="function">
 <dt id="optimizers.optimizers.optimize_loss">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>dtype=tf.float32</em>, <em>clip_gradients=None</em>, <em>summaries=None</em>, <em>larc_params=None</em>, <em>loss_scaling=1.0</em>, <em>on_horovod=False</em>, <em>iter_size=1</em>, <em>skip_update_ph=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>dtype=tf.float32</em>, <em>clip_gradients=None</em>, <em>summaries=None</em>, <em>larc_params=None</em>, <em>loss_scaling=1.0</em>, <em>loss_scaling_params=None</em>, <em>on_horovod=False</em>, <em>iter_size=1</em>, <em>skip_update_ph=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given loss and parameters for optimizer, returns a training op.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -360,7 +417,7 @@ and <cite>colocate_gradients_with_ops</cite> are ignored.
 <span id="automatic-loss-scaler"></span><h2>automatic_loss_scaler<a class="headerlink" href="#module-optimizers.automatic_loss_scaler" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler">
-<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">AutomaticLossScaler</code><span class="sig-paren">(</span><em>algorithm='Backoff'</em>, <em>scale_min=1.0</em>, <em>scale_max=16777216.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">AutomaticLossScaler</code><span class="sig-paren">(</span><em>algorithm='Backoff'</em>, <em>params=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.SUPPORTED_ALGOS">
@@ -369,7 +426,7 @@ and <cite>colocate_gradients_with_ops</cite> are ignored.
 
 <dl class="staticmethod">
 <dt id="optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">
-<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">check_grads</code><span class="sig-paren">(</span><em>grads_and_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#AutomaticLossScaler.check_grads"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -386,7 +443,7 @@ and <cite>colocate_gradients_with_ops</cite> are ignored.
 
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler">
-<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">BackoffScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>step_factor</em>, <em>step_window</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#BackoffScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">BackoffScaler</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#BackoffScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.BackoffScaler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.BackoffScaler.loss_scale">
@@ -402,7 +459,7 @@ and <cite>colocate_gradients_with_ops</cite> are ignored.
 
 <dl class="class">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler">
-<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">LogMaxScaler</code><span class="sig-paren">(</span><em>scale_min</em>, <em>scale_max</em>, <em>log_max</em>, <em>beta1</em>, <em>beta2</em>, <em>overflow_std_dev</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#LogMaxScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">optimizers.automatic_loss_scaler.</code><code class="descname">LogMaxScaler</code><span class="sig-paren">(</span><em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/automatic_loss_scaler.html#LogMaxScaler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.automatic_loss_scaler.LogMaxScaler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="optimizers.automatic_loss_scaler.LogMaxScaler.loss_scale">
@@ -540,7 +597,8 @@ which is the first step to start decaying learning rate.</p>
 <dl class="function">
 <dt id="optimizers.lr_policies.transformer_policy">
 <code class="descclassname">optimizers.lr_policies.</code><code class="descname">transformer_policy</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>d_model</em>, <em>warmup_steps</em>, <em>max_lr=None</em>, <em>coefficient=1.0</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#transformer_policy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.transformer_policy" title="Permalink to this definition">¶</a></dt>
-<dd><p>Transformer’s learning rate policy from <a class="reference external" href="https://arxiv.org/pdf/1706.03762.pdf">https://arxiv.org/pdf/1706.03762.pdf</a>
+<dd><p>Transformer’s learning rate policy from
+<a class="reference external" href="https://arxiv.org/pdf/1706.03762.pdf">https://arxiv.org/pdf/1706.03762.pdf</a>
 with a hat (max_lr) (also called “noam” learning rate decay scheme).</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

@@ -25,13 +25,12 @@ from tensorflow.contrib.seq2seq.python.ops import decoder
 from tensorflow.contrib.seq2seq.python.ops.helper import Helper
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.framework import dtypes
+from tensorflow.python.framework import ops
 from tensorflow.python.ops import math_ops
 from tensorflow.python.ops import array_ops
 from tensorflow.python.ops import control_flow_ops
 from tensorflow.python.ops import tensor_array_ops
 from tensorflow.python.util import nest
-from tensorflow.python.ops.distributions import bernoulli
-from tensorflow.python.ops import gen_array_ops
 
 _transpose_batch_time = decoder._transpose_batch_time
 
@@ -53,7 +52,6 @@ class TacotronTrainingHelper(Helper):
       inputs,
       sequence_length,
       prenet=None,
-      sampling_prob=0.,
       time_major=False,
       sample_ids_shape=None,
       sample_ids_dtype=None,
@@ -81,7 +79,6 @@ class TacotronTrainingHelper(Helper):
     self._sequence_length = sequence_length
     self._batch_size = array_ops.size(sequence_length)
     self._seed = None
-    self._sampling_prob = sampling_prob
     self._mask_decoder_sequence = mask_decoder_sequence
     self._prenet = prenet
     self._zero_inputs = nest.map_structure(
@@ -130,47 +127,6 @@ class TacotronTrainingHelper(Helper):
       if self._prenet is not None:
         next_input = self._prenet(next_input)
         out = self._prenet(out)
-      if self._sampling_prob > 0.:
-        next_input = tf.stop_gradient(next_input)
-        out = tf.stop_gradient(out)
-        select_sampler = bernoulli.Bernoulli(
-            probs=self._sampling_prob, dtype=dtypes.bool
-        )
-        select_sample = select_sampler.sample(
-            sample_shape=(self.batch_size, 1), seed=self._seed
-        )
-        select_sample = tf.tile(select_sample, [1, self._last_dim])
-        sample_ids = array_ops.where(
-            select_sample, out,
-            gen_array_ops.fill(
-                [self.batch_size, self._last_dim],
-                tf.cast(-20., self._dtype)
-            )
-        )
-        where_sampling = math_ops.cast(
-            array_ops.where(sample_ids > -20), dtypes.int32
-        )
-        where_not_sampling = math_ops.cast(
-            array_ops.where(sample_ids <= -20), dtypes.int32
-        )
-        sample_ids_sampling = array_ops.gather_nd(sample_ids, where_sampling)
-        inputs_not_sampling = array_ops.gather_nd(
-            next_input, where_not_sampling
-        )
-        sampled_next_inputs = sample_ids_sampling
-        base_shape = array_ops.shape(next_input)
-
-        next_input = (
-            array_ops.scatter_nd(
-                indices=where_sampling,
-                updates=sampled_next_inputs,
-                shape=base_shape
-            ) + array_ops.scatter_nd(
-                indices=where_not_sampling,
-                updates=inputs_not_sampling,
-                shape=base_shape
-            )
-        )
       return next_input
 
     next_inputs = control_flow_ops.cond(

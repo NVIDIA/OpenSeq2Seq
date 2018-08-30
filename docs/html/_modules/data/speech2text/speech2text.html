@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -154,19 +156,21 @@
             
   <h1>Source code for data.speech2text.speech2text</h1><div class="highlight"><pre>
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+<span class="sd">&quot;&quot;&quot;Data Layer for Speech-to-Text models&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
-
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
-<span class="kn">from</span> <span class="nn">.speech_utils</span> <span class="k">import</span> <span class="n">get_speech_features_from_file</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.utils</span> <span class="k">import</span> <span class="n">load_pre_existing_vocabulary</span>
+<span class="kn">from</span> <span class="nn">.speech_utils</span> <span class="k">import</span> <span class="n">get_speech_features_from_file</span><span class="p">,</span> <span class="n">get_speech_features</span>
 
 
 <div class="viewcode-block" id="Speech2TextDataLayer"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
@@ -174,26 +178,24 @@
 <div class="viewcode-block" id="Speech2TextDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;num_audio_features&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-      <span class="s1">&#39;input_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">,</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">],</span>
-      <span class="s1">&#39;vocab_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-      <span class="s1">&#39;dataset_files&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
+        <span class="s1">&#39;num_audio_features&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;input_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">,</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;vocab_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;dataset_files&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
-      <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-      <span class="s1">&#39;pad_to&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="s1">&#39;pad_to&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;max_duration&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Speech-to-text data layer constructor.</span>
-
 <span class="sd">    See parent class for arguments description.</span>
-
 <span class="sd">    Config parameters:</span>
-
 <span class="sd">    * **num_audio_features** (int) --- number of audio features to extract.</span>
 <span class="sd">    * **input_type** (str) --- could be either &quot;spectrogram&quot; or &quot;mfcc&quot;.</span>
 <span class="sd">    * **vocab_file** (str) --- path to vocabulary file.</span>
@@ -213,9 +215,10 @@
                                                <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_pre_existing_vocabulary</span><span class="p">(</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">],</span> <span class="n">read_chars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">],</span> <span class="n">read_chars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
     <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span>
+                               <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="c1"># add one for implied blank token</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
 
@@ -238,7 +241,9 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_size_in_samples</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_duration&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.split_data"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.split_data">[docs]</a>  <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;train&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -266,38 +271,59 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
 
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-        <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_transcript_element</span><span class="p">,</span>
-          <span class="p">[</span><span class="n">line</span><span class="p">],</span>
-          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-          <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+          <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_transcript_element</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">line</span><span class="p">],</span>
+              <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span>
+              <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="p">),</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+          <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+          <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">],</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
       <span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
-        <span class="n">padded_shapes</span><span class="o">=</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]],</span> <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+          <span class="n">padded_shapes</span><span class="o">=</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]],</span>
+                         <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
       <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="k">lambda</span> <span class="n">num</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">),</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_files</span><span class="p">)))))</span>
+          <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_files</span><span class="p">)))))</span>
       <span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">indices</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]))</span>
+          <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">((</span><span class="n">indices</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">[:,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]))</span>
       <span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">repeat</span><span class="p">()</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
-        <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_element</span><span class="p">,</span>
-          <span class="p">[</span><span class="n">line</span><span class="p">],</span>
-          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
-          <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-        <span class="p">),</span>
-        <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+          <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_element</span><span class="p">,</span>
+              <span class="p">[</span><span class="n">line</span><span class="p">],</span>
+              <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">],</span>
+              <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+          <span class="p">),</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">])</span>
+        <span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
+          <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+          <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">],</span>
+          <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
       <span class="p">)</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
-        <span class="n">padded_shapes</span><span class="o">=</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+          <span class="n">padded_shapes</span><span class="o">=</span><span class="p">([</span><span class="kc">None</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]],</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
       <span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>\
@@ -324,12 +350,68 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s1">&#39;source_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x_id</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Speech2TextDataLayer._parse_audio_transcript_element"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_transcript_element">[docs]</a>  <span class="k">def</span> <span class="nf">_parse_audio_transcript_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Parses tf.data element from TextLineDataset into audio and text.</span>
+<div class="viewcode-block" id="Speech2TextDataLayer.create_interactive_placeholders"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.create_interactive_placeholders">[docs]</a>  <span class="k">def</span> <span class="nf">create_interactive_placeholders</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>
+        <span class="n">shape</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+            <span class="kc">None</span><span class="p">,</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+        <span class="p">]</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_x_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]]</span>
+    <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_x_id</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span>
+        <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span>
+        <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]]</span>
+    <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_x_length</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s1">&#39;source_ids&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_x_id</span><span class="p">]</span></div>
+
+<div class="viewcode-block" id="Speech2TextDataLayer.create_feed_dict"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.create_feed_dict">[docs]</a>  <span class="k">def</span> <span class="nf">create_feed_dict</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">model_in</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Creates the feed dict for interactive infer</span>
 
 <span class="sd">    Args:</span>
-<span class="sd">      element: tf.data element from TextLineDataset.</span>
+<span class="sd">      model_in (str or np.array): Either a str that contains the file path of the</span>
+<span class="sd">        wav file, or a numpy array containing 1-d wav file.</span>
 
+<span class="sd">    Returns:</span>
+<span class="sd">      feed_dict (dict): Dictionary with values for the placeholders.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_in</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+      <span class="n">audio</span><span class="p">,</span> <span class="n">audio_length</span><span class="p">,</span> <span class="n">x_id</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parse_audio_element</span><span class="p">([</span><span class="mi">0</span><span class="p">,</span> <span class="n">model_in</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model_in</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+      <span class="n">audio</span><span class="p">,</span> <span class="n">audio_length</span><span class="p">,</span> <span class="n">x_id</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_audio</span><span class="p">(</span><span class="n">model_in</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+          <span class="s2">&quot;Speech2Text&#39;s interactive inference mode only supports string or&quot;</span><span class="p">,</span>
+          <span class="s2">&quot;numpy array as input. Got </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span> <span class="nb">format</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">model_in</span><span class="p">))</span>
+      <span class="p">)</span>
+
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span>
+        <span class="n">audio</span><span class="p">,</span>
+        <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
+        <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]]</span>
+    <span class="p">)</span>
+    <span class="n">audio_length</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">audio_length</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]])</span>
+    <span class="n">x_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_id</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]])</span>
+
+    <span class="n">feed_dict</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x</span><span class="p">:</span> <span class="n">audio</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_length</span><span class="p">:</span> <span class="n">audio_length</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_x_id</span><span class="p">:</span><span class="n">x_id</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="n">feed_dict</span></div>
+
+<div class="viewcode-block" id="Speech2TextDataLayer._parse_audio_transcript_element"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_transcript_element">[docs]</a>  <span class="k">def</span> <span class="nf">_parse_audio_transcript_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses tf.data element from TextLineDataset into audio and text.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      element: tf.data element from TextLineDataset.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">      tuple: source audio features as ``np.array``, length of source sequence,</span>
 <span class="sd">      target text as `np.array` of ids, target text length.</span>
@@ -339,48 +421,66 @@
       <span class="n">transcript</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">])</span>
     <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
-      <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
-      <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
-      <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+        <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
+        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
+        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
-           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> \
-           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> \
-           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="p">)])</span></div>
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">target</span><span class="p">),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">target</span><span class="p">)]),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">audio_duration</span><span class="p">])</span></div>
+
+<div class="viewcode-block" id="Speech2TextDataLayer._get_audio"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._get_audio">[docs]</a>  <span class="k">def</span> <span class="nf">_get_audio</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">wav</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Parses audio from wav and returns array of audio features.</span>
+<span class="sd">    Args:</span>
+<span class="sd">      wav: numpy array containing wav</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      tuple: source audio features as ``np.array``, length of source sequence,</span>
+<span class="sd">      sample id.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
+        <span class="n">wav</span><span class="p">,</span> <span class="mf">16000.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
+        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
+        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">audio_duration</span><span class="p">])</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer._parse_audio_element"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element">[docs]</a>  <span class="k">def</span> <span class="nf">_parse_audio_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">id_and_audio_filename</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Parses audio from file and returns array of audio features.</span>
-
 <span class="sd">    Args:</span>
-<span class="sd">      id_and_audio_filename: tuple of sample id and corresponding audio file name.</span>
-
+<span class="sd">      id_and_audio_filename: tuple of sample id and corresponding</span>
+<span class="sd">          audio file name.</span>
 <span class="sd">    Returns:</span>
 <span class="sd">      tuple: source audio features as ``np.array``, length of source sequence,</span>
 <span class="sd">      sample id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">idx</span><span class="p">,</span> <span class="n">audio_filename</span> <span class="o">=</span> <span class="n">id_and_audio_filename</span>
     <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
-    <span class="n">source</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
-      <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
-      <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
-      <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
+    <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
+        <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
+        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
+        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
-           <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="n">idx</span><span class="p">])</span></div>
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="n">idx</span><span class="p">]),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">([</span><span class="n">audio_duration</span><span class="p">])</span></div>
 
   <span class="nd">@property</span>
   <span class="k">def</span> <span class="nf">input_tensors</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Dictionary with input tensors.</span>
-
 <span class="sd">    ``input_tensors[&quot;source_tensors&quot;]`` contains:</span>
-
-<span class="sd">      * source_sequence (shape=[batch_size x sequence length x num_audio_features])</span>
+<span class="sd">      * source_sequence</span>
+<span class="sd">        (shape=[batch_size x sequence length x num_audio_features])</span>
 <span class="sd">      * source_length (shape=[batch_size])</span>
-
 <span class="sd">    ``input_tensors[&quot;target_tensors&quot;]`` contains:</span>
-
-<span class="sd">      * target_sequence (shape=[batch_size x sequence length x num_audio_features])</span>
+<span class="sd">      * target_sequence</span>
+<span class="sd">        (shape=[batch_size x sequence length x num_audio_features])</span>
 <span class="sd">      * target_length (shape=[batch_size])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span>

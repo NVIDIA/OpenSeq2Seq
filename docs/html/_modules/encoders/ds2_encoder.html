@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -156,18 +158,19 @@
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.cudnn_rnn.python.ops</span> <span class="k">import</span> <span class="n">cudnn_rnn_ops</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
-<span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.cnns.conv_blocks</span> <span class="k">import</span> <span class="n">conv_bn_actv</span>
+<span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
 
 
 <div class="viewcode-block" id="rnn_cell"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.ds2_encoder.rnn_cell">[docs]</a><span class="k">def</span> <span class="nf">rnn_cell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">layer_type</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Helper function that creates RNN cell.&quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;layernorm_lstm&quot;</span><span class="p">:</span>
+    <span class="c1"># pylint: disable=no-member</span>
     <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">LayerNormBasicLSTMCell</span><span class="p">(</span>
         <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span> <span class="n">dropout_keep_prob</span><span class="o">=</span><span class="n">dropout_keep_prob</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
@@ -176,8 +179,10 @@
     <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;gru&quot;</span><span class="p">:</span>
       <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">GRUCell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_gru&quot;</span><span class="p">:</span>
+      <span class="c1"># pylint: disable=no-member</span>
       <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnCompatibleGRUCell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_lstm&quot;</span><span class="p">:</span>
+      <span class="c1"># pylint: disable=no-member</span>
       <span class="n">cell</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnCompatibleLSTMCell</span><span class="p">(</span><span class="n">rnn_cell_dim</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Error: not supported rnn type:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">layer_type</span><span class="p">))</span>
@@ -248,7 +253,8 @@
         <span class="s1">&#39;n_hidden&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;use_cudnn_rnn&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;rnn_cell_dim&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="s1">&#39;rnn_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;layernorm_lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_lstm&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;rnn_type&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;layernorm_lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;lstm&#39;</span><span class="p">,</span> <span class="s1">&#39;gru&#39;</span><span class="p">,</span>
+                     <span class="s1">&#39;cudnn_gru&#39;</span><span class="p">,</span> <span class="s1">&#39;cudnn_lstm&#39;</span><span class="p">],</span>
         <span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
@@ -358,7 +364,7 @@
         <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv_bn_actv</span><span class="p">(</span>
-          <span class="nb">type</span><span class="o">=</span><span class="s2">&quot;conv2d&quot;</span><span class="p">,</span>
+          <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;conv2d&quot;</span><span class="p">,</span>
           <span class="n">name</span><span class="o">=</span><span class="s2">&quot;conv</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">idx_conv</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span>
           <span class="n">inputs</span><span class="o">=</span><span class="n">top_layer</span><span class="p">,</span>
           <span class="n">filters</span><span class="o">=</span><span class="n">ch_out</span><span class="p">,</span>
@@ -395,6 +401,7 @@
           <span class="n">direction</span> <span class="o">=</span> <span class="n">cudnn_rnn_ops</span><span class="o">.</span><span class="n">CUDNN_RNN_BIDIRECTION</span>
 
         <span class="k">if</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_gru&quot;</span> <span class="ow">or</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;gru&quot;</span><span class="p">:</span>
+          <span class="c1"># pylint: disable=no-member</span>
           <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnGRU</span><span class="p">(</span>
               <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
               <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>
@@ -404,6 +411,7 @@
               <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_gru&quot;</span><span class="p">,</span>
           <span class="p">)</span>
         <span class="k">elif</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;cudnn_lstm&quot;</span> <span class="ow">or</span> <span class="n">rnn_type</span> <span class="o">==</span> <span class="s2">&quot;lstm&quot;</span><span class="p">:</span>
+          <span class="c1"># pylint: disable=no-member</span>
           <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnLSTM</span><span class="p">(</span>
               <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
               <span class="n">num_units</span><span class="o">=</span><span class="n">rnn_cell_dim</span><span class="p">,</span>

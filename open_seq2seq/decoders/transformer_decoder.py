@@ -79,10 +79,10 @@ class TransformerDecoder(Decoder):
       targets = None
     encoder_outputs = input_dict['encoder_output']['outputs']
     inputs_attention_bias = (
-        input_dict['encoder_output']['inputs_attention_bias']
+      input_dict['encoder_output']['inputs_attention_bias']
     )
     self.embedding_softmax_layer = (
-        input_dict['encoder_output']['embedding_softmax_layer']
+      input_dict['encoder_output']['embedding_softmax_layer']
     )
 
     with tf.name_scope("decode"):

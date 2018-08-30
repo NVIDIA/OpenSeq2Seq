@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
@@ -111,6 +113,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="parts.convs2s.html">convs2s</a></li>
 <li class="toctree-l3"><a class="reference internal" href="parts.cnns.html">cnns</a></li>
+<li class="toctree-l3"><a class="reference internal" href="parts.tacotron.html">tacotron</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils.html">utils</a></li>
@@ -693,18 +696,18 @@ sequence scores [batch_size, beam_size]</p>
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>epsilon=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where the layer’s logic lives.</p>
+<dd><p>The logic of the layer lives here.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – Input tensor, or list/tuple of input tensors.</li>
-<li><strong>**kwargs</strong> – Additional keyword arguments.</li>
+<li><strong>inputs</strong> – input tensor(s).</li>
+<li><strong>**kwargs</strong> – additional keyword arguments.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor or list/tuple of tensors.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
 </td>
 </tr>
 </tbody>
@@ -726,7 +729,7 @@ sequence scores [batch_size, beam_size]</p>
 <p>Implementation of embedding layer with shared weights.</p>
 <dl class="class">
 <dt id="parts.transformer.embedding_layer.EmbeddingSharedWeights">
-<em class="property">class </em><code class="descclassname">parts.transformer.embedding_layer.</code><code class="descname">EmbeddingSharedWeights</code><span class="sig-paren">(</span><em>vocab_size</em>, <em>hidden_size</em>, <em>pad_vocab_to_eight=False</em>, <em>init_var=None</em>, <em>embed_scale=True</em>, <em>pad_sym=0</em>, <em>mask_paddings=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.embedding_layer.</code><code class="descname">EmbeddingSharedWeights</code><span class="sig-paren">(</span><em>vocab_size</em>, <em>hidden_size</em>, <em>pad_vocab_to_eight=False</em>, <em>init_var=None</em>, <em>embed_scale=True</em>, <em>pad_sym=0</em>, <em>mask_paddings=True</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/embedding_layer.html#EmbeddingSharedWeights"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.embedding_layer.EmbeddingSharedWeights" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Calculates input embeddings and pre-softmax linear with shared weights.</p>
 <dl class="method">
@@ -786,18 +789,18 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <dl class="method">
 <dt id="parts.transformer.ffn_layer.FeedFowardNetwork.call">
 <code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>padding=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork.call" title="Permalink to this definition">¶</a></dt>
-<dd><p>This is where the layer’s logic lives.</p>
+<dd><p>The logic of the layer lives here.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>inputs</strong> – Input tensor, or list/tuple of input tensors.</li>
-<li><strong>**kwargs</strong> – Additional keyword arguments.</li>
+<li><strong>inputs</strong> – input tensor(s).</li>
+<li><strong>**kwargs</strong> – additional keyword arguments.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor or list/tuple of tensors.</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">Output tensor(s).</p>
 </td>
 </tr>
 </tbody>
