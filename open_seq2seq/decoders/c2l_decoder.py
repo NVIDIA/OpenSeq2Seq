@@ -248,7 +248,9 @@ class Conv2LetterDecoder(Decoder):
                 **normalization_params
           )
           #conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
-          attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_feats, None, None)
+          conv_query = tf.layers.dense(conv_feats, ch_out, name="query{}".format(idx_layer), use_bias=True, activation=None)
+          conv_query = conv_query + tgt_input_vectors
+          attn_output, alignments, next_state = _compute_attention(attention_mechanism, conv_query, None, None)
           conv_feats = conv_feats + attn_output
           print(attn_output)
           print(conv_feats)

@@ -114,7 +114,7 @@ base_params = {
     "decoder_params": {
         "attn_decoder": Conv2LetterDecoder,
         "attn_params": {
-          "tgt_emb_size": 256,
+          "tgt_emb_size": 512,
 
           "pos_embedding": True,
 
