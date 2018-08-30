@@ -250,7 +250,7 @@ class _BaseAttentionMechanism(AttentionMechanism):
           memory_sequence_length,
           check_inner_dims_defined=check_inner_dims_defined
       )
-      self._values_32 = math_ops.cast(self._values, dtypes.float32)
+      # self._values_32 = math_ops.cast(self._values, dtypes.float32)
       self._keys = (
           self.memory_layer(self._values) if self.memory_layer  # pylint: disable=not-callable
           else self._values
@@ -804,9 +804,10 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
           processed_query, self._keys, processed_location, self.use_bias
       )
     # Keep alignments in float32
-    score = math_ops.cast(score, dtypes.float32)
+    # score = math_ops.cast(score, dtypes.float32)
     alignments = self._probability_fn(score, state)
-    next_state = math_ops.cast(alignments, state.dtype) + state
+    # next_state = math_ops.cast(alignments, state.dtype) + state
+    next_state = alignments + state
 
     return alignments, next_state
 
@@ -1324,7 +1325,6 @@ def _compute_attention(
   alignments, next_attention_state = attention_mechanism(
       cell_output, state=attention_state
   )
-  # alignments = math_ops.cast(alignments, attention_mechanism.values.dtype)
 
   # Reshape from [batch_size, memory_time] to [batch_size, 1, memory_time]
   expanded_alignments = array_ops.expand_dims(alignments, 1)
@@ -1337,10 +1337,11 @@ def _compute_attention(
   # the batched matmul is over memory_time, so the output shape is
   #   [batch_size, 1, memory_size].
   # we then squeeze out the singleton dim.
-  # values = math_ops.cast(attention_mechanism.values, dtypes.float32)
-  context = math_ops.matmul(expanded_alignments, attention_mechanism._values_32)
-  context = math_ops.cast(context, attention_mechanism.values.dtype)
-  alignments = math_ops.cast(alignments, attention_mechanism.values.dtype)
+
+  # context = math_ops.matmul(expanded_alignments, attention_mechanism._values_32)
+  # context = math_ops.cast(context, attention_mechanism.values.dtype)
+  # alignments = math_ops.cast(alignments, attention_mechanism.values.dtype)
+  context = math_ops.matmul(expanded_alignments, attention_mechanism.values)
   context = array_ops.squeeze(context, [1])
 
   if attention_layer is not None:
