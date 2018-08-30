@@ -13,4 +13,3 @@ from .lm_decoders import FakeDecoder
 from .tacotron2_decoder import Tacotron2Decoder
 from .las_decoder import ListenAttendSpellDecoder
 from .jca_decoder import JointCTCAttentionDecoder
-from .c2l_decoder import Conv2LetterDecoder
