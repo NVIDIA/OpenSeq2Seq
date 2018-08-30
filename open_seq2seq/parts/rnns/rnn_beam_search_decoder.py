@@ -191,6 +191,8 @@ class BeamSearchDecoder(decoder.Decoder):
         `tf.layers.Dense`.  Optional layer to apply to the RNN output prior
         to storing the result or sampling.
       length_penalty_weight: Float weight to penalize length. Disabled with 0.0.
+      positional_embedding: A callable to use decoder positional embedding.
+      Default is None in which case positional embedding is disabled
 
     Raises:
       TypeError: if `cell` is not an instance of `RNNCell`,
@@ -201,7 +203,7 @@ class BeamSearchDecoder(decoder.Decoder):
     if not rnn_cell_impl._like_rnncell(cell):  # pylint: disable=protected-access
       raise TypeError("cell must be an RNNCell, received: %s" % type(cell))
     if (output_layer is not None and
-        not isinstance(output_layer, layers_base.Layer)):
+            not isinstance(output_layer, layers_base.Layer)):
       raise TypeError(
           "output_layer must be a Layer, received: %s" % type(output_layer))
     self._cell = cell
@@ -599,7 +601,8 @@ def _beam_search_step(time, logits, next_cell_state, beam_state, batch_size,
   next_beam_scores.set_shape([static_batch_size, beam_width])
   word_indices.set_shape([static_batch_size, beam_width])
 
-  # Pick out the probs, beam_ids, and states according to the chosen predictions
+  # Pick out the probs, beam_ids, and states according to the chosen
+  # predictions
   next_beam_probs = _tensor_gather_helper(
       gather_indices=word_indices,
       gather_from=total_probs,
@@ -715,7 +718,7 @@ def _length_penalty(sequence_lengths, penalty_factor):
   if static_penalty is not None and static_penalty == 0:
     return 1.0
   return math_ops.div((5. + math_ops.to_float(sequence_lengths))
-                      **penalty_factor, (5. + 1.)**penalty_factor)
+                      ** penalty_factor, (5. + 1.)**penalty_factor)
 
 
 def _mask_probs(probs, eos_token, finished):

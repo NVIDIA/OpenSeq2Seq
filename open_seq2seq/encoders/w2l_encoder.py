@@ -26,7 +26,6 @@ class Wave2LetterEncoder(Encoder):
         'normalization': [None, 'batch_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
-        'residual_connections': bool,
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -100,7 +99,6 @@ class Wave2LetterEncoder(Encoder):
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
     normalization = self.params.get('normalization', 'batch_norm')
-    residual = self.params.get('residual_connections', False)
 
     normalization_params = {}
     if normalization is None:
@@ -146,7 +144,6 @@ class Wave2LetterEncoder(Encoder):
             regularizer=regularizer,
             training=training,
             data_format=data_format,
-            use_residual=residual,
             **normalization_params
         )
         conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)

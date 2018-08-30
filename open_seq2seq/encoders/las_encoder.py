@@ -47,7 +47,9 @@ def rnn_layer(layer_type, num_layers, name, inputs, src_length, hidden_dim,
 
 
 class ListenAttendSpellEncoder(Encoder):
-  """Listen Attend Spell like encoder"""
+  """Listen Attend Spell like encoder with support for reduction in time dimension of the input.
+  Can use convolutional layers, recurrent layers or both.
+  """
 
   @staticmethod
   def get_required_params():
@@ -65,11 +67,10 @@ class ListenAttendSpellEncoder(Encoder):
         'normalization': [None, 'batch_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
-        'residual_connections': bool,
     })
 
   def __init__(self, params, model, name="las_encoder", mode='train'):
-    """DeepSpeech2 like encoder constructor.
+    """Listen Attend Spell like encoder constructor.
 
     See parent class for arguments description.
 
@@ -85,21 +86,25 @@ class ListenAttendSpellEncoder(Encoder):
             "num_channels": 250, "padding": "SAME"
           },
           {
-            "type": "conv1d", "repeat" : 3,
-            "kernel_size": [11], "stride": [1],
-            "num_channels": 500, "padding": "SAME"
-          },
-          {
             "type": "conv1d", "repeat" : 1,
-            "kernel_size": [32], "stride": [1],
-            "num_channels": 1000, "padding": "SAME"
-          },
-          {
-            "type": "conv1d", "repeat" : 1,
-            "kernel_size": [1], "stride": [1],
+            "kernel_size": [1], "stride": [2],
             "num_channels": 1000, "padding": "SAME"
           },
         ]
+    * **recurrent_layers** (list) --- list with the description of recurrent
+      layers. For example::
+        "recurrent_layers": [
+            {
+                "type": "lstm", "num_layers": 1,
+                "hidden_dim": 512, "dropout_keep_prob": 0.8,
+                "pool": True, "pool_size":[2], "stride": [2],
+            },
+            {
+                "type": "lstm", "num_layers": 3,
+                "hidden_dim": 512, "dropout_keep_prob": 0.8,
+                "pool": False, "pool_size":[-1], "stride": [-1],
+            },
+        ], 
     * **activation_fn** --- activation function to use.
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
@@ -138,7 +143,6 @@ class ListenAttendSpellEncoder(Encoder):
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     normalization = self.params.get('normalization', 'batch_norm')
-    residual = self.params.get('residual_connections', False)
     data_format = self.params.get('data_format', 'channels_last')
 
     normalization_params = {}
@@ -186,7 +190,6 @@ class ListenAttendSpellEncoder(Encoder):
             regularizer=regularizer,
             training=training,
             data_format=data_format,
-            use_residual=residual,
             **normalization_params
         )
         conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)

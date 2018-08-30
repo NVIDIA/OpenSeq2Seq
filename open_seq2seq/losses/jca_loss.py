@@ -9,9 +9,10 @@ from .loss import Loss
 from .ctc_loss import CTCLoss
 from .sequence_loss import BasicSequenceLoss
 
+#To-Do Replace this with a generic multi-task loss.
 class MultiTaskCTCEntropyLoss(Loss):
   """
-  Basic sequence-to-sequence loss. This one does not use one-hot encodings
+  MultiTask CTC and cross entropy loss.
   """
   @staticmethod
   def get_required_params():
@@ -32,6 +33,13 @@ class MultiTaskCTCEntropyLoss(Loss):
     """Constructor.
 
     Args:
+      params (dict): dictionary with loss parameters.
+        Should contain the following:
+        * ctc_loss_params: Parameters required for CTC loss.
+        * seq_loss_params: Parameters required for Sequence loss.
+        * lambda_value: lambda value used to combine the two losses.
+        * tgt_vocab_size: Target vocabulary size.
+        * batch_size: Size of the per-worker batch.
     """
     super(MultiTaskCTCEntropyLoss, self).__init__(params, model, name)
     self.ctc_loss_params = self.params["ctc_loss_params"]
@@ -47,6 +55,17 @@ class MultiTaskCTCEntropyLoss(Loss):
 
   def _compute_loss(self, input_dict):
     """Computes multi-task ctc and cross entropy loss.
+
+    Args:
+      input_dict (dict): inputs to compute loss::
+        {
+              "logits": logits tensor of shape [batch_size, T, dim]
+              "target_sequence": tensor of shape [batch_size, T]
+              "tgt_lengths": tensor of shape [batch_size] or None
+        }
+
+    Returns:
+       Singleton loss tensor
     """
 
     ctc_loss_input_dict = {

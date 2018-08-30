@@ -238,7 +238,7 @@ class _BaseAttentionMechanism(AttentionMechanism):
       )
     if score_mask_value is None:
       score_mask_value = dtypes.as_dtype(self._memory_layer.dtype
-                                        ).as_numpy_dtype(-np.inf)
+                                         ).as_numpy_dtype(-np.inf)
     self._probability_fn = lambda score, prev: (  # pylint:disable=g-long-lambda
         probability_fn(
             _maybe_mask_score(score, memory_sequence_length, score_mask_value),
@@ -519,7 +519,7 @@ def _bahdanau_score(processed_query, keys, normalize):
         "attention_g",
         dtype=dtype,
         shape=[1],
-        #initializer=math.sqrt((1. / num_units)))
+        # initializer=math.sqrt((1. / num_units)))
         initializer=init_ops.constant_initializer(
             math.sqrt(1. / num_units), dtype=dtype
         )
@@ -710,6 +710,10 @@ class ChorowskiLocationLayer(layers_base.Layer):
 
 
 class ZhaopengLocationLayer(layers_base.Layer):
+  """
+  The layer that processed the location information. 
+  Similar to https://arxiv.org/abs/1805.03294 and https://arxiv.org/abs/1601.04811.
+  """
 
   def __init__(
       self,
@@ -720,14 +724,17 @@ class ZhaopengLocationLayer(layers_base.Layer):
       **kwargs
   ):
     super(ZhaopengLocationLayer, self).__init__(name=name, **kwargs)
-    self.vbeta = variable_scope.get_variable("location_attention_vbeta", [query_dim], dtype=dtypes.float32)
+    self.vbeta = variable_scope.get_variable(
+        "location_attention_vbeta", [query_dim], dtype=dtypes.float32)
     self.location_dense = layers_core.Dense(
         name="{}_dense".format(name), units=attention_units, use_bias=False
     )
 
   def __call__(self, prev_attention, query):
+    #To-Do add mixed precision support.
     #query = math_ops.cast(query, dtypes.float32)
-    fertility = math_ops.sigmoid(math_ops.reduce_sum(math_ops.multiply(self.vbeta, query)))
+    fertility = math_ops.sigmoid(math_ops.reduce_sum(
+        math_ops.multiply(self.vbeta, query)))
     location_attention = fertility * prev_attention
     location_attention = self.location_dense(location_attention)
     return location_attention
@@ -754,14 +761,15 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
       self,
       num_units,
       memory,
-      query_dim = None,
+      query_dim=None,
       memory_sequence_length=None,
       probability_fn=None,
       score_mask_value=None,
       dtype=None,
       use_bias=False,
       use_coverage=True,
-      location_attn_type = "chorowski",
+      location_attn_type="chorowski",
+      location_attention_params=None,
       name="LocationSensitiveAttention",
   ):
     """Construct the Attention mechanism.
@@ -783,7 +791,9 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         `memory_sequence_length` is not None.
       dtype: The data type for the query and memory layers of the attention
         mechanism.
-      use_bias (bool): Whether to use a bias when computing alignments
+      use_bias (bool): Whether to use a bias when computing alignments.
+      location_attn_type (String): Accepts ["chorowski", "zhaopeng"].
+      location_attention_params (dict): Params required for location attention.
       name: Name to use when creating ops.
     """
     if probability_fn is None:
@@ -810,7 +820,13 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
     self._use_coverage = use_coverage
 
     if location_attn_type == "chorowski":
-      self.location_layer = ChorowskiLocationLayer(10, 101, num_units)
+      kernel_size = 32
+      filters = 32
+      if location_attention_params is not None:
+        kernel_size = location_attention_params["kernel_size"]
+        filters = location_attention_params["filters"]
+
+      self.location_layer = ChorowskiLocationLayer(filters, kernel_size, num_units)
     elif location_attn_type == "zhaopeng":
       self.location_layer = ZhaopengLocationLayer(num_units, query_dim)
       self._use_coverage = True
@@ -1510,7 +1526,7 @@ class AttentionWrapper(rnn_cell_impl.RNNCell):
       attention_layer_sizes = tuple(
           attention_layer_size
           if isinstance(attention_layer_size, (list, tuple
-                                              )) else (attention_layer_size,)
+                                               )) else (attention_layer_size,)
       )
       if len(attention_layer_sizes) != len(attention_mechanisms):
         raise ValueError(

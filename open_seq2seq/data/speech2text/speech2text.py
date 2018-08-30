@@ -264,7 +264,7 @@ class Speech2TextDataLayer(DataLayer):
       * source_length (shape=[batch_size])
     ``input_tensors["target_tensors"]`` contains:
       * target_sequence
-        (shape=[batch_size x sequence length x num_audio_features])
+        (shape=[batch_size x sequence length])
       * target_length (shape=[batch_size])
     """
     return self._input_tensors

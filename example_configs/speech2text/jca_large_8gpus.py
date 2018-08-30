@@ -92,8 +92,6 @@ base_params = {
 
         "dropout_keep_prob": 0.8,
 
-        "residual_connections": False,
-
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
             'uniform': False,
@@ -117,6 +115,7 @@ base_params = {
               "use_coverage": True,
               "num_heads": 1,
               "plot_attention": True,
+
           },
           
           "rnn_type": "lstm",

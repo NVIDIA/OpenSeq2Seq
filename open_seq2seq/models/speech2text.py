@@ -138,15 +138,10 @@ class Speech2Text(EncoderDecoderModel):
     if self.plot_attention:
       attention_summary = plot_attention(
           output_values[1][0], pred_text, output_values[2][0], training_step)
-      deco_print("Encoder Length: {}".format(output_values[2][0]), offset=4)
 
     deco_print("Sample WER: {:.4f}".format(sample_wer), offset=4)
     deco_print("Sample target:     " + true_text, offset=4)
     deco_print("Sample prediction: " + pred_text, offset=4)
-    deco_print("Output Shape: {}".format(decoded_sequence[0].shape), offset=4)
-    deco_print("Alignment Shape: {}".format(decoded_sequence[1].shape), offset=4)
-    deco_print("Encoder Lengths: {}".format(decoded_sequence[2]), offset=4)
-    #deco_print("Target Lengths: {}".format(decoded_sequence[3]), offset=4)
 
     if self.plot_attention:
       return {
@@ -161,11 +156,9 @@ class Speech2Text(EncoderDecoderModel):
   def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
-    for word_lev, word_count, true_text, pred_text in results_per_batch:
+    for word_lev, word_count in results_per_batch:
       total_word_lev += word_lev
       total_word_count += word_count
-      deco_print("Validation target:     " + true_text, offset=4)
-      deco_print("Validation prediction: " + pred_text, offset=4)
 
     total_wer = 1.0 * total_word_lev / total_word_count
     deco_print("Validation WER:  {:.4f}".format(total_wer), offset=4)
@@ -198,7 +191,7 @@ class Speech2Text(EncoderDecoderModel):
       total_word_lev += levenshtein(true_text.split(), pred_text.split())
       total_word_count += len(true_text.split())
 
-    return total_word_lev, total_word_count, true_text, pred_text
+    return total_word_lev, total_word_count
 
   def infer(self, input_values, output_values):
     preds = []

@@ -30,6 +30,13 @@ class FullyConnected(tf.layers.Layer):
       mode='train',
       name="fully_connected",
   ):
+    """See parent class for arguments description.
+
+    Config parameters:
+
+    * **hidden_dims** (list) --- list of integers describing the hidden dimensions of a fully connected layer.
+    * **dropout_keep_prob** (float, optional) - dropout input keep probability.
+    """
     super(FullyConnected, self).__init__(name=name)
 
     self.dense_layers = []
@@ -46,6 +53,10 @@ class FullyConnected(tf.layers.Layer):
     self.dropout_keep_prob = dropout_keep_prob
 
   def call(self, inputs):
+    """
+    Args:
+      inputs: Similar to tf.layers.Dense layer inputs. Internally calls a stack of dense layers.
+    """
     training = (self.mode == "train")
     dropout_keep_prob = self.dropout_keep_prob if training else 1.0
     for layer in self.dense_layers:
@@ -59,7 +70,7 @@ class FullyConnected(tf.layers.Layer):
 
 
 class ListenAttendSpellDecoder(Decoder):
-  """Listen Attend Spell like decoder.
+  """Listen Attend Spell like decoder with attention mechanism.
   """
   @staticmethod
   def get_required_params():
@@ -84,11 +95,26 @@ class ListenAttendSpellDecoder(Decoder):
     })
 
   def __init__(self, params, model, name='las_decoder', mode='train'):
-    """Initializes RNN decoder with embedding.
+    """Initializes decoder with embedding.
 
     See parent class for arguments description.
 
     Config parameters:
+
+    * **GO_SYMBOL** (int) --- GO symbol id, must be the same as used in
+      data layer.
+    * **END_SYMBOL** (int) --- END symbol id, must be the same as used in
+      data layer.
+    * **tgt_vocab_size** (int) --- vocabulary size of the targets to use for final softmax.
+    * **tgt_emb_size** (int) --- embedding size to use.
+    * **attention_params** (dict) - parameters for attention mechanism.
+    * **rnn_type** (String) - String indicating the rnn type. Accepts ['lstm', 'gru'].
+    * **hidden_dim** (int) - Hidden domension to be used the RNN decoder.
+    * **num_layers** (int) - Number of decoder RNN layers.
+    * **dropout_keep_prob** (float, optional) - dropout input keep probability.
+    * **pos_embedding** (bool, optional) - Whether to use encoder and decoder positional embedding. Default is False.
+    * **beam_width** (int, optional) - Beam width used while decoding with beam search. Uses greedy decoding if the value is set to 1. Default is 1.
+    * **use_language_model** (bool, optional) - Boolean indicating whether to use language model for decoding. Default is False.
     """
     super(ListenAttendSpellDecoder, self).__init__(params, model, name, mode)
     self.GO_SYMBOL = self.params['GO_SYMBOL']
@@ -102,7 +128,25 @@ class ListenAttendSpellDecoder(Decoder):
     Args:
       input_dict (dict): Python dictionary with inputs to decoder.
 
+
     Config parameters:
+
+    * **src_inputs** --- Decoder input Tensor of shape [batch_size, time, dim]
+      or [time, batch_size, dim].
+    * **src_lengths** --- Decoder input lengths Tensor of shape [batch_size]
+    * **tgt_inputs** --- Only during training. labels Tensor of the
+      shape [batch_size, time] or [time, batch_size].
+    * **tgt_lengths** --- Only during training. labels lengths
+      Tensor of the shape [batch_size].
+
+    Returns:
+      dict: Python dictionary with:
+      * outputs - [predictions, alignments, enc_src_lengths].
+        predictions are the final predictions of the model. tensor of shape [batch_size, time].
+        alignments are the attention probabilities if attention is used. None if 'plot_attention' in attention_params is set to False.
+        enc_src_lengths are the lengths of the input. tensor of shape [batch_size].
+      * logits - logits with the shape=[batch_size, output_dim].
+      * tgt_length - tensor of shape [batch_size] indicating the predicted sequence lengths.
     """
     encoder_outputs = input_dict['encoder_output']['outputs']
     enc_src_lengths = input_dict['encoder_output']['src_length']
@@ -125,6 +169,8 @@ class ListenAttendSpellDecoder(Decoder):
     dropout_keep_prob = self.params.get(
         'dropout_keep_prob', 1.0) if self._mode == "train" else 1.0
 
+    #To-Do Seperate encoder and decoder position embeddings
+    use_positional_embedding = self.params.get("pos_embedding", False)
     use_language_model = self.params.get("use_language_model", False)
     use_beam_search_decoder = (self._beam_width != 1) and (self._mode == "infer")
 
@@ -134,7 +180,7 @@ class ListenAttendSpellDecoder(Decoder):
         dtype=tf.float32,
     )
 
-    if self.params['pos_embedding']:
+    if use_positional_embedding:
       self.enc_pos_emb_size = int(encoder_outputs.get_shape()[-1])
       self.enc_pos_emb_layer = tf.get_variable(
           name='EncoderPositionEmbeddingMatrix',
@@ -211,6 +257,7 @@ class ListenAttendSpellDecoder(Decoder):
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
       attention_params_dict["location_attn_type"] = attention_type
+      attention_params_dict["location_attention_params"] = {'filters': 10, 'kernel_size': 101}
     elif attention_type == "zhaopeng":
       AttentionMechanism = LocationSensitiveAttention
       attention_params_dict["use_coverage"] = attention_params["use_coverage"]
@@ -249,7 +296,7 @@ class ListenAttendSpellDecoder(Decoder):
       )
       tgt_input_vectors = tf.nn.embedding_lookup(
           self._target_emb_layer, tgt_inputs)
-      if self.params['pos_embedding']:
+      if use_positional_embedding:
         tgt_input_vectors += tf.nn.embedding_lookup(self.dec_pos_emb_layer,
                                                     decoder_output_positions)
       tgt_input_vectors = tf.cast(
@@ -267,7 +314,7 @@ class ListenAttendSpellDecoder(Decoder):
           dtype=self.params['dtype'],
       )
       pos_embedding_fn = None
-      if self.params['pos_embedding']:
+      if use_positional_embedding:
         pos_embedding_fn = lambda ids: tf.cast(
             tf.nn.embedding_lookup(self.dec_pos_emb_layer, ids),
             dtype=self.params['dtype'],
