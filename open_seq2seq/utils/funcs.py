@@ -14,6 +14,7 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
+from .helpers import TransferMonitoredTrainingSession
 from open_seq2seq.models import LSTMLM
 
 
@@ -42,8 +43,10 @@ def train(train_model, eval_model=None, debug_port=None):
 
   if master_worker:
     checkpoint_dir = train_model.params['logdir']
+    base_ckpt_dir = train_model.params['load_model']
   else:
     checkpoint_dir = None
+    base_ckpt_dir = None
 
   if eval_model is not None:
     # noinspection PyTypeChecker
@@ -109,7 +112,7 @@ def train(train_model, eval_model=None, debug_port=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  with tf.train.MonitoredTrainingSession(
+  with TransferMonitoredTrainingSession(
       scaffold=scaffold,
       checkpoint_dir=checkpoint_dir,
       save_summaries_steps=train_model.params['save_summaries_steps'],
@@ -118,6 +121,8 @@ def train(train_model, eval_model=None, debug_port=None):
       log_step_count_steps=train_model.params['save_summaries_steps'],
       stop_grace_period_secs=300,
       hooks=hooks,
+      base_ckpt_dir=base_ckpt_dir,
+      load_fc=train_model.params['load_fc']
   ) as sess:
     step = 0
     num_bench_updates = 0

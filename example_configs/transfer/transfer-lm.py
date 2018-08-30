@@ -31,6 +31,7 @@ base_params = {
   "logdir": "LSTM-IMDB",
   "load_model": "AWDLSTM-EXP65",
   "load_fc": False,
+  # "variables_to_skip": ['ForwardPass/rnn_encoder_awd/dense/kernel', 'ForwardPass/rnn_encoder_awd/dense/bias']
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -49,7 +50,7 @@ base_params = {
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
   "encoder": LMEncoder,
-  "encoder_params": {
+  "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
     "initializer_params": { # need different initializers for embeddings and for weights
       "minval": -0.1,
@@ -58,7 +59,7 @@ base_params = {
     # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 640, # paper 1150
+        "num_units": 896, # paper 1150
         "forget_bias": 1.0,
     },
     "last_cell_params": {
@@ -70,8 +71,8 @@ base_params = {
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
     "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
-    "recurrent_keep_prob": 0.5,
-    'encoder_emb_keep_prob': 0.5,
+    "recurrent_keep_prob": 0.7,
+    'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
     "emb_size": 320,
     "vocab_size": 33278,

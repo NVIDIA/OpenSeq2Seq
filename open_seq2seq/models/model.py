@@ -57,6 +57,9 @@ class Model:
         'num_gpus': int,  # cannot be used when gpu_ids is specified
         'gpu_ids': list,  # cannot be used when num_gpus is specified
 
+        'load_model': str,
+        'load_fc': bool,
+
         'save_summaries_steps': None,  # could be int or None
         'print_loss_steps': None,  # could be int or None
         'print_samples_steps': None,  # could be int or None
@@ -64,7 +67,7 @@ class Model:
         'save_checkpoint_steps': None,  # could be int or None
         'restore_best_checkpoint': bool, # whether to restore best check point
         'eval_steps': int,
-        'base_logdir': str,
+        # 'base_logdir': str,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
 
@@ -234,7 +237,9 @@ class Model:
       self._params['print_bench_info_steps'] = None
 
     self._params['finetune'] = self._params.get('finetune', False)
-    self._params['base_logdir'] = self._params.get('base_logdir', None)
+    # self._params['base_logdir'] = self._params.get('base_logdir', None)
+    self._params['load_model'] = self._params.get('load_model', None)
+    self._params['load_fc'] = self._params.get('load_fc', False)
     self._params['eval_batch_size_per_gpu'] = self._params.get(
         'eval_batch_size_per_gpu',
         self._params['batch_size_per_gpu']

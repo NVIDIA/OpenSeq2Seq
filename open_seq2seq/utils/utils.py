@@ -564,8 +564,8 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
                       "or delete the file to continue.")
 
       # check if "logdir" directory exists and non-empty
-      # if os.path.isdir(logdir) and os.listdir(logdir) != []:
-      if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+      # if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
         if not args.continue_learning:
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
@@ -584,12 +584,13 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
         checkpoint = None
     elif (args.mode == 'infer' or args.mode == 'eval' or
         args.mode == 'interactive_infer'):
-      # if os.path.isdir(logdir) and os.listdir(logdir) != []:
-      if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
+      if os.path.isdir(logdir) and os.listdir(logdir) != []:
+      # if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
         best_ckpt_dir = os.path.join(ckpt_dir, 'best_models')
         if restore_best_checkpoint and os.path.isdir(best_ckpt_dir):
           deco_print("Restoring from the best checkpoint")
           checkpoint = tf.train.latest_checkpoint(best_ckpt_dir)
+          ckpt_dir = best_ckpt_dir
         else:
           deco_print("Restoring from the latest checkpoint")
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
@@ -612,6 +613,43 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
       raise
 
   return checkpoint
+
+def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
+  """A helper function that ensures the logdir is setup correctly
+
+  Args:
+    args (dict): Dictionary as returned from get_base_config()
+    base_config (dict): Dictionary as returned from get_base_config()
+    restore_best_checkpoint (bool): If True, will look for ckpt_dir + /best_models
+  Returns:
+    checkpoint: Either None if continue-learning is not set and training, or
+      the name of the checkpoint used to restore the model
+  """
+  # checking that everything is correct with log directory
+  if not base_logdir:
+    return ''
+
+  if (not os.path.isdir(base_logdir)) or len(os.listdir(logdir)) == 0:
+    raise IOError("The log directory for the base model is empty or does not exist.")
+
+  ckpt_dir = os.path.join(base_logdir, 'logs')
+  if not os.path.isdir(ckpt_dir):
+    raise IOError("There's no folder 'logs' in the base model logdir. \
+                    If checkpoints exist, put them in the 'logs' folder.")
+
+  if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
+    ckpt_dir = os.path.join(ckpt_dir, 'best_models')
+    print('Restore the best checkpoint from the base model')
+  else:
+    print('Restore the latest checkpoint from the base model')
+
+  checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+  if checkpoint is None:
+    raise IOError(
+        "There is no valid TensorFlow checkpoint in the \
+        {} directory. Can't load model".format(ckpt_dir))
+
+  return ckpt_dir
 
 def create_logdir(args, base_config):
   """A helper function that ensures the logdir and log files are setup corretly.
