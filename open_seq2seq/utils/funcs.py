@@ -14,7 +14,7 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from .helpers import TransferMonitoredTrainingSession
+from .helpers import TransferMonitoredTrainingSession, TransferScaffold
 from open_seq2seq.models import LSTMLM
 
 
@@ -97,10 +97,14 @@ def train(train_model, eval_model=None, debug_port=None):
         [train_model.get_data_layer(i).iterator.initializer
          for i in range(train_model.num_gpus)]
     )
-
-  scaffold = tf.train.Scaffold(
-      local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
-  )
+  if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):   
+    scaffold = tf.train.Scaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
+  else:
+    scaffold = TransferScaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
   fetches = [train_model.train_op]
   try:
     total_objects = 0.0

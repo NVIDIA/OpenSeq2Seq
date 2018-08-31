@@ -61,6 +61,7 @@ class LMEncoder(Encoder):
       "weight_variational": bool,
       "dropout_seed": int,
       "num_sampled": int,
+      "fc_dim": int,
     })
 
   def __init__(self, params, model,
@@ -101,7 +102,8 @@ class LMEncoder(Encoder):
     self.params['recurrent_weight_keep_prob'] = self.params.get('recurrent_weight_keep_prob', 1.0)
     self.params['weight_variational'] = self.params.get('weight_variational', False)
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
-    self._num_sampled = self.params.get('num_sampled', self._vocab_size) # if num_sampled not define then just take full softmax
+    self._fc_dim = self.params.get('fc_dim', self._vocab_size)
+    self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not define then just take full softmax
 
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
@@ -219,7 +221,8 @@ class LMEncoder(Encoder):
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
 
     if self._weight_tied:
-      last_cell_params = self.params['last_cell_params']
+      last_cell_params = copy.deepcopy(self.params['core_cell_params'])
+      last_cell_params['num_units'] = self._vocab_size
     else:
       last_cell_params = self.params['core_cell_params']
 
