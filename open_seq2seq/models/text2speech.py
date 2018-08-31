@@ -141,6 +141,10 @@ def save_audio(
   Returns:
     tf.Summary or None
   """
+  # Clip magnitudes if needed
+  if np.min(magnitudes) < 0 or np.max(magnitudes) > 255:
+    print("WARNING: Audio was clipped at step {}".format(step))
+    magnitudes = np.clip(magnitudes, a_min=0, a_max=255)
   signal = griffin_lim(magnitudes.T**power, n_fft=n_fft)
   if save_format == "np.array":
     return signal
