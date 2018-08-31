@@ -29,7 +29,6 @@ class LMEncoder(Encoder):
       'encoder_use_skip_connections': bool,
       'core_cell': None,
       'core_cell_params': dict,
-      'last_cell_params': dict,
       'output_dim': int,
       'end_token': int,
       "batch_size": int,
@@ -202,7 +201,7 @@ class LMEncoder(Encoder):
       use_bias=fc_use_bias,
       dtype=self._params['dtype']
     )
-
+  
     if self._weight_tied:
       fake_input = tf.zeros(shape=(1, self._emb_size), dtype=self._params['dtype'])
       fake_output = self._output_layer.apply(fake_input)
@@ -222,7 +221,7 @@ class LMEncoder(Encoder):
 
     if self._weight_tied:
       last_cell_params = copy.deepcopy(self.params['core_cell_params'])
-      last_cell_params['num_units'] = self._vocab_size
+      last_cell_params['num_units'] = self._emb_size
     else:
       last_cell_params = self.params['core_cell_params']
 

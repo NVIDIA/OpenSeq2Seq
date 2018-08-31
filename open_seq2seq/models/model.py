@@ -58,7 +58,7 @@ class Model:
         'gpu_ids': list,  # cannot be used when num_gpus is specified
 
         'load_model': str,
-        'load_fc': bool,
+        # 'load_fc': bool,
 
         'save_summaries_steps': None,  # could be int or None
         'print_loss_steps': None,  # could be int or None

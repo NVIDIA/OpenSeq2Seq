@@ -119,13 +119,6 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
         master=master,
         config=config)
 
-    # session_creator = TransferChiefSessionCreator(
-    #     scaffold=scaffold,
-    #     checkpoint_dir=checkpoint_dir,
-    #     master=master,
-    #     config=config,
-    #     load_fc=load_fc)
-
   else: # load variables from the base model's checkpoint
     print("Loading the base model")
     session_creator = TransferChiefSessionCreator(
@@ -441,6 +434,24 @@ class TransferSessionManager(tf.train.SessionManager):
           (_maybe_name(init_op), init_fn, self._local_init_op, msg))
     return sess
 
+def _restore_embed(embed_var, var_to_shape_map, reader):
+  has_embed = len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0
+  print([var for var in var_to_shape_map if 'dense/kernel' in var])
+  print('has_embed', has_embed)
+  if has_embed:
+    return None, False # assume same name
+  for var in var_to_shape_map:
+    if 'dense/kernel' in var:
+      print(var_to_shape_map[var])
+      print(tf.transpose(embed_var).shape)
+      print(var_to_shape_map[var] == tf.transpose(embed_var).shape)
+    # if 'dense/kernel' in var and 'Loss_Optimization' not in var and var_to_shape_map[var] == tf.transpose(embed_var).shape:
+    if var.endswith('dense/kernel') and var_to_shape_map[var] == tf.transpose(embed_var).shape:
+      print('assigning', var, embed_var.name)
+      print(type(reader.get_tensor(var)))
+      return embed_var.assign(reader.get_tensor(var).T), True
+  return None, False
+
 def restore_certain_variables(sess, filename):
   print('RESTORE CERTAIN VARIABLES')
   trainables = {v.name: v for v in tf.trainable_variables()}
@@ -450,23 +461,26 @@ def restore_certain_variables(sess, filename):
   try:
     reader = tf.train.NewCheckpointReader(filename)
     var_to_shape_map = reader.get_variable_to_shape_map()
+    for var in var_to_shape_map:
+      if 'global_step' in var:
+        print(var, reader.get_tensor(var))
     for name in trainables:
       if name.endswith(':0'):
         true_name = name[:-2]
-      print('name', name)
-      print('true_name', true_name)
-      print(trainables[name].shape, var_to_shape_map[true_name])
-      print(trainables[name].shape == var_to_shape_map[true_name])
       if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
       # if name in var_to_shape_map:
         # print(trainables[name].shape)
         # print(var_to_shape_map[name])
         # print(trainables[name].shape == var_to_shape_map[name])
-        print('assinging value')
+        print('assinging value:', true_name)
         assign_ops.append(trainables[name].assign(reader.get_tensor(true_name)))
+      if 'EmbeddingMatrix' in true_name:
+        embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
+        if has_embed_op:
+          assign_ops.append(embed_op)
+
       # else:
       #   vars_to_initialize.append(trainables[name])
-    print('vars_to_initialize', vars_to_initialize)
     print('assign_ops', assign_ops)
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))

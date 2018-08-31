@@ -629,7 +629,7 @@ def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
   if not base_logdir:
     return ''
 
-  if (not os.path.isdir(base_logdir)) or len(os.listdir(logdir)) == 0:
+  if (not os.path.isdir(base_logdir)) or len(os.listdir(base_logdir)) == 0:
     raise IOError("The log directory for the base model is empty or does not exist.")
 
   ckpt_dir = os.path.join(base_logdir, 'logs')
@@ -639,9 +639,9 @@ def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
 
   if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
     ckpt_dir = os.path.join(ckpt_dir, 'best_models')
-    print('Restore the best checkpoint from the base model')
-  else:
-    print('Restore the latest checkpoint from the base model')
+    # print('Restore the best checkpoint from the base model')
+  # else:
+  #   print('Restore the latest checkpoint from the base model')
 
   checkpoint = tf.train.latest_checkpoint(ckpt_dir)
   if checkpoint is None:
