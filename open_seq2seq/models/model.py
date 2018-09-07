@@ -286,7 +286,8 @@ class Model:
       dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
     if 'lm_vocab_file' in self._params:
       dl_params['lm_vocab_file'] = self._params['lm_vocab_file']
-    dl_params['processed_data_folder'] = self._params['processed_data_folder']
+    if 'processed_data_folder' in self._params:
+      dl_params['processed_data_folder'] = self._params['processed_data_folder']
     dl_params['mode'] = self._mode
     dl_params['interactive'] = self._interactive
 
