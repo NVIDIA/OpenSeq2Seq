@@ -15,9 +15,6 @@ class LMTextDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
-      # 'content_file': str,
-      # 'vocab_file': str,
-      'shuffle': bool,
       'repeat': bool,
       'bptt': int,
     })
@@ -181,7 +178,6 @@ class IMDBDataLayer(DataLayer):
       'lm_vocab_file': str,
       'shuffle': bool,
       'repeat': bool,
-      'bptt': int,
       'max_length': int,
     })
 

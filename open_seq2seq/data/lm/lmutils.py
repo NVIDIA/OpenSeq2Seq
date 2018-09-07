@@ -6,9 +6,9 @@ import random
 import re
 import shutil
 
-# import matplotlib
-# matplotlib.use("TkAgg")
-# from matplotlib import pyplot as plt
+import matplotlib
+matplotlib.use("TkAgg")
+from matplotlib import pyplot as plt
 from nltk.tokenize import word_tokenize
 import numpy as np
 
@@ -191,9 +191,6 @@ class IDMBCorpus(object):
       self.load_corpus(proc_path)
 
   def check_oov(self, txt):
-    # if len(txt) == 0:
-    #   return []
-    # txt = txt[0] + txt[1:].lower()
     txt = txt.lower()
     txt = re.sub('thats', "that's", txt)
     txt = re.sub('wouldnt', "wounldn't", txt)
@@ -260,7 +257,7 @@ class IDMBCorpus(object):
         rating_outfile.write(rating + '\n')
         in_file.close()
 
-  def txt2ids(self, token_file, rating_file):
+  def txt2ids(self, mode, token_file, rating_file):
     rating_lines = open(rating_file, 'r').readlines()
     ratings = [int(line.strip()) for line in rating_lines]
     reviews = []
@@ -270,21 +267,28 @@ class IDMBCorpus(object):
     for line in open(token_file, 'r'):
       tokens = line.strip().split()
       reviews.append([self.dictionary.word2idx.get(token, unk_id) for token in tokens])
-      # for token in tokens:
-      #   count += 1
-      #   if not token in self.dictionary.word2idx:
-      #     unseen.append(token)
+      for token in tokens:
+        count += 1
+        if not token in self.dictionary.word2idx:
+          unseen.append(token)
 
-    # counter = Counter(unseen)
+    counter = Counter(unseen)
 
-    # out = open(os.path.join(self.proc_path, 'unseen.txt'), 'w')
-    # for key, count in counter.most_common():
-    #     out.write(key + '\t' + str(count) + '\n')
+    out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
+    for key, count in counter.most_common():
+        out.write(key + '\t' + str(count) + '\n')
 
-    # lengths = np.asarray([len(review) for review in reviews])
-    # print('Mean, median, std', np.mean(lengths), np.median(lengths), np.std(lengths))
-    # plt.hist(lengths, bin=10)
-    # plt.savefig(os.path.join(self.proc_path, 'hist.png'))
+    lengths = np.asarray([len(review) for review in reviews])
+    stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
+    stat_file.write(mode + '\n')
+    short_lengths = [l for l in lengths if l <= 500]
+    stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=500']) + '\n')
+    stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
+    stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
+    plt.hist(lengths, bins=20)
+    plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
+    plt.hist(short_lengths, bins=20)
+    plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
 
     return list(zip(reviews, ratings))
 
@@ -292,7 +296,7 @@ class IDMBCorpus(object):
     token_file = os.path.join(self.proc_path, mode + '.tok')
     rating_file = os.path.join(self.proc_path, mode + '.inter.rat')
     self.tokenize_folder(mode, token_file, rating_file)
-    return self.txt2ids(token_file, rating_file)
+    return self.txt2ids(mode, token_file, rating_file)
 
   def partition(self, data, val_count=1000):
     random.shuffle(data)
