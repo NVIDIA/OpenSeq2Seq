@@ -7,18 +7,20 @@ from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.data import LMTextDataLayer, IMDBDataLayer
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 # from open_seq2seq.losses import CrossEntropyLoss
-from open_seq2seq.losses import BasicSequenceLoss
+from open_seq2seq.losses import BasicSequenceLoss, CrossEntropyLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 base_model = LSTMLM
-bptt = 72
+bptt = 12
 steps = 40
 
 # data_root = '/home/chipn/data/aclImdb'
 # processed_data_folder = 'imdb_processed_data'
 
-data_root = "/home/chipn/data/wikitext-2-raw/"
-processed_data_folder = 'wkt2_processed_data'
+data_root = "/home/chipn/data/aclImdb"
+processed_data_folder = 'imdb-processed-data'
+binary = True
+max_length = 49
 
 base_params = {
   "restore_best_checkpoint": True, # best checkpoint is only saved when using train_eval mode
@@ -31,8 +33,10 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "load_model": "LSTM-FP32-2GPU-SMALL-NOWT",
-  "logdir": "TRANSFER-LSTM-2GPU-SMALL-NOWT",
+  "load_model": "LSTM-FP32-2GPU-SMALL", # OLD-AWD-LSTM-EXP69
+  "lm_vocab_file": '/home/chipn/dev/OpenSeq2Seq/wkt2-processed-data/vocab.txt',
+  "logdir": "TRANSFER-IMDB-TEST",
+  "processed_data_folder": processed_data_folder,
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -75,8 +79,7 @@ base_params = {
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
-    # "fc_dim": 2,
-    "weight_tied": False,
+    "weight_tied": True, # has to be the same as base_model's weight_tied
     "awd_initializer": False,
   },
 
@@ -86,64 +89,13 @@ base_params = {
   "regularizer_params": {
     'scale': 2e-6, # alpha
   },
-
-  # "loss": CrossEntropyLoss, # will need to write new loss + regularizer
-  "loss": BasicSequenceLoss,
-  "loss_params": {
-    "offset_target_by_one": False,
-    "average_across_timestep": True,
-    "do_mask": False,
-  }
+  "loss": CrossEntropyLoss,
 }
 
-# train_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     "lm_vocab_file": '/home/chipn/dev/OpenSeq2Seq/processed_data/vocab.txt',
-#     "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "rand_start": True,
-#     "shuffle": False,
-#     "shuffle_buffer_size": 25000,
-#     "repeat": True,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 8,
-#     "bptt": bptt,
-#   },
-# }
-# eval_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     # "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "shuffle": False,
-#     "repeat": False,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 1,
-#     "bptt": bptt,
-#   },
-# }
-
-# infer_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     # "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "shuffle": False,
-#     "repeat": False,
-#     "rand_start": False,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 8,
-#     "bptt": bptt,
-#     "seed_tokens": "something The only game",
-#   },
-# }
-
 train_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": IMDBDataLayer,
   "data_layer_params": {
     "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "rand_start": True,
     "shuffle": False,
@@ -152,29 +104,31 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "bptt": bptt,
+    "binary": binary,
+    "max_length": max_length,
     "small": True,
   },
 }
 eval_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": IMDBDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
     "bptt": bptt,
+    "binary": binary,
+    "max_length": max_length,
     "small": True,
   },
 }
 
 infer_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": IMDBDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
@@ -183,5 +137,8 @@ infer_params = {
     "prefetch_buffer_size": 8,
     "bptt": bptt,
     "seed_tokens": "something The only game",
+    "binary": binary,
+    "max_length": max_length,
+    "small": True,
   },
 }

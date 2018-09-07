@@ -1,14 +1,19 @@
+import numpy as np
 import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
 from open_seq2seq.utils.utils import deco_print, array_to_string
+from open_seq2seq.utils import metrics
 
 class LSTMLM(EncoderDecoderModel):
   """
   An example class implementing classical text-to-text model.
   """
+  def __init__(self, params, mode="train", hvd=None):
+    super(LSTMLM, self).__init__(params=params, mode=mode, hvd=hvd, lm=True)
 
   def _create_encoder(self):
+    self._print_f1 = False
     self.params['encoder_params']['vocab_size'] = (
       self.get_data_layer().params['vocab_size']
     )
@@ -18,44 +23,55 @@ class LSTMLM(EncoderDecoderModel):
     self.params['encoder_params']['end_token'] = (
       self.get_data_layer().params['end_token']
     )
-    self.params['encoder_params']['seed_tokens'] = (
-      self.get_data_layer().params['seed_tokens']
-    )
     self.params['encoder_params']['batch_size'] = (
       self.get_data_layer().params['batch_size']
     )
+    if not self._lm_phase:
+      self.params['encoder_params']['fc_dim'] = (
+        self.get_data_layer().params['num_classes']
+      )
+      if self.params['encoder_params']['fc_dim'] == 2:
+        self._print_f1 = True
+    if self._lm_phase:
+      self.params['encoder_params']['seed_tokens'] = (
+        self.get_data_layer().params['seed_tokens']
+      )
     return super(LSTMLM, self)._create_encoder()
 
   def _create_loss(self):
-    # self.params['loss_params']['batch_size'] = self.params['batch_size_per_gpu']
-    self.params['loss_params']['batch_size'] = self.get_data_layer().params['batch_size']
-    
-    self.params['loss_params']['tgt_vocab_size'] = (
-      self.get_data_layer().params['vocab_size']
-    )
+    if self._lm_phase:
+      self.params['loss_params']['batch_size'] = (
+        self.get_data_layer().params['batch_size']
+      )
+      self.params['loss_params']['tgt_vocab_size'] = (
+        self.get_data_layer().params['vocab_size']
+      )
 
     return super(LSTMLM, self)._create_loss()
 
 
   def infer(self, input_values, output_values):
-    vocab = self.get_data_layer().corp.dictionary.idx2word
-    seed_tokens = self.params['encoder_params']['seed_tokens']
-    for i in range(len(seed_tokens)):
-      print(output_values[0][i].shape)
-      print('Seed:', vocab[seed_tokens[i]] + '\n')
-      deco_print(
-        "Output: " + array_to_string(
-          output_values[0][i],
-          vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
-        ),
-        offset=4,
-      )
+    if self._lm_phase:
+      vocab = self.get_data_layer().corp.dictionary.idx2word
+      seed_tokens = self.params['encoder_params']['seed_tokens']
+      for i in range(len(seed_tokens)):
+        print(output_values[0][i].shape)
+        print('Seed:', vocab[seed_tokens[i]] + '\n')
+        deco_print(
+          "Output: " + array_to_string(
+            output_values[0][i],
+            vocab=self.get_data_layer().corp.dictionary.idx2word,
+            delim=self.get_data_layer().params["delimiter"],
+          ),
+          offset=4,
+        )
+    else:
+      print('Normal ')
+  
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     x, len_x = input_values['source_tensors']
-    y, len_y = input_values['target_tensors']
-    # samples = output_values[0][0]
+    y, len_y = input_values['target_tensors']    
 
     x_sample = x[0]
     len_x_sample = len_x[0]
@@ -70,14 +86,42 @@ class LSTMLM(EncoderDecoderModel):
       ),
       offset=4,
     )
-    deco_print(
-      "Train Target[0]:     " + array_to_string(
-        y_sample[:len_y_sample],
-        vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
-      ),
-      offset=4,
-    )
+
+    if self._lm_phase:
+      deco_print(
+        "Train Target[0]:     " + array_to_string(
+          y_sample[:len_y_sample],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
+    else:
+      deco_print(
+        "TRAIN Target[0]:     " + str(np.argmax(y_sample)),
+        offset=4,
+      )
+      samples = output_values[0][0][-1]
+      deco_print(
+        "TRAIN Prediction[0]:     " + str(samples),
+        offset=4,
+      )
+      labels = np.argmax(y, 1)
+      preds = output_values[0][:, -1]
+
+      deco_print(
+        "Accuracy: {:.4f}".format(metrics.accuracy(labels, preds)),
+        offset = 4,
+      )
+
+      if self._print_f1:
+        deco_print(
+          "Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f}"
+              .format(metrics.precision(labels, preds), 
+                      metrics.recall(labels, preds),
+                      metrics.f1(labels, preds)),
+          offset = 4,
+        )
 
     return {}
 
@@ -89,7 +133,7 @@ class LSTMLM(EncoderDecoderModel):
     len_x_sample = elen_x[0]
     y_sample = ey[0]
     len_y_sample = elen_y[0]
-
+    
     deco_print(
       "*****EVAL Source[0]:     " + array_to_string(
         x_sample[:len_x_sample],
@@ -98,23 +142,79 @@ class LSTMLM(EncoderDecoderModel):
       ),
       offset=4,
     )
+    
+    return_values = {}
+    
+    if self._lm_phase:
+      samples = output_values[0][0]
+      deco_print(
+        "*****EVAL Target[0]:     " + array_to_string(
+          y_sample[:len_y_sample],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
+      
+      deco_print(
+        "*****EVAL Prediction[0]: " + array_to_string(
+          samples,
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
+    else:
+      samples = output_values[0][0][-1] # TODO: only get the last prediction
+      deco_print(
+        "EVAL Target[0]:     " + str(np.argmax(y_sample)),
+        offset=4,
+      )
+      deco_print(
+        "EVAL Prediction[0]:     " + str(samples),
+        offset=4,
+      )
+
+      labels = np.argmax(ey, 1)
+      preds = output_values[0][:, -1]
+
+      return_values['accuracy'] = metrics.accuracy(labels, preds)
+
+      if self._print_f1:
+        return_values['true_pos'] = metrics.true_positives(labels, preds)
+        return_values['pred_pos'] = np.sum(preds)
+        return_values['actual_pos'] = np.sum(labels)
+
+    return return_values
+
+  def finalize_evaluation(self, results_per_batch, training_step=None):
+    accuracies = []
+    true_pos, pred_pos, actual_pos = 0.0, 0.0, 0.0
+
+    for results in results_per_batch:
+      if not 'accuracy' in results:
+        return
+      accuracies.append(results['accuracy'])
+      if 'true_pos' in results:
+        true_pos += results['true_pos']
+        pred_pos += results['pred_pos']
+        actual_pos += results['actual_pos']
+
     deco_print(
-      "*****EVAL Target[0]:     " + array_to_string(
-        y_sample[:len_y_sample],
-        vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
-      ),
-      offset=4,
+      "EVAL Accuracy: {:.4f}".format(np.mean(accuracies)),
+      offset = 4,
     )
-    samples = output_values[0][0]
-    deco_print(
-      "*****EVAL Prediction[0]: " + array_to_string(
-        samples,
-        vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
-      ),
-      offset=4,
-    )
+
+    if true_pos > 0:
+      prec = true_pos / pred_pos
+      rec = true_pos / actual_pos
+      f1 = 2 * prec * rec / (rec + prec)
+      deco_print(
+        "EVAL Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f}"
+            .format(prec, rec, f1),
+        offset = 4,
+      )
+    return {}
 
   def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of source tokens + number of target tokens in batch."""

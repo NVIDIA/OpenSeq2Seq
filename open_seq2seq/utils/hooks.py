@@ -141,15 +141,14 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       )
 
     loss = results[0]
-    #deco_print("loss = {:.4f} | ppl = {:.4f} | bpc = {:.4f}".format(loss, math.exp(loss/100), loss/math.log(2)), start="", end=", ")
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
       if self._print_ppl:
-        deco_print("Validation loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}"
+        deco_print("Train loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}"
                    .format(loss, math.exp(loss),
                            loss/math.log(2)), offset=4)
       else:
         deco_print(
-          "Validation loss: {:.4f} ".format(loss),
+          "Train loss: {:.4f} ".format(loss),
           offset=4)
 
     tm = (time.time() - self._last_time) / self._every_steps
@@ -200,6 +199,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     results_per_batch, total_loss = get_results_for_epoch(
         self._model, run_context.session, mode="eval", compute_loss=True,
     )
+
 
     if not self._model.on_horovod or self._model.hvd.rank() == 0:
       if self._print_ppl:

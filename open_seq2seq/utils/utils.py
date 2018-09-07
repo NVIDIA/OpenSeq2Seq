@@ -226,6 +226,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     else:
       deco_print("Not enough steps for benchmarking{}".format(ending))
 
+
   if compute_loss:
     return results_per_batch, total_loss, np.sum(total_samples)
   else:

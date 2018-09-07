@@ -94,9 +94,6 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
   elif save_checkpoint_steps == USE_DEFAULT:
     save_checkpoint_steps = None
 
-  # scaffold = scaffold or tf.train.Scaffold()
-  print('TransferMonitoredTrainingSession', scaffold)
-  # scaffold = scaffold or TransferScaffold()
   if not is_chief:
     session_creator = tf.train.WorkerSessionCreator(
         scaffold=scaffold,
@@ -177,8 +174,6 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
     """
     self._checkpoint_dir = checkpoint_dir
     self._checkpoint_filename_with_path = checkpoint_filename_with_path
-    # self._scaffold = scaffold or tf.train.Scaffold()
-    print('TransferChiefSessionCreator', scaffold)
     self._scaffold = scaffold or TransferScaffold()
     self._session_manager = None
     self._master = master
@@ -214,7 +209,6 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
 
 class TransferScaffold(tf.train.Scaffold):
   def finalize(self):
-    print('IN HERE')
     """Creates operations if needed and finalizes the graph."""
     if self._init_op is None:
       def default_init_op():
@@ -287,8 +281,6 @@ class TransferSessionManager(tf.train.SessionManager):
       ValueError: If both checkpoint_dir and checkpoint_filename_with_path are
         set.
     """
-    print('RESTORING CHECKPOINT')
-
     self._target = master
     # sess = tf.Session(self._target, graph=self._graph, config=config)
 
@@ -297,15 +289,12 @@ class TransferSessionManager(tf.train.SessionManager):
                        "checkpoint_filename_with_path.")
     # If either saver or checkpoint_* is not specified, cannot restore. Just
     # return.
-    print('saver', saver)
     print('checkpoint_dir', checkpoint_dir)
     print('checkpoint_filename_with_path', checkpoint_filename_with_path)
     if not saver or not (checkpoint_dir or checkpoint_filename_with_path):
-      print('OPTION 1')
       return sess, False
 
     if checkpoint_filename_with_path:
-      print('OPTION 2')
       # saver.restore(sess, checkpoint_filename_with_path)
       restore_certain_variables(sess, checkpoint_filename_with_path)
       return sess, True
@@ -320,12 +309,9 @@ class TransferSessionManager(tf.train.SessionManager):
         wait_time += self._recovery_wait_secs
         ckpt = tf.train.get_checkpoint_state(checkpoint_dir)
       else:
-        print('OPTION 3')
         return sess, False
 
     # Loads the checkpoint.
-    print('OPTION 4')
-    print("BEFORE RESTORE CERTAIN VARIABLES")
     ckpt_file = ckpt.model_checkpoint_path
     restore_certain_variables(sess, ckpt_file)
     saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
@@ -384,8 +370,6 @@ class TransferSessionManager(tf.train.SessionManager):
           set.
     """
     sess = tf.Session(master, graph=self._graph, config=config)
-    print('init_op', init_op)
-    print('init_fn', init_fn)
     if init_op is None and not init_fn and self._local_init_op is None:
       raise RuntimeError("Model is not initialized and no init_op or "
                          "init_fn or local_init_op was given")
@@ -393,8 +377,8 @@ class TransferSessionManager(tf.train.SessionManager):
       sess.run(init_op, feed_dict=init_feed_dict)
     if init_fn:
       init_fn(sess)
-    # sess.run(tf.global_variables_initializer())
-    
+    sess.run(tf.local_variables_initializer()) # why do i have to add this?
+    print("LOCAL INIT OP", self._local_init_op)
     sess, is_loaded_from_checkpoint = self._restore_checkpoint(
                           master,
                           sess,
@@ -406,17 +390,6 @@ class TransferSessionManager(tf.train.SessionManager):
                           config=config,
                           load_fc=load_fc)
     
-    # if not is_loaded_from_checkpoint:
-      # print('NOT LOADED FROM CHECKPOINT')
-      # print('init_op', init_op)
-      # print('init_fn', init_fn)
-      # if init_op is None and not init_fn and self._local_init_op is None:
-      #   raise RuntimeError("Model is not initialized and no init_op or "
-      #                      "init_fn or local_init_op was given")
-      # if init_op is not None:
-      #   sess.run(init_op, feed_dict=init_feed_dict)
-      # if init_fn:
-      #   init_fn(sess)
 
     local_init_success, msg = self._try_run_local_init_op(sess)
     if not local_init_success:
@@ -436,24 +409,16 @@ class TransferSessionManager(tf.train.SessionManager):
 
 def _restore_embed(embed_var, var_to_shape_map, reader):
   has_embed = len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0
-  print([var for var in var_to_shape_map if 'dense/kernel' in var])
-  print('has_embed', has_embed)
   if has_embed:
     return None, False # assume same name
   for var in var_to_shape_map:
-    if 'dense/kernel' in var:
-      print(var_to_shape_map[var])
-      print(tf.transpose(embed_var).shape)
-      print(var_to_shape_map[var] == tf.transpose(embed_var).shape)
-    # if 'dense/kernel' in var and 'Loss_Optimization' not in var and var_to_shape_map[var] == tf.transpose(embed_var).shape:
     if var.endswith('dense/kernel') and var_to_shape_map[var] == tf.transpose(embed_var).shape:
-      print('assigning', var, embed_var.name)
-      print(type(reader.get_tensor(var)))
+      print('Assigning', var, 'to', embed_var.name)
       return embed_var.assign(reader.get_tensor(var).T), True
   return None, False
 
 def restore_certain_variables(sess, filename):
-  print('RESTORE CERTAIN VARIABLES')
+  print('Restoring only the variables found in the checkpoint')
   trainables = {v.name: v for v in tf.trainable_variables()}
   assign_ops = []
   vars_to_initialize = []
@@ -461,26 +426,24 @@ def restore_certain_variables(sess, filename):
   try:
     reader = tf.train.NewCheckpointReader(filename)
     var_to_shape_map = reader.get_variable_to_shape_map()
+    non_loss_var = {var: var_to_shape_map[var] for var in var_to_shape_map if 'Loss_Optimization' not in var}
     for var in var_to_shape_map:
       if 'global_step' in var:
-        print(var, reader.get_tensor(var))
+        print('Restoring from the step', reader.get_tensor(var))
     for name in trainables:
-      if name.endswith(':0'):
-        true_name = name[:-2]
+      idx = name.find(":")
+      if idx != -1:
+        true_name = name[:idx]
+      # if name.endswith(':0'):
+      #   true_name = name[:-2]
       if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
-      # if name in var_to_shape_map:
-        # print(trainables[name].shape)
-        # print(var_to_shape_map[name])
-        # print(trainables[name].shape == var_to_shape_map[name])
-        print('assinging value:', true_name)
+        print('Restoring value to', true_name)
         assign_ops.append(trainables[name].assign(reader.get_tensor(true_name)))
       if 'EmbeddingMatrix' in true_name:
         embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
         if has_embed_op:
           assign_ops.append(embed_op)
 
-      # else:
-      #   vars_to_initialize.append(trainables[name])
     print('assign_ops', assign_ops)
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))
@@ -495,9 +458,6 @@ def restore_certain_variables(sess, filename):
       *prefix*.  Try removing the '.' and extension.  Try:
       inspect checkpoint --file_name = {}"""
       print(v2_file_error_template.format(proposed_file))
-
-  # print(vars_to_initialize)
-  print('run assign op')
   sess.run(assign_ops)
 
 def _maybe_name(obj):

@@ -90,9 +90,13 @@ ENV/
 .ropeproject
 
 LSTM*/*
-*processed_data/*
+*processed_data*/*
+*processed-data*/*
 outputs*/*
 AWD*/*
 pics/*
 *.json
 OLD*/*
+TRANSFER*/*
+imdb_data.py
+*stupid*

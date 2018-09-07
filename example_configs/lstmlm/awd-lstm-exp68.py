@@ -25,7 +25,7 @@ base_params = {
   "num_gpus": 2,
 
   "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
-  "num_epochs": 750, # conforming to AWD-LSTM paper 750
+  "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
@@ -70,10 +70,6 @@ base_params = {
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
         "num_units": 640, # paper 1150
-        "forget_bias": 1.0,
-    },
-    "last_cell_params": {
-        "num_units": 320,
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,

@@ -4,35 +4,35 @@ from open_seq2seq.models import LSTMLM
 from open_seq2seq.encoders import LMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
-from open_seq2seq.data import LMTextDataLayer, IMDBDataLayer
+from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 # from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
-
-base_model = LSTMLM
-bptt = 72
-steps = 40
-
-# data_root = '/home/chipn/data/aclImdb'
-# processed_data_folder = 'imdb_processed_data'
+# from open_seq2seq.data.text2text.text2text import SpecialTextTokens
+# from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/home/chipn/data/wikitext-2-raw/"
-processed_data_folder = 'wkt2_processed_data'
+processed_data_folder = 'wkt2-processed-data'
+
+base_model = LSTMLM
+bptt = 96
+steps = 40
 
 base_params = {
-  "restore_best_checkpoint": True, # best checkpoint is only saved when using train_eval mode
-  "use_horovod": False,
+  # "seed": 1882, # conforming to AWD-LSTM paper
+  "restore_best_checkpoint": True,
+  "use_horovod": True,
   "num_gpus": 2,
 
-  "batch_size_per_gpu": 20, 
-  "num_epochs": 1500,
+  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
+  "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "load_model": "LSTM-FP32-2GPU-SMALL-NOWT",
-  "logdir": "TRANSFER-LSTM-2GPU-SMALL-NOWT",
+  "logdir": "AWDLSTM-EXP69",
+  "processed_data_folder": processed_data_folder,
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -44,9 +44,19 @@ base_params = {
     "learning_rate": 9e-4
   },
 
+  # "lr_policy": exp_decay,
+  # "lr_policy_params": {
+  #   "learning_rate": 0.0008,
+  #   "begin_decay_at": 170000,
+  #   "decay_steps": 17000,
+  #   "decay_rate": 0.5,
+  #   "use_staircase_decay": True,
+  #   "min_lr": 0.0000005,
+  # },
   "summaries": ['learning_rate', 'variables', 'gradients', 
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
-
+  # "grad_clip":0.25, # conforming to AWD-LSTM paper
+  # "max_grad_norm": 0.25, # conform to paper 0.25
   "dtype": tf.float32,
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
@@ -58,12 +68,13 @@ base_params = {
       "minval": -0.1,
       "maxval": 0.1,
     },
+    # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 128, # paper 1150
+        "num_units": 896, # paper 1150
         "forget_bias": 1.0,
     },
-    "encoder_layers": 2,
+    "encoder_layers": 3,
     "encoder_dp_input_keep_prob": 1.0,
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
@@ -71,12 +82,11 @@ base_params = {
     "recurrent_keep_prob": 0.7,
     'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
-    "emb_size": 64,
+    "emb_size": 256,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
-    # "fc_dim": 2,
-    "weight_tied": False,
+    "weight_tied": True,
     "awd_initializer": False,
   },
 
@@ -96,54 +106,10 @@ base_params = {
   }
 }
 
-# train_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     "lm_vocab_file": '/home/chipn/dev/OpenSeq2Seq/processed_data/vocab.txt',
-#     "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "rand_start": True,
-#     "shuffle": False,
-#     "shuffle_buffer_size": 25000,
-#     "repeat": True,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 8,
-#     "bptt": bptt,
-#   },
-# }
-# eval_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     # "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "shuffle": False,
-#     "repeat": False,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 1,
-#     "bptt": bptt,
-#   },
-# }
-
-# infer_params = {
-#   "data_layer": IMDBDataLayer,
-#   "data_layer_params": {
-#     # "data_root": data_root,
-#     "pad_vocab_to_eight": False,
-#     "shuffle": False,
-#     "repeat": False,
-#     "rand_start": False,
-#     "map_parallel_calls": 16,
-#     "prefetch_buffer_size": 8,
-#     "bptt": bptt,
-#     "seed_tokens": "something The only game",
-#   },
-# }
-
 train_params = {
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
     "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "rand_start": True,
     "shuffle": False,
@@ -152,21 +118,18 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "bptt": bptt,
-    "small": True,
   },
 }
 eval_params = {
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
     "bptt": bptt,
-    "small": True,
   },
 }
 
@@ -174,7 +137,6 @@ infer_params = {
   "data_layer": LMTextDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
-    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
