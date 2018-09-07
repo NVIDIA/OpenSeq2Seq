@@ -94,7 +94,6 @@ train_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -110,7 +109,6 @@ eval_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -150,6 +148,5 @@ infer_params = {
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }

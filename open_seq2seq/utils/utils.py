@@ -92,7 +92,7 @@ def clip_last_batch(last_batch, true_size):
   return last_batch_clipped
 
 
-def iterate_data(model, sess, compute_loss, mode, verbose):
+def iterate_data(model, sess, compute_loss, mode, verbose, num_steps=None):
   total_time = 0.0
   bench_start = model.params.get('bench_start', 10)
   results_per_batch = []
@@ -211,6 +211,9 @@ def iterate_data(model, sess, compute_loss, mode, verbose):
     if len(fetches_vals) == 0:
       break
     step += 1
+    # break early in the case of INT8 calibration
+    if num_steps is not None and step >= num_steps:
+      break
 
   if verbose:
     if step > bench_start:
@@ -502,6 +505,11 @@ def get_base_config(args):
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
                       help='whether to log output, git info, cmd args, etc.')
+  parser.add_argument('--use_trt', dest='use_trt', action='store_true',
+                      help='use TF-TRT to optimize graph for inference (mode must be infer)')
+  parser.add_argument('--precision', type=str, default='fp32',
+                      choices=['fp32', 'fp16', 'int8'],
+                      help='precision for TF-TRT (only valid with --use_trt')  
   args, unknown = parser.parse_known_args(args)
 
   if args.mode not in [
@@ -523,6 +531,9 @@ def get_base_config(args):
   base_model = config_module.get('base_model', None)
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
+
+  if args.use_trt and args.mode != 'infer':
+    raise ValueError("TensorRT is only supported for inference mode.")
 
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
@@ -781,6 +792,7 @@ def create_model(args, base_config, config_module, base_model, hvd):
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    model.compile()
+    checkpoint = check_logdir(args, base_config)
+    model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
 
   return model

@@ -31,8 +31,6 @@ limitations under the License.
 #include "tensorflow/core/kernels/bounds_check.h"
 
 
-
-
 namespace tensorflow {
 namespace ctc {
 
@@ -272,8 +270,6 @@ void CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Step(
   // Final normalization offset to get correct log probabilities.
   float norm_offset = max_coeff + logsumexp;
 
-  /// std::cout << "norm_offset = " << norm_offset << std::endl;
-
   const float label_selection_input_min =
       (label_selection_margin_ >= 0) ? (max_coeff - label_selection_margin_)
                                      : -std::numeric_limits<float>::infinity();
@@ -354,10 +350,11 @@ void CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Step(
         //   Plabel(l=abcc @ t=6) = Pblank(l=abc @ t=5) * P(c @ 6)
         // Otherwise:
         //   Plabel(l=abcd @ t=6) = P(l=abc @ t=5) * P(d @ 6)
+        float ext_score;
         beam_scorer_->ExpandState(b->state, b->label, &c.state, c.label);
         float previous = (c.label == b->label) ? b->oldp.blank : b->oldp.total;
-        c.newp.label = logit - norm_offset +
-                       beam_scorer_->GetStateExpansionScore(c.state, previous);
+        ext_score = beam_scorer_->GetStateExpansionScore(c.state, previous);
+        c.newp.label = logit - norm_offset + ext_score;
         // P(l=abcd @ t=6) = Plabel(l=abcd @ t=6)
         c.newp.total = c.newp.label;
 

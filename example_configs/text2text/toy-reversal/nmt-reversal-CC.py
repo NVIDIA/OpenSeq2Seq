@@ -55,8 +55,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
-
     "src_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
     "pad_embeddings_2_eight": False,
@@ -73,8 +71,6 @@ base_params = {
 
   "decoder": ConvS2SDecoder,
   "decoder_params": {
-    "decoder_layers": num_layers,
-
     "shared_embed": True,
     "tgt_emb_size": d_model,
     "embedding_dropout_keep_prob": 0.9,
@@ -116,7 +112,6 @@ train_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -131,7 +126,6 @@ eval_params = {
     "repeat": True,
     "max_length": 56,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }
 
@@ -149,6 +143,5 @@ infer_params = {
     "repeat": False,
     "max_length": 256,
     "delimiter": " ",
-    "special_tokens_already_in_vocab": False,
   },
 }

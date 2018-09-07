@@ -145,7 +145,8 @@ class PrintLossAndTimeHook(tf.train.SessionRunHook):
       if self._print_ppl:
         deco_print("Train loss: {:.4f} | ppl = {:.4f} | bpc = {:.4f}"
                    .format(loss, math.exp(loss),
-                           loss/math.log(2)), offset=4)
+                           loss/math.log(2)),
+                   start="", end=", ")
       else:
         deco_print(
           "Train loss: {:.4f} ".format(loss),
