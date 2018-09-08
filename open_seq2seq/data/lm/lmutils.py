@@ -6,9 +6,9 @@ import random
 import re
 import shutil
 
-import matplotlib
-matplotlib.use("TkAgg")
-from matplotlib import pyplot as plt
+# import matplotlib
+# matplotlib.use("TkAgg")
+# from matplotlib import pyplot as plt
 from nltk.tokenize import word_tokenize
 import numpy as np
 
@@ -267,28 +267,28 @@ class IDMBCorpus(object):
     for line in open(token_file, 'r'):
       tokens = line.strip().split()
       reviews.append([self.dictionary.word2idx.get(token, unk_id) for token in tokens])
-      for token in tokens:
-        count += 1
-        if not token in self.dictionary.word2idx:
-          unseen.append(token)
+    #   for token in tokens:
+    #     count += 1
+    #     if not token in self.dictionary.word2idx:
+    #       unseen.append(token)
 
-    counter = Counter(unseen)
+    # counter = Counter(unseen)
 
-    out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
-    for key, count in counter.most_common():
-        out.write(key + '\t' + str(count) + '\n')
+    # out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
+    # for key, count in counter.most_common():
+    #     out.write(key + '\t' + str(count) + '\n')
 
-    lengths = np.asarray([len(review) for review in reviews])
-    stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
-    stat_file.write(mode + '\n')
-    short_lengths = [l for l in lengths if l <= 500]
-    stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=500']) + '\n')
-    stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
-    stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
-    plt.hist(lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
-    plt.hist(short_lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
+    # lengths = np.asarray([len(review) for review in reviews])
+    # stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
+    # stat_file.write(mode + '\n')
+    # short_lengths = [l for l in lengths if l <= 500]
+    # stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=500']) + '\n')
+    # stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
+    # stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
+    # plt.hist(lengths, bins=20)
+    # plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
+    # plt.hist(short_lengths, bins=20)
+    # plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
 
     return list(zip(reviews, ratings))
 
