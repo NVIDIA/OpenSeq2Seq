@@ -242,7 +242,7 @@ class IDMBCorpus(object):
     rating_outfile = open(rating_file, 'w')
     for sent in ['pos', 'neg']:
       files = glob.glob(os.path.join(self.raw_path, mode, sent, '*.txt'))
-      for file in files[:1000]:
+      for file in files:
         in_file = open(file, 'r')
         txt = self.tokenize(in_file.read())
         review_outfile.write(txt + "\n")
