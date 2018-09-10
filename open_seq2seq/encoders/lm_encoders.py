@@ -277,9 +277,11 @@ class LMEncoder(Encoder):
         dtype=self._params['dtype'],
         scope='decoder',
       )
+      print('encoder_outputs', encoder_outputs)
       if self._mode == 'eval' or self._num_sampled >= self._fc_dim:
         logits = self._output_layer.apply(encoder_outputs) # full softmax
-        output_dict = {'logits': logits, 'outputs': [tf.argmax(logits, axis=-1)]}
+        output_dict = {'logits': logits, 'outputs': [tf.argmax(tf.nn.softmax(logits), axis=-1)]}
+        # output_dict = {'logits': logits, 'outputs': [logits]}
       else:
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,

@@ -108,6 +108,8 @@ class LSTMLM(EncoderDecoderModel):
       )
       labels = np.argmax(y, 1)
       preds = output_values[0][:, -1]
+      print('labels', labels)
+      print('preds', preds)
 
       deco_print(
         "Accuracy: {:.4f}".format(metrics.accuracy(labels, preds)),
@@ -177,6 +179,8 @@ class LSTMLM(EncoderDecoderModel):
 
       labels = np.argmax(ey, 1)
       preds = output_values[0][:, -1]
+      print('labels', labels)
+      print('preds', preds)
 
       return_values['accuracy'] = metrics.accuracy(labels, preds)
 

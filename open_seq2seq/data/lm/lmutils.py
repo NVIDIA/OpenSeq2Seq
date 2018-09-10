@@ -322,7 +322,8 @@ class IDMBCorpus(object):
     review_lines = open(os.path.join(self.proc_path, mode + '.ids')).readlines()
     rating_lines = open(os.path.join(self.proc_path, mode + '.rat')).readlines()
     ratings = [int(line.strip()) for line in rating_lines]
-    reviews = [line.strip().split('\t') for line in review_lines]
+    reviews = [[int(i) for i in line.strip().split('\t')] for line in review_lines]
+    # reviews = [line.strip().split('\t') for line in review_lines]
     return list(zip(reviews, ratings))
 
   def load_corpus(self, proc_path):
