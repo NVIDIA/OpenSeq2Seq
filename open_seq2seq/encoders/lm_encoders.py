@@ -29,7 +29,6 @@ class LMEncoder(Encoder):
       'encoder_use_skip_connections': bool,
       'core_cell': None,
       'core_cell_params': dict,
-      'last_cell_params': dict,
       'output_dim': int,
       'end_token': int,
       "batch_size": int,
@@ -61,6 +60,7 @@ class LMEncoder(Encoder):
       "weight_variational": bool,
       "dropout_seed": int,
       "num_sampled": int,
+      "fc_dim": int,
     })
 
   def __init__(self, params, model,
@@ -101,16 +101,14 @@ class LMEncoder(Encoder):
     self.params['recurrent_weight_keep_prob'] = self.params.get('recurrent_weight_keep_prob', 1.0)
     self.params['weight_variational'] = self.params.get('weight_variational', False)
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
-    self._num_sampled = self.params.get('num_sampled', self._vocab_size) # if num_sampled not define then just take full softmax
-
+    self._fc_dim = self.params.get('fc_dim', self._vocab_size)
+    self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not define then just take full softmax
     if mode == 'infer':
       self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
       self._batch_size = len(self.params['seed_tokens'])
     else:
       self.num_tokens_gen = 1
       self._batch_size = self.params['batch_size']
-      # if self._vocab_size > 100000 and mode == 'eval':
-      #   self._batch_size = 2
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
@@ -194,7 +192,7 @@ class LMEncoder(Encoder):
       input_weight_keep_prob, recurrent_weight_keep_prob = 1.0, 1.0
 
     self._output_layer = tf.layers.Dense(
-      self._vocab_size, 
+      self._fc_dim, 
       kernel_regularizer=regularizer,
       kernel_initializer=initializer,
       use_bias=fc_use_bias,
@@ -202,13 +200,20 @@ class LMEncoder(Encoder):
     )
 
     if self._weight_tied:
-      fake_input = tf.zeros(shape=(1, self._emb_size), dtype=self._params['dtype'])
-      fake_output = self._output_layer.apply(fake_input)
-      with tf.variable_scope("dense", reuse=True):
-        dense_weights = tf.get_variable("kernel")
-        dense_biases = tf.get_variable("bias")
+      last_cell_params = copy.deepcopy(self.params['core_cell_params'])
+      last_cell_params['num_units'] = self._emb_size
+    else:
+      last_cell_params = self.params['core_cell_params']
+
+    fake_input = tf.zeros(shape=(1, last_cell_params['num_units']), 
+                          dtype=self._params['dtype'])
+    fake_output = self._output_layer.apply(fake_input)
+    with tf.variable_scope("dense", reuse=True):
+      dense_weights = tf.get_variable("kernel")
+      dense_biases = tf.get_variable("bias")
+    
+    if self._weight_tied and self._fc_dim == self._vocab_size:
       enc_emb_w = tf.transpose(dense_weights)
-        
     else:
       enc_emb_w = tf.get_variable(
         name="EncoderEmbeddingMatrix",
@@ -217,11 +222,6 @@ class LMEncoder(Encoder):
       )
 
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
-
-    if self._weight_tied:
-      last_cell_params = self.params['last_cell_params']
-    else:
-      last_cell_params = self.params['core_cell_params']
 
     fwd_cells = [
       single_cell(cell_class=self.params['core_cell'],
@@ -274,13 +274,14 @@ class LMEncoder(Encoder):
         sequence_length=source_length,
         time_major=time_major,
         swap_memory=use_swap_memory,
-        # dtype=embedded_inputs.dtype,
         dtype=self._params['dtype'],
         scope='decoder',
       )
-      if self._mode == 'eval' or self._num_sampled >= self._vocab_size:
+      print('encoder_outputs', encoder_outputs)
+      if self._mode == 'eval' or self._num_sampled >= self._fc_dim:
         logits = self._output_layer.apply(encoder_outputs) # full softmax
-        output_dict = {'logits': logits, 'outputs': [tf.argmax(logits, axis=-1)]}
+        output_dict = {'logits': logits, 'outputs': [tf.argmax(tf.nn.softmax(logits), axis=-1)]}
+        # output_dict = {'logits': logits, 'outputs': [logits]}
       else:
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,

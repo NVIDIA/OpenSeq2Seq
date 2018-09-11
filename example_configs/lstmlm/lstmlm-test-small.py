@@ -61,10 +61,6 @@ base_params = {
         "num_units": 128, # paper 1150
         "forget_bias": 1.0,
     },
-    "last_cell_params": {
-        "num_units": 64,
-        "forget_bias": 1.0,
-    },
     "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 1.0,
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
@@ -74,7 +70,6 @@ base_params = {
     'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
     "emb_size": 64,
-    "vocab_size": 33278,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,

@@ -14,8 +14,8 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from .helpers import TransferMonitoredTrainingSession
-from open_seq2seq.models import LSTMLM
+from .helpers import TransferMonitoredTrainingSession, TransferScaffold
+from open_seq2seq.data import LMTextDataLayer
 
 
 def train(train_model, eval_model=None, debug_port=None):
@@ -55,7 +55,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
-            print_ppl=isinstance(eval_model, LSTMLM),
+            print_ppl=isinstance(train_model.get_data_layer(), LMTextDataLayer),
         ),
     )
 
@@ -73,7 +73,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks.append(PrintLossAndTimeHook(
           every_steps=train_model.params['print_loss_steps'],
           model=train_model,
-          print_ppl=isinstance(train_model, LSTMLM)
+          print_ppl=isinstance(train_model.get_data_layer(), LMTextDataLayer),
       ))
     if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker
@@ -97,10 +97,14 @@ def train(train_model, eval_model=None, debug_port=None):
         [train_model.get_data_layer(i).iterator.initializer
          for i in range(train_model.num_gpus)]
     )
-
-  scaffold = tf.train.Scaffold(
-      local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
-  )
+  if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):   
+    scaffold = tf.train.Scaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
+  else:
+    scaffold = TransferScaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
   fetches = [train_model.train_op]
   try:
     total_objects = 0.0
@@ -176,8 +180,10 @@ def train(train_model, eval_model=None, debug_port=None):
       deco_print("Not enough steps for benchmarking")
 
 
-def restore_and_get_results(model, checkpoint, mode):
-  saver = tf.train.Saver()
+def restore_and_get_results(model, checkpoint, mode, use_trt=False):
+  if not use_trt:
+    # Checkpoint is restored prior to freezing graph when using TRT
+    saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   # pylint: disable=no-member
   sess_config.gpu_options.allow_growth = True
@@ -185,15 +191,16 @@ def restore_and_get_results(model, checkpoint, mode):
     # pylint: disable=no-member
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
-    saver.restore(sess, checkpoint)
+    if not use_trt:
+      saver.restore(sess, checkpoint)
     results_per_batch = get_results_for_epoch(
         model, sess, mode=mode, compute_loss=False, verbose=True,
     )
   return results_per_batch
 
 
-def infer(model, checkpoint, output_file):
-  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer")
+def infer(model, checkpoint, output_file, use_trt=False):
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer", use_trt=use_trt)
   if not model.on_horovod or model.hvd.rank() == 0:
     model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")

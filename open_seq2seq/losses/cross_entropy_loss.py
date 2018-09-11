@@ -17,5 +17,8 @@ class CrossEntropyLoss(Loss):
   def _compute_loss(self, input_dict):
     logits = input_dict['decoder_output']['logits']
     labels = input_dict['target_tensors'][0]
-    loss = tf.losses.softmax_cross_entropy(logits=logits, onehot_labels=labels)
-    return loss
+    print('logits', logits)
+    print('labels', labels)
+    if len(logits.shape) > len(labels.shape):
+      logits = logits[:, -1, :] # get the prediction at the last step
+    return tf.losses.softmax_cross_entropy(logits=logits, onehot_labels=labels)

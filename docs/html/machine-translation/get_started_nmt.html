@@ -1,0 +1,282 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Getting Started &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Getting Started</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/machine-translation/get_started_nmt.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="getting-started">
+<span id="get-started-nmt"></span><h1>Getting Started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="toy-task-reversing-sequences">
+<h2>Toy task - reversing sequences<a class="headerlink" href="#toy-task-reversing-sequences" title="Permalink to this headline">¶</a></h2>
+<p>You can tests how things work on the following end-to-end toy task.
+First, execute:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">create_toy_data</span>
+</pre></div>
+</div>
+<p>This should create <code class="docutils literal notranslate"><span class="pre">toy_text_data</span></code> folder on disk. This is a data for the toy
+machine translation problem where the task is to learn to reverse sequences.</p>
+<p>For example, if src=``α α ζ ε ε κ δ ε κ α ζ`` then, “correct” translation is tgt=``ζ α κ ε δ κ ε ε ζ α α``.</p>
+<p>To train a simple, RNN-based encoder-decoder model with attention, execute the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+<p>This will train a model and perform evaluation on the “dev” dataset in parallel.
+To view the progress of training, start Tensorboard:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tensorboard</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=.</span>
+</pre></div>
+</div>
+<p>To run “inference” mode on the “test” execute the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2text</span><span class="o">/</span><span class="n">nmt</span><span class="o">-</span><span class="n">reversal</span><span class="o">-</span><span class="n">RR</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">output</span><span class="o">.</span><span class="n">txt</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=</span><span class="mi">1</span>
+</pre></div>
+</div>
+<p>Once, finished, you will get inference results in <code class="docutils literal notranslate"><span class="pre">output.txt</span></code> file. You can measure how
+well it did by launching Mosses’s script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">multi</span><span class="o">-</span><span class="n">bleu</span><span class="o">.</span><span class="n">perl</span> <span class="n">toy_text_data</span><span class="o">/</span><span class="n">test</span><span class="o">/</span><span class="n">target</span><span class="o">.</span><span class="n">txt</span> <span class="o">&lt;</span> <span class="n">output</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+<p>You should get above 0.9 (which corresponds to BLEU score of 90).
+To train a “Transformer”-based model (see <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention Is All You Need</a> paper) use <code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TT.py</span></code>
+configuration file.</p>
+<div class="section" id="feeling-adventurous">
+<h3>Feeling adventurous?<a class="headerlink" href="#feeling-adventurous" title="Permalink to this headline">¶</a></h3>
+<p>One of the main goals of OpenSeq2Seq is to allow you easily experiment with different architectures. Try out these configurations:</p>
+<ol class="arabic simple">
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-CR.py</span></code> - a model which uses Convolutional encoder and RNN decoder with attention</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-RC.py</span></code> - a model which uses RNN-based encoder and Convolutional decoder</li>
+<li><code class="docutils literal notranslate"><span class="pre">example_configs/nmt_reversal-TT.py</span></code> - a model which uses Transformer-based encoder and Transformer-based decoder</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

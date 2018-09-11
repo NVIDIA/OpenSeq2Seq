@@ -4,7 +4,7 @@ from open_seq2seq.models import LSTMLM
 from open_seq2seq.encoders import LMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
-from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
+from open_seq2seq.data import LMTextDataLayer, IMDBDataLayer
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 # from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.losses import BasicSequenceLoss
@@ -14,24 +14,25 @@ base_model = LSTMLM
 bptt = 72
 steps = 40
 
-data_root = '/home/chipn/data/aclImdb'
-processed_data_folder = 'imdb_processed_data'
+# data_root = '/home/chipn/data/aclImdb'
+# processed_data_folder = 'imdb_processed_data'
+
+data_root = "/home/chipn/data/wikitext-2-raw/"
+processed_data_folder = 'wkt2_processed_data'
 
 base_params = {
-  "restore_best_checkpoint": True,
+  "restore_best_checkpoint": True, # best checkpoint is only saved when using train_eval mode
   "use_horovod": False,
   "num_gpus": 2,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
-  "num_epochs": 750, # conforming to AWD-LSTM paper 750
+  "batch_size_per_gpu": 20, 
+  "num_epochs": 1500,
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "LSTM-IMDB",
-  "load_model": "AWDLSTM-EXP65",
-  "load_fc": False,
-  # "variables_to_skip": ['ForwardPass/rnn_encoder_awd/dense/kernel', 'ForwardPass/rnn_encoder_awd/dense/bias']
+  "load_model": "LSTM-FP32-2GPU-SMALL-NOWT",
+  "logdir": "TRANSFER-LSTM-2GPU-SMALL-NOWT",
   "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
@@ -50,23 +51,19 @@ base_params = {
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
   "encoder": LMEncoder,
+  # "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
     "initializer_params": { # need different initializers for embeddings and for weights
       "minval": -0.1,
       "maxval": 0.1,
     },
-    # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 896, # paper 1150
+        "num_units": 128, # paper 1150
         "forget_bias": 1.0,
     },
-    "last_cell_params": {
-        "num_units": 320,
-        "forget_bias": 1.0,
-    },
-    "encoder_layers": 3,
+    "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 1.0,
     "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
@@ -74,12 +71,12 @@ base_params = {
     "recurrent_keep_prob": 0.7,
     'encoder_emb_keep_prob': 0.37,
     "encoder_use_skip_connections": False,
-    "emb_size": 320,
-    "vocab_size": 33278,
+    "emb_size": 64,
     "num_tokens_gen": 10,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
-    "weight_tied": True,
+    # "fc_dim": 2,
+    "weight_tied": False,
     "awd_initializer": False,
   },
 
@@ -99,11 +96,54 @@ base_params = {
   }
 }
 
+# train_params = {
+#   "data_layer": IMDBDataLayer,
+#   "data_layer_params": {
+#     "lm_vocab_file": '/home/chipn/dev/OpenSeq2Seq/processed_data/vocab.txt',
+#     "data_root": data_root,
+#     "pad_vocab_to_eight": False,
+#     "rand_start": True,
+#     "shuffle": False,
+#     "shuffle_buffer_size": 25000,
+#     "repeat": True,
+#     "map_parallel_calls": 16,
+#     "prefetch_buffer_size": 8,
+#     "bptt": bptt,
+#   },
+# }
+# eval_params = {
+#   "data_layer": IMDBDataLayer,
+#   "data_layer_params": {
+#     # "data_root": data_root,
+#     "pad_vocab_to_eight": False,
+#     "shuffle": False,
+#     "repeat": False,
+#     "map_parallel_calls": 16,
+#     "prefetch_buffer_size": 1,
+#     "bptt": bptt,
+#   },
+# }
+
+# infer_params = {
+#   "data_layer": IMDBDataLayer,
+#   "data_layer_params": {
+#     # "data_root": data_root,
+#     "pad_vocab_to_eight": False,
+#     "shuffle": False,
+#     "repeat": False,
+#     "rand_start": False,
+#     "map_parallel_calls": 16,
+#     "prefetch_buffer_size": 8,
+#     "bptt": bptt,
+#     "seed_tokens": "something The only game",
+#   },
+# }
+
 train_params = {
-  "data_layer": IMDBDataLayer,
+  "data_layer": LMTextDataLayer,
   "data_layer_params": {
-    "lm_vocab_file": '/home/chipn/dev/OpenSeq2Seq/processed_data/vocab.txt',
     "data_root": data_root,
+    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "rand_start": True,
     "shuffle": False,
@@ -112,25 +152,29 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "bptt": bptt,
+    "small": True,
   },
 }
 eval_params = {
-  "data_layer": IMDBDataLayer,
+  "data_layer": LMTextDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
+    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
     "bptt": bptt,
+    "small": True,
   },
 }
 
 infer_params = {
-  "data_layer": IMDBDataLayer,
+  "data_layer": LMTextDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
+    "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,

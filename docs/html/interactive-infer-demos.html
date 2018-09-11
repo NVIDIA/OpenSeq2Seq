@@ -1,0 +1,311 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Interactive Infer Mode &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API documentation" href="api-docs/modules.html" />
+    <link rel="prev" title="Adding new loss" href="extending/adding-new-loss.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Interactive Infer Mode</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-run-the-jupyter-notebook-example">How to run the Jupyter Notebook example</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-to-enable-interactive-infer-for-a-data-layer">How to enable interactive infer for a data layer</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Interactive Infer Mode</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/interactive-infer-demos.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="interactive-infer-mode">
+<span id="interactive-infer-demos"></span><h1>Interactive Infer Mode<a class="headerlink" href="#interactive-infer-mode" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Interactive infer is a mode that makes it easy to demo trained models. An
+example
+<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09-dev/Interactive_Infer_example.ipynb">jupyter notebook</a>
+is provided to showcase how the mode works.</p>
+<p>The mode is completely abstracted away from the model. The model is simply run
+in infer mode. Data layers however need to be updated to support interactive
+infer. Currently, the Text2Text, Text2Speech, and Speech2Text all support
+interactive infer.</p>
+<p>Please note that the current Text2Text data layer accepts tokenized text, not
+raw text. As a result, the input to get_interactive_infer_results() should be
+tokenized.</p>
+</div>
+<div class="section" id="how-to-run-the-jupyter-notebook-example">
+<h2>How to run the Jupyter Notebook example<a class="headerlink" href="#how-to-run-the-jupyter-notebook-example" title="Permalink to this headline">¶</a></h2>
+<p>The example notebook takes an English sentence as input, produces English audio
+via a Text2Speech model, and recognizes the generated speech via a Speech2Text
+model. The model requires a trained Text2Speech and a trained Speech2Text model.</p>
+<dl class="docutils">
+<dt>Setup for the notebook:</dt>
+<dd><ol class="first last arabic simple">
+<li>Make a new directory called Infer_S2T in the same directory as the notebook</li>
+<li>Copy the Speech2Text configuration file to Infer_S2T and rename it to
+config.py</li>
+<li>Copy the Speech2Text model checkpoint to Infer_S2T</li>
+<li>Make a new directory called Infer_T2S in the same directory as the notebook</li>
+<li>Copy the Text2Speech configuration file to Infer_T2S and rename it to
+config.py</li>
+<li>Copy the Text2Speech model checkpoint to Infer_T2S</li>
+<li>Run jupyter notebook</li>
+<li>Run all cells</li>
+<li>Once the input box appears, enter an example sentence surrounded in quotes
+such as <code class="docutils literal notranslate"><span class="pre">&quot;Anyone</span> <span class="pre">can</span> <span class="pre">edit</span> <span class="pre">this</span> <span class="pre">and</span> <span class="pre">generate</span> <span class="pre">speech!&quot;</span></code></li>
+</ol>
+</dd>
+</dl>
+</div>
+<div class="section" id="how-to-enable-interactive-infer-for-a-data-layer">
+<h2>How to enable interactive infer for a data layer<a class="headerlink" href="#how-to-enable-interactive-infer-for-a-data-layer" title="Permalink to this headline">¶</a></h2>
+<p>In order to enable interactive infer for a data layer, a data layer must
+additionally implement two functions: create_interactive_placeholders() and
+create_feed_dict().</p>
+<p>In the current framework, model expects all inputs to be
+passed inside self._input_tensors[‘source_tensors’]. For
+create_interactive_placeholders(), It will suffice to create a
+placeholder for each tensor inside this dictionary that is being passed to the
+model at infer time from the build_graph() function. Be sure that specify the
+placeholder shape and dtype as necessary.</p>
+<p>The create_feed_dict() function should take in as input some abstract data
+format. It should first check to make sure that the input is formatted correctly.
+It will then preprocess the input and create a feed dict that fills in all the
+placeholders defined in the create_interactive_placeholders() function.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api-docs/modules.html" class="btn btn-neutral float-right" title="API documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="extending/adding-new-loss.html" class="btn btn-neutral" title="Adding new loss" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>
