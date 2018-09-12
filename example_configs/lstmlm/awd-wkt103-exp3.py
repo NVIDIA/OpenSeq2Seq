@@ -25,7 +25,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 4,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -77,6 +77,7 @@ base_params = {
     "fc_use_bias": True,
     "weight_tied": True,
     "awd_initializer": False,
+    "num_sampled": 8192,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
