@@ -31,7 +31,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDWKT103-EXP4",
+  "logdir": "AWDWKT103-EXP5",
   "processed_data_folder": processed_data_folder,
   "eval_steps": steps * 2,
 
