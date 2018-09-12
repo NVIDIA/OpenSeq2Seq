@@ -233,6 +233,7 @@ class IDMBCorpus(object):
     txt = re.sub(" ' ll ", " 'll ", txt)
     txt = re.sub(" ' s ", " 's ", txt)
     txt = re.sub(" ' m ", " 'm ", txt)
+    txt = re.sub(" ' re ", " 're ", txt)
     txt = re.sub('etc \.', 'etc. ', txt) # to remove
     txt = re.sub(' etc ', ' etc. ', txt) # to remove
     return txt
@@ -331,3 +332,159 @@ class IDMBCorpus(object):
     self.train = self.load_ids('train')
     self.valid = self.load_ids('valid')
     self.test = self.load_ids('test')
+
+class SSTCorpus(object):
+  def __init__(self, raw_path, proc_path, lm_vocab_link):
+    exists = check_exist(proc_path)
+    pathlib.Path(proc_path).mkdir(exist_ok=True)
+    self.dictionary = Dictionary(vocab_link=lm_vocab_link)
+    self.raw_path = raw_path
+    self.proc_path = proc_path
+
+    if not exists:
+      print('Creating corpus from raw data ...')
+      if not raw_path:
+        raise ValueError("data_root [directory to the original data] must be specified")
+      self.preprocess()
+    else:
+      self.load_corpus(proc_path)
+
+  def check_oov(self, txt):
+    txt = txt.lower()
+    txt = re.sub('thats', "that's", txt)
+    txt = re.sub('wouldnt', "wounldn't", txt)
+    txt = re.sub('couldnt', "couldn't", txt)
+    txt = re.sub('cant', "can't", txt)
+    txt = re.sub('dont', "don't", txt)
+    txt = re.sub("didnt", "didn't", txt)
+    txt = re.sub("isnt", "isn't", txt)
+    txt = re.sub("wasnt", "wasn't", txt)
+    return word_tokenize(txt)
+
+  def tokenize(self, txt):
+    # txt = re.sub('<br />', ' ', txt)
+    # txt = re.sub('', ' ', txt)
+    # txt = re.sub('', ' ', txt)
+    txt = re.sub('-', ' - ', txt)
+    # txt = re.sub('\.', ' . ', txt)
+    txt = re.sub('\+', ' + ', txt)
+    txt = re.sub('\*', ' * ', txt)
+    txt = re.sub('/', ' / ', txt)
+    txt = re.sub('`', "'", txt)
+    # txt = re.sub(' ms \.', " ms.", txt)
+    # txt = re.sub('Ms \.', "Ms.", txt)
+    
+    words = []
+    for word in word_tokenize(txt):
+        if word.startswith("'"):
+            word = "' " + word[1:]
+        for token in word.split():
+          if not token in self.dictionary.word2idx:
+            tokens = self.check_oov(token)
+            words.extend(tokens)
+          else:
+            words.append(token) 
+    
+    txt = ' '.join(words)
+    txt = re.sub("``", '"', txt)
+    txt = re.sub("''", '"', txt)
+    txt = re.sub("' '", '"', txt)
+    txt = re.sub(" ' ll ", " 'll ", txt)
+    txt = re.sub(" ' s ", " 's ", txt)
+    txt = re.sub(" ' m ", " 'm ", txt)
+    txt = re.sub(" ' re ", " 're ", txt)
+    txt = re.sub('etc \.', 'etc. ', txt) # to remove
+    txt = re.sub(' etc ', ' etc. ', txt) # to remove
+    return txt
+
+  def tokenize_file(self, mode):
+    import pandas as pd
+
+    data = pd.read_csv(os.path.join(self.raw_path, mode + '.csv'))
+
+    if mode == 'val':
+      mode = 'valid'
+    review_file = open(os.path.join(self.proc_path, mode + '.tok'), 'w')
+    rating_file = open(os.path.join(self.proc_path, mode + '.rat'), 'w')
+    for _, row in data.iterrows():
+      review = self.tokenize(row['sentence'])
+      review_file.write(review + '\n')
+      rating_file.write(str(row['label']) + '\n')
+
+  def txt2ids(self, mode):
+    # import matplotlib
+    # matplotlib.use("TkAgg")
+    # from matplotlib import pyplot as plt
+
+    reviews = []
+    unk_id = self.dictionary.word2idx[self.dictionary.UNK]
+    unseen = []
+    count = 0
+
+    rating_lines = open(os.path.join(self.proc_path, mode + '.rat'), 'r').readlines()
+    ratings = [int(line.strip()) for line in rating_lines]
+
+    for line in open(os.path.join(self.proc_path, mode + '.tok'), 'r'):
+      tokens = line.strip().split()
+      reviews.append([self.dictionary.word2idx.get(token, unk_id) for token in tokens])
+    #   for token in tokens:
+    #     count += 1
+    #     if not token in self.dictionary.word2idx:
+    #       unseen.append(token)
+
+    # counter = Counter(unseen)
+
+    # out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
+    # for key, count in counter.most_common():
+    #     out.write(key + '\t' + str(count) + '\n')
+
+    # lengths = np.asarray([len(review) for review in reviews])
+    # stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
+    # stat_file.write(mode + '\n')
+    # short_lengths = [l for l in lengths if l <= 96]
+    # stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=500']) + '\n')
+    # stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
+    # stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
+    # plt.hist(lengths, bins=20)
+    # plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
+    # plt.hist(short_lengths, bins=20)
+    # plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
+
+    return list(zip(reviews, ratings))
+
+  def preprocess_file(self, mode):
+    self.tokenize_file(mode)
+    if mode == 'val':
+      mode = 'valid'
+    return self.txt2ids(mode)
+
+  def ids2file(self):
+    for mode in ['train', 'valid', 'test']:
+      data = getattr(self, mode)
+      review_out = open(os.path.join(self.proc_path, mode + '.ids'), 'w')
+      rating_out = open(os.path.join(self.proc_path, mode + '.rat'), 'w')
+      for review, rating in data:
+        review_out.write(list2str(review) + '\n')
+        rating_out.write(str(rating) + '\n')
+
+  def preprocess(self):
+    os.makedirs(self.proc_path, exist_ok=True)
+    self.train = self.preprocess_file('train')
+    self.valid = self.preprocess_file('val')
+    self.test = self.preprocess_file('test')
+    self.ids2file()
+
+  def load_ids(self, mode):
+    review_lines = open(os.path.join(self.proc_path, mode + '.ids')).readlines()
+    rating_lines = open(os.path.join(self.proc_path, mode + '.rat')).readlines()
+    ratings = [int(line.strip()) for line in rating_lines]
+    reviews = [[int(i) for i in line.strip().split('\t')] for line in review_lines]
+    return list(zip(reviews, ratings))
+
+  def load_corpus(self, proc_path):
+    print('Loading corpus from processed data ...')
+    self.train = self.load_ids('train')
+    self.valid = self.load_ids('valid')
+    self.test = self.load_ids('test')
+
+# SSTCorpus('/home/chipn/data/binary_sst', 'sst-processed-data' , '/home/chipn/dev/OpenSeq2Seq/wkt103-processed-data/vocab.txt')

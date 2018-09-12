@@ -18,7 +18,7 @@ def precision(labels, preds):
 
 def f1(labels, preds):
   rec = recall(labels, preds)
-  pre = recall(labels, preds)
+  pre = precision(labels, preds)
   if rec == 0 or pre == 0:
     return 0
   return 2 * rec * pre / (rec + pre)

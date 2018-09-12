@@ -17,7 +17,7 @@ processed_data_folder = 'imdb-processed-data'
 base_model = LSTMLM
 max_length = 256
 binary = True
-steps = 40
+steps = 5
 
 base_params = {
   # "seed": 1882, # conforming to AWD-LSTM paper
@@ -25,8 +25,8 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 2,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
-  "num_epochs": 1500, # conforming to AWD-LSTM paper 750
+  "batch_size_per_gpu": 16, # conforming to AWD-LSTM paper 80
+  "num_epochs": 25, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
@@ -43,7 +43,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 9e-4
+    "learning_rate": 1e-5
   },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 
@@ -69,11 +69,11 @@ base_params = {
     },
     "encoder_layers": 3,
     "encoder_dp_input_keep_prob": 1.0,
-    "encoder_dp_output_keep_prob": 0.6, # output dropout for middle layer 0.3
+    "encoder_dp_output_keep_prob": 1.0, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
-    "encoder_last_output_keep_prob": 0.6, # output droput at last layer is 0.4
-    "recurrent_keep_prob": 0.7,
-    'encoder_emb_keep_prob': 0.37,
+    "encoder_last_output_keep_prob": 1.0, # output droput at last layer is 0.4
+    "recurrent_keep_prob": 1.0,
+    'encoder_emb_keep_prob': 1.0,
     "encoder_use_skip_connections": False,
     "emb_size": 256,
     "num_tokens_gen": 10,
@@ -87,7 +87,7 @@ base_params = {
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 2e-6, # alpha
+    'scale': 2e-4, # alpha
   },
 
   "loss": CrossEntropyLoss,
@@ -105,6 +105,7 @@ train_params = {
     "prefetch_buffer_size": 8,
     "binary": binary,
     "max_length": max_length,
+    # "small": True,
   },
 }
 eval_params = {
@@ -118,6 +119,7 @@ eval_params = {
     "prefetch_buffer_size": 1,
     "binary": binary,
     "max_length": max_length,
+    # "small": True,
   },
 }
 

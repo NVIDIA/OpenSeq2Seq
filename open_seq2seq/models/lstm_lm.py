@@ -101,13 +101,21 @@ class LSTMLM(EncoderDecoderModel):
         "TRAIN Target[0]:     " + str(np.argmax(y_sample)),
         offset=4,
       )
-      samples = output_values[0][0][-1]
+      samples = output_values[0][0]
       deco_print(
         "TRAIN Prediction[0]:     " + str(samples),
         offset=4,
       )
       labels = np.argmax(y, 1)
-      preds = output_values[0][:, -1]
+      print('output_values', output_values[0].shape)
+      print(output_values[0]) # should have B X D
+      preds = np.argmax(output_values[0], axis=-1)
+      # n_items = len(x)
+      # preds = np.zeros(n_items)
+      # logits = output_values[0]
+      # for i in range(n_items):
+      #   preds[i] = np.argmax(logits[i, len_x[i] - 1, :])
+
       print('labels', labels)
       print('preds', preds)
 
@@ -148,7 +156,7 @@ class LSTMLM(EncoderDecoderModel):
     return_values = {}
     
     if self._lm_phase:
-      samples = output_values[0][0]
+      samples = output_values[0]
       deco_print(
         "*****EVAL Target[0]:     " + array_to_string(
           y_sample[:len_y_sample],
@@ -167,7 +175,7 @@ class LSTMLM(EncoderDecoderModel):
         offset=4,
       )
     else:
-      samples = output_values[0][0][-1] # TODO: only get the last prediction
+      samples = output_values[0][0] # TODO: only get the last prediction
       deco_print(
         "EVAL Target[0]:     " + str(np.argmax(y_sample)),
         offset=4,
@@ -178,7 +186,12 @@ class LSTMLM(EncoderDecoderModel):
       )
 
       labels = np.argmax(ey, 1)
-      preds = output_values[0][:, -1]
+      preds = np.argmax(output_values[0], axis=-1)
+      # n_items = len(ex)
+      # preds = np.zeros(n_items)
+      # logits = output_values[0]
+      # for i in range(n_items):
+      #   preds[i] = np.argmax(logits[i, elen_x[i] - 1, :])
       print('labels', labels)
       print('preds', preds)
 
@@ -212,10 +225,10 @@ class LSTMLM(EncoderDecoderModel):
     if true_pos > 0:
       prec = true_pos / pred_pos
       rec = true_pos / actual_pos
-      f1 = 2 * prec * rec / (rec + prec)
+      f1 = 2.0 * prec * rec / (rec + prec)
       deco_print(
-        "EVAL Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f}"
-            .format(prec, rec, f1),
+        "EVAL Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f} | True pos: {}"
+            .format(prec, rec, f1, true_pos),
         offset = 4,
       )
     return {}

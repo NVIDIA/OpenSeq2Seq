@@ -41,7 +41,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 9e-4
+    "learning_rate": 4e-4
   },
 
   # "lr_policy": exp_decay,
@@ -61,14 +61,12 @@ base_params = {
   #"dtype": "mixed",
   #"automatic_loss_scaling": "Backoff",
   "encoder": LMEncoder,
-  # "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
     "initializer_params": { # need different initializers for embeddings and for weights
       "minval": -0.1,
       "maxval": 0.1,
     },
-    # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
         "num_units": 896, # paper 1150

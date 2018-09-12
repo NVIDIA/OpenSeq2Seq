@@ -9,7 +9,7 @@ from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary, pad_vocab_to_eight
 from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
 
-from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IDMBCorpus
+from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IDMBCorpus, SSTCorpus
 
 class LMTextDataLayer(DataLayer):
   @staticmethod
@@ -93,10 +93,10 @@ class LMTextDataLayer(DataLayer):
     # TODO: Should have get vocab size after adding PAD
     # better, do that in Dictionary
     self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    self.PAD_ID = self.params['vocab_size']
-    self.PAD = '<pad>'
-    self.corp.dictionary.idx2word.append(self.PAD)
-    self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
+    # self.PAD_ID = self.params['vocab_size']
+    # self.PAD = '<pad>'
+    # self.corp.dictionary.idx2word.append(self.PAD)
+    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
 
     self._input_tensors = {}
     self._batch_size
@@ -241,6 +241,7 @@ class IMDBDataLayer(DataLayer):
     # load source and target vocabularies to RAM
     self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     if self.params["small"]:
+      print("SMALL", self.params['small'])
       if self.params['mode'] == 'eval':
         self.corp.content = self.corp.content[:self._batch_size * 2]
       else:
@@ -252,10 +253,10 @@ class IMDBDataLayer(DataLayer):
     # better, do that in Dictionary
     # now just pad things with EOS token
     self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    self.PAD_ID = self.params['vocab_size']
-    self.PAD = '<pad>'
-    self.corp.dictionary.idx2word.append(self.PAD)
-    self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
+    # self.PAD_ID = self.params['vocab_size']
+    # self.PAD = '<pad>'
+    # self.corp.dictionary.idx2word.append(self.PAD)
+    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
 
     self.EOS_ID = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
 
@@ -328,6 +329,85 @@ class IMDBDataLayer(DataLayer):
   @property
   def input_tensors(self):
     return self._input_tensors
+
+class SSTDataLayer(IMDBDataLayer):
+  @staticmethod
+  def get_required_params():
+    return dict(DataLayer.get_required_params(), **{
+      'lm_vocab_file': str,
+      'shuffle': bool,
+      'repeat': bool,
+      'max_length': int,
+    })
+
+  @staticmethod
+  def get_optional_params():
+    return dict(DataLayer.get_optional_params(), **{
+      'rand_start': bool,
+      'use_targets': bool,
+      'delimiter': str,
+      'target_file': str,
+      'map_parallel_calls': int,
+      'prefetch_buffer_size': int,
+      'pad_lengths_to_eight': bool,
+      'pad_vocab_to_eight': bool,
+      'shuffle_buffer_size': int,
+      'processed_data_folder': str,
+      'data_root': str,
+    })
+
+  def __init__(self, params, model, num_workers=1, worker_id=0):
+    super(IMDBDataLayer, self).__init__(params, model,
+                                          num_workers, worker_id)
+
+    self._processed_data_folder = self.params.get('processed_data_folder', 'sst-processed-data')
+    self._data_root = self.params.get('data_root', None)
+    self.params['num_classes'] = 2
+    self.corp = SSTCorpus(self._data_root, self._processed_data_folder, self.params['lm_vocab_file'])
+    
+    if self.params['mode'] == 'train':
+      self._batch_size = self.params['batch_size']
+      self.corp.content = self.corp.train
+    elif self.params['mode'] == 'eval':
+      self._batch_size = self.params['batch_size']
+      self.corp.content = self.corp.valid
+    else:
+      self._batch_size = 1
+      self.corp.content = self.corp.test
+
+    self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
+    self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
+    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
+                                                 tf.contrib.data.AUTOTUNE)
+    self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
+    self._num_workers = num_workers
+    self._worker_id = worker_id
+    self.params["delimiter"] = self.params.get("delimiter", " ")
+    self.params["small"] = self.params.get("small", False)
+    self._max_length = self.params['max_length']
+
+    if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
+      raise ValueError("If padding to 8 in data layer, then "
+                       "max_length should be multiple of 8")
+
+    # load source and target vocabularies to RAM
+    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+    self.dataset_size = len(self.corp.content)
+    
+    # TODO: Should have get vocab size after adding PAD
+    # better, do that in Dictionary
+    # now just pad things with EOS token
+    self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
+    # self.PAD_ID = self.params['vocab_size']
+    # self.PAD = '<pad>'
+    # self.corp.dictionary.idx2word.append(self.PAD)
+    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
+
+    self.EOS_ID = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+
+    self._input_tensors = {}
+    self._batch_size
+
 
 class LMTextDataLayerGenerate(DataLayer):
   @staticmethod
