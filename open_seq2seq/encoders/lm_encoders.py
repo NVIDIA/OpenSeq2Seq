@@ -287,6 +287,7 @@ class LMEncoder(Encoder):
         # output_dict = {'logits': logits, 'outputs': [tf.nn.softmax(logits, axis=-1)]}
         output_dict = {'logits': logits, 'outputs': [logits]}
       else:
+        print('SAMPLED SOFTMAX')
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,
                     'inputs': encoder_outputs,

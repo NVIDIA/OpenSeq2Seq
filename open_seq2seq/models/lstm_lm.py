@@ -107,15 +107,7 @@ class LSTMLM(EncoderDecoderModel):
         offset=4,
       )
       labels = np.argmax(y, 1)
-      print('output_values', output_values[0].shape)
-      print(output_values[0]) # should have B X D
       preds = np.argmax(output_values[0], axis=-1)
-      # n_items = len(x)
-      # preds = np.zeros(n_items)
-      # logits = output_values[0]
-      # for i in range(n_items):
-      #   preds[i] = np.argmax(logits[i, len_x[i] - 1, :])
-
       print('labels', labels)
       print('preds', preds)
 
@@ -156,7 +148,7 @@ class LSTMLM(EncoderDecoderModel):
     return_values = {}
     
     if self._lm_phase:
-      samples = output_values[0]
+      samples = np.argmax(output_values[0][0], axis=-1)
       deco_print(
         "*****EVAL Target[0]:     " + array_to_string(
           y_sample[:len_y_sample],
@@ -187,11 +179,6 @@ class LSTMLM(EncoderDecoderModel):
 
       labels = np.argmax(ey, 1)
       preds = np.argmax(output_values[0], axis=-1)
-      # n_items = len(ex)
-      # preds = np.zeros(n_items)
-      # logits = output_values[0]
-      # for i in range(n_items):
-      #   preds[i] = np.argmax(logits[i, elen_x[i] - 1, :])
       print('labels', labels)
       print('preds', preds)
 
