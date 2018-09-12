@@ -197,7 +197,7 @@ class LSTMLM(EncoderDecoderModel):
 
     for results in results_per_batch:
       if not 'accuracy' in results:
-        return
+        return {}
       accuracies.append(results['accuracy'])
       if 'true_pos' in results:
         true_pos += results['true_pos']
