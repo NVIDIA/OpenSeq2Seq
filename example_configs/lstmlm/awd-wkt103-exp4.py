@@ -13,8 +13,8 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/data/wikitext-103-raw/"
-# processed_data_folder = '/data/wkt103-processed-data'
-processed_data_folder = 'wkt103-processed-data'
+processed_data_folder = '/data/wkt103-processed-data'
+# processed_data_folder = 'wkt103-processed-data'
 
 base_model = LSTMLM
 bptt = 96
@@ -25,13 +25,13 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 4,
 
-  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDWKT103-EXP3",
+  "logdir": "AWDWKT103-EXP4",
   "processed_data_folder": processed_data_folder,
   "eval_steps": steps * 2,
 
@@ -70,9 +70,9 @@ base_params = {
     "encoder_last_input_keep_prob": 1.0,
     "encoder_last_output_keep_prob": 0.75, # output droput at last layer is 0.4
     "recurrent_keep_prob": 0.7,
-    'encoder_emb_keep_prob': 0.6,
+    'encoder_emb_keep_prob': 0.5,
     "encoder_use_skip_connections": False,
-    "emb_size": 256,
+    "emb_size": 320,
     "sampling_prob": 0.0, # 0 is always use the ground truth
     "fc_use_bias": True,
     "weight_tied": True,
