@@ -81,13 +81,12 @@ class Corpus(object):
     self.dictionary = Dictionary(limit)
     self.vocab_link = 'vocab.txt'
     exists = check_exist(proc_path)
-
-    if raw_path and 'raw' in raw_path:
-      self._change_names(raw_path)
     self.change_contraction = change_contraction
 
     if not exists:
       print('Creating corpus from raw data ...')
+      if raw_path and 'raw' in raw_path:
+        self._change_names(raw_path)
       if not raw_path:
         raise ValueError("data_root [directory to the original data] must be specified")
       self.preprocess(raw_path, proc_path)
