@@ -25,7 +25,8 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 4,
 
-  "batch_size_per_gpu": 64, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 128, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 48,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -102,7 +103,7 @@ train_params = {
     "data_root": data_root,
     "pad_vocab_to_eight": False,
     "rand_start": True,
-    "shuffle": True,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
