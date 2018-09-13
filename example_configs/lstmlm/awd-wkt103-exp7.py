@@ -23,7 +23,7 @@ steps = 40
 base_params = {
   "restore_best_checkpoint": True,
   "use_horovod": True,
-  "num_gpus": 4,
+  "num_gpus": 8,
 
   "batch_size_per_gpu": 128, # conforming to AWD-LSTM paper 80
   "eval_batch_size_per_gpu": 32,
@@ -103,7 +103,7 @@ train_params = {
     "data_root": data_root,
     "pad_vocab_to_eight": False,
     "rand_start": True,
-    "shuffle": False,
+    "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
