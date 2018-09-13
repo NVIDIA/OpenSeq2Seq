@@ -22,10 +22,11 @@ steps = 40
 
 base_params = {
   "restore_best_checkpoint": True,
-  "use_horovod": False,
-  "num_gpus": 4,
+  "use_horovod": True,
+  "num_gpus": 8,
 
-  "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 128, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 32,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -33,7 +34,7 @@ base_params = {
   "save_checkpoint_steps": steps,
   "logdir": "AWDWKT103-EXP6",
   "processed_data_folder": processed_data_folder,
-  "eval_steps": steps * 2,
+  "eval_steps": steps * 4,
 
   "optimizer": "Adam", # need to change to NT-ASGD
   "optimizer_params": {},
@@ -66,9 +67,9 @@ base_params = {
     },
     "encoder_layers": 3,
     "encoder_dp_input_keep_prob": 1.0,
-    "encoder_dp_output_keep_prob": 0.75, # output dropout for middle layer 0.3
+    "encoder_dp_output_keep_prob": 0.7, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
-    "encoder_last_output_keep_prob": 0.75, # output droput at last layer is 0.4
+    "encoder_last_output_keep_prob": 0.7, # output droput at last layer is 0.4
     "recurrent_keep_prob": 0.7,
     'encoder_emb_keep_prob': 0.5,
     "encoder_use_skip_connections": False,
@@ -102,7 +103,7 @@ train_params = {
     "data_root": data_root,
     "pad_vocab_to_eight": False,
     "rand_start": True,
-    "shuffle": True,
+    "shuffle": False,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
