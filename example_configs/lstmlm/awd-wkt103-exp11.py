@@ -32,9 +32,9 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDWKT103-EXP6",
+  "logdir": "AWDWKT103-EXP11",
   "processed_data_folder": processed_data_folder,
-  "eval_steps": steps * 4,
+  "eval_steps": steps * 2,
 
   "optimizer": "Adam", # need to change to NT-ASGD
   "optimizer_params": {},
@@ -67,11 +67,11 @@ base_params = {
     },
     "encoder_layers": 3,
     "encoder_dp_input_keep_prob": 1.0,
-    "encoder_dp_output_keep_prob": 0.7, # output dropout for middle layer 0.3
+    "encoder_dp_output_keep_prob": 0.85, # output dropout for middle layer 0.3
     "encoder_last_input_keep_prob": 1.0,
-    "encoder_last_output_keep_prob": 0.7, # output droput at last layer is 0.4
+    "encoder_last_output_keep_prob": 0.85, # output droput at last layer is 0.4
     "recurrent_keep_prob": 0.7,
-    'encoder_emb_keep_prob': 0.5,
+    'encoder_emb_keep_prob': 0.8,
     "encoder_use_skip_connections": False,
     "emb_size": 320,
     "sampling_prob": 0.0, # 0 is always use the ground truth
