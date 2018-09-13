@@ -103,7 +103,7 @@ train_params = {
     "data_root": data_root,
     "pad_vocab_to_eight": False,
     "rand_start": True,
-    "shuffle": False,
+    "shuffle": True,
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
