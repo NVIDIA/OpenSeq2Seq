@@ -51,7 +51,7 @@ base_params = {
   # "max_grad_norm": 0.25, # conform to paper 0.25
   "dtype": tf.float32,
   "dtype": "mixed",
-  "automatic_loss_scaling": "Backoff",
+  "loss_scaling": "Backoff",
   "encoder": LMEncoder,
   "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
