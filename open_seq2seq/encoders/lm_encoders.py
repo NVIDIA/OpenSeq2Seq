@@ -61,6 +61,7 @@ class LMEncoder(Encoder):
       "dropout_seed": int,
       "num_sampled": int,
       "fc_dim": int,
+      "use_cell_state": bool,
     })
 
   def __init__(self, params, model,
@@ -109,6 +110,7 @@ class LMEncoder(Encoder):
     else:
       self.num_tokens_gen = 1
       self._batch_size = self.params['batch_size']
+    self._use_cell_state = self.params.get('use_cell_state', False)
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
@@ -204,8 +206,14 @@ class LMEncoder(Encoder):
       last_cell_params['num_units'] = self._emb_size
     else:
       last_cell_params = self.params['core_cell_params']
+    
+    last_output_dim = last_cell_params['num_units']
 
-    fake_input = tf.zeros(shape=(1, last_cell_params['num_units']), 
+    if self._use_cell_state:
+      last_output_dim = 2 * last_output_dim
+
+
+    fake_input = tf.zeros(shape=(1, last_output_dim), 
                           dtype=self._params['dtype'])
     fake_output = self._output_layer.apply(fake_input)
     with tf.variable_scope("dense", reuse=True):
@@ -278,9 +286,12 @@ class LMEncoder(Encoder):
         scope='decoder',
       )
       if self._fc_dim != self._vocab_size:
-        encoder_outputs = encoder_state[-1].h
+        if self._use_cell_state:
+          encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+        else:
+          encoder_outputs = encoder_state[-1].h
         # encoder_outputs = tf.gather(encoder_outputs, source_length - 1, axis=1)
-        # print('encoder_outputs', encoder_outputs)
+        print('encoder_outputs', encoder_outputs)
       if self._mode == 'eval' or self._num_sampled >= self._fc_dim:
         logits = self._output_layer.apply(encoder_outputs) # full softmax
         # output_dict = {'logits': logits, 'outputs': [tf.argmax(tf.nn.softmax(logits), axis=-1)]}
