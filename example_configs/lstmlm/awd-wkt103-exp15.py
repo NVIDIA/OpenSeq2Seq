@@ -25,7 +25,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 4,
 
-  "batch_size_per_gpu": 128, #conforming to AWD-LSTM paper 8
+  "batch_size_per_gpu": 256, #conforming to AWD-LSTM paper 8
   "eval_batch_size_per_gpu": 32,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
@@ -50,8 +50,8 @@ base_params = {
   # "grad_clip":0.25, # conforming to AWD-LSTM paper
   # "max_grad_norm": 0.25, # conform to paper 0.25
   "dtype": tf.float32,
-  #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
+  "dtype": "mixed",
+  "automatic_loss_scaling": "Backoff",
   "encoder": LMEncoder,
   "encoder_params": { # will need to update
     "initializer": tf.random_uniform_initializer,
