@@ -262,7 +262,7 @@ class LMEncoder(Encoder):
     source_sequence = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
-    if self._mode == 'train' or self._mode == 'eval':
+    if (self._fc_dim != self._vocab_size) or self._mode == 'train' or self._mode == 'eval':
       embedded_inputs = tf.cast(tf.nn.embedding_lookup(
         self.enc_emb_w,
         source_sequence,

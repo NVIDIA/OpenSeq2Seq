@@ -65,8 +65,28 @@ class LSTMLM(EncoderDecoderModel):
           ),
           offset=4,
         )
+        return []
     else:
-      print('Normal ')
+      ex, elen_x = input_values['source_tensors']
+      ey, elen_y = None, None
+      if 'target_tensors' in input_values:
+        ey, elen_y = input_values['target_tensors']
+
+      n_samples = len(ex)
+      results = []
+      for i in range(n_samples):
+        current_x = array_to_string(
+          ex[i][:elenx[i]],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        current_pred = np.argmax(output_values[0][i])
+        curret_y = None
+        if ey:
+          current_y = np.argmax(ey[i])
+
+        return_values.append((current_x, current_pred, current_y))
+      return return_values
   
 
   def maybe_print_logs(self, input_values, output_values, training_step):
@@ -216,6 +236,33 @@ class LSTMLM(EncoderDecoderModel):
       deco_print(
         "EVAL Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f} | True pos: {}"
             .format(prec, rec, f1, true_pos),
+        offset = 4,
+      )
+    return {}
+
+  def finalize_inference(self, results_per_batch, output_file):
+    out = open(output_file, 'w')
+    out.write('\t'.join(['Source', 'Pred', 'Label']) + '\n')
+    preds, labels = [], []
+
+    for results in results_per_batch:
+      for x, pred, y in results:
+        out.write('\t'.join([x, str(pred), str(y)]) + '\n')
+      preds.append(pred)
+      labels.append(y)
+
+    if len(labels) > 0 and labels[0]:
+      preds = np.asarray(preds)
+      labels = np.asarray(labels)
+      deco_print(
+        "TEST Accuracy: {:.4f}".format(metrics.accuracy(labels, preds)),
+        offset = 4,
+      )
+      deco_print(
+        "TEST Precision: {:.4f} | Recall: {:.4f} | F1: {:.4f}"
+            .format(metrics.precision(labels, preds), 
+                    metrics.recall(labels, preds),
+                    metrics.f1(labels, preds)),
         offset = 4,
       )
     return {}
