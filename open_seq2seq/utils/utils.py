@@ -562,6 +562,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
   """
   # checking that everything is correct with log directory
   logdir = base_config['logdir']
+  print('base_config in check logdir', base_config)
   if args.benchmark:
     args.no_dir_check = True
   try:
@@ -569,6 +570,8 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
       ckpt_dir = os.path.join(logdir, 'logs')
     else:
       ckpt_dir = logdir
+
+    print('ckpt_dir', ckpt_dir)
     if args.mode == 'train' or args.mode == 'train_eval':
       if os.path.isfile(logdir):
         raise IOError("There is a file with the same name as \"logdir\" "
@@ -606,6 +609,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
         else:
           deco_print("Restoring from the latest checkpoint")
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
+        
         if checkpoint is None:
           raise IOError(
               "There is no valid TensorFlow checkpoint in the "
@@ -651,9 +655,6 @@ def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
 
   if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
     ckpt_dir = os.path.join(ckpt_dir, 'best_models')
-    # print('Restore the best checkpoint from the base model')
-  # else:
-  #   print('Restore the latest checkpoint from the base model')
 
   checkpoint = tf.train.latest_checkpoint(ckpt_dir)
   if checkpoint is None:
@@ -792,6 +793,9 @@ def create_model(args, base_config, config_module, base_model, hvd):
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
+    print('IN CREATE MODEL', base_config)
+    if base_config['logdir'].endswith('logs'):
+      base_config['logdir'] =  base_config['logdir'][:-5]
     checkpoint = check_logdir(args, base_config)
     model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
 

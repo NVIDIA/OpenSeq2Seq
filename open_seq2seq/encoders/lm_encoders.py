@@ -104,12 +104,16 @@ class LMEncoder(Encoder):
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
     self._fc_dim = self.params.get('fc_dim', self._vocab_size)
     self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not define then just take full softmax
-    if mode == 'infer':
-      self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
+    self._lm_phase = self._fc_dim == self._vocab_size
+    self._num_tokens_gen = self.params.get('num_tokens_gen', 200)
+    self._batch_size = self.params['batch_size']
+    print('BATCH SIZE', self._batch_size)
+    
+    if mode == 'infer' and self._lm_phase:
       self._batch_size = len(self.params['seed_tokens'])
-    else:
-      self.num_tokens_gen = 1
-      self._batch_size = self.params['batch_size']
+    # else:
+    #   self.num_tokens_gen = 1
+    #   self._batch_size = self.params['batch_size']
     self._use_cell_state = self.params.get('use_cell_state', False)
 
   def encode(self, input_dict):
@@ -220,7 +224,7 @@ class LMEncoder(Encoder):
       dense_weights = tf.get_variable("kernel")
       dense_biases = tf.get_variable("bias")
     
-    if self._weight_tied and self._fc_dim == self._vocab_size:
+    if self._weight_tied and self._lm_phase:
       enc_emb_w = tf.transpose(dense_weights)
     else:
       enc_emb_w = tf.get_variable(
@@ -270,7 +274,8 @@ class LMEncoder(Encoder):
     source_sequence = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
-    if (self._fc_dim != self._vocab_size) or self._mode == 'train' or self._mode == 'eval':
+    # only infer in lm phase requires a different graph
+    if (not self._lm_phase) or self._mode == 'train' or self._mode == 'eval':
       embedded_inputs = tf.cast(tf.nn.embedding_lookup(
         self.enc_emb_w,
         source_sequence,
@@ -285,28 +290,25 @@ class LMEncoder(Encoder):
         dtype=self._params['dtype'],
         scope='decoder',
       )
-      if self._fc_dim != self._vocab_size:
+      if not self._lm_phase:
         if self._use_cell_state:
           encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
         else:
           encoder_outputs = encoder_state[-1].h
-        # encoder_outputs = tf.gather(encoder_outputs, source_length - 1, axis=1)
-        print('encoder_outputs', encoder_outputs)
-      if self._mode == 'eval' or self._num_sampled >= self._fc_dim:
-        logits = self._output_layer.apply(encoder_outputs) # full softmax
-        # output_dict = {'logits': logits, 'outputs': [tf.argmax(tf.nn.softmax(logits), axis=-1)]}
-        # output_dict = {'logits': logits, 'outputs': [tf.nn.softmax(logits, axis=-1)]}
-        output_dict = {'logits': logits, 'outputs': [logits]}
-      else:
-        print('SAMPLED SOFTMAX')
+
+      if self._mode == 'train' and self._num_sampled < self._fc_dim: 
+      # sampled softmax
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,
                     'inputs': encoder_outputs,
                     'logits': encoder_outputs,
                     'outputs': [encoder_outputs],
                     'num_sampled': self._num_sampled}
-
-    else:
+      else:
+      # full softmax
+        logits = self._output_layer.apply(encoder_outputs)
+        output_dict = {'logits': logits, 'outputs': [logits]}
+    else: # infer in LM phase
       embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
                                           self.enc_emb_w,
                                           ids,
@@ -325,7 +327,7 @@ class LMEncoder(Encoder):
         ),
         output_layer=self._output_layer,
       )
-      maximum_iterations = tf.constant(200)
+      maximum_iterations = tf.constant(self._num_tokens_gen)
 
       final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         decoder=decoder,
