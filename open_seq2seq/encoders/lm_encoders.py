@@ -107,7 +107,6 @@ class LMEncoder(Encoder):
     self._lm_phase = self._fc_dim == self._vocab_size
     self._num_tokens_gen = self.params.get('num_tokens_gen', 200)
     self._batch_size = self.params['batch_size']
-    print('BATCH SIZE', self._batch_size)
     
     if mode == 'infer' and self._lm_phase:
       self._batch_size = len(self.params['seed_tokens'])
@@ -196,6 +195,7 @@ class LMEncoder(Encoder):
       last_input_keep_prob, last_output_keep_prob = 1.0, 1.0
       emb_keep_prob, recurrent_keep_prob = 1.0, 1.0
       input_weight_keep_prob, recurrent_weight_keep_prob = 1.0, 1.0
+
 
     self._output_layer = tf.layers.Dense(
       self._fc_dim, 

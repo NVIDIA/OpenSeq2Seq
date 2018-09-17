@@ -54,7 +54,10 @@ class LSTMLM(EncoderDecoderModel):
     if self._lm_phase:
       vocab = self.get_data_layer().corp.dictionary.idx2word
       seed_tokens = self.params['encoder_params']['seed_tokens']
+      print("seed_tokens", seed_tokens)
+      print('len(seed_tokes)', len(seed_tokens))
       for i in range(len(seed_tokens)):
+        print('i', i)
         print(output_values[0][i].shape)
         print('Seed:', vocab[seed_tokens[i]] + '\n')
         deco_print(
@@ -65,7 +68,7 @@ class LSTMLM(EncoderDecoderModel):
           ),
           offset=4,
         )
-        return []
+      return []
     else:
       ex, elen_x = input_values['source_tensors']
       ey, elen_y = None, None
@@ -76,17 +79,17 @@ class LSTMLM(EncoderDecoderModel):
       results = []
       for i in range(n_samples):
         current_x = array_to_string(
-          ex[i][:elenx[i]],
+          ex[i][:elen_x[i]],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
           delim=self.get_data_layer().params["delimiter"],
         ),
         current_pred = np.argmax(output_values[0][i])
         curret_y = None
-        if ey:
+        if ey is not None:
           current_y = np.argmax(ey[i])
 
-        return_values.append((current_x, current_pred, current_y))
-      return return_values
+        results.append((current_x[0], current_pred, current_y))
+      return results
   
 
   def maybe_print_logs(self, input_values, output_values, training_step):
@@ -248,10 +251,13 @@ class LSTMLM(EncoderDecoderModel):
     for results in results_per_batch:
       for x, pred, y in results:
         out.write('\t'.join([x, str(pred), str(y)]) + '\n')
-      preds.append(pred)
-      labels.append(y)
+        preds.append(pred)
+        labels.append(y)
 
-    if len(labels) > 0 and labels[0]:
+    # print(preds)
+    # print(labels)
+
+    if len(labels) > 0 and labels[0] is not None:
       preds = np.asarray(preds)
       labels = np.asarray(labels)
       deco_print(

@@ -43,7 +43,17 @@ class LMTextDataLayer(DataLayer):
 
     self._processed_data_folder = self.params.get('processed_data_folder', 'wkt-processed_data')
     self._data_root = self.params.get('data_root', None)
-    self.corp = Corpus(self._data_root, self._processed_data_folder)
+
+    self.corp = Corpus(self._data_root, self._processed_data_folder, mode=self.params['mode'])
+
+    seed_tokens = self.params.get('seed_tokens', 'The').split()
+    
+    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+    self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
+    
+    if self.params['mode'] == 'infer':
+      self.corp.content = self.params['seed_tokens']
+
     if self.params['mode'] == 'train':
       self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.train
@@ -51,8 +61,7 @@ class LMTextDataLayer(DataLayer):
       self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
-      self._batch_size = 1
-      self.corp.content = self.corp.test
+      self._batch_size = len(self.corp.content)
 
     self.vocab_file = (self._processed_data_folder, 'vocab.txt')
     self.bptt = self.params['bptt']
@@ -70,36 +79,20 @@ class LMTextDataLayer(DataLayer):
 
     # load source and target vocabularies to RAM
 
-    seed_tokens = self.params.get('seed_tokens', 'The').split()
     
-    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
-    self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
+
     if self.params["small"]:
       if self.params['mode'] == 'eval':
         self.corp.content = self.corp.content[:200]
       else:
         self.corp.content = self.corp.content[:9004]
 
-
     if self.params.get('pad_vocab_to_eight', False):
       self.corp.content = pad_vocab_to_eight(self.corp.content)
 
-    if self.params['mode'] == 'infer':
-      if len(self.corp.content) > self.bptt:
-        self.corp.content = self.corp.content[-self.bptt:]
-
     self.dataset_size = len(self.corp.content)
-    
-    # TODO: Should have get vocab size after adding PAD
-    # better, do that in Dictionary
     self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    # self.PAD_ID = self.params['vocab_size']
-    # self.PAD = '<pad>'
-    # self.corp.dictionary.idx2word.append(self.PAD)
-    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
-
     self._input_tensors = {}
-    self._batch_size
 
   def gen(self):
     while True:
@@ -113,8 +106,9 @@ class LMTextDataLayer(DataLayer):
         yield (self.corp.content[begin : begin + self.bptt], self.corp.content[begin + 1 : begin + self.bptt + 1])
 
   def gen_infer(self):
-    while True:
-      yield (self.corp.content, self.corp.content)
+    for seed in self.corp.content:
+      print("SEED", seed)
+      yield ([seed], [seed])
     
   def build_graph(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
@@ -122,7 +116,8 @@ class LMTextDataLayer(DataLayer):
       batch_shape = self.bptt
     else:
       gen = self.gen_infer
-      batch_shape = len(self.corp.content)
+      batch_shape = 1
+    
     _src_tgt_dataset = tf.data.Dataset.from_generator(gen, (tf.int32, tf.int32), 
                                 (tf.TensorShape([batch_shape]), tf.TensorShape([batch_shape])))
 
@@ -161,7 +156,7 @@ class LMTextDataLayer(DataLayer):
   def get_size_in_samples(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
       return (self.dataset_size - self.start) // self.bptt
-    return 1
+    return len(self.corp.content)
 
   @property
   def iterator(self):
@@ -220,7 +215,7 @@ class IMDBDataLayer(DataLayer):
       self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
-      self._batch_size = 1
+      self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.test
 
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
@@ -372,7 +367,7 @@ class SSTDataLayer(IMDBDataLayer):
       self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
-      self._batch_size = 1
+      self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.test
 
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)

@@ -197,8 +197,7 @@ def iterate_data(model, sess, compute_loss, mode, verbose, num_steps=None):
 
     if verbose:
       if size_defined:
-        data_size = int(np.sum(np.ceil(np.array(dl_sizes) /
-                                       model.params['batch_size_per_gpu'])))
+        data_size = int(np.sum(np.ceil(np.array(dl_sizes) / batch_size)))
         if step == 0 or len(fetches_vals) == 0 or \
            (data_size > 10 and processed_batches % (data_size // 10) == 0):
           deco_print("Processed {}/{} batches{}".format(
@@ -793,7 +792,6 @@ def create_model(args, base_config, config_module, base_model, hvd):
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    print('IN CREATE MODEL', base_config)
     if base_config['logdir'].endswith('logs'):
       base_config['logdir'] =  base_config['logdir'][:-5]
     checkpoint = check_logdir(args, base_config)
