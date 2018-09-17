@@ -44,7 +44,7 @@ class LMTextDataLayer(DataLayer):
     self._processed_data_folder = self.params.get('processed_data_folder', 'wkt-processed_data')
     self._data_root = self.params.get('data_root', None)
 
-    self.corp = Corpus(self._data_root, self._processed_data_folder, mode=self.params['mode'])
+    self.corp = Corpus(self._data_root, self._processed_data_folder)
 
     seed_tokens = self.params.get('seed_tokens', 'The').split()
     
