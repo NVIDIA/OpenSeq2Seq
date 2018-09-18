@@ -21,7 +21,7 @@ steps = 40
 base_params = {
   "restore_best_checkpoint": True,
   "use_horovod": True,
-  "num_gpus": 8,
+  "num_gpus": 4,
 
   "batch_size_per_gpu": 256, # conforming to AWD-LSTM paper 80
   "eval_batch_size_per_gpu": 64,
