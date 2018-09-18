@@ -78,7 +78,7 @@ base_params = {
     "fc_use_bias": True,
     "weight_tied": True,
     "awd_initializer": False,
-    "num_sampled": 8192,
+    "num_sampled": 4096,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
