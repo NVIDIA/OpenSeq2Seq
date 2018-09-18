@@ -26,7 +26,7 @@ base_params = {
   "num_gpus": 8,
 
   "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
-  "eval_batch_size_per_gpu": 40,
+  "eval_batch_size_per_gpu": 32,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
