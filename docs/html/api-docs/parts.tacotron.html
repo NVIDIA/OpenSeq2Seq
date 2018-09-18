@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
@@ -195,12 +197,12 @@ the prenet</p>
 
 <dl class="class">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder">
-<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">TacotronDecoder</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_decoder.</code><code class="descname">TacotronDecoder</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>attention_type</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
 <p>Basic sampling decoder.</p>
 <dl class="method">
 <dt id="parts.tacotron.tacotron_decoder.TacotronDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>decoder_cell</em>, <em>helper</em>, <em>initial_decoder_state</em>, <em>attention_type</em>, <em>spec_layer</em>, <em>stop_token_layer</em>, <em>prenet=None</em>, <em>dtype=tf.float32</em>, <em>train=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_decoder.html#TacotronDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_decoder.TacotronDecoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize TacotronDecoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -211,6 +213,7 @@ the prenet</p>
 <li><strong>helper</strong> – A <cite>Helper</cite> instance.</li>
 <li><strong>initial_decoder_state</strong> – A (possibly nested tuple of…) tensors and
 TensorArrays. The initial state of the RNNCell.</li>
+<li><strong>attention_type</strong> – The type of attention used</li>
 <li><strong>stop_token_layer</strong> – An instance of <cite>tf.layers.Layer</cite>, i.e.,
 <cite>tf.layers.Dense</cite>. Stop token layer to apply to the RNN output to
 predict when to stop the decoder</li>
@@ -363,13 +366,13 @@ passed the sequence_length input or to pass unfinished to dynamic_decode</li>
 
 <dl class="class">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper">
-<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronTrainingHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>sampling_prob=0.0</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.tacotron.tacotron_helper.</code><code class="descname">TacotronTrainingHelper</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.helper.Helper</span></code></p>
 <p>Helper funciton for training. Can be used for teacher forcing or scheduled
 sampling</p>
 <dl class="method">
 <dt id="parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>sampling_prob=0.0</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>inputs</em>, <em>sequence_length</em>, <em>prenet=None</em>, <em>time_major=False</em>, <em>sample_ids_shape=None</em>, <em>sample_ids_dtype=None</em>, <em>model_dtype=tf.float32</em>, <em>mask_decoder_sequence=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/tacotron/tacotron_helper.html#TacotronTrainingHelper.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.tacotron.tacotron_helper.TacotronTrainingHelper.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initializer.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

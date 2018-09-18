@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -180,13 +182,12 @@
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops.helper</span> <span class="k">import</span> <span class="n">Helper</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">tensor_shape</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">dtypes</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">math_ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">array_ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">control_flow_ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">tensor_array_ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.python.util</span> <span class="k">import</span> <span class="n">nest</span>
-<span class="kn">from</span> <span class="nn">tensorflow.python.ops.distributions</span> <span class="k">import</span> <span class="n">bernoulli</span>
-<span class="kn">from</span> <span class="nn">tensorflow.python.ops</span> <span class="k">import</span> <span class="n">gen_array_ops</span>
 
 <span class="n">_transpose_batch_time</span> <span class="o">=</span> <span class="n">decoder</span><span class="o">.</span><span class="n">_transpose_batch_time</span>
 
@@ -208,7 +209,6 @@
       <span class="n">inputs</span><span class="p">,</span>
       <span class="n">sequence_length</span><span class="p">,</span>
       <span class="n">prenet</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-      <span class="n">sampling_prob</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
       <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
       <span class="n">sample_ids_shape</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">sample_ids_dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -236,7 +236,6 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_sequence_length</span> <span class="o">=</span> <span class="n">sequence_length</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">size</span><span class="p">(</span><span class="n">sequence_length</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_seed</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_prob</span> <span class="o">=</span> <span class="n">sampling_prob</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_mask_decoder_sequence</span> <span class="o">=</span> <span class="n">mask_decoder_sequence</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="o">=</span> <span class="n">prenet</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_zero_inputs</span> <span class="o">=</span> <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span>
@@ -285,47 +284,6 @@
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">next_input</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">next_input</span><span class="p">)</span>
         <span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_prenet</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sampling_prob</span> <span class="o">&gt;</span> <span class="mf">0.</span><span class="p">:</span>
-        <span class="n">next_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="n">next_input</span><span class="p">)</span>
-        <span class="n">out</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">stop_gradient</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
-        <span class="n">select_sampler</span> <span class="o">=</span> <span class="n">bernoulli</span><span class="o">.</span><span class="n">Bernoulli</span><span class="p">(</span>
-            <span class="n">probs</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sampling_prob</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">bool</span>
-        <span class="p">)</span>
-        <span class="n">select_sample</span> <span class="o">=</span> <span class="n">select_sampler</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
-            <span class="n">sample_shape</span><span class="o">=</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">seed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_seed</span>
-        <span class="p">)</span>
-        <span class="n">select_sample</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">select_sample</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_dim</span><span class="p">])</span>
-        <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">where</span><span class="p">(</span>
-            <span class="n">select_sample</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
-            <span class="n">gen_array_ops</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span>
-                <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">batch_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_last_dim</span><span class="p">],</span>
-                <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="o">-</span><span class="mf">20.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">)</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
-        <span class="n">where_sampling</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
-            <span class="n">array_ops</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sample_ids</span> <span class="o">&gt;</span> <span class="o">-</span><span class="mi">20</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span>
-        <span class="p">)</span>
-        <span class="n">where_not_sampling</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
-            <span class="n">array_ops</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">sample_ids</span> <span class="o">&lt;=</span> <span class="o">-</span><span class="mi">20</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span>
-        <span class="p">)</span>
-        <span class="n">sample_ids_sampling</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">gather_nd</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">,</span> <span class="n">where_sampling</span><span class="p">)</span>
-        <span class="n">inputs_not_sampling</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">gather_nd</span><span class="p">(</span>
-            <span class="n">next_input</span><span class="p">,</span> <span class="n">where_not_sampling</span>
-        <span class="p">)</span>
-        <span class="n">sampled_next_inputs</span> <span class="o">=</span> <span class="n">sample_ids_sampling</span>
-        <span class="n">base_shape</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">next_input</span><span class="p">)</span>
-
-        <span class="n">next_input</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="n">array_ops</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span>
-                <span class="n">indices</span><span class="o">=</span><span class="n">where_sampling</span><span class="p">,</span>
-                <span class="n">updates</span><span class="o">=</span><span class="n">sampled_next_inputs</span><span class="p">,</span>
-                <span class="n">shape</span><span class="o">=</span><span class="n">base_shape</span>
-            <span class="p">)</span> <span class="o">+</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">scatter_nd</span><span class="p">(</span>
-                <span class="n">indices</span><span class="o">=</span><span class="n">where_not_sampling</span><span class="p">,</span>
-                <span class="n">updates</span><span class="o">=</span><span class="n">inputs_not_sampling</span><span class="p">,</span>
-                <span class="n">shape</span><span class="o">=</span><span class="n">base_shape</span>
-            <span class="p">)</span>
-        <span class="p">)</span>
       <span class="k">return</span> <span class="n">next_input</span>
 
     <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">control_flow_ops</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>

@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -182,12 +184,13 @@
   <span class="sd">&quot;&quot;&quot;Calculates input embeddings and pre-softmax linear with shared weights.&quot;&quot;&quot;</span>
 
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">pad_vocab_to_eight</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">init_var</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">embed_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pad_sym</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+               <span class="n">embed_scale</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">pad_sym</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">mask_paddings</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">regularizer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">EmbeddingSharedWeights</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hidden_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">embed_scale</span> <span class="o">=</span> <span class="n">embed_scale</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">pad_sym</span> <span class="o">=</span> <span class="n">pad_sym</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">mask_paddings</span> <span class="o">=</span> <span class="n">mask_paddings</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">=</span> <span class="n">regularizer</span>
 
     <span class="n">padf</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="n">x</span> <span class="k">if</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">8</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">x</span> <span class="o">+</span> <span class="mi">8</span> <span class="o">-</span> <span class="n">x</span> <span class="o">%</span> <span class="mi">8</span>
     <span class="k">if</span> <span class="n">pad_vocab_to_eight</span><span class="p">:</span>
@@ -205,7 +208,8 @@
       <span class="c1"># Create and initialize weights. The random normal initializer was chosen</span>
       <span class="c1"># randomly, and works well.</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">shared_weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span><span class="s2">&quot;weights&quot;</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">],</span>
-                                            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_var</span><span class="p">))</span>
+                                            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">init_var</span><span class="p">),</span> \
+                                            <span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">built</span> <span class="o">=</span> <span class="kc">True</span></div>
 

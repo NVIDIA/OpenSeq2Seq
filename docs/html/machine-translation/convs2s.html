@@ -1,0 +1,301 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ConvS2S &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="GNMT" href="gnmt.html" />
+    <link rel="prev" title="Transformer" href="transformer.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../machine-translation.html">Machine Translation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../machine-translation.html#models">Models</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="transformer.html">Transformer</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">ConvS2S</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../machine-translation.html#getting-started">Getting started</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../machine-translation.html">Machine Translation</a> &raquo;</li>
+        
+      <li>ConvS2S</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/machine-translation/convs2s.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="convs2s">
+<span id="id1"></span><h1>ConvS2S<a class="headerlink" href="#convs2s" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="model">
+<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
+<p>ConvS2S is a fully convolutional Neural Machine Translation model based on Facebook ConvS2S model
+(see  <a class="reference external" href="https://arxiv.org/pdf/1705.03122">Convolutional Sequence to Sequence Learning</a>  by Jonas Gehring etal ). Our implementation matches the original model.
+Common source and target vocabulary is used to share input/output embedding
+Tokenization of input and output is done with SentencePiece (<a class="reference external" href="https://github.com/google/sentencepiece">SentencePiece</a>)
+The BLEU score was done with SacreBLEU (<a class="reference external" href="https://arxiv.org/abs/1804.08771">A Call for Clarity in Reporting BLEU Scores</a>)</p>
+</div>
+<div class="section" id="training">
+<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
+<p>The baseline config (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py">en-de-convs2s-8-gpu.py</a>) achieves
+BLEU score of around 25 on WMT 2014 English-to-German translation task
+( <a class="reference external" href="https://drive.google.com/file/...">checkpoint</a> ).</p>
+<p>In order to train the model we use:</p>
+<ul class="simple">
+<li>Adam as the optimizer</li>
+<li>warmup LR with initial learning rate 1e-3</li>
+<li>batch size of 128 per GPU for mixed precision and batch 64/ GPU for float32</li>
+<li>dropout rate = 0.2</li>
+</ul>
+</div>
+<div class="section" id="mixed-precision">
+<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
+<p>The following changes are done to the model for mixed precision training:</p>
+<ul class="simple">
+<li>Softmax normalization should be done in float32 for both attention and loss, so inputs have been converted from float16 to float</li>
+<li>Automatic loss scaling with back-off</li>
+<li>Learning rate warmpup</li>
+</ul>
+<p>MP training is around 2.5X-2.7X times faster than float32 on one single GPU.</p>
+<p>This model also shows very good multi-GPU scalability. Here are the scaling factors for batch 128/GPU:</p>
+<img alt="../_images/convs2s_scaling_factors.png" src="../_images/convs2s_scaling_factors.png" />
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="gnmt.html" class="btn btn-neutral float-right" title="GNMT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="transformer.html" class="btn btn-neutral" title="Transformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

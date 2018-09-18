@@ -14,7 +14,7 @@
 #include <string>
 using namespace std;
 
-#include "lm/model.hh"
+#include "kenlm/lm/model.hh"
 #include "trie_node.h"
 #include "alphabet.h"
 

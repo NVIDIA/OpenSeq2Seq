@@ -23,7 +23,6 @@ typedef lm::ngram::QuantArrayTrieModel Model;
 
 struct WordLMBeamState {
   float language_model_score;
-  float delta_lm_score;
   float score;
   std::string incomplete_word;
   TrieNode *incomplete_word_trie_node;
@@ -54,9 +53,8 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
 
     // State initialization.
     void InitializeState(WordLMBeamState* root) const {
-      root->language_model_score = -100.f;
-      root->delta_lm_score = 0.f;
-      root->score = -100.f;
+      root->language_model_score = 0.f;
+      root->score = 0.f;
       root->incomplete_word.clear();
       root->incomplete_word_trie_node = trieRoot_;
       root->prefix.clear();
@@ -69,7 +67,6 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
     void ExpandState(const WordLMBeamState& from_state, int from_label,
                      WordLMBeamState* to_state, int to_label) const {
       CopyState(from_state, to_state);
-      to_state->new_word = false;
 
       if (!alphabet_.IsSpace(to_label)) {
         to_state->incomplete_word += alphabet_.StringFromLabel(to_label);
@@ -88,7 +85,6 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       } else {
         if (from_label == to_label) return;
         float lm_score;
-
 
         to_state->prefix.push_back(to_state->incomplete_word);
         to_state->incomplete_word.clear();
@@ -130,7 +126,7 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       if (state.new_word)
         score += alpha_ * state.language_model_score + beta_;
       else
-        score += state.score;
+        score += 0.1 * state.score;
       return score;
     }
     // GetStateEndExpansionScore should be an inexpensive method to retrieve the
@@ -142,8 +138,6 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       float score = 0;
       if (state.new_word)
         score += alpha_ * state.language_model_score + beta_; 
-      else
-        score += state.score;
 
       return score;
     }
@@ -185,18 +179,18 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       int ngram_start = 0;
       int ngram_end = prefix.size();
       if (prefix.size() < order) {
-        //for (size_t i = 0; i < order - prefix.size(); ++i) {
+        for (size_t i = 0; i < order - prefix.size(); ++i) {
           lm::WordIndex word_index = model_.BaseVocabulary().Index("<s>");
           prob = model_.BaseScore(&state, word_index, &out_state);
           state = out_state;
-        //}
+        }
       } else {
         ngram_start = ngram_end - order;
       }
       for (size_t i = ngram_start; i < ngram_end; ++i) {
         lm::WordIndex word_index = model_.BaseVocabulary().Index(prefix[i]);
         if (word_index == model_.BaseVocabulary().NotFound()) {
-          return -1000.;
+          return -100.;
         }
         
         prob = model_.BaseScore(&state, word_index, &out_state);
@@ -207,13 +201,13 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
 
 
     void CopyState(const WordLMBeamState& from, WordLMBeamState* to) const {
-      to->language_model_score = from.language_model_score;
-      // to->score = from.score;
-      to->delta_lm_score = from.delta_lm_score;
+      to->language_model_score = 0;
+      to->score = 0.f;
       to->incomplete_word = from.incomplete_word;
       to->incomplete_word_trie_node = from.incomplete_word_trie_node;
       to->prefix = from.prefix;
       to->model_state = from.model_state;
+      to->new_word = false;
     }
 };
 

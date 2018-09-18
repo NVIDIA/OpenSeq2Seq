@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="data.html">data</a><ul class="current">
@@ -354,6 +356,32 @@ repeated forever.</li>
 <dt id="data.text2text.text2text.ParallelTextDataLayer.build_graph">
 <code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
 <dd><p>Here all TensorFlow graph construction should happen.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the feed dict for interactive infer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_in</strong> (<em>str</em>) – the string to be translated. Should be in bpe format.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with values for the placeholders.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">feed_dict (dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2text/text2text.html#ParallelTextDataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
 </dd></dl>
 
 <dl class="staticmethod">

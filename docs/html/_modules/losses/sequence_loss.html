@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -461,6 +463,136 @@
       <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">xentropy</span> <span class="o">*</span> <span class="n">weights</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">weights</span><span class="p">)</span>
 
       <span class="k">return</span> <span class="n">loss</span></div>
+
+
+<div class="viewcode-block" id="BasicSampledSequenceLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss">[docs]</a><span class="k">class</span> <span class="nc">BasicSampledSequenceLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Basic sequence-to-sequence loss. This one does not use one-hot encodings</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BasicSampledSequenceLoss.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;batch_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="BasicSampledSequenceLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s1">&#39;offset_target_by_one&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;average_across_timestep&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;do_mask&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;hid_dim&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+    <span class="p">})</span></div>
+
+<div class="viewcode-block" id="BasicSampledSequenceLoss.__init__"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;basic_sampled_sequence_loss&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Constructor.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      params (dict): dictionary with loss parameters.</span>
+<span class="sd">        Should contain the following:</span>
+<span class="sd">        * tgt_vocab_size: Target vocabulary size</span>
+<span class="sd">        * batch_size_per_gpu: Size of the per-worker batch</span>
+<span class="sd">        * offset_target_by_one: (default: True). Keep it true for</span>
+<span class="sd">        auto-regressive models</span>
+<span class="sd">        * average_across_timestep: (default: False). If True, will average</span>
+<span class="sd">          loss across timesteps, else it will sum across timesteps</span>
+<span class="sd">        * do_mask: (default: True) whether to mask based on tgt_lengths</span>
+<span class="sd">          (which is passed as part of loss_input_dict to compute_loss</span>
+<span class="sd">          and has to be not None then)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">BasicSampledSequenceLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;offset_target_by_one&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;average_across_timestep&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_do_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;do_mask&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="BasicSampledSequenceLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Computes cross entropy based sequence-to-sequence loss.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_dict (dict): inputs to compute loss::</span>
+<span class="sd">        {</span>
+<span class="sd">              &quot;logits&quot;: logits tensor of shape [batch_size, T, dim]</span>
+<span class="sd">              &quot;target_sequence&quot;: tensor of shape [batch_size, T]</span>
+<span class="sd">              &quot;tgt_lengths&quot;: tensor of shape [batch_size] or None</span>
+<span class="sd">        }</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">       Singleton loss tensor</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="s1">&#39;weights&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">]:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DOING SAMPLED LOSS&#39;</span><span class="p">)</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span><span class="p">))</span>
+      <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sampled_softmax_loss</span><span class="p">(</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;weights&#39;</span><span class="p">],</span> 
+                                            <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">],</span> 
+                                            <span class="n">targets</span><span class="p">,</span> 
+                                            <span class="n">inputs</span><span class="p">,</span>
+                                            <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;num_sampled&#39;</span><span class="p">],</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">crossent</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">crossent</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>
+        <span class="c1"># this is necessary for auto-regressive models</span>
+        <span class="n">current_ts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">logits</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">))</span> <span class="o">-</span> <span class="mi">1</span>
+
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span>
+            <span class="n">logits</span><span class="p">,</span>
+            <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
+            <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">)</span>                                 
+        <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span>
+                                   <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
+                                   <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">current_ts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">logits</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+        <span class="p">))</span>
+
+      <span class="c1"># Cast logits after potential slice</span>
+      <span class="k">if</span> <span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_mask</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">tgt_lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If you are masking loss, tgt_lengths can&#39;t be None&quot;</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sequence_mask</span><span class="p">(</span><span class="n">lengths</span><span class="o">=</span><span class="n">tgt_lengths</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+                                <span class="n">maxlen</span><span class="o">=</span><span class="n">current_ts</span><span class="p">,</span>
+                                <span class="n">dtype</span><span class="o">=</span><span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">),</span> <span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
+
+      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sparse_softmax_cross_entropy_with_logits</span><span class="p">(</span>
+          <span class="n">labels</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]),</span>
+          <span class="n">logits</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">]),</span>
+      <span class="p">)</span>
+
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">crossent</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">crossent</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
+    <span class="k">return</span> <span class="n">loss</span></div></div>
+   
 </pre></div>
 
            </div>

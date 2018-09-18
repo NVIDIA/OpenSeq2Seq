@@ -85,12 +85,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2 current"><a class="reference internal" href="data.html">data</a><ul class="current">
@@ -198,6 +200,8 @@
 <p>See parent class for arguments description.</p>
 <p>Config parameters:</p>
 <ul class="simple">
+<li><strong>dataset</strong> (str) — The dataset to use. Currently ‘LJ’ for the LJSpeech
+1.1 dataset is supported.</li>
 <li><strong>num_audio_features</strong> (int) — number of audio features to extract.</li>
 <li><strong>output_type</strong> (str) — could be either “magnitude”, or “mel”.</li>
 <li><strong>vocab_file</strong> (str) — path to vocabulary file.</li>
@@ -212,16 +216,31 @@ Defaults to 0.</li>
 <li><strong>feature_normalize_std</strong> (bool) — used for feature normalize.
 Defaults to 1.</li>
 <li><strong>mag_power</strong> (int) — the power to which the magnitude spectrogram is
-scaled to:
+scaled to. Defaults to 1.
 1 for energy spectrogram
 2 for power spectrogram
 Defaults to 2.</li>
 <li><strong>pad_EOS</strong> (bool) — whether to apply EOS tokens to both the text and
 the speech signal. Will pad at least 1 token regardless of pad_to value.
 Defaults to True.</li>
+<li><strong>pad_value</strong> (float) — The value we pad the spectrogram with. Defaults
+to np.log(data_min).</li>
 <li><strong>pad_to</strong> (int) — we pad such that the resulting datapoint is a
 multiple of pad_to.
 Defaults to 8.</li>
+<li><strong>trim</strong> (bool) — Whether to trim silence via librosa or not. Defaults
+to False.</li>
+<li><strong>data_min</strong> (float) — min clip value prior to taking the log. Defaults
+to 1e-5. Please change to 1e-2 if using htk mels.</li>
+<li><strong>duration_min</strong> (int) — Minimum duration in steps for speech signal.
+All signals less than this will be cut from the training set. Defaults to
+0.</li>
+<li><strong>duration_max</strong> (int) — Maximum duration in steps for speech signal.
+All signals greater than this will be cut from the training set. Defaults
+to 4000.</li>
+<li><strong>mel_type</strong> (str): One of [‘slaney’, ‘htk’]. Decides which algorithm to
+use to compute mel specs.
+Defaults to htk.</li>
 </ul>
 </dd></dl>
 
@@ -237,8 +256,7 @@ Defaults to 8.</li>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">text_input text as <cite>np.array</cite> of ids, text_input length,
 target audio features as <cite>np.array</cite>, stop token targets as <cite>np.array</cite>,
-length of target sequence,
-.</td>
+length of target sequence.</td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">tuple</td>
 </tr>
@@ -271,10 +289,36 @@ length of target sequence,
 </dd></dl>
 
 <dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the feed dict for interactive infer</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_in</strong> (<em>str</em>) – The string to be spoken.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">Dictionary with values for the placeholders.</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">feed_dict (dict)</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
+</dd></dl>
+
+<dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec">
 <code class="descname">get_magnitude_spec</code><span class="sig-paren">(</span><em>spectrogram</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_magnitude_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an energy magnitude spectrogram. The processing depends on the
-data leyer params.</p>
+data layer params.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -352,6 +396,21 @@ to be created inside <a class="reference internal" href="#data.text2speech.text2
 Should be created by <a class="reference internal" href="#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph" title="data.text2speech.text2speech.Text2SpeechDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.n_fft">
+<code class="descname">n_fft</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.n_fft" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.parse_text_output">
+<code class="descname">parse_text_output</code><span class="sig-paren">(</span><em>text</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.parse_text_output"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.parse_text_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="data.text2speech.text2speech.Text2SpeechDataLayer.sampling_rate">
+<code class="descname">sampling_rate</code><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.sampling_rate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.split_data">
 <code class="descname">split_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.split_data" title="Permalink to this definition">¶</a></dt>
@@ -370,7 +429,7 @@ Should be created by <a class="reference internal" href="#data.text2speech.text2
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.get_mel">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_mel</code><span class="sig-paren">(</span><em>log_mag_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_mel" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_mel</code><span class="sig-paren">(</span><em>log_mag_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em>, <em>data_min=1e-05</em>, <em>htk=True</em>, <em>norm=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_mel" title="Permalink to this definition">¶</a></dt>
 <dd><p>Method to get mel spectrograms from magnitude spectrograms</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -387,6 +446,9 @@ Should be created by <a class="reference internal" href="#data.text2speech.text2
 <li><strong>std</strong> (<em>float</em>) – normalization param of mag spec</li>
 <li><strong>mel_basis</strong> (<em>np.array</em>) – optional pre-computed mel basis to save computational
 time if passed. If not passed, it will call librosa to construct one</li>
+<li><strong>data_min</strong> (<em>float</em>) – min clip value prior to taking the log.</li>
+<li><strong>htk</strong> (<em>bool</em>) – whther to compute the mel spec with the htk or slaney algorithm</li>
+<li><strong>norm</strong> – Should be None for htk, and 1 for slaney</li>
 </ul>
 </td>
 </tr>
@@ -402,7 +464,7 @@ time if passed. If not passed, it will call librosa to construct one</li>
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.get_speech_features">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_window_size=1024</em>, <em>n_window_stride=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>data_min=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to retrieve spectrograms from loaded wav</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -413,8 +475,8 @@ time if passed. If not passed, it will call librosa to construct one</li>
 <li><strong>fs</strong> (<em>int</em>) – sampling frequency in Hz.</li>
 <li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
 <li><strong>features_type</strong> (<em>string</em>) – ‘magnitude’ or ‘mel’.</li>
-<li><strong>window_size</strong> (<em>int</em>) – size of analysis window in samples.</li>
-<li><strong>window_stride</strong> (<em>int</em>) – stride of analysis window in samples.</li>
+<li><strong>n_fft</strong> (<em>int</em>) – size of analysis window in samples.</li>
+<li><strong>hop_length</strong> (<em>int</em>) – stride of analysis window in samples.</li>
 <li><strong>mag_power</strong> (<em>int</em>) – power to raise magnitude spectrograms (prior to dot product
 with mel basis)
 1 for energy spectrograms
@@ -422,15 +484,12 @@ with mel basis)
 <li><strong>feature_normalize</strong> (<em>bool</em>) – whether to normalize the data with mean and std</li>
 <li><strong>mean</strong> (<em>float</em>) – if normalize is enabled, the mean to normalize to</li>
 <li><strong>std</strong> (<em>float</em>) – if normalize is enabled, the deviation to normalize to</li>
+<li><strong>data_min</strong> (<em>float</em>) – min clip value prior to taking the log.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt>np.array of audio features with shape=[num_time_steps,</dt>
-<dd><p class="first last">num_features].</p>
-</dd>
-</dl>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
+num_features].</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
@@ -442,7 +501,7 @@ with mel basis)
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.get_speech_features_from_file">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>window_size=1024</em>, <em>window_stride=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=None</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>trim=False</em>, <em>data_min=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to retrieve spectrograms from wav files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -452,8 +511,8 @@ with mel basis)
 <li><strong>filename</strong> (<em>string</em>) – WAVE filename.</li>
 <li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
 <li><strong>features_type</strong> (<em>string</em>) – ‘magnitude’ or ‘mel’.</li>
-<li><strong>window_size</strong> (<em>int</em>) – size of analysis window in samples.</li>
-<li><strong>window_stride</strong> (<em>int</em>) – stride of analysis window in samples.</li>
+<li><strong>n_fft</strong> (<em>int</em>) – size of analysis window in samples.</li>
+<li><strong>hop_length</strong> (<em>int</em>) – stride of analysis window in samples.</li>
 <li><strong>mag_power</strong> (<em>int</em>) – power to raise magnitude spectrograms (prior to dot product
 with mel basis)
 1 for energy spectrograms
@@ -461,15 +520,13 @@ with mel basis)
 <li><strong>feature_normalize</strong> (<em>bool</em>) – whether to normalize the data with mean and std</li>
 <li><strong>mean</strong> (<em>float</em>) – if normalize is enabled, the mean to normalize to</li>
 <li><strong>std</strong> (<em>float</em>) – if normalize is enabled, the deviation to normalize to</li>
+<li><strong>trim</strong> (<em>bool</em>) – Whether to trim silence via librosa or not</li>
+<li><strong>data_min</strong> (<em>float</em>) – min clip value prior to taking the log.</li>
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
-<dt>np.array of audio features with shape=[num_time_steps,</dt>
-<dd><p class="first last">num_features].</p>
-</dd>
-</dl>
-</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
+num_features].</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
@@ -481,8 +538,9 @@ with mel basis)
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.inverse_mel">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">inverse_mel</code><span class="sig-paren">(</span><em>log_mel_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#inverse_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.inverse_mel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Very hacky method to reconstruct mag spec from mel</p>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">inverse_mel</code><span class="sig-paren">(</span><em>log_mel_spec</em>, <em>fs=22050</em>, <em>n_fft=1024</em>, <em>n_mels=80</em>, <em>power=2.0</em>, <em>feature_normalize=False</em>, <em>mean=0</em>, <em>std=1</em>, <em>mel_basis=None</em>, <em>htk=True</em>, <em>norm=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#inverse_mel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.inverse_mel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reconstructs magnitude spectrogram from a mel spectrogram by multiplying it
+with the transposed mel basis.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -499,6 +557,8 @@ mel spec</li>
 <li><strong>std</strong> (<em>float</em>) – normalization param of mel spec</li>
 <li><strong>mel_basis</strong> (<em>np.array</em>) – optional pre-computed mel basis to save computational
 time if passed. If not passed, it will call librosa to construct one</li>
+<li><strong>htk</strong> (<em>bool</em>) – whther to compute the mel spec with the htk or slaney algorithm</li>
+<li><strong>norm</strong> – Should be None for htk, and 1 for slaney</li>
 </ul>
 </td>
 </tr>

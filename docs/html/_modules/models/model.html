@@ -83,12 +83,14 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
 </ul>
 
@@ -156,15 +158,14 @@
 <span></span><span class="c1"># Copyright (c) 2017 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
 <span class="kn">import</span> <span class="nn">abc</span>
+<span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">time</span>
-
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">six</span>
-<span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="k">try</span><span class="p">:</span>
   <span class="kn">from</span> <span class="nn">inspect</span> <span class="k">import</span> <span class="n">signature</span>
@@ -218,7 +219,11 @@
         <span class="s1">&#39;print_samples_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+        <span class="s1">&#39;restore_best_checkpoint&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># whether to restore best check point</span>
         <span class="s1">&#39;eval_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;base_logdir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;finetune&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 
         <span class="s1">&#39;random_seed&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;num_epochs&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
@@ -358,6 +363,11 @@
 
     <span class="c1"># parameter checks</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;interactive_infer&quot;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="s2">&quot;infer&quot;</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span> <span class="o">=</span> <span class="kc">True</span>
+
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;infer&quot;</span><span class="p">,</span> <span class="s2">&quot;eval&quot;</span><span class="p">]:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mode has to be one of [&#39;train&#39;, &#39;infer&#39;, &#39;eval&#39;]&quot;</span><span class="p">)</span>
 
@@ -380,6 +390,13 @@
     <span class="k">if</span> <span class="s1">&#39;print_bench_info_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;finetune&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;finetune&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;base_logdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_logdir&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">,</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
+
     <span class="c1"># checking that frequencies of samples and loss are aligned</span>
     <span class="n">s_fr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span>
     <span class="n">l_fr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">]</span>
@@ -399,6 +416,9 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Either &quot;gpu_ids&quot; or &quot;num_gpus&quot; has to &#39;</span>
                          <span class="s1">&#39;be specified in the config&#39;</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_gpu_ids</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Interactive infer is meant to be used with 1 gpu&quot;</span><span class="p">)</span>
+
     <span class="c1"># setting random seed</span>
     <span class="n">rs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;random_seed&#39;</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()))</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
@@ -410,8 +430,12 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
 
     <span class="n">dl_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_layer_params&#39;</span><span class="p">,</span> <span class="p">{})</span>
-    <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+      <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span>
+    <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span>
@@ -460,7 +484,7 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">skip_update_ph</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Model.compile"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.compile">[docs]</a>  <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.compile"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.compile">[docs]</a>  <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;FP32&#39;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;TensorFlow graph is built here.&quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="s1">&#39;initializer&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
       <span class="n">initializer</span> <span class="o">=</span> <span class="kc">None</span>
@@ -481,12 +505,18 @@
         <span class="p">):</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Building graph on GPU:</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gpu_id</span><span class="p">))</span>
 
-          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">create_interactive_placeholders</span><span class="p">()</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
           <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span>
 
-          <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span>
+          <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_forward_pass_graph</span><span class="p">(</span>
               <span class="n">input_tensors</span><span class="p">,</span>
               <span class="n">gpu_id</span><span class="o">=</span><span class="n">gpu_cnt</span><span class="p">,</span>
+              <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">,</span>
+              <span class="n">use_trt</span><span class="o">=</span><span class="n">use_trt</span><span class="p">,</span>
+              <span class="n">precision</span><span class="o">=</span><span class="n">precision</span>
           <span class="p">)</span>
           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> \
              <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
@@ -592,9 +622,76 @@
         <span class="k">else</span><span class="p">:</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s1">&#39;Total trainable parameters: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_params</span><span class="p">))</span></div>
 
+<div class="viewcode-block" id="Model.build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model.build_forward_pass_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="s1">&#39;FP32&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrapper around _build_forward_pass_graph with option of using TF-TRT&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">use_trt</span><span class="p">:</span>
+      <span class="kn">import</span> <span class="nn">tensorflow.contrib.tensorrt</span> <span class="k">as</span> <span class="nn">trt</span>
+      <span class="c1"># Create temporary graph which will contain the native TF graph</span>
+      <span class="n">tf_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">()</span>
+      <span class="n">tf_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">allow_growth</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">temp_graph</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Graph</span><span class="p">()</span>
+      <span class="k">with</span> <span class="n">temp_graph</span><span class="o">.</span><span class="n">as_default</span><span class="p">()</span> <span class="k">as</span> <span class="n">tf_graph</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">tf_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">tf_sess</span><span class="p">:</span>
+          <span class="n">input_placeholders</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;input_map1&#39;</span><span class="p">),</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">placeholder</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;input_map2&#39;</span><span class="p">)</span>
+            <span class="p">]}</span>
+          <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span>
+              <span class="n">input_placeholders</span><span class="p">,</span>
+              <span class="n">gpu_id</span><span class="o">=</span><span class="n">gpu_id</span>
+          <span class="p">)</span>
+          <span class="n">output_node_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:0&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]]</span>
+          <span class="c1"># Restore checkpoint here because we have to freeze the graph</span>
+          <span class="n">tf_saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
+          <span class="n">tf_saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">save_path</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">sess</span><span class="o">=</span><span class="n">tf_sess</span><span class="p">)</span>
+          <span class="n">frozen_graph</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">graph_util</span><span class="o">.</span><span class="n">convert_variables_to_constants</span><span class="p">(</span>
+                <span class="n">tf_sess</span><span class="p">,</span>
+                <span class="n">tf_sess</span><span class="o">.</span><span class="n">graph_def</span><span class="p">,</span>
+                <span class="n">output_node_names</span><span class="o">=</span><span class="n">output_node_names</span>
+          <span class="p">)</span>
+          <span class="n">num_nodes</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">frozen_graph</span><span class="o">.</span><span class="n">node</span><span class="p">)</span>
+          <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Converting graph using TensorFlow-TensorRT...&#39;</span><span class="p">)</span>
+          <span class="n">frozen_graph</span> <span class="o">=</span> <span class="n">trt</span><span class="o">.</span><span class="n">create_inference_graph</span><span class="p">(</span>
+            <span class="n">input_graph_def</span><span class="o">=</span><span class="n">frozen_graph</span><span class="p">,</span>
+            <span class="n">outputs</span><span class="o">=</span><span class="n">output_node_names</span><span class="p">,</span>
+            <span class="n">max_batch_size</span><span class="o">=</span><span class="mi">64</span><span class="p">,</span>
+            <span class="n">max_workspace_size_bytes</span><span class="o">=</span><span class="mi">4096</span> <span class="o">&lt;&lt;</span> <span class="mi">20</span><span class="p">,</span>
+            <span class="n">precision_mode</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
+            <span class="n">minimum_segment_size</span><span class="o">=</span><span class="mi">3</span>
+          <span class="p">)</span>
+          <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Total node count before and after TF-TRT conversion:&#39;</span><span class="p">,</span> <span class="n">num_nodes</span><span class="p">,</span> <span class="s1">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frozen_graph</span><span class="o">.</span><span class="n">node</span><span class="p">))</span>
+          <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;TRT node count:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">([</span><span class="mi">1</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">frozen_graph</span><span class="o">.</span><span class="n">node</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">n</span><span class="o">.</span><span class="n">op</span><span class="p">)</span><span class="o">==</span><span class="s1">&#39;TRTEngineOp&#39;</span><span class="p">]))</span>
+      <span class="c1"># Perform calibration for INT8 precision mode</span>
+      <span class="k">if</span> <span class="n">precision</span> <span class="o">==</span> <span class="s1">&#39;int8&#39;</span><span class="p">:</span>
+          <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">tf_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">tf_sess</span><span class="p">:</span>
+            <span class="n">calib_graph</span> <span class="o">=</span> <span class="n">frozen_graph</span>
+            <span class="n">num_iterations</span> <span class="o">=</span> <span class="mi">10</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calibrating INT8...&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">calib_graph</span><span class="p">,</span>
+                <span class="n">input_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;input_map1&#39;</span><span class="p">:</span> <span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]},</span>
+                <span class="n">return_elements</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="s1">&#39;:0&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">output_node_names</span><span class="p">],</span>
+                <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_num_objects_per_step</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_num_objects_per_step</span><span class="p">(</span><span class="n">worker_id</span><span class="p">)</span>
+                                    <span class="k">for</span> <span class="n">worker_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">num_gpus</span><span class="p">)]</span>
+            <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">iterate_data</span><span class="p">(</span>
+              <span class="bp">self</span><span class="p">,</span> <span class="n">tf_sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;infer&#39;</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">num_steps</span><span class="o">=</span><span class="n">num_iterations</span>
+            <span class="p">)</span>
+            <span class="n">frozen_graph</span> <span class="o">=</span> <span class="n">trt</span><span class="o">.</span><span class="n">calib_graph_to_infer_graph</span><span class="p">(</span><span class="n">calib_graph</span><span class="p">)</span>
+            <span class="k">del</span> <span class="n">calib_graph</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;INT8 graph created.&#39;</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Nodes INT8:&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">frozen_graph</span><span class="o">.</span><span class="n">node</span><span class="p">))</span>
+      <span class="c1"># Import TRT converted graph to default graph, mapping it to the original input tensors</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">import_graph_def</span><span class="p">(</span><span class="n">frozen_graph</span><span class="p">,</span>
+          <span class="n">input_map</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;input_map1&#39;</span><span class="p">:</span> <span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]},</span>
+          <span class="n">return_elements</span><span class="o">=</span><span class="p">[</span><span class="n">x</span><span class="o">+</span><span class="s1">&#39;:0&#39;</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">output_node_names</span><span class="p">],</span>
+          <span class="n">name</span><span class="o">=</span><span class="s1">&#39;&#39;</span><span class="p">)</span>
+      <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_id</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Model._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.model.Model._build_forward_pass_graph">[docs]</a>  <span class="nd">@abc</span><span class="o">.</span><span class="n">abstractmethod</span>
   <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;This method should create the graph of the forward pass of the model.</span>
+    <span class="sd">&quot;&quot;&quot;Abstract method. Should create the graph of the forward pass of the model.</span>
 
 <span class="sd">    Args:</span>
 <span class="sd">      input_tensors: ``input_tensors`` defined by the data_layer class.</span>

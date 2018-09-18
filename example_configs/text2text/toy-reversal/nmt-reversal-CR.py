@@ -53,8 +53,6 @@ base_params = {
 
   "encoder": ConvS2SEncoder,
   "encoder_params": {
-    "encoder_layers": num_layers,
-
     "src_emb_size": d_model,
     "att_layer_num": num_layers,
     "embedding_dropout_keep_prob": 0.9,

@@ -84,12 +84,14 @@
             
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../installation-instructions.html">Installation instructions</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../getting-started.html">Getting started</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../models-and-recipes.html">Models and recipes</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="models.html">models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="data.html">data</a></li>
@@ -183,12 +185,12 @@
 
 <dl class="function">
 <dt id="utils.funcs.infer">
-<code class="descclassname">utils.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.infer" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">infer</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>output_file</em>, <em>use_trt=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.infer" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="utils.funcs.restore_and_get_results">
-<code class="descclassname">utils.funcs.</code><code class="descname">restore_and_get_results</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#restore_and_get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.restore_and_get_results" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.funcs.</code><code class="descname">restore_and_get_results</code><span class="sig-paren">(</span><em>model</em>, <em>checkpoint</em>, <em>mode</em>, <em>use_trt=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/funcs.html#restore_and_get_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.funcs.restore_and_get_results" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -265,7 +267,7 @@ graph, should not change the graph.</p>
 
 <dl class="class">
 <dt id="utils.hooks.PrintLossAndTimeHook">
-<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">PrintLossAndTimeHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>print_ppl=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#PrintLossAndTimeHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.PrintLossAndTimeHook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that prints training samples and prediction from time to time</p>
 <dl class="method">
@@ -397,7 +399,7 @@ graph, should not change the graph.</p>
 
 <dl class="class">
 <dt id="utils.hooks.RunEvaluationHook">
-<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>last_step=-1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">utils.hooks.</code><code class="descname">RunEvaluationHook</code><span class="sig-paren">(</span><em>every_steps</em>, <em>model</em>, <em>last_step=-1</em>, <em>print_ppl=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/hooks.html#RunEvaluationHook"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.hooks.RunEvaluationHook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.training.session_run_hook.SessionRunHook</span></code></p>
 <p>Session hook that runs evaluation on a validation set</p>
 <dl class="method">
@@ -491,6 +493,36 @@ graph, should not change the graph.</p>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.check_logdir">
+<code class="descclassname">utils.utils.</code><code class="descname">check_logdir</code><span class="sig-paren">(</span><em>args</em>, <em>base_config</em>, <em>restore_best_checkpoint=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#check_logdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.check_logdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function that ensures the logdir is setup correctly</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> (<em>dict</em>) – Dictionary as returned from get_base_config()</li>
+<li><strong>base_config</strong> (<em>dict</em>) – Dictionary as returned from get_base_config()</li>
+<li><strong>restore_best_checkpoint</strong> (<em>bool</em>) – If True, will look for ckpt_dir + /best_models</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>Either None if continue-learning is not set and training, or</dt>
+<dd><p class="first last">the name of the checkpoint used to restore the model</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">checkpoint</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.check_params">
 <code class="descclassname">utils.utils.</code><code class="descname">check_params</code><span class="sig-paren">(</span><em>config</em>, <em>required_dict</em>, <em>optional_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#check_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.check_params" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -531,6 +563,62 @@ to be iterable.</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.create_logdir">
+<code class="descclassname">utils.utils.</code><code class="descname">create_logdir</code><span class="sig-paren">(</span><em>args</em>, <em>base_config</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#create_logdir"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.create_logdir" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper function that ensures the logdir and log files are setup corretly.
+Only called in –enable_logs is set.</p>
+<blockquote>
+<div><dl class="docutils">
+<dt>Args:</dt>
+<dd>args (dict): Dictionary as returned from get_base_config()
+base_config (dict): Dictionary as returned from get_base_config()</dd>
+</dl>
+</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Some objects that need to be cleaned up in run.py</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="utils.utils.create_model">
+<code class="descclassname">utils.utils.</code><code class="descname">create_model</code><span class="sig-paren">(</span><em>args</em>, <em>base_config</em>, <em>config_module</em>, <em>base_model</em>, <em>hvd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#create_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.create_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helpful function that creates the train, eval, and infer models as
+needed.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>args</strong> (<em>dict</em>) – Dictionary as returned from get_base_config()</li>
+<li><strong>base_config</strong> (<em>dict</em>) – Dictionary as returned from get_base_config()</li>
+<li><strong>config_module</strong> – config_module as returned from get_base_config()</li>
+<li><strong>base_model</strong> (<em>OpenSeq2Seq model</em>) – Dictionary as returned from
+get_base_config()</li>
+<li><strong>hvd</strong> – Either None if Horovod is not enabled, or the Horovod library</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><dl class="docutils">
+<dt>A compiled model. For the ‘train_eval’ mode, a tuple containing the</dt>
+<dd><p class="first last">(train_model, eval_model) is returned.</p>
+</dd>
+</dl>
+</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">model</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.deco_print">
 <code class="descclassname">utils.utils.</code><code class="descname">deco_print</code><span class="sig-paren">(</span><em>line</em>, <em>offset=0</em>, <em>start='*** '</em>, <em>end='\n'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#deco_print"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.deco_print" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -546,6 +634,31 @@ to be iterable.</li>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.get_base_config">
+<code class="descclassname">utils.utils.</code><code class="descname">get_base_config</code><span class="sig-paren">(</span><em>args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_base_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_base_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function parses the command line arguments, reads the config file, and
+gets the base_model from the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> (<em>str</em>) – The command line arugments</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Returns</dt>
+<dd><p class="first">args (dict): The arguments parsed into a dictionary
+base_config (dict): The config read from the file and ammended with the</p>
+<blockquote>
+<div>command line arguments</div></blockquote>
+<p class="last">base_model (OpenSeq2Seq model): The model specified in the config file
+config_module (dict): The raw config file processed by runpy</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.get_git_diff">
 <code class="descclassname">utils.utils.</code><code class="descname">get_git_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_git_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_git_diff" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -556,13 +669,18 @@ to be iterable.</li>
 <dd></dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.get_interactive_infer_results">
+<code class="descclassname">utils.utils.</code><code class="descname">get_interactive_infer_results</code><span class="sig-paren">(</span><em>model</em>, <em>sess</em>, <em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_interactive_infer_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_interactive_infer_results" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.get_results_for_epoch">
 <code class="descclassname">utils.utils.</code><code class="descname">get_results_for_epoch</code><span class="sig-paren">(</span><em>model</em>, <em>sess</em>, <em>compute_loss</em>, <em>mode</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_results_for_epoch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_results_for_epoch" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
 <dt id="utils.utils.iterate_data">
-<code class="descclassname">utils.utils.</code><code class="descname">iterate_data</code><span class="sig-paren">(</span><em>model</em>, <em>sess</em>, <em>compute_loss</em>, <em>mode</em>, <em>verbose</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#iterate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.iterate_data" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">utils.utils.</code><code class="descname">iterate_data</code><span class="sig-paren">(</span><em>model</em>, <em>sess</em>, <em>compute_loss</em>, <em>mode</em>, <em>verbose</em>, <em>num_steps=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#iterate_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.iterate_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
