@@ -25,7 +25,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8,
 
-  "batch_size_per_gpu": 176, # conforming to AWD-LSTM paper 80
+  "batch_size_per_gpu": 160, # conforming to AWD-LSTM paper 80
   "eval_batch_size_per_gpu": 40,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
