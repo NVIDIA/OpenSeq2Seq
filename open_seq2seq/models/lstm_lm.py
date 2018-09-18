@@ -1,3 +1,4 @@
+import random
 import numpy as np
 import tensorflow as tf
 
@@ -159,18 +160,21 @@ class LSTMLM(EncoderDecoderModel):
     y_sample = ey[0]
     len_y_sample = elen_y[0]
     
-    deco_print(
-      "*****EVAL Source[0]:     " + array_to_string(
-        x_sample[:len_x_sample],
-        vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
-      ),
-      offset=4,
-    )
-    
     return_values = {}
     
     if self._lm_phase:
+      flip = random.random()
+      if flip <= 0.9:
+        return return_values
+
+      deco_print(
+        "*****EVAL Source[0]:     " + array_to_string(
+          x_sample[:len_x_sample],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
       samples = np.argmax(output_values[0][0], axis=-1)
       deco_print(
         "*****EVAL Target[0]:     " + array_to_string(
@@ -180,7 +184,7 @@ class LSTMLM(EncoderDecoderModel):
         ),
         offset=4,
       )
-      
+    
       deco_print(
         "*****EVAL Prediction[0]: " + array_to_string(
           samples,
@@ -190,6 +194,14 @@ class LSTMLM(EncoderDecoderModel):
         offset=4,
       )
     else:
+      deco_print(
+        "*****EVAL Source[0]:     " + array_to_string(
+          x_sample[:len_x_sample],
+          vocab=self.get_data_layer().corp.dictionary.idx2word,
+          delim=self.get_data_layer().params["delimiter"],
+        ),
+        offset=4,
+      )
       samples = output_values[0][0] # TODO: only get the last prediction
       deco_print(
         "EVAL Target[0]:     " + str(np.argmax(y_sample)),
