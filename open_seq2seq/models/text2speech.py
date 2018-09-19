@@ -122,11 +122,14 @@ def save_audio(
   """
   Helper function to create a wav file to be logged to disk or a tf.Summary to
   be logged to tensorboard.
+
   Args:
     magnitudes (np.array): np.array of size [time, n_fft/2 + 1] containing the
       energy spectrogram.
     logdir (str): dir to save image file is save_to_tensorboard is disabled.
     step (int): current training step
+    n_fft (int): number of filters for fft and ifft.
+    sampling_rate (int): samplng rate in Hz of the audio to be saved.
     number (int): Current sample number (used if evaluating more than 1 sample
     mode (str): Optional string to append to file name eg. train, eval, infer
       from a batch)
@@ -134,6 +137,7 @@ def save_audio(
       generated sound, log the wav file to the disk, or return a tensorboard
       summary object. Each method can be enabled by passing save_format as
       "np.array", "tensorboard", or "disk" respectively.
+
   Returns:
     tf.Summary or None
   """
@@ -164,6 +168,7 @@ def save_audio(
         "Received '{}'."
         "Expected one of 'np.array', 'tensorboard', or 'disk'"
     ).format(save_format))
+    return None
 
 
 def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
