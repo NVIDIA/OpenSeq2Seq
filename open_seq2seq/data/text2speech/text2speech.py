@@ -397,7 +397,7 @@ class Text2SpeechDataLayer(DataLayer):
 
 
     file_path = os.path.join(
-        self.params['dataset_location'], audio_filename + ".wav"
+        self.params['dataset_location'], "wavs", audio_filename + ".wav"
     )
     if self._mel:
       features_type = "mel_htk"

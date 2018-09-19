@@ -305,6 +305,39 @@ class Text2Speech(EncoderDecoderModel):
     stop_token_pred = output_values[3]
     audio_length = output_values[4]
 
+    max_length = np.max([
+        y_sample.shape[0],
+        predicted_final_spec.shape[0],
+        ]
+    )
+
+    alignments_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0],
+        attention_mask.shape[1]]
+    )
+
+    predictions_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0], np.shape(predicted_final_spec)[-1]]
+    )
+    stop_token_pred_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0], 1]
+    )
+    spec_pad = np.zeros([max_length - np.shape(y_sample)[0], np.shape(y_sample)[-1]])
+    stop_token_pad = np.zeros([max_length - np.shape(y_sample)[0]])
+
+    predicted_spec = np.concatenate(
+        [predicted_spec, predictions_pad], axis=0
+    )
+    predicted_final_spec = np.concatenate(
+        [predicted_final_spec, predictions_pad], axis=0
+    )
+    stop_token_pred = np.concatenate(
+        [stop_token_pred, stop_token_pred_pad], axis=0
+    )
+    y_sample = np.concatenate([y_sample, spec_pad], axis=0)
+    stop_target = np.concatenate([stop_target, stop_token_pad], axis=0)
+    attention_mask = np.concatenate([attention_mask, alignments_pad], axis=0)
+
     specs = [
         y_sample,
         predicted_spec,
@@ -319,9 +352,14 @@ class Text2Speech(EncoderDecoderModel):
     ]
 
     if "both" in self.get_data_layer().params['output_type']:
-      specs.append(output_values[5])
-      titles.append("magnitude spectrogram")
       n_feats = self.get_data_layer().params['num_audio_features']
+      mag_pred = output_values[5]
+      mag_pred_pad = np.zeros(
+        [max_length - np.shape(mag_pred)[0], n_feats["magnitude"]]
+      )
+      mag_pred = np.concatenate([mag_pred, mag_pred_pad], axis=0)
+      specs.append()
+      titles.append("magnitude spectrogram")
       mel, mag = np.split(
           y_sample,
           [n_feats['mel']],
