@@ -49,7 +49,7 @@ base_params = {
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   # "grad_clip":0.25, # conforming to AWD-LSTM paper
   # "max_grad_norm": 0.25, # conform to paper 0.25
-  "dtype": tf.float32,
+  # "dtype": tf.float32,
   "dtype": "mixed",
   "loss_scaling": "Backoff",
   "encoder": LMEncoder,
