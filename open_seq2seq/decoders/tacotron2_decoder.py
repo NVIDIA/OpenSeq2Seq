@@ -210,6 +210,14 @@ class Tacotron2Decoder(Decoder):
     super(Tacotron2Decoder, self).__init__(params, model, name, mode)
     self._model = model
     self._n_feats = self._model.get_data_layer().params['num_audio_features']
+    if "both" in self._model.get_data_layer().params['output_type']:
+      self._both = True
+      if not self.params.get('enable_postnet', True):
+        raise ValueError(
+            "postnet must be enabled for both mode"
+        )
+    else:
+      self._both = False
 
   def _build_attention(
       self,
@@ -304,7 +312,16 @@ class Tacotron2Decoder(Decoder):
             "enabled"
         )
 
-    num_audio_features = self._n_feats
+    if self._both:
+      num_audio_features = self._n_feats["mel"]
+      if self._mode == "train":
+        spec, _ = tf.split(
+            spec,
+            [self._n_feats['mel'], self._n_feats['magnitude']],
+            axis=2
+        )
+    else:
+      num_audio_features = self._n_feats
 
     output_projection_layer = tf.layers.Dense(
         name="output_proj",
@@ -346,12 +363,11 @@ class Tacotron2Decoder(Decoder):
 
       attention_cell = tf.contrib.rnn.MultiRNNCell(decoder_cells)
 
-      output_attention = "both"
       attentive_cell = AttentionWrapper(
           cell=attention_cell,
           attention_mechanism=attention_mechanism,
           alignment_history=True,
-          output_attention=output_attention,
+          output_attention="both",
       )
 
       decoder_cell = attentive_cell
@@ -397,7 +413,7 @@ class Tacotron2Decoder(Decoder):
     if self._mode == 'train':
       maximum_iterations = tf.reduce_max(spec_length)
     else:
-      maximum_iterations = tf.reduce_max(enc_src_lengths) * 5
+      maximum_iterations = tf.reduce_max(enc_src_lengths) * 10
 
     outputs, final_state, sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         # outputs, final_state, sequence_lengths, final_inputs = dynamic_decode(
@@ -432,7 +448,10 @@ class Tacotron2Decoder(Decoder):
         activation_fn = conv_params['activation_fn']
 
         if ch_out == -1:
-          ch_out = self._n_feats
+          if self._both:
+            ch_out = self._n_feats["mel"]
+          else:
+            ch_out = self._n_feats
 
         top_layer = conv_bn_actv(
             layer_type="conv1d",
@@ -492,14 +511,57 @@ class Tacotron2Decoder(Decoder):
       alignments = tf.zeros([_batch_size, _batch_size, _batch_size])
 
     spectrogram_prediction = decoder_output + top_layer
-    stop_token_prediction = tf.sigmoid(stop_token_logits)
+    if self._both:
+      mag_spec_prediction = spectrogram_prediction
+      mag_spec_prediction = conv_bn_actv(
+          layer_type="conv1d",
+          name="conv_0",
+          inputs=mag_spec_prediction,
+          filters=256,
+          kernel_size=4,
+          activation_fn=tf.nn.relu,
+          strides=1,
+          padding="SAME",
+          regularizer=regularizer,
+          training=training,
+          data_format=self.params.get('postnet_data_format', 'channels_last'),
+          bn_momentum=self.params.get('postnet_bn_momentum', 0.1),
+          bn_epsilon=self.params.get('postnet_bn_epsilon', 1e-5),
+      )
+      mag_spec_prediction = conv_bn_actv(
+          layer_type="conv1d",
+          name="conv_1",
+          inputs=mag_spec_prediction,
+          filters=512,
+          kernel_size=4,
+          activation_fn=tf.nn.relu,
+          strides=1,
+          padding="SAME",
+          regularizer=regularizer,
+          training=training,
+          data_format=self.params.get('postnet_data_format', 'channels_last'),
+          bn_momentum=self.params.get('postnet_bn_momentum', 0.1),
+          bn_epsilon=self.params.get('postnet_bn_epsilon', 1e-5),
+      )
+      if self._model.get_data_layer()._exp_mag:
+        mag_spec_prediction = tf.exp(mag_spec_prediction)
+      mag_spec_prediction = tf.layers.conv1d(
+          mag_spec_prediction,
+          self._n_feats["magnitude"],
+          1,
+          name="post_net_proj",
+          use_bias=False,
+      )
+    else:
+      mag_spec_prediction = tf.zeros([_batch_size, _batch_size, _batch_size])
 
+    stop_token_prediction = tf.sigmoid(stop_token_logits)
     outputs = [
         decoder_output, spectrogram_prediction, alignments,
-        stop_token_prediction, sequence_lengths
+        stop_token_prediction, sequence_lengths, mag_spec_prediction
     ]
 
     return {
         'outputs': outputs,
-        'stop_token_prediction': stop_token_logits
+        'stop_token_prediction': stop_token_logits,
     }

@@ -59,7 +59,8 @@ base_params = {
 
   "encoder": Tacotron2Encoder,
   "encoder_params": {
-    "dropout_keep_prob": 0.5,
+    "cnn_dropout_prob": 0.5,
+    "rnn_dropout_prob": 0.,
     'src_emb_size': 512,
     "conv_layers": [
       {
