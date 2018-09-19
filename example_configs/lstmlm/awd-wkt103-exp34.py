@@ -25,8 +25,8 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8,
 
-  "batch_size_per_gpu": 224, # conforming to AWD-LSTM paper 80
-  "eval_batch_size_per_gpu": 56,
+  "batch_size_per_gpu": 192, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 48,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -107,7 +107,6 @@ train_params = {
     "repeat": True,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
-    "bptt": bptt,
   },
 }
 eval_params = {
@@ -119,7 +118,6 @@ eval_params = {
     "repeat": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 1,
-    "bptt": bptt,
   },
 }
 
@@ -133,7 +131,6 @@ infer_params = {
     "rand_start": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
-    "bptt": bptt,
     "seed_tokens": "something The only game",
   },
 }
