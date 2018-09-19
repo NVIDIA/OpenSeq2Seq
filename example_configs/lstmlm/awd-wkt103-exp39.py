@@ -10,7 +10,7 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSampledSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
-# from open_seq2seq.optimizers.lr_policies import exp_decay
+from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/data/wikitext-103-raw/"
 processed_data_folder = '/data/wkt103-processed-data'
@@ -18,21 +18,21 @@ processed_data_folder = '/data/wkt103-processed-data'
 
 base_model = LSTMLM
 bptt = 96
-steps = 48
+steps = 40
 
 base_params = {
   "restore_best_checkpoint": True,
   "use_horovod": True,
   "num_gpus": 8,
 
-  "batch_size_per_gpu": 192, # conforming to AWD-LSTM paper 80
-  "eval_batch_size_per_gpu": 48,
+  "batch_size_per_gpu": 224, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 56,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "logdir": "AWDWKT103-EXP34",
+  "logdir": "AWDWKT103-EXP39",
   "processed_data_folder": processed_data_folder,
   "eval_steps": steps * 4,
 
@@ -40,10 +40,21 @@ base_params = {
   "optimizer_params": {},
   # luong10 decay scheme
 
-  "lr_policy": fixed_lr,
+  # "lr_policy": fixed_lr,
+  # "lr_policy_params": {
+  #   "learning_rate": 1e-3
+  # },
+
+  "lr_policy": exp_decay,
   "lr_policy_params": {
-    "learning_rate": 1e-3
+    "learning_rate": 0.005,
+    "begin_decay_at": 1000,
+    "decay_steps": 1000,
+    "decay_rate": 0.5,
+    "use_staircase_decay": True,
+    "min_lr": 0.0000005,
   },
+
 
   "summaries": ['learning_rate', 'variables', 'gradients', 
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -77,7 +88,7 @@ base_params = {
     "fc_use_bias": True,
     "weight_tied": True,
     "awd_initializer": False,
-    "num_sampled": 4095,
+    "num_sampled": 8192,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
@@ -106,8 +117,8 @@ train_params = {
     "shuffle_buffer_size": 25000,
     "repeat": True,
     "map_parallel_calls": 16,
-    "bptt": bptt,
     "prefetch_buffer_size": 8,
+    "bptt": bptt,
   },
 }
 eval_params = {
@@ -118,8 +129,8 @@ eval_params = {
     "shuffle": False,
     "repeat": False,
     "map_parallel_calls": 16,
-    "bptt": bptt,
     "prefetch_buffer_size": 1,
+    "bptt": bptt,
   },
 }
 
