@@ -358,7 +358,7 @@ class Text2Speech(EncoderDecoderModel):
         [max_length - np.shape(mag_pred)[0], n_feats["magnitude"]]
       )
       mag_pred = np.concatenate([mag_pred, mag_pred_pad], axis=0)
-      specs.append()
+      specs.append(mag_pred)
       titles.append("magnitude spectrogram")
       mel, mag = np.split(
           y_sample,
