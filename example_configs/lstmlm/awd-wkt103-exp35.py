@@ -61,7 +61,7 @@ base_params = {
     # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 1024, # paper 1150
+        "num_units": 1536, # paper 1150
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
