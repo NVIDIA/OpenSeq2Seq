@@ -25,8 +25,8 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8,
 
-  "batch_size_per_gpu": 8, # conforming to AWD-LSTM paper 80
-  "eval_batch_size_per_gpu": 8,
+  "batch_size_per_gpu": 112, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 28,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -42,7 +42,7 @@ base_params = {
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 1e-3
+    "learning_rate": 3e-4
   },
 
   "summaries": ['learning_rate', 'variables', 'gradients', 
