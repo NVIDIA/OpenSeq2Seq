@@ -10,23 +10,23 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSampledSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
-from open_seq2seq.optimizers.lr_policies import exp_decay
+# from open_seq2seq.optimizers.lr_policies import exp_decay
 
 data_root = "/data/wikitext-103-raw/"
 processed_data_folder = '/data/wkt103-processed-data'
 # processed_data_folder = 'wkt103-processed-data'
 
 base_model = LSTMLM
-bptt = 128
-steps = 40
+bptt = 96
+steps = 48
 
 base_params = {
   "restore_best_checkpoint": True,
   "use_horovod": True,
   "num_gpus": 8,
 
-  "batch_size_per_gpu": 112, # conforming to AWD-LSTM paper 80
-  "eval_batch_size_per_gpu": 28,
+  "batch_size_per_gpu": 224, # conforming to AWD-LSTM paper 80
+  "eval_batch_size_per_gpu": 56,
   "num_epochs": 1500, # conforming to AWD-LSTM paper 750
   "save_summaries_steps": steps,
   "print_loss_steps": steps,
@@ -40,26 +40,15 @@ base_params = {
   "optimizer_params": {},
   # luong10 decay scheme
 
-  # "lr_policy": fixed_lr,
-  # "lr_policy_params": {
-  #   "learning_rate": 1e-3
-  # },
-  "lr_policy": exp_decay,
+  "lr_policy": fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.0003,
-    "begin_decay_at": 1000,
-    "decay_steps": 1000,
-    "decay_rate": 0.5,
-    "use_staircase_decay": True,
-    "min_lr": 0.0000005,
+    "learning_rate": 1e-3
   },
-
 
   "summaries": ['learning_rate', 'variables', 'gradients', 
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   # "grad_clip":0.25, # conforming to AWD-LSTM paper
   # "max_grad_norm": 0.25, # conform to paper 0.25
-  # "dtype": tf.float32,
   "dtype": "mixed",
   "loss_scaling": "Backoff",
   "encoder": LMEncoder,
@@ -72,7 +61,7 @@ base_params = {
     # "core_cell": tf.contrib.rnn.LayerNormBasicLSTMCell,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
-        "num_units": 1536, # paper 1150
+        "num_units": 1024, # paper 1150
         "forget_bias": 1.0,
     },
     "encoder_layers": 3,
@@ -88,7 +77,7 @@ base_params = {
     "fc_use_bias": True,
     "weight_tied": True,
     "awd_initializer": False,
-    "num_sampled": 8192,
+    "num_sampled": 4095,
   },
 
   "decoder": FakeDecoder, # need a new decoder with AR and TAR
