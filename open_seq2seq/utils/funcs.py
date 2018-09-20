@@ -55,7 +55,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
-            print_ppl=isinstance(train_model.get_data_layer(), WKTDataLayer),
+            print_ppl=isinstance(eval_model.get_data_layer(), WKTDataLayer),
         ),
     )
 
