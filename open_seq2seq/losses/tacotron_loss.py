@@ -19,6 +19,7 @@ class TacotronLoss(Loss):
 
   def get_optional_params(self):
     """Static method with description of optional parameters.
+
       Returns:
         dict:
             Dictionary containing all the parameters that **can** be
