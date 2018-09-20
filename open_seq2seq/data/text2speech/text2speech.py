@@ -546,12 +546,24 @@ class Text2SpeechDataLayer(DataLayer):
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
-    if not isinstance(model_in, string_types):
-      raise ValueError(
-          "Text2Speech's interactive inference mode only supports string.",
-          "Got {}". format(type(model_in))
+    text = []
+    text_length = []
+    for line in model_in:
+      if not isinstance(line, string_types):
+        raise ValueError(
+            "Text2Speech's interactive inference mode only supports string.",
+            "Got {}". format(type(line))
+        )
+      text_a, text_length_a = self._parse_transcript_element(line)
+      text.append(text_a)
+      text_length.append(text_length_a)
+    max_len = np.max(text_length)
+    for i, line in enumerate(text):
+      line = np.pad(
+          line, ((0, max_len-len(line))),
+          "constant", constant_values=self.params['char2idx']["<p>"]
       )
-    text, text_length = self._parse_transcript_element(model_in)
+      text[i] = line
 
     text = np.reshape(text, [self.params["batch_size"], -1])
     text_length = np.reshape(text_length, [self.params["batch_size"]])

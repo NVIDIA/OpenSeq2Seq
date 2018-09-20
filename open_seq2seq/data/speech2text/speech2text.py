@@ -66,6 +66,8 @@ class Speech2TextDataLayer(DataLayer):
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None
+    if self.params["interactive"]:
+      return
     for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
@@ -225,24 +227,38 @@ class Speech2TextDataLayer(DataLayer):
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
-    if isinstance(model_in, string_types):
-      audio, audio_length, x_id, _ = self._parse_audio_element([0, model_in])
-    elif isinstance(model_in, np.ndarray):
-      audio, audio_length, x_id, _ = self._get_audio(model_in)
-    else:
-      raise ValueError(
-          "Speech2Text's interactive inference mode only supports string or",
-          "numpy array as input. Got {}". format(type(model_in))
+    audio_arr = []
+    audio_length_arr = []
+    x_id_arr = []
+    for line in model_in:
+      if isinstance(line, string_types):
+        audio, audio_length, x_id, _ = self._parse_audio_element([0, line])
+      elif isinstance(line, np.ndarray):
+        audio, audio_length, x_id, _ = self._get_audio(line)
+      else:
+        raise ValueError(
+            "Speech2Text's interactive inference mode only supports string or",
+            "numpy array as input. Got {}". format(type(line))
+        )
+      audio_arr.append(audio)
+      audio_length_arr.append(audio_length)
+      x_id_arr.append(x_id)
+    max_len = np.max(audio_length_arr)
+    for i, audio in enumerate(audio_arr):
+      audio = np.pad(
+          audio, ((0, max_len-len(audio)), (0,0)),
+          "constant", constant_values=0.
       )
+      audio_arr[i] = audio
 
     audio = np.reshape(
-        audio,
+        audio_arr,
         [self.params['batch_size'],
         -1,
         self.params['num_audio_features']]
     )
-    audio_length = np.reshape(audio_length, [self.params['batch_size']])
-    x_id = np.reshape(x_id, [self.params['batch_size']])
+    audio_length = np.reshape(audio_length_arr, [self.params['batch_size']])
+    x_id = np.reshape(x_id_arr, [self.params['batch_size']])
 
     feed_dict = {
         self._x: audio,
