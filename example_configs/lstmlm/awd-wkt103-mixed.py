@@ -12,10 +12,9 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-# data_root = "/home/chipn/data/wikitext-103-raw"
-data_root = "/data/wikitext-103-raw"
-processed_data_folder = "/data/wkt103-processed-data"
-# processed_data_folder = 'wkt103-processed-data'
+data_root = "/home/chipn/data/wikitext-103-raw"
+# processed_data_folder = '/data/wkt103-processed-data'
+processed_data_folder = 'wkt103-processed-data'
 
 base_model = LSTMLM
 bptt = 96

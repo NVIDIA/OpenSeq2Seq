@@ -61,7 +61,10 @@ class LMTextDataLayer(DataLayer):
       self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
-      self._batch_size = len(self.corp.content)
+      if len(self.corp.content) < self.params['batch_size']:
+        self._batch_size = len(self.corp.content)
+      else:
+        self._batch_size = self.params['batch_size']
 
     self.vocab_file = (self._processed_data_folder, 'vocab.txt')
     self.bptt = self.params['bptt']
@@ -78,8 +81,6 @@ class LMTextDataLayer(DataLayer):
     self.start = 0
 
     # load source and target vocabularies to RAM
-
-    
 
     if self.params["small"]:
       if self.params['mode'] == 'eval':
@@ -106,10 +107,10 @@ class LMTextDataLayer(DataLayer):
         yield (self.corp.content[begin : begin + self.bptt], self.corp.content[begin + 1 : begin + self.bptt + 1])
 
   def gen_infer(self):
-    for seed in self.corp.content:
-      print("SEED", seed)
-      yield ([seed], [seed])
-    
+    while True:
+      for seed in self.corp.content:
+        yield ([seed], [seed])
+      
   def build_graph(self):
     if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
       gen = self.gen
@@ -236,7 +237,6 @@ class IMDBDataLayer(DataLayer):
     # load source and target vocabularies to RAM
     self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     if self.params["small"]:
-      print("SMALL", self.params['small'])
       if self.params['mode'] == 'eval':
         self.corp.content = self.corp.content[:self._batch_size * 2]
       else:

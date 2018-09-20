@@ -561,7 +561,6 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
   """
   # checking that everything is correct with log directory
   logdir = base_config['logdir']
-  print('base_config in check logdir', base_config)
   if args.benchmark:
     args.no_dir_check = True
   try:
@@ -570,7 +569,6 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
     else:
       ckpt_dir = logdir
 
-    print('ckpt_dir', ckpt_dir)
     if args.mode == 'train' or args.mode == 'train_eval':
       if os.path.isfile(logdir):
         raise IOError("There is a file with the same name as \"logdir\" "
@@ -579,7 +577,6 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
 
       # check if "logdir" directory exists and non-empty
       if os.path.isdir(logdir) and os.listdir(logdir) != []:
-      # if os.path.isdir(logdir) and 'checkpoint' in os.listdir(logdir):
         if not args.continue_learning:
           raise IOError("Log directory is not empty. If you want to continue "
                         "learning, you should provide "
@@ -706,7 +703,7 @@ def create_logdir(args, base_config):
 
   return old_stdout, old_stderr, stdout_log, stderr_log
 
-def create_model(args, base_config, config_module, base_model, hvd):
+def create_model(args, base_config, config_module, base_model, hvd, restore_best_checkpoint=False):
   """A helpful function that creates the train, eval, and infer models as
   needed.
 
@@ -794,7 +791,7 @@ def create_model(args, base_config, config_module, base_model, hvd):
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
     if base_config['logdir'].endswith('logs'):
       base_config['logdir'] =  base_config['logdir'][:-5]
-    checkpoint = check_logdir(args, base_config)
+    checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
     model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
 
   return model

@@ -55,11 +55,7 @@ class LSTMLM(EncoderDecoderModel):
     if self._lm_phase:
       vocab = self.get_data_layer().corp.dictionary.idx2word
       seed_tokens = self.params['encoder_params']['seed_tokens']
-      print("seed_tokens", seed_tokens)
-      print('len(seed_tokes)', len(seed_tokens))
       for i in range(len(seed_tokens)):
-        print('i', i)
-        print(output_values[0][i].shape)
         print('Seed:', vocab[seed_tokens[i]] + '\n')
         deco_print(
           "Output: " + array_to_string(
@@ -265,9 +261,6 @@ class LSTMLM(EncoderDecoderModel):
         out.write('\t'.join([x, str(pred), str(y)]) + '\n')
         preds.append(pred)
         labels.append(y)
-
-    # print(preds)
-    # print(labels)
 
     if len(labels) > 0 and labels[0] is not None:
       preds = np.asarray(preds)

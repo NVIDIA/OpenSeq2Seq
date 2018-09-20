@@ -4,7 +4,7 @@ from open_seq2seq.models import LSTMLM
 from open_seq2seq.encoders import LMEncoder
 # from open_seq2seq.encoders import BidirectionalRNNEncoderWithEmbedding
 from open_seq2seq.decoders import FakeDecoder
-from open_seq2seq.data import LMTextDataLayer, LMTextDataLayerGenerate
+from open_seq2seq.data import WKTDataLayer
 from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 # from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.losses import BasicSequenceLoss
@@ -12,7 +12,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 # from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 # from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "/home/chipn/data/wikitext-2-raw/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText DATA]"
 processed_data_folder = 'wkt2-processed-data'
 
 base_model = LSTMLM
@@ -105,7 +105,7 @@ base_params = {
 }
 
 train_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": WKTDataLayer,
   "data_layer_params": {
     "data_root": data_root,
     "pad_vocab_to_eight": False,
@@ -119,7 +119,7 @@ train_params = {
   },
 }
 eval_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": WKTDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
     "pad_vocab_to_eight": False,
@@ -132,7 +132,7 @@ eval_params = {
 }
 
 infer_params = {
-  "data_layer": LMTextDataLayer,
+  "data_layer": WKTDataLayer,
   "data_layer_params": {
     # "data_root": data_root,
     "pad_vocab_to_eight": False,

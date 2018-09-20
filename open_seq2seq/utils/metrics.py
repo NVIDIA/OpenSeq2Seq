@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 
 def true_positives(labels, preds):
-  print('true positives', np.sum(np.logical_and(labels, preds)) )
   return np.sum(np.logical_and(labels, preds)) 
 
 def accuracy(labels, preds):
@@ -12,8 +11,6 @@ def recall(labels, preds):
   return true_positives(labels, preds) / np.sum(labels)
 
 def precision(labels, preds):
-  print('len preds', len(preds))
-  print('sum preds', np.sum(preds))
   return true_positives(labels, preds) / np.sum(preds)
 
 def f1(labels, preds):
