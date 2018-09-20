@@ -1,4 +1,4 @@
-output_file = 'outputs/sst-wkt103-exp3.txt'
+output_file = 'outputs/sst-wk103-exp4.txt'
 # output_file = 'outputs/imdb-wkt2-exp6.txt'
 # output_file = 'outputs/imdb-wkt103-exp1.txt'
 
