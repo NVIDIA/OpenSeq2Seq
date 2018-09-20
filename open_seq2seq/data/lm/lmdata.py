@@ -11,7 +11,7 @@ from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
 
 from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IDMBCorpus, SSTCorpus
 
-class LMTextDataLayer(DataLayer):
+class WKTDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -38,7 +38,7 @@ class LMTextDataLayer(DataLayer):
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
-    super(LMTextDataLayer, self).__init__(params, model,
+    super(WKTDataLayer, self).__init__(params, model,
                                           num_workers, worker_id)
 
     self._processed_data_folder = self.params.get('processed_data_folder', 'wkt-processed_data')
@@ -402,89 +402,3 @@ class SSTDataLayer(IMDBDataLayer):
 
     self._input_tensors = {}
     self._batch_size
-
-
-class LMTextDataLayerGenerate(DataLayer):
-  @staticmethod
-  def get_required_params():
-    return dict(DataLayer.get_required_params(), **{
-      'vocab_file': str,
-      'bptt': int,
-    })
-
-  @staticmethod
-  def get_optional_params():
-    return dict(DataLayer.get_optional_params(), **{
-      'delimiter': str,
-      'map_parallel_calls': int,
-      'prefetch_buffer_size': int,
-      'pad_lengths_to_eight': bool,
-      'pad_vocab_to_eight': bool,
-      'seed_file': str,
-    })
-
-  def __init__(self, params, model, num_workers=1, worker_id=0):
-    super(LMTextDataLayerGenerate, self).__init__(params, model,
-                                          num_workers, worker_id)
-    self._batch_size = 1
-    self.vocab_file = self.params['vocab_file']
-    self.bptt = self.params['bptt']
-    self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
-    self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
-    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
-                                                 tf.contrib.data.AUTOTUNE)
-    self._num_workers = num_workers
-    self._worker_id = worker_id
-    self.params["delimiter"] = self.params.get("delimiter", " ")
-    self.seed_file = self.params.get("seed_file", None)
-
-    # load source and target vocabularies to RAM
-    self.corp = Corpus(self.params['vocab_file'])
-
-    if self.seed_file:
-      self.input_string = open(self.seed_file, 'r').read().strip()
-    else:
-      self.input_string = input('Please enter your seed string (case sensitive): ').strip()
-
-    self.corp.content = self.corp.tokenize(self.input_string)
-    if len(self.corp.content) > self.bptt:
-      self.corp.content = self.corp.content[-self.bptt:]
-
-    self.dataset_size = len(self.corp.content)
-
-    self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    self.PAD_ID = self.params['vocab_size']
-    self.PAD = '<pad>'
-    self.corp.dictionary.idx2word.append(self.PAD)
-    self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
-
-    self._input_tensors = {}
-
-  def gen(self):
-    yield self.corp.content
-
-  def build_graph(self):
-    _src_tgt_dataset = tf.data.Dataset.from_generator(self.gen, (tf.int32), 
-                                (tf.TensorShape([len(self.corp.content)])))
-
-    _src_tgt_dataset = _src_tgt_dataset.map(lambda x: ((x, tf.size(x))), 
-                            num_parallel_calls=self._map_parallel_calls)
-
-    self.batched_dataset = _src_tgt_dataset.batch(self._batch_size)
-
-    self._iterator = self.batched_dataset.make_initializable_iterator()
-    t1, _ = self.iterator.get_next()
-    t1 = tf.expand_dims(t1[0], axis=0)
-    self._input_tensors['source_tensors'] = [t1[0], t1[1]]
-
-
-  def get_size_in_samples(self):
-    return 1
-
-  @property
-  def iterator(self):
-    return self._iterator
-
-  @property
-  def input_tensors(self):
-    return self._input_tensors

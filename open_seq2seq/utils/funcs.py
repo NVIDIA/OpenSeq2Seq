@@ -15,7 +15,7 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
 from .helpers import TransferMonitoredTrainingSession, TransferScaffold
-from open_seq2seq.data import LMTextDataLayer
+from open_seq2seq.data import WKTDataLayer
 
 
 def train(train_model, eval_model=None, debug_port=None):
@@ -55,7 +55,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
-            print_ppl=isinstance(train_model.get_data_layer(), LMTextDataLayer),
+            print_ppl=isinstance(train_model.get_data_layer(), WKTDataLayer),
         ),
     )
 
@@ -73,7 +73,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks.append(PrintLossAndTimeHook(
           every_steps=train_model.params['print_loss_steps'],
           model=train_model,
-          print_ppl=isinstance(train_model.get_data_layer(), LMTextDataLayer),
+          print_ppl=isinstance(train_model.get_data_layer(), WKTDataLayer),
       ))
     if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker

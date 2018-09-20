@@ -6,9 +6,6 @@ import random
 import re
 import shutil
 
-# import matplotlib
-# matplotlib.use("TkAgg")
-# from matplotlib import pyplot as plt
 from nltk.tokenize import word_tokenize
 import numpy as np
 
@@ -258,6 +255,9 @@ class IDMBCorpus(object):
         in_file.close()
 
   def txt2ids(self, mode, token_file, rating_file):
+    # import matplotlib
+    # matplotlib.use("TkAgg")
+    # from matplotlib import pyplot as plt
     rating_lines = open(rating_file, 'r').readlines()
     ratings = [int(line.strip()) for line in rating_lines]
     reviews = []

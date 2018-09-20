@@ -1,6 +1,6 @@
-# output_file = 'outputs/sst-wkt103-exp5.txt'
+output_file = 'outputs/sst-wkt103-exp3.txt'
 # output_file = 'outputs/imdb-wkt2-exp6.txt'
-output_file = 'outputs/imdb-wkt103-exp1.txt'
+# output_file = 'outputs/imdb-wkt103-exp1.txt'
 
 output = open(output_file, 'r')
 
