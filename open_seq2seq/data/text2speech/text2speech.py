@@ -187,11 +187,7 @@ class Text2SpeechDataLayer(DataLayer):
       self._exp_mag = False
       n_mels = n_feats
 
-
-    if "mel" in self.params["output_type"]:
-      self._mel = True
-    else:
-      self._mel = False
+    self._mel = "mel" in self.params["output_type"]
 
     if self._mel or self._both:
       htk = True
