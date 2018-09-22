@@ -9,7 +9,7 @@ from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary, pad_vocab_to_eight
 from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
 
-from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IDMBCorpus, SSTCorpus
+from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IMDBCorpus, SSTCorpus
 
 class WKTDataLayer(DataLayer):
   @staticmethod
@@ -207,7 +207,7 @@ class IMDBDataLayer(DataLayer):
       self.params['num_classes'] = 2
     else:
       self.params['num_classes'] = 10
-    self.corp = IDMBCorpus(self._data_root, self._processed_data_folder, self.params['lm_vocab_file'], self._binary)
+    self.corp = IMDBCorpus(self._data_root, self._processed_data_folder, self.params['lm_vocab_file'], self._binary)
     
     if self.params['mode'] == 'train':
       self._batch_size = self.params['batch_size']
