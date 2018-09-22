@@ -12,7 +12,7 @@ base_model = LSTMLM
 steps = 10
 
 data_root = "/home/chipn/data/binary_sst"
-processed_data_folder = 'sst-processed-data'
+processed_data_folder = 'sst-processed-data-wkt2'
 binary = True
 max_length = 96
 

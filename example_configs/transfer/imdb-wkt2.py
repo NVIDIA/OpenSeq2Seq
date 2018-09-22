@@ -9,7 +9,7 @@ from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
 data_root = "/home/chipn/data/aclImdb"
-processed_data_folder = 'imdb-processed-data'
+processed_data_folder = 'imdb-processed-data-wkt2'
 
 base_model = LSTMLM
 max_length = 256
