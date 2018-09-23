@@ -57,6 +57,8 @@ class Model:
         'num_gpus': int,  # cannot be used when gpu_ids is specified
         'gpu_ids': list,  # cannot be used when num_gpus is specified
 
+        'load_model': str,
+
         'save_summaries_steps': None,  # could be int or None
         'print_loss_steps': None,  # could be int or None
         'print_samples_steps': None,  # could be int or None
@@ -64,7 +66,6 @@ class Model:
         'save_checkpoint_steps': None,  # could be int or None
         'restore_best_checkpoint': bool, # whether to restore best check point
         'eval_steps': int,
-        'base_logdir': str,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
 
@@ -89,6 +90,8 @@ class Model:
         'loss_scaling_params': dict,
         'summaries': list,
         'iter_size': int,
+        'lm_vocab_file': str,
+        'processed_data_folder': str,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -234,7 +237,9 @@ class Model:
       self._params['print_bench_info_steps'] = None
 
     self._params['finetune'] = self._params.get('finetune', False)
-    self._params['base_logdir'] = self._params.get('base_logdir', None)
+    # self._params['base_logdir'] = self._params.get('base_logdir', None)
+    self._params['load_model'] = self._params.get('load_model', None)
+    self._params['load_fc'] = self._params.get('load_fc', False)
     self._params['eval_batch_size_per_gpu'] = self._params.get(
         'eval_batch_size_per_gpu',
         self._params['batch_size_per_gpu']
@@ -277,8 +282,13 @@ class Model:
       dl_params['batch_size'] = self._params['batch_size_per_gpu']
     else:
       dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
+    if 'lm_vocab_file' in self._params:
+      dl_params['lm_vocab_file'] = self._params['lm_vocab_file']
+    if 'processed_data_folder' in self._params:
+      dl_params['processed_data_folder'] = self._params['processed_data_folder']
     dl_params['mode'] = self._mode
     dl_params['interactive'] = self._interactive
+
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -353,7 +363,6 @@ class Model:
           else:
             self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
-
           loss, self._outputs[gpu_cnt] = self.build_forward_pass_graph(
               input_tensors,
               gpu_id=gpu_cnt,
@@ -366,6 +375,7 @@ class Model:
             raise ValueError('Decoder outputs have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
+                
       # end of for gpu_ind loop
       if self._mode == "train":
         self.loss = tf.reduce_mean(losses)
@@ -386,8 +396,13 @@ class Model:
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
 
-        loss, self._output = self._build_forward_pass_graph(input_tensors,
+        all_loss, self._output = self._build_forward_pass_graph(input_tensors,
                                                             gpu_id=0)
+        if isinstance(all_loss, (dict,)):
+            loss = all_loss['loss']
+        else:
+          loss = all_loss
+
         if self._output is not None and not isinstance(self._output, list):
           raise ValueError('Decoder outputs have to be either None or list')
 

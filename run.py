@@ -8,7 +8,7 @@ import os
 import sys
 import tensorflow as tf
 from open_seq2seq.utils.utils import deco_print, get_base_config, check_logdir,\
-                                     create_logdir, create_model
+                                     create_logdir, create_model, check_base_model_logdir
 from open_seq2seq.utils import train, infer, evaluate
 
 def main():
@@ -30,10 +30,16 @@ def main():
   else:
     hvd = None
 
+  load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
+  
+
+  base_ckpt_dir = check_base_model_logdir(load_model, restore_best_checkpoint)
+  base_config['load_model'] = base_ckpt_dir
 
   # Check logdir and create it if necessary
   checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
+
   if args.enable_logs:
     if hvd is None or hvd.rank() == 0:
       old_stdout, old_stderr, stdout_log, stderr_log = create_logdir(
@@ -45,7 +51,10 @@ def main():
   if args.mode == 'train' or args.mode == 'train_eval' or args.benchmark:
     if hvd is None or hvd.rank() == 0:
       if checkpoint is None or args.benchmark:
-        deco_print("Starting training from scratch")
+        if base_ckpt_dir:
+          deco_print("Starting training from the base model")
+        else:
+          deco_print("Starting training from scratch")
       else:
         deco_print(
             "Restored checkpoint from {}. Resuming training".format(checkpoint),
@@ -56,7 +65,7 @@ def main():
 
   # Create model and train/eval/infer
   with tf.Graph().as_default():
-    model = create_model(args, base_config, config_module, base_model, hvd)
+    model = create_model(args, base_config, config_module, base_model, hvd, restore_best_checkpoint)
     if args.mode == "train_eval":
       train(model[0], model[1], debug_port=args.debug_port)
     elif args.mode == "train":

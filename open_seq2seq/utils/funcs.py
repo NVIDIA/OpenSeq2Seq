@@ -14,7 +14,8 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from open_seq2seq.models import LSTMLM
+from .helpers import TransferMonitoredTrainingSession, TransferScaffold
+from open_seq2seq.data import WKTDataLayer
 
 
 def train(train_model, eval_model=None, debug_port=None):
@@ -42,8 +43,10 @@ def train(train_model, eval_model=None, debug_port=None):
 
   if master_worker:
     checkpoint_dir = train_model.params['logdir']
+    base_ckpt_dir = train_model.params['load_model']
   else:
     checkpoint_dir = None
+    base_ckpt_dir = None
 
   if eval_model is not None:
     # noinspection PyTypeChecker
@@ -52,7 +55,7 @@ def train(train_model, eval_model=None, debug_port=None):
             every_steps=eval_model.params['eval_steps'],
             model=eval_model,
             last_step=train_model.last_step,
-            print_ppl=isinstance(eval_model, LSTMLM),
+            print_ppl=isinstance(eval_model.get_data_layer(), WKTDataLayer),
         ),
     )
 
@@ -70,7 +73,7 @@ def train(train_model, eval_model=None, debug_port=None):
       hooks.append(PrintLossAndTimeHook(
           every_steps=train_model.params['print_loss_steps'],
           model=train_model,
-          print_ppl=isinstance(train_model, LSTMLM)
+          print_ppl=isinstance(train_model.get_data_layer(), WKTDataLayer),
       ))
     if train_model.params['print_samples_steps'] is not None:
       # noinspection PyTypeChecker
@@ -94,10 +97,16 @@ def train(train_model, eval_model=None, debug_port=None):
         [train_model.get_data_layer(i).iterator.initializer
          for i in range(train_model.num_gpus)]
     )
-
-  scaffold = tf.train.Scaffold(
-      local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
-  )
+  
+  fine_tuning = (not base_ckpt_dir) or tf.train.latest_checkpoint(checkpoint_dir)
+  if fine_tuning:   
+    scaffold = tf.train.Scaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
+  else:
+    scaffold = TransferScaffold(
+        local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
+    )
   fetches = [train_model.train_op]
   try:
     total_objects = 0.0
@@ -109,7 +118,8 @@ def train(train_model, eval_model=None, debug_port=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  with tf.train.MonitoredTrainingSession(
+  if fine_tuning:
+    sess = TransferMonitoredTrainingSession(
       scaffold=scaffold,
       checkpoint_dir=checkpoint_dir,
       save_summaries_steps=train_model.params['save_summaries_steps'],
@@ -118,43 +128,55 @@ def train(train_model, eval_model=None, debug_port=None):
       log_step_count_steps=train_model.params['save_summaries_steps'],
       stop_grace_period_secs=300,
       hooks=hooks,
-  ) as sess:
-    step = 0
-    num_bench_updates = 0
-    while True:
-      if sess.should_stop():
-        break
-      tm = time.time()
-      try:
-        feed_dict = {}
-        iter_size = train_model.params.get('iter_size', 1)
-        if iter_size > 1:
-          feed_dict[train_model.skip_update_ph] = step % iter_size != 0
-        if step % iter_size == 0:
-          if step >= bench_start:
-            num_bench_updates += 1
-          fetches_vals = sess.run(fetches, feed_dict)
-        else:
-          # necessary to skip "no-update" steps when iter_size > 1
-          def run_with_no_hooks(step_context):
-            return step_context.session.run(fetches, feed_dict)
-          fetches_vals = sess.run_step_fn(run_with_no_hooks)
-      except tf.errors.OutOfRangeError:
-        break
-      if step >= bench_start:
-        total_time += time.time() - tm
-        if len(fetches) > 1:
-          for i in range(train_model.num_gpus):
-            total_objects += np.sum(fetches_vals[i + 1])
-          if train_model.params['print_bench_info_steps'] is not None:
-            if step % train_model.params['print_bench_info_steps'] == 0:
-              total_objects_cur = collect_if_horovod(total_objects, hvd,
-                                                     mode="sum")
-              if master_worker:
-                avg_objects = 1.0 * total_objects_cur / total_time
-                deco_print("Avg objects per second: {:.3f}".format(avg_objects))
+      base_ckpt_dir=base_ckpt_dir,
+      load_fc=train_model.params['load_fc'])
+  else:
+    sess = tf.train.MonitoredTrainingSession(
+      scaffold=scaffold,
+      checkpoint_dir=checkpoint_dir,
+      save_summaries_steps=train_model.params['save_summaries_steps'],
+      config=sess_config,
+      save_checkpoint_secs=None,
+      log_step_count_steps=train_model.params['save_summaries_steps'],
+      stop_grace_period_secs=300,
+      hooks=hooks)
+  step = 0
+  num_bench_updates = 0
+  while True:
+    if sess.should_stop():
+      break
+    tm = time.time()
+    try:
+      feed_dict = {}
+      iter_size = train_model.params.get('iter_size', 1)
+      if iter_size > 1:
+        feed_dict[train_model.skip_update_ph] = step % iter_size != 0
+      if step % iter_size == 0:
+        if step >= bench_start:
+          num_bench_updates += 1
+        fetches_vals = sess.run(fetches, feed_dict)
+      else:
+        # necessary to skip "no-update" steps when iter_size > 1
+        def run_with_no_hooks(step_context):
+          return step_context.session.run(fetches, feed_dict)
+        fetches_vals = sess.run_step_fn(run_with_no_hooks)
+    except tf.errors.OutOfRangeError:
+      break
+    if step >= bench_start:
+      total_time += time.time() - tm
+      if len(fetches) > 1:
+        for i in range(train_model.num_gpus):
+          total_objects += np.sum(fetches_vals[i + 1])
+        if train_model.params['print_bench_info_steps'] is not None:
+          if step % train_model.params['print_bench_info_steps'] == 0:
+            total_objects_cur = collect_if_horovod(total_objects, hvd,
+                                                   mode="sum")
+            if master_worker:
+              avg_objects = 1.0 * total_objects_cur / total_time
+              deco_print("Avg objects per second: {:.3f}".format(avg_objects))
 
-      step += 1
+    step += 1
+  sess.close()
 
   if len(fetches) > 1:
     total_objects = collect_if_horovod(total_objects, hvd, mode="sum")
