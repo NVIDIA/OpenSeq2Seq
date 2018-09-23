@@ -1,3 +1,4 @@
+# pylint: skip-file
 # Copyright 2017 The TensorFlow Authors. All Rights Reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,7 +15,7 @@
 # ==============================================================================
 """A powerful dynamic attention wrapper object.
 
-Modified by blisc too add support for LocationSensitiveAttention and changed
+Modified by blisc to add support for LocationSensitiveAttention and changed
 the AttentionWrapper class to output both the cell_output and attention context
 concatenated together.
 
@@ -697,8 +698,14 @@ class LocationLayer(layers_base.Layer):
         use_bias=True,
         data_format=data_format,
     )
-    self.location_dense = layers_core.Dense(
-        name="{}_dense".format(name), units=attention_units, use_bias=False
+    self.location_dense = Conv1D(
+        name="{}_dense".format(name),
+        filters=attention_units,
+        kernel_size=1,
+        strides=strides,
+        padding="SAME",
+        use_bias=False,
+        data_format=data_format,
     )
 
   def __call__(self, prev_attention):
@@ -766,8 +773,15 @@ class LocationSensitiveAttention(_BaseAttentionMechanism):
         query_layer=layers_core.Dense(
             num_units, name="query_layer", use_bias=False, dtype=dtype
         ),
-        memory_layer=layers_core.Dense(
-            num_units, name="memory_layer", use_bias=False, dtype=dtype
+        memory_layer = Conv1D(
+            name="memory_layer".format(name),
+            filters=num_units,
+            kernel_size=1,
+            strides=1,
+            padding="SAME",
+            use_bias=False,
+            data_format="channels_last",
+            dtype=dtype
         ),
         memory=memory,
         probability_fn=wrapped_probability_fn,

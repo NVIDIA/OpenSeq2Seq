@@ -1,4 +1,5 @@
 # pylint: skip-file
+import os
 import tensorflow as tf
 from open_seq2seq.models import Text2Speech
 from open_seq2seq.encoders import Tacotron2Encoder
@@ -10,14 +11,44 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy, ex
 
 base_model = Text2Speech
 
-output_type = "mel"
+dataset = "LJ"
+dataset_location = "/data/speech/LJSpeech"
+output_type = "both"
 
+if dataset == "MAILABS":
+  trim = True
+  mag_num_feats = 401
+  train = "train.csv"
+  val = "val.csv"
+  batch_size = 32
+elif dataset == "LJ":
+  trim = False
+  mag_num_feats = 513
+  train = "train_32.csv"
+  val = "val_32.csv"
+  batch_size = 48
+else:
+  raise ValueError("Unknown dataset")
+
+exp_mag = False
 if output_type == "magnitude":
-  num_audio_features = 513
+  num_audio_features = mag_num_feats
   data_min = 1e-5
 elif output_type == "mel":
   num_audio_features = 80
   data_min = 1e-2
+elif output_type == "both":
+  num_audio_features = {
+      "mel": 80,
+      "magnitude": mag_num_feats
+  }
+  data_min = {
+      "mel": 1e-2,
+      "magnitude": 1e-5,
+  }
+  exp_mag = True
+else:
+  raise ValueError("Unknown param for output_type")
 
 base_params = {
   "random_seed": 0,
@@ -25,7 +56,7 @@ base_params = {
   "max_steps": 100000,
 
   "num_gpus": 1,
-  "batch_size_per_gpu": 32,
+  "batch_size_per_gpu": batch_size,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
@@ -59,7 +90,8 @@ base_params = {
 
   "encoder": Tacotron2Encoder,
   "encoder_params": {
-    "dropout_keep_prob": 0.5,
+    "cnn_dropout_prob": 0.5,
+    "rnn_dropout_prob": 0.,
     'src_emb_size': 512,
     "conv_layers": [
       {
@@ -130,7 +162,7 @@ base_params = {
       },
       {
         "kernel_size": [5], "stride": [1],
-        "num_channels": num_audio_features, "padding": "SAME",
+        "num_channels": -1, "padding": "SAME",
         "activation_fn": None
       }
     ],
@@ -145,11 +177,11 @@ base_params = {
 
   "data_layer": Text2SpeechDataLayer,
   "data_layer_params": {
-    "dataset": "LJ",
+    "dataset": dataset,
     "num_audio_features": num_audio_features,
     "output_type": output_type,
     "vocab_file": "open_seq2seq/test_utils/vocab_tts.txt",
-    'dataset_location':"/data/speech/LJSpeech/wavs/",
+    'dataset_location':dataset_location,
     "mag_power": 1,
     "pad_EOS": True,
     "feature_normalize": False,
@@ -157,13 +189,17 @@ base_params = {
     "feature_normalize_std": 1.,
     "data_min":data_min,
     "mel_type":'htk',
+    "trim": trim,   
+    "duration_max":1024,
+    "duration_min":24,
+    "exp_mag": exp_mag
   },
 }
 
 train_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/train.csv",
+      os.path.join(dataset_location, train),
     ],
     "shuffle": True,
   },
@@ -172,8 +208,10 @@ train_params = {
 eval_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/val.csv",
+      os.path.join(dataset_location, val),
     ],
+    "duration_max":10000,
+    "duration_min":0,
     "shuffle": False,
   },
 }
@@ -181,8 +219,10 @@ eval_params = {
 infer_params = {
   "data_layer_params": {
     "dataset_files": [
-      "/data/speech/LJSpeech/test.csv",
+      os.path.join(dataset_location, "test.csv"),
     ],
+    "duration_max":10000,
+    "duration_min":0,
     "shuffle": False,
   },
 }
@@ -190,6 +230,8 @@ infer_params = {
 interactive_infer_params = {
   "data_layer_params": {
     "dataset_files": [],
+    "duration_max":10000,
+    "duration_min":0,
     "shuffle": False,
   },
 }

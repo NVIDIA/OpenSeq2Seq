@@ -33,7 +33,7 @@ from tensorflow.python.util import nest
 
 class BasicDecoderOutput(
     collections.namedtuple(
-        "BasicDecoderOutput", ("rnn_output", "stop_token_output", "sample_id")
+        "BasicDecoderOutput", ("rnn_output", "stop_token_output")
     )
 ):
   pass
@@ -131,7 +131,6 @@ class TacotronDecoder(decoder.Decoder):
     return BasicDecoderOutput(
         rnn_output=self._rnn_output_size(),
         stop_token_output=self._stop_token_output_size(),
-        sample_id=self._helper.sample_ids_shape
     )
 
   @property
@@ -140,7 +139,6 @@ class TacotronDecoder(decoder.Decoder):
     return BasicDecoderOutput(
         nest.map_structure(lambda _: self._dtype, self._rnn_output_size()),
         nest.map_structure(lambda _: self._dtype, self._stop_token_output_size()),
-        self._helper.sample_ids_dtype
     )
 
   def initialize(self, name=None):
@@ -182,16 +180,11 @@ class TacotronDecoder(decoder.Decoder):
       else:
         stop_token_output = cell_outputs
 
-
-      sample_ids = self._helper.sample(
-          time=time, outputs=spec_outputs, state=cell_state
-      )
       (finished, next_inputs, next_state) = self._helper.next_inputs(
           time=time,
           outputs=spec_outputs,
           state=cell_state,
-          sample_ids=sample_ids,
           stop_token_predictions=stop_token_output
       )
-    outputs = BasicDecoderOutput(spec_outputs, stop_token_output, sample_ids)
+    outputs = BasicDecoderOutput(spec_outputs, stop_token_output)
     return (outputs, next_state, next_inputs, finished)

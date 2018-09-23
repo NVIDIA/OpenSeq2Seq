@@ -24,9 +24,10 @@ class Text2SpeechDataLayer(DataLayer):
   def get_required_params():
     return dict(
         DataLayer.get_required_params(), **{
-            'dataset': ['LJ'],
+            'dataset_location': str,
+            'dataset': ['LJ', 'MAILABS'],
             'num_audio_features': None,
-            'output_type': ['magnitude', 'mel'],
+            'output_type': ['magnitude', 'mel', 'both'],
             'vocab_file': str,
             'dataset_files': list,
             'feature_normalize': bool,
@@ -37,7 +38,6 @@ class Text2SpeechDataLayer(DataLayer):
   def get_optional_params():
     return dict(
         DataLayer.get_optional_params(), **{
-            'dataset_location': str,
             'pad_to': int,
             'mag_power': int,
             'pad_EOS': bool,
@@ -45,10 +45,11 @@ class Text2SpeechDataLayer(DataLayer):
             'feature_normalize_mean': float,
             'feature_normalize_std': float,
             'trim': bool,
-            'data_min': float,
+            'data_min': None,
             'duration_min': int,
             'duration_max': int,
-            'mel_type': ['slaney', 'htk']
+            'mel_type': ['slaney', 'htk'],
+            "exp_mag": bool
         }
     )
 
@@ -109,17 +110,16 @@ class Text2SpeechDataLayer(DataLayer):
         worker_id
     )
 
-    if self.params.get('dataset_location', None) is None:
-      raise ValueError(
-          "dataset_location must be specified when using the LJSpeech",
-          "dataset"
-      )
     names = ['wav_filename', 'raw_transcript', 'transcript']
     sep = '\x7c'
     header = None
 
-    self._sampling_rate = 22050
-    self._n_fft = 1024
+    if self.params["dataset"] == "LJ":
+      self._sampling_rate = 22050
+      self._n_fft = 1024
+    elif self.params["dataset"] == "MAILABS":
+      self._sampling_rate = 16000
+      self._n_fft = 800
 
     # Character level vocab
     self.params['char2idx'] = load_pre_existing_vocabulary(
@@ -134,10 +134,62 @@ class Text2SpeechDataLayer(DataLayer):
     self.params['idx2char'] = {i: w for w, i in self.params['char2idx'].items()}
     self.params['src_vocab_size'] = len(self.params['char2idx'])
 
-    n_mels = self.params['num_audio_features']
+    n_feats = self.params['num_audio_features']
+    if "both" in self.params["output_type"]:
+      self._both = True
+      if self.params["feature_normalize"]:
+        raise ValueError(
+            "feature normalize is not currently enabled for both mode"
+        )
+      if not isinstance(n_feats, dict):
+        raise ValueError(
+            "num_audio_features must be a dictionary for both mode"
+        )
+      else:
+        if ("mel" not in n_feats and
+            "magnitude" not in n_feats):
+          raise ValueError(
+            "num_audio_features must contain mel and magnitude keys"
+          )
+        elif (not isinstance(n_feats["mel"], int) or
+              not isinstance(n_feats["magnitude"], int)):
+            raise ValueError(
+                "num_audio_features must be a int"
+            )
+      n_mels = n_feats['mel']
+      data_min = self.params.get("data_min", None)
+      if data_min is not None:
+        if not isinstance(data_min, dict):
+          raise ValueError(
+              "data_min must be a dictionary for both mode"
+          )
+        else:
+          if "mel" not in data_min and "magnitude" not in data_min:
+            raise ValueError(
+              "data_min must contain mel and magnitude keys"
+            )
+          elif (not isinstance(data_min["mel"], float) or 
+                not isinstance(data_min["magnitude"], float)):
+            raise ValueError(
+                "data_min must be a float"
+            )
+      self._exp_mag = self.params.get("exp_mag", True)
+    else:
+      if not isinstance(n_feats, int):
+        raise ValueError(
+            "num_audio_features must be a float for mel or magnitude mode"
+        )
+      if not isinstance(self.params.get("data_min",1.0), float):
+        raise ValueError(
+            "data_min must be a float for mel or magnitude mode"
+        )
+      self._both = False
+      self._exp_mag = False
+      n_mels = n_feats
 
-    if "mel" in self.params["output_type"]:
-      self._mel = True
+    self._mel = "mel" in self.params["output_type"]
+
+    if self._mel or self._both:
       htk = True
       norm = None
       if self.params.get('mel_type', 'htk') == 'slaney':
@@ -151,7 +203,6 @@ class Text2SpeechDataLayer(DataLayer):
           norm=norm
       )
     else:
-      self._mel = False
       self._mel_basis = None
 
     if self.params["interactive"]:
@@ -213,7 +264,11 @@ class Text2SpeechDataLayer(DataLayer):
       self._dataset = self._dataset.shuffle(self._size)
     self._dataset = self._dataset.repeat()
 
-    num_audio_features = self.params['num_audio_features']
+    if self._both:
+      num_audio_features = self.params['num_audio_features']['mel'] 
+      num_audio_features += self.params['num_audio_features']['magnitude']
+    else:
+      num_audio_features = self.params['num_audio_features']
 
     if self.params['mode'] != 'infer':
       self._dataset = self._dataset.map(
@@ -241,7 +296,10 @@ class Text2SpeechDataLayer(DataLayer):
                     )
                 )
         )
-      default_pad_value = np.log(self.params.get("data_min", 1e-5))
+      if self._both:
+        default_pad_value = 0.
+      else:
+        default_pad_value = np.log(self.params.get("data_min", 1e-5))
       pad_value = self.params.get("pad_value", default_pad_value)
       if self.params["feature_normalize"]:
         pad_value = self._normalize(pad_value)
@@ -311,7 +369,7 @@ class Text2SpeechDataLayer(DataLayer):
     if six.PY2:
       audio_filename = unicode(audio_filename, "utf-8")
       transcript = unicode(transcript, "utf-8")
-    else:
+    elif not isinstance(transcript, string_types):
       audio_filename = str(audio_filename, "utf-8")
       transcript = str(transcript, "utf-8")
     text_input = np.array(
@@ -335,7 +393,7 @@ class Text2SpeechDataLayer(DataLayer):
 
 
     file_path = os.path.join(
-        self.params['dataset_location'], audio_filename + ".wav"
+        self.params['dataset_location'], "wavs", audio_filename + ".wav"
     )
     if self._mel:
       features_type = "mel_htk"
@@ -354,8 +412,15 @@ class Text2SpeechDataLayer(DataLayer):
         mean=self.params.get("feature_normalize_mean", 0.),
         std=self.params.get("feature_normalize_std", 1.),
         trim=self.params.get("trim", False),
-        data_min=self.params.get("data_min", 1e-5)
+        data_min=self.params.get("data_min", 1e-5),
+        mel_basis=self._mel_basis
     )
+
+    if self._both:
+      mel_spectrogram, spectrogram = spectrogram
+      if self._exp_mag:
+        spectrogram = np.exp(spectrogram)
+
     stop_token_target = np.zeros(
         [len(spectrogram)], dtype=self.params['dtype'].as_numpy_dtype()
     )
@@ -363,17 +428,42 @@ class Text2SpeechDataLayer(DataLayer):
       num_pad = pad_to - ((len(spectrogram) + 1) % pad_to) + 1
 
       data_min = self.params.get("data_min", 1e-5)
+      if isinstance(data_min, dict):
+        pad_value_mel = self.params.get("pad_value", np.log(data_min["mel"]))
+        if self._exp_mag:
+          pad_value_mag = self.params.get("pad_value", data_min["magnitude"])
+        else:
+          pad_value_mag = self.params.get("pad_value", np.log(data_min["magnitude"]))
+      else:
+        pad_value = self.params.get("pad_value", np.log(data_min))
+        if self.params["feature_normalize"]:
+          pad_value = self._normalize(pad_value)
+          pad_value_mel = pad_value_mag = pad_value
 
-      pad_value = self.params.get("pad_value", np.log(data_min))
-      if self.params["feature_normalize"]:
-        pad_value = self._normalize(pad_value)
-
-      spectrogram = np.pad(
-          spectrogram,
-          ((0, num_pad), (0, 0)),
-          "constant",
-          constant_values=pad_value
-      )
+      if self._both:
+        mel_spectrogram = np.pad(
+            mel_spectrogram,
+            # ((8, num_pad), (0, 0)),
+            ((0, num_pad), (0, 0)),
+            "constant",
+            constant_values=pad_value_mel
+        )
+        spectrogram = np.pad(
+            spectrogram,
+            # ((8, num_pad), (0, 0)),
+            ((0, num_pad), (0, 0)),
+            "constant",
+            constant_values=pad_value_mag
+        )
+        spectrogram = np.concatenate((mel_spectrogram, spectrogram), axis=1)
+      else:
+        spectrogram = np.pad(
+            spectrogram,
+            # ((8, num_pad), (0, 0)),
+            ((0, num_pad), (0, 0)),
+            "constant",
+            constant_values=pad_value
+        )
       stop_token_target = np.pad(
           stop_token_target, ((0, num_pad)), "constant", constant_values=1
       )
@@ -398,13 +488,14 @@ class Text2SpeechDataLayer(DataLayer):
       tuple: target text as `np.array` of ids, target text length.
     """
 
-    transcript = transcript.lower()
     if six.PY2:
       transcript = unicode(transcript, "utf-8")
-    else:
+    elif not isinstance(transcript, string_types):
       transcript = str(transcript, "utf-8")
+    transcript = transcript.lower()
+
     text_input = np.array(
-        [self.params['char2idx'][c] for c in transcript]
+        [self.params['char2idx'].get(c,3) for c in transcript]
     )
     pad_to = self.params.get('pad_to', 8)
     if self.params.get("pad_EOS", True):
@@ -451,12 +542,24 @@ class Text2SpeechDataLayer(DataLayer):
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
-    if not isinstance(model_in, string_types):
-      raise ValueError(
-          "Text2Speech's interactive inference mode only supports string.",
-          "Got {}". format(type(model_in))
+    text = []
+    text_length = []
+    for line in model_in:
+      if not isinstance(line, string_types):
+        raise ValueError(
+            "Text2Speech's interactive inference mode only supports string.",
+            "Got {}". format(type(line))
+        )
+      text_a, text_length_a = self._parse_transcript_element(line)
+      text.append(text_a)
+      text_length.append(text_length_a)
+    max_len = np.max(text_length)
+    for i, line in enumerate(text):
+      line = np.pad(
+          line, ((0, max_len-len(line))),
+          "constant", constant_values=self.params['char2idx']["<p>"]
       )
-    text, text_length = self._parse_transcript_element(model_in)
+      text[i] = line
 
     text = np.reshape(text, [self.params["batch_size"], -1])
     text_length = np.reshape(text_length, [self.params["batch_size"]])
@@ -483,7 +586,7 @@ class Text2SpeechDataLayer(DataLayer):
     """Returns the number of audio files."""
     return len(self._files)
 
-  def get_magnitude_spec(self, spectrogram):
+  def get_magnitude_spec(self, spectrogram, is_mel=False):
     """Returns an energy magnitude spectrogram. The processing depends on the
     data layer params.
 
@@ -494,17 +597,20 @@ class Text2SpeechDataLayer(DataLayer):
       mag_spec: mag spec
     """
     spectrogram = spectrogram.astype(float)
-    if self._mel:
+    if self._mel or (is_mel and self._both):
       htk = True
       norm = None
       if self.params.get('mel_type', 'htk') == 'slaney':
         htk = False
         norm = 1
+      n_feats = self.params['num_audio_features']
+      if self._both:
+        n_feats = n_feats["mel"]
       return inverse_mel(
           spectrogram,
           fs=self._sampling_rate,
           n_fft=self._n_fft,
-          n_mels=self.params['num_audio_features'],
+          n_mels=n_feats,
           power=self.params.get('mag_power', 2),
           feature_normalize=self.params["feature_normalize"],
           mean=self.params.get("feature_normalize_mean", 0.),
@@ -517,17 +623,28 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       if self.params["feature_normalize"]:
         spectrogram = self._denormalize(spectrogram)
+      n_feats = self.params['num_audio_features']
+      data_min = self.params.get("data_min", 1e-5)
+      if self._both:
+        n_feats = n_feats["magnitude"]
+        if isinstance(data_min, dict):
+          data_min = data_min["magnitude"]
+        if not self._exp_mag:
+          data_min = np.log(data_min)
+      else:
+        data_min = np.log(data_min)
       # Ensure that num_features is consistent with n_fft
-      if self.params['num_audio_features'] < self._n_fft // 2 + 1:
+      if n_feats < self._n_fft // 2 + 1:
         num_pad = (self._n_fft // 2 + 1) - spectrogram.shape[1]
         spectrogram = np.pad(
             spectrogram,
             ((0, 0), (0, num_pad)),
             "constant",
-            constant_values=np.log(self.params.get("data_min", 1e-5))
+            constant_values=data_min
         )
-      spectrogram = spectrogram * 1.0 / self.params.get('mag_power', 2)
-      mag_spec = np.exp(spectrogram)
+      mag_spec = spectrogram * 1.0 / self.params.get('mag_power', 2)
+      if not self._both and not self._exp_mag:
+        mag_spec = np.exp(mag_spec)
       return mag_spec
 
   def _normalize(self, spectrogram):

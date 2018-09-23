@@ -256,8 +256,19 @@ class ParallelTextDataLayer(DataLayer):
     Returns:
       feed_dict (dict): Dictionary with values for the placeholders.
     """
-    text = self._src_token_to_id(model_in)
-    text_length = text.shape[0]
+    text = []
+    text_length = []
+    for line in model_in:
+      line = self._src_token_to_id(line)
+      text.append(line)
+      text_length.append(line.shape[0])
+    max_len = np.max(text_length)
+    for i,line in enumerate(text):
+      line = np.pad(
+          line, ((0, max_len-len(line))),
+          "constant", constant_values=SpecialTextTokens.PAD_ID.value
+      )
+      text[i] = line
 
     text = np.reshape(text, [self._batch_size, -1])
     text_length = np.reshape(text_length, [self._batch_size])

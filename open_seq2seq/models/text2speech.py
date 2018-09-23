@@ -128,8 +128,8 @@ def save_audio(
       energy spectrogram.
     logdir (str): dir to save image file is save_to_tensorboard is disabled.
     step (int): current training step
-    sampling_rate (int): samplng rate in Hz of the audio to be saved.
     n_fft (int): number of filters for fft and ifft.
+    sampling_rate (int): samplng rate in Hz of the audio to be saved.
     number (int): Current sample number (used if evaluating more than 1 sample
     mode (str): Optional string to append to file name eg. train, eval, infer
       from a batch)
@@ -141,6 +141,10 @@ def save_audio(
   Returns:
     tf.Summary or None
   """
+  # Clip signal max and min
+  if np.min(magnitudes) < 0 or np.max(magnitudes) > 255:
+    print("WARNING: {} audio was clipped at step {}".format(mode.capitalize(), step))
+    magnitudes = np.clip(magnitudes, a_min=0, a_max=255)
   signal = griffin_lim(magnitudes.T**power, n_fft=n_fft)
   if save_format == "np.array":
     return signal
@@ -175,12 +179,16 @@ def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
   phase = np.exp(2j * np.pi * np.random.rand(*magnitudes.shape))
   complex_spec = magnitudes * phase
   signal = librosa.istft(complex_spec)
+  if not np.isfinite(signal).all():
+    print("WARNING: audio was not finite, skipping audio saving")
+    return np.array([0])
 
   for _ in range(n_iters):
     _, phase = librosa.magphase(librosa.stft(signal, n_fft=n_fft))
     complex_spec = magnitudes * phase
     signal = librosa.istft(complex_spec)
   return signal
+
 
 
 class Text2Speech(EncoderDecoderModel):
@@ -226,6 +234,20 @@ class Text2Speech(EncoderDecoderModel):
         "alignments"
     ]
 
+    if "both" in self.get_data_layer().params['output_type']:
+      specs.append(output_values[5][0])
+      titles.append("magnitude spectrogram")
+      n_feats = self.get_data_layer().params['num_audio_features']
+      mel, mag = np.split(
+          y_sample,
+          [n_feats['mel']],
+          axis=1
+      )
+      specs.insert(0, mel)
+      specs[1] = mag
+      titles.insert(0, "target mel")
+      titles[1] = "target mag"
+
     im_summary = plot_spectrograms(
         specs,
         titles,
@@ -240,13 +262,27 @@ class Text2Speech(EncoderDecoderModel):
 
     dict_to_log['image'] = im_summary
 
-    predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
-    predicted_final_spec = self.get_data_layer(
-    ).get_magnitude_spec(predicted_final_spec)
     if self._save_to_tensorboard:
       save_format = "tensorboard"
     else:
       save_format = "disk"
+    if "both" in self.get_data_layer().params['output_type']:
+      predicted_mag_spec = output_values[5][0][:audio_length - 1, :]
+      if self.get_data_layer()._exp_mag is False:
+        predicted_mag_spec = np.exp(predicted_mag_spec)
+      predicted_mag_spec =self.get_data_layer().get_magnitude_spec(predicted_mag_spec)
+      wav_summary = save_audio(
+          predicted_mag_spec,
+          self.params["logdir"],
+          step,
+          n_fft=self.get_data_layer().n_fft,
+          sampling_rate=self.get_data_layer().sampling_rate,
+          mode="train_mag",
+          save_format=save_format,
+      )
+      dict_to_log['audio_mag'] = wav_summary
+    predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
+    predicted_final_spec = self.get_data_layer().get_magnitude_spec(predicted_final_spec, is_mel=True)
     wav_summary = save_audio(
         predicted_final_spec,
         self.params["logdir"],
@@ -274,6 +310,39 @@ class Text2Speech(EncoderDecoderModel):
     stop_token_pred = output_values[3]
     audio_length = output_values[4]
 
+    max_length = np.max([
+        y_sample.shape[0],
+        predicted_final_spec.shape[0],
+        ]
+    )
+
+    alignments_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0],
+        attention_mask.shape[1]]
+    )
+
+    predictions_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0], np.shape(predicted_final_spec)[-1]]
+    )
+    stop_token_pred_pad = np.zeros(
+        [max_length - np.shape(predicted_final_spec)[0], 1]
+    )
+    spec_pad = np.zeros([max_length - np.shape(y_sample)[0], np.shape(y_sample)[-1]])
+    stop_token_pad = np.zeros([max_length - np.shape(y_sample)[0]])
+
+    predicted_spec = np.concatenate(
+        [predicted_spec, predictions_pad], axis=0
+    )
+    predicted_final_spec = np.concatenate(
+        [predicted_final_spec, predictions_pad], axis=0
+    )
+    stop_token_pred = np.concatenate(
+        [stop_token_pred, stop_token_pred_pad], axis=0
+    )
+    y_sample = np.concatenate([y_sample, spec_pad], axis=0)
+    stop_target = np.concatenate([stop_target, stop_token_pad], axis=0)
+    attention_mask = np.concatenate([attention_mask, alignments_pad], axis=0)
+
     specs = [
         y_sample,
         predicted_spec,
@@ -286,6 +355,25 @@ class Text2Speech(EncoderDecoderModel):
         "post net results",
         "alignments"
     ]
+
+    if "both" in self.get_data_layer().params['output_type']:
+      n_feats = self.get_data_layer().params['num_audio_features']
+      mag_pred = output_values[5]
+      mag_pred_pad = np.zeros(
+        [max_length - np.shape(mag_pred)[0], n_feats["magnitude"]]
+      )
+      mag_pred = np.concatenate([mag_pred, mag_pred_pad], axis=0)
+      specs.append(mag_pred)
+      titles.append("magnitude spectrogram")
+      mel, mag = np.split(
+          y_sample,
+          [n_feats['mel']],
+          axis=1
+      )
+      specs.insert(0, mel)
+      specs[1] = mag
+      titles.insert(0, "target mel")
+      titles[1] = "target mag"
 
     im_summary = plot_spectrograms(
         specs,
@@ -302,14 +390,27 @@ class Text2Speech(EncoderDecoderModel):
     dict_to_log['image'] = im_summary
 
     if audio_length > 2:
-      predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
-
-      predicted_final_spec = self.get_data_layer(
-      ).get_magnitude_spec(predicted_final_spec)
       if self._save_to_tensorboard:
         save_format = "tensorboard"
       else:
         save_format = "disk"
+      if "both" in self.get_data_layer().params['output_type']:
+        predicted_mag_spec = output_values[5][:audio_length - 1, :]
+        if self.get_data_layer()._exp_mag is False:
+          predicted_mag_spec = np.exp(predicted_mag_spec)
+        predicted_mag_spec = self.get_data_layer().get_magnitude_spec(predicted_mag_spec)
+        wav_summary = save_audio(
+            predicted_mag_spec,
+            self.params["logdir"],
+            step,
+            n_fft=self.get_data_layer().n_fft,
+            sampling_rate=self.get_data_layer().sampling_rate,
+            mode="eval_mag",
+            save_format=save_format,
+        )
+        dict_to_log['audio_mag'] = wav_summary
+      predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
+      predicted_final_spec = self.get_data_layer().get_magnitude_spec(predicted_final_spec, is_mel=True)
       wav_summary = save_audio(
           predicted_final_spec,
           self.params["logdir"],
@@ -341,7 +442,6 @@ class Text2Speech(EncoderDecoderModel):
   def finalize_inference(self, results_per_batch, output_file):
     print("output_file is ignored for ts2")
     print("results are logged to the logdir")
-    dict_to_log = {}
     batch_size = len(results_per_batch[0][0]['source_tensors'][0])
     for i, sample in enumerate(results_per_batch):
       output_values = sample[1]
@@ -360,11 +460,16 @@ class Text2Speech(EncoderDecoderModel):
         audio_length = sequence_lengths[j]
 
         if "mel" in self.get_data_layer().params['output_type']:
-          mag_spec = self.get_data_layer(
-          ).get_magnitude_spec(predicted_final_spec)
+          mag_spec = self.get_data_layer().get_magnitude_spec(predicted_final_spec)
           log_mag_spec = np.log(np.clip(mag_spec, a_min=1e-5, a_max=None))
           specs.append(log_mag_spec)
-          titles.append("linear spectrogram")
+          titles.append("magnitude spectrogram")
+        elif "both" in self.get_data_layer().params['output_type']:
+          mag_spec = self.get_data_layer().get_magnitude_spec(predicted_final_spec, is_mel=True)
+          specs.append(mag_spec)
+          titles.append("mag spectrogram from mel basis")
+          specs.append(output_values[5][j])
+          titles.append("mag spectrogram from proj layer")
 
         im_summary = plot_spectrograms(
             specs,
@@ -376,12 +481,22 @@ class Text2Speech(EncoderDecoderModel):
             number=i * batch_size + j,
             append="infer"
         )
-        dict_to_log['image'] = im_summary
 
         if audio_length > 2:
+          if "both" in self.get_data_layer().params['output_type']:
+            predicted_mag_spec = output_values[5][j][:audio_length - 1, :]
+            wav_summary = save_audio(
+                predicted_mag_spec,
+                self.params["logdir"],
+                0,
+                n_fft=self.get_data_layer().n_fft,
+                sampling_rate=self.get_data_layer().sampling_rate,
+                mode="infer_mag",
+                number=i * batch_size + j,
+                save_format="disk",
+            )
           predicted_final_spec = predicted_final_spec[:audio_length - 1, :]
-          predicted_final_spec = self.get_data_layer(
-          ).get_magnitude_spec(predicted_final_spec)
+          predicted_final_spec = self.get_data_layer().get_magnitude_spec(predicted_final_spec, is_mel=True)
           wav_summary = save_audio(
               predicted_final_spec,
               self.params["logdir"],
@@ -392,5 +507,3 @@ class Text2Speech(EncoderDecoderModel):
               number=i * batch_size + j,
               save_format="disk"
           )
-
-          dict_to_log['audio'] = wav_summary

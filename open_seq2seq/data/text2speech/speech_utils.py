@@ -17,7 +17,8 @@ def get_speech_features_from_file(
     mean=0.,
     std=1.,
     trim=False,
-    data_min=1e-5
+    data_min=1e-5,
+    mel_basis=None
 ):
   """ Helper function to retrieve spectrograms from wav files
 
@@ -53,7 +54,7 @@ def get_speech_features_from_file(
     )
   return get_speech_features(
       signal, fs, num_features, features_type, n_fft,
-      hop_length, mag_power, feature_normalize, mean, std, data_min
+      hop_length, mag_power, feature_normalize, mean, std, data_min, mel_basis
   )
 
 
@@ -68,7 +69,8 @@ def get_speech_features(
     feature_normalize=False,
     mean=0.,
     std=1.,
-    data_min=1e-5
+    data_min=1e-5,
+    mel_basis=None
 ):
   """ Helper function to retrieve spectrograms from loaded wav
 
@@ -92,38 +94,55 @@ def get_speech_features(
     np.array: np.array of audio features with shape=[num_time_steps,
     num_features].
   """
-  if features_type == 'magnitude':
-    complex_spec = librosa.stft(y=signal, n_fft=n_fft)
-    mag, _ = librosa.magphase(complex_spec, power=mag_power)
-    features = np.log(np.clip(mag, a_min=data_min, a_max=None)).T
-    assert num_features <= n_fft // 2 + 1, \
+  if isinstance(data_min, dict):
+    data_min_mel = data_min["mel"]
+    data_min_mag = data_min["magnitude"]
+  else:
+    data_min_mel = data_min_mag = data_min
+
+  if isinstance(num_features, dict):
+    num_features_mel = num_features["mel"]
+    num_features_mag = num_features["magnitude"]
+  else:
+    num_features_mel = num_features_mag = num_features
+
+  complex_spec = librosa.stft(y=signal, n_fft=n_fft)
+  mag, _ = librosa.magphase(complex_spec, power=mag_power)
+
+  if features_type == 'magnitude' or features_type == "both":
+    features = np.log(np.clip(mag, a_min=data_min_mag, a_max=None)).T
+    assert num_features_mag <= n_fft // 2 + 1, \
         "num_features for spectrogram should be <= (fs * window_size // 2 + 1)"
 
     # cut high frequency part
-    features = features[:, :num_features]
-  if 'mel' in features_type:
-    htk = True
-    norm = None
-    if 'slaney' in features_type:
-      htk = False
-      norm = 1
-    features = librosa.feature.melspectrogram(
-        y=signal,
-        sr=fs,
-        n_fft=n_fft,
-        hop_length=hop_length,
-        n_mels=num_features,
-        power=mag_power,
-        htk=htk,
-        norm=norm
-    )
-    features = np.log(np.clip(features, a_min=data_min, a_max=None)).T
+    features = features[:, :num_features_mag]
+
+  if 'mel' in features_type or features_type == "both":
+    if features_type == "both":
+      mag_features = features
+    if mel_basis is None:
+      htk = True
+      norm = None
+      if 'slaney' in features_type:
+        htk = False
+        norm = 1
+      mel_basis = librosa.filters.mel(
+          sr=fs,
+          n_fft=n_fft,
+          n_mels=num_features_mel,
+          htk=htk,
+          norm=norm
+      )
+    features = np.dot(mel_basis, mag)
+    features = np.log(np.clip(features, a_min=data_min_mel, a_max=None)).T
 
   if feature_normalize:
     features = normalize(features, mean, std)
 
-  return features
+  if features_type == "both":
+    return [features, mag_features]
 
+  return features
 
 def get_mel(
     log_mag_spec,
