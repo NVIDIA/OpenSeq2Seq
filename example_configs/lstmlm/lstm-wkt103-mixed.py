@@ -8,8 +8,7 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSampledSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-# data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-103-raw DATA]"
-data_root = "/home/chipn/data/wikitext-103-raw/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-103-raw DATA]"
 processed_data_folder = 'wkt103-processed-data'
 
 base_model = LSTMLM
@@ -105,7 +104,6 @@ train_params = {
 eval_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
@@ -118,7 +116,6 @@ eval_params = {
 infer_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,

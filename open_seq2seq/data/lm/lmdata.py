@@ -27,7 +27,6 @@ class WKTDataLayer(DataLayer):
       'small': bool,
       'use_targets': bool,
       'delimiter': str,
-      'target_file': str,
       'map_parallel_calls': int,
       'prefetch_buffer_size': int,
       'pad_lengths_to_eight': bool,
@@ -48,23 +47,23 @@ class WKTDataLayer(DataLayer):
 
     seed_tokens = self.params.get('seed_tokens', 'The').split()
     
-    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+    self.end_token = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
     self.params['seed_tokens'] = [self.corp.dictionary.word2idx[seed_token] for seed_token in seed_tokens]
     
     if self.params['mode'] == 'infer':
       self.corp.content = self.params['seed_tokens']
 
     if self.params['mode'] == 'train':
-      self._batch_size = self.params['batch_size']
+      self.batch_size = self.params['batch_size']
       self.corp.content = self.corp.train
     elif self.params['mode'] == 'eval':
-      self._batch_size = self.params['batch_size']
+      self.batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
       if len(self.corp.content) < self.params['batch_size']:
-        self._batch_size = len(self.corp.content)
+        self.batch_size = len(self.corp.content)
       else:
-        self._batch_size = self.params['batch_size']
+        self.batch_size = self.params['batch_size']
 
     self.vocab_file = (self._processed_data_folder, 'vocab.txt')
     self.bptt = self.params['bptt']
@@ -76,13 +75,12 @@ class WKTDataLayer(DataLayer):
     self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
     self._num_workers = num_workers
     self._worker_id = worker_id
-    self.params["delimiter"] = self.params.get("delimiter", " ")
-    self.params["small"] = self.params.get("small", False)
+    self.delimiter = self.params.get("delimiter", " ")
+    self._small = self.params.get("small", False)
     self.start = 0
 
     # load source and target vocabularies to RAM
-
-    if self.params["small"]:
+    if self._small:
       if self.params['mode'] == 'eval':
         self.corp.content = self.corp.content[:200]
       else:
@@ -92,7 +90,7 @@ class WKTDataLayer(DataLayer):
       self.corp.content = pad_vocab_to_eight(self.corp.content)
 
     self.dataset_size = len(self.corp.content)
-    self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
+    self.vocab_size = len(self.corp.dictionary.idx2word)
     self._input_tensors = {}
 
   def gen(self):
@@ -140,7 +138,7 @@ class WKTDataLayer(DataLayer):
     _src_tgt_dataset = _src_tgt_dataset.map(lambda x, y: ((x, tf.size(x)), (y, tf.size(y))), 
                             num_parallel_calls=self._map_parallel_calls)
 
-    self.batched_dataset = _src_tgt_dataset.batch(self._batch_size)
+    self.batched_dataset = _src_tgt_dataset.batch(self.batch_size)
 
     self._iterator = self.batched_dataset.make_initializable_iterator()
 
@@ -167,7 +165,7 @@ class WKTDataLayer(DataLayer):
   def input_tensors(self):
     return self._input_tensors
 
-class IMDBDataLayer(DataLayer):
+class TextClassificationDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -175,6 +173,7 @@ class IMDBDataLayer(DataLayer):
       'shuffle': bool,
       'repeat': bool,
       'max_length': int,
+      'processed_data_folder': str,
     })
 
   @staticmethod
@@ -184,40 +183,26 @@ class IMDBDataLayer(DataLayer):
       'small': bool,
       'use_targets': bool,
       'delimiter': str,
-      'target_file': str,
       'map_parallel_calls': int,
       'prefetch_buffer_size': int,
       'pad_lengths_to_eight': bool,
       'pad_vocab_to_eight': bool,
       'shuffle_buffer_size': int,
-      'processed_data_folder': str,
       'data_root': str,
       'binary': bool,
       'num_classes': int,
+      'get_stats': bool,
     })
 
   def __init__(self, params, model, num_workers=1, worker_id=0):
-    super(IMDBDataLayer, self).__init__(params, model,
+    super(TextClassificationDataLayer, self).__init__(params, model,
                                           num_workers, worker_id)
 
-    self._processed_data_folder = self.params.get('processed_data_folder', 'imdb-processed-data')
     self._data_root = self.params.get('data_root', None)
+    print('self._data_root', self._data_root)
     self._binary = self.params.get('binary', True)
-    if self._binary:
-      self.params['num_classes'] = 2
-    else:
-      self.params['num_classes'] = 10
-    self.corp = IMDBCorpus(self._data_root, self._processed_data_folder, self.params['lm_vocab_file'], self._binary)
-    
-    if self.params['mode'] == 'train':
-      self._batch_size = self.params['batch_size']
-      self.corp.content = self.corp.train
-    elif self.params['mode'] == 'eval':
-      self._batch_size = self.params['batch_size']
-      self.corp.content = self.corp.valid
-    else:
-      self._batch_size = self.params['batch_size']
-      self.corp.content = self.corp.test
+    self._get_stats = self.params.get('get_stats', False)
+    self._lm_vocab_file = self.params['lm_vocab_file']
 
     self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
     self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
@@ -226,50 +211,30 @@ class IMDBDataLayer(DataLayer):
     self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
     self._num_workers = num_workers
     self._worker_id = worker_id
-    self.params["delimiter"] = self.params.get("delimiter", " ")
-    self.params["small"] = self.params.get("small", False)
+    self._small = self.params.get("small", False)
     self._max_length = self.params['max_length']
+    self.delimiter = self.params.get("delimiter", " ")
+    self.EOS_ID = -1
+    self.batch_size = self.params['batch_size']
 
-    if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
+    if self._pad_lengths_to_eight and not (self._max_length % 8 == 0):
       raise ValueError("If padding to 8 in data layer, then "
                        "max_length should be multiple of 8")
-
-    # load source and target vocabularies to RAM
-    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
-    if self.params["small"]:
-      if self.params['mode'] == 'eval':
-        self.corp.content = self.corp.content[:self._batch_size * 2]
-      else:
-        self.corp.content = self.corp.content[:self._batch_size * 4]
-
-    self.dataset_size = len(self.corp.content)
-    
-    # TODO: Should have get vocab size after adding PAD
-    # better, do that in Dictionary
-    # now just pad things with EOS token
-    self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    # self.PAD_ID = self.params['vocab_size']
-    # self.PAD = '<pad>'
-    # self.corp.dictionary.idx2word.append(self.PAD)
-    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
-
-    self.EOS_ID = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
-
     self._input_tensors = {}
-    self._batch_size
 
   def gen(self):
     while True:
       for review, raw_rating in self.corp.content:
         if len(review) > self._max_length:
           review = review[-self._max_length:]
-        rating = np.zeros(self.params['num_classes'])
+        rating = np.zeros(self.num_classes)
         rating[raw_rating] = 1
         yield (review, rating)
-    
+
   def build_graph(self):
-    _src_tgt_dataset = tf.data.Dataset.from_generator(self.gen, (tf.int32, tf.int32), 
-                                (tf.TensorShape([None]), tf.TensorShape([self.params['num_classes']])))
+    _src_tgt_dataset = tf.data.Dataset.from_generator(self.gen, 
+                                        (tf.int32, tf.int32), 
+                                        (tf.TensorShape([None]), tf.TensorShape([self.num_classes])))
 
     if self._num_workers > 1:
       _src_tgt_dataset = _src_tgt_dataset\
@@ -287,7 +252,7 @@ class IMDBDataLayer(DataLayer):
                             num_parallel_calls=self._map_parallel_calls)
 
     self.batched_dataset = _src_tgt_dataset.padded_batch(
-      self._batch_size,
+      self.batch_size,
       padded_shapes=((tf.TensorShape([None]),
                       tf.TensorShape([])),
                      (tf.TensorShape([None]),
@@ -304,17 +269,7 @@ class IMDBDataLayer(DataLayer):
     self._input_tensors['source_tensors'] = [x, x_length]
     self._input_tensors['target_tensors'] = [y, y_length]
 
-    # if self.params['mode'] == 'train' or self.params['mode'] == 'eval':
-    #   t1, t2 = self.iterator.get_next()
-    #   x, x_length = t1[0], t1[1]
-    #   y, y_length = t2[0], t2[1]
-    #   self._input_tensors['source_tensors'] = [x, x_length]
-    #   self._input_tensors['target_tensors'] = [y, y_length]
-    # else: # this is unncessary
-    #   t1, _ = self.iterator.get_next()
-    #   self._input_tensors['source_tensors'] = [t1[0], t1[1]]
-
-  def get_size_in_samples(self): # why do we need this
+  def get_size_in_samples(self):
     return self.dataset_size
 
   @property
@@ -325,80 +280,69 @@ class IMDBDataLayer(DataLayer):
   def input_tensors(self):
     return self._input_tensors
 
-class SSTDataLayer(IMDBDataLayer):
-  @staticmethod
-  def get_required_params():
-    return dict(DataLayer.get_required_params(), **{
-      'lm_vocab_file': str,
-      'shuffle': bool,
-      'repeat': bool,
-      'max_length': int,
-    })
+class IMDBDataLayer(TextClassificationDataLayer):
+  '''
+  Data layer to process the raw IMDB data, which can be downloaded here:
+  http://ai.stanford.edu/~amaas/data/sentiment/
 
-  @staticmethod
-  def get_optional_params():
-    return dict(DataLayer.get_optional_params(), **{
-      'rand_start': bool,
-      'use_targets': bool,
-      'delimiter': str,
-      'target_file': str,
-      'map_parallel_calls': int,
-      'prefetch_buffer_size': int,
-      'pad_lengths_to_eight': bool,
-      'pad_vocab_to_eight': bool,
-      'shuffle_buffer_size': int,
-      'processed_data_folder': str,
-      'data_root': str,
-    })
-
+  '''
   def __init__(self, params, model, num_workers=1, worker_id=0):
-    super(IMDBDataLayer, self).__init__(params, model,
-                                          num_workers, worker_id)
+    super(IMDBDataLayer, self).__init__(params, model, num_workers, worker_id)
+    self._processed_data_folder = self.params['processed_data_folder']
 
-    self._processed_data_folder = self.params.get('processed_data_folder', 'sst-processed-data')
-    self._data_root = self.params.get('data_root', None)
-    self.params['num_classes'] = 2
-    self.corp = SSTCorpus(self._data_root, self._processed_data_folder, self.params['lm_vocab_file'])
+    if self._binary:
+      self.num_classes = 2
+    else:
+      self.num_classes = 10
+
+    self.corp = IMDBCorpus(self._data_root, 
+                          self._processed_data_folder, 
+                          self._lm_vocab_file, 
+                          self._binary,
+                          get_stats=self._get_stats)
     
     if self.params['mode'] == 'train':
-      self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.train
     elif self.params['mode'] == 'eval':
-      self._batch_size = self.params['batch_size']
       self.corp.content = self.corp.valid
     else:
-      self._batch_size = self.params['batch_size']
-      self.corp.content = self.corp.test
-
-    self._map_parallel_calls = self.params.get('map_parallel_calls', 8)
-    self._pad_lengths_to_eight = self.params.get('pad_lengths_to_eight', False)
-    self._prefetch_buffer_size = self.params.get('prefetch_buffer_size',
-                                                 tf.contrib.data.AUTOTUNE)
-    self._shuffle_buffer_size = self.params.get('shuffle_buffer_size', -1)
-    self._num_workers = num_workers
-    self._worker_id = worker_id
-    self.params["delimiter"] = self.params.get("delimiter", " ")
-    self.params["small"] = self.params.get("small", False)
-    self._max_length = self.params['max_length']
-
-    if self._pad_lengths_to_eight and not (self.params['max_length'] % 8 == 0):
-      raise ValueError("If padding to 8 in data layer, then "
-                       "max_length should be multiple of 8")
-
-    # load source and target vocabularies to RAM
-    self.params['end_token'] = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
-    self.dataset_size = len(self.corp.content)
+      self.corp.content = self.corp.test    
     
-    # TODO: Should have get vocab size after adding PAD
-    # better, do that in Dictionary
-    # now just pad things with EOS token
-    self.params['vocab_size'] = len(self.corp.dictionary.idx2word)
-    # self.PAD_ID = self.params['vocab_size']
-    # self.PAD = '<pad>'
-    # self.corp.dictionary.idx2word.append(self.PAD)
-    # self.corp.dictionary.word2idx[self.PAD] = self.PAD_ID
+    if self._small:
+      if self.params['mode'] == 'eval':
+        self.corp.content = self.corp.content[:self.batch_size * 2]
+      else:
+        self.corp.content = self.corp.content[:self.batch_size * 4]
 
+    self.dataset_size = len(self.corp.content)
+    self.vocab_size = len(self.corp.dictionary.idx2word)
     self.EOS_ID = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+    self.end_token = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
 
-    self._input_tensors = {}
-    self._batch_size
+class SSTDataLayer(TextClassificationDataLayer):
+  '''
+  Data layer to process the raw SST (Stanford Sentiment Treebank).
+  Read about the dataset here:
+  https://nlp.stanford.edu/sentiment/
+  Download the preprocessed version that can be used for this DataLayer here:
+  https://github.com/NVIDIA/sentiment-discovery/tree/master/data/binary_sst
+  '''
+  def __init__(self, params, model, num_workers=1, worker_id=0):
+    super(SSTDataLayer, self).__init__(params, model, num_workers, worker_id)
+    self._processed_data_folder = self.params['processed_data_folder']
+    self.corp = SSTCorpus(self._data_root, 
+                          self._processed_data_folder, 
+                          self._lm_vocab_file,
+                          get_stats=self._get_stats)
+    
+    if self.params['mode'] == 'train':
+      self.corp.content = self.corp.train
+    elif self.params['mode'] == 'eval':
+      self.corp.content = self.corp.valid
+    else:
+      self.corp.content = self.corp.test
+    self.num_classes = 2
+    self.dataset_size = len(self.corp.content)
+    self.vocab_size = len(self.corp.dictionary.idx2word)
+    self.EOS_ID = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]
+    self.end_token = self.corp.dictionary.word2idx[self.corp.dictionary.EOS]

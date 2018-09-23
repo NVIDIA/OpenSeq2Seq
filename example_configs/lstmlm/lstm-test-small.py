@@ -8,16 +8,15 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-# data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-2-raw DATA]"
-data_root = "/home/chipn/data/wikitext-2-raw/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-2-raw DATA]"
 processed_data_folder = 'wkt2-processed-data'
 
 base_model = LSTMLM
 bptt = 12
-steps = 40
+steps = 10
 
 base_params = {
-  "restore_best_checkpoint": False,
+  "restore_best_checkpoint": True,
   "use_horovod": False,
   "num_gpus": 2,
 
@@ -27,6 +26,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
+  "processed_data_folder": processed_data_folder,
   "logdir": "LSTM-FP32-2GPU-SMALL",
   "eval_steps": steps * 2,
 
@@ -105,7 +105,6 @@ train_params = {
 eval_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,
@@ -120,7 +119,6 @@ eval_params = {
 infer_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "processed_data_folder": processed_data_folder,
     "pad_vocab_to_eight": False,
     "shuffle": False,

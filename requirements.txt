@@ -8,3 +8,5 @@ mpi4py
 librosa==0.6.1
 matplotlib
 joblib==0.11
+sentencepiece
+sacrebleu

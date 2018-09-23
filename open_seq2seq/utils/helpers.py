@@ -109,7 +109,6 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
 
   if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):
   # if no base checkpoint or if checkpoint for the current model already exists
-    print("Creating/loading the fine-tuning model")
     session_creator = tf.train.ChiefSessionCreator(
         scaffold=scaffold,
         checkpoint_dir=checkpoint_dir,

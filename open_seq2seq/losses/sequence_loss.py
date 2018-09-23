@@ -261,7 +261,7 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
     labels = input_dict["target_tensors"][0]
 
     def _pad_tensors_to_same_length(x, y):
-      """Pad x and y so that the results have the
+      """ Pad x and y so that the results have the
       same length (second dimension).
       """
       with tf.name_scope("pad_to_same_length"):
@@ -383,29 +383,12 @@ class BasicSampledSequenceLoss(Loss):
         weights = tf.cast(weights, tf.float32)
       if biases.dtype.base_dtype != tf.float32:
         biases = tf.cast(biases, tf.float32)
-      # if targets.dtype.base_dtype != tf.float32:
-      #   targets = tf.cast(targets, tf.float32)
       crossent = tf.nn.sampled_softmax_loss(weights, 
                                             biases, 
                                             targets, 
                                             inputs,
                                             input_dict['decoder_output']['num_sampled'],
                                             self._tgt_vocab_size)
-      # from tensorflow.python.ops.nn_impl import _compute_sampled_logits
-
-      # logits, targets = _compute_sampled_logits(
-      #       weights=weights,
-      #       biases=biases,
-      #       labels=targets,
-      #       inputs=inputs,
-      #       num_sampled=input_dict['decoder_output']['num_sampled'],
-      #       num_classes=self._tgt_vocab_size)
-      # if logits.dtype.base_dtype != tf.float32:
-      #   logits = tf.cast(logits, tf.float32)
-
-      # targets = tf.stop_gradient(targets, name="labels_stop_gradient")
-      # crossent = tf.sparse_softmax_cross_entropy_with_logits(
-      #     labels=labels, logits=targets)
 
       if self._average_across_timestep:
         loss = tf.reduce_mean(crossent)

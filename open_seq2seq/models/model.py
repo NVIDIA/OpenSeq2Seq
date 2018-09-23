@@ -58,7 +58,6 @@ class Model:
         'gpu_ids': list,  # cannot be used when num_gpus is specified
 
         'load_model': str,
-        # 'load_fc': bool,
 
         'save_summaries_steps': None,  # could be int or None
         'print_loss_steps': None,  # could be int or None
@@ -67,7 +66,6 @@ class Model:
         'save_checkpoint_steps': None,  # could be int or None
         'restore_best_checkpoint': bool, # whether to restore best check point
         'eval_steps': int,
-        # 'base_logdir': str,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
 

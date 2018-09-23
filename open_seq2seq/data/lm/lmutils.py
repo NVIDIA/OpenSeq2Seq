@@ -8,6 +8,7 @@ import shutil
 
 from nltk.tokenize import word_tokenize
 import numpy as np
+import pandas as pd
 
 class Dictionary(object):
   '''
@@ -52,9 +53,6 @@ class Dictionary(object):
     return len(self.idx2word)
 
 def check_exist(proc_path):
-  '''
-  Doesn't check for the existence 
-  '''
   filenames = ['train.ids', 'valid.ids', 'test.ids']
   paths = [os.path.join(proc_path, name) for name in filenames]
   paths.append(proc_path)
@@ -69,7 +67,6 @@ def list2str(list):
 def unzip(data):
   tmp = [list(t) for t in zip(*data)]
   return (tmp[0], tmp[1])
-
 
 class Corpus(object):
   def __init__(self, raw_path, proc_path, change_contraction=True, limit=3):
@@ -119,7 +116,7 @@ class Corpus(object):
 
   def create_dictionary(self, proc_path, filename):
     '''
-    Add words to the dictionary only if it's train file
+    Add words to the dictionary only if it's in the train file
     '''
     self.dictionary.add_word(self.dictionary.UNK)
     with open(filename, 'r') as f:
@@ -150,7 +147,7 @@ class Corpus(object):
         words = line.split() + [self.dictionary.EOS]
         for word in words:
           ids.append(self.dictionary.word2idx.get(word, unk_id))
-    out.write(list2str(ids)) #TODO: change to pickle
+    out.write(list2str(ids))
     out.close()
 
     return np.asarray(ids)
@@ -170,13 +167,14 @@ class Corpus(object):
     self.test = self.load_ids(os.path.join(proc_path, 'test.ids'))
 
 class IMDBCorpus(object):
-  def __init__(self, raw_path, proc_path, lm_vocab_link, binary=True):
+  def __init__(self, raw_path, proc_path, lm_vocab_link, binary=True, get_stats=False):
     exists = check_exist(proc_path)
     pathlib.Path(proc_path).mkdir(exist_ok=True)
     self.dictionary = Dictionary(vocab_link=lm_vocab_link)
     self.binary = binary
     self.raw_path = raw_path
     self.proc_path = proc_path
+    self._get_stats = get_stats
 
     if not exists:
       print('Creating corpus from raw data ...')
@@ -229,12 +227,8 @@ class IMDBCorpus(object):
     txt = re.sub("''", '"', txt)
     txt = re.sub("' '", '"', txt)
     txt = re.sub("``", '"', txt)
-    # txt = re.sub(" ' ll ", " 'll ", txt)
-    # txt = re.sub(" ' s ", " 's ", txt)
-    # txt = re.sub(" ' m ", " 'm ", txt)
-    # txt = re.sub(" ' re ", " 're ", txt)
-    txt = re.sub('etc \.', 'etc. ', txt) # to remove
-    txt = re.sub(' etc ', ' etc. ', txt) # to remove
+    txt = re.sub('etc \.', 'etc. ', txt)
+    txt = re.sub(' etc ', ' etc. ', txt)
     return txt
 
   def tokenize_folder(self, mode, token_file, rating_file):
@@ -258,9 +252,10 @@ class IMDBCorpus(object):
         in_file.close()
 
   def txt2ids(self, mode, token_file, rating_file):
-    import matplotlib
-    matplotlib.use("TkAgg")
-    from matplotlib import pyplot as plt
+    if self._get_stats:
+      import matplotlib
+      matplotlib.use("TkAgg")
+      from matplotlib import pyplot as plt
     rating_lines = open(rating_file, 'r').readlines()
     ratings = [int(line.strip()) for line in rating_lines]
     reviews = []
@@ -271,31 +266,33 @@ class IMDBCorpus(object):
     for line in open(token_file, 'r'):
       tokens = line.strip().split()
       reviews.append([self.dictionary.word2idx.get(token, unk_id) for token in tokens])
-      for token in tokens:
-        all_tokens += 1
-        if not token in self.dictionary.word2idx:
-          unseen.append(token)
-          all_unseen += 1
+      if self._get_stats:
+        for token in tokens:
+          all_tokens += 1
+          if not token in self.dictionary.word2idx:
+            unseen.append(token)
+            all_unseen += 1
 
-    counter = Counter(unseen)
+    if self._get_stats:
+      counter = Counter(unseen)
 
-    out = open(os.path.join(self.proc_path, mode + '_unseen_imdb.txt'), 'w')
-    for key, count in counter.most_common():
-        out.write(key + '\t' + str(count) + '\n')
+      out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
+      for key, count in counter.most_common():
+          out.write(key + '\t' + str(count) + '\n')
 
-    lengths = np.asarray([len(review) for review in reviews])
-    stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'w')
-    stat_file.write(mode + '\n')
-    short_lengths = [l for l in lengths if l <= 256]
-    stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=256']) + '\n')
-    stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
-    stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
-    stat_file.write('Total {} unseen out of {} all tokens. Probability {}.\n'.
-      format(all_unseen, all_tokens, all_unseen / all_tokens))
-    plt.hist(lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
-    plt.hist(short_lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
+      lengths = np.asarray([len(review) for review in reviews])
+      stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'w')
+      stat_file.write(mode + '\n')
+      short_lengths = [l for l in lengths if l <= 256]
+      stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=256']) + '\n')
+      stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
+      stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
+      stat_file.write('Total {} unseen out of {} all tokens. Probability {}.\n'.
+        format(all_unseen, all_tokens, all_unseen / all_tokens))
+      plt.hist(lengths, bins=20)
+      plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
+      plt.hist(short_lengths, bins=20)
+      plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
 
     return list(zip(reviews, ratings))
 
@@ -330,7 +327,6 @@ class IMDBCorpus(object):
     rating_lines = open(os.path.join(self.proc_path, mode + '.rat')).readlines()
     ratings = [int(line.strip()) for line in rating_lines]
     reviews = [[int(i) for i in line.strip().split('\t')] for line in review_lines]
-    # reviews = [line.strip().split('\t') for line in review_lines]
     return list(zip(reviews, ratings))
 
   def load_corpus(self, proc_path):
@@ -340,12 +336,13 @@ class IMDBCorpus(object):
     self.test = self.load_ids('test')
 
 class SSTCorpus(object):
-  def __init__(self, raw_path, proc_path, lm_vocab_link):
+  def __init__(self, raw_path, proc_path, lm_vocab_link, get_stats=False):
     exists = check_exist(proc_path)
     pathlib.Path(proc_path).mkdir(exist_ok=True)
     self.dictionary = Dictionary(vocab_link=lm_vocab_link)
     self.raw_path = raw_path
     self.proc_path = proc_path
+    self._get_stats = get_stats
 
     if not exists:
       print('Creating corpus from raw data ...')
@@ -368,17 +365,11 @@ class SSTCorpus(object):
     return word_tokenize(txt)
 
   def tokenize(self, txt):
-    # txt = re.sub('<br />', ' ', txt)
-    # txt = re.sub('', ' ', txt)
-    # txt = re.sub('', ' ', txt)
     txt = re.sub('-', ' - ', txt)
-    # txt = re.sub('\.', ' . ', txt)
     txt = re.sub('\+', ' + ', txt)
     txt = re.sub('\*', ' * ', txt)
     txt = re.sub('/', ' / ', txt)
     txt = re.sub('`', "'", txt)
-    # txt = re.sub(' ms \.', " ms.", txt)
-    # txt = re.sub('Ms \.', "Ms.", txt)
     
     words = []
     for token in word_tokenize(txt):
@@ -398,17 +389,11 @@ class SSTCorpus(object):
     txt = re.sub("''", '"', txt)
     txt = re.sub("' '", '"', txt)
     txt = re.sub("``", '"', txt)
-    # txt = re.sub(" ' ll ", " 'll ", txt)
-    # txt = re.sub(" ' s ", " 's ", txt)
-    # txt = re.sub(" ' m ", " 'm ", txt)
-    # txt = re.sub(" ' re ", " 're ", txt)
-    txt = re.sub('etc \.', 'etc. ', txt) # to remove
-    txt = re.sub(' etc ', ' etc. ', txt) # to remove
+    txt = re.sub('etc \.', 'etc. ', txt)
+    txt = re.sub(' etc ', ' etc. ', txt)
     return txt
 
   def tokenize_file(self, mode):
-    import pandas as pd
-
     data = pd.read_csv(os.path.join(self.raw_path, mode + '.csv'))
 
     if mode == 'val':
@@ -421,9 +406,10 @@ class SSTCorpus(object):
       rating_file.write(str(row['label']) + '\n')
 
   def txt2ids(self, mode):
-    import matplotlib
-    matplotlib.use("TkAgg")
-    from matplotlib import pyplot as plt
+    if self._get_stats:
+      import matplotlib
+      matplotlib.use("TkAgg")
+      from matplotlib import pyplot as plt
 
     reviews = []
     unk_id = self.dictionary.word2idx[self.dictionary.UNK]
@@ -437,31 +423,33 @@ class SSTCorpus(object):
     for line in open(os.path.join(self.proc_path, mode + '.tok'), 'r'):
       tokens = line.strip().split()
       reviews.append([self.dictionary.word2idx.get(token, unk_id) for token in tokens])
-      for token in tokens:
-        all_tokens += 1
-        if not token in self.dictionary.word2idx:
-          unseen.append(token)
-          all_unseen += 1
+      if self._get_stats:
+        for token in tokens:
+          all_tokens += 1
+          if not token in self.dictionary.word2idx:
+            unseen.append(token)
+            all_unseen += 1
 
-    counter = Counter(unseen)
+    if self._get_stats:
+      counter = Counter(unseen)
 
-    out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
-    for key, count in counter.most_common():
-        out.write(key + '\t' + str(count) + '\n')
+      out = open(os.path.join(self.proc_path, mode + '_unseen.txt'), 'w')
+      for key, count in counter.most_common():
+          out.write(key + '\t' + str(count) + '\n')
 
-    lengths = np.asarray([len(review) for review in reviews])
-    stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
-    stat_file.write(mode + '\n')
-    short_lengths = [l for l in lengths if l <= 96]
-    stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=96']) + '\n')
-    stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
-    stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
-    stat_file.write('Total {} unseen out of {} all tokens. Probability {}.\n'.
-      format(all_unseen, all_tokens, all_unseen / all_tokens))
-    plt.hist(lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
-    plt.hist(short_lengths, bins=20)
-    plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
+      lengths = np.asarray([len(review) for review in reviews])
+      stat_file = open(os.path.join(self.proc_path, 'statistics.txt'), 'a')
+      stat_file.write(mode + '\n')
+      short_lengths = [l for l in lengths if l <= 96]
+      stat_file.write('\t'.join(['Min', 'Max', 'Mean', 'Median', 'STD', 'Total', '<=96']) + '\n')
+      stats = [np.min(lengths), np.max(lengths), np.mean(lengths), np.median(lengths), np.std(lengths), len(lengths), len(short_lengths)]
+      stat_file.write('\t'.join([str(t) for t in stats]) + '\n')
+      stat_file.write('Total {} unseen out of {} all tokens. Probability {}.\n'.
+        format(all_unseen, all_tokens, all_unseen / all_tokens))
+      plt.hist(lengths, bins=20)
+      plt.savefig(os.path.join(self.proc_path, mode + '_hist.png'))
+      plt.hist(short_lengths, bins=20)
+      plt.savefig(os.path.join(self.proc_path, mode + '_short_hist.png'))
 
     return list(zip(reviews, ratings))
 
@@ -501,6 +489,6 @@ class SSTCorpus(object):
     self.test = self.load_ids('test')
 
 # SSTCorpus('/home/chipn/data/binary_sst', 'sst-processed-data-wkt2' , '/home/chipn/dev/OpenSeq2Seq/wkt2-processed-data/vocab.txt')
-SSTCorpus('/home/chipn/data/binary_sst', 'sst-processed-data-wkt103' , '/home/chipn/dev/OpenSeq2Seq/wkt103-processed-data/vocab.txt')
+# SSTCorpus('/home/chipn/data/binary_sst', 'sst-processed-data-wkt103' , '/home/chipn/dev/OpenSeq2Seq/wkt103-processed-data/vocab.txt')
 # IMDBCorpus('/home/chipn/data/aclImdb', 'imdb-processed-data-wkt103' , '/home/chipn/dev/OpenSeq2Seq/wkt103-processed-data/vocab.txt')
 # IMDBCorpus('/home/chipn/data/aclImdb', 'imdb-processed-data-wkt2' , '/home/chipn/dev/OpenSeq2Seq/wkt2-processed-data/vocab.txt')

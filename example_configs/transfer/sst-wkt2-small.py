@@ -11,7 +11,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr
 base_model = LSTMLM
 steps = 10
 
-data_root = "/home/chipn/data/binary_sst"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR SST DATA]"
 processed_data_folder = 'sst-processed-data-wkt2'
 binary = True
 max_length = 96
@@ -30,7 +30,7 @@ base_params = {
   "save_checkpoint_steps": steps,
   "load_model": "LSTM-FP32-2GPU-SMALL",
   "lm_vocab_file": 'wkt2-processed-data/vocab.txt',
-  # "lm_vocab_file": '[LINK TO THE VOCAB FILE OF THE PROCESSED DATA USED TO TRAIN THE BASE LM]'
+  # "lm_vocab_file": '[LINK TO THE VOCAB FILE IN THE PROCESSED DATA USED TO TRAIN THE BASE LM]'
   "logdir": "SST-WKT2-SMALL",
   "processed_data_folder": processed_data_folder,
   "eval_steps": steps,
@@ -100,6 +100,7 @@ train_params = {
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
     "max_length": max_length,
+    "get_stats": True,
   },
 }
 eval_params = {

@@ -6,8 +6,6 @@ import tensorflow as tf
 
 from open_seq2seq.models.model import Model
 from open_seq2seq.utils.utils import deco_print
-from open_seq2seq.data import WKTDataLayer
-
 
 class EncoderDecoderModel(Model):
   """
@@ -31,7 +29,7 @@ class EncoderDecoderModel(Model):
         'loss_params': dict,
     })
 
-  def __init__(self, params, mode="train", hvd=None, lm=False):
+  def __init__(self, params, mode="train", hvd=None):
     """Encoder-decoder model constructor.
     Note that TensorFlow graph should not be created here. All graph creation
     logic is happening inside
@@ -73,9 +71,6 @@ class EncoderDecoderModel(Model):
       self.params['decoder_params'] = {}
     if 'loss_params' not in self.params:
       self.params['loss_params'] = {}
-
-    if lm:
-      self._lm_phase = isinstance(self.get_data_layer(), WKTDataLayer)
 
     self._encoder = self._create_encoder()
     self._decoder = self._create_decoder()

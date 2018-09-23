@@ -29,7 +29,6 @@ class LMEncoder(Encoder):
       'encoder_use_skip_connections': bool,
       'core_cell': None,
       'core_cell_params': dict,
-      'output_dim': int,
       'end_token': int,
       "batch_size": int,
     })
@@ -110,9 +109,6 @@ class LMEncoder(Encoder):
     
     if mode == 'infer' and self._lm_phase:
       self._batch_size = len(self.params['seed_tokens'])
-    # else:
-    #   self.num_tokens_gen = 1
-    #   self._batch_size = self.params['batch_size']
     self._use_cell_state = self.params.get('use_cell_state', False)
 
   def encode(self, input_dict):
@@ -296,16 +292,14 @@ class LMEncoder(Encoder):
         else:
           encoder_outputs = encoder_state[-1].h
 
-      if self._mode == 'train' and self._num_sampled < self._fc_dim: 
-      # sampled softmax
+      if self._mode == 'train' and self._num_sampled < self._fc_dim: # sampled softmax
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,
                     'inputs': encoder_outputs,
                     'logits': encoder_outputs,
                     'outputs': [encoder_outputs],
                     'num_sampled': self._num_sampled}
-      else:
-      # full softmax
+      else: # full softmax
         logits = self._output_layer.apply(encoder_outputs)
         output_dict = {'logits': logits, 'outputs': [logits]}
     else: # infer in LM phase

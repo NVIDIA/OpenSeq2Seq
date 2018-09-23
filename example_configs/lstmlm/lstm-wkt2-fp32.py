@@ -8,8 +8,7 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-# data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-2-raw DATA]"
-data_root = "/home/chipn/data/wikitext-2-raw/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-2-raw DATA]"
 processed_data_folder = 'wkt2-processed-data'
 
 base_model = LSTMLM
@@ -33,22 +32,11 @@ base_params = {
 
   "optimizer": "Adam",
   "optimizer_params": {},
-  # luong10 decay scheme
 
   "lr_policy": fixed_lr,
   "lr_policy_params": {
     "learning_rate": 4e-4
   },
-
-  # "lr_policy": exp_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.0008,
-  #   "begin_decay_at": 170000,
-  #   "decay_steps": 17000,
-  #   "decay_rate": 0.5,
-  #   "use_staircase_decay": True,
-  #   "min_lr": 0.0000005,
-  # },
   "summaries": ['learning_rate', 'variables', 'gradients', 
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   # "max_grad_norm": 0.25,
@@ -87,7 +75,7 @@ base_params = {
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 2e-6, # alpha
+    'scale': 2e-6,
   },
 
   "loss": BasicSequenceLoss,
@@ -115,7 +103,6 @@ train_params = {
 eval_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,
@@ -128,7 +115,6 @@ eval_params = {
 infer_params = {
   "data_layer": WKTDataLayer,
   "data_layer_params": {
-    # "data_root": data_root,
     "pad_vocab_to_eight": False,
     "shuffle": False,
     "repeat": False,

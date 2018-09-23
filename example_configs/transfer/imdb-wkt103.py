@@ -8,7 +8,7 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-data_root = "/home/chipn/data/aclImdb"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR IMDB DATA]"
 processed_data_folder = 'imdb-processed-data-wkt103'
 
 base_model = LSTMLM
@@ -28,10 +28,10 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "load_model": "AWDWKT103-EXP3",
+  "load_model": "WKT103-CPT",
   "logdir": "IMDB-WKT103-EXP1",
   "lm_vocab_file": 'wkt103-processed-data/vocab.txt',
-  # "lm_vocab_file": '[LINK TO THE VOCAB FILE OF THE PROCESSED DATA USED TO TRAIN THE BASE LM]'
+  # "lm_vocab_file": '[LINK TO THE VOCAB FILE IN THE PROCESSED DATA USED TO TRAIN THE BASE LM]'
   "processed_data_folder": processed_data_folder,
   "eval_steps": steps,
 
@@ -100,6 +100,7 @@ train_params = {
     "prefetch_buffer_size": 8,
     "binary": binary,
     "max_length": max_length,
+    "get_stats": True,
     # "small": True,
   },
 }
@@ -128,7 +129,6 @@ infer_params = {
     "rand_start": False,
     "map_parallel_calls": 16,
     "prefetch_buffer_size": 8,
-    "seed_tokens": "something The only game",
     "binary": binary,
     "max_length": max_length,
   },

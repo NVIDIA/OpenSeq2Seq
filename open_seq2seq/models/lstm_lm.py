@@ -3,6 +3,7 @@ import numpy as np
 import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel
+from open_seq2seq.data import WKTDataLayer
 from open_seq2seq.utils.utils import deco_print, array_to_string
 from open_seq2seq.utils import metrics
 
@@ -11,25 +12,40 @@ class LSTMLM(EncoderDecoderModel):
   An example class implementing classical text-to-text model.
   """
   def __init__(self, params, mode="train", hvd=None):
-    super(LSTMLM, self).__init__(params=params, mode=mode, hvd=hvd, lm=True)
+    super(EncoderDecoderModel, self).__init__(params=params, mode=mode, hvd=hvd)
+
+    if 'encoder_params' not in self.params:
+      self.params['encoder_params'] = {}
+    if 'decoder_params' not in self.params:
+      self.params['decoder_params'] = {}
+    if 'loss_params' not in self.params:
+      self.params['loss_params'] = {}
+
+    self._lm_phase = isinstance(self.get_data_layer(), WKTDataLayer)
+
+    self._encoder = self._create_encoder()
+    self._decoder = self._create_decoder()
+    if self.mode == 'train' or self.mode == 'eval':
+      self._loss_computator = self._create_loss()
+    else:
+      self._loss_computator = None
+
+    self.delimiter = self.get_data_layer().delimiter
 
   def _create_encoder(self):
     self._print_f1 = False
     self.params['encoder_params']['vocab_size'] = (
-      self.get_data_layer().params['vocab_size']
-    )
-    self.params['encoder_params']['output_dim'] = (
-      self.get_data_layer().params['vocab_size']
+      self.get_data_layer().vocab_size
     )
     self.params['encoder_params']['end_token'] = (
-      self.get_data_layer().params['end_token']
+      self.get_data_layer().end_token
     )
     self.params['encoder_params']['batch_size'] = (
-      self.get_data_layer().params['batch_size']
+      self.get_data_layer().batch_size
     )
     if not self._lm_phase:
       self.params['encoder_params']['fc_dim'] = (
-        self.get_data_layer().params['num_classes']
+        self.get_data_layer().num_classes
       )
       if self.params['encoder_params']['fc_dim'] == 2:
         self._print_f1 = True
@@ -42,10 +58,10 @@ class LSTMLM(EncoderDecoderModel):
   def _create_loss(self):
     if self._lm_phase:
       self.params['loss_params']['batch_size'] = (
-        self.get_data_layer().params['batch_size']
+        self.get_data_layer().batch_size
       )
       self.params['loss_params']['tgt_vocab_size'] = (
-        self.get_data_layer().params['vocab_size']
+        self.get_data_layer().vocab_size
       )
 
     return super(LSTMLM, self)._create_loss()
@@ -61,7 +77,7 @@ class LSTMLM(EncoderDecoderModel):
           "Output: " + array_to_string(
             output_values[0][i],
             vocab=self.get_data_layer().corp.dictionary.idx2word,
-            delim=self.get_data_layer().params["delimiter"],
+            delim=self.delimiter,
           ),
           offset=4,
         )
@@ -78,7 +94,7 @@ class LSTMLM(EncoderDecoderModel):
         current_x = array_to_string(
           ex[i][:elen_x[i]],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         current_pred = np.argmax(output_values[0][i])
         curret_y = None
@@ -102,7 +118,7 @@ class LSTMLM(EncoderDecoderModel):
       "Train Source[0]:     " + array_to_string(
         x_sample[:len_x_sample],
         vocab=self.get_data_layer().corp.dictionary.idx2word,
-        delim=self.get_data_layer().params["delimiter"],
+        delim=self.delimiter,
       ),
       offset=4,
     )
@@ -112,7 +128,7 @@ class LSTMLM(EncoderDecoderModel):
         "Train Target[0]:     " + array_to_string(
           y_sample[:len_y_sample],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         offset=4,
       )
@@ -128,8 +144,8 @@ class LSTMLM(EncoderDecoderModel):
       )
       labels = np.argmax(y, 1)
       preds = np.argmax(output_values[0], axis=-1)
-      print('labels', labels)
-      print('preds', preds)
+      print('Labels', labels)
+      print('Preds', preds)
 
       deco_print(
         "Accuracy: {:.4f}".format(metrics.accuracy(labels, preds)),
@@ -167,7 +183,7 @@ class LSTMLM(EncoderDecoderModel):
         "*****EVAL Source[0]:     " + array_to_string(
           x_sample[:len_x_sample],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         offset=4,
       )
@@ -176,7 +192,7 @@ class LSTMLM(EncoderDecoderModel):
         "*****EVAL Target[0]:     " + array_to_string(
           y_sample[:len_y_sample],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         offset=4,
       )
@@ -185,7 +201,7 @@ class LSTMLM(EncoderDecoderModel):
         "*****EVAL Prediction[0]: " + array_to_string(
           samples,
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         offset=4,
       )
@@ -194,11 +210,11 @@ class LSTMLM(EncoderDecoderModel):
         "*****EVAL Source[0]:     " + array_to_string(
           x_sample[:len_x_sample],
           vocab=self.get_data_layer().corp.dictionary.idx2word,
-          delim=self.get_data_layer().params["delimiter"],
+          delim=self.delimiter,
         ),
         offset=4,
       )
-      samples = output_values[0][0] # TODO: only get the last prediction
+      samples = output_values[0][0]
       deco_print(
         "EVAL Target[0]:     " + str(np.argmax(y_sample)),
         offset=4,
@@ -210,8 +226,8 @@ class LSTMLM(EncoderDecoderModel):
 
       labels = np.argmax(ey, 1)
       preds = np.argmax(output_values[0], axis=-1)
-      print('labels', labels)
-      print('preds', preds)
+      print('Labels', labels)
+      print('Preds', preds)
 
       return_values['accuracy'] = metrics.accuracy(labels, preds)
 
