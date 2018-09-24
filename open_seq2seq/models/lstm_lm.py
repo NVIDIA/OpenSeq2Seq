@@ -9,7 +9,7 @@ from open_seq2seq.utils import metrics
 
 class LSTMLM(EncoderDecoderModel):
   """
-  An example class implementing classical text-to-text model.
+  An example class implementing an LSTM language model.
   """
   def __init__(self, params, mode="train", hvd=None):
     super(EncoderDecoderModel, self).__init__(params=params, mode=mode, hvd=hvd)

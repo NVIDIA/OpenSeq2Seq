@@ -1,4 +1,4 @@
-# Copyright (c) 2017 NVIDIA Corporation
+# Copyright (c) 2018 NVIDIA Corporation
 import random
 
 import numpy as np
@@ -12,6 +12,13 @@ from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
 from open_seq2seq.data.lm.lmutils import Dictionary, Corpus, IMDBCorpus, SSTCorpus
 
 class WKTDataLayer(DataLayer):
+  '''
+  WKTDataLayer does the necessary pre-processing to make the WikiText datasets 
+  ready to be fed into the model. We use the ``word_token`` method 
+  available in the ``nltk`` package. 
+  You can download the datasets here:
+  https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
+  '''
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{
@@ -166,6 +173,11 @@ class WKTDataLayer(DataLayer):
     return self._input_tensors
 
 class TextClassificationDataLayer(DataLayer):
+  '''
+  The base ckass to process data for text classification tasks.
+  If the data has already been processed, it shoud load the processed
+  data instead of re-processing it.
+  '''
   @staticmethod
   def get_required_params():
     return dict(DataLayer.get_required_params(), **{

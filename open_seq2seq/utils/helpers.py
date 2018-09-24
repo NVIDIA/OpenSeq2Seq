@@ -1,3 +1,8 @@
+'''
+This file modifies standard TensorFlow modules necessary for transfer learning, 
+such as MonitoredTrainingSession, ChiefSessionCreator, Scaffold, SessionManager
+'''
+
 import time
 
 import tensorflow as tf

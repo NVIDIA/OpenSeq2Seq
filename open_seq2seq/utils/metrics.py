@@ -1,3 +1,7 @@
+# Copyright (c) 2018 NVIDIA Corporation
+'''
+This file implements function to calcuate basic metrics.
+'''
 import numpy as np
 import tensorflow as tf
 

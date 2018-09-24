@@ -310,7 +310,9 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
 
 class BasicSampledSequenceLoss(Loss):
   """
-  Basic sequence-to-sequence loss. This one does not use one-hot encodings
+  Basic sampled sequence-to-sequence loss. This is used when the full softmax
+  is computational prohibitive.
+  This one does not use one-hot encodings.
   """
   @staticmethod
   def get_required_params():

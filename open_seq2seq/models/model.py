@@ -64,7 +64,7 @@ class Model:
         'print_samples_steps': None,  # could be int or None
         'print_bench_info_steps': None,  # could be int or None
         'save_checkpoint_steps': None,  # could be int or None
-        'restore_best_checkpoint': bool, # whether to restore best check point
+        'restore_best_checkpoint': bool, # if True,restore best check point instead of latest checkpoint
         'eval_steps': int,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
@@ -124,6 +124,11 @@ class Model:
       used if ``num_gpus`` is specified. When ``use_horovod`` is True
       this parameter is ignored.
     * **batch_size_per_gpu** (int) --- batch size to use for each GPU.
+    * **eval_batch_size_per_gpu** (int) --- batch size to use for each GPU during
+      inference. This is for when training and inference have different computation
+      and memory requirements, such as when training uses sampled softmax and
+      inference uses full softmax. If not specified, it's automatically set
+      to **batch_size_per_gpu**.
     * **num_epochs** (int) --- number of epochs to run training for.
       This parameter cannot be used if ``max_steps`` is specified.
     * **max_steps** (int) --- number of steps to run training for.
