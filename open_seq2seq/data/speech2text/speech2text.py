@@ -59,7 +59,8 @@ class Speech2TextDataLayer(DataLayer):
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
 
-    self.autoregressive = self.params.get('autoregressive', False)
+    self.params['autoregressive'] = self.params.get('autoregressive', False)
+    self.autoregressive = self.params['autoregressive']
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'], read_chars=True,
     )
