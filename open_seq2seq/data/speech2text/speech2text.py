@@ -129,7 +129,7 @@ class Speech2TextDataLayer(DataLayer):
       if self.params['shuffle']:
         self._dataset = self._dataset.shuffle(self._size)
       self._dataset = self._dataset.repeat()
-
+      self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
               self._parse_audio_transcript_element,
@@ -155,7 +155,7 @@ class Speech2TextDataLayer(DataLayer):
                          1, [None], 1),
           padding_values=(
               tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
-      )
+      ).cache()
     else:
       indices = self.split_data(
           np.array(list(map(str, range(len(self.all_files)))))
@@ -164,6 +164,7 @@ class Speech2TextDataLayer(DataLayer):
           np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
       )
       self._dataset = self._dataset.repeat()
+      self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
               self._parse_audio_element,
