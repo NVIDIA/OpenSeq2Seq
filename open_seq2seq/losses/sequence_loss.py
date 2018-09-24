@@ -83,8 +83,6 @@ class BasicSequenceLoss(Loss):
       target_sequence = tf.slice(target_sequence,
                                  begin=[0, 1],
                                  size=[-1, current_ts])
-      if tgt_lengths is not None:
-        tgt_lengths = tgt_lengths - 1
     else:
       current_ts = tf.to_int32(tf.minimum(
           tf.shape(target_sequence)[1],
@@ -98,7 +96,7 @@ class BasicSequenceLoss(Loss):
     if self._do_mask:
       if tgt_lengths is None:
         raise ValueError("If you are masking loss, tgt_lengths can't be None")
-      mask = tf.sequence_mask(lengths=tgt_lengths,
+      mask = tf.sequence_mask(lengths=tgt_lengths - 1,
                               maxlen=current_ts,
                               dtype=logits.dtype)
     else:
