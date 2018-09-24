@@ -75,8 +75,7 @@ def get_regularization_loss(scope=None, name="total_regularization_loss"):
 
 def reduce_gradients(grads_and_vars, on_horovod):
   if on_horovod:
-    from horovod.common import size
-    from horovod.tensorflow import allreduce
+    from horovod.tensorflow import allreduce, size
 
     if size() > 1:
       averaged_grads_and_vars = []
