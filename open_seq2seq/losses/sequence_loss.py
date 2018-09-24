@@ -262,7 +262,7 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
     labels = input_dict["target_tensors"][0]
 
     def _pad_tensors_to_same_length(x, y):
-      """Pad x and y so that the results have the
+      """ Pad x and y so that the results have the
       same length (second dimension).
       """
       with tf.name_scope("pad_to_same_length"):
@@ -311,7 +311,9 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
 
 class BasicSampledSequenceLoss(Loss):
   """
-  Basic sequence-to-sequence loss. This one does not use one-hot encodings
+  Basic sampled sequence-to-sequence loss. This is used when the full softmax
+  is computational prohibitive.
+  This one does not use one-hot encodings.
   """
   @staticmethod
   def get_required_params():
@@ -371,19 +373,29 @@ class BasicSampledSequenceLoss(Loss):
     tgt_lengths = input_dict['target_tensors'][1]
 
     if 'weights' in input_dict['decoder_output']:
-      print('DOING SAMPLED LOSS')
+      print("Because 'weights' is in the input_dict, we are using sampled softmax loss.")
       inputs = input_dict["decoder_output"]['inputs']
       self._hid_dim = inputs.get_shape().as_list()[-1]
       inputs = tf.reshape(inputs, (-1, self._hid_dim))
       targets = tf.reshape(target_sequence, (-1, 1))
-      crossent = tf.nn.sampled_softmax_loss(input_dict["decoder_output"]['weights'],
-                                            input_dict[
-          "decoder_output"]['bias'],
-          targets,
-          inputs,
-          input_dict['decoder_output'][
-          'num_sampled'],
-          self._tgt_vocab_size)
+
+      weights = input_dict["decoder_output"]['weights']
+      biases = input_dict["decoder_output"]['bias']
+      
+      if inputs.dtype.base_dtype != tf.float32:
+        inputs = tf.cast(inputs, tf.float32)
+      if weights.dtype.base_dtype != tf.float32:
+        weights = tf.cast(weights, tf.float32)
+      if biases.dtype.base_dtype != tf.float32:
+        biases = tf.cast(biases, tf.float32)
+      crossent = tf.nn.sampled_softmax_loss(weights, 
+                                            biases, 
+                                            targets, 
+                                            inputs,
+                                            input_dict['decoder_output']['num_sampled'],
+                                            self._tgt_vocab_size)
+
+
       if self._average_across_timestep:
         loss = tf.reduce_mean(crossent)
       else:
@@ -391,6 +403,7 @@ class BasicSampledSequenceLoss(Loss):
         loss /= self._batch_size
 
     else:
+      print("Because 'weights' is not in the input_dict, we are using normal softmax loss.")
       logits = input_dict["decoder_output"]["logits"]
 
       if self._offset_target_by_one:

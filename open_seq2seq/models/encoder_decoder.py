@@ -7,7 +7,6 @@ import tensorflow as tf
 from open_seq2seq.models.model import Model
 from open_seq2seq.utils.utils import deco_print
 
-
 class EncoderDecoderModel(Model):
   """
   Standard encoder-decoder class with one encoder and one decoder.
@@ -64,8 +63,8 @@ class EncoderDecoderModel(Model):
     * **loss_params** (dict) --- dictionary with loss configuration. For
       complete list of possible parameters see the corresponding class docs.
     """
-    super(EncoderDecoderModel, self).__init__(
-        params=params, mode=mode, hvd=hvd)
+    super(EncoderDecoderModel, self).__init__(params=params, mode=mode, hvd=hvd)
+
     if 'encoder_params' not in self.params:
       self.params['encoder_params'] = {}
     if 'decoder_params' not in self.params:

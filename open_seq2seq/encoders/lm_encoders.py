@@ -18,7 +18,7 @@ from .encoder import Encoder
 
 class LMEncoder(Encoder):
   """
-  RNN-based encoder with embeddings
+  RNN-based encoder with embeddings for language modeling
   """
   @staticmethod
   def get_required_params():
@@ -29,8 +29,6 @@ class LMEncoder(Encoder):
       'encoder_use_skip_connections': bool,
       'core_cell': None,
       'core_cell_params': dict,
-      'last_cell_params': dict,
-      'output_dim': int,
       'end_token': int,
       "batch_size": int,
     })
@@ -41,7 +39,7 @@ class LMEncoder(Encoder):
       'encoder_dp_input_keep_prob': float,
       'encoder_dp_output_keep_prob': float,
       "encoder_last_input_keep_prob": float,
-      "encoder_last_output_keep_prob": float, # output droput at last layer is 0.4
+      "encoder_last_output_keep_prob": float,
       'encoder_emb_keep_prob': float,
       'variational_recurrent': bool,
       'time_major': bool,
@@ -61,6 +59,8 @@ class LMEncoder(Encoder):
       "weight_variational": bool,
       "dropout_seed": int,
       "num_sampled": int,
+      "fc_dim": int,
+      "use_cell_state": bool,
     })
 
   def __init__(self, params, model,
@@ -68,19 +68,48 @@ class LMEncoder(Encoder):
     """
     Initializes bi-directional encoder with embeddings
     :param params: dictionary with encoder parameters
+
+    Many of the techniques in this implementation is taken from the paper
+    "Regularizing and Optimizing LSTM Language Models" (Merity et al., 2017)
+    https://arxiv.org/pdf/1708.02182.pdf
+
     Must define:
       * vocab_size - data vocabulary size
       * emb_size - size of embedding to use
       * encoder_cell_units - number of units in RNN cell
       * encoder_cell_type - cell type: lstm, gru, etc.
       * encoder_layers - number of layers
-      * encoder_dp_input_keep_prob -
-      * encoder_dp_output_keep_prob -
       * encoder_use_skip_connections - true/false
       * time_major (optional)
       * use_swap_memory (optional)
       * mode - train or infer
-      ... add any cell-specific parameters here as well
+      * input_weight_keep_prob: keep probability for dropout of W 
+                                (kernel used to multiply with the input tensor)
+      * recurrent_weight_keep_prob: keep probability for dropout of U
+                                  (kernel used to multiply with last hidden state tensor)
+      * recurrent_keep_prob: keep probability for dropout
+                            when applying tanh for the input transform step
+      * weight_variational: whether to keep the same weight dropout mask
+                            at every timestep. This feature is not yet implemented.
+      * emb_keep_prob: keep probability for dropout of the embedding matrix
+      * encoder_dp_input_keep_prob: keep probability for dropout on input of a LSTM cell
+                                    in the layer which is not the last layer
+      * encoder_dp_output_keep_prob: keep probability for dropout on output of a LSTM cell
+                                    in the layer which is not the last layer
+      * encoder_last_input_keep_prob: like ``encoder_dp_input_keep_prob`` but for the 
+                                      cell in the last layer
+      * encoder_dp_output_keep_prob: like ``encoder_dp_output_keep_prob`` but for the 
+                                      cell in the last layer
+      * weight_tied: whether to tie the embedding matrix to the last linear layer.
+                     can only do so if the dimension of the last output layer is
+                     the same as the vocabulary size
+      * use_cell_state: if set to True, concat the last hidden state and 
+                        the last cell state to input into the last output layer.
+                        This only works for the text classification task, not the
+                        language modeling phase.
+      For different ways to do dropout for LSTM cells, please read this article:
+      https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b
+
     :param encoder_params:
     """
     super(LMEncoder, self).__init__(
@@ -101,16 +130,15 @@ class LMEncoder(Encoder):
     self.params['recurrent_weight_keep_prob'] = self.params.get('recurrent_weight_keep_prob', 1.0)
     self.params['weight_variational'] = self.params.get('weight_variational', False)
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
-    self._num_sampled = self.params.get('num_sampled', self._vocab_size) # if num_sampled not define then just take full softmax
-
-    if mode == 'infer':
-      self.num_tokens_gen = self.params.get('num_tokens_gen', 1)
+    self._fc_dim = self.params.get('fc_dim', self._vocab_size)
+    self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not defined, take full softmax
+    self._lm_phase = self._fc_dim == self._vocab_size
+    self._num_tokens_gen = self.params.get('num_tokens_gen', 200)
+    self._batch_size = self.params['batch_size']
+    
+    if mode == 'infer' and self._lm_phase:
       self._batch_size = len(self.params['seed_tokens'])
-    else:
-      self.num_tokens_gen = 1
-      self._batch_size = self.params['batch_size']
-      # if self._vocab_size > 100000 and mode == 'eval':
-      #   self._batch_size = 2
+    self._use_cell_state = self.params.get('use_cell_state', False)
 
   def encode(self, input_dict):
     """Wrapper around :meth:`self._encode() <_encode>` method.
@@ -193,21 +221,36 @@ class LMEncoder(Encoder):
       emb_keep_prob, recurrent_keep_prob = 1.0, 1.0
       input_weight_keep_prob, recurrent_weight_keep_prob = 1.0, 1.0
 
+
     self._output_layer = tf.layers.Dense(
-      self._vocab_size, 
+      self._fc_dim, 
       kernel_regularizer=regularizer,
       kernel_initializer=initializer,
       use_bias=fc_use_bias,
+      dtype=self._params['dtype']
     )
 
     if self._weight_tied:
-      fake_input = tf.zeros(shape=(1, self._emb_size))
-      fake_output = self._output_layer.apply(fake_input)
-      with tf.variable_scope("dense", reuse=True):
-        dense_weights = tf.get_variable("kernel")
-        dense_biases = tf.get_variable("bias")
+      last_cell_params = copy.deepcopy(self.params['core_cell_params'])
+      last_cell_params['num_units'] = self._emb_size
+    else:
+      last_cell_params = self.params['core_cell_params']
+    
+    last_output_dim = last_cell_params['num_units']
+
+    if self._use_cell_state:
+      last_output_dim = 2 * last_output_dim
+
+
+    fake_input = tf.zeros(shape=(1, last_output_dim), 
+                          dtype=self._params['dtype'])
+    fake_output = self._output_layer.apply(fake_input)
+    with tf.variable_scope("dense", reuse=True):
+      dense_weights = tf.get_variable("kernel")
+      dense_biases = tf.get_variable("bias")
+    
+    if self._weight_tied and self._lm_phase:
       enc_emb_w = tf.transpose(dense_weights)
-        
     else:
       enc_emb_w = tf.get_variable(
         name="EncoderEmbeddingMatrix",
@@ -216,11 +259,6 @@ class LMEncoder(Encoder):
       )
 
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
-
-    if self._weight_tied:
-      last_cell_params = self.params['last_cell_params']
-    else:
-      last_cell_params = self.params['core_cell_params']
 
     fwd_cells = [
       single_cell(cell_class=self.params['core_cell'],
@@ -261,7 +299,8 @@ class LMEncoder(Encoder):
     source_sequence = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
-    if self._mode == 'train' or self._mode == 'eval':
+    # Inference for language modeling requires a different graph
+    if (not self._lm_phase) or self._mode == 'train' or self._mode == 'eval':
       embedded_inputs = tf.cast(tf.nn.embedding_lookup(
         self.enc_emb_w,
         source_sequence,
@@ -273,21 +312,26 @@ class LMEncoder(Encoder):
         sequence_length=source_length,
         time_major=time_major,
         swap_memory=use_swap_memory,
-        dtype=embedded_inputs.dtype,
+        dtype=self._params['dtype'],
         scope='decoder',
       )
-      if self._mode == 'eval' or self._num_sampled >= self._vocab_size:
-        logits = self._output_layer.apply(encoder_outputs) # full softmax
-        output_dict = {'logits': logits, 'outputs': [tf.argmax(logits, axis=-1)]}
-      else:
+      if not self._lm_phase:
+        if self._use_cell_state:
+          encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+        else:
+          encoder_outputs = encoder_state[-1].h
+
+      if self._mode == 'train' and self._num_sampled < self._fc_dim: # sampled softmax
         output_dict = {'weights': enc_emb_w,
                     'bias': dense_biases,
                     'inputs': encoder_outputs,
                     'logits': encoder_outputs,
                     'outputs': [encoder_outputs],
                     'num_sampled': self._num_sampled}
-
-    else:
+      else: # full softmax
+        logits = self._output_layer.apply(encoder_outputs)
+        output_dict = {'logits': logits, 'outputs': [logits]}
+    else: # infer in LM phase
       embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
                                           self.enc_emb_w,
                                           ids,
@@ -306,7 +350,7 @@ class LMEncoder(Encoder):
         ),
         output_layer=self._output_layer,
       )
-      maximum_iterations = tf.constant(200)
+      maximum_iterations = tf.constant(self._num_tokens_gen)
 
       final_outputs, final_state, final_sequence_lengths = tf.contrib.seq2seq.dynamic_decode(
         decoder=decoder,

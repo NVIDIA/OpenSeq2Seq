@@ -57,14 +57,15 @@ class Model:
         'num_gpus': int,  # cannot be used when gpu_ids is specified
         'gpu_ids': list,  # cannot be used when num_gpus is specified
 
+        'load_model': str,
+
         'save_summaries_steps': None,  # could be int or None
         'print_loss_steps': None,  # could be int or None
         'print_samples_steps': None,  # could be int or None
         'print_bench_info_steps': None,  # could be int or None
         'save_checkpoint_steps': None,  # could be int or None
-        'restore_best_checkpoint': bool, # whether to restore best check point
+        'restore_best_checkpoint': bool, # if True,restore best check point instead of latest checkpoint
         'eval_steps': int,
-        'base_logdir': str,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
 
@@ -89,6 +90,8 @@ class Model:
         'loss_scaling_params': dict,
         'summaries': list,
         'iter_size': int,
+        'lm_vocab_file': str, #TODO: move this paramters to lstm_lm.py
+        'processed_data_folder': str,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -121,6 +124,20 @@ class Model:
       used if ``num_gpus`` is specified. When ``use_horovod`` is True
       this parameter is ignored.
     * **batch_size_per_gpu** (int) --- batch size to use for each GPU.
+    * **eval_batch_size_per_gpu** (int) --- batch size to use for each GPU during
+      inference. This is for when training and inference have different computation
+      and memory requirements, such as when training uses sampled softmax and
+      inference uses full softmax. If not specified, it's set
+      to ``batch_size_per_gpu``.
+    * **restore_best_checkpoint** (bool) --- if set to True, when doing evaluation 
+      and inference, the model will load the best checkpoint instead of the latest
+      checkpoint. Best checkpoint is evaluated based on evaluation results, so 
+      it's only available when the model is trained untder ``train_eval`` mode.
+      Default to False.
+    * **load_model** (str) --- points to the location of the pretrained model for
+      transfer learning. If specified, during training, the system will look
+      into the checkpoint in this folder and restore all variables whose names and 
+      shapes match a variable in the new model.
     * **num_epochs** (int) --- number of epochs to run training for.
       This parameter cannot be used if ``max_steps`` is specified.
     * **max_steps** (int) --- number of steps to run training for.
@@ -234,7 +251,9 @@ class Model:
       self._params['print_bench_info_steps'] = None
 
     self._params['finetune'] = self._params.get('finetune', False)
-    self._params['base_logdir'] = self._params.get('base_logdir', None)
+    # self._params['base_logdir'] = self._params.get('base_logdir', None)
+    self._params['load_model'] = self._params.get('load_model', None)
+    self._params['load_fc'] = self._params.get('load_fc', False)
     self._params['eval_batch_size_per_gpu'] = self._params.get(
         'eval_batch_size_per_gpu',
         self._params['batch_size_per_gpu']
@@ -277,8 +296,13 @@ class Model:
       dl_params['batch_size'] = self._params['batch_size_per_gpu']
     else:
       dl_params['batch_size'] = self._params['eval_batch_size_per_gpu']
+    if 'lm_vocab_file' in self._params:
+      dl_params['lm_vocab_file'] = self._params['lm_vocab_file']
+    if 'processed_data_folder' in self._params:
+      dl_params['processed_data_folder'] = self._params['processed_data_folder']
     dl_params['mode'] = self._mode
     dl_params['interactive'] = self._interactive
+
 
     if self.on_horovod:
       self._data_layer = self._params['data_layer'](
@@ -353,7 +377,6 @@ class Model:
           else:
             self.get_data_layer(gpu_cnt).build_graph()
           input_tensors = self.get_data_layer(gpu_cnt).input_tensors
-
           loss, self._outputs[gpu_cnt] = self.build_forward_pass_graph(
               input_tensors,
               gpu_id=gpu_cnt,
@@ -366,6 +389,7 @@ class Model:
             raise ValueError('Decoder outputs have to be either None or list')
           if self._mode == "train" or self._mode == "eval":
             losses.append(loss)
+                
       # end of for gpu_ind loop
       if self._mode == "train":
         self.loss = tf.reduce_mean(losses)
@@ -386,8 +410,13 @@ class Model:
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
 
-        loss, self._output = self._build_forward_pass_graph(input_tensors,
+        all_loss, self._output = self._build_forward_pass_graph(input_tensors,
                                                             gpu_id=0)
+        if isinstance(all_loss, (dict,)):
+            loss = all_loss['loss']
+        else:
+          loss = all_loss
+
         if self._output is not None and not isinstance(self._output, list):
           raise ValueError('Decoder outputs have to be either None or list')
 

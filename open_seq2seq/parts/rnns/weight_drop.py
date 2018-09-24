@@ -2,6 +2,7 @@ import tensorflow as tf
 
 class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
   """LSTM unit with layer normalization, weight dropout, and recurrent dropout.
+  This is based on LSTM's standard implementation of LayerNormBasicLSTMCell.
   This class adds layer normalization and recurrent dropout to a
   basic LSTM unit. Layer normalization implementation is based on:
     https://arxiv.org/abs/1607.06450.
@@ -32,8 +33,6 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
                dtype=None):
     """Initializes the basic LSTM cell.
     Args:
-      input_weight is W
-      recurrent_weight is U
       num_units: int, The number of units in the LSTM cell.
       forget_bias: float, The bias added to forget gates (see above).
       input_size: Deprecated and unused.
@@ -43,9 +42,14 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
         `layer_norm` has been set to `False`, this argument will be ignored.
       norm_shift: float, The layer normalization shift initial value. If
         `layer_norm` has been set to `False`, this argument will be ignored.
-      dropout_keep_prob: unit Tensor or float between 0 and 1 representing the
-        recurrent dropout probability value. If float and 1.0, no dropout will
-        be applied.
+      input_weight_keep_prob: keep probablility for dropout of W 
+                              (kernel used to multiply with the input tensor)
+      recurrent_weight_keep_prob: keep probablility for dropout of U
+                                 (kernel used to multiply with last hidden state tensor)
+      recurrent_keep_prob: keep probability for dropout
+                           when applying tanh for the input transform step
+      weight_variational: whether to keep the same weight dropout mask
+                          at every timestep. This feature is not yet implemented.
       dropout_prob_seed: (optional) integer, the randomness seed.
       reuse: (optional) Python boolean describing whether to reuse variables
         in an existing scope.  If not `True`, and the existing scope already has
@@ -88,7 +92,7 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
     shape = inp.get_shape()[-1:]
     gamma_init = tf.constant_initializer(self._norm_gain)
     beta_init = tf.constant_initializer(self._norm_shift)
-    with tf.variable_scope(scope): # replace vs with tf. vs stands for va
+    with tf.variable_scope(scope):
       # Initialize beta and gamma for use by layer_norm.
       tf.get_variable("gamma", shape=shape, initializer=gamma_init, dtype=dtype)
       tf.get_variable("beta", shape=shape, initializer=beta_init, dtype=dtype)
@@ -117,6 +121,9 @@ class WeightDropLayerNormBasicLSTMCell(tf.contrib.rnn.RNNCell):
     return out
 
   def _variational_dropout(self, values, noise, keep_prob):
+    '''
+    TODO: Implement variational dropout for weight dropout
+    '''
     return tf.nn.dropout(values, keep_prob, seed=self._dropout_seed)
 
   def _dropout(self, values, dropout_noise, keep_prob):
