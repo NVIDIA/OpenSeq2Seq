@@ -1121,11 +1121,21 @@ that is, output tensors for one batch on the <em>first</em> GPU.</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="models.speech2text.dense_tensor_to_chars">
+<code class="descclassname">models.speech2text.</code><code class="descname">dense_tensor_to_chars</code><span class="sig-paren">(</span><em>tensor</em>, <em>idx2char</em>, <em>startindex</em>, <em>endindex</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#dense_tensor_to_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.dense_tensor_to_chars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="models.speech2text.levenshtein">
 <code class="descclassname">models.speech2text.</code><code class="descname">levenshtein</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.levenshtein" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the Levenshtein distance between a and b.
 The code was copied from: <a class="reference external" href="http://hetland.org/coding/python/levenshtein.py">http://hetland.org/coding/python/levenshtein.py</a></p>
 </dd></dl>
+
+<dl class="function">
+<dt id="models.speech2text.plot_attention">
+<code class="descclassname">models.speech2text.</code><code class="descname">plot_attention</code><span class="sig-paren">(</span><em>alignments</em>, <em>pred_text</em>, <em>encoder_len</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#plot_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.plot_attention" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="models.speech2text.sparse_tensor_to_chars">
@@ -1631,8 +1641,8 @@ be logged to tensorboard.</p>
 energy spectrogram.</li>
 <li><strong>logdir</strong> (<em>str</em>) – dir to save image file is save_to_tensorboard is disabled.</li>
 <li><strong>step</strong> (<em>int</em>) – current training step</li>
-<li><strong>sampling_rate</strong> (<em>int</em>) – samplng rate in Hz of the audio to be saved.</li>
 <li><strong>n_fft</strong> (<em>int</em>) – number of filters for fft and ifft.</li>
+<li><strong>sampling_rate</strong> (<em>int</em>) – samplng rate in Hz of the audio to be saved.</li>
 <li><strong>number</strong> (<em>int</em>) – Current sample number (used if evaluating more than 1 sample</li>
 <li><strong>mode</strong> (<em>str</em>) – Optional string to append to file name eg. train, eval, infer
 from a batch)</li>

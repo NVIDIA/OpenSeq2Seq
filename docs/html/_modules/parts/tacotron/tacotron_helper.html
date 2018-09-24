@@ -265,9 +265,7 @@
 
 <div class="viewcode-block" id="TacotronTrainingHelper.sample"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.sample">[docs]</a>  <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Fully deterministic, output should already be projected</span>
-    <span class="k">del</span> <span class="n">time</span><span class="p">,</span> <span class="n">state</span>
-    <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sample_ids</span></div>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="TacotronTrainingHelper.next_inputs"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper.next_inputs">[docs]</a>  <span class="k">def</span> <span class="nf">next_inputs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">unused_kwargs</span><span class="p">):</span>
     <span class="c1"># Applies the fully connected pre-net to the decoder</span>
@@ -352,10 +350,7 @@
 
 <div class="viewcode-block" id="TacotronHelper.sample"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.sample">[docs]</a>  <span class="k">def</span> <span class="nf">sample</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="p">,</span> <span class="n">state</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Fully deterministic, output should already be projected</span>
-    <span class="k">del</span> <span class="n">time</span><span class="p">,</span> <span class="n">state</span>
-    <span class="n">sample_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">sample_ids</span></div>
-
+    <span class="k">pass</span></div>
 <div class="viewcode-block" id="TacotronHelper.next_inputs"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronHelper.next_inputs">[docs]</a>  <span class="k">def</span> <span class="nf">next_inputs</span><span class="p">(</span>
       <span class="bp">self</span><span class="p">,</span>
       <span class="n">time</span><span class="p">,</span>

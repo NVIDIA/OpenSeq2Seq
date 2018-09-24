@@ -332,7 +332,8 @@
                <span class="n">initial_state</span><span class="p">,</span>
                <span class="n">beam_width</span><span class="p">,</span>
                <span class="n">output_layer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-               <span class="n">length_penalty_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+               <span class="n">length_penalty_weight</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+               <span class="n">positional_embedding</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Initialize the BeamSearchDecoder.</span>
 
 <span class="sd">    Args:</span>
@@ -347,6 +348,8 @@
 <span class="sd">        `tf.layers.Dense`.  Optional layer to apply to the RNN output prior</span>
 <span class="sd">        to storing the result or sampling.</span>
 <span class="sd">      length_penalty_weight: Float weight to penalize length. Disabled with 0.0.</span>
+<span class="sd">      positional_embedding: A callable to use decoder positional embedding.</span>
+<span class="sd">      Default is None in which case positional embedding is disabled</span>
 
 <span class="sd">    Raises:</span>
 <span class="sd">      TypeError: if `cell` is not an instance of `RNNCell`,</span>
@@ -354,9 +357,9 @@
 <span class="sd">      ValueError: If `start_tokens` is not a vector or</span>
 <span class="sd">        `end_token` is not a scalar.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">assert_like_rnncell</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span>
+    <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">assert_like_rnncell</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="n">cell</span><span class="p">)</span>
     <span class="k">if</span> <span class="p">(</span><span class="n">output_layer</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span>
-        <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_layer</span><span class="p">,</span> <span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">)):</span>
+            <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output_layer</span><span class="p">,</span> <span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">)):</span>
       <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
           <span class="s2">&quot;output_layer must be a Layer, received: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">type</span><span class="p">(</span><span class="n">output_layer</span><span class="p">))</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_cell</span> <span class="o">=</span> <span class="n">cell</span>
@@ -367,6 +370,15 @@
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_embedding_fn</span> <span class="o">=</span> <span class="p">(</span>
           <span class="k">lambda</span> <span class="n">ids</span><span class="p">:</span> <span class="n">embedding_ops</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">embedding</span><span class="p">,</span> <span class="n">ids</span><span class="p">))</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">_use_pos_embedding</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">positional_embedding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">callable</span><span class="p">(</span><span class="n">positional_embedding</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos_embedding_fn</span> <span class="o">=</span> <span class="n">positional_embedding</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_pos_embedding_fn</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="k">lambda</span> <span class="n">ids</span><span class="p">:</span> <span class="n">embedding_ops</span><span class="o">.</span><span class="n">embedding_lookup</span><span class="p">(</span><span class="n">positional_embedding</span><span class="p">,</span> <span class="n">ids</span><span class="p">))</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_use_pos_embedding</span> <span class="o">=</span> <span class="kc">True</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_start_tokens</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span>
         <span class="n">start_tokens</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;start_tokens&quot;</span><span class="p">)</span>
@@ -385,6 +397,9 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_start_tokens</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span>
         <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tokens</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_beam_width</span><span class="p">])</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_embedding_fn</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_start_tokens</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_pos_embedding</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_embedding_fn</span><span class="p">(</span><span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_finished</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span>
         <span class="n">array_ops</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
@@ -669,6 +684,8 @@
       <span class="n">next_inputs</span> <span class="o">=</span> <span class="n">control_flow_ops</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
           <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_all</span><span class="p">(</span><span class="n">finished</span><span class="p">),</span> <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_start_inputs</span><span class="p">,</span>
           <span class="k">lambda</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_embedding_fn</span><span class="p">(</span><span class="n">sample_ids</span><span class="p">))</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_pos_embedding</span><span class="p">:</span>
+        <span class="n">next_inputs</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_pos_embedding_fn</span><span class="p">(</span><span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">time</span><span class="p">))</span>
 
     <span class="k">return</span> <span class="p">(</span><span class="n">beam_search_output</span><span class="p">,</span> <span class="n">beam_search_state</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">finished</span><span class="p">)</span></div></div>
 
@@ -740,7 +757,8 @@
   <span class="n">next_beam_scores</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="n">static_batch_size</span><span class="p">,</span> <span class="n">beam_width</span><span class="p">])</span>
   <span class="n">word_indices</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="n">static_batch_size</span><span class="p">,</span> <span class="n">beam_width</span><span class="p">])</span>
 
-  <span class="c1"># Pick out the probs, beam_ids, and states according to the chosen predictions</span>
+  <span class="c1"># Pick out the probs, beam_ids, and states according to the chosen</span>
+  <span class="c1"># predictions</span>
   <span class="n">next_beam_probs</span> <span class="o">=</span> <span class="n">_tensor_gather_helper</span><span class="p">(</span>
       <span class="n">gather_indices</span><span class="o">=</span><span class="n">word_indices</span><span class="p">,</span>
       <span class="n">gather_from</span><span class="o">=</span><span class="n">total_probs</span><span class="p">,</span>
@@ -856,7 +874,7 @@
   <span class="k">if</span> <span class="n">static_penalty</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">static_penalty</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="k">return</span> <span class="mf">1.0</span>
   <span class="k">return</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">div</span><span class="p">((</span><span class="mf">5.</span> <span class="o">+</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">sequence_lengths</span><span class="p">))</span>
-                      <span class="o">**</span><span class="n">penalty_factor</span><span class="p">,</span> <span class="p">(</span><span class="mf">5.</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">**</span><span class="n">penalty_factor</span><span class="p">)</span>
+                      <span class="o">**</span> <span class="n">penalty_factor</span><span class="p">,</span> <span class="p">(</span><span class="mf">5.</span> <span class="o">+</span> <span class="mf">1.</span><span class="p">)</span><span class="o">**</span><span class="n">penalty_factor</span><span class="p">)</span>
 
 
 <span class="k">def</span> <span class="nf">_mask_probs</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="n">eos_token</span><span class="p">,</span> <span class="n">finished</span><span class="p">):</span>

@@ -218,6 +218,9 @@ Config parameters:
 <p>For additional details on these parameters see
 <a class="reference internal" href="#data.speech2text.speech_utils.augment_audio_signal" title="data.speech2text.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">data.speech2text.speech_utils.augment_audio_signal()</span></code></a> function.</p>
 </div></blockquote>
+<ul class="simple">
+<li><strong>autoregressive</strong> (bool) — boolean indicating whether the model is autoregressive.</li>
+</ul>
 </dd></dl>
 
 <dl class="method">
@@ -367,7 +370,7 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 <dt><code class="docutils literal notranslate"><span class="pre">input_tensors[&quot;target_tensors&quot;]</span></code> contains:</dt>
 <dd><ul class="first last simple">
 <li>target_sequence
-(shape=[batch_size x sequence length x num_audio_features])</li>
+(shape=[batch_size x sequence length])</li>
 <li>target_length (shape=[batch_size])</li>
 </ul>
 </dd>

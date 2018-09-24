@@ -194,7 +194,7 @@
 <div class="section" id="module-parts.rnns.attention_wrapper">
 <span id="attention-wrapper"></span><h2>attention_wrapper<a class="headerlink" href="#module-parts.rnns.attention_wrapper" title="Permalink to this headline">¶</a></h2>
 <p>A powerful dynamic attention wrapper object.</p>
-<p>Modified by blisc too add support for LocationSensitiveAttention and changed
+<p>Modified by blisc to add support for LocationSensitiveAttention and changed
 the AttentionWrapper class to output both the cell_output and attention context
 concatenated together.</p>
 <dl class="docutils">
@@ -811,7 +811,7 @@ mechanism.</li>
 
 <dl class="class">
 <dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention">
-<em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LocationSensitiveAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.rnns.attention_wrapper.</code><code class="descname">LocationSensitiveAttention</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>query_dim=None</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>use_coverage=True</em>, <em>location_attn_type='chorowski'</em>, <em>location_attention_params=None</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">parts.rnns.attention_wrapper._BaseAttentionMechanism</span></code></p>
 <p>Implements Bahdanau-style (additive) scoring function with cumulative
 location information.</p>
@@ -826,7 +826,7 @@ Rif A. Saurous, Yannis Agiomyrgiannakis, Yonghui Wu
 <a class="reference external" href="https://arxiv.org/abs/1712.05884">https://arxiv.org/abs/1712.05884</a></p>
 <dl class="method">
 <dt id="parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>num_units</em>, <em>memory</em>, <em>query_dim=None</em>, <em>memory_sequence_length=None</em>, <em>probability_fn=None</em>, <em>score_mask_value=None</em>, <em>dtype=None</em>, <em>use_bias=False</em>, <em>use_coverage=True</em>, <em>location_attn_type='chorowski'</em>, <em>location_attention_params=None</em>, <em>name='LocationSensitiveAttention'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/attention_wrapper.html#LocationSensitiveAttention.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.attention_wrapper.LocationSensitiveAttention.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Construct the Attention mechanism.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -849,7 +849,9 @@ Its signature should be: <cite>probabilities = probability_fn(score)</cite>.</li
 <cite>memory_sequence_length</cite> is not None.</li>
 <li><strong>dtype</strong> – The data type for the query and memory layers of the attention
 mechanism.</li>
-<li><strong>use_bias</strong> (<em>bool</em>) – Whether to use a bias when computing alignments</li>
+<li><strong>use_bias</strong> (<em>bool</em>) – Whether to use a bias when computing alignments.</li>
+<li><strong>location_attn_type</strong> (<em>String</em>) – Accepts [“chorowski”, “zhaopeng”].</li>
+<li><strong>location_attention_params</strong> (<em>dict</em>) – Params required for location attention.</li>
 <li><strong>name</strong> – Name to use when creating ops.</li>
 </ul>
 </td>
@@ -1121,7 +1123,7 @@ vector.</li>
 
 <dl class="class">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder">
-<em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">BeamSearchDecoder</code><span class="sig-paren">(</span><em>cell</em>, <em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>initial_state</em>, <em>beam_width</em>, <em>output_layer=None</em>, <em>length_penalty_weight=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.rnns.rnn_beam_search_decoder.</code><code class="descname">BeamSearchDecoder</code><span class="sig-paren">(</span><em>cell</em>, <em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>initial_state</em>, <em>beam_width</em>, <em>output_layer=None</em>, <em>length_penalty_weight=0.0</em>, <em>positional_embedding=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.contrib.seq2seq.python.ops.decoder.Decoder</span></code></p>
 <p>BeamSearch sampling decoder.</p>
 <p><strong>NOTE</strong> If you are using the <cite>BeamSearchDecoder</cite> with a cell wrapped in
@@ -1161,7 +1163,7 @@ decoder_initial_state = attention_cell.zero_state(</p>
 <p><a href="#id15"><span class="problematic" id="id16">``</span></a><a href="#id17"><span class="problematic" id="id18">`</span></a></p>
 <dl class="method">
 <dt id="parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.__init__">
-<code class="descname">__init__</code><span class="sig-paren">(</span><em>cell</em>, <em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>initial_state</em>, <em>beam_width</em>, <em>output_layer=None</em>, <em>length_penalty_weight=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>cell</em>, <em>embedding</em>, <em>start_tokens</em>, <em>end_token</em>, <em>initial_state</em>, <em>beam_width</em>, <em>output_layer=None</em>, <em>length_penalty_weight=0.0</em>, <em>positional_embedding=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/rnns/rnn_beam_search_decoder.html#BeamSearchDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.rnns.rnn_beam_search_decoder.BeamSearchDecoder.__init__" title="Permalink to this definition">¶</a></dt>
 <dd><p>Initialize the BeamSearchDecoder.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1179,6 +1181,8 @@ or the <cite>params</cite> argument for <cite>embedding_lookup</cite>.</li>
 <cite>tf.layers.Dense</cite>.  Optional layer to apply to the RNN output prior
 to storing the result or sampling.</li>
 <li><strong>length_penalty_weight</strong> – Float weight to penalize length. Disabled with 0.0.</li>
+<li><strong>positional_embedding</strong> – A callable to use decoder positional embedding.</li>
+<li><strong>is None in which case positional embedding is disabled</strong> (<em>Default</em>) – </li>
 </ul>
 </td>
 </tr>

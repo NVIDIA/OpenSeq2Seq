@@ -206,7 +206,8 @@ worse model accuracy.</p>
 </li>
 <li><p class="first">Build <a class="reference external" href="https://github.com/kpu/kenlm">kenlm</a> (assuming you are in the
 OpenSeq2Seq folder):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">install_kenlm</span><span class="o">.</span><span class="n">sh</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">cmake</span>
+<span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">install_kenlm</span><span class="o">.</span><span class="n">sh</span>
 </pre></div>
 </div>
 <p>It will install KenLM in OpenSeq2Seq directory. If you installed KenLM in a different location,
@@ -259,7 +260,7 @@ model from <a class="reference external" href="http://openslr.org/11/">OpenSLR</
 <p>For multi-GPU and distribuited training we recommended install <a class="reference external" href="https://github.com/uber/horovod">Horovod</a> .
 After TensorFlow and all other requirements are installed,  install mpi:
 <code class="docutils literal notranslate"><span class="pre">`pip</span> <span class="pre">install</span> <span class="pre">mpi4py`</span></code> and then follow
-<a class="reference external" href="https://github.com/uber/horovod#install">these steps</a> to install
+<a class="reference external" href="https://github.com/uber/horovod/blob/master/docs/gpus.md">these steps</a> to install
 Horovod.</p>
 </div>
 <div class="section" id="running-tests">

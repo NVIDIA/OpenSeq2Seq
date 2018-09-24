@@ -183,7 +183,8 @@
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
         <span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span>
         <span class="o">**</span><span class="p">{</span>
-            <span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;cnn_dropout_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s1">&#39;rnn_dropout_prob&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
             <span class="s1">&#39;src_emb_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
             <span class="s1">&#39;conv_layers&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
             <span class="s1">&#39;activation_fn&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># any valid callable</span>
@@ -213,7 +214,8 @@
 
 <span class="sd">    Config parameters:</span>
 
-<span class="sd">    * **dropout_keep_prob** (float) --- keep probability for dropout.</span>
+<span class="sd">    * **cnn_dropout_prob** (float) --- dropout probabilty for cnn layers.</span>
+<span class="sd">    * **rnn_dropout_prob** (float) --- dropout probabilty for cnn layers.</span>
 <span class="sd">    * **src_emb_size** (int) --- dimensionality of character embedding.</span>
 <span class="sd">    * **conv_layers** (list) --- list with the description of convolutional</span>
 <span class="sd">      layers. For example::</span>
@@ -275,7 +277,6 @@
     <span class="n">text_len</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
-    <span class="n">dropout_keep_prob</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dropout_keep_prob&#39;</span><span class="p">]</span> <span class="k">if</span> <span class="n">training</span> <span class="k">else</span> <span class="mf">1.0</span>
     <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;regularizer&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
     <span class="n">data_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;data_format&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">)</span>
     <span class="n">src_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;src_vocab_size&#39;</span><span class="p">]</span>
@@ -334,7 +335,7 @@
           <span class="n">bn_epsilon</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">),</span>
       <span class="p">)</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span>
-          <span class="n">top_layer</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="mf">1.</span> <span class="o">-</span> <span class="n">dropout_keep_prob</span><span class="p">,</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span>
+          <span class="n">top_layer</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;cnn_dropout_prob&quot;</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span>
       <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
@@ -350,33 +351,46 @@
       <span class="n">rnn_vars</span> <span class="o">=</span> <span class="p">[]</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;use_cudnn_rnn&quot;</span><span class="p">]:</span>
-        <span class="n">all_cudnn_classes</span> <span class="o">=</span> <span class="p">[</span>
-            <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">)</span>
-        <span class="p">]</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="n">rnn_type</span> <span class="ow">in</span> <span class="n">all_cudnn_classes</span><span class="p">:</span>
-          <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rnn_type must be a Cudnn RNN class&quot;</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">zoneout_prob</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
-          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-              <span class="s2">&quot;Zoneout is currently not supported for cudnn rnn classes&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;infer&quot;</span><span class="p">:</span>
+          <span class="n">cell</span> <span class="o">=</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="o">.</span><span class="n">CudnnCompatibleLSTMCell</span><span class="p">(</span>
+              <span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">]</span>
           <span class="p">)</span>
-
-        <span class="n">rnn_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">]:</span>
-          <span class="n">direction</span> <span class="o">=</span> <span class="n">cudnn_rnn_ops</span><span class="o">.</span><span class="n">CUDNN_RNN_UNIDIRECTION</span>
+          <span class="n">cells_fw</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+          <span class="n">cells_bw</span> <span class="o">=</span> <span class="p">[</span><span class="n">cell</span><span class="p">()</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">)]</span>
+          <span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">)</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">rnn</span><span class="o">.</span><span class="n">stack_bidirectional_dynamic_rnn</span><span class="p">(</span>
+              <span class="n">cells_fw</span><span class="p">,</span> <span class="n">cells_bw</span><span class="p">,</span> <span class="n">rnn_input</span><span class="p">,</span>
+              <span class="n">sequence_length</span><span class="o">=</span><span class="n">text_len</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">time_major</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-          <span class="n">direction</span> <span class="o">=</span> <span class="n">cudnn_rnn_ops</span><span class="o">.</span><span class="n">CUDNN_RNN_BIDIRECTION</span>
+          <span class="n">all_cudnn_classes</span> <span class="o">=</span> <span class="p">[</span>
+              <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+              <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getmembers</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">cudnn_rnn</span><span class="p">,</span> <span class="n">inspect</span><span class="o">.</span><span class="n">isclass</span><span class="p">)</span>
+          <span class="p">]</span>
+          <span class="k">if</span> <span class="ow">not</span> <span class="n">rnn_type</span> <span class="ow">in</span> <span class="n">all_cudnn_classes</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;rnn_type must be a Cudnn RNN class&quot;</span><span class="p">)</span>
+          <span class="k">if</span> <span class="n">zoneout_prob</span> <span class="o">!=</span> <span class="mf">0.</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;Zoneout is currently not supported for cudnn rnn classes&quot;</span>
+            <span class="p">)</span>
 
-        <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">rnn_type</span><span class="p">(</span>
-            <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
-            <span class="n">num_units</span><span class="o">=</span><span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">],</span>
-            <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
-            <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
-            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_rnn&quot;</span>
-        <span class="p">)</span>
-        <span class="n">top_layer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rnn_block</span><span class="p">(</span><span class="n">rnn_input</span><span class="p">)</span>
-        <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-        <span class="n">rnn_vars</span> <span class="o">+=</span> <span class="n">rnn_block</span><span class="o">.</span><span class="n">trainable_variables</span>
+          <span class="n">rnn_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+          <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;rnn_unidirectional&#39;</span><span class="p">]:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">cudnn_rnn_ops</span><span class="o">.</span><span class="n">CUDNN_RNN_UNIDIRECTION</span>
+          <span class="k">else</span><span class="p">:</span>
+            <span class="n">direction</span> <span class="o">=</span> <span class="n">cudnn_rnn_ops</span><span class="o">.</span><span class="n">CUDNN_RNN_BIDIRECTION</span>
+
+          <span class="n">rnn_block</span> <span class="o">=</span> <span class="n">rnn_type</span><span class="p">(</span>
+              <span class="n">num_layers</span><span class="o">=</span><span class="n">num_rnn_layers</span><span class="p">,</span>
+              <span class="n">num_units</span><span class="o">=</span><span class="n">cell_params</span><span class="p">[</span><span class="s2">&quot;num_units&quot;</span><span class="p">],</span>
+              <span class="n">direction</span><span class="o">=</span><span class="n">direction</span><span class="p">,</span>
+              <span class="n">dtype</span><span class="o">=</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">dtype</span><span class="p">,</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;cudnn_rnn&quot;</span>
+          <span class="p">)</span>
+          <span class="n">rnn_block</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">rnn_input</span><span class="o">.</span><span class="n">get_shape</span><span class="p">())</span>
+          <span class="n">top_layer</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">rnn_block</span><span class="p">(</span><span class="n">rnn_input</span><span class="p">)</span>
+          <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+          <span class="n">rnn_vars</span> <span class="o">+=</span> <span class="n">rnn_block</span><span class="o">.</span><span class="n">trainable_variables</span>
 
       <span class="k">else</span><span class="p">:</span>
         <span class="n">multirnn_cell_fw</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">rnn_cell</span><span class="o">.</span><span class="n">MultiRNNCell</span><span class="p">(</span>
@@ -441,6 +455,9 @@
 
     <span class="c1"># -- end of rnn------------------------------------------------------------</span>
 
+    <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span>
+        <span class="n">top_layer</span><span class="p">,</span> <span class="n">rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;rnn_dropout_prob&quot;</span><span class="p">],</span> <span class="n">training</span><span class="o">=</span><span class="n">training</span>
+    <span class="p">)</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="n">top_layer</span>
 
     <span class="k">return</span> <span class="p">{</span>

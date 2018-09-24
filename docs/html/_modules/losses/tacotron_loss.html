@@ -169,6 +169,10 @@
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;tacotron_loss&quot;</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">TacotronLoss</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s2">&quot;both&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_both</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_both</span> <span class="o">=</span> <span class="kc">False</span>
 
 <div class="viewcode-block" id="TacotronLoss.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.tacotron_loss.TacotronLoss.get_optional_params">[docs]</a>  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Static method with description of optional parameters.</span>
@@ -181,6 +185,7 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="p">{</span>
         <span class="s1">&#39;use_mask&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="TacotronLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.tacotron_loss.TacotronLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
@@ -215,8 +220,10 @@
     <span class="c1"># Compute loss in fp32</span>
     <span class="n">decoder_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">post_net_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-    <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span>
-                                       <span class="p">][</span><span class="s1">&#39;stop_token_prediction&#39;</span><span class="p">]</span>
+    <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;stop_token_prediction&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
+      <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;outputs&#39;</span><span class="p">][</span><span class="mi">5</span><span class="p">]</span>
+      <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">stop_token</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -238,8 +245,12 @@
         <span class="p">)</span>
     <span class="p">)</span>
 
-    <span class="n">post_net_pad</span> <span class="o">=</span> <span class="n">decoder_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="n">num_feats</span><span class="p">]</span>
+    <span class="n">decoder_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+        <span class="p">[</span>
+            <span class="n">batch_size</span><span class="p">,</span>
+            <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="p">]</span>
     <span class="p">)</span>
     <span class="n">stop_token_pred_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
         <span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">1</span><span class="p">]</span>
@@ -250,7 +261,7 @@
         <span class="p">[</span><span class="n">decoder_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
     <span class="p">)</span>
     <span class="n">post_net_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
-        <span class="p">[</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">post_net_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+        <span class="p">[</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">decoder_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
     <span class="p">)</span>
     <span class="n">stop_token_predictions</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
         <span class="p">[</span><span class="n">stop_token_predictions</span><span class="p">,</span> <span class="n">stop_token_pred_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
@@ -258,6 +269,23 @@
     <span class="n">spec</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">spec</span><span class="p">,</span> <span class="n">spec_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">stop_token_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
+      <span class="n">mag_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>
+          <span class="p">[</span>
+              <span class="n">batch_size</span><span class="p">,</span>
+              <span class="n">max_length</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mag_pred</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">mag_pred</span><span class="p">)[</span><span class="mi">2</span><span class="p">]</span>
+          <span class="p">]</span>
+      <span class="p">)</span>
+      <span class="n">mag_pred</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">(</span>
+         <span class="p">[</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">mag_pad</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span>
+      <span class="p">)</span>
+
+      <span class="n">spec</span><span class="p">,</span> <span class="n">mag_target</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">split</span><span class="p">(</span>
+          <span class="n">spec</span><span class="p">,</span>
+          <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s1">&#39;mel&#39;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_feats</span><span class="p">[</span><span class="s1">&#39;magnitude&#39;</span><span class="p">]],</span>
+          <span class="n">axis</span><span class="o">=</span><span class="mi">2</span>
+      <span class="p">)</span>
     <span class="n">decoder_target</span> <span class="o">=</span> <span class="n">spec</span>
     <span class="n">post_net_target</span> <span class="o">=</span> <span class="n">spec</span>
 
@@ -272,6 +300,10 @@
       <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
           <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
       <span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
+        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
+            <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span><span class="p">,</span> <span class="n">weights</span><span class="o">=</span><span class="n">mask</span>
+        <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid_cross_entropy_with_logits</span><span class="p">(</span>
           <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
       <span class="p">)</span>
@@ -285,12 +317,22 @@
       <span class="n">post_net_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
           <span class="n">labels</span><span class="o">=</span><span class="n">post_net_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">post_net_predictions</span>
       <span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
+        <span class="n">mag_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">mean_squared_error</span><span class="p">(</span>
+           <span class="n">labels</span><span class="o">=</span><span class="n">mag_target</span><span class="p">,</span> <span class="n">predictions</span><span class="o">=</span><span class="n">mag_pred</span>
+        <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sigmoid_cross_entropy_with_logits</span><span class="p">(</span>
           <span class="n">labels</span><span class="o">=</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">logits</span><span class="o">=</span><span class="n">stop_token_predictions</span>
       <span class="p">)</span>
       <span class="n">stop_token_loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">stop_token_loss</span><span class="p">)</span>
 
     <span class="n">loss</span> <span class="o">=</span> <span class="n">decoder_loss</span> <span class="o">+</span> <span class="n">post_net_loss</span> <span class="o">+</span> <span class="n">stop_token_loss</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_both</span><span class="p">:</span>
+      <span class="n">loss</span> <span class="o">+=</span> <span class="n">mag_loss</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;scale&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">):</span>
+      <span class="n">loss</span> <span class="o">=</span> <span class="n">loss</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">loss</span></div></div>
 </pre></div>
 

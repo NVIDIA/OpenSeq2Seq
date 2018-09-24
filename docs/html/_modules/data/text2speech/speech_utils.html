@@ -174,7 +174,8 @@
     <span class="n">mean</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
     <span class="n">std</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
     <span class="n">trim</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span>
+    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot; Helper function to retrieve spectrograms from wav files</span>
 
@@ -210,7 +211,7 @@
     <span class="p">)</span>
   <span class="k">return</span> <span class="n">get_speech_features</span><span class="p">(</span>
       <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span> <span class="n">n_fft</span><span class="p">,</span>
-      <span class="n">hop_length</span><span class="p">,</span> <span class="n">mag_power</span><span class="p">,</span> <span class="n">feature_normalize</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">data_min</span>
+      <span class="n">hop_length</span><span class="p">,</span> <span class="n">mag_power</span><span class="p">,</span> <span class="n">feature_normalize</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">data_min</span><span class="p">,</span> <span class="n">mel_basis</span>
   <span class="p">)</span></div>
 
 
@@ -225,7 +226,8 @@
     <span class="n">feature_normalize</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">mean</span><span class="o">=</span><span class="mf">0.</span><span class="p">,</span>
     <span class="n">std</span><span class="o">=</span><span class="mf">1.</span><span class="p">,</span>
-    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span>
+    <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
+    <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot; Helper function to retrieve spectrograms from loaded wav</span>
 
@@ -249,38 +251,55 @@
 <span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
 <span class="sd">    num_features].</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;magnitude&#39;</span><span class="p">:</span>
-    <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
-    <span class="n">mag</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="n">mag_power</span><span class="p">)</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mag</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
-    <span class="k">assert</span> <span class="n">num_features</span> <span class="o">&lt;=</span> <span class="n">n_fft</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> \
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data_min</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">data_min_mel</span> <span class="o">=</span> <span class="n">data_min</span><span class="p">[</span><span class="s2">&quot;mel&quot;</span><span class="p">]</span>
+    <span class="n">data_min_mag</span> <span class="o">=</span> <span class="n">data_min</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">data_min_mel</span> <span class="o">=</span> <span class="n">data_min_mag</span> <span class="o">=</span> <span class="n">data_min</span>
+
+  <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num_features</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+    <span class="n">num_features_mel</span> <span class="o">=</span> <span class="n">num_features</span><span class="p">[</span><span class="s2">&quot;mel&quot;</span><span class="p">]</span>
+    <span class="n">num_features_mag</span> <span class="o">=</span> <span class="n">num_features</span><span class="p">[</span><span class="s2">&quot;magnitude&quot;</span><span class="p">]</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">num_features_mel</span> <span class="o">=</span> <span class="n">num_features_mag</span> <span class="o">=</span> <span class="n">num_features</span>
+
+  <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
+  <span class="n">mag</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="n">mag_power</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;magnitude&#39;</span> <span class="ow">or</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mag</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min_mag</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="k">assert</span> <span class="n">num_features_mag</span> <span class="o">&lt;=</span> <span class="n">n_fft</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> \
         <span class="s2">&quot;num_features for spectrogram should be &lt;= (fs * window_size // 2 + 1)&quot;</span>
 
     <span class="c1"># cut high frequency part</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features</span><span class="p">]</span>
-  <span class="k">if</span> <span class="s1">&#39;mel&#39;</span> <span class="ow">in</span> <span class="n">features_type</span><span class="p">:</span>
-    <span class="n">htk</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="k">if</span> <span class="s1">&#39;slaney&#39;</span> <span class="ow">in</span> <span class="n">features_type</span><span class="p">:</span>
-      <span class="n">htk</span> <span class="o">=</span> <span class="kc">False</span>
-      <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">melspectrogram</span><span class="p">(</span>
-        <span class="n">y</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-        <span class="n">sr</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
-        <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span>
-        <span class="n">hop_length</span><span class="o">=</span><span class="n">hop_length</span><span class="p">,</span>
-        <span class="n">n_mels</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-        <span class="n">power</span><span class="o">=</span><span class="n">mag_power</span><span class="p">,</span>
-        <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
-        <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
-    <span class="p">)</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features_mag</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="s1">&#39;mel&#39;</span> <span class="ow">in</span> <span class="n">features_type</span> <span class="ow">or</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+      <span class="n">mag_features</span> <span class="o">=</span> <span class="n">features</span>
+    <span class="k">if</span> <span class="n">mel_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">htk</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="n">norm</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="k">if</span> <span class="s1">&#39;slaney&#39;</span> <span class="ow">in</span> <span class="n">features_type</span><span class="p">:</span>
+        <span class="n">htk</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">norm</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span>
+          <span class="n">sr</span><span class="o">=</span><span class="n">fs</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">,</span>
+          <span class="n">n_mels</span><span class="o">=</span><span class="n">num_features_mel</span><span class="p">,</span>
+          <span class="n">htk</span><span class="o">=</span><span class="n">htk</span><span class="p">,</span>
+          <span class="n">norm</span><span class="o">=</span><span class="n">norm</span>
+      <span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mel_basis</span><span class="p">,</span> <span class="n">mag</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="n">data_min_mel</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
 
   <span class="k">if</span> <span class="n">feature_normalize</span><span class="p">:</span>
     <span class="n">features</span> <span class="o">=</span> <span class="n">normalize</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">)</span>
 
-  <span class="k">return</span> <span class="n">features</span></div>
+  <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s2">&quot;both&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">features</span><span class="p">,</span> <span class="n">mag_features</span><span class="p">]</span>
 
+  <span class="k">return</span> <span class="n">features</span></div>
 
 <div class="viewcode-block" id="get_mel"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.get_mel">[docs]</a><span class="k">def</span> <span class="nf">get_mel</span><span class="p">(</span>
     <span class="n">log_mag_spec</span><span class="p">,</span>
