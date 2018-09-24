@@ -64,7 +64,8 @@ class EncoderDecoderModel(Model):
     * **loss_params** (dict) --- dictionary with loss configuration. For
       complete list of possible parameters see the corresponding class docs.
     """
-    super(EncoderDecoderModel, self).__init__(params=params, mode=mode, hvd=hvd)
+    super(EncoderDecoderModel, self).__init__(
+        params=params, mode=mode, hvd=hvd)
     if 'encoder_params' not in self.params:
       self.params['encoder_params'] = {}
     if 'decoder_params' not in self.params:
@@ -157,7 +158,7 @@ class EncoderDecoderModel(Model):
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
       decoder_input = {"encoder_output": encoder_output}
-      if self.mode == "train":
+      if self.mode == "train" or self.mode == "eval":
         decoder_input['target_tensors'] = target_tensors
       decoder_output = self.decoder.decode(input_dict=decoder_input)
       model_outputs = decoder_output.get("outputs", None)
