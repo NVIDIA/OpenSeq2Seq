@@ -18,6 +18,8 @@ class WKTDataLayer(DataLayer):
   available in the ``nltk`` package. 
   You can download the datasets here:
   https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/
+  bptt: backpropagation through time - the length of the sequences used for training
+  rand_start: whether to start from a random starting index between (0, bptt)
   '''
   @staticmethod
   def get_required_params():
@@ -211,7 +213,6 @@ class TextClassificationDataLayer(DataLayer):
                                           num_workers, worker_id)
 
     self._data_root = self.params.get('data_root', None)
-    print('self._data_root', self._data_root)
     self._binary = self.params.get('binary', True)
     self._get_stats = self.params.get('get_stats', False)
     self._lm_vocab_file = self.params['lm_vocab_file']

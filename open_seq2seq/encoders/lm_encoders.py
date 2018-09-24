@@ -18,7 +18,7 @@ from .encoder import Encoder
 
 class LMEncoder(Encoder):
   """
-  RNN-based encoder with embeddings
+  RNN-based encoder with embeddings for language modeling
   """
   @staticmethod
   def get_required_params():
@@ -39,7 +39,7 @@ class LMEncoder(Encoder):
       'encoder_dp_input_keep_prob': float,
       'encoder_dp_output_keep_prob': float,
       "encoder_last_input_keep_prob": float,
-      "encoder_last_output_keep_prob": float, # output droput at last layer is 0.4
+      "encoder_last_output_keep_prob": float,
       'encoder_emb_keep_prob': float,
       'variational_recurrent': bool,
       'time_major': bool,
@@ -68,19 +68,48 @@ class LMEncoder(Encoder):
     """
     Initializes bi-directional encoder with embeddings
     :param params: dictionary with encoder parameters
+
+    Many of the techniques in this implementation is taken from the paper
+    "Regularizing and Optimizing LSTM Language Models" (Merity et al., 2017)
+    https://arxiv.org/pdf/1708.02182.pdf
+
     Must define:
       * vocab_size - data vocabulary size
       * emb_size - size of embedding to use
       * encoder_cell_units - number of units in RNN cell
       * encoder_cell_type - cell type: lstm, gru, etc.
       * encoder_layers - number of layers
-      * encoder_dp_input_keep_prob -
-      * encoder_dp_output_keep_prob -
       * encoder_use_skip_connections - true/false
       * time_major (optional)
       * use_swap_memory (optional)
       * mode - train or infer
-      ... add any cell-specific parameters here as well
+      * input_weight_keep_prob: keep probability for dropout of W 
+                                (kernel used to multiply with the input tensor)
+      * recurrent_weight_keep_prob: keep probability for dropout of U
+                                  (kernel used to multiply with last hidden state tensor)
+      * recurrent_keep_prob: keep probability for dropout
+                            when applying tanh for the input transform step
+      * weight_variational: whether to keep the same weight dropout mask
+                            at every timestep. This feature is not yet implemented.
+      * emb_keep_prob: keep probability for dropout of the embedding matrix
+      * encoder_dp_input_keep_prob: keep probability for dropout on input of a LSTM cell
+                                    in the layer which is not the last layer
+      * encoder_dp_output_keep_prob: keep probability for dropout on output of a LSTM cell
+                                    in the layer which is not the last layer
+      * encoder_last_input_keep_prob: like ``encoder_dp_input_keep_prob`` but for the 
+                                      cell in the last layer
+      * encoder_dp_output_keep_prob: like ``encoder_dp_output_keep_prob`` but for the 
+                                      cell in the last layer
+      * weight_tied: whether to tie the embedding matrix to the last linear layer.
+                     can only do so if the dimension of the last output layer is
+                     the same as the vocabulary size
+      * use_cell_state: if set to True, concat the last hidden state and 
+                        the last cell state to input into the last output layer.
+                        This only works for the text classification task, not the
+                        language modeling phase.
+      For different ways to do dropout for LSTM cells, please read this article:
+      https://medium.com/@bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b
+
     :param encoder_params:
     """
     super(LMEncoder, self).__init__(
@@ -102,7 +131,7 @@ class LMEncoder(Encoder):
     self.params['weight_variational'] = self.params.get('weight_variational', False)
     self.params['dropout_seed'] = self.params.get('dropout_seed', 1822)
     self._fc_dim = self.params.get('fc_dim', self._vocab_size)
-    self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not define then just take full softmax
+    self._num_sampled = self.params.get('num_sampled', self._fc_dim) # if num_sampled not defined, take full softmax
     self._lm_phase = self._fc_dim == self._vocab_size
     self._num_tokens_gen = self.params.get('num_tokens_gen', 200)
     self._batch_size = self.params['batch_size']
@@ -270,7 +299,7 @@ class LMEncoder(Encoder):
     source_sequence = input_dict['source_tensors'][0]
     source_length = input_dict['source_tensors'][1]
 
-    # only infer in lm phase requires a different graph
+    # Inference for language modeling requires a different graph
     if (not self._lm_phase) or self._mode == 'train' or self._mode == 'eval':
       embedded_inputs = tf.cast(tf.nn.embedding_lookup(
         self.enc_emb_w,

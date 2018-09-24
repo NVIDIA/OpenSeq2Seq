@@ -52,8 +52,6 @@ def single_cell(
   if awd_initializer:
     val = 1.0/math.sqrt(cell_params['num_units'])
     cell_params['initializer'] = tf.random_uniform_initializer(minval=-val, maxval=val)
-  # else:
-  #   cell_params['initializer'] = tf.contrib.layers.xavier_initializer()
   if 'WeightDropLayerNormBasicLSTMCell' in str(cell_class):
     if recurrent_keep_prob < 1.0:
       cell_params['recurrent_keep_prob'] = recurrent_keep_prob

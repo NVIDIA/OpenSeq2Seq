@@ -90,7 +90,7 @@ class Model:
         'loss_scaling_params': dict,
         'summaries': list,
         'iter_size': int,
-        'lm_vocab_file': str,
+        'lm_vocab_file': str, #TODO: move this paramters to lstm_lm.py
         'processed_data_folder': str,
     }
 
@@ -127,8 +127,17 @@ class Model:
     * **eval_batch_size_per_gpu** (int) --- batch size to use for each GPU during
       inference. This is for when training and inference have different computation
       and memory requirements, such as when training uses sampled softmax and
-      inference uses full softmax. If not specified, it's automatically set
-      to **batch_size_per_gpu**.
+      inference uses full softmax. If not specified, it's set
+      to ``batch_size_per_gpu``.
+    * **restore_best_checkpoint** (bool) --- if set to True, when doing evaluation 
+      and inference, the model will load the best checkpoint instead of the latest
+      checkpoint. Best checkpoint is evaluated based on evaluation results, so 
+      it's only available when the model is trained untder ``train_eval`` mode.
+      Default to False.
+    * **load_model** (str) --- points to the location of the pretrained model for
+      transfer learning. If specified, during training, the system will look
+      into the checkpoint in this folder and restore all variables whose names and 
+      shapes match a variable in the new model.
     * **num_epochs** (int) --- number of epochs to run training for.
       This parameter cannot be used if ``max_steps`` is specified.
     * **max_steps** (int) --- number of steps to run training for.
