@@ -8,4 +8,5 @@ mkdir build
 cd build
 cmake ..
 make -j
+cd ..
 ln -s  ../kenlm ../ctc_decoder_with_lm/kenlm
