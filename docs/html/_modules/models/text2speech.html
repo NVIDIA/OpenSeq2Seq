@@ -158,21 +158,19 @@
 <span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
+<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">BytesIO</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
 
+<span class="kn">from</span> <span class="nn">scipy.io.wavfile</span> <span class="k">import</span> <span class="n">write</span>
+
 <span class="kn">import</span> <span class="nn">librosa</span>
-
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
-
 <span class="kn">import</span> <span class="nn">matplotlib</span> <span class="k">as</span> <span class="nn">mpl</span>
 <span class="n">mpl</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;Agg&#39;</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">scipy.io.wavfile</span> <span class="k">import</span> <span class="n">write</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
-<span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">StringIO</span>
-
 
 <div class="viewcode-block" id="plot_spectrograms"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.plot_spectrograms">[docs]</a><span class="k">def</span> <span class="nf">plot_spectrograms</span><span class="p">(</span>
     <span class="n">specs</span><span class="p">,</span>
@@ -213,14 +211,12 @@
   <span class="n">num_figs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">specs</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
   <span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">nrows</span><span class="o">=</span><span class="n">num_figs</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">8</span><span class="p">,</span> <span class="n">num_figs</span> <span class="o">*</span> <span class="mi">3</span><span class="p">))</span>
 
-  <span class="n">figures</span> <span class="o">=</span> <span class="p">[]</span>
   <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">title</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">specs</span><span class="p">,</span> <span class="n">titles</span><span class="p">)):</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)),</span> <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mf">0.</span><span class="p">)</span>
     <span class="n">spec</span> <span class="o">=</span> <span class="n">spec</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">colour</span> <span class="o">=</span> <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">imshow</span><span class="p">(</span>
         <span class="n">spec</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;viridis&#39;</span><span class="p">,</span> <span class="n">interpolation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">aspect</span><span class="o">=</span><span class="s1">&#39;auto&#39;</span>
     <span class="p">)</span>
-    <span class="n">figures</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">colour</span><span class="p">)</span>
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">invert_yaxis</span><span class="p">()</span>
     <span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="n">title</span><span class="p">)</span>
     <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">colour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
@@ -231,17 +227,21 @@
   <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">stop_token_pred</span><span class="p">,</span> <span class="s1">&#39;g.&#39;</span><span class="p">)</span>
   <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">audio_length</span><span class="p">)</span>
   <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">specs</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+  <span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;stop token&quot;</span><span class="p">)</span>
+
+  <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
+  <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+
   <span class="n">cb</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">colour</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">ax</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
   <span class="n">cb</span><span class="o">.</span><span class="n">remove</span><span class="p">()</span>
 
-  <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s1">&#39;time&#39;</span><span class="p">)</span>
 
   <span class="k">if</span> <span class="n">save_to_tensorboard</span><span class="p">:</span>
     <span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_image&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">append</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
+    <span class="n">iostream</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">fig</span><span class="o">.</span><span class="n">savefig</span><span class="p">(</span><span class="n">iostream</span><span class="p">,</span> <span class="n">dpi</span><span class="o">=</span><span class="mi">300</span><span class="p">)</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Image</span><span class="p">(</span>
-        <span class="n">encoded_image_string</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span>
+        <span class="n">encoded_image_string</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(),</span>
         <span class="n">height</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figheight</span><span class="p">()</span> <span class="o">*</span> <span class="mi">300</span><span class="p">),</span>
         <span class="n">width</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">fig</span><span class="o">.</span><span class="n">get_figwidth</span><span class="p">()</span> <span class="o">*</span> <span class="mi">300</span><span class="p">)</span>
     <span class="p">)</span>
@@ -266,7 +266,15 @@
 
 
 <div class="viewcode-block" id="save_audio"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.save_audio">[docs]</a><span class="k">def</span> <span class="nf">save_audio</span><span class="p">(</span>
-    <span class="n">magnitudes</span><span class="p">,</span> <span class="n">logdir</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="kc">False</span>
+    <span class="n">magnitudes</span><span class="p">,</span>
+    <span class="n">logdir</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">,</span>
+    <span class="n">sampling_rate</span><span class="p">,</span>
+    <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">,</span>
+    <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span>
+    <span class="n">number</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+    <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;tensorboard&quot;</span><span class="p">,</span>
+    <span class="n">power</span><span class="o">=</span><span class="mf">1.5</span>
 <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Helper function to create a wav file to be logged to disk or a tf.Summary to</span>
@@ -277,33 +285,46 @@
 <span class="sd">      energy spectrogram.</span>
 <span class="sd">    logdir (str): dir to save image file is save_to_tensorboard is disabled.</span>
 <span class="sd">    step (int): current training step</span>
+<span class="sd">    sampling_rate (int): samplng rate in Hz of the audio to be saved.</span>
+<span class="sd">    n_fft (int): number of filters for fft and ifft.</span>
 <span class="sd">    number (int): Current sample number (used if evaluating more than 1 sample</span>
 <span class="sd">    mode (str): Optional string to append to file name eg. train, eval, infer</span>
 <span class="sd">      from a batch)</span>
-<span class="sd">    save_to_tensorboard (bool): If False, the created file is saved to the</span>
-<span class="sd">      logdir as a wav file. If True, the function returns a tf.Summary object</span>
-<span class="sd">      containing the wav file and will be logged to the current tensorboard file.</span>
+<span class="sd">    save_format: save_audio can either return the np.array containing the</span>
+<span class="sd">      generated sound, log the wav file to the disk, or return a tensorboard</span>
+<span class="sd">      summary object. Each method can be enabled by passing save_format as</span>
+<span class="sd">      &quot;np.array&quot;, &quot;tensorboard&quot;, or &quot;disk&quot; respectively.</span>
 
 <span class="sd">  Returns:</span>
 <span class="sd">    tf.Summary or None</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">signal</span> <span class="o">=</span> <span class="n">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="mf">1.2</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">save_to_tensorboard</span><span class="p">:</span>
+  <span class="n">signal</span> <span class="o">=</span> <span class="n">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="o">.</span><span class="n">T</span><span class="o">**</span><span class="n">power</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;np.array&quot;</span><span class="p">:</span>
+    <span class="k">return</span> <span class="n">signal</span>
+  <span class="k">elif</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;tensorboard&quot;</span><span class="p">:</span>
     <span class="n">tag</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_audio&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mode</span><span class="p">)</span>
-    <span class="n">s</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
-    <span class="n">write</span><span class="p">(</span><span class="n">s</span><span class="p">,</span> <span class="mi">22050</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
-    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Audio</span><span class="p">(</span><span class="n">encoded_audio_string</span><span class="o">=</span><span class="n">s</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
+    <span class="n">iostream</span> <span class="o">=</span> <span class="n">BytesIO</span><span class="p">()</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">iostream</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Audio</span><span class="p">(</span><span class="n">encoded_audio_string</span><span class="o">=</span><span class="n">iostream</span><span class="o">.</span><span class="n">getvalue</span><span class="p">())</span>
     <span class="n">summary</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">Summary</span><span class="o">.</span><span class="n">Value</span><span class="p">(</span><span class="n">tag</span><span class="o">=</span><span class="n">tag</span><span class="p">,</span> <span class="n">audio</span><span class="o">=</span><span class="n">summary</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">summary</span>
-  <span class="k">else</span><span class="p">:</span>
+  <span class="k">elif</span> <span class="n">save_format</span> <span class="o">==</span> <span class="s2">&quot;disk&quot;</span><span class="p">:</span>
     <span class="n">file_name</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">/sample_step</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">_</span><span class="si">{}</span><span class="s1">.wav&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="n">step</span><span class="p">,</span> <span class="n">number</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">logdir</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;/&#39;</span><span class="p">:</span>
       <span class="n">file_name</span> <span class="o">=</span> <span class="s2">&quot;./&quot;</span> <span class="o">+</span> <span class="n">file_name</span>
-    <span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="mi">22050</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">sampling_rate</span><span class="p">,</span> <span class="n">signal</span><span class="p">)</span>
+    <span class="k">return</span> <span class="kc">None</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">((</span>
+        <span class="s2">&quot;WARN: The save format passed to save_audio was not understood. No &quot;</span>
+        <span class="s2">&quot;sound files will be saved for the current step. &quot;</span>
+        <span class="s2">&quot;Received &#39;</span><span class="si">{}</span><span class="s2">&#39;.&quot;</span>
+        <span class="s2">&quot;Expected one of &#39;np.array&#39;, &#39;tensorboard&#39;, or &#39;disk&#39;&quot;</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">save_format</span><span class="p">))</span>
     <span class="k">return</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="griffin_lim"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.griffin_lim">[docs]</a><span class="k">def</span> <span class="nf">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="p">,</span> <span class="n">n_iters</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+<div class="viewcode-block" id="griffin_lim"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.griffin_lim">[docs]</a><span class="k">def</span> <span class="nf">griffin_lim</span><span class="p">(</span><span class="n">magnitudes</span><span class="p">,</span> <span class="n">n_iters</span><span class="o">=</span><span class="mi">50</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Griffin-Lim algorithm to convert magnitude spectrograms to audio signals</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -313,7 +334,7 @@
   <span class="n">signal</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">)</span>
 
   <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_iters</span><span class="p">):</span>
-    <span class="n">_</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="mi">1024</span><span class="p">))</span>
+    <span class="n">_</span><span class="p">,</span> <span class="n">phase</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">magphase</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_fft</span><span class="p">))</span>
     <span class="n">complex_spec</span> <span class="o">=</span> <span class="n">magnitudes</span> <span class="o">*</span> <span class="n">phase</span>
     <span class="n">signal</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">istft</span><span class="p">(</span><span class="n">complex_spec</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">signal</span></div>
@@ -332,12 +353,6 @@
   <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">Text2Speech</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;save_to_tensorboard&quot;</span><span class="p">]</span>
-
-  <span class="k">def</span> <span class="nf">_create_decoder</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Text2Speech</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
 
 <div class="viewcode-block" id="Text2Speech.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.text2speech.Text2Speech.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">training_step</span><span class="p">):</span>
     <span class="n">dict_to_log</span> <span class="o">=</span> <span class="p">{}</span>
@@ -385,11 +400,17 @@
     <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="n">predicted_final_spec</span><span class="p">[:</span><span class="n">audio_length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
     <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
     <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+      <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;tensorboard&quot;</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;disk&quot;</span>
     <span class="n">wav_summary</span> <span class="o">=</span> <span class="n">save_audio</span><span class="p">(</span>
         <span class="n">predicted_final_spec</span><span class="p">,</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
         <span class="n">step</span><span class="p">,</span>
-        <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span>
+        <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+        <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
+        <span class="n">save_format</span><span class="o">=</span><span class="n">save_format</span>
     <span class="p">)</span>
     <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span>
 
@@ -442,12 +463,18 @@
 
       <span class="n">predicted_final_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
       <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span><span class="p">:</span>
+        <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;tensorboard&quot;</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">save_format</span> <span class="o">=</span> <span class="s2">&quot;disk&quot;</span>
       <span class="n">wav_summary</span> <span class="o">=</span> <span class="n">save_audio</span><span class="p">(</span>
           <span class="n">predicted_final_spec</span><span class="p">,</span>
           <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
           <span class="n">step</span><span class="p">,</span>
+          <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+          <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
           <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span>
-          <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_save_to_tensorboard</span>
+          <span class="n">save_format</span><span class="o">=</span><span class="n">save_format</span>
       <span class="p">)</span>
       <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span>
 
@@ -491,7 +518,7 @@
 
         <span class="k">if</span> <span class="s2">&quot;mel&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;output_type&#39;</span><span class="p">]:</span>
           <span class="n">mag_spec</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span>
-          <span class="p">)</span><span class="o">.</span><span class="n">inverse_mel</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
+          <span class="p">)</span><span class="o">.</span><span class="n">get_magnitude_spec</span><span class="p">(</span><span class="n">predicted_final_spec</span><span class="p">)</span>
           <span class="n">log_mag_spec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">mag_spec</span><span class="p">,</span> <span class="n">a_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span> <span class="n">a_max</span><span class="o">=</span><span class="kc">None</span><span class="p">))</span>
           <span class="n">specs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">log_mag_spec</span><span class="p">)</span>
           <span class="n">titles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;linear spectrogram&quot;</span><span class="p">)</span>
@@ -516,14 +543,14 @@
               <span class="n">predicted_final_spec</span><span class="p">,</span>
               <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;logdir&quot;</span><span class="p">],</span>
               <span class="mi">0</span><span class="p">,</span>
+              <span class="n">n_fft</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">n_fft</span><span class="p">,</span>
+              <span class="n">sampling_rate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sampling_rate</span><span class="p">,</span>
               <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span>
               <span class="n">number</span><span class="o">=</span><span class="n">i</span> <span class="o">*</span> <span class="n">batch_size</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span>
-              <span class="n">save_to_tensorboard</span><span class="o">=</span><span class="kc">False</span>
+              <span class="n">save_format</span><span class="o">=</span><span class="s2">&quot;disk&quot;</span>
           <span class="p">)</span>
 
-          <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span>
-
-    <span class="k">return</span> <span class="p">{}</span></div></div>
+          <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;audio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">wav_summary</span></div></div>
 </pre></div>
 
            </div>

@@ -21,6 +21,10 @@ def main():
         "notebook not from run.py."
     )
 
+  restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
+  # Check logdir and create it if necessary
+  checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
+
   # Initilize Horovod
   if base_config['use_horovod']:
     import horovod.tensorflow as hvd

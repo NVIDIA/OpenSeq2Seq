@@ -108,9 +108,7 @@ class TacotronTrainingHelper(Helper):
 
   def sample(self, time, outputs, state, name=None):
     # Fully deterministic, output should already be projected
-    del time, state
-    sample_ids = math_ops.cast(math_ops.argmax(outputs, axis=-1), dtypes.int32)
-    return sample_ids
+    pass
 
   def next_inputs(self, time, outputs, state, name=None, **unused_kwargs):
     # Applies the fully connected pre-net to the decoder
@@ -195,10 +193,7 @@ class TacotronHelper(Helper):
 
   def sample(self, time, outputs, state, name=None):
     # Fully deterministic, output should already be projected
-    del time, state
-    sample_ids = math_ops.cast(math_ops.argmax(outputs, axis=-1), dtypes.int32)
-    return sample_ids
-
+    pass
   def next_inputs(
       self,
       time,

@@ -181,13 +181,13 @@
 <dl class="docutils">
 <dt>We have 2 models based on RNNs:</dt>
 <dd><ul class="first last simple">
-<li>small NMT (config <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-nmt-small.py">en-de-nmt-small.py</a> ) model:<ul>
+<li>small NMT (config <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-nmt-small.py">en-de-nmt-small.py</a> ) model:<ul>
 <li>the embedding size for source and target is 512</li>
 <li>2 birectional LSTM layers in encoder, and 2 LSTM layers in decoder  with state 512</li>
 <li>the attention mechanism with size 512</li>
 </ul>
 </li>
-<li>GNMT-like model based on <a class="reference external" href="https://ai.google/research/pubs/pub45610">Google NMT</a>  (config <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py">en-de-gnmt-like-4GPUs.py</a> ):<ul>
+<li>GNMT-like model based on <a class="reference external" href="https://ai.google/research/pubs/pub45610">Google NMT</a>  (config <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py">en-de-gnmt-like-4GPUs.py</a> ):<ul>
 <li>the embedding size for source and target is 1024</li>
 <li>8 LSTM layers in encoder, and 8 LSTM layers in decoder with state 1024</li>
 <li>residual connections in encoders and decoders</li>

@@ -21,12 +21,12 @@ Currently we support following models:
 
    * - :doc:`DeepSpeech2 </speech-recognition/deepspeech2>`
      - 6.71
-     - `ds2_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
+     - `ds2_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX>`_
 
-   * - :doc:`Wavel2Letter </speech-recognition/wave2letter>`
+   * - :doc:`Wavel2Letter+ </speech-recognition/wave2letter>`
      - 6.67
-     - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
+     - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_
 
 
@@ -36,7 +36,7 @@ For the evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 
 For more details about model and training parameters,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_ and specific model's documentation.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text>`_ and specific model's documentation.
 
 .. toctree::
    :hidden:

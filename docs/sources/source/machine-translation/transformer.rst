@@ -10,18 +10,19 @@ Model
 This model is based on `Google Transformer  <https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html>`_
 which was introduced in `Attention is all you need  <https://arxiv.org/abs/1706.03762>`_ by A. Vaswani, etal.
 
-Baseline config: `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/transformer-base.py>`_
+Baseline config (base model): `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/transformer-base.py>`_
 
 Transformer model is based solely on attention mechanisms, without any recurrent or convolutional layers.
 Common source and target vocabulary is used to share input/output embedding
 Tokenization of input and output is done with SentencePiece (`SentencePiece <https://github.com/google/sentencepiece>`_)
-It is very good for neural machine translation tasks and this particular configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( `checkpoint TBD <tbd>`_ ).
+It is very good for neural machine translation tasks and base configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( `checkpoint TBD <tbd>`_ )
+while big model gets around 27.5.
 
 
 Training
 ~~~~~~~~
 
-It also shows good multi-GPU scalability. Below are the scaling factors for batch size of 256 per GPU when training in mixed-precision and using or not using Horovod:
+It also shows good multi-GPU scalability for transformer models. Below are the scaling factors for base model for batch size of 256 per GPU when training in mixed-precision and using or not using Horovod:
 
 .. image:: transformer_scaling.png
 

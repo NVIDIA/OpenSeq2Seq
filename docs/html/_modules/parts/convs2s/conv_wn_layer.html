@@ -166,6 +166,7 @@
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.convs2s.utils</span> <span class="k">import</span> <span class="n">gated_linear_units</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer.common</span> <span class="k">import</span> <span class="n">LayerNormalization</span>
 
 
 <div class="viewcode-block" id="Conv1DNetworkNormalized"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized">[docs]</a><span class="k">class</span> <span class="nc">Conv1DNetworkNormalized</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
@@ -181,7 +182,10 @@
                <span class="n">conv_padding</span><span class="p">,</span>
                <span class="n">decode_padding</span><span class="p">,</span>
                <span class="n">activation</span><span class="o">=</span><span class="n">gated_linear_units</span><span class="p">,</span>
-               <span class="n">normalization_type</span><span class="o">=</span><span class="s2">&quot;weight_norm&quot;</span><span class="p">):</span>
+               <span class="n">normalization_type</span><span class="o">=</span><span class="s2">&quot;weight_norm&quot;</span><span class="p">,</span>
+               <span class="n">regularizer</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="c1"># tf.contrib.layers.l2_regularizer(scale=1e-4)</span>
+               <span class="n">init_var</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+               <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;initializes the 1D convolution layer.</span>
 <span class="sd">    It uses weight normalization (Salimans &amp; Kingma, 2016)  w = g * v/2-norm(v)</span>
 
@@ -200,7 +204,9 @@
 <span class="sd">      activation: the activation function applies after the convolution</span>
 <span class="sd">      normalization_type: str specifies the normalization used for the layer.</span>
 <span class="sd">                    &quot;weight_norm&quot; for weight normalization or</span>
-<span class="sd">                    &quot;batch_norm&quot; for batch normalization</span>
+<span class="sd">                    &quot;batch_norm&quot; for batch normalization or</span>
+<span class="sd">                    &quot;layer_norm&quot; for layer normalization</span>
+<span class="sd">      regularizer: the regularizer for the batch normalization</span>
 
 <span class="sd">    &quot;&quot;&quot;</span>
 
@@ -212,19 +218,28 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">=</span> <span class="n">kernel_width</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">layer_id</span> <span class="o">=</span> <span class="n">layer_id</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">act_func</span> <span class="o">=</span> <span class="n">activation</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">=</span> <span class="n">regularizer</span>
 
     <span class="k">if</span> <span class="n">normalization_type</span> <span class="o">==</span> <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">True</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">False</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">elif</span> <span class="n">normalization_type</span> <span class="o">==</span> <span class="s2">&quot;weight_norm&quot;</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">False</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">True</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">True</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">elif</span> <span class="n">normalization_type</span> <span class="o">==</span> <span class="s2">&quot;layer_norm&quot;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">elif</span> <span class="n">normalization_type</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span> <span class="o">=</span> <span class="kc">False</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span> <span class="o">=</span> <span class="kc">True</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span> <span class="o">=</span> <span class="kc">False</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Wrong normalization type: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">normalization_type</span><span class="p">))</span>
 
@@ -234,8 +249,11 @@
       <span class="n">conv_out_size</span> <span class="o">=</span> <span class="n">out_dim</span>
 
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;conv_layer_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">layer_id</span><span class="p">)):</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">init_var</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">V_std</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">4.0</span> <span class="o">*</span> <span class="n">hidden_dropout</span> <span class="o">/</span> <span class="p">(</span><span class="n">kernel_width</span> <span class="o">*</span> <span class="n">in_dim</span><span class="p">))</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">V_std</span> <span class="o">=</span> <span class="n">init_var</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">wn_enabled</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">V</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
             <span class="s1">&#39;V&#39;</span><span class="p">,</span>
             <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">kernel_width</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">conv_out_size</span><span class="p">],</span>
@@ -249,8 +267,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">W</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
             <span class="s1">&#39;W&#39;</span><span class="p">,</span>
             <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">kernel_width</span><span class="p">,</span> <span class="n">in_dim</span><span class="p">,</span> <span class="n">conv_out_size</span><span class="p">],</span>
-            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="mf">0.01</span><span class="p">),</span>
-            <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">random_normal_initializer</span><span class="p">(</span><span class="n">mean</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">stddev</span><span class="o">=</span><span class="n">V_std</span><span class="p">),</span>
+            <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span><span class="p">)</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bias_enabled</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
@@ -259,7 +278,13 @@
             <span class="n">initializer</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">zeros_initializer</span><span class="p">(),</span>
             <span class="n">trainable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">None</span></div>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="kc">None</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span><span class="n">out_dim</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span> <span class="o">=</span> <span class="kc">None</span></div>
+
 
 <div class="viewcode-block" id="Conv1DNetworkNormalized.call"><a class="viewcode-back" href="../../../api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">input</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Applies convolution with gated linear units on x.</span>
@@ -270,40 +295,42 @@
 <span class="sd">    Returns:</span>
 <span class="sd">      float32 tensor with shape [batch_size, length, out_dim].</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">x</span> <span class="o">=</span> <span class="nb">input</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="nb">input</span>
+
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
-      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dropout</span><span class="p">)</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_dropout</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode_padding</span><span class="p">:</span>
-      <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
-          <span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
+          <span class="n">output</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">-</span> <span class="mi">1</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]],</span>
           <span class="s2">&quot;CONSTANT&quot;</span><span class="p">)</span>
 
     <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
-        <span class="n">value</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_padding</span><span class="p">)</span>
-
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+        <span class="n">value</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">filters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">W</span><span class="p">,</span> <span class="n">stride</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">conv_padding</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">decode_padding</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
       <span class="n">output</span> <span class="o">=</span> <span class="n">output</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">:</span><span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">kernel_width</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_batch_norm</span><span class="p">:</span>
       <span class="c1"># trick to make batchnorm work for mixed precision training.</span>
-      <span class="c1"># To-Do check if batchnorm works smoothly for &gt;4 dimensional tensors</span>
-      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>  <span class="c1"># NWC --&gt; NHWC</span>
-      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
+      <span class="n">bn_input</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">bn_output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
           <span class="n">name</span><span class="o">=</span><span class="s2">&quot;batch_norm_&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layer_id</span><span class="p">),</span>
-          <span class="n">inputs</span><span class="o">=</span><span class="n">output</span><span class="p">,</span>
-          <span class="c1">#gamma_regularizer=regularizer,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">bn_input</span><span class="p">,</span>
           <span class="n">training</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">,</span>
           <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
-          <span class="n">momentum</span><span class="o">=</span><span class="mf">0.99</span><span class="p">,</span>
-          <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span>
+          <span class="n">momentum</span><span class="o">=</span><span class="mf">0.95</span><span class="p">,</span>
+          <span class="n">epsilon</span><span class="o">=</span><span class="mf">1e-4</span>
       <span class="p">)</span>
-      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">bn_output</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
-    <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_func</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_layer_norm</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">layer_norm</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">bias_add</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_func</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">act_func</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">output</span></div></div>
 </pre></div>
 

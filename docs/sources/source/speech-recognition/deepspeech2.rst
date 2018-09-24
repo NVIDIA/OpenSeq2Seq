@@ -80,7 +80,7 @@ Here is a pre-trained model which was trained for 200 epochs in a mixed precisio
 
    * - :doc:`DeepSpeech2 </speech-recognition/deepspeech2>`
      - 6.71
-     - `ds2_large_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
+     - `ds2_large_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX>`_
 
 

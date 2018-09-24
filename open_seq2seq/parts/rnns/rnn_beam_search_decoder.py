@@ -175,7 +175,8 @@ class BeamSearchDecoder(decoder.Decoder):
                initial_state,
                beam_width,
                output_layer=None,
-               length_penalty_weight=0.0):
+               length_penalty_weight=0.0,
+               positional_embedding=None):
     """Initialize the BeamSearchDecoder.
 
     Args:
@@ -190,6 +191,8 @@ class BeamSearchDecoder(decoder.Decoder):
         `tf.layers.Dense`.  Optional layer to apply to the RNN output prior
         to storing the result or sampling.
       length_penalty_weight: Float weight to penalize length. Disabled with 0.0.
+      positional_embedding: A callable to use decoder positional embedding.
+      Default is None in which case positional embedding is disabled
 
     Raises:
       TypeError: if `cell` is not an instance of `RNNCell`,
@@ -197,9 +200,9 @@ class BeamSearchDecoder(decoder.Decoder):
       ValueError: If `start_tokens` is not a vector or
         `end_token` is not a scalar.
     """
-    rnn_cell_impl.assert_like_rnncell("cell",cell)
+    rnn_cell_impl.assert_like_rnncell("cell", cell)
     if (output_layer is not None and
-        not isinstance(output_layer, layers_base.Layer)):
+            not isinstance(output_layer, layers_base.Layer)):
       raise TypeError(
           "output_layer must be a Layer, received: %s" % type(output_layer))
     self._cell = cell
@@ -210,6 +213,15 @@ class BeamSearchDecoder(decoder.Decoder):
     else:
       self._embedding_fn = (
           lambda ids: embedding_ops.embedding_lookup(embedding, ids))
+
+    self._use_pos_embedding = False
+    if positional_embedding is not None:
+      if callable(positional_embedding):
+        self._pos_embedding_fn = positional_embedding
+      else:
+        self._pos_embedding_fn = (
+            lambda ids: embedding_ops.embedding_lookup(positional_embedding, ids))
+      self._use_pos_embedding = True
 
     self._start_tokens = ops.convert_to_tensor(
         start_tokens, dtype=dtypes.int32, name="start_tokens")
@@ -228,6 +240,9 @@ class BeamSearchDecoder(decoder.Decoder):
     self._start_tokens = array_ops.tile(
         array_ops.expand_dims(self._start_tokens, 1), [1, self._beam_width])
     self._start_inputs = self._embedding_fn(self._start_tokens)
+
+    if self._use_pos_embedding:
+      self._start_inputs += self._pos_embedding_fn(ops.convert_to_tensor(0))
 
     self._finished = array_ops.one_hot(
         array_ops.zeros([self._batch_size], dtype=dtypes.int32),
@@ -512,6 +527,8 @@ class BeamSearchDecoder(decoder.Decoder):
       next_inputs = control_flow_ops.cond(
           math_ops.reduce_all(finished), lambda: self._start_inputs,
           lambda: self._embedding_fn(sample_ids))
+      if self._use_pos_embedding:
+        next_inputs += self._pos_embedding_fn(ops.convert_to_tensor(time))
 
     return (beam_search_output, beam_search_state, next_inputs, finished)
 
@@ -583,7 +600,8 @@ def _beam_search_step(time, logits, next_cell_state, beam_state, batch_size,
   next_beam_scores.set_shape([static_batch_size, beam_width])
   word_indices.set_shape([static_batch_size, beam_width])
 
-  # Pick out the probs, beam_ids, and states according to the chosen predictions
+  # Pick out the probs, beam_ids, and states according to the chosen
+  # predictions
   next_beam_probs = _tensor_gather_helper(
       gather_indices=word_indices,
       gather_from=total_probs,
@@ -699,7 +717,7 @@ def _length_penalty(sequence_lengths, penalty_factor):
   if static_penalty is not None and static_penalty == 0:
     return 1.0
   return math_ops.div((5. + math_ops.to_float(sequence_lengths))
-                      **penalty_factor, (5. + 1.)**penalty_factor)
+                      ** penalty_factor, (5. + 1.)**penalty_factor)
 
 
 def _mask_probs(probs, eos_token, finished):

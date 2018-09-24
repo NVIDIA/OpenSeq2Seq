@@ -159,8 +159,18 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
 
+<span class="kn">import</span> <span class="nn">argparse</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">pprint</span>
+<span class="kn">import</span> <span class="nn">runpy</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
 <span class="kn">import</span> <span class="nn">subprocess</span>
+<span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">time</span>
+
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">six</span>
@@ -201,7 +211,7 @@
 <span class="sd">    mode: could be &quot;sum&quot;, &quot;mean&quot; or &quot;gather&quot;, indicating reduce_sum or gather.</span>
 <span class="sd">        For &quot;sum&quot; and &quot;mean&quot; value has to be numerical, for &quot;gather&quot;, value has</span>
 <span class="sd">        to be iterable.</span>
-<span class="sd">        </span>
+
 <span class="sd">  Returns:</span>
 <span class="sd">    collected results if run on Horovod or value otherwise.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -239,7 +249,7 @@
   <span class="k">return</span> <span class="n">last_batch_clipped</span></div>
 
 
-<div class="viewcode-block" id="iterate_data"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.iterate_data">[docs]</a><span class="k">def</span> <span class="nf">iterate_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">):</span>
+<div class="viewcode-block" id="iterate_data"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.iterate_data">[docs]</a><span class="k">def</span> <span class="nf">iterate_data</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">compute_loss</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">num_steps</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
   <span class="n">total_time</span> <span class="o">=</span> <span class="mf">0.0</span>
   <span class="n">bench_start</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bench_start&#39;</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span>
   <span class="n">results_per_batch</span> <span class="o">=</span> <span class="p">[]</span>
@@ -358,6 +368,9 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
       <span class="k">break</span>
     <span class="n">step</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="c1"># break early in the case of INT8 calibration</span>
+    <span class="k">if</span> <span class="n">num_steps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">step</span> <span class="o">&gt;=</span> <span class="n">num_steps</span><span class="p">:</span>
+      <span class="k">break</span>
 
   <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">step</span> <span class="o">&gt;</span> <span class="n">bench_start</span><span class="p">:</span>
@@ -597,6 +610,306 @@
       <span class="k">continue</span>
     <span class="n">cast_input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
   <span class="k">return</span> <span class="n">cast_input_dict</span></div>
+
+<div class="viewcode-block" id="get_interactive_infer_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.get_interactive_infer_results">[docs]</a><span class="k">def</span> <span class="nf">get_interactive_infer_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">model_in</span><span class="p">):</span>
+  <span class="n">fetches</span> <span class="o">=</span> <span class="p">[</span>
+      <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">input_tensors</span><span class="p">,</span>
+      <span class="n">model</span><span class="o">.</span><span class="n">get_output_tensors</span><span class="p">(),</span>
+  <span class="p">]</span>
+
+  <span class="n">feed_dict</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">create_feed_dict</span><span class="p">(</span><span class="n">model_in</span><span class="p">)</span>
+
+  <span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span> <span class="o">=</span> <span class="n">sess</span><span class="o">.</span><span class="n">run</span><span class="p">(</span><span class="n">fetches</span><span class="p">,</span> <span class="n">feed_dict</span><span class="o">=</span><span class="n">feed_dict</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">model</span><span class="o">.</span><span class="n">infer</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">outputs</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="get_base_config"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.get_base_config">[docs]</a><span class="k">def</span> <span class="nf">get_base_config</span><span class="p">(</span><span class="n">args</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;This function parses the command line arguments, reads the config file, and</span>
+<span class="sd">  gets the base_model from the config.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    args (str): The command line arugments</span>
+
+<span class="sd">  Returns</span>
+<span class="sd">    args (dict): The arguments parsed into a dictionary</span>
+<span class="sd">    base_config (dict): The config read from the file and ammended with the</span>
+<span class="sd">      command line arguments</span>
+<span class="sd">    base_model (OpenSeq2Seq model): The model specified in the config file</span>
+<span class="sd">    config_module (dict): The raw config file processed by runpy</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Experiment parameters&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--config_file&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the configuration file&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--mode&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Could be </span><span class="se">\&quot;</span><span class="s2">train</span><span class="se">\&quot;</span><span class="s2">, </span><span class="se">\&quot;</span><span class="s2">eval</span><span class="se">\&quot;</span><span class="s2">, &quot;</span>
+                           <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">train_eval</span><span class="se">\&quot;</span><span class="s2"> or </span><span class="se">\&quot;</span><span class="s2">infer</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--infer_output_file&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output of inference&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--continue_learning&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;continue_learning&#39;</span><span class="p">,</span>
+                      <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;whether to continue learning&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--no_dir_check&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;no_dir_check&#39;</span><span class="p">,</span>
+                      <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;whether to check that everything is correct &quot;</span>
+                           <span class="s2">&quot;with log directory&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--benchmark&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;benchmark&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;automatic config change for benchmarking&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--bench_steps&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;20&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;max_steps for benchmarking&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--bench_start&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;first step to start counting time for benchmarking&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--debug_port&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">int</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;run TensorFlow in debug mode on specified port&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--enable_logs&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;enable_logs&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;whether to log output, git info, cmd args, etc.&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--use_trt&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;use_trt&#39;</span><span class="p">,</span> <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;use TF-TRT to optimize graph for inference (mode must be infer)&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--precision&#39;</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;fp32&#39;</span><span class="p">,</span>
+                      <span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;fp32&#39;</span><span class="p">,</span> <span class="s1">&#39;fp16&#39;</span><span class="p">,</span> <span class="s1">&#39;int8&#39;</span><span class="p">],</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s1">&#39;precision for TF-TRT (only valid with --use_trt&#39;</span><span class="p">)</span>  
+  <span class="n">args</span><span class="p">,</span> <span class="n">unknown</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">(</span><span class="n">args</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span>
+      <span class="s1">&#39;train&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;eval&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;train_eval&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;infer&#39;</span><span class="p">,</span>
+      <span class="s1">&#39;interactive_infer&#39;</span>
+  <span class="p">]:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Mode has to be one of &quot;</span>
+                     <span class="s2">&quot;[&#39;train&#39;, &#39;eval&#39;, &#39;train_eval&#39;, &#39;infer&#39;, &quot;</span>
+                     <span class="s2">&quot;&#39;interactive_infer&#39;]&quot;</span><span class="p">)</span>
+  <span class="n">config_module</span> <span class="o">=</span> <span class="n">runpy</span><span class="o">.</span><span class="n">run_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="n">init_globals</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;tf&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="p">})</span>
+
+  <span class="n">base_config</span> <span class="o">=</span> <span class="n">config_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">base_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config dictionary has to be &#39;</span>
+                     <span class="s1">&#39;defined in the config file&#39;</span><span class="p">)</span>
+  <span class="n">base_model</span> <span class="o">=</span> <span class="n">config_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">base_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config class has to be defined in the config file&#39;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">use_trt</span> <span class="ow">and</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">!=</span> <span class="s1">&#39;infer&#39;</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TensorRT is only supported for inference mode.&quot;</span><span class="p">)</span>
+
+  <span class="c1"># after we read the config, trying to overwrite some of the properties</span>
+  <span class="c1"># with command line arguments that were passed to the script</span>
+  <span class="n">parser_unk</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">pm</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">base_config</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span> <span class="ow">or</span> \
+       <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+      <span class="n">parser_unk</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">pm</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+      <span class="n">parser_unk</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">pm</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">)</span>
+  <span class="n">config_update</span> <span class="o">=</span> <span class="n">parser_unk</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span>
+  <span class="n">nested_update</span><span class="p">(</span><span class="n">base_config</span><span class="p">,</span> <span class="n">nest_dict</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">config_update</span><span class="p">)))</span>
+
+  <span class="k">return</span> <span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">config_module</span></div>
+
+<div class="viewcode-block" id="check_logdir"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.check_logdir">[docs]</a><span class="k">def</span> <span class="nf">check_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">restore_best_checkpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;A helper function that ensures the logdir is setup correctly</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    args (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    base_config (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    restore_best_checkpoint (bool): If True, will look for ckpt_dir + /best_models</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    checkpoint: Either None if continue-learning is not set and training, or</span>
+<span class="sd">      the name of the checkpoint used to restore the model</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># checking that everything is correct with log directory</span>
+  <span class="n">logdir</span> <span class="o">=</span> <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">benchmark</span><span class="p">:</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">no_dir_check</span> <span class="o">=</span> <span class="kc">True</span>
+  <span class="k">try</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">enable_logs</span><span class="p">:</span>
+      <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;logs&#39;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">logdir</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train_eval&#39;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">logdir</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;There is a file with the same name as </span><span class="se">\&quot;</span><span class="s2">logdir</span><span class="se">\&quot;</span><span class="s2"> &quot;</span>
+                      <span class="s2">&quot;parameter. You should change the log directory path &quot;</span>
+                      <span class="s2">&quot;or delete the file to continue.&quot;</span><span class="p">)</span>
+
+      <span class="c1"># check if &quot;logdir&quot; directory exists and non-empty</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">args</span><span class="o">.</span><span class="n">continue_learning</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;Log directory is not empty. If you want to continue &quot;</span>
+                        <span class="s2">&quot;learning, you should provide &quot;</span>
+                        <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">--continue_learning</span><span class="se">\&quot;</span><span class="s2"> flag&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+              <span class="s2">&quot;There is no valid TensorFlow checkpoint in the &quot;</span>
+              <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> directory. Can&#39;t load model&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+          <span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">continue_learning</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;The log directory is empty or does not exist. &quot;</span>
+                        <span class="s2">&quot;You should probably not provide &quot;</span>
+                        <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">--continue_learning</span><span class="se">\&quot;</span><span class="s2"> flag?&quot;</span><span class="p">)</span>
+        <span class="n">checkpoint</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">elif</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span> <span class="ow">or</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;interactive_infer&#39;</span><span class="p">):</span>
+      <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[]:</span>
+        <span class="k">if</span> <span class="n">restore_best_checkpoint</span><span class="p">:</span>
+          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Restoring from best checkpoint&quot;</span><span class="p">)</span>
+          <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span> <span class="o">+</span> <span class="s1">&#39;/best_models&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+          <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+              <span class="s2">&quot;There is no valid TensorFlow checkpoint in the &quot;</span>
+              <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> directory. Can&#39;t load model&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+          <span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+            <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> does not exist or is empty, can&#39;t restore model&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">ckpt_dir</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+  <span class="k">except</span> <span class="ne">IOError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">no_dir_check</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Warning: </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">e</span><span class="p">))</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Resuming operation since no_dir_check argument was provided&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="k">raise</span>
+
+  <span class="k">return</span> <span class="n">checkpoint</span></div>
+
+<div class="viewcode-block" id="create_logdir"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.create_logdir">[docs]</a><span class="k">def</span> <span class="nf">create_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;A helper function that ensures the logdir and log files are setup corretly.</span>
+<span class="sd">  Only called in --enable_logs is set.</span>
+
+<span class="sd">   Args:</span>
+<span class="sd">    args (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    base_config (dict): Dictionary as returned from get_base_config()</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    Some objects that need to be cleaned up in run.py</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">logdir</span> <span class="o">=</span> <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">logdir</span><span class="p">):</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span>
+
+  <span class="n">tm_suf</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">_%H-%M-%S&#39;</span><span class="p">)</span>
+  <span class="n">shutil</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span>
+      <span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;config_</span><span class="si">{}</span><span class="s1">.py&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tm_suf</span><span class="p">)),</span>
+  <span class="p">)</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;cmd-args_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tm_suf</span><span class="p">)),</span>
+            <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">))</span>
+
+  <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;git-info_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tm_suf</span><span class="p">)),</span>
+            <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="s1">&#39;commit hash: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">get_git_hash</span><span class="p">()))</span>
+    <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">get_git_diff</span><span class="p">())</span>
+
+  <span class="n">old_stdout</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span>
+  <span class="n">old_stderr</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span>
+  <span class="n">stdout_log</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;stdout_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tm_suf</span><span class="p">)),</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="mi">1</span>
+  <span class="p">)</span>
+  <span class="n">stderr_log</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span>
+      <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;stderr_</span><span class="si">{}</span><span class="s1">.log&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tm_suf</span><span class="p">)),</span> <span class="s1">&#39;a&#39;</span><span class="p">,</span> <span class="mi">1</span>
+  <span class="p">)</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="p">,</span> <span class="n">stdout_log</span><span class="p">)</span>
+  <span class="n">sys</span><span class="o">.</span><span class="n">stderr</span> <span class="o">=</span> <span class="n">Logger</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">stderr</span><span class="p">,</span> <span class="n">stderr_log</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">old_stdout</span><span class="p">,</span> <span class="n">old_stderr</span><span class="p">,</span> <span class="n">stdout_log</span><span class="p">,</span> <span class="n">stderr_log</span></div>
+
+<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">config_module</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">hvd</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;A helpful function that creates the train, eval, and infer models as</span>
+<span class="sd">  needed.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    args (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    base_config (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    config_module: config_module as returned from get_base_config()</span>
+<span class="sd">    base_model (OpenSeq2Seq model): Dictionary as returned from</span>
+<span class="sd">      get_base_config()</span>
+<span class="sd">    hvd: Either None if Horovod is not enabled, or the Horovod library</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    model: A compiled model. For the &#39;train_eval&#39; mode, a tuple containing the</span>
+<span class="sd">      (train_model, eval_model) is returned.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">train_config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">base_config</span><span class="p">)</span>
+  <span class="n">eval_config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">base_config</span><span class="p">)</span>
+  <span class="n">infer_config</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">base_config</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train_eval&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">&#39;train_params&#39;</span> <span class="ow">in</span> <span class="n">config_module</span><span class="p">:</span>
+      <span class="n">nested_update</span><span class="p">(</span><span class="n">train_config</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config_module</span><span class="p">[</span><span class="s1">&#39;train_params&#39;</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Training config:&quot;</span><span class="p">)</span>
+      <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">train_config</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train_eval&#39;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s1">&#39;eval_params&#39;</span> <span class="ow">in</span> <span class="n">config_module</span><span class="p">:</span>
+      <span class="n">nested_update</span><span class="p">(</span><span class="n">eval_config</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config_module</span><span class="p">[</span><span class="s1">&#39;eval_params&#39;</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Evaluation config:&quot;</span><span class="p">)</span>
+      <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">eval_config</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;infer&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">infer_output_file</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">infer_output_file</span><span class="se">\&quot;</span><span class="s2"> command line parameter is &quot;</span>
+                       <span class="s2">&quot;required in inference mode&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s2">&quot;infer_params&quot;</span> <span class="ow">in</span> <span class="n">config_module</span><span class="p">:</span>
+      <span class="n">nested_update</span><span class="p">(</span><span class="n">infer_config</span><span class="p">,</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config_module</span><span class="p">[</span><span class="s1">&#39;infer_params&#39;</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Inference config:&quot;</span><span class="p">)</span>
+      <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">infer_config</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;interactive_infer&quot;</span><span class="p">:</span>
+    <span class="k">if</span> <span class="s2">&quot;interactive_infer_params&quot;</span> <span class="ow">in</span> <span class="n">config_module</span><span class="p">:</span>
+      <span class="n">nested_update</span><span class="p">(</span>
+          <span class="n">infer_config</span><span class="p">,</span>
+          <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">config_module</span><span class="p">[</span><span class="s1">&#39;interactive_infer_params&#39;</span><span class="p">])</span>
+      <span class="p">)</span>
+    <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Inference config:&quot;</span><span class="p">)</span>
+      <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">infer_config</span><span class="p">)</span>
+
+
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">benchmark</span><span class="p">:</span>
+    <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Adjusting config for benchmarking&quot;</span><span class="p">)</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;print_samples_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;print_loss_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="s1">&#39;num_epochs&#39;</span> <span class="ow">in</span> <span class="n">train_config</span><span class="p">:</span>
+      <span class="k">del</span> <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;num_epochs&#39;</span><span class="p">]</span>
+    <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;max_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">bench_steps</span>
+    <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">bench_start</span><span class="p">:</span>
+      <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;bench_start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">args</span><span class="o">.</span><span class="n">bench_start</span>
+    <span class="k">elif</span> <span class="s1">&#39;bench_start&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">train_config</span><span class="p">:</span>
+      <span class="n">train_config</span><span class="p">[</span><span class="s1">&#39;bench_start&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c1"># default value</span>
+
+    <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;New benchmarking config:&quot;</span><span class="p">)</span>
+      <span class="n">pprint</span><span class="o">.</span><span class="n">pprint</span><span class="p">(</span><span class="n">train_config</span><span class="p">)</span>
+    <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">=</span> <span class="s2">&quot;train&quot;</span>
+
+  <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train_eval&#39;</span><span class="p">:</span>
+    <span class="n">train_model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">train_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="n">train_model</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+    <span class="n">eval_model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">eval_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="n">eval_model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="p">)</span>
+  <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">train_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+  <span class="k">elif</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">eval_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;eval&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">infer_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">check_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">)</span>
+    <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">use_trt</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">model</span></div>
 </pre></div>
 
            </div>

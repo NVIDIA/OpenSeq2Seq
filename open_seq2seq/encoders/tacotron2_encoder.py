@@ -26,7 +26,8 @@ class Tacotron2Encoder(Encoder):
     return dict(
         Encoder.get_required_params(),
         **{
-            'dropout_keep_prob': float,
+            'cnn_dropout_prob': float,
+            'rnn_dropout_prob': float,
             'src_emb_size': int,
             'conv_layers': list,
             'activation_fn': None,  # any valid callable
@@ -56,7 +57,8 @@ class Tacotron2Encoder(Encoder):
 
     Config parameters:
 
-    * **dropout_keep_prob** (float) --- keep probability for dropout.
+    * **cnn_dropout_prob** (float) --- dropout probabilty for cnn layers.
+    * **rnn_dropout_prob** (float) --- dropout probabilty for cnn layers.
     * **src_emb_size** (int) --- dimensionality of character embedding.
     * **conv_layers** (list) --- list with the description of convolutional
       layers. For example::
@@ -118,7 +120,6 @@ class Tacotron2Encoder(Encoder):
     text_len = input_dict['source_tensors'][1]
 
     training = (self._mode == "train")
-    dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
     regularizer = self.params.get('regularizer', None)
     data_format = self.params.get('data_format', 'channels_last')
     src_vocab_size = self._model.get_data_layer().params['src_vocab_size']
@@ -177,7 +178,7 @@ class Tacotron2Encoder(Encoder):
           bn_epsilon=self.params.get('bn_epsilon', 1e-5),
       )
       top_layer = tf.layers.dropout(
-          top_layer, rate=1. - dropout_keep_prob, training=training
+          top_layer, rate=self.params["cnn_dropout_prob"], training=training
       )
 
     if data_format == 'channels_first':
@@ -193,33 +194,46 @@ class Tacotron2Encoder(Encoder):
       rnn_vars = []
 
       if self.params["use_cudnn_rnn"]:
-        all_cudnn_classes = [
-            i[1]
-            for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)
-        ]
-        if not rnn_type in all_cudnn_classes:
-          raise TypeError("rnn_type must be a Cudnn RNN class")
-        if zoneout_prob != 0.:
-          raise ValueError(
-              "Zoneout is currently not supported for cudnn rnn classes"
+        if self._mode == "infer":
+          cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(
+              cell_params["num_units"]
           )
-
-        rnn_input = tf.transpose(top_layer, [1, 0, 2])
-        if self.params['rnn_unidirectional']:
-          direction = cudnn_rnn_ops.CUDNN_RNN_UNIDIRECTION
+          cells_fw = [cell() for _ in range(1)]
+          cells_bw = [cell() for _ in range(1)]
+          (top_layer, _, _) = tf.contrib.rnn.stack_bidirectional_dynamic_rnn(
+              cells_fw, cells_bw, rnn_input,
+              sequence_length=text_len,
+              dtype=rnn_input.dtype,
+              time_major=False)
         else:
-          direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
+          all_cudnn_classes = [
+              i[1]
+              for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)
+          ]
+          if not rnn_type in all_cudnn_classes:
+            raise TypeError("rnn_type must be a Cudnn RNN class")
+          if zoneout_prob != 0.:
+            raise ValueError(
+                "Zoneout is currently not supported for cudnn rnn classes"
+            )
 
-        rnn_block = rnn_type(
-            num_layers=num_rnn_layers,
-            num_units=cell_params["num_units"],
-            direction=direction,
-            dtype=rnn_input.dtype,
-            name="cudnn_rnn"
-        )
-        top_layer, _ = rnn_block(rnn_input)
-        top_layer = tf.transpose(top_layer, [1, 0, 2])
-        rnn_vars += rnn_block.trainable_variables
+          rnn_input = tf.transpose(top_layer, [1, 0, 2])
+          if self.params['rnn_unidirectional']:
+            direction = cudnn_rnn_ops.CUDNN_RNN_UNIDIRECTION
+          else:
+            direction = cudnn_rnn_ops.CUDNN_RNN_BIDIRECTION
+
+          rnn_block = rnn_type(
+              num_layers=num_rnn_layers,
+              num_units=cell_params["num_units"],
+              direction=direction,
+              dtype=rnn_input.dtype,
+              name="cudnn_rnn"
+          )
+          rnn_block.build(rnn_input.get_shape())
+          top_layer, _ = rnn_block(rnn_input)
+          top_layer = tf.transpose(top_layer, [1, 0, 2])
+          rnn_vars += rnn_block.trainable_variables
 
       else:
         multirnn_cell_fw = tf.nn.rnn_cell.MultiRNNCell(
@@ -284,6 +298,9 @@ class Tacotron2Encoder(Encoder):
 
     # -- end of rnn------------------------------------------------------------
 
+    top_layer = tf.layers.dropout(
+        top_layer, rate=self.params["rnn_dropout_prob"], training=training
+    )
     outputs = top_layer
 
     return {

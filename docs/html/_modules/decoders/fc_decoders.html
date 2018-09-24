@@ -329,11 +329,10 @@
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">FullyConnectedTimeDecoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;decoder_library_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="s1">&#39;beam_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="s1">&#39;lm_weight&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="s1">&#39;word_count_weight&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="s1">&#39;valid_word_count_weight&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
-        <span class="s1">&#39;lm_binary_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="s1">&#39;lm_trie_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;alpha&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;beta&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;lm_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="s1">&#39;trie_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">})</span></div>
 
@@ -349,16 +348,14 @@
 <span class="sd">      output text generation. If False, other config parameters are not used.</span>
 <span class="sd">    * **decoder_library_path** (string) --- path to the ctc decoder with</span>
 <span class="sd">      language model library.</span>
-<span class="sd">    * **lm_binary_path** (string) --- path to the language model file.</span>
-<span class="sd">    * **lm_trie_path** (string) --- path to the language model trie file.</span>
+<span class="sd">    * **lm_path** (string) --- path to the language model file.</span>
+<span class="sd">    * **trie_path** (string) --- path to the prefix trie file.</span>
 <span class="sd">    * **alphabet_config_path** (string) --- path to the alphabet file.</span>
 <span class="sd">    * **beam_width** (int) --- beam width for beam search.</span>
-<span class="sd">    * **lm_weight** (float) --- weight that is assigned to language model</span>
+<span class="sd">    * **alpha** (float) --- weight that is assigned to language model</span>
 <span class="sd">      probabilities.</span>
-<span class="sd">    * **word_count_weight** (float) --- weight that is assigned to the</span>
+<span class="sd">    * **beta** (float) --- weight that is assigned to the</span>
 <span class="sd">      word count.</span>
-<span class="sd">    * **valid_word_count_weight** (float) --- weight that is assigned to the</span>
-<span class="sd">      valid word count, i.e. words that exist in language model dictionary.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">FullyConnectedCTCDecoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
 
@@ -382,12 +379,10 @@
         <span class="n">decoded_ixs</span><span class="p">,</span> <span class="n">decoded_vals</span><span class="p">,</span> <span class="n">decoded_shapes</span><span class="p">,</span> <span class="n">log_probabilities</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">custom_op_module</span><span class="o">.</span><span class="n">ctc_beam_search_decoder_with_lm</span><span class="p">(</span>
                 <span class="n">logits</span><span class="p">,</span> <span class="n">sequence_length</span><span class="p">,</span> <span class="n">beam_width</span><span class="o">=</span><span class="n">beam_width</span><span class="p">,</span>
-                <span class="n">model_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_binary_path&#39;</span><span class="p">],</span>
-                <span class="n">trie_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_trie_path&#39;</span><span class="p">],</span>
+                <span class="n">model_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_path&#39;</span><span class="p">],</span> <span class="n">trie_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;trie_path&#39;</span><span class="p">],</span>
                 <span class="n">alphabet_path</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alphabet_config_path&#39;</span><span class="p">],</span>
-                <span class="n">lm_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;lm_weight&#39;</span><span class="p">],</span>
-                <span class="n">word_count_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;word_count_weight&#39;</span><span class="p">],</span>
-                <span class="n">valid_word_count_weight</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;valid_word_count_weight&#39;</span><span class="p">],</span>
+                <span class="n">alpha</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;alpha&#39;</span><span class="p">],</span>
+                <span class="n">beta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;beta&#39;</span><span class="p">],</span>
                 <span class="n">top_paths</span><span class="o">=</span><span class="n">top_paths</span><span class="p">,</span> <span class="n">merge_repeated</span><span class="o">=</span><span class="n">merge_repeated</span><span class="p">,</span>
             <span class="p">)</span>
         <span class="p">)</span>

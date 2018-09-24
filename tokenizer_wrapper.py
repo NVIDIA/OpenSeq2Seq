@@ -76,7 +76,7 @@ def detokenize(args):
     with open(input_file, 'r') as inpt:
       for line in inpt:
         decoded_line = sp.DecodePieces(line.split(" "))
-        otpt.write((decoded_line).decode('utf-8'))
+        otpt.write(decoded_line)
 
 def main():
   parser = argparse.ArgumentParser(description='Input Parameters')
