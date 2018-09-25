@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>ConvS2S &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>LSTMLM &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="GNMT" href="gnmt.html" />
-    <link rel="prev" title="Transformer" href="transformer.html" /> 
+    <link rel="next" title="Sentiment Analysis" href="../sentiment-analysis.html" />
+    <link rel="prev" title="Language Model" href="../language-model.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -86,25 +86,21 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../machine-translation.html">Machine Translation</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../machine-translation.html#models">Models</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="transformer.html">Transformer</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">ConvS2S</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="gnmt.html">GNMT</a></li>
-</ul>
-</li>
-<li class="toctree-l2"><a class="reference internal" href="../machine-translation.html#getting-started">Getting started</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="../sentiment-analysis.html#models">Models</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">LSTMLM</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../sentiment-analysis.html#getting-started">Getting started</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
@@ -155,15 +151,15 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../machine-translation.html">Machine Translation</a> &raquo;</li>
+          <li><a href="../language-model.html">Language Model</a> &raquo;</li>
         
-      <li>ConvS2S</li>
+      <li>LSTMLM</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/machine-translation/convs2s.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/language-model/lstmlm.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -176,40 +172,32 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="convs2s">
-<span id="id1"></span><h1>ConvS2S<a class="headerlink" href="#convs2s" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="lstmlm">
+<span id="id1"></span><h1>LSTMLM<a class="headerlink" href="#lstmlm" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="model">
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>ConvS2S is a fully convolutional Neural Machine Translation model based on Facebook ConvS2S model
-(see  <a class="reference external" href="https://arxiv.org/pdf/1705.03122">Convolutional Sequence to Sequence Learning</a>  by Jonas Gehring etal ). Our implementation matches the original model.
-Common source and target vocabulary is used to share input/output embedding
-Tokenization of input and output is done with SentencePiece (<a class="reference external" href="https://github.com/google/sentencepiece">SentencePiece</a>)
-The BLEU score was done with SacreBLEU (<a class="reference external" href="https://arxiv.org/abs/1804.08771">A Call for Clarity in Reporting BLEU Scores</a>)</p>
-</div>
-<div class="section" id="training">
-<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>The baseline config (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py">en-de-convs2s-8-gpu.py</a>) achieves
-BLEU score of around 25 on WMT 2014 English-to-German translation task
-( <a class="reference external" href="https://drive.google.com/file/...">checkpoint</a> ).</p>
-<p>In order to train the model we use:</p>
+<p>This is a word-level language model that uses a basic uni-directional LSTM architecture. To train on the dataset WikiText-103, we use 3 layer LSTM model, each layer with 1024 units and embedding size of 400. We break the data into sequences of length 96.</p>
+<p>The biggest problem when training RNN-based language models is overfitting. To reduce overfitting, we use several techniques proposed in the paper <cite>Regularizing and Optimizing LSTM Language Models (Smerity et al., 2017) &lt;https://arxiv.org/pdf/1708.02182.pdf&gt;</cite>.</p>
 <ul class="simple">
-<li>Adam as the optimizer</li>
-<li>warmup LR with initial learning rate 1e-3</li>
-<li>batch size of 128 per GPU for mixed precision and batch 64/ GPU for float32</li>
-<li>dropout rate = 0.2</li>
+<li>weights tied: share the same variables between the embedding matrix with the kernel output project layer after the RNN. It means that the LSTM cell at the last layer has the same number of hidden units as the embedding size. Due to the huge vocab size, this technique reduces the number of parameters by 100M.</li>
+<li>random start: According to Smerity et al., if we always break the training data into sequences of length 96, any element at the index divisible by 96 “never has any elements to backprop into”. To avoid this, we randomly choose the start token index to be between [0, 95].</li>
+<li>embedding dropout: we use dropout with the embedding matrix (which is also the kernel for the output projection layer)</li>
+<li><dl class="first docutils">
+<dt>LSTM dropout: we use various dropout methods with LSTM cells. For more information on these different techniques of dropout, this is <cite>an excellent blog post &lt;https://medium.com/&#64;bingobee01/a-review-of-dropout-as-applied-to-rnns-72e79ecd5b7b&gt;</cite>. The cell in the last layer uses a different keep probability because with weight tied, it often has a much smaller number of hidden units.</dt>
+<dd><ul class="first last">
+<li>input_weight_keep_prob: keep probability for dropout of W (kernel used to multiply with the input tensor)</li>
+<li>recurrent_weight_keep_prob: keep probability for dropout of U (kernel used to multiply with last hidden state tensor)</li>
+<li>recurrent_keep_prob: keep probability for dropout when applying tanh on the input transform</li>
+<li>encoder_dp_input_keep_prob: keep probability for dropout on input of a LSTM cell in the layer which is not the last layer</li>
+<li>encoder_dp_output_keep_prob: keep probability for dropout on output of a LSTM cell in the layer which is not the last layer</li>
+<li>encoder_last_input_keep_prob: like encoder_dp_input_keep_prob but for the cell in the last layer</li>
+<li>encoder_dp_output_keep_prob: like encoder_dp_output_keep_prob but for the cell in the last layer</li>
 </ul>
-</div>
-<div class="section" id="mixed-precision">
-<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
-<p>The following changes are done to the model for mixed precision training:</p>
-<ul class="simple">
-<li>Softmax normalization should be done in float32 for both attention and loss, so inputs have been converted from float16 to float</li>
-<li>Automatic loss scaling with back-off</li>
-<li>Learning rate warmpup</li>
+</dd>
+</dl>
+</li>
 </ul>
-<p>MP training is around 2.5X-2.7X times faster than float32 on one single GPU.</p>
-<p>This model also shows very good multi-GPU scalability. Here are the scaling factors for batch 128/GPU:</p>
-<img alt="../_images/convs2s_scaling_factors.png" src="../_images/convs2s_scaling_factors.png" />
+<p>The model has 123.7M tokens. Using single-precision training on 4 GPUs, it takes 36 hours to get to the perplexity of 51, and double that amount of time to get the perplexity of 48.6. Using mixed-precision, we’re able to double the batch size and reduce the training time by half.</p>
 </div>
 </div>
 
@@ -221,10 +209,10 @@ BLEU score of around 25 on WMT 2014 English-to-German translation task
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="gnmt.html" class="btn btn-neutral float-right" title="GNMT" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../sentiment-analysis.html" class="btn btn-neutral float-right" title="Sentiment Analysis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="transformer.html" class="btn btn-neutral" title="Transformer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="../language-model.html" class="btn btn-neutral" title="Language Model" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
