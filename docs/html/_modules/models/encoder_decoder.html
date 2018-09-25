@@ -164,7 +164,6 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.models.model</span> <span class="k">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
 
-
 <div class="viewcode-block" id="EncoderDecoderModel"><a class="viewcode-back" href="../../api-docs/models.html#models.encoder_decoder.EncoderDecoderModel">[docs]</a><span class="k">class</span> <span class="nc">EncoderDecoderModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Standard encoder-decoder class with one encoder and one decoder.</span>
@@ -221,8 +220,8 @@
 <span class="sd">    * **loss_params** (dict) --- dictionary with loss configuration. For</span>
 <span class="sd">      complete list of possible parameters see the corresponding class docs.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">EncoderDecoderModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
-        <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">EncoderDecoderModel</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
+
     <span class="k">if</span> <span class="s1">&#39;encoder_params&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;encoder_params&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="s1">&#39;decoder_params&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>

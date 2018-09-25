@@ -250,7 +250,7 @@
                                            <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">EOS_ID</span><span class="p">),</span>
             <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">,</span>
                                            <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="p">),</span>
-          <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
+            <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>
         <span class="p">))</span>
         <span class="n">input_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">text_ids_to_string</span><span class="p">(</span>
             <span class="n">input_sample</span><span class="p">[</span><span class="n">i</span><span class="p">],</span>
@@ -258,7 +258,7 @@
             <span class="n">S_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">,</span>
                                          <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">S_ID</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
             <span class="n">EOS_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">,</span>
-                                           <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">EOS_ID</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
+                                       <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">EOS_ID</span><span class="o">.</span><span class="n">value</span><span class="p">),</span>
             <span class="n">PAD_ID</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">,</span>
                                            <span class="n">SpecialTextTokens</span><span class="o">.</span><span class="n">PAD_ID</span><span class="p">),</span>
             <span class="n">ignore_special</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">delim</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">,</span>

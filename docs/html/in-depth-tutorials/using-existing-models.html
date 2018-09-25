@@ -295,6 +295,20 @@ this parameter is ignored.</li>
 used if <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
 <li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
+<li><strong>eval_batch_size_per_gpu</strong> (int) — batch size to use for each GPU during
+inference. This is for when training and inference have different computation
+and memory requirements, such as when training uses sampled softmax and
+inference uses full softmax. If not specified, it’s set
+to <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>.</li>
+<li><strong>restore_best_checkpoint</strong> (bool) — if set to True, when doing evaluation
+and inference, the model will load the best checkpoint instead of the latest
+checkpoint. Best checkpoint is evaluated based on evaluation results, so
+it’s only available when the model is trained untder <code class="docutils literal notranslate"><span class="pre">train_eval</span></code> mode.
+Default to False.</li>
+<li><strong>load_model</strong> (str) — points to the location of the pretrained model for
+transfer learning. If specified, during training, the system will look
+into the checkpoint in this folder and restore all variables whose names and
+shapes match a variable in the new model.</li>
 <li><strong>num_epochs</strong> (int) — number of epochs to run training for.
 This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> is specified.</li>
 <li><strong>max_steps</strong> (int) — number of steps to run training for.

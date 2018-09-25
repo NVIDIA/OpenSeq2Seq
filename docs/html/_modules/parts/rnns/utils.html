@@ -209,8 +209,6 @@
   <span class="k">if</span> <span class="n">awd_initializer</span><span class="p">:</span>
     <span class="n">val</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">cell_params</span><span class="p">[</span><span class="s1">&#39;num_units&#39;</span><span class="p">])</span>
     <span class="n">cell_params</span><span class="p">[</span><span class="s1">&#39;initializer&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">random_uniform_initializer</span><span class="p">(</span><span class="n">minval</span><span class="o">=-</span><span class="n">val</span><span class="p">,</span> <span class="n">maxval</span><span class="o">=</span><span class="n">val</span><span class="p">)</span>
-  <span class="c1"># else:</span>
-  <span class="c1">#   cell_params[&#39;initializer&#39;] = tf.contrib.layers.xavier_initializer()</span>
   <span class="k">if</span> <span class="s1">&#39;WeightDropLayerNormBasicLSTMCell&#39;</span> <span class="ow">in</span> <span class="nb">str</span><span class="p">(</span><span class="n">cell_class</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">recurrent_keep_prob</span> <span class="o">&lt;</span> <span class="mf">1.0</span><span class="p">:</span>
       <span class="n">cell_params</span><span class="p">[</span><span class="s1">&#39;recurrent_keep_prob&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">recurrent_keep_prob</span>

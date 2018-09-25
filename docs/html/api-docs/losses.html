@@ -420,7 +420,9 @@ class <a class="reference internal" href="#losses.ctc_loss.CTCLoss.__init__" tit
 <dt id="losses.sequence_loss.BasicSampledSequenceLoss">
 <em class="property">class </em><code class="descclassname">losses.sequence_loss.</code><code class="descname">BasicSampledSequenceLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='basic_sampled_sequence_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSampledSequenceLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSampledSequenceLoss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
-<p>Basic sequence-to-sequence loss. This one does not use one-hot encodings</p>
+<p>Basic sampled sequence-to-sequence loss. This is used when the full softmax
+is computational prohibitive.
+This one does not use one-hot encodings.</p>
 <dl class="method">
 <dt id="losses.sequence_loss.BasicSampledSequenceLoss.__init__">
 <code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='basic_sampled_sequence_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/sequence_loss.html#BasicSampledSequenceLoss.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.sequence_loss.BasicSampledSequenceLoss.__init__" title="Permalink to this definition">¶</a></dt>

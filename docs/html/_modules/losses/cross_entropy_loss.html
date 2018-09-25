@@ -174,8 +174,7 @@
   <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;logits&#39;</span><span class="p">]</span>
     <span class="n">labels</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">softmax_cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">onehot_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">loss</span></div>
+    <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">losses</span><span class="o">.</span><span class="n">softmax_cross_entropy</span><span class="p">(</span><span class="n">logits</span><span class="o">=</span><span class="n">logits</span><span class="p">,</span> <span class="n">onehot_labels</span><span class="o">=</span><span class="n">labels</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

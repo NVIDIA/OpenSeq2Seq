@@ -419,7 +419,7 @@
     <span class="n">labels</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_pad_tensors_to_same_length</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-      <span class="sd">&quot;&quot;&quot;Pad x and y so that the results have the</span>
+      <span class="sd">&quot;&quot;&quot; Pad x and y so that the results have the</span>
 <span class="sd">      same length (second dimension).</span>
 <span class="sd">      &quot;&quot;&quot;</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;pad_to_same_length&quot;</span><span class="p">):</span>
@@ -468,7 +468,9 @@
 
 <div class="viewcode-block" id="BasicSampledSequenceLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss">[docs]</a><span class="k">class</span> <span class="nc">BasicSampledSequenceLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  Basic sequence-to-sequence loss. This one does not use one-hot encodings</span>
+<span class="sd">  Basic sampled sequence-to-sequence loss. This is used when the full softmax</span>
+<span class="sd">  is computational prohibitive.</span>
+<span class="sd">  This one does not use one-hot encodings.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="BasicSampledSequenceLoss.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
@@ -528,19 +530,29 @@
     <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="s1">&#39;weights&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">]:</span>
-      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DOING SAMPLED LOSS&#39;</span><span class="p">)</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Because &#39;weights&#39; is in the input_dict, we are using sampled softmax loss.&quot;</span><span class="p">)</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span><span class="p">))</span>
       <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sampled_softmax_loss</span><span class="p">(</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;weights&#39;</span><span class="p">],</span>
-                                            <span class="n">input_dict</span><span class="p">[</span>
-          <span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">],</span>
-          <span class="n">targets</span><span class="p">,</span>
-          <span class="n">inputs</span><span class="p">,</span>
-          <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span>
-          <span class="s1">&#39;num_sampled&#39;</span><span class="p">],</span>
-          <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">)</span>
+
+      <span class="n">weights</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;weights&#39;</span><span class="p">]</span>
+      <span class="n">biases</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+      
+      <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">biases</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">biases</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sampled_softmax_loss</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> 
+                                            <span class="n">biases</span><span class="p">,</span> 
+                                            <span class="n">targets</span><span class="p">,</span> 
+                                            <span class="n">inputs</span><span class="p">,</span>
+                                            <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;num_sampled&#39;</span><span class="p">],</span>
+                                            <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">)</span>
+
+
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span><span class="p">:</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">crossent</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
@@ -548,6 +560,7 @@
         <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
 
     <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Because &#39;weights&#39; is not in the input_dict, we are using normal softmax loss.&quot;</span><span class="p">)</span>
       <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>

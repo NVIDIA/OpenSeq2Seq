@@ -354,8 +354,7 @@
 
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">size_defined</span><span class="p">:</span>
-        <span class="n">data_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dl_sizes</span><span class="p">)</span> <span class="o">/</span>
-                                       <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">])))</span>
+        <span class="n">data_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dl_sizes</span><span class="p">)</span> <span class="o">/</span> <span class="n">batch_size</span><span class="p">)))</span>
         <span class="k">if</span> <span class="n">step</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">fetches_vals</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">or</span> \
            <span class="p">(</span><span class="n">data_size</span> <span class="o">&gt;</span> <span class="mi">10</span> <span class="ow">and</span> <span class="n">processed_batches</span> <span class="o">%</span> <span class="p">(</span><span class="n">data_size</span> <span class="o">//</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
           <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Processed </span><span class="si">{}</span><span class="s2">/</span><span class="si">{}</span><span class="s2"> batches</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
@@ -385,6 +384,7 @@
                                                              <span class="n">avg_objects</span><span class="p">))</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ending</span><span class="p">))</span>
+
 
   <span class="k">if</span> <span class="n">compute_loss</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">total_loss</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">total_samples</span><span class="p">)</span>
@@ -643,7 +643,7 @@
   <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--mode&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;train&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Could be </span><span class="se">\&quot;</span><span class="s2">train</span><span class="se">\&quot;</span><span class="s2">, </span><span class="se">\&quot;</span><span class="s2">eval</span><span class="se">\&quot;</span><span class="s2">, &quot;</span>
                            <span class="s2">&quot;</span><span class="se">\&quot;</span><span class="s2">train_eval</span><span class="se">\&quot;</span><span class="s2"> or </span><span class="se">\&quot;</span><span class="s2">infer</span><span class="se">\&quot;</span><span class="s2">&quot;</span><span class="p">)</span>
-  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--infer_output_file&quot;</span><span class="p">,</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--infer_output_file&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s1">&#39;infer-out.txt&#39;</span><span class="p">,</span>
                       <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output of inference&quot;</span><span class="p">)</span>
   <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--continue_learning&#39;</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="s1">&#39;continue_learning&#39;</span><span class="p">,</span>
                       <span class="n">action</span><span class="o">=</span><span class="s1">&#39;store_true&#39;</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;whether to continue learning&quot;</span><span class="p">)</span>
@@ -725,6 +725,7 @@
       <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">logdir</span><span class="p">,</span> <span class="s1">&#39;logs&#39;</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">logdir</span>
+
     <span class="k">if</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;train_eval&#39;</span><span class="p">:</span>
       <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">logdir</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;There is a file with the same name as </span><span class="se">\&quot;</span><span class="s2">logdir</span><span class="se">\&quot;</span><span class="s2"> &quot;</span>
@@ -752,11 +753,16 @@
     <span class="k">elif</span> <span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;infer&#39;</span> <span class="ow">or</span> <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;eval&#39;</span> <span class="ow">or</span>
         <span class="n">args</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;interactive_infer&#39;</span><span class="p">):</span>
       <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">logdir</span><span class="p">)</span> <span class="o">!=</span> <span class="p">[]:</span>
-        <span class="k">if</span> <span class="n">restore_best_checkpoint</span><span class="p">:</span>
-          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Restoring from best checkpoint&quot;</span><span class="p">)</span>
-          <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span> <span class="o">+</span> <span class="s1">&#39;/best_models&#39;</span><span class="p">)</span>
+      <span class="c1"># if os.path.isdir(logdir) and &#39;checkpoint&#39; in os.listdir(logdir):</span>
+        <span class="n">best_ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s1">&#39;best_models&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">restore_best_checkpoint</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">best_ckpt_dir</span><span class="p">):</span>
+          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Restoring from the best checkpoint&quot;</span><span class="p">)</span>
+          <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">best_ckpt_dir</span><span class="p">)</span>
+          <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">best_ckpt_dir</span>
         <span class="k">else</span><span class="p">:</span>
+          <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Restoring from the latest checkpoint&quot;</span><span class="p">)</span>
           <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+        
         <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
           <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
               <span class="s2">&quot;There is no valid TensorFlow checkpoint in the &quot;</span>
@@ -776,6 +782,40 @@
       <span class="k">raise</span>
 
   <span class="k">return</span> <span class="n">checkpoint</span></div>
+
+<div class="viewcode-block" id="check_base_model_logdir"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.check_base_model_logdir">[docs]</a><span class="k">def</span> <span class="nf">check_base_model_logdir</span><span class="p">(</span><span class="n">base_logdir</span><span class="p">,</span> <span class="n">restore_best_checkpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;A helper function that ensures the logdir is setup correctly</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    args (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    base_config (dict): Dictionary as returned from get_base_config()</span>
+<span class="sd">    restore_best_checkpoint (bool): If True, will look for ckpt_dir + /best_models</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    checkpoint: Either None if continue-learning is not set and training, or</span>
+<span class="sd">      the name of the checkpoint used to restore the model</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1"># checking that everything is correct with log directory</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">base_logdir</span><span class="p">:</span>
+    <span class="k">return</span> <span class="s1">&#39;&#39;</span>
+
+  <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">base_logdir</span><span class="p">))</span> <span class="ow">or</span> <span class="nb">len</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">base_logdir</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;The log directory for the base model is empty or does not exist.&quot;</span><span class="p">)</span>
+
+  <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">base_logdir</span><span class="p">,</span> <span class="s1">&#39;logs&#39;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">):</span>
+    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span><span class="s2">&quot;There&#39;s no folder &#39;logs&#39; in the base model logdir. </span><span class="se">\</span>
+<span class="s2">                    If checkpoints exist, put them in the &#39;logs&#39; folder.&quot;</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">restore_best_checkpoint</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s1">&#39;best_models&#39;</span><span class="p">)):</span>
+    <span class="n">ckpt_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">,</span> <span class="s1">&#39;best_models&#39;</span><span class="p">)</span>
+
+  <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">checkpoint</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">IOError</span><span class="p">(</span>
+        <span class="s2">&quot;There is no valid TensorFlow checkpoint in the </span><span class="se">\</span>
+<span class="s2">        </span><span class="si">{}</span><span class="s2"> directory. Can&#39;t load model&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ckpt_dir</span><span class="p">))</span>
+
+  <span class="k">return</span> <span class="n">ckpt_dir</span></div>
 
 <div class="viewcode-block" id="create_logdir"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.create_logdir">[docs]</a><span class="k">def</span> <span class="nf">create_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;A helper function that ensures the logdir and log files are setup corretly.</span>
@@ -820,7 +860,7 @@
 
   <span class="k">return</span> <span class="n">old_stdout</span><span class="p">,</span> <span class="n">old_stderr</span><span class="p">,</span> <span class="n">stdout_log</span><span class="p">,</span> <span class="n">stderr_log</span></div>
 
-<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">config_module</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">hvd</span><span class="p">):</span>
+<div class="viewcode-block" id="create_model"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.create_model">[docs]</a><span class="k">def</span> <span class="nf">create_model</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">config_module</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">hvd</span><span class="p">,</span> <span class="n">restore_best_checkpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;A helpful function that creates the train, eval, and infer models as</span>
 <span class="sd">  needed.</span>
 
@@ -906,7 +946,9 @@
     <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">force_var_reuse</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">base_model</span><span class="p">(</span><span class="n">params</span><span class="o">=</span><span class="n">infer_config</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">mode</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="n">hvd</span><span class="p">)</span>
-    <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">check_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;logs&#39;</span><span class="p">):</span>
+      <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">]</span> <span class="o">=</span>  <span class="n">base_config</span><span class="p">[</span><span class="s1">&#39;logdir&#39;</span><span class="p">][:</span><span class="o">-</span><span class="mi">5</span><span class="p">]</span>
+    <span class="n">checkpoint</span> <span class="o">=</span> <span class="n">check_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">restore_best_checkpoint</span><span class="p">)</span>
     <span class="n">model</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">use_trt</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">args</span><span class="o">.</span><span class="n">precision</span><span class="p">)</span>
 
   <span class="k">return</span> <span class="n">model</span></div>

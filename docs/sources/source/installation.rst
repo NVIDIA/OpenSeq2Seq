@@ -6,14 +6,16 @@ Installation instructions
 General installation
 --------------------
 
-Clone OpenSeq2Seq  and install Python requirements::
+OpenSeq2Seq supports Python >= 3.5.
+We recommend to use `Anaconda Python distribution <https://www.anaconda.com/download>`_.
+Clone OpenSeq2Seq and install Python requirements::
 
    git clone https://github.com/NVIDIA/OpenSeq2Seq
    cd OpenSeq2Seq
    pip install -r requirements.txt
 
-If you would like to get higher accuracy speech recognition, you have to build TensorFlow from sources as described
-in the
+If you would like to get higher speech recognition accuracy with custom CTC beam search decoder,
+you have to build TensorFlow from sources as described in the
 :ref:`Installation for speech recognition <installation_speech>`.
 Otherwise you can just install TensorFlow using pip::
 
@@ -36,6 +38,8 @@ worse model accuracy.
 How to add CTC decoder with language model to TensorFlow
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.2.
+
 1. Install `boost <http://www.boost.org>`_::
 
     sudo apt-get install libboost-all-dev
@@ -46,7 +50,7 @@ How to add CTC decoder with language model to TensorFlow
         sudo apt-get install cmake
         ./scripts/install_kenlm.sh
 
-   It will install KenLM in OpenSeq2Seq directory. If you installed KenLM in a different location, 
+   It will install KenLM in OpenSeq2Seq directory. If you installed KenLM in a different location,
    you will need to set the corresponding symlink::
 
         cd OpenSeq2Seq/ctc_decoder_with_lm
@@ -73,6 +77,10 @@ How to add CTC decoder with language model to TensorFlow
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
         cp bazel-bin/ctc_decoder_with_lm/generate_trie ctc_decoder_with_lm/
 
+4. Validate TensorFlow installation::
+
+        python -c "import tensorflow as tf; print(tf.__version__)"
+
 How to download language model
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -80,7 +88,7 @@ In order to achieve the best accuracy, you should download the language
 model from `OpenSLR <http://openslr.org/11/>`_ using ``download_lm.sh`` script
 (might take some time)::
 
-    ./download_lm.sh
+    ./scripts/download_lm.sh
 
 After that you should be able to run toy speech example with enabled CTC beam search decoder::
 
@@ -116,5 +124,3 @@ When training with Horovod, use the following commands (don't forget to substitu
 valid config_file path there and number of GPUs) ::
 
     mpiexec --allow-run-as-root -np <num_gpus> python run.py --config_file=... --mode=train_eval --use_horovod=True --enable_logs
-
-
