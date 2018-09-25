@@ -24,7 +24,7 @@ Currently we support following models:
    * - :doc:`Transformer </machine-translation/transformer>`
      - 26.4
      - `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/transformer-base.py>`_
-     - TBD
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1wGCZ6ktnW_m9Ie2ynbZ49t332enjbLde/view?usp=sharing>`_
    * - :doc:`ConvS2S </machine-translation/convs2s>`
      - 25.0
      - `en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_
