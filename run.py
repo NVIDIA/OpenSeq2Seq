@@ -21,7 +21,15 @@ def main():
         "notebook not from run.py."
     )
 
+#   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
+#   # Check logdir and create it if necessary
+#   checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
+  
+  load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
+  base_ckpt_dir = check_base_model_logdir(load_model, restore_best_checkpoint)
+  base_config['load_model'] = base_ckpt_dir
+
   # Check logdir and create it if necessary
   checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
 
@@ -34,15 +42,7 @@ def main():
   else:
     hvd = None
 
-  load_model = base_config.get('load_model', None)
-  restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
-  
 
-  base_ckpt_dir = check_base_model_logdir(load_model, restore_best_checkpoint)
-  base_config['load_model'] = base_ckpt_dir
-
-  # Check logdir and create it if necessary
-  checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
 
   if args.enable_logs:
     if hvd is None or hvd.rank() == 0:
