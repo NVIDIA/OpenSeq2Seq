@@ -43,7 +43,8 @@ How to add CTC decoder with language model to TensorFlow
 2. Build `kenlm <https://github.com/kpu/kenlm>`_ (assuming you are in the
    OpenSeq2Seq folder)::
 
-       ./scripts/install_kenlm.sh
+        sudo apt-get install cmake
+        ./scripts/install_kenlm.sh
 
    It will install KenLM in OpenSeq2Seq directory. If you installed KenLM in a different location, 
    you will need to set the corresponding symlink::
@@ -91,7 +92,7 @@ Horovod installation
 For multi-GPU and distribuited training we recommended install `Horovod <https://github.com/uber/horovod>`_ .
 After TensorFlow and all other requirements are installed,  install mpi:
 ```pip install mpi4py``` and then follow
-`these steps <https://github.com/uber/horovod#install>`_ to install
+`these steps <https://github.com/uber/horovod/blob/master/docs/gpus.md>`_ to install
 Horovod.
 
 

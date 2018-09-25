@@ -232,8 +232,7 @@
 
 <div class="viewcode-block" id="reduce_gradients"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.optimizers.reduce_gradients">[docs]</a><span class="k">def</span> <span class="nf">reduce_gradients</span><span class="p">(</span><span class="n">grads_and_vars</span><span class="p">,</span> <span class="n">on_horovod</span><span class="p">):</span>
   <span class="k">if</span> <span class="n">on_horovod</span><span class="p">:</span>
-    <span class="kn">from</span> <span class="nn">horovod.common</span> <span class="k">import</span> <span class="n">size</span>
-    <span class="kn">from</span> <span class="nn">horovod.tensorflow</span> <span class="k">import</span> <span class="n">allreduce</span>
+    <span class="kn">from</span> <span class="nn">horovod.tensorflow</span> <span class="k">import</span> <span class="n">allreduce</span><span class="p">,</span> <span class="n">size</span>
 
     <span class="k">if</span> <span class="n">size</span><span class="p">()</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
       <span class="n">averaged_grads_and_vars</span> <span class="o">=</span> <span class="p">[]</span>

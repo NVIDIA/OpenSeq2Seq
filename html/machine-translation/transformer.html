@@ -180,15 +180,16 @@
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
 <p>This model is based on <a class="reference external" href="https://ai.googleblog.com/2017/08/transformer-novel-neural-network.html">Google Transformer</a>
 which was introduced in <a class="reference external" href="https://arxiv.org/abs/1706.03762">Attention is all you need</a> by A. Vaswani, etal.</p>
-<p>Baseline config: <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/transformer-base.py">transformer-base.py</a></p>
+<p>Baseline config (base model): <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de/transformer-base.py">transformer-base.py</a></p>
 <p>Transformer model is based solely on attention mechanisms, without any recurrent or convolutional layers.
 Common source and target vocabulary is used to share input/output embedding
 Tokenization of input and output is done with SentencePiece (<a class="reference external" href="https://github.com/google/sentencepiece">SentencePiece</a>)
-It is very good for neural machine translation tasks and this particular configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( <a class="reference external" href="tbd">checkpoint TBD</a> ).</p>
+It is very good for neural machine translation tasks and base configuration achieves SacreBLEU of 26.4 on WMT 2014 English-to-German translation task ( <a class="reference external" href="tbd">checkpoint TBD</a> )
+while big model gets around 27.5.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>It also shows good multi-GPU scalability. Below are the scaling factors for batch size of 256 per GPU when training in mixed-precision and using or not using Horovod:</p>
+<p>It also shows good multi-GPU scalability for transformer models. Below are the scaling factors for base model for batch size of 256 per GPU when training in mixed-precision and using or not using Horovod:</p>
 <img alt="../_images/transformer_scaling.png" src="../_images/transformer_scaling.png" />
 <p>Note that batch size of 256 per GPU results in the total batch size of X*256 when X GPUs are used. For example, if
 16 GPUs are used, then the total batch size (or algorithmic batch size) is 16*256=4,096.</p>

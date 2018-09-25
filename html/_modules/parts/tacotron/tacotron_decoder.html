@@ -190,7 +190,7 @@
 
 <div class="viewcode-block" id="BasicDecoderOutput"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.BasicDecoderOutput">[docs]</a><span class="k">class</span> <span class="nc">BasicDecoderOutput</span><span class="p">(</span>
     <span class="n">collections</span><span class="o">.</span><span class="n">namedtuple</span><span class="p">(</span>
-        <span class="s2">&quot;BasicDecoderOutput&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;rnn_output&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_token_output&quot;</span><span class="p">,</span> <span class="s2">&quot;sample_id&quot;</span><span class="p">)</span>
+        <span class="s2">&quot;BasicDecoderOutput&quot;</span><span class="p">,</span> <span class="p">(</span><span class="s2">&quot;rnn_output&quot;</span><span class="p">,</span> <span class="s2">&quot;stop_token_output&quot;</span><span class="p">)</span>
     <span class="p">)</span>
 <span class="p">):</span>
   <span class="k">pass</span></div>
@@ -288,7 +288,6 @@
     <span class="k">return</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span>
         <span class="n">rnn_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_rnn_output_size</span><span class="p">(),</span>
         <span class="n">stop_token_output</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_output_size</span><span class="p">(),</span>
-        <span class="n">sample_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample_ids_shape</span>
     <span class="p">)</span>
 
   <span class="nd">@property</span>
@@ -297,7 +296,6 @@
     <span class="k">return</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span>
         <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rnn_output_size</span><span class="p">()),</span>
         <span class="n">nest</span><span class="o">.</span><span class="n">map_structure</span><span class="p">(</span><span class="k">lambda</span> <span class="n">_</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dtype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_stop_token_output_size</span><span class="p">()),</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample_ids_dtype</span>
     <span class="p">)</span>
 
 <div class="viewcode-block" id="TacotronDecoder.initialize"><a class="viewcode-back" href="../../../api-docs/parts.tacotron.html#parts.tacotron.tacotron_decoder.TacotronDecoder.initialize">[docs]</a>  <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -339,18 +337,13 @@
       <span class="k">else</span><span class="p">:</span>
         <span class="n">stop_token_output</span> <span class="o">=</span> <span class="n">cell_outputs</span>
 
-
-      <span class="n">sample_ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span>
-          <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span> <span class="n">outputs</span><span class="o">=</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">state</span><span class="o">=</span><span class="n">cell_state</span>
-      <span class="p">)</span>
       <span class="p">(</span><span class="n">finished</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">)</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_helper</span><span class="o">.</span><span class="n">next_inputs</span><span class="p">(</span>
           <span class="n">time</span><span class="o">=</span><span class="n">time</span><span class="p">,</span>
           <span class="n">outputs</span><span class="o">=</span><span class="n">spec_outputs</span><span class="p">,</span>
           <span class="n">state</span><span class="o">=</span><span class="n">cell_state</span><span class="p">,</span>
-          <span class="n">sample_ids</span><span class="o">=</span><span class="n">sample_ids</span><span class="p">,</span>
           <span class="n">stop_token_predictions</span><span class="o">=</span><span class="n">stop_token_output</span>
       <span class="p">)</span>
-    <span class="n">outputs</span> <span class="o">=</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">stop_token_output</span><span class="p">,</span> <span class="n">sample_ids</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">BasicDecoderOutput</span><span class="p">(</span><span class="n">spec_outputs</span><span class="p">,</span> <span class="n">stop_token_output</span><span class="p">)</span>
     <span class="k">return</span> <span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="n">next_state</span><span class="p">,</span> <span class="n">next_inputs</span><span class="p">,</span> <span class="n">finished</span><span class="p">)</span></div></div>
 </pre></div>
 

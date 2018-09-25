@@ -177,19 +177,22 @@
 <p>Currently we support following models:</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="25%" />
-<col width="50%" />
-<col width="25%" />
+<col width="20%" />
+<col width="40%" />
+<col width="20%" />
+<col width="20%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Model description</th>
 <th class="head">Config file</th>
+<th class="head">Audio Samples</th>
 <th class="head">Checkpoint</th>
 </tr>
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><a class="reference internal" href="speech-synthesis/tacotron-2.html"><span class="doc">Tacotron-2</span></a></td>
 <td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2speech/tacotron_LJ_float.py">tacotron_LJ_float.py</a></td>
+<td><a class="reference internal" href="speech-synthesis/tacotron-2-samples.html"><span class="doc">here</span></a></td>
 <td>To be added</td>
 </tr>
 </tbody>
@@ -201,9 +204,12 @@
 <div class="section" id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
 <p>The current tacotron 2 implementation supports the
-<a class="reference external" href="https://keithito.com/LJ-Speech-Dataset/">LJSpeech</a> dataset. For more details
-about the model including hyperparameters and tips, see
+<a class="reference external" href="https://keithito.com/LJ-Speech-Dataset/">LJSpeech</a> dataset and the
+<a class="reference external" href="http://www.m-ailabs.bayern/en/the-mailabs-speech-dataset/">MAILABS</a> dataset.
+For more details about the model including hyperparameters and tips, see
 <a class="reference internal" href="speech-synthesis/tacotron-2.html"><span class="doc">Tacotron-2</span></a>.</p>
+<p>It is recommended to start with the LJSpeech dataset to familiarize yourself
+with the data layer.</p>
 <div class="section" id="get-data">
 <h3>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h3>
 <p>First, you need to download and extract the dataset into a directory of your
@@ -215,9 +221,8 @@ transcripts delimited by the ‘|’ character.</p>
 <h3>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h3>
 <p>Next let’s train a tacotron 2 model. For this:</p>
 <ul class="simple">
-<li>change <code class="docutils literal notranslate"><span class="pre">dataset_location</span></code> under <code class="docutils literal notranslate"><span class="pre">data_layer_params</span></code> to point to the
-directory containing the wav files</li>
-<li>change <code class="docutils literal notranslate"><span class="pre">dataset_files</span></code> under <code class="docutils literal notranslate"><span class="pre">train_params</span></code> to point to metadata.csv</li>
+<li>change <code class="docutils literal notranslate"><span class="pre">dataset_location</span></code> under to point to the directory containing the metadata.csv file.</li>
+<li>rename <code class="docutils literal notranslate"><span class="pre">metadata.csv</span></code> to <code class="docutils literal notranslate"><span class="pre">train.csv</span></code></li>
 </ul>
 <p>Start training:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
@@ -229,15 +234,14 @@ parameter.</p>
 <div class="section" id="inference">
 <h3>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h3>
 <p>Once training is done (this can take a while on a single GPU), you can run
-inference. To do some, first create a csv file with lines in the following
-format:</p>
+inference. To do some, first create a csv file named <code class="docutils literal notranslate"><span class="pre">test.csv</span></code> in the same
+location as <code class="docutils literal notranslate"><span class="pre">train.csv</span></code> with lines in the following format:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">UNUSED</span> <span class="o">|</span> <span class="n">UNUSED</span> <span class="o">|</span> <span class="n">This</span> <span class="ow">is</span> <span class="n">an</span> <span class="n">example</span> <span class="n">sentence</span> <span class="n">that</span> <span class="n">I</span> <span class="n">want</span> <span class="n">to</span> <span class="n">generate</span><span class="o">.</span>
 </pre></div>
 </div>
 <p>You can put as many lines inside the csv as you want. The model will produce
 one audio sample per line and save the audio sample inside your <code class="docutils literal notranslate"><span class="pre">log_dir</span></code>.
-Change <code class="docutils literal notranslate"><span class="pre">dataset_files</span></code> under <code class="docutils literal notranslate"><span class="pre">infer_params</span></code> to point to your newly created
-csv. Lastly, run</p>
+Lastly, run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">unused</span>
 </pre></div>
 </div>

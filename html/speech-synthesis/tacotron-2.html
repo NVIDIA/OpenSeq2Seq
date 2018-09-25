@@ -94,7 +94,6 @@
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#model-description">Model Description</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mixed-precision-and-multi-gpu">Mixed Precision and Multi-GPU</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#tips-and-tricks">Tips and Tricks</a></li>
 </ul>
 </li>
@@ -183,7 +182,16 @@
 (see also <a class="reference external" href="https://arxiv.org/abs/1712.05884">paper</a>). Our implementation mostly
 matches what is presented in the paper. There are a few differences listed
 below.</p>
-<p>The first change is the location of the stop token linear projection layer. In
+<p>The biggest change from Tacotron 2 is that in addition to supporting the
+generation of mel spectrograms, we support generating magnitude/energy
+spectrograms as well. This is controlled via the <code class="docutils literal notranslate"><span class="pre">output_type</span></code> variable inside
+the config file. <code class="docutils literal notranslate"><span class="pre">output_type</span> <span class="pre">=</span> <span class="pre">&quot;mel&quot;</span></code> matches the paper minus the differences
+below. <code class="docutils literal notranslate"><span class="pre">output_type</span> <span class="pre">=</span> <span class="pre">&quot;magnitude&quot;</span></code> matches the paper with the difference that
+the output spectrogram is a magnitude spectrogram as opposed to mel. <code class="docutils literal notranslate"><span class="pre">output_type</span> <span class="pre">=</span> <span class="pre">&quot;both&quot;</span></code>
+matches <code class="docutils literal notranslate"><span class="pre">output_type</span> <span class="pre">=</span> <span class="pre">&quot;mel&quot;</span></code> with the addition of 2 convolutional layers
+that learns a mapping from a log mel spectrogram to a magnitude spectrogram.
+This is the architecture shown in the picture below.</p>
+<p>The second change is the location of the stop token linear projection layer. In
 the paper, it is connected to the output of the decoder rnn. Whereas in our
 implementation, it is connected to the output of the spectrogram projection
 layer.</p>
@@ -195,7 +203,7 @@ has a kernel size of 32 as opposed to 31 as stated in the tacotron 2 paper.</p>
 <div class="section" id="model-description">
 <h2>Model Description<a class="headerlink" href="#model-description" title="Permalink to this headline">¶</a></h2>
 <div class="figure align-center" id="id2">
-<a class="reference internal image-reference" href="../_images/Tacotron-2.png"><img alt="../_images/Tacotron-2.png" src="../_images/Tacotron-2.png" style="width: 713.5px; height: 381.0px;" /></a>
+<a class="reference internal image-reference" href="../_images/Tacotron-2.png"><img alt="../_images/Tacotron-2.png" src="../_images/Tacotron-2.png" style="width: 474.0px; height: 312.5px;" /></a>
 <p class="caption"><span class="caption-text">Tacotron 2 Model</span></p>
 </div>
 <p>Tacotron 2 follows a simple encoder decoder structure that has seen great
@@ -217,6 +225,10 @@ sent through the convolutional postnet to compute a residual to add to the
 generated spectrogram. The addition of the generated spectrogram and the
 residual results in a final spectrogram that is used to generate speech using
 Griffin-Lim.</p>
+<p>If using the default both mode, the final mel spectrogram is sent through
+additional convolutional layers to learn a mapping from the log mel spectrogram
+to a magnitude spectrogram. The learned magnitude spectrogram is then sent
+through Griffin-Lim.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
@@ -226,23 +238,8 @@ of 0.1 every 20k steps until 85k when it reaches the minimum learning rate of
 1e-5.</p>
 <p>The model is regularized using l2 regularization with a weight of 1e-6.</p>
 </div>
-<div class="section" id="mixed-precision-and-multi-gpu">
-<h2>Mixed Precision and Multi-GPU<a class="headerlink" href="#mixed-precision-and-multi-gpu" title="Permalink to this headline">¶</a></h2>
-<p>For float32 training with 1 gpu, gradient clipping is sufficient in order to
-train the model, However in order to enable both mixed precision training and
-multi-GPU training, it advised to use LARC.</p>
-</div>
 <div class="section" id="tips-and-tricks">
 <h2>Tips and Tricks<a class="headerlink" href="#tips-and-tricks" title="Permalink to this headline">¶</a></h2>
-<p>The model allows for two representations of the spectrogram. The first is the
-magnitude spectrogram (also called an energy spectrogram) and the second is the
-mel spectrogram (which is used in the original paper). The mel spectrogram is a
-lossy compression of the magnitude spectrogram. It is advised to use the htk
-algorithm to compute mel spectrograms and to leave it unnormalized. From
-experience, it is easier to learn attention with mel spectrograms, and hence
-easier to learn to generate audio. However, training with magnitude spectrograms
-results in better sound quality as the audio is reconstructed via Griffin-Lim
-which takes magnitude spectrograms as input.</p>
 <p>A pseudo metric for audio quality is how well attention is learned. Ideally, we
 want a nice clear diagonal alignment. The current models should learn attention
 between 10k - 20k steps.</p>

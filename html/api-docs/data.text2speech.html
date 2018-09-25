@@ -316,7 +316,7 @@ to self._input_tensors that will be passed to the model.</p>
 
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec">
-<code class="descname">get_magnitude_spec</code><span class="sig-paren">(</span><em>spectrogram</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_magnitude_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec" title="Permalink to this definition">¶</a></dt>
+<code class="descname">get_magnitude_spec</code><span class="sig-paren">(</span><em>spectrogram</em>, <em>is_mel=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.get_magnitude_spec"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.get_magnitude_spec" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an energy magnitude spectrogram. The processing depends on the
 data layer params.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -464,7 +464,7 @@ time if passed. If not passed, it will call librosa to construct one</li>
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.get_speech_features">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>data_min=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=256</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>data_min=1e-05</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to retrieve spectrograms from loaded wav</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -501,7 +501,7 @@ num_features].</p>
 
 <dl class="function">
 <dt id="data.text2speech.speech_utils.get_speech_features_from_file">
-<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=None</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>trim=False</em>, <em>data_min=1e-05</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.text2speech.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>features_type='magnitude'</em>, <em>n_fft=1024</em>, <em>hop_length=None</em>, <em>mag_power=2</em>, <em>feature_normalize=False</em>, <em>mean=0.0</em>, <em>std=1.0</em>, <em>trim=False</em>, <em>data_min=1e-05</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Helper function to retrieve spectrograms from wav files</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />

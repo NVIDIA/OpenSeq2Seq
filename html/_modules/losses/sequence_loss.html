@@ -236,7 +236,7 @@
           <span class="n">logits</span><span class="p">,</span>
           <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
           <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-      <span class="p">)</span>                                 
+      <span class="p">)</span>
       <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span>
                                  <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
                                  <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">])</span>
@@ -333,7 +333,7 @@
     <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>
-      <span class="c1"># this is necessary for auto-regressive models      </span>
+      <span class="c1"># this is necessary for auto-regressive models</span>
       <span class="n">current_ts</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span>
           <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
           <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">logits</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
@@ -388,6 +388,7 @@
 
 
 <div class="viewcode-block" id="PaddedCrossEntropyLossWithSmoothing"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing">[docs]</a><span class="k">class</span> <span class="nc">PaddedCrossEntropyLossWithSmoothing</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
+
 <div class="viewcode-block" id="PaddedCrossEntropyLossWithSmoothing.get_optional_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Loss</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
@@ -405,7 +406,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span> <span class="o">+</span> \
-                               <span class="p">(</span><span class="mi">8</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span>
+            <span class="p">(</span><span class="mi">8</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span> <span class="o">%</span> <span class="mi">8</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_label_smoothing</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;label_smoothing&quot;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
@@ -418,7 +419,7 @@
     <span class="n">labels</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;target_tensors&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_pad_tensors_to_same_length</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
-      <span class="sd">&quot;&quot;&quot;Pad x and y so that the results have the</span>
+      <span class="sd">&quot;&quot;&quot; Pad x and y so that the results have the</span>
 <span class="sd">      same length (second dimension).</span>
 <span class="sd">      &quot;&quot;&quot;</span>
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;pad_to_same_length&quot;</span><span class="p">):</span>
@@ -438,7 +439,7 @@
       <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;smoothing_cross_entropy&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">logits</span><span class="p">,</span> <span class="n">labels</span><span class="p">]):</span>
         <span class="n">confidence</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_label_smoothing</span>
         <span class="n">low_confidence</span> <span class="o">=</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">confidence</span><span class="p">)</span> <span class="o">/</span> \
-                         <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
         <span class="n">soft_targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span>
             <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">),</span>
             <span class="n">depth</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">,</span>
@@ -467,7 +468,9 @@
 
 <div class="viewcode-block" id="BasicSampledSequenceLoss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss">[docs]</a><span class="k">class</span> <span class="nc">BasicSampledSequenceLoss</span><span class="p">(</span><span class="n">Loss</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">  Basic sequence-to-sequence loss. This one does not use one-hot encodings</span>
+<span class="sd">  Basic sampled sequence-to-sequence loss. This is used when the full softmax</span>
+<span class="sd">  is computational prohibitive.</span>
+<span class="sd">  This one does not use one-hot encodings.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
 <div class="viewcode-block" id="BasicSampledSequenceLoss.get_required_params"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
@@ -505,7 +508,8 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;tgt_vocab_size&quot;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;offset_target_by_one&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;average_across_timestep&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
+        <span class="s2">&quot;average_across_timestep&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_do_mask</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;do_mask&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="BasicSampledSequenceLoss._compute_loss"><a class="viewcode-back" href="../../api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss._compute_loss">[docs]</a>  <span class="k">def</span> <span class="nf">_compute_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
@@ -526,17 +530,29 @@
     <span class="n">tgt_lengths</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="k">if</span> <span class="s1">&#39;weights&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">]:</span>
-      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;DOING SAMPLED LOSS&#39;</span><span class="p">)</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Because &#39;weights&#39; is in the input_dict, we are using sampled softmax loss.&quot;</span><span class="p">)</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;inputs&#39;</span><span class="p">]</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
       <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_hid_dim</span><span class="p">))</span>
       <span class="n">targets</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
-      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sampled_softmax_loss</span><span class="p">(</span><span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;weights&#39;</span><span class="p">],</span> 
-                                            <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">],</span> 
+
+      <span class="n">weights</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;weights&#39;</span><span class="p">]</span>
+      <span class="n">biases</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s1">&#39;bias&#39;</span><span class="p">]</span>
+      
+      <span class="k">if</span> <span class="n">inputs</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">weights</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">weights</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">biases</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">base_dtype</span> <span class="o">!=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">:</span>
+        <span class="n">biases</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">biases</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+      <span class="n">crossent</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">sampled_softmax_loss</span><span class="p">(</span><span class="n">weights</span><span class="p">,</span> 
+                                            <span class="n">biases</span><span class="p">,</span> 
                                             <span class="n">targets</span><span class="p">,</span> 
                                             <span class="n">inputs</span><span class="p">,</span>
                                             <span class="n">input_dict</span><span class="p">[</span><span class="s1">&#39;decoder_output&#39;</span><span class="p">][</span><span class="s1">&#39;num_sampled&#39;</span><span class="p">],</span>
                                             <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">)</span>
+
+
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span><span class="p">:</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">crossent</span><span class="p">)</span>
       <span class="k">else</span><span class="p">:</span>
@@ -544,6 +560,7 @@
         <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
 
     <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Because &#39;weights&#39; is not in the input_dict, we are using normal softmax loss.&quot;</span><span class="p">)</span>
       <span class="n">logits</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;decoder_output&quot;</span><span class="p">][</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span>
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_offset_target_by_one</span><span class="p">:</span>
@@ -557,7 +574,7 @@
             <span class="n">logits</span><span class="p">,</span>
             <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span>
             <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">],</span>
-        <span class="p">)</span>                                 
+        <span class="p">)</span>
         <span class="n">target_sequence</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">target_sequence</span><span class="p">,</span>
                                    <span class="n">begin</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span>
                                    <span class="n">size</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">current_ts</span><span class="p">])</span>
@@ -573,7 +590,8 @@
 
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_do_mask</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">tgt_lengths</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;If you are masking loss, tgt_lengths can&#39;t be None&quot;</span><span class="p">)</span>
+          <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+              <span class="s2">&quot;If you are masking loss, tgt_lengths can&#39;t be None&quot;</span><span class="p">)</span>
         <span class="n">mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sequence_mask</span><span class="p">(</span><span class="n">lengths</span><span class="o">=</span><span class="n">tgt_lengths</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
                                 <span class="n">maxlen</span><span class="o">=</span><span class="n">current_ts</span><span class="p">,</span>
                                 <span class="n">dtype</span><span class="o">=</span><span class="n">logits</span><span class="o">.</span><span class="n">dtype</span><span class="p">)</span>
@@ -585,14 +603,12 @@
           <span class="n">logits</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_tgt_vocab_size</span><span class="p">]),</span>
       <span class="p">)</span>
 
-
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_average_across_timestep</span><span class="p">:</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">crossent</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span><span class="n">crossent</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">mask</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
         <span class="n">loss</span> <span class="o">/=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_batch_size</span>
     <span class="k">return</span> <span class="n">loss</span></div></div>
-   
 </pre></div>
 
            </div>

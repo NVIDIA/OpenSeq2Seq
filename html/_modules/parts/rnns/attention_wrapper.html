@@ -155,7 +155,8 @@
            <div itemprop="articleBody">
             
   <h1>Source code for parts.rnns.attention_wrapper</h1><div class="highlight"><pre>
-<span></span><span class="c1"># Copyright 2017 The TensorFlow Authors. All Rights Reserved.</span>
+<span></span><span class="c1"># pylint: skip-file</span>
+<span class="c1"># Copyright 2017 The TensorFlow Authors. All Rights Reserved.</span>
 <span class="c1">#</span>
 <span class="c1"># Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="c1"># you may not use this file except in compliance with the License.</span>
@@ -171,7 +172,7 @@
 <span class="c1"># ==============================================================================</span>
 <span class="sd">&quot;&quot;&quot;A powerful dynamic attention wrapper object.</span>
 
-<span class="sd">Modified by blisc too add support for LocationSensitiveAttention and changed</span>
+<span class="sd">Modified by blisc to add support for LocationSensitiveAttention and changed</span>
 <span class="sd">the AttentionWrapper class to output both the cell_output and attention context</span>
 <span class="sd">concatenated together.</span>
 
@@ -394,7 +395,7 @@
       <span class="p">)</span>
     <span class="k">if</span> <span class="n">score_mask_value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">score_mask_value</span> <span class="o">=</span> <span class="n">dtypes</span><span class="o">.</span><span class="n">as_dtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_memory_layer</span><span class="o">.</span><span class="n">dtype</span>
-                                        <span class="p">)</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+                                         <span class="p">)</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">(</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">score</span><span class="p">,</span> <span class="n">prev</span><span class="p">:</span> <span class="p">(</span>  <span class="c1"># pylint:disable=g-long-lambda</span>
         <span class="n">probability_fn</span><span class="p">(</span>
             <span class="n">_maybe_mask_score</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">memory_sequence_length</span><span class="p">,</span> <span class="n">score_mask_value</span><span class="p">),</span>
@@ -675,7 +676,7 @@
         <span class="s2">&quot;attention_g&quot;</span><span class="p">,</span>
         <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">,</span>
         <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="c1">#initializer=math.sqrt((1. / num_units)))</span>
+        <span class="c1"># initializer=math.sqrt((1. / num_units)))</span>
         <span class="n">initializer</span><span class="o">=</span><span class="n">init_ops</span><span class="o">.</span><span class="n">constant_initializer</span><span class="p">(</span>
             <span class="n">math</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mf">1.</span> <span class="o">/</span> <span class="n">num_units</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
         <span class="p">)</span>
@@ -829,7 +830,7 @@
   <span class="p">)</span>
 
 
-<span class="k">class</span> <span class="nc">LocationLayer</span><span class="p">(</span><span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+<span class="k">class</span> <span class="nc">ChorowskiLocationLayer</span><span class="p">(</span><span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  The layer that processed the location information</span>
 <span class="sd">  &quot;&quot;&quot;</span>
@@ -842,9 +843,10 @@
       <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
       <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;channels_last&quot;</span><span class="p">,</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="o">**</span><span class="n">kwargs</span>
   <span class="p">):</span>
-    <span class="nb">super</span><span class="p">(</span><span class="n">LocationLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ChorowskiLocationLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">conv_layer</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_conv&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
         <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
@@ -854,12 +856,49 @@
         <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
         <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
     <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">location_dense</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_dense&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">attention_units</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+    <span class="p">)</span>
+
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_attention</span><span class="p">,</span> <span class="n">query</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">location_attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_layer</span><span class="p">(</span><span class="n">prev_attention</span><span class="p">)</span>
+    <span class="n">location_attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location_dense</span><span class="p">(</span><span class="n">location_attention</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">location_attention</span>
+
+
+<span class="k">class</span> <span class="nc">ZhaopengLocationLayer</span><span class="p">(</span><span class="n">layers_base</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  The layer that processed the location information. </span>
+<span class="sd">  Similar to https://arxiv.org/abs/1805.03294 and https://arxiv.org/abs/1601.04811.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span>
+      <span class="bp">self</span><span class="p">,</span>
+      <span class="n">attention_units</span><span class="p">,</span>
+      <span class="n">query_dim</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;location&quot;</span><span class="p">,</span>
+      <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="o">**</span><span class="n">kwargs</span>
+  <span class="p">):</span>
+    <span class="nb">super</span><span class="p">(</span><span class="n">ZhaopengLocationLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">vbeta</span> <span class="o">=</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">get_variable</span><span class="p">(</span>
+        <span class="s2">&quot;location_attention_vbeta&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">query_dim</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">location_dense</span> <span class="o">=</span> <span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
         <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">_dense&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span> <span class="n">units</span><span class="o">=</span><span class="n">attention_units</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span>
     <span class="p">)</span>
 
-  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_attention</span><span class="p">):</span>
-    <span class="n">location_attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conv_layer</span><span class="p">(</span><span class="n">prev_attention</span><span class="p">)</span>
+  <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prev_attention</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
+    <span class="c1"># To-Do add mixed precision support.</span>
+    <span class="c1">#query = math_ops.cast(query, dtypes.float32)</span>
+    <span class="n">fertility</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_sum</span><span class="p">(</span>
+        <span class="n">math_ops</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">vbeta</span><span class="p">,</span> <span class="n">query</span><span class="p">)))</span>
+    <span class="n">location_attention</span> <span class="o">=</span> <span class="n">fertility</span> <span class="o">*</span> <span class="n">prev_attention</span>
     <span class="n">location_attention</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location_dense</span><span class="p">(</span><span class="n">location_attention</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">location_attention</span>
 
@@ -885,11 +924,15 @@
       <span class="bp">self</span><span class="p">,</span>
       <span class="n">num_units</span><span class="p">,</span>
       <span class="n">memory</span><span class="p">,</span>
+      <span class="n">query_dim</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">memory_sequence_length</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">probability_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">score_mask_value</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">dtype</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+      <span class="n">use_coverage</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="n">location_attn_type</span><span class="o">=</span><span class="s2">&quot;chorowski&quot;</span><span class="p">,</span>
+      <span class="n">location_attention_params</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;LocationSensitiveAttention&quot;</span><span class="p">,</span>
   <span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Construct the Attention mechanism.</span>
@@ -911,7 +954,9 @@
 <span class="sd">        `memory_sequence_length` is not None.</span>
 <span class="sd">      dtype: The data type for the query and memory layers of the attention</span>
 <span class="sd">        mechanism.</span>
-<span class="sd">      use_bias (bool): Whether to use a bias when computing alignments</span>
+<span class="sd">      use_bias (bool): Whether to use a bias when computing alignments.</span>
+<span class="sd">      location_attn_type (String): Accepts [&quot;chorowski&quot;, &quot;zhaopeng&quot;].</span>
+<span class="sd">      location_attention_params (dict): Params required for location attention.</span>
 <span class="sd">      name: Name to use when creating ops.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">probability_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -923,8 +968,15 @@
         <span class="n">query_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
             <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;query_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
         <span class="p">),</span>
-        <span class="n">memory_layer</span><span class="o">=</span><span class="n">layers_core</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
-            <span class="n">num_units</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
+        <span class="n">memory_layer</span> <span class="o">=</span> <span class="n">Conv1D</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;memory_layer&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
+            <span class="n">filters</span><span class="o">=</span><span class="n">num_units</span><span class="p">,</span>
+            <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">strides</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+            <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+            <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">data_format</span><span class="o">=</span><span class="s2">&quot;channels_last&quot;</span><span class="p">,</span>
+            <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span>
         <span class="p">),</span>
         <span class="n">memory</span><span class="o">=</span><span class="n">memory</span><span class="p">,</span>
         <span class="n">probability_fn</span><span class="o">=</span><span class="n">wrapped_probability_fn</span><span class="p">,</span>
@@ -932,10 +984,24 @@
         <span class="n">score_mask_value</span><span class="o">=</span><span class="n">score_mask_value</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">name</span>
     <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">location_layer</span> <span class="o">=</span> <span class="n">LocationLayer</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">,</span> <span class="n">num_units</span><span class="p">)</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">_num_units</span> <span class="o">=</span> <span class="n">num_units</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_name</span> <span class="o">=</span> <span class="n">name</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">use_bias</span> <span class="o">=</span> <span class="n">use_bias</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">use_bias</span> <span class="o">=</span> <span class="n">use_bias</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_use_coverage</span> <span class="o">=</span> <span class="n">use_coverage</span>
+
+    <span class="k">if</span> <span class="n">location_attn_type</span> <span class="o">==</span> <span class="s2">&quot;chorowski&quot;</span><span class="p">:</span>
+      <span class="n">kernel_size</span> <span class="o">=</span> <span class="mi">32</span>
+      <span class="n">filters</span> <span class="o">=</span> <span class="mi">32</span>
+      <span class="k">if</span> <span class="n">location_attention_params</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">location_attention_params</span><span class="p">[</span><span class="s2">&quot;kernel_size&quot;</span><span class="p">]</span>
+        <span class="n">filters</span> <span class="o">=</span> <span class="n">location_attention_params</span><span class="p">[</span><span class="s2">&quot;filters&quot;</span><span class="p">]</span>
+
+      <span class="bp">self</span><span class="o">.</span><span class="n">location_layer</span> <span class="o">=</span> <span class="n">ChorowskiLocationLayer</span><span class="p">(</span>
+          <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">num_units</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">location_attn_type</span> <span class="o">==</span> <span class="s2">&quot;zhaopeng&quot;</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">location_layer</span> <span class="o">=</span> <span class="n">ZhaopengLocationLayer</span><span class="p">(</span><span class="n">num_units</span><span class="p">,</span> <span class="n">query_dim</span><span class="p">)</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">_use_coverage</span> <span class="o">=</span> <span class="kc">True</span></div>
 
   <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Score the query based on the keys, values, and location.</span>
@@ -955,14 +1021,19 @@
     <span class="k">with</span> <span class="n">variable_scope</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;location_attention&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">query</span><span class="p">]):</span>
       <span class="n">processed_query</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span><span class="p">(</span><span class="n">query</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">query_layer</span> <span class="k">else</span> <span class="n">query</span>
       <span class="n">location</span> <span class="o">=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">state</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
-      <span class="n">processed_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location_layer</span><span class="p">(</span><span class="n">location</span><span class="p">)</span>
+      <span class="n">processed_location</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">location_layer</span><span class="p">(</span><span class="n">location</span><span class="p">,</span> <span class="n">query</span><span class="p">)</span>
       <span class="n">score</span> <span class="o">=</span> <span class="n">_bahdanau_score_with_location</span><span class="p">(</span>
           <span class="n">processed_query</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_keys</span><span class="p">,</span> <span class="n">processed_location</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">use_bias</span>
       <span class="p">)</span>
     <span class="n">alignments</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_probability_fn</span><span class="p">(</span><span class="n">score</span><span class="p">,</span> <span class="n">state</span><span class="p">)</span>
-    <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span> <span class="o">+</span> <span class="n">state</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_use_coverage</span><span class="p">:</span>
+      <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span> <span class="o">+</span> <span class="n">state</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">next_state</span> <span class="o">=</span> <span class="n">alignments</span>
 
     <span class="k">return</span> <span class="n">alignments</span><span class="p">,</span> <span class="n">next_state</span></div>
+
 
 <div class="viewcode-block" id="safe_cumprod"><a class="viewcode-back" href="../../../api-docs/parts.rnns.html#parts.rnns.attention_wrapper.safe_cumprod">[docs]</a><span class="k">def</span> <span class="nf">safe_cumprod</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Computes cumprod of x in logspace using cumsum to avoid underflow.</span>
@@ -1588,7 +1659,7 @@
 <span class="sd">        is a list, and its length does not match that of `attention_layer_size`.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">AttentionWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
-    <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">assert_like_rnncell</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span><span class="n">cell</span><span class="p">)</span>
+    <span class="n">rnn_cell_impl</span><span class="o">.</span><span class="n">assert_like_rnncell</span><span class="p">(</span><span class="s2">&quot;cell&quot;</span><span class="p">,</span> <span class="n">cell</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_mechanism</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)):</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_is_multi</span> <span class="o">=</span> <span class="kc">True</span>
       <span class="n">attention_mechanisms</span> <span class="o">=</span> <span class="n">attention_mechanism</span>
@@ -1624,7 +1695,7 @@
       <span class="n">attention_layer_sizes</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span>
           <span class="n">attention_layer_size</span>
           <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">attention_layer_size</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span>
-                                              <span class="p">))</span> <span class="k">else</span> <span class="p">(</span><span class="n">attention_layer_size</span><span class="p">,)</span>
+                                               <span class="p">))</span> <span class="k">else</span> <span class="p">(</span><span class="n">attention_layer_size</span><span class="p">,)</span>
       <span class="p">)</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_layer_sizes</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">attention_mechanisms</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>

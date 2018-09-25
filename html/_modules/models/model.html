@@ -214,14 +214,15 @@
         <span class="s1">&#39;num_gpus&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="c1"># cannot be used when gpu_ids is specified</span>
         <span class="s1">&#39;gpu_ids&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>  <span class="c1"># cannot be used when num_gpus is specified</span>
 
+        <span class="s1">&#39;load_model&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+
         <span class="s1">&#39;save_summaries_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;print_loss_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;print_samples_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
-        <span class="s1">&#39;restore_best_checkpoint&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># whether to restore best check point</span>
+        <span class="s1">&#39;restore_best_checkpoint&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># if True,restore best check point instead of latest checkpoint</span>
         <span class="s1">&#39;eval_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="s1">&#39;base_logdir&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="s1">&#39;finetune&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
 
@@ -246,6 +247,8 @@
         <span class="s1">&#39;loss_scaling_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="s1">&#39;summaries&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
         <span class="s1">&#39;iter_size&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;lm_vocab_file&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="c1">#TODO: move this paramters to lstm_lm.py</span>
+        <span class="s1">&#39;processed_data_folder&#39;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
     <span class="p">}</span></div>
 
 <div class="viewcode-block" id="Model.__init__"><a class="viewcode-back" href="../../in-depth-tutorials/using-existing-models.html#models.model.Model.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="n">hvd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -278,6 +281,20 @@
 <span class="sd">      used if ``num_gpus`` is specified. When ``use_horovod`` is True</span>
 <span class="sd">      this parameter is ignored.</span>
 <span class="sd">    * **batch_size_per_gpu** (int) --- batch size to use for each GPU.</span>
+<span class="sd">    * **eval_batch_size_per_gpu** (int) --- batch size to use for each GPU during</span>
+<span class="sd">      inference. This is for when training and inference have different computation</span>
+<span class="sd">      and memory requirements, such as when training uses sampled softmax and</span>
+<span class="sd">      inference uses full softmax. If not specified, it&#39;s set</span>
+<span class="sd">      to ``batch_size_per_gpu``.</span>
+<span class="sd">    * **restore_best_checkpoint** (bool) --- if set to True, when doing evaluation </span>
+<span class="sd">      and inference, the model will load the best checkpoint instead of the latest</span>
+<span class="sd">      checkpoint. Best checkpoint is evaluated based on evaluation results, so </span>
+<span class="sd">      it&#39;s only available when the model is trained untder ``train_eval`` mode.</span>
+<span class="sd">      Default to False.</span>
+<span class="sd">    * **load_model** (str) --- points to the location of the pretrained model for</span>
+<span class="sd">      transfer learning. If specified, during training, the system will look</span>
+<span class="sd">      into the checkpoint in this folder and restore all variables whose names and </span>
+<span class="sd">      shapes match a variable in the new model.</span>
 <span class="sd">    * **num_epochs** (int) --- number of epochs to run training for.</span>
 <span class="sd">      This parameter cannot be used if ``max_steps`` is specified.</span>
 <span class="sd">    * **max_steps** (int) --- number of steps to run training for.</span>
@@ -391,7 +408,9 @@
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;finetune&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;finetune&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;base_logdir&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_logdir&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="c1"># self._params[&#39;base_logdir&#39;] = self._params.get(&#39;base_logdir&#39;, None)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;load_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;load_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;load_fc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;load_fc&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span>
         <span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">,</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
@@ -434,8 +453,13 @@
       <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;eval_batch_size_per_gpu&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;lm_vocab_file&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+      <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;lm_vocab_file&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;lm_vocab_file&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="s1">&#39;processed_data_folder&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
+      <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;processed_data_folder&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;processed_data_folder&#39;</span><span class="p">]</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span>
     <span class="n">dl_params</span><span class="p">[</span><span class="s1">&#39;interactive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_interactive</span>
+
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_data_layer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;data_layer&#39;</span><span class="p">](</span>
@@ -510,7 +534,6 @@
           <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
           <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">(</span><span class="n">gpu_cnt</span><span class="p">)</span><span class="o">.</span><span class="n">input_tensors</span>
-
           <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_outputs</span><span class="p">[</span><span class="n">gpu_cnt</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">build_forward_pass_graph</span><span class="p">(</span>
               <span class="n">input_tensors</span><span class="p">,</span>
               <span class="n">gpu_id</span><span class="o">=</span><span class="n">gpu_cnt</span><span class="p">,</span>
@@ -523,6 +546,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder outputs have to be either None or list&#39;</span><span class="p">)</span>
           <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
             <span class="n">losses</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loss</span><span class="p">)</span>
+                
       <span class="c1"># end of for gpu_ind loop</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reduce_mean</span><span class="p">(</span><span class="n">losses</span><span class="p">)</span>
@@ -543,8 +567,13 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">build_graph</span><span class="p">()</span>
         <span class="n">input_tensors</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">input_tensors</span>
 
-        <span class="n">loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span>
+        <span class="n">all_loss</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_build_forward_pass_graph</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span>
                                                             <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">all_loss</span><span class="p">,</span> <span class="p">(</span><span class="nb">dict</span><span class="p">,)):</span>
+            <span class="n">loss</span> <span class="o">=</span> <span class="n">all_loss</span><span class="p">[</span><span class="s1">&#39;loss&#39;</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="n">loss</span> <span class="o">=</span> <span class="n">all_loss</span>
+
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_output</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
           <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Decoder outputs have to be either None or list&#39;</span><span class="p">)</span>
 

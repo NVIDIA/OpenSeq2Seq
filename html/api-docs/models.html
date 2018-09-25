@@ -229,6 +229,20 @@ this parameter is ignored.</li>
 used if <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> is specified. When <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is True
 this parameter is ignored.</li>
 <li><strong>batch_size_per_gpu</strong> (int) — batch size to use for each GPU.</li>
+<li><strong>eval_batch_size_per_gpu</strong> (int) — batch size to use for each GPU during
+inference. This is for when training and inference have different computation
+and memory requirements, such as when training uses sampled softmax and
+inference uses full softmax. If not specified, it’s set
+to <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>.</li>
+<li><strong>restore_best_checkpoint</strong> (bool) — if set to True, when doing evaluation
+and inference, the model will load the best checkpoint instead of the latest
+checkpoint. Best checkpoint is evaluated based on evaluation results, so
+it’s only available when the model is trained untder <code class="docutils literal notranslate"><span class="pre">train_eval</span></code> mode.
+Default to False.</li>
+<li><strong>load_model</strong> (str) — points to the location of the pretrained model for
+transfer learning. If specified, during training, the system will look
+into the checkpoint in this folder and restore all variables whose names and
+shapes match a variable in the new model.</li>
 <li><strong>num_epochs</strong> (int) — number of epochs to run training for.
 This parameter cannot be used if <code class="docutils literal notranslate"><span class="pre">max_steps</span></code> is specified.</li>
 <li><strong>max_steps</strong> (int) — number of steps to run training for.
@@ -1121,11 +1135,21 @@ that is, output tensors for one batch on the <em>first</em> GPU.</li>
 </dd></dl>
 
 <dl class="function">
+<dt id="models.speech2text.dense_tensor_to_chars">
+<code class="descclassname">models.speech2text.</code><code class="descname">dense_tensor_to_chars</code><span class="sig-paren">(</span><em>tensor</em>, <em>idx2char</em>, <em>startindex</em>, <em>endindex</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#dense_tensor_to_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.dense_tensor_to_chars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="models.speech2text.levenshtein">
 <code class="descclassname">models.speech2text.</code><code class="descname">levenshtein</code><span class="sig-paren">(</span><em>a</em>, <em>b</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#levenshtein"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.levenshtein" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculates the Levenshtein distance between a and b.
 The code was copied from: <a class="reference external" href="http://hetland.org/coding/python/levenshtein.py">http://hetland.org/coding/python/levenshtein.py</a></p>
 </dd></dl>
+
+<dl class="function">
+<dt id="models.speech2text.plot_attention">
+<code class="descclassname">models.speech2text.</code><code class="descname">plot_attention</code><span class="sig-paren">(</span><em>alignments</em>, <em>pred_text</em>, <em>encoder_len</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#plot_attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.plot_attention" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="models.speech2text.sparse_tensor_to_chars">
@@ -1631,8 +1655,8 @@ be logged to tensorboard.</p>
 energy spectrogram.</li>
 <li><strong>logdir</strong> (<em>str</em>) – dir to save image file is save_to_tensorboard is disabled.</li>
 <li><strong>step</strong> (<em>int</em>) – current training step</li>
-<li><strong>sampling_rate</strong> (<em>int</em>) – samplng rate in Hz of the audio to be saved.</li>
 <li><strong>n_fft</strong> (<em>int</em>) – number of filters for fft and ifft.</li>
+<li><strong>sampling_rate</strong> (<em>int</em>) – samplng rate in Hz of the audio to be saved.</li>
 <li><strong>number</strong> (<em>int</em>) – Current sample number (used if evaluating more than 1 sample</li>
 <li><strong>mode</strong> (<em>str</em>) – Optional string to append to file name eg. train, eval, infer
 from a batch)</li>

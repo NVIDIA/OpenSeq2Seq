@@ -11,7 +11,17 @@ This model is based on the
 matches what is presented in the paper. There are a few differences listed
 below.
 
-The first change is the location of the stop token linear projection layer. In
+The biggest change from Tacotron 2 is that in addition to supporting the
+generation of mel spectrograms, we support generating magnitude/energy
+spectrograms as well. This is controlled via the ``output_type`` variable inside
+the config file. ``output_type = "mel"`` matches the paper minus the differences
+below. ``output_type = "magnitude"`` matches the paper with the difference that
+the output spectrogram is a magnitude spectrogram as opposed to mel. ``output_type = "both"``
+matches ``output_type = "mel"`` with the addition of 2 convolutional layers
+that learns a mapping from a log mel spectrogram to a magnitude spectrogram.
+This is the architecture shown in the picture below.
+
+The second change is the location of the stop token linear projection layer. In
 the paper, it is connected to the output of the decoder rnn. Whereas in our
 implementation, it is connected to the output of the spectrogram projection
 layer.
@@ -51,6 +61,12 @@ generated spectrogram. The addition of the generated spectrogram and the
 residual results in a final spectrogram that is used to generate speech using 
 Griffin-Lim.
 
+If using the default both mode, the final mel spectrogram is sent through
+additional convolutional layers to learn a mapping from the log mel spectrogram
+to a magnitude spectrogram. The learned magnitude spectrogram is then sent
+through Griffin-Lim.
+
+
 Training
 ~~~~~~~~~
 The model is trained with ADAM with an initial learning rate of 1e-3 with an
@@ -60,24 +76,9 @@ of 0.1 every 20k steps until 85k when it reaches the minimum learning rate of
 
 The model is regularized using l2 regularization with a weight of 1e-6.
 
-Mixed Precision and Multi-GPU
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For float32 training with 1 gpu, gradient clipping is sufficient in order to
-train the model, However in order to enable both mixed precision training and
-multi-GPU training, it advised to use LARC.
 
 Tips and Tricks
 ~~~~~~~~~~~~~~~
-The model allows for two representations of the spectrogram. The first is the
-magnitude spectrogram (also called an energy spectrogram) and the second is the
-mel spectrogram (which is used in the original paper). The mel spectrogram is a 
-lossy compression of the magnitude spectrogram. It is advised to use the htk
-algorithm to compute mel spectrograms and to leave it unnormalized. From
-experience, it is easier to learn attention with mel spectrograms, and hence
-easier to learn to generate audio. However, training with magnitude spectrograms
-results in better sound quality as the audio is reconstructed via Griffin-Lim
-which takes magnitude spectrograms as input.
-
 A pseudo metric for audio quality is how well attention is learned. Ideally, we
 want a nice clear diagonal alignment. The current models should learn attention
 between 10k - 20k steps.
