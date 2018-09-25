@@ -31,7 +31,7 @@ OpenSeq2Seq is a TensorFlow-based toolkit for training sequence-to-sequence mode
 
 **Main features**:
 
-* modular architecture to allows easily assembling of new models from available components
+* modular architecture that allows assembling of new models from available components
 * support for mixed-precision training, that utilizes Tensor Cores introduced in NVIDIA Volta GPUs 
 * fast, simple-to-use, Horovod-based distributed training and data parallelism, supporting both multi-GPU and multi-node
 

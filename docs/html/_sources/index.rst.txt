@@ -9,6 +9,8 @@
    machine-translation
    speech-recognition
    speech-synthesis
+   language-model
+   sentiment-analysis
    distr-training
    mixed-precision
    in-depth-tutorials
@@ -24,12 +26,14 @@ OpenSeq2Seq is a TensorFlow-based toolkit for training sequence-to-sequence mode
  * :ref:`machine translation <machine_translation>` (GNMT, Transformer, ConvS2S, ...)
  * :ref:`speech recognition <speech_recognition>` (DeepSpeech2, Wave2Letter, ...)
  * :ref:`speech synthesis <speech_synthesis>` (Tacotron2, ...)
+ * :ref:`language model <language_model>` (LSTM, ...)
+ * :ref:`sentiment analysis <sentiment_analysis>` (SST, IMDB, ...)
 
 **Main features**:
 
-* Modular design and flexible configuration makes it easy to build new encoder-decoder models 
-* efficient mixed-precision training on GPUs
-* multi-GPU and multi-node training
+* modular architecture that allows assembling of new models from available components
+* support for mixed-precision training, that utilizes Tensor Cores introduced in NVIDIA Volta GPUs 
+* fast, simple-to-use, Horovod-based distributed training and data parallelism, supporting both multi-GPU and multi-node
 
 To install this toolkit, look at :ref:`installation instructions <installation>`.
 Next go to :ref:`in-depth tutorials <in_depth>` section. 
