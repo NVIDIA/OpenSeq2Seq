@@ -27,7 +27,7 @@ base_params = {
   "print_loss_steps": steps,
   "print_samples_steps": steps,
   "save_checkpoint_steps": steps,
-  "load_model": "AWDLSTM-EXP69",
+  "load_model": "WKT2-CPT",
   "logdir": "IMDB-WKT2",
   "lm_vocab_file": 'wkt2-processed-data/vocab.txt',
   # "lm_vocab_file": '[LINK TO THE VOCAB FILE IN THE PROCESSED DATA USED TO TRAIN THE BASE LM]'
