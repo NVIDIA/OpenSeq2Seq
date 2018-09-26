@@ -17,11 +17,11 @@ Currently we support the following models:
      - Config file
      - Checkpoint
    * - :doc:`LSTM with WikiText-2 </language-model/lstm>`
-     - `lstm-wkt2-fp32.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lstmlm/lstm-wkt2-fp32.py>`_
-     - Perplexity=80
+     - `lstm-wkt2-fp32.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt2-fp32.py>`_
+     - `Perplexity=89.9 <https://drive.google.com/a/nvidia.com/file/d/1uP-zALrSDb_dz7r7OUqEOakEbSIkxGEp/view?usp=sharing>`
    * - :doc:`LSTM with WikiText-103 </language-model/lstm>`
-     - `lstm-wkt103-mixed.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lstmlm/lstm-wkt103-mixed.py>`_
-     - Perplexity=48.6
+     - `lstm-wkt103-mixed.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt103-mixed.py>`_
+     - `Perplexity=48.6 <https://drive.google.com/a/nvidia.com/file/d/1XC4oN7PXwJwR0KFgljsJQ83CDS09LnIb/view?usp=sharing>`
 
 The model specification and training parameters can be found in the corresponding config file.
 
@@ -36,19 +36,18 @@ Getting started
 ################
 
 The current LSTM language model implementation supports the 
-`WikiText-2 and WikiText-103 <https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/>`_ datasets. For more details about the model including hyperparameters and tips, see 
+`WikiText-2 and WikiText-103 <https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/>`_ datasets. For more details about the model including hyperparameters and tips, please see 
 :doc:`LSTM Language Model </language-model/lstmlm>`.
 
 ********
 Get data
 ********
 
-The WkiText-103 dataset, developed by Salesforce, contains over 100 million tokens extracted from the set of verified Good and Featured articles on Wikipedia. It has 267,340 unique tokens that appear at least 3 times in the dataset. Since it has full-length Wikipedia articles, the dataset is well suited for tasks that can benefit of long term dependencies, such as language modeling.
+The WkiText-103 dataset, developed by Salesforce, contains over 100 million tokens extracted from the set of verified Good and Featured articles on Wikipedia. It has 267,340 unique tokens that appear at least 3 times in the dataset. Since it has full-length Wikipedia articles, the dataset is well-suited for tasks that can benefit of long term dependencies, such as language modeling.
 
 The WikiText-2 dataset is a small version of the WikiText-103 dataset as it contains only 2 million tokens. This small dataset is suitable for testing your language model.
 
-
-The WikiText datasets are available in both word token (with minor preprocessing and rare tokens are replaced with <UNK>) and the raw character level. OpenSeq2Seq's WKTDataLayer is equipped to deal with both versions, but we recommend that you use the raw dataset.
+The WikiText datasets are available in both word-level (with minor preprocessing and rare tokens being replaced with <UNK>) and the raw character level. OpenSeq2Seq's WKTDataLayer is equipped to deal with both versions, but we recommend that you use the raw dataset.
 
 You can download the datasets `here <https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/>`, extract them to the location of your choice. The dataset should contain of 3 files for train, validation, and test. Don't forget to update the ``data_root`` parameter in your config file to point to the location of your dataset. 
 
