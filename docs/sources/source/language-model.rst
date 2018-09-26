@@ -16,10 +16,10 @@ Currently we support the following models:
    * - Model description
      - Config file
      - Checkpoint
-   * - :doc:`LSTM with WikiText-2 </language-model/lstm>`_
+   * - :doc:`LSTM with WikiText-2 </language-model/lstm>`
      - `lstm-wkt2-fp32.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt2-fp32.py>`_
      - `Perplexity=89.9 <https://drive.google.com/a/nvidia.com/file/d/1uP-zALrSDb_dz7r7OUqEOakEbSIkxGEp/view?usp=sharing>`_
-   * - :doc:`LSTM with WikiText-103 </language-model/lstm>`_
+   * - :doc:`LSTM with WikiText-103 </language-model/lstm>`
      - `lstm-wkt103-mixed.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt103-mixed.py>`_
      - `Perplexity=48.6 <https://drive.google.com/a/nvidia.com/file/d/1XC4oN7PXwJwR0KFgljsJQ83CDS09LnIb/view?usp=sharing>`_
 
