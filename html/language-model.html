@@ -191,12 +191,12 @@
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><span class="xref std std-doc">LSTM with WikiText-2</span></td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lstmlm/lstm-wkt2-fp32.py">lstm-wkt2-fp32.py</a></td>
-<td>Perplexity=80</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt2-fp32.py">lstm-wkt2-fp32.py</a></td>
+<td><a class="reference external" href="https://drive.google.com/a/nvidia.com/file/d/1uP-zALrSDb_dz7r7OUqEOakEbSIkxGEp/view?usp=sharing">Perplexity=89.9</a></td>
 </tr>
 <tr class="row-odd"><td><span class="xref std std-doc">LSTM with WikiText-103</span></td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lstmlm/lstm-wkt103-mixed.py">lstm-wkt103-mixed.py</a></td>
-<td>Perplexity=48.6</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/lm/lstm-wkt103-mixed.py">lstm-wkt103-mixed.py</a></td>
+<td><a class="reference external" href="https://drive.google.com/a/nvidia.com/file/d/1XC4oN7PXwJwR0KFgljsJQ83CDS09LnIb/view?usp=sharing">Perplexity=48.6</a></td>
 </tr>
 </tbody>
 </table>
@@ -207,13 +207,13 @@
 <div class="section" id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
 <p>The current LSTM language model implementation supports the
-<a class="reference external" href="https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/">WikiText-2 and WikiText-103</a> datasets. For more details about the model including hyperparameters and tips, see
+<a class="reference external" href="https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/">WikiText-2 and WikiText-103</a> datasets. For more details about the model including hyperparameters and tips, please see
 <a class="reference internal" href="language-model/lstmlm.html"><span class="doc">LSTM Language Model</span></a>.</p>
 <div class="section" id="get-data">
 <h3>Get data<a class="headerlink" href="#get-data" title="Permalink to this headline">¶</a></h3>
-<p>The WkiText-103 dataset, developed by Salesforce, contains over 100 million tokens extracted from the set of verified Good and Featured articles on Wikipedia. It has 267,340 unique tokens that appear at least 3 times in the dataset. Since it has full-length Wikipedia articles, the dataset is well suited for tasks that can benefit of long term dependencies, such as language modeling.</p>
+<p>The WkiText-103 dataset, developed by Salesforce, contains over 100 million tokens extracted from the set of verified Good and Featured articles on Wikipedia. It has 267,340 unique tokens that appear at least 3 times in the dataset. Since it has full-length Wikipedia articles, the dataset is well-suited for tasks that can benefit of long term dependencies, such as language modeling.</p>
 <p>The WikiText-2 dataset is a small version of the WikiText-103 dataset as it contains only 2 million tokens. This small dataset is suitable for testing your language model.</p>
-<p>The WikiText datasets are available in both word token (with minor preprocessing and rare tokens are replaced with &lt;UNK&gt;) and the raw character level. OpenSeq2Seq’s WKTDataLayer is equipped to deal with both versions, but we recommend that you use the raw dataset.</p>
+<p>The WikiText datasets are available in both word-level (with minor preprocessing and rare tokens being replaced with &lt;UNK&gt;) and the raw character level. OpenSeq2Seq’s WKTDataLayer is equipped to deal with both versions, but we recommend that you use the raw dataset.</p>
 <p>You can download the datasets <cite>here &lt;https://www.salesforce.com/products/einstein/ai-research/the-wikitext-dependency-language-modeling-dataset/&gt;</cite>, extract them to the location of your choice. The dataset should contain of 3 files for train, validation, and test. Don’t forget to update the <code class="docutils literal notranslate"><span class="pre">data_root</span></code> parameter in your config file to point to the location of your dataset.</p>
 <p>WKTDataLayer does the necessary pre-processing to make the WikiText datasets ready to be fed into the model. We use the <code class="docutils literal notranslate"><span class="pre">word_token</span></code> method available in the <code class="docutils literal notranslate"><span class="pre">nltk</span></code> package.</p>
 <p>You can pre-process the data for your language model in any way you deem fit. However, if you want to use your trained language model for other tasks such as sentiment analysis, make sure that the dataset used for your language model and the dataset used for the sentiment analysis model have similar pre-processing and share the same vocabulary.</p>
