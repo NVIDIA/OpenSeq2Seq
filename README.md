@@ -5,21 +5,17 @@
 
 # OpenSeq2Seq: toolkit for distributed and mixed precision training of sequence-to-sequence models
 
+OpenSeq2Seq main goal is to allow researchers to most effectively explore various
+sequence-to-sequence models. The efficiency is achieved by fully supporting
+distributed and mixed-precision training.
+OpenSeq2Seq is built using TensorFlow and provides all the necessary
+building blocks for training encoder-decoder models for neural machine translation, automatic speech recognition, speech synthesis, and language modeling.
+
 ## Documentation and installation instructions 
 https://nvidia.github.io/OpenSeq2Seq/
 
-OpenSeq2Seq main goal is to allow researchers to most effectively
-explore various
-sequence-to-sequence models. The
-efficiency is achieved by fully supporting
-distributed and mixed-precision training.
-OpenSeq2Seq is built using TensorFlow and provides all the necessary
-building blocks for training encoder-decoder
-models for neural machine translation, automatic speech recognition, speech synthesis, and language modeling.
-We plan to extend it with other modalities in the future.
-
 ## Features
-1. Sequence to sequence learning. Currently implemented:
+1. Models for:
    1. Neural Machine Translation
    2. Automatic Speech Recognition
    3. Speech Synthesis
@@ -33,7 +29,8 @@ We plan to extend it with other modalities in the future.
 ## Software Requirements
 1. Python >= 3.5
 2. TensorFlow >= 1.10
-3. Horovod >= 0.13 (using Horovod is not required, but is highly recommended for multi-GPU setup)
+3. CUDA >= 9.0, cuDNN >= 7.0 
+4. Horovod >= 0.13 (using Horovod is not required, but is highly recommended for multi-GPU setup)
 
 ## Acknowledgments
 Speech-to-text workflow uses some parts of [Mozilla DeepSpeech](https://github.com/Mozilla/DeepSpeech) project.
