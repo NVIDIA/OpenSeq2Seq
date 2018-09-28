@@ -134,7 +134,10 @@ class Wave2LetterEncoder(Encoder):
       dilation = convnet_layers[idx_convnet]['dilation']
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
+      residual = convnet_layers[idx_convnet].get('residual', False)
 
+      if residual:
+        layer_res = conv_feats
       for idx_layer in range(layer_repeat):
         if padding == "VALID":
           src_length = (src_length - kernel_size[0]) // strides[0] + 1
@@ -156,6 +159,15 @@ class Wave2LetterEncoder(Encoder):
             data_format=data_format,
             **normalization_params
         )
+        if residual and idx_layer == layer_repeat - 1:
+          layer_res = tf.layers.conv1d(
+              layer_res,
+              conv_feats.get_shape()[-1],
+              1,
+              name="res{}".format(idx_convnet+1),
+              use_bias=False,
+          )
+          conv_feats = conv_feats + layer_res
         conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
 
     outputs = conv_feats
