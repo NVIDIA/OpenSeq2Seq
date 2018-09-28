@@ -479,7 +479,7 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
       if self.params['shuffle']:
         self._dataset = self._dataset.shuffle(self._size)
       self._dataset = self._dataset.repeat()
-      self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
+      # self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
@@ -500,7 +500,8 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
           self.params['batch_size'],
           padded_shapes=([None], 1, [None], 1)
       )
-      self._dataset = self._dataset.map(self._get_spec_train).cache()
+      # self._dataset = self._dataset.map(self._get_spec_train).cache()
+      # self._dataset = self._dataset.map(self._get_spec_train)
     else:
       indices = self.split_data(
           np.array(list(map(str, range(len(self.all_files)))))
@@ -530,7 +531,7 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
           # padded_shapes=([None], 1, 1, [257,64])
           padded_shapes=([None], 1, 1)
       )
-      self._dataset = self._dataset.map(self._get_spec_infer)
+      # self._dataset = self._dataset.map(self._get_spec_infer)
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
                          .make_initializable_iterator()
@@ -547,7 +548,7 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
       x_id = tf.reshape(x_id, [self.params['batch_size']])
 
     # x, x_length = self._get_spec(x, x_length, mel_basis)
-    # x, x_length = self._get_spec(x, x_length)
+    x, x_length = self._get_spec(x, x_length)
     x.set_shape([self.params['batch_size'], None,
                  self.params['num_audio_features']])
     x_length = tf.reshape(x_length, [self.params['batch_size']])
