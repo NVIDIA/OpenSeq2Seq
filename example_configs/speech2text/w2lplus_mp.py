@@ -158,6 +158,7 @@ eval_params = {
         "dataset_files": [
             "/data/librispeech/librivox-dev-clean.csv",
         ],
+        # "trim": True,
         "shuffle": False,
     },
 }
