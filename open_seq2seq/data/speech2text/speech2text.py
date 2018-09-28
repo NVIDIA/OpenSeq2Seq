@@ -418,6 +418,8 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
     super(Speech2TextTensorFlowDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
 
+    self.params['autoregressive'] = self.params.get('autoregressive', False)
+
     self.params['char2idx'] = load_pre_existing_vocabulary(
         self.params['vocab_file'], read_chars=True,
     )
