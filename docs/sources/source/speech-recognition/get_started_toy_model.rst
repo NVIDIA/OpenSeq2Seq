@@ -5,7 +5,7 @@ First, make sure you followed the :ref:`Speech installation instructions <instal
 
 After that you should be able to run toy speech example with no errors::
 
-    python run.py --config_file=example_configs/speech2text/ds2_toy_data_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_toy_config.py --mode=train_eval
 
 
 How to train the model on `LibriSpeech <http://www.openslr.org/12>`_ dataset
@@ -24,7 +24,7 @@ dataset size will be around 224GB (including archives and original compressed au
 
 Now, everything should be setup to train the model::
 
-    python run.py --config_file=example_configs/speech2text/ds2_librispeech_larc_config.py --mode=train_eval
+    python run.py --config_file=example_configs/speech2text/ds2_small_1gpu.py --mode=train_eval
 
 If you want to run evaluation/inference with the trained model, replace
 ``--mode=train_eval`` with ``--mode=eval`` or ``--mode=infer``.
@@ -40,7 +40,7 @@ In order to build a language model, please use ``build_lm.py`` script.
 For example, run the following commands for LibriSpeech::
 
     export LS_DIR=/data/speech/LibriSpeech/
-    python build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-train-clean-360.csv librivox-train-other-500.csv
+    python scripts/build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-train-clean-360.csv librivox-train-other-500.csv
 
 You will get as a result two files: the binary language model ``librivox-train-clean-100.binary`` and its trie ``librivox-train-clean-100.trie``.
 
