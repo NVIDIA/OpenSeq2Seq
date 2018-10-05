@@ -174,7 +174,7 @@ class RunEvaluationHook(tf.train.SessionRunHook):
     self._model = model
     self._triggered = False
     self._last_step = last_step
-    self._eval_saver = tf.train.Saver(save_relative_paths=True)
+    self._eval_saver = tf.train.Saver(save_relative_paths=True, max_to_keep=3)
     self._best_eval_loss = 1e9
     self._print_ppl = print_ppl
 

@@ -62,7 +62,7 @@ def train(train_model, eval_model=None, debug_port=None):
   if master_worker:
     if train_model.params['save_checkpoint_steps'] is not None:
       # noinspection PyTypeChecker
-      saver = tf.train.Saver(save_relative_paths=True)
+      saver = tf.train.Saver(save_relative_paths=True, max_to_keep=3)
       hooks.append(tf.train.CheckpointSaverHook(
           checkpoint_dir,
           saver=saver,
@@ -120,26 +120,26 @@ def train(train_model, eval_model=None, debug_port=None):
   # starting training
   if fine_tuning:
     sess = TransferMonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks,
-      base_ckpt_dir=base_ckpt_dir,
-      load_fc=train_model.params['load_fc'])
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks,
+        base_ckpt_dir=base_ckpt_dir,
+        load_fc=train_model.params['load_fc'])
   else:
     sess = tf.train.MonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks)
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks)
   step = 0
   num_bench_updates = 0
   while True:
