@@ -162,7 +162,7 @@
 <h1>Speech Recognition<a class="headerlink" href="#speech-recognition" title="Permalink to this headline">¶</a></h1>
 <p>First, make sure you followed the <a class="reference internal" href="../installation.html#installation-speech"><span class="std std-ref">Speech installation instructions</span></a> .</p>
 <p>After that you should be able to run toy speech example with no errors:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_data_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_toy_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <div class="section" id="how-to-train-the-model-on-librispeech-dataset">
@@ -178,7 +178,7 @@ Assuming you are in the base folder, run:</p>
 it needs to download, extract and convert around 55GB of audio files. The final
 dataset size will be around 224GB (including archives and original compressed audio files, feel free to delete them to get 106GB).</p>
 <p>Now, everything should be setup to train the model:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_librispeech_larc_config</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
 </pre></div>
 </div>
 <p>If you want to run evaluation/inference with the trained model, replace
@@ -193,7 +193,7 @@ For inference you will need to provide additional
 In order to build a language model, please use <code class="docutils literal notranslate"><span class="pre">build_lm.py</span></code> script.
 For example, run the following commands for LibriSpeech:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>export LS_DIR=/data/speech/LibriSpeech/
-python build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-train-clean-360.csv librivox-train-other-500.csv
+python scripts/build_lm.py --n 5 $LS_DIR/librivox-train-clean-100.csv $LS_DIR/librivox-train-clean-360.csv librivox-train-other-500.csv
 </pre></div>
 </div>
 <p>You will get as a result two files: the binary language model <code class="docutils literal notranslate"><span class="pre">librivox-train-clean-100.binary</span></code> and its trie <code class="docutils literal notranslate"><span class="pre">librivox-train-clean-100.trie</span></code>.</p>
