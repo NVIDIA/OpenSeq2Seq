@@ -58,8 +58,8 @@ def tokenize(args):
         except:
           continue
 
-        encoded_src = ' '.join([w.decode('utf-8') for w in encoded_src_list])
-        encoded_tgt = ' '.join([w.decode('utf-8') for w in encoded_tgt_list])
+        encoded_src = ' '.join([w for w in encoded_src_list])
+        encoded_tgt = ' '.join([w for w in encoded_tgt_list])
 
         ofile1.write(encoded_src + "\n")
         ofile2.write(encoded_tgt + "\n")
