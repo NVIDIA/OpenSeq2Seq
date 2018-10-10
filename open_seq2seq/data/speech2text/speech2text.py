@@ -385,7 +385,6 @@ class Speech2TextBPEDataLayer(DataLayer):
     return dict(DataLayer.get_required_params(), **{
         'num_audio_features': int,
         'input_type': ['spectrogram', 'mfcc', 'logfbank'],
-        'vocab_file': str,
         'sp_model': str,
         'dataset_files': list,
     })
@@ -405,7 +404,6 @@ class Speech2TextBPEDataLayer(DataLayer):
     Config parameters:
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
-    * **vocab_file** (str) --- path to vocabulary file.
     * **dataset_files** (list) --- list with paths to all dataset .csv files.
     * **augmentation** (dict) --- optional dictionary with data augmentation
       parameters. Can contain "time_stretch_ratio", "noise_level_min" and
