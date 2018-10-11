@@ -464,6 +464,7 @@ class Model:
           on_horovod=self.on_horovod,
           iter_size=self.params.get('iter_size', 1),
           skip_update_ph=self.skip_update_ph,
+          model=self
       )
       tf.summary.scalar(name="train_loss", tensor=self.loss)
       if self.steps_in_epoch:

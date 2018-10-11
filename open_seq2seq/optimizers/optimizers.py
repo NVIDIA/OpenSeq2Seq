@@ -73,7 +73,7 @@ def get_regularization_loss(scope=None, name="total_regularization_loss"):
     return tf.constant(0.0)
 
 
-def reduce_gradients(grads_and_vars, on_horovod):
+def reduce_gradients(grads_and_vars, on_horovod, model=None):
   if on_horovod:
     from horovod.tensorflow import allreduce, size
 
@@ -82,6 +82,19 @@ def reduce_gradients(grads_and_vars, on_horovod):
       with tf.name_scope("all_reduce"):
         for grad, var in grads_and_vars:
           if grad is not None:
+            if isinstance(grad, tf.IndexedSlices):
+              from open_seq2seq.models import Text2Text
+              from open_seq2seq.decoders import TransformerDecoder
+              if isinstance(model, Text2Text) and \
+                 isinstance(model.decoder, TransformerDecoder):
+                from tensorflow.python.training.optimizer import _deduplicate_indexed_slices
+                summed_values, unique_indices = _deduplicate_indexed_slices(
+                    values=grad.values, indices=grad.indices)
+                gradient_no_duplicate_indices = tf.IndexedSlices(
+                    indices=unique_indices,
+                    values=summed_values,
+                    dense_shape=grad.dense_shape)
+                grad = tf.convert_to_tensor(gradient_no_duplicate_indices)
             avg_grad = allreduce(grad)
             averaged_grads_and_vars.append((avg_grad, var))
           else:
@@ -105,7 +118,8 @@ def optimize_loss(loss,
                   loss_scaling_params=None,
                   on_horovod=False,
                   iter_size=1,
-                  skip_update_ph=None):
+                  skip_update_ph=None,
+                  model=None):
   """Given loss and parameters for optimizer, returns a training op.
 
   Args:
@@ -219,7 +233,7 @@ def optimize_loss(loss,
           with tf.control_dependencies([accum_op]):
             red_grad_updates = opt.apply_gradients(
                 post_process_gradients(
-                    reduce_gradients(grads_and_vars_accum, on_horovod=True),
+                    reduce_gradients(grads_and_vars_accum, on_horovod=True, model=model),
                     lr=lr,
                     clip_gradients=clip_gradients,
                     larc_params=larc_params,
@@ -240,7 +254,7 @@ def optimize_loss(loss,
       else:
         grad_updates = opt.apply_gradients(
             post_process_gradients(
-                reduce_gradients(grads_and_vars, on_horovod=True),
+                reduce_gradients(grads_and_vars, on_horovod=True, model=model),
                 lr=lr,
                 clip_gradients=clip_gradients,
                 larc_params=larc_params,
