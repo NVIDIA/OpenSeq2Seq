@@ -7,8 +7,9 @@ from __future__ import unicode_literals
 import os
 import sys
 import tensorflow as tf
-from open_seq2seq.utils.utils import deco_print, get_base_config, check_logdir,\
-                                     create_logdir, create_model, check_base_model_logdir
+from open_seq2seq.utils.utils import deco_print, get_base_config, create_model,\
+                                     create_logdir, check_logdir, \
+                                     check_base_model_logdir
 from open_seq2seq.utils import train, infer, evaluate
 
 def main():
@@ -24,7 +25,7 @@ def main():
 #   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
 #   # Check logdir and create it if necessary
 #   checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
-  
+
   load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint', False)
   base_ckpt_dir = check_base_model_logdir(load_model, restore_best_checkpoint)
@@ -39,10 +40,10 @@ def main():
     hvd.init()
     if hvd.rank() == 0:
       deco_print("Using horovod")
+    from mpi4py import MPI
+    MPI.COMM_WORLD.Barrier()
   else:
     hvd = None
-
-
 
   if args.enable_logs:
     if hvd is None or hvd.rank() == 0:
@@ -69,7 +70,9 @@ def main():
 
   # Create model and train/eval/infer
   with tf.Graph().as_default():
-    model = create_model(args, base_config, config_module, base_model, hvd, restore_best_checkpoint)
+    model = create_model(
+        args, base_config, config_module, base_model, hvd,
+        restore_best_checkpoint)
     if args.mode == "train_eval":
       train(model[0], model[1], debug_port=args.debug_port)
     elif args.mode == "train":
