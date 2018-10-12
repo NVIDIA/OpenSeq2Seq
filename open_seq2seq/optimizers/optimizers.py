@@ -83,10 +83,7 @@ def reduce_gradients(grads_and_vars, on_horovod, model=None):
         for grad, var in grads_and_vars:
           if grad is not None:
             if isinstance(grad, tf.IndexedSlices):
-              from open_seq2seq.models import Text2Text
-              from open_seq2seq.decoders import TransformerDecoder
-              if isinstance(model, Text2Text) and \
-                 isinstance(model.decoder, TransformerDecoder):
+              if model._decoder.params.get('shared_embed', False):
                 from tensorflow.python.training.optimizer import _deduplicate_indexed_slices
                 summed_values, unique_indices = _deduplicate_indexed_slices(
                     values=grad.values, indices=grad.indices)
