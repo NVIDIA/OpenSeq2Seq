@@ -71,6 +71,10 @@ class TransformerDecoder(Decoder):
     self.output_normalization = None
     self._mode = mode
     self.layers = []
+    # in original T paper embeddings are shared between encoder and decoder
+    # also final projection = transpose(E_weights), we currently only support
+    # this behaviour
+    self.params['shared_embed'] = True
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
