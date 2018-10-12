@@ -118,7 +118,8 @@ class TransformerDecoder(Decoder):
           ])
 
         self.output_normalization = LayerNormalization(
-            self.params["hidden_size"]
+          self.params["hidden_size"],
+          dtype=self.params["dtype"],
         )
 
       if targets is None:
@@ -193,7 +194,9 @@ class TransformerDecoder(Decoder):
       )
 
     # Run values
-    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
+                                                                        #dtype=self._params["dtype"]
+                                                                        )
 
     # do decode
     outputs = self._call(
@@ -214,6 +217,7 @@ class TransformerDecoder(Decoder):
     )
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
         max_decode_length,
+        dtype=self._params["dtype"]
     )
 
     def symbols_to_logits_fn(ids, i, cache):

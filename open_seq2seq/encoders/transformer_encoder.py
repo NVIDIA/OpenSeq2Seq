@@ -107,7 +107,9 @@ class TransformerEncoder(Encoder):
         ])
 
       # Create final layer normalization layer.
-      self.output_normalization = LayerNormalization(self.params["hidden_size"])
+      self.output_normalization = LayerNormalization(self.params["hidden_size"],
+                                                     self.params["dtype"]
+                                                     )
 
     # actual encoder part
     with tf.name_scope("encode"):
@@ -115,8 +117,8 @@ class TransformerEncoder(Encoder):
       # Prepare inputs to the layer stack by adding positional encodings and
       # applying dropout.
       embedded_inputs = self.embedding_softmax_layer(inputs)
-      inputs_padding = utils.get_padding(inputs)
-      inputs_attention_bias = utils.get_padding_bias(inputs)
+      inputs_padding = utils.get_padding(inputs, dtype=self._params["dtype"])
+      inputs_attention_bias = utils.get_padding_bias(inputs,dtype=self._params["dtype"])
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]

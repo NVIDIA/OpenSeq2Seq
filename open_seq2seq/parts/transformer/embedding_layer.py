@@ -80,7 +80,7 @@ class EmbeddingSharedWeights(tf.layers.Layer):
       if self.mask_paddings:
         # Create binary array of size [batch_size, length]
         # where 1 = padding, 0 = not padding
-        padding = model_utils.get_padding(x, padding_value=self.pad_sym)
+        padding = model_utils.get_padding(x, padding_value=self.pad_sym, dtype = tf.float32) # dtype= embeddings.dtype)
 
         # Set all padding embedding values to 0
         #embeddings *= tf.expand_dims(1 - padding, -1)
