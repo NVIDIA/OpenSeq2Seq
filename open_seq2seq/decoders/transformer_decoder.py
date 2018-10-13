@@ -59,6 +59,7 @@ class TransformerDecoder(Decoder):
         'GO_SYMBOL': int,
         'PAD_SYMBOL': int,
         'END_SYMBOL': int,
+        'layer_norm_type': str,
     })
 
   def _cast_types(self, input_dict):
@@ -75,6 +76,7 @@ class TransformerDecoder(Decoder):
     # also final projection = transpose(E_weights), we currently only support
     # this behaviour
     self.params['shared_embed'] = True
+    self.layer_norm_type = self.params.get("layer_norm_type", "L2")
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -119,7 +121,8 @@ class TransformerDecoder(Decoder):
 
         self.output_normalization = LayerNormalization(
           self.params["hidden_size"],
-          dtype=self.params["dtype"],
+          self.layer_norm_type
+          #dtype=self.params["dtype"],
         )
 
       if targets is None:

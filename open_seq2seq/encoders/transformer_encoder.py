@@ -54,6 +54,7 @@ class TransformerEncoder(Encoder):
         'initializer': None,  # any valid TensorFlow initializer
         'initializer_params': dict,
         'pad_embeddings_2_eight': bool,
+        "layer_norm_type": str,
     })
 
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
@@ -63,8 +64,8 @@ class TransformerEncoder(Encoder):
     self.layers = []
     self.output_normalization = None
     self._mode = mode
-
     self.embedding_softmax_layer = None
+    self.layer_norm_type = self.params.get("layer_norm_type", "L2")
 
   def _call(self, encoder_inputs, attention_bias, inputs_padding):
     for n, layer in enumerate(self.layers):
@@ -108,7 +109,8 @@ class TransformerEncoder(Encoder):
 
       # Create final layer normalization layer.
       self.output_normalization = LayerNormalization(self.params["hidden_size"],
-                                                     self.params["dtype"]
+                                                     self.layer_norm_type,
+                                                     #self.params["dtype"]
                                                      )
 
     # actual encoder part
