@@ -623,6 +623,7 @@
           <span class="n">on_horovod</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">on_horovod</span><span class="p">,</span>
           <span class="n">iter_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;iter_size&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span>
           <span class="n">skip_update_ph</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">skip_update_ph</span><span class="p">,</span>
+          <span class="n">model</span><span class="o">=</span><span class="bp">self</span>
       <span class="p">)</span>
       <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">scalar</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="s2">&quot;train_loss&quot;</span><span class="p">,</span> <span class="n">tensor</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">)</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">steps_in_epoch</span><span class="p">:</span>

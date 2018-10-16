@@ -230,6 +230,10 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">=</span> <span class="n">mode</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="c1"># in original T paper embeddings are shared between encoder and decoder</span>
+    <span class="c1"># also final projection = transpose(E_weights), we currently only support</span>
+    <span class="c1"># this behaviour</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shared_embed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
 
   <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">:</span>

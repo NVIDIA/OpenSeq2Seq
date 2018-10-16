@@ -31,19 +31,26 @@ Otherwise you can just install TensorFlow using pip::
 
 .. _installation_speech:
 
-Installation OpenSeq2Seq for speech recognition
------------------------------------------------
+Installation of OpenSeq2Seq for speech recognition
+--------------------------------------------------
 
-To obtain the best results for speech recognition it is necessary to
-use a CTC beam search decoder with a language model rescoring.
+CTC-based speech recognition models can use the following decoders to get a transcription out of a model's state:
+
+ * greedy decoder, the fastest, but might yield spelling errors (can be enabled with ``"use_language_model": False``)
+ * beam search decoder with language model rescoring, the most accurate, but the slowest (can be enabled with ``"use_language_model": True``)
+
+You can find more information about these decoders at :doc:`DeepSpeech 2 page </speech-recognition/deepspeech2>`.
+
+CTC beam search decoder with language model rescoring is an optional component and might be used for speech recognition inference only.
+
 Since TensorFlow does not support it by default, you will need to build TensorFlow
 from sources with a custom CTC decoder operation. In order to do that, follow
 the steps below. Alternatively, you can disable language model by setting
 "use_language_model" parameter of decoder to False, but that will lead to a
 worse model accuracy.
 
-How to add CTC decoder with language model to TensorFlow
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How to install a CTC decoder with language model to TensorFlow (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.2.
 
@@ -62,6 +69,7 @@ First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.
 
         cd OpenSeq2Seq/ctc_decoder_with_lm
         ln -s <kenlm location> kenlm
+        cd ..
 
 3. Download and build TensorFlow with custom decoder operation::
 
@@ -88,8 +96,8 @@ First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.
 
         python -c "import tensorflow as tf; print(tf.__version__)"
 
-How to download language model
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+How to download a language model for a CTC decoder (optional)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 In order to achieve the best accuracy, you should download the language
 model from `OpenSLR <http://openslr.org/11/>`_ using ``download_lm.sh`` script
@@ -106,7 +114,7 @@ Horovod installation
 --------------------
 For multi-GPU and distribuited training we recommended install `Horovod <https://github.com/uber/horovod>`_ .
 After TensorFlow and all other requirements are installed,  install mpi:
-```pip install mpi4py``` and then follow
+``pip install mpi4py`` and then follow
 `these steps <https://github.com/uber/horovod/blob/master/docs/gpus.md>`_ to install
 Horovod.
 
