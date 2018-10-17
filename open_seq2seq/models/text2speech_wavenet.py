@@ -46,4 +46,9 @@ class Text2SpeechWavenet(EncoderDecoderModel):
         mode="eval"
     )
     return {}
-    
+
+  def infer(self, input_values, output_values):
+    return output_values[1][-1]
+
+  def finalize_inference(self, results_per_batch, output_file):
+    return {}
