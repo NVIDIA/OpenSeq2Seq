@@ -22,7 +22,7 @@ base_params = {
   "max_steps": 100000,
 
   "num_gpus": 8,
-  "batch_size_per_gpu": 4,
+  "batch_size_per_gpu": 2,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
