@@ -11,7 +11,7 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 base_model = Text2SpeechWavenet
 
-kernel_size = 3
+kernel_size = 2
 blocks = 4
 layers_per_block = 6
 receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
@@ -22,7 +22,7 @@ base_params = {
   "max_steps": 100000,
 
   "num_gpus": 2,
-  "batch_size_per_gpu": 8,
+  "batch_size_per_gpu": 2,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
@@ -60,7 +60,7 @@ base_params = {
     "blocks": blocks,
     "layers_per_block": layers_per_block,
     "activation_fn": gated_linear_units,
-    "filters": 16,
+    "filters": 64,
     "upsample_factor": 8, 
     "quantization_channels": 256
   },

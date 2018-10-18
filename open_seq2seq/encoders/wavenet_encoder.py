@@ -239,17 +239,21 @@ class WavenetEncoder(Encoder):
     filters = self.params["filters"]
     upsample_factor = self.params["upsample_factor"]
     quantization_channels = self.params["quantization_channels"]
+
     bn_momentum = self.params.get("bn_momentum", 0.1)
     bn_epsilon = self.params.get("bn_epsilon", 1e-5)
     local_conditioning = self.params.get("local_conditioning", True)
+    conv_upsampling = self.params.get("conv_upsampling", True)
+
     receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
+
+    # ----- Preprocessing -----------------------------------------------
 
     encoded_inputs = _mu_law_encode(source, quantization_channels)
 
     if training:
       # remove last sample to maintain causality
       inputs = tf.slice(encoded_inputs, [0, 0], [-1, tf.shape(encoded_inputs)[1] - 1]) 
-      condition = condition[:, :-1, :] 
     else:
       inputs = encoded_inputs
     
@@ -262,59 +266,62 @@ class WavenetEncoder(Encoder):
       condition_filter = condition[:, :, 0:int(condition_shape[2] / 2)]
       condition_gate = condition[:, :, int(condition_shape[2] / 2):]
 
-      condition_filter = conv_1x1(
-        layer_type=layer_type,
-        name="filter_condition", 
-        inputs=condition_filter, 
-        filters=filters, 
-        strides=strides, 
-        regularizer=regularizer, 
-        training=training, 
-        data_format=data_format
-      )
+      if conv_upsampling:
+        condition_filter = tf.expand_dims(condition_filter, 1)
+        for i in range(upsample_factor):
+          condition_filter = tf.layers.conv2d_transpose(
+            name="filter_condition_{}".format(i),
+            inputs=condition_filter,
+            filters=filters,
+            kernel_size=1, # 1x1 convolution
+            strides=(1, 2), # scale factor
+            kernel_regularizer=regularizer,
+            data_format=data_format
+          )
+        condition_filter = tf.squeeze(condition_filter, [1])
+        
+        condition_gate = tf.expand_dims(condition_gate, 1)
+        for i in range(upsample_factor):
+          condition_gate = tf.layers.conv2d_transpose(
+            name="gate_condition_{}".format(i),
+            inputs=condition_gate,
+            filters=filters,
+            kernel_size=1, # 1x1 convolution
+            strides=(1, 2), # scale factor
+            kernel_regularizer=regularizer,
+            data_format=data_format
+          )
+        condition_gate = tf.squeeze(condition_gate, [1])
 
-      condition_gate = conv_1x1(
-        layer_type=layer_type,
-        name="gate_condition", 
-        inputs=condition_gate, 
-        filters=filters, 
-        strides=strides, 
-        regularizer=regularizer, 
-        training=training, 
-        data_format=data_format
-      )
-     
-      # condition_filter = tf.expand_dims(condition_filter, 1)
-      # for i in range(upsample_factor):
-      #   condition_filter = tf.layers.conv2d_transpose(
-      #     name="filter_condition_{}".format(i),
-      #     inputs=condition_filter,
-      #     filters=filters,
-      #     kernel_size=1, # 1x1 convolution
-      #     strides=(1, 2), # scale factor
-      #     kernel_regularizer=regularizer,
-      #     data_format=data_format
-      #   )
-      # condition_filter = tf.squeeze(condition_filter, [1])
-      
-      # condition_gate = tf.expand_dims(condition_gate, 1)
-      # for i in range(upsample_factor):
-      #   condition_gate = tf.layers.conv2d_transpose(
-      #     name="gate_condition_{}".format(i),
-      #     inputs=condition_gate,
-      #     filters=filters,
-      #     kernel_size=1, # 1x1 convolution
-      #     strides=(1, 2), # scale factor
-      #     kernel_regularizer=regularizer,
-      #     data_format=data_format
-      #   )
-      # condition_gate = tf.squeeze(condition_gate, [1])
+      else:
+        condition_filter = conv_1x1(
+          layer_type=layer_type,
+          name="filter_condition", 
+          inputs=condition_filter, 
+          filters=filters, 
+          strides=strides, 
+          regularizer=regularizer, 
+          training=training, 
+          data_format=data_format
+        )
 
-      if not training:
+        condition_gate = conv_1x1(
+          layer_type=layer_type,
+          name="gate_condition", 
+          inputs=condition_gate, 
+          filters=filters, 
+          strides=strides, 
+          regularizer=regularizer, 
+          training=training, 
+          data_format=data_format
+        )
+
+      if training:
+        condition_filter = condition_filter[:, :-1, :]
+        condition_gate = condition_gate[:, :-1, :]
+      else:
         condition_filter = condition_filter[:, spec_offset:spec_offset + receptive_field, :]
         condition_gate = condition_gate[:, spec_offset:spec_offset + receptive_field, :]
-        # condition_filter = tf.slice(condition_filter, [0, spec_offset, 0], [-1, spec_offset + receptive_field, -1])
-        # condition_gate = tf.slice(condition_gate, [0, spec_offset, 0], [-1, spec_offset + receptive_field, -1])
 
     else:
       condition_filter = None
@@ -322,10 +329,10 @@ class WavenetEncoder(Encoder):
 
     # ----- Convolutional layers -----------------------------------------------
 
-    # preprocessing causal convolutional layer
+    # first causal convolutional layer
     inputs = causal_conv_bn_actv(
       layer_type=layer_type,
-      name="preprocess",
+      name="causal_input",
       inputs=inputs,
       filters=filters, 
       kernel_size=kernel_size,

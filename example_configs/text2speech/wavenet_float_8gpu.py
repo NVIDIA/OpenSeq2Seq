@@ -11,15 +11,15 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 base_model = Text2SpeechWavenet
 
-kernel_size = 3
-blocks = 3
-layers_per_block = 10
+kernel_size = 2
+blocks = 4
+layers_per_block = 6
 receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
 
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "max_steps": 100000,
+  "max_steps": 1000000,
 
   "num_gpus": 8,
   "batch_size_per_gpu": 2,
@@ -29,7 +29,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
-  "logdir": "/results/WAVENET-TRAIN-1",
+  "logdir": "/results/WAVENET-TRAIN-2",
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -60,7 +60,7 @@ base_params = {
     "blocks": blocks,
     "layers_per_block": layers_per_block,
     "activation_fn": gated_linear_units,
-    "filters": 32,
+    "filters": 64,
     "upsample_factor": 8, 
     "quantization_channels": 256
   },
