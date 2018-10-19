@@ -87,10 +87,10 @@ base_params = {
 train_params = {
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"vocab.bpe.32000",
-    "tgt_vocab_file": data_root+"vocab.bpe.32000",
-    "source_file": data_root+"train.tok.clean.bpe.32000.en",
-    "target_file": data_root+"train.tok.clean.bpe.32000.de",
+    "src_vocab_file": data_root + "m_common.vocab",
+    "tgt_vocab_file": data_root + "m_common.vocab",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
     "shuffle_buffer_size": 25000,
