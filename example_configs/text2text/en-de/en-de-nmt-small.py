@@ -11,7 +11,7 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16-ende-sp/"
 
 # This model should run fine on single GPU such as 1080ti or better
 base_model = Text2Text
@@ -19,7 +19,7 @@ base_model = Text2Text
 base_params = {
   "use_horovod": False,
   "num_gpus": 1,
-  "max_steps": 160082,
+  "max_steps": 200000,
   "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
@@ -105,10 +105,10 @@ eval_params = {
   "batch_size_per_gpu": 32,
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"vocab.bpe.32000",
-    "tgt_vocab_file": data_root+"vocab.bpe.32000",
-    "source_file": data_root+"newstest2013.tok.bpe.32000.en",
-    "target_file": data_root+"newstest2013.tok.bpe.32000.de",
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt13-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
     "repeat": True,
@@ -142,11 +142,10 @@ infer_params = {
   },
   "data_layer": ParallelTextDataLayer,
   "data_layer_params": {
-    "src_vocab_file": data_root+"vocab.bpe.32000",
-    "tgt_vocab_file": data_root+"vocab.bpe.32000",
-    "source_file": data_root+"newstest2014.tok.bpe.32000.en",
-    # this is intentional
-    "target_file": data_root+"newstest2014.tok.bpe.32000.en",
+    "src_vocab_file": data_root+"m_common.vocab",
+    "tgt_vocab_file": data_root+"m_common.vocab",
+    "source_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
     "repeat": False,

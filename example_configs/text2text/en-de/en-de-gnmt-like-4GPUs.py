@@ -11,14 +11,14 @@ from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16-ende-sp/"
 
 base_model = Text2Text
 
 base_params = {
   "use_horovod": False,
   "num_gpus": 4,
-  "max_steps": 340000,
+  "max_steps": 310000,
   "batch_size_per_gpu": 32,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
