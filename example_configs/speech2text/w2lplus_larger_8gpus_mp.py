@@ -7,9 +7,6 @@ from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer, Spee
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
-residual = True
-repeat = 4
-
 base_model = Speech2Text
 
 base_params = {
@@ -18,7 +15,7 @@ base_params = {
     "num_epochs": 400,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 128,
+    "batch_size_per_gpu": 96,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -35,7 +32,6 @@ base_params = {
     "lr_policy": poly_decay,
     "lr_policy_params": {
         "learning_rate": 0.05,
-        # "min_lr": 1e-4,
         "power": 2.0,
     },
     "larc_params": {
@@ -63,39 +59,39 @@ base_params = {
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": repeat,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": residual
+                "residual": True
             },
             {
-                "type": "conv1d", "repeat": repeat,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": residual
+                "residual": True
             },
             {
-                "type": "conv1d", "repeat": repeat,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
-                "residual": residual
+                "residual": True
             },
             {
-                "type": "conv1d", "repeat": repeat,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": residual
+                "residual": True
             },
             {
-                "type": "conv1d", "repeat": repeat,
+                "type": "conv1d", "repeat": 4,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
-                "residual": residual
+                "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
