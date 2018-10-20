@@ -268,29 +268,29 @@ class WavenetEncoder(Encoder):
 
       if conv_upsampling:
         condition_filter = tf.expand_dims(condition_filter, 1)
-        # for i in range(upsample_factor):
-        condition_filter = tf.layers.conv2d_transpose(
-          name="filter_condition_{}".format(0),
-          inputs=condition_filter,
-          filters=filters,
-          kernel_size=1, # 1x1 convolution
-          strides=(1, 256), # scale factor
-          kernel_regularizer=regularizer,
-          data_format=data_format
-        )
+        for i in range(upsample_factor):
+          condition_filter = tf.layers.conv2d_transpose(
+            name="filter_condition_{}".format(i),
+            inputs=condition_filter,
+            filters=filters,
+            kernel_size=1, # 1x1 convolution
+            strides=(1, 2), # scale factor
+            kernel_regularizer=regularizer,
+            data_format=data_format
+          )
         condition_filter = tf.squeeze(condition_filter, [1])
         
         condition_gate = tf.expand_dims(condition_gate, 1)
-        #for i in range(upsample_factor):
-        condition_gate = tf.layers.conv2d_transpose(
-          name="gate_condition_{}".format(1),
-          inputs=condition_gate,
-          filters=filters,
-          kernel_size=1, # 1x1 convolution
-          strides=(1, 256), # scale factor
-          kernel_regularizer=regularizer,
-          data_format=data_format
-        )
+        for i in range(upsample_factor):
+          condition_gate = tf.layers.conv2d_transpose(
+            name="gate_condition_{}".format(i),
+            inputs=condition_gate,
+            filters=filters,
+            kernel_size=1, # 1x1 convolution
+            strides=(1, 2), # scale factor
+            kernel_regularizer=regularizer,
+            data_format=data_format
+          )
         condition_gate = tf.squeeze(condition_gate, [1])
 
       else:
