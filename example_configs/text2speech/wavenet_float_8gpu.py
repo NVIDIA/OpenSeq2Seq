@@ -29,7 +29,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
-  "logdir": "/results/WAVENET-TRAIN-2",
+  "logdir": "/results/WAVENET-TRAIN",
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -62,7 +62,8 @@ base_params = {
     "activation_fn": gated_linear_units,
     "filters": 64,
     "upsample_factor": 8, 
-    "quantization_channels": 256
+    "quantization_channels": 256,
+    "conv_upsampling": False
   },
 
   "decoder": FakeDecoder,

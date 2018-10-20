@@ -157,8 +157,8 @@ class WavenetDataLayer(DataLayer):
         "constant",
         constant_values=0
     )
-
-    # spectrogram = np.repeat(spectrogram, 256, axis=0)
+    
+    spectrogram = np.repeat(spectrogram, 256, axis=0)
 
     return audio.astype(self.params["dtype"].as_numpy_dtype()), \
       np.int32([len(audio)]), \

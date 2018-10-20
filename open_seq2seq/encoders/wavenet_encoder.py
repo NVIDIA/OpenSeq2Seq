@@ -243,7 +243,7 @@ class WavenetEncoder(Encoder):
     bn_momentum = self.params.get("bn_momentum", 0.1)
     bn_epsilon = self.params.get("bn_epsilon", 1e-5)
     local_conditioning = self.params.get("local_conditioning", True)
-    conv_upsampling = self.params.get("conv_upsampling", True)
+    conv_upsampling = self.params.get("conv_upsampling", False)
 
     receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
 
@@ -332,7 +332,7 @@ class WavenetEncoder(Encoder):
     # first causal convolutional layer
     inputs = causal_conv_bn_actv(
       layer_type=layer_type,
-      name="causal_input",
+      name="preprocess",
       inputs=inputs,
       filters=filters, 
       kernel_size=kernel_size,
