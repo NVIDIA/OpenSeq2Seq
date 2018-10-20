@@ -62,8 +62,7 @@ base_params = {
     "activation_fn": gated_linear_units,
     "filters": 64,
     "upsample_factor": 8, 
-    "quantization_channels": 256,
-    "conv_upsampling": False
+    "quantization_channels": 256
   },
 
   "decoder": FakeDecoder,
