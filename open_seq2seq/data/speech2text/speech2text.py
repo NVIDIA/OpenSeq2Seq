@@ -8,7 +8,6 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import scipy.io.wavfile as wave
-import librosa
 import six
 from six import string_types
 from six.moves import range
@@ -411,6 +410,7 @@ class Speech2TextTensorFlowDataLayer(DataLayer):
     self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
 
     self._files = None
+    self.params['autoregressive'] = False
     if self.params["interactive"]:
       return
 
