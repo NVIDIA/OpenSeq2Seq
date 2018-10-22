@@ -488,12 +488,11 @@ class Model:
                             tf.constant(self.steps_in_epoch, dtype=tf.int64)),
         )
 
-      if freeze_variables_regex is not None:
-        deco_print('Complete list of variables:')
-        for var in tf.trainable_variables():
-          deco_print('{}'.format(var.name), offset=2)
-
       if not self.on_horovod or self._hvd.rank() == 0:
+        if freeze_variables_regex is not None:
+          deco_print('Complete list of variables:')
+          for var in tf.trainable_variables():
+            deco_print('{}'.format(var.name), offset=2)
         deco_print("Trainable variables:")
         total_params = 0
         unknown_shape = False
