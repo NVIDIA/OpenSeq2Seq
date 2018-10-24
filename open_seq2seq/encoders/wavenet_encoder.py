@@ -320,6 +320,10 @@ class WavenetEncoder(Encoder):
         condition_filter = condition_filter[:, :-1, :]
         condition_gate = condition_gate[:, :-1, :]
       else:
+        zeros = tf.zeros([condition_shape[0], receptive_field, filters])
+        condition_filter = tf.concat([zeros, condition_filter], axis=1)
+        condition_gate = tf.concat([zeros, condition_gate], axis=1)
+
         condition_filter = condition_filter[:, spec_offset:spec_offset + receptive_field, :]
         condition_gate = condition_gate[:, spec_offset:spec_offset + receptive_field, :]
 

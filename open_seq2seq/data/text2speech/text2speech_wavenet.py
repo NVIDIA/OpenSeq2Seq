@@ -138,7 +138,8 @@ class WavenetDataLayer(DataLayer):
       file_path,
       self.params["num_audio_features"],
       features_type="mel",
-      data_min=1e-5,
+      data_min=1e-3,
+      mag_power=1.,
       return_raw_audio=True
     )
 
@@ -204,17 +205,7 @@ class WavenetDataLayer(DataLayer):
     
     """
 
-    source, src_length, file_name, spec_offset = model_in
-
-    # source, src_length, spec, spec_length, = self._parse_audio_element(file_name)
-    # source = source[spec_offset:spec_offset + 505]
-
-    # source = np.expand_dims(source, axis=0)
-    # src_length = np.reshape(src_length, [self.params["batch_size"]])
-
-    spec, spec_length = self._parse_spectrogram_element(file_name)
-    spec = np.expand_dims(spec, axis=0)
-    spec_length = np.reshape(spec_length, [self.params["batch_size"]])
+    source, src_length, spec, spec_length, spec_offset = model_in
 
     return {
       self._source: source,

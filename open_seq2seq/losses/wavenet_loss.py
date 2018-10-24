@@ -11,16 +11,12 @@ class WavenetLoss(Loss):
     self._n_feats = self._model.get_data_layer().params["num_audio_features"]
 
   def get_required_params(self):
-    return dict(Loss.get_required_params(), **{
-      "receptive_field": int
-    })
+    return {}
 
   def get_optional_params(self):
     return {}
 
   def _compute_loss(self, input_dict):
-    receptive_field = self.params["receptive_field"]
-
     prediction = input_dict["decoder_output"]["logits"]
     target_output = input_dict["decoder_output"]["outputs"][0]
 

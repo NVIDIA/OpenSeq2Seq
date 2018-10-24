@@ -68,9 +68,6 @@ base_params = {
   "decoder": FakeDecoder,
 
   "loss": WavenetLoss,
-  "loss_params": {
-    "receptive_field": receptive_field
-  },
 
   "data_layer": WavenetDataLayer,
   "data_layer_params": {

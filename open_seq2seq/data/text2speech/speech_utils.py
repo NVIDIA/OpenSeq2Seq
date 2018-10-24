@@ -137,7 +137,9 @@ def get_speech_features(
           n_fft=n_fft,
           n_mels=num_features_mel,
           htk=htk,
-          norm=norm
+          norm=norm,
+          fmin=125,
+          fmax=7600
       )
     features = np.dot(mel_basis, mag)
     features = np.log(np.clip(features, a_min=data_min_mel, a_max=None)).T
