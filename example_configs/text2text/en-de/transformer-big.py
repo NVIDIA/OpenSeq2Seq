@@ -22,7 +22,7 @@ num_layers = 6
 #layer_norm_type = "L1"
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16-ende-sp/"
 #data_root = "/raid/wmt16/"
 
 base_params = {
