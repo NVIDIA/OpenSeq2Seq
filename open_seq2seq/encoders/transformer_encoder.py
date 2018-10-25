@@ -109,9 +109,7 @@ class TransformerEncoder(Encoder):
 
       # Create final layer normalization layer.
       self.output_normalization = LayerNormalization(self.params["hidden_size"],
-                                                     self.layer_norm_type,
-                                                     #self.params["dtype"]
-                                                     )
+                                                     self.layer_norm_type )
 
     # actual encoder part
     with tf.name_scope("encode"):
@@ -119,8 +117,12 @@ class TransformerEncoder(Encoder):
       # Prepare inputs to the layer stack by adding positional encodings and
       # applying dropout.
       embedded_inputs = self.embedding_softmax_layer(inputs)
+
+      print("encoder | dtype :", self._params["dtype"])
+      print("encoder | embedded_inputs:", embedded_inputs.dtype )
+
       inputs_padding = utils.get_padding(inputs, dtype=self._params["dtype"])
-      inputs_attention_bias = utils.get_padding_bias(inputs,dtype=self._params["dtype"])
+      inputs_attention_bias = utils.get_padding_bias(inputs, dtype=self._params["dtype"])
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]
@@ -132,7 +134,7 @@ class TransformerEncoder(Encoder):
 
       if self.mode == "train":
         encoder_inputs = tf.nn.dropout(
-            encoder_inputs, 1 - self.params["layer_postprocess_dropout"],
+            encoder_inputs, 1.0 - self.params["layer_postprocess_dropout"],
         )
 
       encoded = self._call(encoder_inputs, inputs_attention_bias,

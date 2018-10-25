@@ -19,7 +19,7 @@ base_model = Text2Text
 d_model = 1024
 num_layers = 6
 
-#layer_norm_type = "L1"
+layer_norm_type = "L1"
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
@@ -64,7 +64,7 @@ base_params = {
     "relu_dropout": 0.3,
     "layer_postprocess_dropout": 0.3,
     "pad_embeddings_2_eight": True,
- #   "layer_norm_type": layer_norm_type ,
+    "layer_norm_type": layer_norm_type ,
   },
 
   "decoder": TransformerDecoder,
@@ -83,7 +83,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-  #  "layer_norm_type": layer_norm_type,
+    "layer_norm_type": layer_norm_type,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,

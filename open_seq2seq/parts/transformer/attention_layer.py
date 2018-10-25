@@ -129,9 +129,10 @@ class Attention(tf.layers.Layer):
     #logits = tf.matmul(q, k, transpose_b=True)
     #logits += bias
     #weights = tf.nn.softmax(logits, name="attention_weights")
+
     logits = tf.matmul(q, k, transpose_b=True)
     dtype = logits.dtype
-    print("logits", dtype, "bias", bias.dtype)
+    print("Attention logits-", dtype, " bias-", bias.dtype)
     # if dtype != tf.float32:
     #   # upcast softmax inputs
     #   logits = tf.cast(x=logits, dtype=tf.float32)
@@ -142,10 +143,14 @@ class Attention(tf.layers.Layer):
     # else:
     #   logits += bias
     #   weights = tf.nn.softmax(logits, name="attention_weights")
-    logits += tf.cast(bias, dtype=dtype)
-#    logits += bias
-    weights = tf.nn.softmax(logits, name="attention_weights")
 
+    logits += tf.cast(bias, dtype=dtype)
+    if dtype==tf.float16:
+      logits += tf.saturate_cast(bias, dtype=dtype)
+    else:
+      logits += tf.cast(bias, dtype=dtype)
+
+    weights = tf.nn.softmax(logits, name="attention_weights")
 
     if self.train:
       weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)

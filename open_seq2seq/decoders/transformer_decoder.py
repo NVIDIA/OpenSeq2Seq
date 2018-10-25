@@ -87,6 +87,8 @@ class TransformerDecoder(Decoder):
     inputs_attention_bias = (
       input_dict['encoder_output']['inputs_attention_bias']
     )
+    print("decoder inputs_attention_bias:", inputs_attention_bias.dtype)
+
     self.embedding_softmax_layer = (
       input_dict['encoder_output']['embedding_softmax_layer']
     )
@@ -122,7 +124,6 @@ class TransformerDecoder(Decoder):
         self.output_normalization = LayerNormalization(
           self.params["hidden_size"],
           self.layer_norm_type
-          #dtype=self.params["dtype"],
         )
 
       if targets is None:
@@ -177,6 +178,7 @@ class TransformerDecoder(Decoder):
     """
     # Prepare inputs to decoder layers by shifting targets, adding positional
     # encoding and applying dropout.
+
     decoder_inputs = self.embedding_softmax_layer(targets)
     with tf.name_scope("shift_targets"):
       # Shift targets to the right, and remove the last element
@@ -198,6 +200,7 @@ class TransformerDecoder(Decoder):
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
+                                                                        dtype = tf.float32
                                                                         #dtype=self._params["dtype"]
                                                                         )
 

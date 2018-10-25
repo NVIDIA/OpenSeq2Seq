@@ -87,7 +87,7 @@ def get_padding(x, padding_value=0, dtype=tf.float32 ):
     dtype: type of the output
 
   Returns:
-    flaot tensor with same shape as x containing values 0 or 1.
+    float tensor with same shape as x containing values 0 or 1.
       0 -> non-padding, 1 -> padding
   """
   print("get_padding", dtype)
@@ -116,7 +116,6 @@ def get_padding_bias(x, res_rank=4, pad_sym=0, dtype=tf.float32):
   print("get_padding_bias", dtype)
   with tf.name_scope("attention_bias"):
     padding = get_padding(x, padding_value=pad_sym, dtype=dtype)
-    dtype=padding.dtype
     neg_inf=_NEG_INF if dtype==tf.float32 else _NEG_FP16_INF
     attention_bias = padding * neg_inf
     if res_rank == 4:
