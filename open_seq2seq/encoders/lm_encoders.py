@@ -31,6 +31,8 @@ class LMEncoder(Encoder):
       'core_cell_params': dict,
       'end_token': int,
       "batch_size": int,
+      "use_cudnn_rnn": bool,
+      "rnn_type": None
     })
 
   @staticmethod
@@ -199,6 +201,9 @@ class LMEncoder(Encoder):
     regularizer = self.params.get('regularizer', None)
     fc_use_bias = self.params.get('fc_use_bias', True)
 
+    use_cudnn_rnn = self.params.get("use_cudnn_rnn", False)
+    rnn_type = self.params.get("rnn_type", None)
+
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
@@ -260,38 +265,69 @@ class LMEncoder(Encoder):
 
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
 
-    fwd_cells = [
-      single_cell(cell_class=self.params['core_cell'],
-                  cell_params=self.params['core_cell_params'],
-                  dp_input_keep_prob=dp_input_keep_prob,
-                  dp_output_keep_prob=dp_output_keep_prob,
-                  recurrent_keep_prob=recurrent_keep_prob,
-                  input_weight_keep_prob=input_weight_keep_prob,
-                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
-                  weight_variational=self.params['weight_variational'],
-                  dropout_seed=self.params['dropout_seed'],
-                  residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=self.params['awd_initializer'],
-                  dtype=self._params['dtype']
-                  ) for _ in range(self.params['encoder_layers'] - 1)]
+    if use_cudnn_rnn:
+      valid_rnn_types = ['lstm', 'gru', 'cudnn_lstm', 'cudnn_gru']
+      if rnn_type not in valid_rnn_types:
+          raise ValueError("Not a valid rnn type for cudnn rnn's")
 
-    fwd_cells.append(
-      single_cell(cell_class=self.params['core_cell'],
-                  cell_params=last_cell_params,
-                  dp_input_keep_prob=last_input_keep_prob,
-                  dp_output_keep_prob=last_output_keep_prob,
-                  recurrent_keep_prob=recurrent_keep_prob,
-                  input_weight_keep_prob=input_weight_keep_prob,
-                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
-                  weight_variational=self.params['weight_variational'],
-                  dropout_seed=self.params['dropout_seed'],
-                  residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=self.params['awd_initializer'],
-                  dtype=self._params['dtype']
-                  )
-      )
+      if self._mode == 'train' or self._mode == 'eval':
+        if rnn_type == 'lstm' or rnn_type == 'cudnn_lstm':
+          rnn_block = tf.contrib.cudnn_rnn.CudnnLSTM(
+                  num_layers=self.params['encoder_layers'],
+                  num_units=self._emb_size, 
+                  dtype=self._params['dtype'],
+                  name="cudnn_rnn"
+          )
+        else:
+          rnn_block = tf.contrib.cudnn_rnn.CudnnGRU(
+                  num_layers=self.params['encoder_layers'],
+                  num_units=self._emb_size, 
+                  dtype=self._params['dtype'],
+                  name="cudnn_rnn"
+          )
+      else:
+        # Transferring weights from model trained with CudnnLSTM/CudnnGRU
+        # to CudnnCompatibleLSTMCell/CudnnCompatibleGRUCell for inference
+        if rnn_type == 'lstm' or rnn_type == 'cudnn_lstm':
+          cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(num_units=self._emb_size)
+        elif rnn_type == 'gru' or rnn_type == 'cudnn_gru':
+          cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(num_units=self._emb_size)
 
-    self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
+        fwd_cells = [cell() for _ in range(self.params['encoder_layers'])]
+        self._encoder_cell_fw = tf.nn.rnn_cell.MultiRNNCell(fwd_cells)
+    else:
+      fwd_cells = [
+        single_cell(cell_class=self.params['core_cell'],
+                    cell_params=self.params['core_cell_params'],
+                    dp_input_keep_prob=dp_input_keep_prob,
+                    dp_output_keep_prob=dp_output_keep_prob,
+                    recurrent_keep_prob=recurrent_keep_prob,
+                    input_weight_keep_prob=input_weight_keep_prob,
+                    recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                    weight_variational=self.params['weight_variational'],
+                    dropout_seed=self.params['dropout_seed'],
+                    residual_connections=self.params['encoder_use_skip_connections'],
+                    awd_initializer=self.params['awd_initializer'],
+                    dtype=self._params['dtype']
+                    ) for _ in range(self.params['encoder_layers'] - 1)]
+
+      fwd_cells.append(
+        single_cell(cell_class=self.params['core_cell'],
+                    cell_params=last_cell_params,
+                    dp_input_keep_prob=last_input_keep_prob,
+                    dp_output_keep_prob=last_output_keep_prob,
+                    recurrent_keep_prob=recurrent_keep_prob,
+                    input_weight_keep_prob=input_weight_keep_prob,
+                    recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                    weight_variational=self.params['weight_variational'],
+                    dropout_seed=self.params['dropout_seed'],
+                    residual_connections=self.params['encoder_use_skip_connections'],
+                    awd_initializer=self.params['awd_initializer'],
+                    dtype=self._params['dtype']
+                    )
+        )
+
+      self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
@@ -306,15 +342,23 @@ class LMEncoder(Encoder):
         source_sequence,
       ), self.params['dtype'])
 
-      encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
-        cell=self._encoder_cell_fw,
-        inputs=embedded_inputs,
-        sequence_length=source_length,
-        time_major=time_major,
-        swap_memory=use_swap_memory,
-        dtype=self._params['dtype'],
-        scope='decoder',
-      )
+      if use_cudnn_rnn:
+        # reshape to [B, T, C] --> [T, B, C]
+        embedded_inputs = tf.transpose(embedded_inputs, [1, 0, 2])
+        rnn_block.build(embedded_inputs.get_shape())
+        encoder_outputs, encoder_state = rnn_block(embedded_inputs)
+        encoder_outputs = tf.transpose(encoder_outputs, [1, 0, 2])
+      else:
+        encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
+          cell=self._encoder_cell_fw,
+          inputs=embedded_inputs,
+          sequence_length=source_length,
+          time_major=time_major,
+          swap_memory=use_swap_memory,
+          dtype=self._params['dtype'],
+          scope='decoder',
+        )
+
       if not self._lm_phase:
         if self._use_cell_state:
           encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
@@ -332,6 +376,24 @@ class LMEncoder(Encoder):
         logits = self._output_layer.apply(encoder_outputs)
         output_dict = {'logits': logits, 'outputs': [logits]}
     else: # infer in LM phase
+      # This portion of graph is required to restore weights from CudnnLSTM to 
+      # CudnnCompatibleLSTMCell/CudnnCompatibleGRUCell
+      if use_cudnn_rnn:
+        embedded_inputs = tf.cast(tf.nn.embedding_lookup(
+          self.enc_emb_w,
+          source_sequence,
+        ), self.params['dtype'])
+
+        # Scope must remain unset to restore weights
+        encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
+            cell=self._encoder_cell_fw,
+            inputs=embedded_inputs,
+            sequence_length=source_length,
+            time_major=time_major,
+            swap_memory=use_swap_memory,
+            dtype=self._params['dtype']
+        )
+
       embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
                                           self.enc_emb_w,
                                           ids,
