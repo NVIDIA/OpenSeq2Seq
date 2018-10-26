@@ -9,6 +9,7 @@ import tensorflow as tf
 import numpy as np
 import copy
 import time
+import re
 
 try:
   from inspect import signature
@@ -77,6 +78,7 @@ class Model:
         'data_layer_params': dict,
         'optimizer': None,  # could be class or string
         'optimizer_params': dict,
+        'freeze_variables_regex' : None, # could be str or None
         'initializer': None,  # any valid TensorFlow initializer
         'initializer_params': dict,
         'regularizer': None,  # any valid TensorFlow regularizer
@@ -176,6 +178,10 @@ class Model:
     * **initializer** --- any valid TensorFlow initializer.
     * **initializer_params** (dict) --- dictionary that will be passed to
       initializer ``__init__`` method.
+    * **freeze_variables_regex** (str or None) --- if zero or more characters
+      at the beginning of the name of a trainable variable match this
+      pattern, then this variable will be frozen during training.
+      Setting it to None disables freezing of variables.
     * **regularizer** --- and valid TensorFlow regularizer.
     * **regularizer_params** (dict) --- dictionary that will be passed to
       regularizer ``__init__`` method.
@@ -450,11 +456,19 @@ class Model:
       if self.params.get('iter_size', 1) > 1:
         self.skip_update_ph = tf.placeholder(tf.bool)
 
+      var_list = tf.trainable_variables()
+      freeze_variables_regex = self.params.get('freeze_variables_regex', None)
+      if freeze_variables_regex is not None:
+        pattern = re.compile(freeze_variables_regex)
+        var_list = [var for var in tf.trainable_variables()
+                    if not pattern.match(var.name)]
+
       self.train_op = optimize_loss(
           loss=tf.cast(self.loss, tf.float32) + get_regularization_loss(),
           dtype=self.params['dtype'],
           optimizer=self.params['optimizer'],
           optimizer_params=self.params.get('optimizer_params', {}),
+          var_list=var_list,
           clip_gradients=self.params.get('max_grad_norm', None),
           learning_rate_decay_fn=lr_policy,
           summaries=self.params.get('summaries', None),
@@ -475,10 +489,14 @@ class Model:
         )
 
       if not self.on_horovod or self._hvd.rank() == 0:
+        if freeze_variables_regex is not None:
+          deco_print('Complete list of variables:')
+          for var in tf.trainable_variables():
+            deco_print('{}'.format(var.name), offset=2)
         deco_print("Trainable variables:")
         total_params = 0
         unknown_shape = False
-        for var in tf.trainable_variables():
+        for var in var_list:
           var_params = 1
           deco_print('{}'.format(var.name), offset=2)
           deco_print('shape: {}, {}'.format(var.get_shape(), var.dtype),

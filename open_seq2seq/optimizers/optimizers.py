@@ -107,6 +107,7 @@ def optimize_loss(loss,
                   optimizer,
                   optimizer_params,
                   learning_rate_decay_fn,
+                  var_list=None,
                   dtype=tf.float32,
                   clip_gradients=None,
                   summaries=None,
@@ -127,6 +128,9 @@ def optimize_loss(loss,
         class should be sub-class of `tf.Optimizer` that implements
         `compute_gradients` and `apply_gradients` functions.
     optimizer_params: parameters of the optimizer.
+    var_list: List of trainable variables. Can be used to freeze
+        certain trainable variables by excluding them from this list. 
+        If set to None, all trainable variables will be optimized.
     dtype: model dtype (tf.float16, tf.float32 or "mixed").
     learning_rate_decay_fn: function, takes `global_step`
         `Tensor`s, returns `Tensor`.
@@ -197,7 +201,7 @@ def optimize_loss(loss,
 
     # Compute gradients.
     grads_and_vars = opt.compute_gradients(
-        loss, colocate_gradients_with_ops=True,
+        loss, colocate_gradients_with_ops=True, var_list=var_list
     )
 
     if on_horovod:
