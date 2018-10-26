@@ -138,8 +138,7 @@ class WavenetDataLayer(DataLayer):
       file_path,
       self.params["num_audio_features"],
       features_type="mel",
-      data_min=1e-3,
-      mag_power=1.,
+      data_min=1e-5,
       return_raw_audio=True
     )
 
