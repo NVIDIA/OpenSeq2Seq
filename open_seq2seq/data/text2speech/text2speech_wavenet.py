@@ -159,6 +159,7 @@ class WavenetDataLayer(DataLayer):
         constant_values=0
     )
 
+    # upsample the spectrogram to match source length by repeating each value
     spectrogram = np.repeat(spectrogram, 256, axis=0)
 
     return audio.astype(self.params["dtype"].as_numpy_dtype()), \
@@ -242,7 +243,7 @@ class WavenetDataLayer(DataLayer):
       )
 
     else:
-      print("Non-interactive infer is not currently supported")
+      print("Non-interactive infer is not supported")
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE).make_initializable_iterator()
 
@@ -259,4 +260,4 @@ class WavenetDataLayer(DataLayer):
       self._input_tensors["target_tensors"] = [source, src_length]
 
     else:
-      print("Non-interactive infer is not currently supported")
+      print("Non-interactive infer is not supported")

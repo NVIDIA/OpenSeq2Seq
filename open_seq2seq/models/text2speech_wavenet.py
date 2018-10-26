@@ -13,14 +13,11 @@ def save_audio(signal, logdir, step, sampling_rate, mode):
   write(file_name, sampling_rate, signal)
 
 class Text2SpeechWavenet(EncoderDecoderModel):
-  # [TODO] add logging info
 
   @staticmethod
   def get_required_params():
     return dict(
-      EncoderDecoderModel.get_required_params(), **{
-        # "key": int,
-      }
+      EncoderDecoderModel.get_required_params(), **{}
     )
 
   def __init__(self, params, mode="train", hvd=None):
