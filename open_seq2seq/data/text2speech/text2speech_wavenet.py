@@ -6,7 +6,8 @@ import tensorflow as tf
 import pandas as pd
 
 from open_seq2seq.data.data_layer import DataLayer
-from open_seq2seq.data.text2speech.speech_utils import get_speech_features_from_file
+from open_seq2seq.data.text2speech.speech_utils import \
+  get_speech_features_from_file
 
 class WavenetDataLayer(DataLayer):
   """ Text to speech data layer class for Wavenet """
@@ -14,20 +15,20 @@ class WavenetDataLayer(DataLayer):
   @staticmethod
   def get_required_params():
     return dict(
-      DataLayer.get_required_params(), **{
-        "dataset": str,
-        "num_audio_features": int,
-        "dataset_files": list
-      }
+        DataLayer.get_required_params(), **{
+            "dataset": str,
+            "num_audio_features": int,
+            "dataset_files": list
+        }
     )
 
   @staticmethod
   def get_optional_params():
     return dict(
-      DataLayer.get_optional_params(), **{
-        "dataset_location": str,
-        "receptive_field": int
-      }
+        DataLayer.get_optional_params(), **{
+            "dataset_location": str,
+            "receptive_field": int
+        }
     )
 
   def __init__(self, params, model, num_workers=None, worker_id=None):
@@ -38,20 +39,21 @@ class WavenetDataLayer(DataLayer):
 
     Config parameters:
 
-    * **dataset** (str) --- The dataset to use, currently only supports "LJ" for LJSpeech 1.1
+    * **dataset** (str) --- The dataset to use, currently only supports "LJ" 
+      for LJSpeech 1.1
 
     """
 
     super(WavenetDataLayer, self).__init__(
-      params,
-      model,
-      num_workers,
-      worker_id
+        params,
+        model,
+        num_workers,
+        worker_id
     )
 
     if self.params.get("dataset_location", None) is None:
       raise ValueError(
-        "dataset_location must be specified when using LJSpeech"
+          "dataset_location must be specified when using LJSpeech"
       )
 
     names = ["wav_filename", "raw_transcript", "transcript"]
@@ -61,17 +63,15 @@ class WavenetDataLayer(DataLayer):
     self.sampling_rate = 22050
     self.n_fft = 1024
 
-    n_mels = self.params["num_audio_features"]
-
     self._files = None
     for csvs in params["dataset_files"]:
       files = pd.read_csv(
-        csvs,
-        encoding="utf-8",
-        sep=sep,
-        header=header,
-        names=names,
-        quoting=3
+          csvs,
+          encoding="utf-8",
+          sep=sep,
+          header=header,
+          names=names,
+          quoting=3
       )
 
       if self._files is None:
@@ -109,7 +109,7 @@ class WavenetDataLayer(DataLayer):
 
       size = len(data)
       start = size // self._num_workers * self._worker_id
-      
+
       if self._worker_id == self._num_workers - 1:
         end = size
       else:
@@ -132,14 +132,17 @@ class WavenetDataLayer(DataLayer):
     else:
       audio_filename = str(audio_filename, "utf-8")
 
-    file_path = os.path.join(self.params["dataset_location"], audio_filename + ".wav")
+    file_path = os.path.join(
+        self.params["dataset_location"],
+        audio_filename + ".wav"
+    )
 
     audio, spectrogram = get_speech_features_from_file(
-      file_path,
-      self.params["num_audio_features"],
-      features_type="mel",
-      data_min=1e-5,
-      return_raw_audio=True
+        file_path,
+        self.params["num_audio_features"],
+        features_type="mel",
+        data_min=1e-5,
+        return_raw_audio=True
     )
 
     spectrogram = np.pad(
@@ -149,7 +152,8 @@ class WavenetDataLayer(DataLayer):
         constant_values=1e-5
     )
     assert len(audio) < len(spectrogram)*256, \
-        "audio len: {}, spec*256 len: {}".format(len(audio), len(spectrogram)*256)
+        "audio len: {}, spec*256 len: {}".format(len(audio), \
+        len(spectrogram)*256)
     num_pad = len(spectrogram)*256 - len(audio)
     audio = np.pad(
         audio,
@@ -164,43 +168,48 @@ class WavenetDataLayer(DataLayer):
     return audio.astype(self.params["dtype"].as_numpy_dtype()), \
       np.int32([len(audio)]), \
       spectrogram.astype(self.params["dtype"].as_numpy_dtype()), \
-      np.int32([len(spectrogram)]) 
+      np.int32([len(spectrogram)])
 
   def _parse_spectrogram_element(self, element):
-    audio, au_length, spectrogram, spec_length = self._parse_audio_element(element)
+    audio, au_length, spectrogram, spec_length = \
+      self._parse_audio_element(element)
     return spectrogram, spec_length
 
   def create_interactive_placeholders(self):
     self._source = tf.placeholder(
-      dtype=self.params["dtype"],
-      shape=[self.params["batch_size"], None]
+        dtype=self.params["dtype"],
+        shape=[self.params["batch_size"], None]
     )
     self._src_length = tf.placeholder(
-      dtype=tf.int32,
-      shape=[self.params["batch_size"]]
+        dtype=tf.int32,
+        shape=[self.params["batch_size"]]
     )
 
     self._spec = tf.placeholder(
-      dtype=self.params["dtype"],
-      shape=[self.params["batch_size"], None, self.params["num_audio_features"]]
+        dtype=self.params["dtype"],
+        shape=[self.params["batch_size"], None,
+               self.params["num_audio_features"]]
     )
     self._spec_length = tf.placeholder(
-      dtype = tf.int32,
-      shape=[self.params["batch_size"]]
+        dtype=tf.int32,
+        shape=[self.params["batch_size"]]
     )
     self._spec_offset = tf.placeholder(
-      dtype = tf.int32,
-      shape=()
+        dtype=tf.int32,
+        shape=()
     )
 
     self._input_tensors = {}
-    self._input_tensors["source_tensors"] = [self._source, self._src_length, self._spec, self._spec_length, self._spec_offset]
+    self._input_tensors["source_tensors"] = [
+        self._source, self._src_length, self._spec, self._spec_length,
+        self._spec_offset
+    ]
 
   def create_feed_dict(self, model_in):
-    """ 
+    """
     Creates the feed dict for interactive infer using a spectrogram
 
-    Args: 
+    Args:
       model_in: tuple(
         source: source audio
         src_length: length of the source
@@ -213,11 +222,11 @@ class WavenetDataLayer(DataLayer):
     source, src_length, spec, spec_length, spec_offset = model_in
 
     return {
-      self._source: source,
-      self._src_length: src_length,
-      self._spec: spec,
-      self._spec_length: spec_length,
-      self._spec_offset: spec_offset
+        self._source: source,
+        self._src_length: src_length,
+        self._spec: spec,
+        self._spec_length: spec_length,
+        self._spec_offset: spec_offset
     }
 
   def build_graph(self):
@@ -232,24 +241,25 @@ class WavenetDataLayer(DataLayer):
 
     if self.params["mode"] != "infer":
       self._dataset = self._dataset.map(
-        lambda line: tf.py_func(
-          self._parse_audio_element,
-          [line],
-          [self.params["dtype"], tf.int32, self.params["dtype"], tf.int32],
-          stateful=False
-        ),
-        num_parallel_calls=8
+          lambda line: tf.py_func(
+              self._parse_audio_element,
+              [line],
+              [self.params["dtype"], tf.int32, self.params["dtype"], tf.int32],
+              stateful=False
+          ),
+          num_parallel_calls=8
       )
 
       self._dataset = self._dataset.padded_batch(
-        self.params["batch_size"], 
-        padded_shapes=([None], 1, [None, num_audio_features], 1)
+          self.params["batch_size"],
+          padded_shapes=([None], 1, [None, num_audio_features], 1)
       )
 
     else:
       print("Non-interactive infer is not supported")
 
-    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE).make_initializable_iterator()
+    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE) \
+      .make_initializable_iterator()
 
     if self.params["mode"] != "infer":
       source, src_length, spec, spec_length = self._iterator.get_next()
@@ -260,7 +270,9 @@ class WavenetDataLayer(DataLayer):
       src_length = tf.reshape(src_length, [self.params["batch_size"]])
 
       self._input_tensors = {}
-      self._input_tensors["source_tensors"] = [source, src_length, spec, spec_length]
+      self._input_tensors["source_tensors"] = [
+          source, src_length, spec, spec_length
+      ]
       self._input_tensors["target_tensors"] = [source, src_length]
 
     else:

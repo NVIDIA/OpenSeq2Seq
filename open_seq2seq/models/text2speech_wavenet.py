@@ -1,9 +1,8 @@
 # Copyright (c) 2018 NVIDIA Corporation
-import tensorflow as tf
-from scipy.io.wavfile import write
 import numpy as np
+from scipy.io.wavfile import write
 
-from .encoder_decoder import EncoderDecoderModel 
+from .encoder_decoder import EncoderDecoderModel
 
 def save_audio(signal, logdir, step, sampling_rate, mode):
   signal = np.float32(signal)
@@ -17,7 +16,7 @@ class Text2SpeechWavenet(EncoderDecoderModel):
   @staticmethod
   def get_required_params():
     return dict(
-      EncoderDecoderModel.get_required_params(), **{}
+        EncoderDecoderModel.get_required_params(), **{}
     )
 
   def __init__(self, params, mode="train", hvd=None):

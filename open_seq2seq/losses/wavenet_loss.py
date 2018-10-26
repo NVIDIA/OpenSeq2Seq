@@ -20,7 +20,7 @@ class WavenetLoss(Loss):
     """
     Computes the cross-entropy loss for WaveNet.
 
-    Args: 
+    Args:
       input_dict (dict):
         * "decoder_output": array containing: [
           * logits: predicted output signal as logits
@@ -34,7 +34,10 @@ class WavenetLoss(Loss):
     prediction = tf.cast(input_dict["decoder_output"]["logits"], tf.float32)
     target_output = input_dict["decoder_output"]["outputs"][0]
 
-    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=prediction, labels=target_output)
+    loss = tf.nn.sparse_softmax_cross_entropy_with_logits(
+        logits=prediction, 
+        labels=target_output
+    )
     loss = tf.reduce_mean(loss)
 
     return loss
