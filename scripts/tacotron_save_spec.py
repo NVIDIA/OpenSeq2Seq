@@ -1,4 +1,5 @@
 %matplotlib inline
+# Replace the first box of Interactive_Infer_example.ipynb with this
 
 import IPython
 import librosa
@@ -12,12 +13,6 @@ from open_seq2seq.utils.utils import deco_print, get_base_config, check_logdir,\
                                      create_logdir, create_model, get_interactive_infer_results
 from open_seq2seq.models.text2speech import save_audio
 
-# Define the command line arguments that one would pass to run.py here
-args_S2T = ["--config_file=Infer_S2T/config.py",
-        "--mode=interactive_infer",
-        "--logdir=Infer_S2T/",
-        "--batch_size_per_gpu=1",
-]
 args_T2S = ["--config_file=Infer_T2S/config.py",
         "--mode=interactive_infer",
         "--logdir=Infer_T2S/",
@@ -72,41 +67,19 @@ def infer(line):
         mag_prediction = mag_prediction[:audio_length-1,:]
         mag_prediction = model_T2S.get_data_layer().get_magnitude_spec(mag_prediction)
 
-        mel_prediction = model_T2S.get_data_layer().get_magnitude_spec(mag_prediction, is_mel=True)
-        print(mel_prediction.shape)
-        np.save("spec_6", mel_prediction)
+        mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
+        mag_prediction_squared = mag_prediction_squared**1.5
+        mag_prediction_squared = np.square(mag_prediction_squared)
 
-        # mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
-        # mag_prediction_squared = mag_prediction_squared**1.5
-        # mag_prediction_squared = np.square(mag_prediction_squared)
-        
-        plt.imshow(mag_prediction.T)
-        plt.gca().invert_yaxis()
-        plt.show()
-        
         mel_basis = librosa.filters.mel(sr=22050, n_fft=1024, n_mels=80, htk=True, norm=None)
-        
-        mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
-        mag_prediction_squared = mag_prediction_squared**1.4
-        mag_prediction_squared = np.square(mag_prediction_squared)        
         mel = np.dot(mel_basis, mag_prediction_squared.T)
         mel = np.log(np.clip(mel, a_min=1e-5, a_max=None))
-        print(mel.shape)
-        np.save("spec_4", mel)
+        np.save("spec", mel)
 
-        mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
-        mag_prediction_squared = mag_prediction_squared**1.6
-        mag_prediction_squared = np.square(mag_prediction_squared)        
-        mel = np.dot(mel_basis, mag_prediction_squared.T)
-        mel = np.log(np.clip(mel, a_min=1e-5, a_max=None))
-        print(mel.shape)
-        np.save("spec_5", mel)
-        
-        
         plt.imshow(mel)
         plt.gca().invert_yaxis()
         plt.show()
-        
+
         wav = save_audio(mag_prediction, "unused", "unused", sampling_rate=sampling_rate, save_format="np.array", n_fft=n_fft)
         audio = IPython.display.Audio(wav, rate=sampling_rate)
         wav = librosa.core.resample(wav, sampling_rate, 16000)
