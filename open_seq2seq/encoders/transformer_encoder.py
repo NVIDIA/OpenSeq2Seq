@@ -36,6 +36,7 @@ class TransformerEncoder(Encoder):
         "src_vocab_size": int,
         "relu_dropout": float,
         "layer_postprocess_dropout": float,
+        "remove_padding": bool,
     })
 
   @staticmethod
@@ -115,7 +116,10 @@ class TransformerEncoder(Encoder):
       # Prepare inputs to the layer stack by adding positional encodings and
       # applying dropout.
       embedded_inputs = self.embedding_softmax_layer(inputs)
-      inputs_padding = utils.get_padding(inputs)
+      if self.params["remove_padding"]:
+        inputs_padding = utils.get_padding(inputs)
+      else:
+        inputs_padding = None
       inputs_attention_bias = utils.get_padding_bias(inputs)
 
       with tf.name_scope("add_pos_encoding"):
