@@ -200,7 +200,7 @@ class WavenetDataLayer(DataLayer):
     """ 
     Creates the feed dict for interactive infer using a spectrogram
 
-    Args:
+    Args: 
       model_in: tuple(
         source: source audio
         src_length: length of the source
