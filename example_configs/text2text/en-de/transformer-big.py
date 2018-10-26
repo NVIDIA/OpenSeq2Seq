@@ -7,7 +7,7 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
-from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
 import tensorflow as tf
 
 """
@@ -19,7 +19,7 @@ base_model = Text2Text
 d_model = 1024
 num_layers = 6
 
-#layer_norm_type = "L1"
+layer_norm_type = "L1"
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 #data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
@@ -41,6 +41,20 @@ base_params = {
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff",
+
+  # "optimizer": "Momentum",
+  # "optimizer_params": {
+  #   "momentum": 0.90,
+  # },
+  # "lr_policy": poly_decay,
+  # "lr_policy_params": {
+  #   "learning_rate": 0.01,  # 0.001,
+  #   "power": 0.5,
+  # },
+
+  "larc_params": {
+    "larc_eta": 0.001,
+  },
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -66,7 +80,7 @@ base_params = {
     "relu_dropout": 0.3,
     "layer_postprocess_dropout": 0.3,
     "pad_embeddings_2_eight": True,
- #   "layer_norm_type": layer_norm_type ,
+   "layer_norm_type": layer_norm_type ,
   },
 
   "decoder": TransformerDecoder,
@@ -85,7 +99,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-  #  "layer_norm_type": layer_norm_type,
+   "layer_norm_type": layer_norm_type,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,
