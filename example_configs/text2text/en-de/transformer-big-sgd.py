@@ -33,7 +33,7 @@ base_params = {
   "num_epochs": 100,
 #  "max_steps": 440000,
   "save_summaries_steps": 100,
-  "print_loss_steps": 10,
+  "print_loss_steps": 100,
   "print_samples_steps": 100,
   "eval_steps": 4401,
   "save_checkpoint_steps": 110000,
