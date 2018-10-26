@@ -1,3 +1,5 @@
+# Replace the first box of Interactive_Infer_example.ipynb with this
+
 import IPython
 import librosa
 
@@ -58,7 +60,7 @@ def infer(line):
     if GET_SPEC_FROM_WAV: # get spectrogram from .wav file
         spec, spec_length = model_T2S.get_data_layer()._parse_spectrogram_element(file_name)
     
-    else: # load spectrogram from tacotron output
+    else: # get spectrogram from .npy file
         spec = np.load(file_name).T
         spec = np.repeat(spec, 256, axis=0)
         spec_length = spec.shape[0]

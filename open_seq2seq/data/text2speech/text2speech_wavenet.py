@@ -202,8 +202,13 @@ class WavenetDataLayer(DataLayer):
     Creates the feed dict for interactive infer using a spectrogram
 
     Args:
-      model_in: tuple
-    
+      model_in: tuple(
+        source: source audio
+        src_length: length of the source
+        spec: conditioning spectrogram
+        spec_length: length of the spectrogram
+        spec_offset: iterative index for position of receptive field window
+      )
     """
 
     source, src_length, spec, spec_length, spec_offset = model_in

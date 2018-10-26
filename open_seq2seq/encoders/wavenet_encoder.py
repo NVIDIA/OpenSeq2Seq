@@ -266,7 +266,7 @@ class WavenetEncoder(Encoder):
       inputs = encoded_inputs
     
     inputs = tf.one_hot(inputs, depth=quantization_channels, axis=-1)
-    inputs = tf.cast(inputs, dtype)
+    inputs = tf.saturate_cast(inputs, dtype)
 
     if local_conditioning:
       # split condition along channels
