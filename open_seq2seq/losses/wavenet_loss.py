@@ -20,7 +20,7 @@ class WavenetLoss(Loss):
     """
     Computes the cross-entropy loss for WaveNet.
 
-    Args:
+    Args: 
       input_dict (dict):
         * "decoder_output": array containing: [
           * logits: predicted output signal as logits
