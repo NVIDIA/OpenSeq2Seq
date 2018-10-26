@@ -26,7 +26,7 @@ def _mu_law_decode(output, channels):
 
 def conv_1x1(layer_type, name, inputs, filters, strides, regularizer, training, data_format):
   """
-  Defines a single 1x1 convolution for convenience
+  Defines a single 1x1 convolution for convenience 
   """
 
   return conv_actv(
