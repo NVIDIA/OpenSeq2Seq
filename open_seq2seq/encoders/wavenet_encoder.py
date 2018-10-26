@@ -11,8 +11,8 @@ def _get_receptive_field(kernel_size, blocks, layers_per_block):
   dilations = [2 ** i for i in range(layers_per_block)]
   return (kernel_size - 1) * blocks * sum(dilations) + 1
 
-def _mu_law_encode(signal, channels):
-  mu = tf.to_float(channels - 1)
+def _mu_law_encode(signal, channels, dtype):
+  mu = tf.saturate_cast(channels - 1, dtype)
   safe_audio_abs = tf.minimum(tf.abs(signal), 1.0)
   magnitude = tf.log1p(mu * safe_audio_abs) / tf.log1p(mu)
   signal = tf.sign(signal) * magnitude
@@ -64,9 +64,8 @@ def causal_conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activati
   block = tf.pad(block, [[0, 0], [dilation * (kernel_size - 1), 0], [0,0]])
   return block
 
-def wavenet_conv_block(layer_type, name, inputs, condition_filter, condition_gate, filters, kernel_size, activation_fn, strides,
-        padding, regularizer, training, data_format, bn_momentum, bn_epsilon, layers_per_block, upsample_factor, 
-        receptive_field):
+def wavenet_conv_block(layer_type, name, inputs, condition_filter, condition_gate, filters, kernel_size, strides,
+        padding, regularizer, training, data_format, bn_momentum, bn_epsilon, layers_per_block):
 
   skips = None
   for layer in range(layers_per_block):
@@ -131,6 +130,8 @@ def wavenet_conv_block(layer_type, name, inputs, condition_filter, condition_gat
       data_format=data_format
     )
 
+    inputs = tf.add(inputs, residual)
+
     skip = conv_1x1(
       layer_type=layer_type,
       name="skip_1x1_{}_{}".format(name, layer), 
@@ -141,8 +142,6 @@ def wavenet_conv_block(layer_type, name, inputs, condition_filter, condition_gat
       training=training, 
       data_format=data_format
     )
-
-    inputs = tf.add(inputs, residual)
 
     if skips is None:
       skips = skip
@@ -169,9 +168,7 @@ class WavenetEncoder(Encoder):
         "padding": str,
         "blocks": int,
         "layers_per_block": int,
-        "activation_fn": None,
         "filters": int,
-        "upsample_factor": int,
         "quantization_channels": int
       }
     )
@@ -235,21 +232,18 @@ class WavenetEncoder(Encoder):
     padding = self.params["padding"]
     blocks = self.params["blocks"]
     layers_per_block = self.params["layers_per_block"]
-    activation_fn = self.params["activation_fn"]
     filters = self.params["filters"]
-    upsample_factor = self.params["upsample_factor"]
     quantization_channels = self.params["quantization_channels"]
 
     bn_momentum = self.params.get("bn_momentum", 0.1)
     bn_epsilon = self.params.get("bn_epsilon", 1e-5)
     local_conditioning = self.params.get("local_conditioning", True)
-    conv_upsampling = self.params.get("conv_upsampling", False)
 
     receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
 
     # ----- Preprocessing -----------------------------------------------
 
-    encoded_inputs = _mu_law_encode(source, quantization_channels)
+    encoded_inputs = _mu_law_encode(source, quantization_channels, self.params["dtype"])
 
     if training:
       # remove last sample to maintain causality
@@ -266,55 +260,27 @@ class WavenetEncoder(Encoder):
       condition_filter = condition[:, :, 0:int(condition_shape[2] / 2)]
       condition_gate = condition[:, :, int(condition_shape[2] / 2):]
 
-      if conv_upsampling:
-        condition_filter = tf.expand_dims(condition_filter, 1)
-        # for i in range(upsample_factor):
-        condition_filter = tf.layers.conv2d_transpose(
-          name="filter_condition_{}".format(0),
-          inputs=condition_filter,
-          filters=filters,
-          kernel_size=1, # 1x1 convolution
-          strides=(1, 256), # scale factor
-          kernel_regularizer=regularizer,
-          data_format=data_format
-        )
-        condition_filter = tf.squeeze(condition_filter, [1])
-        
-        condition_gate = tf.expand_dims(condition_gate, 1)
-        # for i in range(upsample_factor):
-        condition_gate = tf.layers.conv2d_transpose(
-          name="gate_condition_{}".format(1),
-          inputs=condition_gate,
-          filters=filters,
-          kernel_size=1, # 1x1 convolution
-          strides=(1, 256), # scale factor
-          kernel_regularizer=regularizer,
-          data_format=data_format
-        )
-        condition_gate = tf.squeeze(condition_gate, [1])
+      condition_filter = conv_1x1(
+        layer_type=layer_type,
+        name="filter_condition", 
+        inputs=condition_filter, 
+        filters=filters, 
+        strides=strides, 
+        regularizer=regularizer, 
+        training=training, 
+        data_format=data_format
+      )
 
-      else:
-        condition_filter = conv_1x1(
-          layer_type=layer_type,
-          name="filter_condition", 
-          inputs=condition_filter, 
-          filters=filters, 
-          strides=strides, 
-          regularizer=regularizer, 
-          training=training, 
-          data_format=data_format
-        )
-
-        condition_gate = conv_1x1(
-          layer_type=layer_type,
-          name="gate_condition", 
-          inputs=condition_gate, 
-          filters=filters, 
-          strides=strides, 
-          regularizer=regularizer, 
-          training=training, 
-          data_format=data_format
-        )
+      condition_gate = conv_1x1(
+        layer_type=layer_type,
+        name="gate_condition", 
+        inputs=condition_gate, 
+        filters=filters, 
+        strides=strides, 
+        regularizer=regularizer, 
+        training=training, 
+        data_format=data_format
+      )
 
       if training:
         condition_filter = condition_filter[:, :-1, :]
@@ -354,17 +320,6 @@ class WavenetEncoder(Encoder):
     # dilation stack
     skips = None
     for block in range(blocks):
-      # inputs = conv_1x1(
-      #   layer_type=layer_type,
-      #   name="adapter_1x1_{}".format(block), 
-      #   inputs=inputs, 
-      #   filters=filters, 
-      #   strides=strides, 
-      #   regularizer=regularizer, 
-      #   training=training, 
-      #   data_format=data_format
-      # )
-
       inputs, skip = wavenet_conv_block(
         layer_type=layer_type,
         name=block,
@@ -373,7 +328,6 @@ class WavenetEncoder(Encoder):
         condition_gate=condition_gate,
         filters=filters,
         kernel_size=kernel_size,
-        activation_fn=None,
         strides=strides,
         padding=padding,
         regularizer=regularizer,
@@ -381,9 +335,7 @@ class WavenetEncoder(Encoder):
         data_format=data_format,
         bn_momentum=bn_momentum,
         bn_epsilon=bn_epsilon,
-        layers_per_block=layers_per_block,
-        upsample_factor=upsample_factor,
-        receptive_field=receptive_field
+        layers_per_block=layers_per_block
       )
 
       if skips is None:
@@ -391,8 +343,10 @@ class WavenetEncoder(Encoder):
       else:
         skips = tf.add(skips, skip)
 
+    outputs = tf.add(skips, inputs)
+
     # postprocessing (outputs)
-    outputs = tf.nn.relu(skips)
+    outputs = tf.nn.relu(outputs)
     outputs = conv_1x1(
       layer_type=layer_type,
       name="postprocess_1", 

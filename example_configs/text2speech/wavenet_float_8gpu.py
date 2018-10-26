@@ -2,7 +2,6 @@
 import tensorflow as tf
 from open_seq2seq.models import Text2SpeechWavenet
 from open_seq2seq.encoders import WavenetEncoder
-from open_seq2seq.encoders.wavenet_encoder import _get_receptive_field
 from open_seq2seq.decoders import FakeDecoder
 from open_seq2seq.losses import WavenetLoss
 from open_seq2seq.data import WavenetDataLayer
@@ -11,25 +10,20 @@ from open_seq2seq.parts.convs2s.utils import gated_linear_units
 
 base_model = Text2SpeechWavenet
 
-kernel_size = 3
-blocks = 3
-layers_per_block = 10
-receptive_field = _get_receptive_field(kernel_size, blocks, layers_per_block)
-
 base_params = {
   "random_seed": 0,
   "use_horovod": True,
-  "max_steps": 1000000,
+  "max_steps": 1000,
 
   "num_gpus": 8,
-  "batch_size_per_gpu": 1,
+  "batch_size_per_gpu": 2,
 
   "save_summaries_steps": 50,
   "print_loss_steps": 50,
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
-  "logdir": "/results/WAVENET-TRAIN",
+  "logdir": "result/wavenet-LJ-float",
 
   "optimizer": "Adam",
   "optimizer_params": {},
@@ -54,14 +48,12 @@ base_params = {
   "encoder": WavenetEncoder,
   "encoder_params": {
     "layer_type": "conv1d",
-    "kernel_size": kernel_size,
+    "kernel_size": 3,
     "strides": 1,
     "padding": "VALID",
-    "blocks": blocks,
-    "layers_per_block": layers_per_block,
-    "activation_fn": gated_linear_units,
+    "blocks": 3,
+    "layers_per_block": 10,
     "filters": 64,
-    "upsample_factor": 8, 
     "quantization_channels": 256
   },
 

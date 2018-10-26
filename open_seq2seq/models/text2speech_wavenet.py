@@ -1,10 +1,12 @@
 # Copyright (c) 2018 NVIDIA Corporation
 import tensorflow as tf
 from scipy.io.wavfile import write
+import numpy as np
 
 from .encoder_decoder import EncoderDecoderModel
 
 def save_audio(signal, logdir, step, sampling_rate, mode):
+  signal = np.float32(signal)
   file_name = '{}/sample_step{}_{}.wav'.format(logdir, step, mode)
   if logdir[0] != '/':
     file_name = "./" + file_name
