@@ -17,7 +17,8 @@ args_T2S = ["--config_file=Infer_T2S_Wave/config.py",
         "--batch_size_per_gpu=1",
 ]
 
-# A simpler version of what run.py does. It returns the created model and its saved checkpoint
+# A simpler version of what run.py does. It returns the created model and its 
+# saved checkpoint
 def get_model(args, scope):
     with tf.variable_scope(scope):
         args, base_config, base_model, config_module = get_base_config(args)
@@ -44,11 +45,16 @@ saver_T2S.restore(sess, checkpoint_T2S)
 n_fft = model_T2S.get_data_layer().n_fft
 sampling_rate = model_T2S.get_data_layer().sampling_rate
 def infer(line):
+    """
+    Infers one value at a time using a sliding window with width equal to the
+    receptive field. 
+    """
+
     print("Input File")
     print(line) 
     
     GET_SPEC_FROM_WAV = True
-    
+    max_steps = 200000
     receptive_field = 6139 # 3x10
     file_name = str.encode(line)
     
@@ -58,7 +64,8 @@ def infer(line):
     spec_offset = 0
     
     if GET_SPEC_FROM_WAV: # get spectrogram from .wav file
-        spec, spec_length = model_T2S.get_data_layer()._parse_spectrogram_element(file_name)
+        spec, spec_length = model_T2S.get_data_layer(). \
+            _parse_spectrogram_element(file_name)
     
     else: # get spectrogram from .npy file
         spec = np.load(file_name).T
@@ -68,8 +75,11 @@ def infer(line):
     spec = np.expand_dims(spec, axis=0)
     spec_length = np.reshape(spec_length, [1])
     
-    while(spec_offset < 200000):
-        output = get_interactive_infer_results(model_T2S, sess, model_in=(source, src_length, spec, spec_length, spec_offset))
+    while(spec_offset < max_steps):
+        output = get_interactive_infer_results(
+            model_T2S, sess, 
+            model_in=(source, src_length, spec, spec_length, spec_offset)
+        )
         
         predicted = output[-1][0]
         audio.append(predicted)
@@ -78,8 +88,10 @@ def infer(line):
         source[0] = np.roll(source[0], -1)
         
         if spec_offset % 1000 == 0:
-            print(source)
-            print(spec_offset)
-            wav = save_audio(np.array(audio), "result", 0, sampling_rate=sampling_rate, mode="infer")
+            print("Saving audio for step {}".format(spec_offset))
+            wav = save_audio(
+                np.array(audio), "result", 0, 
+                sampling_rate=sampling_rate, mode="infer"
+            )
             
         spec_offset += 1
