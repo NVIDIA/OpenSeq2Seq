@@ -60,7 +60,6 @@ base_params = {
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": True,
     "src_emb_size": 1024,
-    "encoder_cell_units": 1024,
   },
 
   "decoder": RNNDecoderWithAttention,
