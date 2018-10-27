@@ -23,7 +23,7 @@ base_params = {
   "print_samples_steps": 500,
   "eval_steps": 500,
   "save_checkpoint_steps": 2500,
-  "logdir": "result/wavenet-LJ-float",
+  "logdir": "result/wavenet-LJ-mixed",
 
   "optimizer": "Adam",
   "optimizer_params": {},
