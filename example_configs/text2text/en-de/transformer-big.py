@@ -61,6 +61,7 @@ base_params = {
     "relu_dropout": 0.3,
     "layer_postprocess_dropout": 0.3,
     "pad_embeddings_2_eight": True,
+    "remove_padding": True,
   },
 
   "decoder": TransformerDecoder,
