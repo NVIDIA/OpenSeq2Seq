@@ -3,7 +3,7 @@ from __future__ import absolute_import, division, print_function
 import tensorflow as tf
 
 from open_seq2seq.models import Text2Text
-from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding_cuDNN
+from open_seq2seq.encoders import GNMTLikeEncoderWithEmbedding
 from open_seq2seq.decoders import RNNDecoderWithAttention, \
   BeamSearchRNNDecoderWithAttention
 from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
@@ -43,11 +43,22 @@ base_params = {
   "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   #"dtype": "mixed",
   #"loss_scaling": "Backoff",
-  "encoder": GNMTLikeEncoderWithEmbedding_cuDNN,
+  "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
-    "encoder_cell_type": "lstm",
+    "initializer": tf.random_uniform_initializer,
+    "initializer_params": {
+      "minval": -0.1,
+      "maxval": 0.1,
+    },
+    "core_cell": tf.nn.rnn_cell.LSTMCell,
+    "core_cell_params": {
+        "num_units": 1024,
+        "forget_bias": 1.0,
+    },
     "encoder_layers": 8,
-    "encoder_dp_output_keep_prob": 0.8,
+    "encoder_dp_input_keep_prob": 0.8,
+    "encoder_dp_output_keep_prob": 1.0,
+    "encoder_use_skip_connections": True,
     "src_emb_size": 1024,
   },
 
