@@ -18,8 +18,8 @@ base_model = Text2Text
 base_params = {
   "use_horovod": True,
   "num_gpus": 1, # use mpirun to specify 4 workers
-  "max_steps": 90000,
-  "batch_size_per_gpu": 64,
+  "max_steps": 50000,
+  "batch_size_per_gpu": 128,
   "save_summaries_steps": 50,
   "print_loss_steps": 48,
   "print_samples_steps": 48,
@@ -45,6 +45,7 @@ base_params = {
   #"loss_scaling": "Backoff",
   "encoder": GNMTLikeEncoderWithEmbedding,
   "encoder_params": {
+    "use_swap_memory": True,
     "initializer": tf.random_uniform_initializer,
     "initializer_params": {
       "minval": -0.1,
@@ -55,7 +56,7 @@ base_params = {
         "num_units": 1024,
         "forget_bias": 1.0,
     },
-    "encoder_layers": 8,
+    "encoder_layers": 7,
     "encoder_dp_input_keep_prob": 0.8,
     "encoder_dp_output_keep_prob": 1.0,
     "encoder_use_skip_connections": True,
@@ -64,6 +65,7 @@ base_params = {
 
   "decoder": RNNDecoderWithAttention,
   "decoder_params": {
+    "use_swap_memory": True,
     "initializer": tf.random_uniform_initializer,
     "initializer_params": {
        "minval": -0.1,
@@ -133,6 +135,7 @@ infer_params = {
   "batch_size_per_gpu": 1,
   "decoder": BeamSearchRNNDecoderWithAttention,
   "decoder_params": {
+    "use_swap_memory": True,
     "beam_width": 10,
     "length_penalty": 1.0,
     "core_cell": tf.nn.rnn_cell.LSTMCell,
