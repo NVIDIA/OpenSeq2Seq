@@ -29,6 +29,11 @@ Currently we support following models:
      - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_
 
+   * - :doc:`Wavel2Letter+ </speech-recognition/wave2letter>`
+     - 5.10
+     - `w2l_plus_larger_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_8gpus_mp.py>`_
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing>`_
+
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
 greedy decoder (``decoder_params/use_language_model = False``).
