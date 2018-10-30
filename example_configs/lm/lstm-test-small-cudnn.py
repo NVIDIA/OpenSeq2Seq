@@ -8,7 +8,7 @@ from open_seq2seq.parts.rnns.weight_drop import WeightDropLayerNormBasicLSTMCell
 from open_seq2seq.losses import BasicSequenceLoss
 from open_seq2seq.optimizers.lr_policies import fixed_lr
 
-data_root = "/home/rnie/Desktop/rnie/dataset/wikitext-2-raw"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WikiText-2-raw DATA]"
 processed_data_folder = 'wkt2-processed-data'
 
 base_model = LSTMLM
@@ -58,7 +58,7 @@ base_params = {
         "num_units": 128,
         "forget_bias": 1.0,
     },
-    "encoder_layers": 3,
+    "encoder_layers": 2,
     "encoder_dp_input_keep_prob": 1.0,
     "encoder_dp_output_keep_prob": 0.6,
     "encoder_last_input_keep_prob": 1.0,
