@@ -101,7 +101,7 @@ class Speech2Text(EncoderDecoderModel):
         data_layer.params['tgt_vocab_size']
     )
 
-    self.is_bpe = len(data_layer.params.get('sp_model', '')) > 0
+    self.is_bpe = data_layer.params.get('bpe', False)
     self.tensor_to_chars = sparse_tensor_to_chars
     self.tensor_to_char_params = {}
     self.autoregressive = data_layer.params.get('autoregressive', False)
