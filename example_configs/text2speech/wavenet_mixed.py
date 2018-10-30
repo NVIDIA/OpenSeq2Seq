@@ -12,7 +12,7 @@ base_model = Text2SpeechWavenet
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": True,
+  "use_horovod": False,
   "max_steps": 1000000,
 
   "num_gpus": 1,

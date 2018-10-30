@@ -51,37 +51,31 @@ def infer(line):
     
     # Generate speech
     results = get_interactive_infer_results(model_T2S, sess, model_in=[line])
-    prediction = results[1][1][0]
     audio_length = results[1][4][0]
-    prediction = prediction[:audio_length-1,:]
-    prediction = model_T2S.get_data_layer().get_magnitude_spec(prediction, is_mel=True)
-    
-    wav = save_audio(prediction, "unused", "unused", sampling_rate=sampling_rate, save_format="np.array", n_fft=n_fft)
-    audio = IPython.display.Audio(wav, rate=sampling_rate)
-    wav = librosa.core.resample(wav, sampling_rate, 16000)
-    print("Generated Audio")
-    IPython.display.display(audio)
 
     if model_T2S.get_data_layer()._both:
-        mag_prediction = results[1][5][0]
-        mag_prediction = mag_prediction[:audio_length-1,:]
-        mag_prediction = model_T2S.get_data_layer().get_magnitude_spec(mag_prediction)
+        prediction = results[1][5][0]
 
-        mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
-        mag_prediction_squared = mag_prediction_squared**1.5
-        mag_prediction_squared = np.square(mag_prediction_squared)
+    else:
+        prediction = results[1][1][0]
 
-        mel_basis = librosa.filters.mel(sr=22050, n_fft=1024, n_mels=80, htk=True, norm=None)
-        mel = np.dot(mel_basis, mag_prediction_squared.T)
-        mel = np.log(np.clip(mel, a_min=1e-5, a_max=None))
-        np.save("spec", mel)
+    prediction = prediction[:audio_length-1,:]
+    mag_prediction = model_T2S.get_data_layer().get_magnitude_spec(prediction)
 
-        plt.imshow(mel)
-        plt.gca().invert_yaxis()
-        plt.show()
+    mag_prediction_squared = np.clip(mag_prediction, a_min=0, a_max=255)
+    mag_prediction_squared = mag_prediction_squared**1.5
+    mag_prediction_squared = np.square(mag_prediction_squared)
 
-        wav = save_audio(mag_prediction, "unused", "unused", sampling_rate=sampling_rate, save_format="np.array", n_fft=n_fft)
-        audio = IPython.display.Audio(wav, rate=sampling_rate)
-        wav = librosa.core.resample(wav, sampling_rate, 16000)
-        print("Generated Audio from magnitude spec")
-        IPython.display.display(audio)
+    mel_basis = librosa.filters.mel(sr=22050, n_fft=1024, n_mels=80, htk=True, norm=None)
+    mel = np.dot(mel_basis, mag_prediction_squared.T)
+    mel = np.log(np.clip(mel, a_min=1e-5, a_max=None))
+    np.save("spec2", mel)
+
+    plt.imshow(mel)
+    plt.gca().invert_yaxis()
+    plt.show()
+
+    wav = save_audio(mag_prediction, "unused", "unused", sampling_rate=sampling_rate, save_format="np.array", n_fft=n_fft)
+    audio = IPython.display.Audio(wav, rate=sampling_rate)
+    print("Generated Audio")
+    IPython.display.display(audio)

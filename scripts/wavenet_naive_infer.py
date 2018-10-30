@@ -53,10 +53,9 @@ def infer(line):
     print("Input File")
     print(line) 
     
-    GET_SPEC_FROM_WAV = True
+    GET_SPEC_FROM_WAV = False
     max_steps = 200000
     receptive_field = 6139 # 3x10
-    file_name = str.encode(line)
     
     source = np.zeros([1, receptive_field])
     src_length = np.full([1], receptive_field)
@@ -64,11 +63,12 @@ def infer(line):
     spec_offset = 0
     
     if GET_SPEC_FROM_WAV: # get spectrogram from .wav file
+        file_name = str.encode(line)
         spec, spec_length = model_T2S.get_data_layer(). \
             _parse_spectrogram_element(file_name)
     
     else: # get spectrogram from .npy file
-        spec = np.load(file_name).T
+        spec = np.load(line + ".npy").T
         spec = np.repeat(spec, 256, axis=0)
         spec_length = spec.shape[0]
 

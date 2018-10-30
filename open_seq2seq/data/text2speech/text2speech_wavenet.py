@@ -101,12 +101,6 @@ class WavenetDataLayer(DataLayer):
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
-      #Decrease num_eval for dev, since most data is thrown out anyways
-      if self.params['mode'] == 'eval':
-        start = self._worker_id * self.params['batch_size']
-        end = start+self.params['batch_size']
-        return data[start:end]
-
       size = len(data)
       start = size // self._num_workers * self._worker_id
 
@@ -256,7 +250,7 @@ class WavenetDataLayer(DataLayer):
       )
 
     else:
-      print("Non-interactive infer is not supported")
+      raise ValueError("Non-interactive infer is not supported")
 
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE) \
       .make_initializable_iterator()
@@ -276,4 +270,4 @@ class WavenetDataLayer(DataLayer):
       self._input_tensors["target_tensors"] = [source, src_length]
 
     else:
-      print("Non-interactive infer is not supported")
+      raise ValueError("Non-interactive infer is not supported")
