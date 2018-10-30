@@ -5,11 +5,9 @@ RNN-based encoders
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import copy
-
+import copy, inspect
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
-
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
@@ -32,7 +30,7 @@ class LMEncoder(Encoder):
       'end_token': int,
       "batch_size": int,
       "use_cudnn_rnn": bool,
-      "rnn_type": None
+      "cudnn_rnn_type": None
     })
 
   @staticmethod
@@ -202,7 +200,7 @@ class LMEncoder(Encoder):
     fc_use_bias = self.params.get('fc_use_bias', True)
 
     use_cudnn_rnn = self.params.get("use_cudnn_rnn", False)
-    rnn_type = self.params.get("rnn_type", None)
+    cudnn_rnn_type = self.params.get("cudnn_rnn_type", None)
 
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
@@ -266,31 +264,27 @@ class LMEncoder(Encoder):
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
 
     if use_cudnn_rnn:
-      valid_rnn_types = ['lstm', 'gru', 'cudnn_lstm', 'cudnn_gru']
-      if rnn_type not in valid_rnn_types:
-          raise ValueError("Not a valid rnn type for cudnn rnn's")
-
       if self._mode == 'train' or self._mode == 'eval':
-        if rnn_type == 'lstm' or rnn_type == 'cudnn_lstm':
-          rnn_block = tf.contrib.cudnn_rnn.CudnnLSTM(
-                  num_layers=self.params['encoder_layers'],
-                  num_units=self._emb_size, 
-                  dtype=self._params['dtype'],
-                  name="cudnn_rnn"
-          )
-        else:
-          rnn_block = tf.contrib.cudnn_rnn.CudnnGRU(
-                  num_layers=self.params['encoder_layers'],
-                  num_units=self._emb_size, 
-                  dtype=self._params['dtype'],
-                  name="cudnn_rnn"
-          )
+        all_cudnn_classes = [
+            i[1]
+            for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)
+        ]
+
+        if not cudnn_rnn_type in all_cudnn_classes:
+          raise TypeError("rnn_type must be a Cudnn RNN class")
+
+        rnn_block = cudnn_rnn_type(
+            num_layers=self.params['encoder_layers'],
+            num_units=self._emb_size, 
+            dtype=self._params['dtype'],
+            name="cudnn_rnn"
+        )
       else:
         # Transferring weights from model trained with CudnnLSTM/CudnnGRU
         # to CudnnCompatibleLSTMCell/CudnnCompatibleGRUCell for inference
-        if rnn_type == 'lstm' or rnn_type == 'cudnn_lstm':
+        if 'CudnnLSTM' in str(cudnn_rnn_type):
           cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(num_units=self._emb_size)
-        elif rnn_type == 'gru' or rnn_type == 'cudnn_gru':
+        elif 'CudnnGRU' in str(cudnn_rnn_type):
           cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(num_units=self._emb_size)
 
         fwd_cells = [cell() for _ in range(self.params['encoder_layers'])]
@@ -343,8 +337,14 @@ class LMEncoder(Encoder):
       ), self.params['dtype'])
 
       if use_cudnn_rnn:
+        # The CudnnLSTM will return encoder_state as a tuple of hidden 
+        # and cell values that. The hidden and cell tensors are stored for
+        # each LSTM Layer.
+
         # reshape to [B, T, C] --> [T, B, C]
-        embedded_inputs = tf.transpose(embedded_inputs, [1, 0, 2])
+        if time_major == False:
+          embedded_inputs = tf.transpose(embedded_inputs, [1, 0, 2])
+
         rnn_block.build(embedded_inputs.get_shape())
         encoder_outputs, encoder_state = rnn_block(embedded_inputs)
         encoder_outputs = tf.transpose(encoder_outputs, [1, 0, 2])
@@ -360,10 +360,17 @@ class LMEncoder(Encoder):
         )
 
       if not self._lm_phase:
-        if self._use_cell_state:
-          encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+        # CudnnLSTM stores cell and hidden state differently
+        if use_cudnn_rnn:
+          if self._use_cell_state:
+            encoder_outputs = tf.concat([encoder_state[0][-1], encoder_state[1][-1]], axis=1)
+          else:
+            encoder_outputs = encoder_state[0][-1]
         else:
-          encoder_outputs = encoder_state[-1].h
+          if self._use_cell_state:
+            encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+          else:
+            encoder_outputs = encoder_state[-1].h
 
       if self._mode == 'train' and self._num_sampled < self._fc_dim: # sampled softmax
         output_dict = {'weights': enc_emb_w,
