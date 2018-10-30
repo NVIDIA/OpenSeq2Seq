@@ -67,7 +67,9 @@ The base model was trained for 200 epochs on 8 GPUs. We use:
 * dropout (varible per layer: 0.2-0.4) 
 * batch size of 32 per GPU for float32 and 64 for mixed-precision.
 
-The xlarge models are trained for 400 epochs on 8 GPUs. All other parameters are kept the same as the base model.
+The xlarge models are trained for 400 epochs on 8 GPUs. All other parameters are kept the same as the base model except:
+
+* we add residual connections between each convolutional block
 
 
 Mixed Precision
