@@ -14,6 +14,7 @@ from six.moves import range
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_speech_features
+import sentencepiece as spm
 
 
 class Speech2TextDataLayer(DataLayer):
@@ -33,6 +34,7 @@ class Speech2TextDataLayer(DataLayer):
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
+        'bpe': bool,
         'autoregressive': bool,
     })
 
@@ -42,7 +44,7 @@ class Speech2TextDataLayer(DataLayer):
     Config parameters:
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
-    * **vocab_file** (str) --- path to vocabulary file.
+    * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.
     * **dataset_files** (list) --- list with paths to all dataset .csv files.
     * **augmentation** (dict) --- optional dictionary with data augmentation
       parameters. Can contain "time_stretch_ratio", "noise_level_min" and
@@ -61,24 +63,29 @@ class Speech2TextDataLayer(DataLayer):
 
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
-    self.params['char2idx'] = load_pre_existing_vocabulary(
-        self.params['vocab_file'], read_chars=True,
-    )
-    self.target_pad_value = 0
-    if not self.autoregressive:
-      # add one for implied blank token
-      self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
+    self.params['bpe'] = self.params.get('bpe', False)
+    if self.params['bpe']:
+      self.sp = spm.SentencePieceProcessor()
+      self.sp.Load(self.params['vocab_file'])
+      self.params['tgt_vocab_size'] = len(self.sp) + 1
     else:
-      num_chars_orig = len(self.params['char2idx'])
-      self.params['tgt_vocab_size'] = num_chars_orig + 2
-      self.start_index = num_chars_orig
-      self.end_index = num_chars_orig + 1
-      self.params['char2idx']['<S>'] = self.start_index
-      self.params['char2idx']['</S>'] = self.end_index
-      self.target_pad_value = self.end_index
-
-    self.params['idx2char'] = {i: w for w,
-                               i in self.params['char2idx'].items()}
+      self.params['char2idx'] = load_pre_existing_vocabulary(
+          self.params['vocab_file'], read_chars=True,
+      )
+      if not self.autoregressive:
+        # add one for implied blank token
+        self.params['tgt_vocab_size'] = len(self.params['char2idx']) + 1
+      else:
+        num_chars_orig = len(self.params['char2idx'])
+        self.params['tgt_vocab_size'] = num_chars_orig + 2
+        self.start_index = num_chars_orig
+        self.end_index = num_chars_orig + 1
+        self.params['char2idx']['<S>'] = self.start_index
+        self.params['char2idx']['</S>'] = self.end_index
+        self.target_pad_value = self.end_index
+      self.params['idx2char'] = {i: w for w,
+                                 i in self.params['char2idx'].items()}
+    self.target_pad_value = 0
 
     self._files = None
     if self.params["interactive"]:
@@ -155,7 +162,7 @@ class Speech2TextDataLayer(DataLayer):
                          1, [None], 1),
           padding_values=(
               tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
-      ).cache()
+      )
     else:
       indices = self.split_data(
           np.array(list(map(str, range(len(self.all_files)))))
@@ -296,7 +303,10 @@ class Speech2TextDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
-    target_indices = [self.params['char2idx'][c] for c in transcript]
+    if self.params['bpe']:
+      target_indices = self.sp.EncodeAsIds(transcript)
+    else:
+      target_indices = [self.params['char2idx'][c] for c in transcript]
     if self.autoregressive:
       target_indices = target_indices + [self.end_index]
     target = np.array(target_indices)
@@ -369,3 +379,4 @@ class Speech2TextDataLayer(DataLayer):
   def get_size_in_samples(self):
     """Returns the number of audio files."""
     return len(self._files)
+

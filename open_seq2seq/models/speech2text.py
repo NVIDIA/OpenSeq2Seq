@@ -23,6 +23,14 @@ def sparse_tensor_to_chars(tensor, idx2char):
   return text
 
 
+def sparse_tensor_to_chars_bpe(tensor):
+  idx = [[] for _ in range(tensor.dense_shape[0])]
+  for idx_tuple, value in zip(tensor.indices, tensor.values):
+    idx[idx_tuple[0]].append(int(value))
+  
+  return idx
+
+
 def dense_tensor_to_chars(tensor, idx2char, startindex, endindex):
   batch_size = len(tensor)
   text = [''] * batch_size
@@ -92,9 +100,11 @@ class Speech2Text(EncoderDecoderModel):
     self.params['decoder_params']['tgt_vocab_size'] = (
         data_layer.params['tgt_vocab_size']
     )
+
+    self.is_bpe = data_layer.params.get('bpe', False)
     self.tensor_to_chars = sparse_tensor_to_chars
     self.tensor_to_char_params = {}
-    self.autoregressive = data_layer.params['autoregressive']
+    self.autoregressive = data_layer.params.get('autoregressive', False)
     if self.autoregressive:
       self.params['decoder_params']['GO_SYMBOL'] = data_layer.start_index
       self.params['decoder_params']['END_SYMBOL'] = data_layer.end_index
@@ -105,7 +115,7 @@ class Speech2Text(EncoderDecoderModel):
     return super(Speech2Text, self)._create_decoder()
 
   def _create_loss(self):
-    if self.get_data_layer().params['autoregressive']:
+    if self.get_data_layer().params.get('autoregressive', False):
       self.params['loss_params'][
           'batch_size'] = self.params['batch_size_per_gpu']
       self.params['loss_params']['tgt_vocab_size'] = (
@@ -120,20 +130,26 @@ class Speech2Text(EncoderDecoderModel):
     len_y_one_sample = len_y[0]
     decoded_sequence_one_batch = decoded_sequence[0]
 
-    # we also clip the sample by the correct length
-    true_text = "".join(map(
-        self.get_data_layer().params['idx2char'].get,
-        y_one_sample[:len_y_one_sample],
-    ))
-    pred_text = "".join(self.tensor_to_chars(
-        decoded_sequence_one_batch,
-        self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params
-    )[0])
+    if self.is_bpe:
+      dec_list = sparse_tensor_to_chars_bpe(decoded_sequence_one_batch)[0]
+      true_text = self.get_data_layer().sp.DecodeIds(y_one_sample[:len_y_one_sample].tolist())
+      pred_text = self.get_data_layer().sp.DecodeIds(dec_list)
+
+    else:
+      # we also clip the sample by the correct length
+      true_text = "".join(map(
+          self.get_data_layer().params['idx2char'].get,
+          y_one_sample[:len_y_one_sample],
+      ))
+      pred_text = "".join(self.tensor_to_chars(
+          decoded_sequence_one_batch,
+          self.get_data_layer().params['idx2char'],
+          **self.tensor_to_char_params
+      )[0])
     sample_wer = levenshtein(true_text.split(), pred_text.split()) / \
         len(true_text.split())
 
-    self.autoregressive = self.get_data_layer().params['autoregressive']
+    self.autoregressive = self.get_data_layer().params.get('autoregressive', False)
     self.plot_attention = False  # (output_values[1] != None).all()
     if self.plot_attention:
       attention_summary = plot_attention(
@@ -152,7 +168,7 @@ class Speech2Text(EncoderDecoderModel):
       return {
           'Sample WER': sample_wer,
       }
-
+    
   def finalize_evaluation(self, results_per_batch, training_step=None):
     total_word_lev = 0.0
     total_word_count = 0.0
@@ -171,22 +187,34 @@ class Speech2Text(EncoderDecoderModel):
     total_word_count = 0.0
 
     decoded_sequence = output_values[0]
-    decoded_texts = self.tensor_to_chars(
-        decoded_sequence,
-        self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params
-    )
+
+    if self.is_bpe:
+      decoded_texts = sparse_tensor_to_chars_bpe(decoded_sequence)
+    else:
+      decoded_texts = self.tensor_to_chars(
+          decoded_sequence,
+          self.get_data_layer().params['idx2char'],
+          **self.tensor_to_char_params
+      )
+
     batch_size = input_values['source_tensors'][0].shape[0]
     for sample_id in range(batch_size):
       # y is the third returned input value, thus input_values[2]
       # len_y is the fourth returned input value
       y = input_values['target_tensors'][0][sample_id]
       len_y = input_values['target_tensors'][1][sample_id]
-      true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
+      if self.is_bpe:
+        true_text = self.get_data_layer().sp.DecodeIds(y[:len_y].tolist())
+        pred_text = self.get_data_layer().sp.DecodeIds(decoded_texts[sample_id])
+      else:
+        true_text = "".join(map(self.get_data_layer().params['idx2char'].get,
                               y[:len_y]))
-      if self.get_data_layer().params['autoregressive']:
+        pred_text = "".join(decoded_texts[sample_id])
+      if self.get_data_layer().params.get('autoregressive', False):
         true_text = true_text[:-4]
-      pred_text = "".join(decoded_texts[sample_id])
+
+      # print('TRUE_TEXT: "{}"'.format(true_text))
+      # print('PRED_TEXT: "{}"'.format(pred_text))
 
       total_word_lev += levenshtein(true_text.split(), pred_text.split())
       total_word_count += len(true_text.split())
