@@ -63,7 +63,6 @@ base_params = {
 
   "data_layer": WavenetDataLayer,
   "data_layer_params": {
-    "dataset": "LJ",
     "num_audio_features": 80,
     "dataset_location": "/data/LJSpeech-1.1-partitioned/wavs/"
   }

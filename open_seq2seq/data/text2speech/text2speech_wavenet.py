@@ -16,7 +16,6 @@ class WavenetDataLayer(DataLayer):
   def get_required_params():
     return dict(
         DataLayer.get_required_params(), **{
-            "dataset": str,
             "num_audio_features": int,
             "dataset_files": list
         }
@@ -26,8 +25,7 @@ class WavenetDataLayer(DataLayer):
   def get_optional_params():
     return dict(
         DataLayer.get_optional_params(), **{
-            "dataset_location": str,
-            "receptive_field": int
+            "dataset_location": str
         }
     )
 
@@ -39,9 +37,11 @@ class WavenetDataLayer(DataLayer):
 
     Config parameters:
 
-    * **dataset** (str) --- The dataset to use, currently only supports "LJ" 
-      for LJSpeech 1.1
+    * **num_audio_features** (int) --- number of spectrogram audio features
+    * **dataset_files** (list) --- list with paths to all dataset .csv files
 
+    * **dataset_location** (str) --- string with path to directory where wavs
+      are stored
     """
 
     super(WavenetDataLayer, self).__init__(
