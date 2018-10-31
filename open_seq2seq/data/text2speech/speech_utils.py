@@ -18,6 +18,7 @@ def get_speech_features_from_file(
     std=1.,
     trim=False,
     data_min=1e-5,
+    return_raw_audio=False,
     mel_basis=None
 ):
   """ Helper function to retrieve spectrograms from wav files
@@ -52,10 +53,15 @@ def get_speech_features_from_file(
         frame_length=int(n_fft/2),
         hop_length=int(hop_length/2)
     )
-  return get_speech_features(
+  speech_features = get_speech_features(
       signal, fs, num_features, features_type, n_fft,
       hop_length, mag_power, feature_normalize, mean, std, data_min, mel_basis
   )
+
+  if return_raw_audio:
+    return signal, speech_features
+  else:
+    return speech_features
 
 
 def get_speech_features(
