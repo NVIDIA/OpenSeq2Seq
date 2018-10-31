@@ -57,6 +57,8 @@ base_params = {
       "minval": -0.1,
       "maxval": 0.1,
     },
+    "use_cudnn_rnn": False,
+    "cudnn_rnn_type": None,
     "core_cell": WeightDropLayerNormBasicLSTMCell,
     "core_cell_params": {
         "num_units": 1024,

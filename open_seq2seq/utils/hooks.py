@@ -216,6 +216,11 @@ class RunEvaluationHook(tf.train.SessionRunHook):
       dict_to_log = self._model.finalize_evaluation(results_per_batch, step)
       dict_to_log['eval_loss'] = total_loss
 
+      if self._print_ppl:
+        # Add bpc and ppl metrics to tensorboard
+        dict_to_log['ppl'] = math.exp(total_loss)
+        dict_to_log['bpc'] = math.exp(total_loss/math.log(2))
+        
       # saving the best validation model
       if self._model.params['save_checkpoint_steps'] and \
          total_loss < self._best_eval_loss:
