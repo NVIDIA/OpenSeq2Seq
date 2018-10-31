@@ -53,7 +53,7 @@ base_params = {
     },
     "use_cudnn_rnn": True,
     "cudnn_rnn_type": tf.contrib.cudnn_rnn.CudnnLSTM,
-    "core_cell": WeightDropLayerNormBasicLSTMCell,
+    "core_cell": None,
     "core_cell_params": {
         "num_units": 128,
         "forget_bias": 1.0,
