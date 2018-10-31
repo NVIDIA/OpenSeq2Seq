@@ -5,11 +5,9 @@ RNN-based encoders
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
-import copy
-
+import copy, inspect
 import tensorflow as tf
 from tensorflow.contrib.cudnn_rnn.python.ops import cudnn_rnn_ops
-
 from open_seq2seq.optimizers.mp_wrapper import mp_regularizer_wrapper
 from open_seq2seq.parts.rnns.utils import single_cell
 from .encoder import Encoder
@@ -31,6 +29,8 @@ class LMEncoder(Encoder):
       'core_cell_params': dict,
       'end_token': int,
       "batch_size": int,
+      "use_cudnn_rnn": bool,
+      "cudnn_rnn_type": None
     })
 
   @staticmethod
@@ -199,6 +199,9 @@ class LMEncoder(Encoder):
     regularizer = self.params.get('regularizer', None)
     fc_use_bias = self.params.get('fc_use_bias', True)
 
+    use_cudnn_rnn = self.params.get("use_cudnn_rnn", False)
+    cudnn_rnn_type = self.params.get("cudnn_rnn_type", None)
+
     if 'initializer' in self.params:
       init_dict = self.params.get('initializer_params', {})
       initializer = self.params['initializer'](**init_dict)
@@ -260,38 +263,65 @@ class LMEncoder(Encoder):
 
     self._enc_emb_w = tf.nn.dropout(enc_emb_w, keep_prob=emb_keep_prob)
 
-    fwd_cells = [
-      single_cell(cell_class=self.params['core_cell'],
-                  cell_params=self.params['core_cell_params'],
-                  dp_input_keep_prob=dp_input_keep_prob,
-                  dp_output_keep_prob=dp_output_keep_prob,
-                  recurrent_keep_prob=recurrent_keep_prob,
-                  input_weight_keep_prob=input_weight_keep_prob,
-                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
-                  weight_variational=self.params['weight_variational'],
-                  dropout_seed=self.params['dropout_seed'],
-                  residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=self.params['awd_initializer'],
-                  dtype=self._params['dtype']
-                  ) for _ in range(self.params['encoder_layers'] - 1)]
+    if use_cudnn_rnn:
+      if self._mode == 'train' or self._mode == 'eval':
+        all_cudnn_classes = [
+            i[1]
+            for i in inspect.getmembers(tf.contrib.cudnn_rnn, inspect.isclass)
+        ]
 
-    fwd_cells.append(
-      single_cell(cell_class=self.params['core_cell'],
-                  cell_params=last_cell_params,
-                  dp_input_keep_prob=last_input_keep_prob,
-                  dp_output_keep_prob=last_output_keep_prob,
-                  recurrent_keep_prob=recurrent_keep_prob,
-                  input_weight_keep_prob=input_weight_keep_prob,
-                  recurrent_weight_keep_prob=recurrent_weight_keep_prob,
-                  weight_variational=self.params['weight_variational'],
-                  dropout_seed=self.params['dropout_seed'],
-                  residual_connections=self.params['encoder_use_skip_connections'],
-                  awd_initializer=self.params['awd_initializer'],
-                  dtype=self._params['dtype']
-                  )
-      )
+        if not cudnn_rnn_type in all_cudnn_classes:
+          raise TypeError("rnn_type must be a Cudnn RNN class")
 
-    self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
+        rnn_block = cudnn_rnn_type(
+            num_layers=self.params['encoder_layers'],
+            num_units=self._emb_size, 
+            dtype=self._params['dtype'],
+            name="cudnn_rnn"
+        )
+      else:
+        # Transferring weights from model trained with CudnnLSTM/CudnnGRU
+        # to CudnnCompatibleLSTMCell/CudnnCompatibleGRUCell for inference
+        if 'CudnnLSTM' in str(cudnn_rnn_type):
+          cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(num_units=self._emb_size)
+        elif 'CudnnGRU' in str(cudnn_rnn_type):
+          cell = lambda: tf.contrib.cudnn_rnn.CudnnCompatibleGRUCell(num_units=self._emb_size)
+
+        fwd_cells = [cell() for _ in range(self.params['encoder_layers'])]
+        self._encoder_cell_fw = tf.nn.rnn_cell.MultiRNNCell(fwd_cells)
+    else:
+      fwd_cells = [
+        single_cell(cell_class=self.params['core_cell'],
+                    cell_params=self.params['core_cell_params'],
+                    dp_input_keep_prob=dp_input_keep_prob,
+                    dp_output_keep_prob=dp_output_keep_prob,
+                    recurrent_keep_prob=recurrent_keep_prob,
+                    input_weight_keep_prob=input_weight_keep_prob,
+                    recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                    weight_variational=self.params['weight_variational'],
+                    dropout_seed=self.params['dropout_seed'],
+                    residual_connections=self.params['encoder_use_skip_connections'],
+                    awd_initializer=self.params['awd_initializer'],
+                    dtype=self._params['dtype']
+                    ) for _ in range(self.params['encoder_layers'] - 1)]
+
+      fwd_cells.append(
+        single_cell(cell_class=self.params['core_cell'],
+                    cell_params=last_cell_params,
+                    dp_input_keep_prob=last_input_keep_prob,
+                    dp_output_keep_prob=last_output_keep_prob,
+                    recurrent_keep_prob=recurrent_keep_prob,
+                    input_weight_keep_prob=input_weight_keep_prob,
+                    recurrent_weight_keep_prob=recurrent_weight_keep_prob,
+                    weight_variational=self.params['weight_variational'],
+                    dropout_seed=self.params['dropout_seed'],
+                    residual_connections=self.params['encoder_use_skip_connections'],
+                    awd_initializer=self.params['awd_initializer'],
+                    dtype=self._params['dtype']
+                    )
+        )
+
+      self._encoder_cell_fw = tf.contrib.rnn.MultiRNNCell(fwd_cells)
 
     time_major = self.params.get("time_major", False)
     use_swap_memory = self.params.get("use_swap_memory", False)
@@ -306,20 +336,41 @@ class LMEncoder(Encoder):
         source_sequence,
       ), self.params['dtype'])
 
-      encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
-        cell=self._encoder_cell_fw,
-        inputs=embedded_inputs,
-        sequence_length=source_length,
-        time_major=time_major,
-        swap_memory=use_swap_memory,
-        dtype=self._params['dtype'],
-        scope='decoder',
-      )
+      if use_cudnn_rnn:
+        # The CudnnLSTM will return encoder_state as a tuple of hidden 
+        # and cell values that. The hidden and cell tensors are stored for
+        # each LSTM Layer.
+
+        # reshape to [B, T, C] --> [T, B, C]
+        if time_major == False:
+          embedded_inputs = tf.transpose(embedded_inputs, [1, 0, 2])
+
+        rnn_block.build(embedded_inputs.get_shape())
+        encoder_outputs, encoder_state = rnn_block(embedded_inputs)
+        encoder_outputs = tf.transpose(encoder_outputs, [1, 0, 2])
+      else:
+        encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
+          cell=self._encoder_cell_fw,
+          inputs=embedded_inputs,
+          sequence_length=source_length,
+          time_major=time_major,
+          swap_memory=use_swap_memory,
+          dtype=self._params['dtype'],
+          scope='decoder',
+        )
+
       if not self._lm_phase:
-        if self._use_cell_state:
-          encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+        # CudnnLSTM stores cell and hidden state differently
+        if use_cudnn_rnn:
+          if self._use_cell_state:
+            encoder_outputs = tf.concat([encoder_state[0][-1], encoder_state[1][-1]], axis=1)
+          else:
+            encoder_outputs = encoder_state[0][-1]
         else:
-          encoder_outputs = encoder_state[-1].h
+          if self._use_cell_state:
+            encoder_outputs = tf.concat([encoder_state[-1].h, encoder_state[-1].c], axis=1)
+          else:
+            encoder_outputs = encoder_state[-1].h
 
       if self._mode == 'train' and self._num_sampled < self._fc_dim: # sampled softmax
         output_dict = {'weights': enc_emb_w,
@@ -332,6 +383,24 @@ class LMEncoder(Encoder):
         logits = self._output_layer.apply(encoder_outputs)
         output_dict = {'logits': logits, 'outputs': [logits]}
     else: # infer in LM phase
+      # This portion of graph is required to restore weights from CudnnLSTM to 
+      # CudnnCompatibleLSTMCell/CudnnCompatibleGRUCell
+      if use_cudnn_rnn:
+        embedded_inputs = tf.cast(tf.nn.embedding_lookup(
+          self.enc_emb_w,
+          source_sequence,
+        ), self.params['dtype'])
+
+        # Scope must remain unset to restore weights
+        encoder_outputs, encoder_state = tf.nn.dynamic_rnn(
+            cell=self._encoder_cell_fw,
+            inputs=embedded_inputs,
+            sequence_length=source_length,
+            time_major=time_major,
+            swap_memory=use_swap_memory,
+            dtype=self._params['dtype']
+        )
+
       embedding_fn = lambda ids: tf.cast(tf.nn.embedding_lookup(
                                           self.enc_emb_w,
                                           ids,
