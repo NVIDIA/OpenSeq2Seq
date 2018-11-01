@@ -10,6 +10,8 @@ If you'd like to skip installation of all pre-requisite software (such as CUDA, 
 then please try our free optimized TensorFlow Docker container:
 https://www.nvidia.com/en-us/gpu-cloud/deep-learning-containers/
 
+It contains OpenSeq2Seq in ``/workspace/nvidia-examples/OpenSeq2Seq`` directory.
+
 General installation
 --------------------
 

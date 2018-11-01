@@ -28,7 +28,7 @@ Currently we support following models:
    * - :doc:`ConvS2S </machine-translation/convs2s>`
      - 25.0
      - `en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_
-     - `linlk <https://drive.google.com/a/nvidia.com/file/d/1Xkg5N_nJOvkDx7IDjIAMUWWn3caHNBtj/view?usp=sharing>`_
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1Xkg5N_nJOvkDx7IDjIAMUWWn3caHNBtj/view?usp=sharing>`_
    * - :doc:`GNMT </machine-translation/gnmt>`
      - 23.0
      - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_

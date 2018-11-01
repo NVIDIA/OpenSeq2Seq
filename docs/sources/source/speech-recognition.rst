@@ -117,3 +117,17 @@ Once training is done (this can take a while on a single GPU), you can run infer
 
  python run.py --config_file=example_configs/speech2text/ds2_small_1gpu.py --mode=infer --infer_output_file=ds2_out.txt
 
+
+
+******************
+Multi-GPU training
+******************
+
+To train on <N> GPUs without Horovod::
+
+    python run.py --config_file=... --mode=train_eval --use_horovod=False --num_gpus=<N>
+
+To train with Horovod on <N> GPUs, use the following command::
+
+    mpiexec --allow-run-as-root -np <N> python run.py --config_file=... --mode=train_eval --use_horovod=True
+
