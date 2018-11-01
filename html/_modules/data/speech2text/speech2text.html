@@ -173,6 +173,7 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.utils</span> <span class="k">import</span> <span class="n">load_pre_existing_vocabulary</span>
 <span class="kn">from</span> <span class="nn">.speech_utils</span> <span class="k">import</span> <span class="n">get_speech_features_from_file</span><span class="p">,</span> <span class="n">get_speech_features</span>
+<span class="kn">import</span> <span class="nn">sentencepiece</span> <span class="k">as</span> <span class="nn">spm</span>
 
 
 <div class="viewcode-block" id="Speech2TextDataLayer"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer">[docs]</a><span class="k">class</span> <span class="nc">Speech2TextDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
@@ -192,6 +193,7 @@
         <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="s1">&#39;pad_to&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;max_duration&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;bpe&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;autoregressive&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
@@ -201,7 +203,7 @@
 <span class="sd">    Config parameters:</span>
 <span class="sd">    * **num_audio_features** (int) --- number of audio features to extract.</span>
 <span class="sd">    * **input_type** (str) --- could be either &quot;spectrogram&quot; or &quot;mfcc&quot;.</span>
-<span class="sd">    * **vocab_file** (str) --- path to vocabulary file.</span>
+<span class="sd">    * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.</span>
 <span class="sd">    * **dataset_files** (list) --- list with paths to all dataset .csv files.</span>
 <span class="sd">    * **augmentation** (dict) --- optional dictionary with data augmentation</span>
 <span class="sd">      parameters. Can contain &quot;time_stretch_ratio&quot;, &quot;noise_level_min&quot; and</span>
@@ -220,24 +222,29 @@
 
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_pre_existing_vocabulary</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">],</span> <span class="n">read_chars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-    <span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">target_pad_value</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span><span class="p">:</span>
-      <span class="c1"># add one for implied blank token</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bpe&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bpe&#39;</span><span class="p">]:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">sp</span> <span class="o">=</span> <span class="n">spm</span><span class="o">.</span><span class="n">SentencePieceProcessor</span><span class="p">()</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">Load</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">])</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">else</span><span class="p">:</span>
-      <span class="n">num_chars_orig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_chars_orig</span> <span class="o">+</span> <span class="mi">2</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="n">num_chars_orig</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">num_chars_orig</span> <span class="o">+</span> <span class="mi">1</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;S&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;/S&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span>
-      <span class="bp">self</span><span class="o">.</span><span class="n">target_pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span>
-
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span>
-                               <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">load_pre_existing_vocabulary</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;vocab_file&#39;</span><span class="p">],</span> <span class="n">read_chars</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+      <span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span><span class="p">:</span>
+        <span class="c1"># add one for implied blank token</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">num_chars_orig</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">num_chars_orig</span> <span class="o">+</span> <span class="mi">2</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span> <span class="o">=</span> <span class="n">num_chars_orig</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span> <span class="o">=</span> <span class="n">num_chars_orig</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;S&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">start_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="s1">&#39;&lt;/S&gt;&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">target_pad_value</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">end_index</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="p">:</span> <span class="n">w</span> <span class="k">for</span> <span class="n">w</span><span class="p">,</span>
+                                 <span class="n">i</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">target_pad_value</span> <span class="o">=</span> <span class="mi">0</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;interactive&quot;</span><span class="p">]:</span>
@@ -314,7 +321,7 @@
                          <span class="mi">1</span><span class="p">,</span> <span class="p">[</span><span class="kc">None</span><span class="p">],</span> <span class="mi">1</span><span class="p">),</span>
           <span class="n">padding_values</span><span class="o">=</span><span class="p">(</span>
               <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]),</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target_pad_value</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
-      <span class="p">)</span><span class="o">.</span><span class="n">cache</span><span class="p">()</span>
+      <span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="n">indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">split_data</span><span class="p">(</span>
           <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">all_files</span><span class="p">)))))</span>
@@ -455,7 +462,10 @@
     <span class="n">audio_filename</span><span class="p">,</span> <span class="n">transcript</span> <span class="o">=</span> <span class="n">element</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">six</span><span class="o">.</span><span class="n">PY2</span><span class="p">:</span>
       <span class="n">transcript</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">transcript</span><span class="p">,</span> <span class="s1">&#39;utf-8&#39;</span><span class="p">)</span>
-    <span class="n">target_indices</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bpe&#39;</span><span class="p">]:</span>
+      <span class="n">target_indices</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">EncodeAsIds</span><span class="p">(</span><span class="n">transcript</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">target_indices</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;char2idx&#39;</span><span class="p">][</span><span class="n">c</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">transcript</span><span class="p">]</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span><span class="p">:</span>
       <span class="n">target_indices</span> <span class="o">=</span> <span class="n">target_indices</span> <span class="o">+</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">end_index</span><span class="p">]</span>
     <span class="n">target</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">target_indices</span><span class="p">)</span>
@@ -528,6 +538,7 @@
 <div class="viewcode-block" id="Speech2TextDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the number of audio files.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span></div></div>
+
 </pre></div>
 
            </div>

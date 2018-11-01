@@ -262,7 +262,7 @@ global_norm: A 0-D (scalar) <cite>Tensor</cite> representing the global norm.</p
 
 <dl class="function">
 <dt id="optimizers.optimizers.optimize_loss">
-<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>dtype=tf.float32</em>, <em>clip_gradients=None</em>, <em>summaries=None</em>, <em>larc_params=None</em>, <em>loss_scaling=1.0</em>, <em>loss_scaling_params=None</em>, <em>on_horovod=False</em>, <em>iter_size=1</em>, <em>skip_update_ph=None</em>, <em>model=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.optimizers.</code><code class="descname">optimize_loss</code><span class="sig-paren">(</span><em>loss</em>, <em>optimizer</em>, <em>optimizer_params</em>, <em>learning_rate_decay_fn</em>, <em>var_list=None</em>, <em>dtype=tf.float32</em>, <em>clip_gradients=None</em>, <em>summaries=None</em>, <em>larc_params=None</em>, <em>loss_scaling=1.0</em>, <em>loss_scaling_params=None</em>, <em>on_horovod=False</em>, <em>iter_size=1</em>, <em>skip_update_ph=None</em>, <em>model=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/optimizers.html#optimize_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.optimizers.optimize_loss" title="Permalink to this definition">¶</a></dt>
 <dd><p>Given loss and parameters for optimizer, returns a training op.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -276,6 +276,9 @@ string should be name of optimizer, like ‘SGD’,
 class should be sub-class of <cite>tf.Optimizer</cite> that implements
 <cite>compute_gradients</cite> and <cite>apply_gradients</cite> functions.</li>
 <li><strong>optimizer_params</strong> – parameters of the optimizer.</li>
+<li><strong>var_list</strong> – List of trainable variables. Can be used to freeze
+certain trainable variables by excluding them from this list.
+If set to None, all trainable variables will be optimized.</li>
 <li><strong>dtype</strong> – model dtype (tf.float16, tf.float32 or “mixed”).</li>
 <li><strong>learning_rate_decay_fn</strong> – function, takes <cite>global_step</cite>
 <cite>Tensor`s, returns `Tensor</cite>.

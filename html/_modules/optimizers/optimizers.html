@@ -266,6 +266,7 @@
                   <span class="n">optimizer</span><span class="p">,</span>
                   <span class="n">optimizer_params</span><span class="p">,</span>
                   <span class="n">learning_rate_decay_fn</span><span class="p">,</span>
+                  <span class="n">var_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span>
                   <span class="n">clip_gradients</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                   <span class="n">summaries</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -286,6 +287,9 @@
 <span class="sd">        class should be sub-class of `tf.Optimizer` that implements</span>
 <span class="sd">        `compute_gradients` and `apply_gradients` functions.</span>
 <span class="sd">    optimizer_params: parameters of the optimizer.</span>
+<span class="sd">    var_list: List of trainable variables. Can be used to freeze</span>
+<span class="sd">        certain trainable variables by excluding them from this list. </span>
+<span class="sd">        If set to None, all trainable variables will be optimized.</span>
 <span class="sd">    dtype: model dtype (tf.float16, tf.float32 or &quot;mixed&quot;).</span>
 <span class="sd">    learning_rate_decay_fn: function, takes `global_step`</span>
 <span class="sd">        `Tensor`s, returns `Tensor`.</span>
@@ -356,7 +360,7 @@
 
     <span class="c1"># Compute gradients.</span>
     <span class="n">grads_and_vars</span> <span class="o">=</span> <span class="n">opt</span><span class="o">.</span><span class="n">compute_gradients</span><span class="p">(</span>
-        <span class="n">loss</span><span class="p">,</span> <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">loss</span><span class="p">,</span> <span class="n">colocate_gradients_with_ops</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">var_list</span><span class="o">=</span><span class="n">var_list</span>
     <span class="p">)</span>
 
     <span class="k">if</span> <span class="n">on_horovod</span><span class="p">:</span>

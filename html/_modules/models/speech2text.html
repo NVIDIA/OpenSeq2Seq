@@ -182,6 +182,14 @@
   <span class="k">return</span> <span class="n">text</span></div>
 
 
+<div class="viewcode-block" id="sparse_tensor_to_chars_bpe"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.sparse_tensor_to_chars_bpe">[docs]</a><span class="k">def</span> <span class="nf">sparse_tensor_to_chars_bpe</span><span class="p">(</span><span class="n">tensor</span><span class="p">):</span>
+  <span class="n">idx</span> <span class="o">=</span> <span class="p">[[]</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">dense_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+  <span class="k">for</span> <span class="n">idx_tuple</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">tensor</span><span class="o">.</span><span class="n">indices</span><span class="p">,</span> <span class="n">tensor</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+    <span class="n">idx</span><span class="p">[</span><span class="n">idx_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+  
+  <span class="k">return</span> <span class="n">idx</span></div>
+
+
 <div class="viewcode-block" id="dense_tensor_to_chars"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.dense_tensor_to_chars">[docs]</a><span class="k">def</span> <span class="nf">dense_tensor_to_chars</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">idx2char</span><span class="p">,</span> <span class="n">startindex</span><span class="p">,</span> <span class="n">endindex</span><span class="p">):</span>
   <span class="n">batch_size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">tensor</span><span class="p">)</span>
   <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">batch_size</span>
@@ -251,9 +259,11 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
         <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
     <span class="p">)</span>
+
+    <span class="bp">self</span><span class="o">.</span><span class="n">is_bpe</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span> <span class="o">=</span> <span class="n">sparse_tensor_to_chars</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">start_index</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">][</span><span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">end_index</span>
@@ -264,7 +274,7 @@
     <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Speech2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_decoder</span><span class="p">()</span>
 
   <span class="k">def</span> <span class="nf">_create_loss</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span>
           <span class="s1">&#39;batch_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size_per_gpu&#39;</span><span class="p">]</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;loss_params&#39;</span><span class="p">][</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span>
@@ -279,20 +289,26 @@
     <span class="n">len_y_one_sample</span> <span class="o">=</span> <span class="n">len_y</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">decoded_sequence_one_batch</span> <span class="o">=</span> <span class="n">decoded_sequence</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-    <span class="c1"># we also clip the sample by the correct length</span>
-    <span class="n">true_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
-        <span class="n">y_one_sample</span><span class="p">[:</span><span class="n">len_y_one_sample</span><span class="p">],</span>
-    <span class="p">))</span>
-    <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
-        <span class="n">decoded_sequence_one_batch</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
-        <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
-    <span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_bpe</span><span class="p">:</span>
+      <span class="n">dec_list</span> <span class="o">=</span> <span class="n">sparse_tensor_to_chars_bpe</span><span class="p">(</span><span class="n">decoded_sequence_one_batch</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">true_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">DecodeIds</span><span class="p">(</span><span class="n">y_one_sample</span><span class="p">[:</span><span class="n">len_y_one_sample</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+      <span class="n">pred_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">DecodeIds</span><span class="p">(</span><span class="n">dec_list</span><span class="p">)</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="c1"># we also clip the sample by the correct length</span>
+      <span class="n">true_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
+          <span class="n">y_one_sample</span><span class="p">[:</span><span class="n">len_y_one_sample</span><span class="p">],</span>
+      <span class="p">))</span>
+      <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
+          <span class="n">decoded_sequence_one_batch</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
+          <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
+      <span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
     <span class="n">sample_wer</span> <span class="o">=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">pred_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="o">/</span> \
         <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">plot_attention</span> <span class="o">=</span> <span class="kc">False</span>  <span class="c1"># (output_values[1] != None).all()</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">plot_attention</span><span class="p">:</span>
       <span class="n">attention_summary</span> <span class="o">=</span> <span class="n">plot_attention</span><span class="p">(</span>
@@ -311,7 +327,7 @@
       <span class="k">return</span> <span class="p">{</span>
           <span class="s1">&#39;Sample WER&#39;</span><span class="p">:</span> <span class="n">sample_wer</span><span class="p">,</span>
       <span class="p">}</span></div>
-
+    
 <div class="viewcode-block" id="Speech2Text.finalize_evaluation"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.finalize_evaluation">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_evaluation</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">training_step</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="n">total_word_lev</span> <span class="o">=</span> <span class="mf">0.0</span>
     <span class="n">total_word_count</span> <span class="o">=</span> <span class="mf">0.0</span>
@@ -330,22 +346,34 @@
     <span class="n">total_word_count</span> <span class="o">=</span> <span class="mf">0.0</span>
 
     <span class="n">decoded_sequence</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">decoded_texts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
-        <span class="n">decoded_sequence</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
-        <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
-    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_bpe</span><span class="p">:</span>
+      <span class="n">decoded_texts</span> <span class="o">=</span> <span class="n">sparse_tensor_to_chars_bpe</span><span class="p">(</span><span class="n">decoded_sequence</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">decoded_texts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
+          <span class="n">decoded_sequence</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
+          <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
+      <span class="p">)</span>
+
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">sample_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">batch_size</span><span class="p">):</span>
       <span class="c1"># y is the third returned input value, thus input_values[2]</span>
       <span class="c1"># len_y is the fourth returned input value</span>
       <span class="n">y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="n">sample_id</span><span class="p">]</span>
       <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">sample_id</span><span class="p">]</span>
-      <span class="n">true_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_bpe</span><span class="p">:</span>
+        <span class="n">true_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">DecodeIds</span><span class="p">(</span><span class="n">y</span><span class="p">[:</span><span class="n">len_y</span><span class="p">]</span><span class="o">.</span><span class="n">tolist</span><span class="p">())</span>
+        <span class="n">pred_text</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">sp</span><span class="o">.</span><span class="n">DecodeIds</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">[</span><span class="n">sample_id</span><span class="p">])</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">true_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">,</span>
                               <span class="n">y</span><span class="p">[:</span><span class="n">len_y</span><span class="p">]))</span>
-      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]:</span>
+        <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">[</span><span class="n">sample_id</span><span class="p">])</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
         <span class="n">true_text</span> <span class="o">=</span> <span class="n">true_text</span><span class="p">[:</span><span class="o">-</span><span class="mi">4</span><span class="p">]</span>
-      <span class="n">pred_text</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_texts</span><span class="p">[</span><span class="n">sample_id</span><span class="p">])</span>
+
+      <span class="c1"># print(&#39;TRUE_TEXT: &quot;{}&quot;&#39;.format(true_text))</span>
+      <span class="c1"># print(&#39;PRED_TEXT: &quot;{}&quot;&#39;.format(pred_text))</span>
 
       <span class="n">total_word_lev</span> <span class="o">+=</span> <span class="n">levenshtein</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">(),</span> <span class="n">pred_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>
       <span class="n">total_word_count</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">true_text</span><span class="o">.</span><span class="n">split</span><span class="p">())</span>

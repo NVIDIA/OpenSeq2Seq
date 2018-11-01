@@ -349,6 +349,10 @@ optimizer <code class="docutils literal notranslate"><span class="pre">__init__<
 <li><strong>initializer</strong> — any valid TensorFlow initializer.</li>
 <li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
 initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>freeze_variables_regex</strong> (str or None) — if zero or more characters
+at the beginning of the name of a trainable variable match this
+pattern, then this variable will be frozen during training.
+Setting it to None disables freezing of variables.</li>
 <li><strong>regularizer</strong> — and valid TensorFlow regularizer.</li>
 <li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
 regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>

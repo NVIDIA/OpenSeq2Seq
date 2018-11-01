@@ -375,6 +375,11 @@
       <span class="n">dict_to_log</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">finalize_evaluation</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">,</span> <span class="n">step</span><span class="p">)</span>
       <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;eval_loss&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">total_loss</span>
 
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print_ppl</span><span class="p">:</span>
+        <span class="c1"># Add bpc and ppl metrics to tensorboard</span>
+        <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;ppl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">total_loss</span><span class="p">)</span>
+        <span class="n">dict_to_log</span><span class="p">[</span><span class="s1">&#39;bpc&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">math</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">total_loss</span><span class="o">/</span><span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        
       <span class="c1"># saving the best validation model</span>
       <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="ow">and</span> \
          <span class="n">total_loss</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span><span class="p">:</span>

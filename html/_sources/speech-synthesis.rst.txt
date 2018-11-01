@@ -20,7 +20,7 @@ Currently we support following models:
    * - :doc:`Tacotron-2 </speech-synthesis/tacotron-2>`
      - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2speech/tacotron_LJ_float.py>`_
      - :doc:`here </speech-synthesis/tacotron-2-samples>`
-     - To be added
+     - `link <https://drive.google.com/open?id=1Ddf7nDI2PpgaxvZMm7bd8N_Evk_ExTwg>`_
 
 The model specification and training parameters can be found in the corresponding config file.
 

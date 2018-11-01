@@ -283,6 +283,10 @@ optimizer <code class="docutils literal notranslate"><span class="pre">__init__<
 <li><strong>initializer</strong> — any valid TensorFlow initializer.</li>
 <li><strong>initializer_params</strong> (dict) — dictionary that will be passed to
 initializer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
+<li><strong>freeze_variables_regex</strong> (str or None) — if zero or more characters
+at the beginning of the name of a trainable variable match this
+pattern, then this variable will be frozen during training.
+Setting it to None disables freezing of variables.</li>
 <li><strong>regularizer</strong> — and valid TensorFlow regularizer.</li>
 <li><strong>regularizer_params</strong> (dict) — dictionary that will be passed to
 regularizer <code class="docutils literal notranslate"><span class="pre">__init__</span></code> method.</li>
@@ -1156,6 +1160,11 @@ The code was copied from: <a class="reference external" href="http://hetland.org
 <dl class="function">
 <dt id="models.speech2text.sparse_tensor_to_chars">
 <code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_to_chars</code><span class="sig-paren">(</span><em>tensor</em>, <em>idx2char</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_to_chars"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_to_chars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="models.speech2text.sparse_tensor_to_chars_bpe">
+<code class="descclassname">models.speech2text.</code><code class="descname">sparse_tensor_to_chars_bpe</code><span class="sig-paren">(</span><em>tensor</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#sparse_tensor_to_chars_bpe"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.sparse_tensor_to_chars_bpe" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>

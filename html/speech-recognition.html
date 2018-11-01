@@ -98,6 +98,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#training">Training</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#evaluation">Evaluation</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#inference">Inference</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#multi-gpu-training">Multi-GPU training</a></li>
 </ul>
 </li>
 </ul>
@@ -181,10 +182,10 @@
 <p>Currently we support following models:</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="40%" />
-<col width="20%" />
+<col width="33%" />
+<col width="17%" />
+<col width="33%" />
+<col width="17%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Model description</th>
@@ -199,10 +200,20 @@
 <td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_mp</a></td>
 <td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
 </tr>
-<tr class="row-odd"><td><a class="reference internal" href="speech-recognition/wave2letter.html"><span class="doc">Wavel2Letter+</span></a></td>
+<tr class="row-odd"><td><a class="reference internal" href="speech-recognition/wave2letter.html"><span class="doc">Wave2Letter+</span></a></td>
 <td>6.67</td>
 <td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a></td>
 <td><a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">link</a></td>
+</tr>
+<tr class="row-even"><td><a class="reference internal" href="speech-recognition/wave2letter.html"><span class="doc">Wave2Letter+-34</span></a></td>
+<td>5.10</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py">w2lplus_xlarge_34_8gpus_mp</a></td>
+<td><a class="reference external" href="https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing">link</a></td>
+</tr>
+<tr class="row-odd"><td><a class="reference internal" href="speech-recognition/wave2letter.html"><span class="doc">Wave2Letter+-54-syn</span></a></td>
+<td>4.32</td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py">w2lplus_xlarge_54_8gpus_mp</a></td>
+<td><a class="reference external" href="https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing">link</a></td>
 </tr>
 </tbody>
 </table>
@@ -258,6 +269,17 @@ Also, you might want to disable evaluation during training by using <code class=
 <h3>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h3>
 <p>Once training is done (this can take a while on a single GPU), you can run inference:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">speech2text</span><span class="o">/</span><span class="n">ds2_small_1gpu</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">ds2_out</span><span class="o">.</span><span class="n">txt</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="multi-gpu-training">
+<h3>Multi-GPU training<a class="headerlink" href="#multi-gpu-training" title="Permalink to this headline">¶</a></h3>
+<p>To train on &lt;N&gt; GPUs without Horovod:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">False</span> <span class="o">--</span><span class="n">num_gpus</span><span class="o">=&lt;</span><span class="n">N</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>To train with Horovod on &lt;N&gt; GPUs, use the following command:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">--</span><span class="n">allow</span><span class="o">-</span><span class="n">run</span><span class="o">-</span><span class="k">as</span><span class="o">-</span><span class="n">root</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">N</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span>
 </pre></div>
 </div>
 </div>
