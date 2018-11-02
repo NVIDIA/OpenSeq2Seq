@@ -86,3 +86,11 @@ tacotron2\_encoder
     :members:
     :undoc-members:
     :show-inheritance:
+
+wavenet\_encoder
+--------------------------------
+
+.. automodule:: encoders.wavenet_encoder
+    :members:
+    :undoc-members:
+    :show-inheritance:

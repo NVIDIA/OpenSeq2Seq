@@ -46,3 +46,10 @@ tacotron\_loss
     :undoc-members:
     :show-inheritance:
 
+wavenet\_loss
+----------------------------------
+
+.. automodule:: losses.wavenet_loss
+    :members:
+    :undoc-members:
+    :show-inheritance:
