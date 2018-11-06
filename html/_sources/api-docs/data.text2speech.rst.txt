@@ -14,6 +14,14 @@ text2speech
     :undoc-members:
     :show-inheritance:
 
+text2speech_wavenet
+-------------------
+
+.. automodule:: data.text2speech.text2speech_wavenet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 speech\_utils
 -------------
 

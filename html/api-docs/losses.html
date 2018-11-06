@@ -106,6 +106,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.sequence_loss">sequence_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.cross_entropy_loss">cross_entropy_loss</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-losses.tacotron_loss">tacotron_loss</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-losses.wavenet_loss">wavenet_loss</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="optimizers.html">optimizers</a></li>
@@ -806,6 +807,78 @@ corrections from the post net of shape [batch, time, feats]</li>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-losses.wavenet_loss">
+<span id="wavenet-loss"></span><h2>wavenet_loss<a class="headerlink" href="#module-losses.wavenet_loss" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="losses.wavenet_loss.WavenetLoss">
+<em class="property">class </em><code class="descclassname">losses.wavenet_loss.</code><code class="descname">WavenetLoss</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='wavenet_loss'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/wavenet_loss.html#WavenetLoss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.wavenet_loss.WavenetLoss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#losses.loss.Loss" title="losses.loss.Loss"><code class="xref py py-class docutils literal notranslate"><span class="pre">losses.loss.Loss</span></code></a></p>
+<dl class="method">
+<dt id="losses.wavenet_loss.WavenetLoss._compute_loss">
+<code class="descname">_compute_loss</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/wavenet_loss.html#WavenetLoss._compute_loss"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.wavenet_loss.WavenetLoss._compute_loss" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the cross-entropy loss for WaveNet.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <ul>
+<li>“decoder_output”: array containing: [
+* logits: predicted output signal as logits
+* outputs: array containing: [<blockquote>
+<div><ul class="simple">
+<li>ground truth signal as encoded labels</li>
+<li>mu-law decoded audio</li>
+</ul>
+</div></blockquote>
+<p>]</p>
+</li>
+</ul>
+<p>]</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="losses.wavenet_loss.WavenetLoss.get_optional_params">
+<code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/wavenet_loss.html#WavenetLoss.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.wavenet_loss.WavenetLoss.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="losses.wavenet_loss.WavenetLoss.get_required_params">
+<code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/losses/wavenet_loss.html#WavenetLoss.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#losses.wavenet_loss.WavenetLoss.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
 class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
 </tr>

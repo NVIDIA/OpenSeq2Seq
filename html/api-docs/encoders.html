@@ -109,6 +109,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.resnet_blocks">resnet_blocks</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.cnn_encoder">cnn_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.tacotron2_encoder">tacotron2_encoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.wavenet_encoder">wavenet_encoder</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="decoders.html">decoders</a></li>
@@ -1775,6 +1776,103 @@ class <a class="reference internal" href="#encoders.tacotron2_encoder.Tacotron2E
 </table>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-encoders.wavenet_encoder">
+<span id="wavenet-encoder"></span><h2>wavenet_encoder<a class="headerlink" href="#module-encoders.wavenet_encoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="encoders.wavenet_encoder.WavenetEncoder">
+<em class="property">class </em><code class="descclassname">encoders.wavenet_encoder.</code><code class="descname">WavenetEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='wavenet_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#WavenetEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.WavenetEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>WaveNet like encoder.</p>
+<p>Consists of several blocks of dilated causal convolutions.</p>
+<dl class="method">
+<dt id="encoders.wavenet_encoder.WavenetEncoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='wavenet_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#WavenetEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.WavenetEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>WaveNet like encoder constructor.</p>
+<p>Config parameters:
+* <strong>layer_type</strong> (str) — type of convolutional layer, currently only</p>
+<blockquote>
+<div>supports “conv1d”</div></blockquote>
+<ul class="simple">
+<li><strong>kernel_size</strong> (int) — size of kernel</li>
+<li><strong>strides</strong> (int) — size of stride</li>
+<li><strong>padding</strong> (str) — padding, can be “SAME” or “VALID”</li>
+<li><strong>blocks</strong> (int) — number of dilation cycles</li>
+<li><strong>layers_per_block</strong> (int) — number of dilated convolutional layers in
+each block</li>
+<li><strong>filters</strong> (int) — number of output channels</li>
+<li><strong>quantization_channels</strong> (int) — depth of mu-law quantized input</li>
+<li><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</li>
+<li><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.1.</li>
+<li><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-5.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="encoders.wavenet_encoder.WavenetEncoder._encode">
+<code class="descname">_encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#WavenetEncoder._encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.WavenetEncoder._encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates TensorFlow graph for WaveNet like encoder.
+…</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.wavenet_encoder.WavenetEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#WavenetEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.WavenetEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.wavenet_encoder.WavenetEncoder.__init__" title="encoders.wavenet_encoder.WavenetEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.wavenet_encoder.WavenetEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#WavenetEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.WavenetEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.wavenet_encoder.WavenetEncoder.__init__" title="encoders.wavenet_encoder.WavenetEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="encoders.wavenet_encoder.causal_conv_bn_actv">
+<code class="descclassname">encoders.wavenet_encoder.</code><code class="descname">causal_conv_bn_actv</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>kernel_size</em>, <em>activation_fn</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em>, <em>dilation=1</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#causal_conv_bn_actv"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.causal_conv_bn_actv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a single dilated causal convolutional layer with batch norm</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="encoders.wavenet_encoder.conv_1x1">
+<code class="descclassname">encoders.wavenet_encoder.</code><code class="descname">conv_1x1</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>filters</em>, <em>strides</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#conv_1x1"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.conv_1x1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a single 1x1 convolution for convenience</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="encoders.wavenet_encoder.wavenet_conv_block">
+<code class="descclassname">encoders.wavenet_encoder.</code><code class="descname">wavenet_conv_block</code><span class="sig-paren">(</span><em>layer_type</em>, <em>name</em>, <em>inputs</em>, <em>condition_filter</em>, <em>condition_gate</em>, <em>filters</em>, <em>kernel_size</em>, <em>strides</em>, <em>padding</em>, <em>regularizer</em>, <em>training</em>, <em>data_format</em>, <em>bn_momentum</em>, <em>bn_epsilon</em>, <em>layers_per_block</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/wavenet_encoder.html#wavenet_conv_block"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.wavenet_encoder.wavenet_conv_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>Defines a single WaveNet block using the architecture specified in the
+original paper, including skip and residual connections</p>
 </dd></dl>
 
 </div>

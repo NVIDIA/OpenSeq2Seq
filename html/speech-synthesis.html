@@ -91,6 +91,7 @@
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Speech Synthesis</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#models">Models</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="speech-synthesis/tacotron-2.html">Tacotron 2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="speech-synthesis/wavenet.html">WaveNet</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting started</a><ul>
@@ -179,10 +180,10 @@
 <p>Currently we support following models:</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="20%" />
-<col width="40%" />
-<col width="20%" />
-<col width="20%" />
+<col width="17%" />
+<col width="50%" />
+<col width="17%" />
+<col width="17%" />
 </colgroup>
 <thead valign="bottom">
 <tr class="row-odd"><th class="head">Model description</th>
@@ -197,6 +198,11 @@
 <td><a class="reference internal" href="speech-synthesis/tacotron-2-samples.html"><span class="doc">here</span></a></td>
 <td><a class="reference external" href="https://drive.google.com/open?id=1Ddf7nDI2PpgaxvZMm7bd8N_Evk_ExTwg">link</a></td>
 </tr>
+<tr class="row-odd"><td><a class="reference internal" href="speech-synthesis/wavenet.html"><span class="doc">WaveNet</span></a></td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11/example_configs/text2speech/wavenet_float.py">wavenet_LJ_float.py</a></td>
+<td>n/a</td>
+<td>n/a</td>
+</tr>
 </tbody>
 </table>
 <p>The model specification and training parameters can be found in the corresponding config file.</p>
@@ -205,11 +211,12 @@
 </div>
 <div class="section" id="getting-started">
 <h2>Getting started<a class="headerlink" href="#getting-started" title="Permalink to this headline">¶</a></h2>
-<p>The current tacotron 2 implementation supports the
+<p>The current Tacotron 2 implementation supports the
 <a class="reference external" href="https://keithito.com/LJ-Speech-Dataset/">LJSpeech</a> dataset and the
 <a class="reference external" href="http://www.m-ailabs.bayern/en/the-mailabs-speech-dataset/">MAILABS</a> dataset.
 For more details about the model including hyperparameters and tips, see
-<a class="reference internal" href="speech-synthesis/tacotron-2.html"><span class="doc">Tacotron-2</span></a>.</p>
+<a class="reference internal" href="speech-synthesis/tacotron-2.html"><span class="doc">Tacotron-2</span></a>. The current WaveNet
+implementation only supports LJSpeech.</p>
 <p>It is recommended to start with the LJSpeech dataset to familiarize yourself
 with the data layer.</p>
 <div class="section" id="get-data">
@@ -221,13 +228,17 @@ transcripts delimited by the ‘|’ character.</p>
 </div>
 <div class="section" id="training">
 <h3>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h3>
-<p>Next let’s train a tacotron 2 model. For this:</p>
+<p>Both WaveNet and Tacotron 2 can be trained using LJSpeech. For this:</p>
 <ul class="simple">
 <li>change <code class="docutils literal notranslate"><span class="pre">dataset_location</span></code> under to point to the directory containing the metadata.csv file.</li>
 <li>rename <code class="docutils literal notranslate"><span class="pre">metadata.csv</span></code> to <code class="docutils literal notranslate"><span class="pre">train.csv</span></code></li>
 </ul>
-<p>Start training:</p>
+<p>To start training Tacotron:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
+</pre></div>
+</div>
+<p>Similarly, to start training WaveNet:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">wavenet_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
 </pre></div>
 </div>
 <p>If your GPU does not have enough memory, reduce the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>
@@ -247,6 +258,12 @@ Lastly, run</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">unused</span>
 </pre></div>
 </div>
+<p>For WaveNet, only interactive infer is supported. First, start a jupyter notebook in the root
+directory and replace the contents of the first box of with <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11/scripts/tacotron_save_spec.py">tacotron_save_spec.py</a>.
+This will save the spectrogram generated by Tacotron as a numpy array in <code class="docutils literal notranslate"><span class="pre">spec.npy</span></code>.
+Next, replace the contents of the first box with <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11/scripts/wavenet_naive_infer.py">wavenet_naive_infer.py</a>
+and re-run the notebook. The generated audio will be saved to <code class="docutils literal notranslate"><span class="pre">result/sample_step0_infer.wav</span></code>
+every 1000 steps. Note that this will take some time.</p>
 </div>
 </div>
 </div>

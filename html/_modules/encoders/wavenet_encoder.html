@@ -1,0 +1,664 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>encoders.wavenet_encoder &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+
+  
+  <script src="../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+        
+      <li>encoders.wavenet_encoder</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for encoders.wavenet_encoder</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Copyright (c) 2018 NVIDIA Corporation</span>
+
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">math</span> <span class="k">import</span> <span class="n">ceil</span>
+<span class="kn">from</span> <span class="nn">open_seq2seq.parts.cnns.conv_blocks</span> <span class="k">import</span> <span class="n">conv_actv</span><span class="p">,</span> <span class="n">conv_bn_actv</span>
+
+<span class="kn">from</span> <span class="nn">.encoder</span> <span class="k">import</span> <span class="n">Encoder</span>
+
+
+<span class="k">def</span> <span class="nf">_get_receptive_field</span><span class="p">(</span><span class="n">kernel_size</span><span class="p">,</span> <span class="n">blocks</span><span class="p">,</span> <span class="n">layers_per_block</span><span class="p">):</span>
+  <span class="n">dilations</span> <span class="o">=</span> <span class="p">[</span><span class="mi">2</span> <span class="o">**</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">layers_per_block</span><span class="p">)]</span>
+  <span class="k">return</span> <span class="p">(</span><span class="n">kernel_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">blocks</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dilations</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span>
+
+<span class="k">def</span> <span class="nf">_mu_law_encode</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">channels</span><span class="p">,</span> <span class="n">dtype</span><span class="p">):</span>
+  <span class="n">mu</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span><span class="n">channels</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+  <span class="n">safe_audio_abs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="p">),</span> <span class="mf">1.0</span><span class="p">)</span>
+  <span class="n">magnitude</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">mu</span> <span class="o">*</span> <span class="n">safe_audio_abs</span><span class="p">)</span> <span class="o">/</span> <span class="n">tf</span><span class="o">.</span><span class="n">log1p</span><span class="p">(</span><span class="n">mu</span><span class="p">)</span>
+  <span class="n">signal</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="o">*</span> <span class="n">magnitude</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">((</span><span class="n">signal</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">mu</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_mu_law_decode</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">channels</span><span class="p">):</span>
+  <span class="n">mu</span> <span class="o">=</span> <span class="n">channels</span> <span class="o">-</span> <span class="mi">1</span>
+  <span class="n">signal</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">output</span><span class="p">)</span> <span class="o">/</span> <span class="n">mu</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span>
+  <span class="n">magnitude</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">mu</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="mi">1</span> <span class="o">+</span> <span class="n">mu</span><span class="p">)</span><span class="o">**</span><span class="nb">abs</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="o">*</span> <span class="n">magnitude</span>
+
+<div class="viewcode-block" id="conv_1x1"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.conv_1x1">[docs]</a><span class="k">def</span> <span class="nf">conv_1x1</span><span class="p">(</span>
+    <span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span>
+    <span class="n">data_format</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Defines a single 1x1 convolution for convenience</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="k">return</span> <span class="n">conv_actv</span><span class="p">(</span>
+      <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+      <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+      <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+      <span class="n">kernel_size</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+      <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+      <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+      <span class="n">padding</span><span class="o">=</span><span class="s2">&quot;SAME&quot;</span><span class="p">,</span>
+      <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+      <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+      <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+  <span class="p">)</span></div>
+
+<div class="viewcode-block" id="causal_conv_bn_actv"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.causal_conv_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">causal_conv_bn_actv</span><span class="p">(</span>
+    <span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span> <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span>
+    <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="p">,</span>
+    <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Defines a single dilated causal convolutional layer with batch norm</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">block</span> <span class="o">=</span> <span class="n">conv_bn_actv</span><span class="p">(</span>
+      <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+      <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span>
+      <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+      <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+      <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+      <span class="n">activation_fn</span><span class="o">=</span><span class="n">activation_fn</span><span class="p">,</span>
+      <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+      <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+      <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+      <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+      <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+      <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+      <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+      <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span>
+  <span class="p">)</span>
+
+  <span class="c1"># pad the left side of the time-series with an amount of zeros based on the</span>
+  <span class="c1"># dilation rate</span>
+  <span class="n">block</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">block</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="n">dilation</span> <span class="o">*</span> <span class="p">(</span><span class="n">kernel_size</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
+  <span class="k">return</span> <span class="n">block</span></div>
+
+<div class="viewcode-block" id="wavenet_conv_block"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.wavenet_conv_block">[docs]</a><span class="k">def</span> <span class="nf">wavenet_conv_block</span><span class="p">(</span>
+    <span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">condition_filter</span><span class="p">,</span> <span class="n">condition_gate</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span>
+    <span class="n">kernel_size</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span> <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span>
+    <span class="n">bn_momentum</span><span class="p">,</span> <span class="n">bn_epsilon</span><span class="p">,</span> <span class="n">layers_per_block</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Defines a single WaveNet block using the architecture specified in the</span>
+<span class="sd">  original paper, including skip and residual connections</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">skips</span> <span class="o">=</span> <span class="kc">None</span>
+  <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">layers_per_block</span><span class="p">):</span>
+    <span class="c1"># split source along channels</span>
+    <span class="n">source_shape</span> <span class="o">=</span> <span class="n">inputs</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+    <span class="n">source_filter</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">source_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span>
+    <span class="n">source_gate</span> <span class="o">=</span> <span class="n">inputs</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">int</span><span class="p">(</span><span class="n">source_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):]</span>
+
+    <span class="n">dilation</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">**</span> <span class="n">layer</span>
+
+    <span class="n">source_filter</span> <span class="o">=</span> <span class="n">causal_conv_bn_actv</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;filter_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">layer</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">source_filter</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+        <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+        <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span>
+    <span class="p">)</span>
+
+    <span class="n">source_gate</span> <span class="o">=</span> <span class="n">causal_conv_bn_actv</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gate_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">layer</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">source_gate</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+        <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+        <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="o">=</span><span class="n">dilation</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">condition_filter</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">condition_gate</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">source_filter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source_filter</span><span class="p">,</span> <span class="n">condition_filter</span><span class="p">))</span>
+      <span class="n">source_gate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">source_gate</span><span class="p">,</span> <span class="n">condition_gate</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">source_filter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">tanh</span><span class="p">(</span><span class="n">source_filter</span><span class="p">)</span>
+      <span class="n">source_gate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">sigmoid</span><span class="p">(</span><span class="n">source_gate</span><span class="p">)</span>
+
+    <span class="n">conv_feats</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">source_filter</span><span class="p">,</span> <span class="n">source_gate</span><span class="p">)</span>
+
+    <span class="n">residual</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;residual_1x1_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">layer</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">conv_feats</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+    <span class="p">)</span>
+
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">residual</span><span class="p">)</span>
+
+    <span class="n">skip</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;skip_1x1_</span><span class="si">{}</span><span class="s2">_</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">layer</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">conv_feats</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">skips</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="n">skips</span> <span class="o">=</span> <span class="n">skip</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">skips</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">skips</span><span class="p">,</span> <span class="n">skip</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">skips</span></div>
+
+<div class="viewcode-block" id="WavenetEncoder"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder">[docs]</a><span class="k">class</span> <span class="nc">WavenetEncoder</span><span class="p">(</span><span class="n">Encoder</span><span class="p">):</span>
+
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  WaveNet like encoder.</span>
+
+<span class="sd">  Consists of several blocks of dilated causal convolutions.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="WavenetEncoder.get_required_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">Encoder</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span>
+        <span class="o">**</span><span class="p">{</span>
+            <span class="s2">&quot;layer_type&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s2">&quot;strides&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s2">&quot;blocks&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s2">&quot;layers_per_block&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s2">&quot;filters&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+            <span class="s2">&quot;quantization_channels&quot;</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="WavenetEncoder.get_optional_params"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+  <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span>
+        <span class="o">**</span><span class="p">{</span>
+            <span class="s2">&quot;data_format&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+            <span class="s2">&quot;bn_momentum&quot;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+            <span class="s2">&quot;bn_epsilon&quot;</span><span class="p">:</span> <span class="nb">float</span>
+        <span class="p">}</span>
+    <span class="p">)</span></div>
+
+<div class="viewcode-block" id="WavenetEncoder.__init__"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;wavenet_encoder&quot;</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;train&quot;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    WaveNet like encoder constructor.</span>
+
+<span class="sd">    Config parameters:</span>
+<span class="sd">    * **layer_type** (str) --- type of convolutional layer, currently only</span>
+<span class="sd">      supports &quot;conv1d&quot;</span>
+<span class="sd">    * **kernel_size** (int) --- size of kernel</span>
+<span class="sd">    * **strides** (int) --- size of stride</span>
+<span class="sd">    * **padding** (str) --- padding, can be &quot;SAME&quot; or &quot;VALID&quot;</span>
+
+<span class="sd">    * **blocks** (int) --- number of dilation cycles</span>
+<span class="sd">    * **layers_per_block** (int) --- number of dilated convolutional layers in</span>
+<span class="sd">      each block</span>
+<span class="sd">    * **filters** (int) --- number of output channels</span>
+<span class="sd">    * **quantization_channels** (int) --- depth of mu-law quantized input</span>
+
+<span class="sd">    * **data_format** (string) --- could be either &quot;channels_first&quot; or</span>
+<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_last&quot;.</span>
+<span class="sd">    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.1.</span>
+<span class="sd">    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-5.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="nb">super</span><span class="p">(</span><span class="n">WavenetEncoder</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="WavenetEncoder._encode"><a class="viewcode-back" href="../../api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder._encode">[docs]</a>  <span class="k">def</span> <span class="nf">_encode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Creates TensorFlow graph for WaveNet like encoder.</span>
+<span class="sd">    ...</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">_mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+      <span class="n">source</span><span class="p">,</span> <span class="n">src_length</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">spec_length</span> <span class="o">=</span> <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span>
+      <span class="n">spec_offset</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">source</span><span class="p">,</span> <span class="n">src_length</span><span class="p">,</span> <span class="n">condition</span><span class="p">,</span> <span class="n">spec_length</span><span class="p">,</span> <span class="n">spec_offset</span> <span class="o">=</span> \
+        <span class="n">input_dict</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span>
+
+    <span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regularizer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">data_format</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;data_format&quot;</span><span class="p">,</span> <span class="s2">&quot;channels_last&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">data_format</span> <span class="o">!=</span> <span class="s2">&quot;channels_last&quot;</span><span class="p">:</span>
+      <span class="n">source</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+      <span class="n">condition</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">condition</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+    <span class="n">dtype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span>
+    <span class="n">layer_type</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;layer_type&quot;</span><span class="p">]</span>
+    <span class="n">kernel_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;kernel_size&quot;</span><span class="p">]</span>
+    <span class="n">strides</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;strides&quot;</span><span class="p">]</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;padding&quot;</span><span class="p">]</span>
+    <span class="n">blocks</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;blocks&quot;</span><span class="p">]</span>
+    <span class="n">layers_per_block</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;layers_per_block&quot;</span><span class="p">]</span>
+    <span class="n">filters</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;filters&quot;</span><span class="p">]</span>
+    <span class="n">quantization_channels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;quantization_channels&quot;</span><span class="p">]</span>
+
+    <span class="n">bn_momentum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bn_momentum&quot;</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">)</span>
+    <span class="n">bn_epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;bn_epsilon&quot;</span><span class="p">,</span> <span class="mf">1e-5</span><span class="p">)</span>
+    <span class="n">local_conditioning</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;local_conditioning&quot;</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">receptive_field</span> <span class="o">=</span> <span class="n">_get_receptive_field</span><span class="p">(</span>
+        <span class="n">kernel_size</span><span class="p">,</span> <span class="n">blocks</span><span class="p">,</span> <span class="n">layers_per_block</span>
+    <span class="p">)</span>
+
+    <span class="c1"># ----- Preprocessing -----------------------------------------------</span>
+
+    <span class="n">encoded_inputs</span> <span class="o">=</span> <span class="n">_mu_law_encode</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">quantization_channels</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+      <span class="c1"># remove last sample to maintain causality</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span>
+          <span class="n">encoded_inputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">encoded_inputs</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+      <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">inputs</span> <span class="o">=</span> <span class="n">encoded_inputs</span>
+
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">depth</span><span class="o">=</span><span class="n">quantization_channels</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span><span class="n">inputs</span><span class="p">,</span> <span class="n">dtype</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">local_conditioning</span><span class="p">:</span>
+      <span class="c1"># split condition along channels</span>
+      <span class="n">condition_shape</span> <span class="o">=</span> <span class="n">condition</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()</span>
+      <span class="n">condition_filter</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[:,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">:</span><span class="nb">int</span><span class="p">(</span><span class="n">condition_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)]</span>
+      <span class="n">condition_gate</span> <span class="o">=</span> <span class="n">condition</span><span class="p">[:,</span> <span class="p">:,</span> <span class="nb">int</span><span class="p">(</span><span class="n">condition_shape</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">/</span> <span class="mi">2</span><span class="p">):]</span>
+
+      <span class="n">condition_filter</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+          <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;filter_condition&quot;</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">condition_filter</span><span class="p">,</span>
+          <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+      <span class="p">)</span>
+
+      <span class="n">condition_gate</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+          <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;gate_condition&quot;</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">condition_gate</span><span class="p">,</span>
+          <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+      <span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+        <span class="c1"># remove last sample to maintain causality</span>
+        <span class="n">condition_filter</span> <span class="o">=</span> <span class="n">condition_filter</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="n">condition_gate</span> <span class="o">=</span> <span class="n">condition_gate</span><span class="p">[:,</span> <span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="p">:]</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># pad with zeros to align the condition to the source for</span>
+        <span class="c1"># autoregressive inference</span>
+        <span class="n">zeros</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">saturate_cast</span><span class="p">(</span>
+            <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">([</span><span class="n">condition_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">receptive_field</span><span class="p">,</span> <span class="n">filters</span><span class="p">]),</span>
+            <span class="n">dtype</span>
+        <span class="p">)</span>
+        <span class="n">condition_filter</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">zeros</span><span class="p">,</span> <span class="n">condition_filter</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">condition_gate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">zeros</span><span class="p">,</span> <span class="n">condition_gate</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="n">condition_filter</span> <span class="o">=</span> <span class="n">condition_filter</span><span class="p">[</span>
+            <span class="p">:,</span> <span class="n">spec_offset</span><span class="p">:</span><span class="n">spec_offset</span> <span class="o">+</span> <span class="n">receptive_field</span><span class="p">,</span> <span class="p">:</span>
+        <span class="p">]</span>
+        <span class="n">condition_gate</span> <span class="o">=</span> <span class="n">condition_gate</span><span class="p">[</span>
+            <span class="p">:,</span> <span class="n">spec_offset</span><span class="p">:</span><span class="n">spec_offset</span> <span class="o">+</span> <span class="n">receptive_field</span><span class="p">,</span> <span class="p">:</span>
+        <span class="p">]</span>
+
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">condition_filter</span> <span class="o">=</span> <span class="kc">None</span>
+      <span class="n">condition_gate</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ----- Convolutional layers -----------------------------------------------</span>
+
+    <span class="c1"># first causal convolutional layer</span>
+    <span class="n">inputs</span> <span class="o">=</span> <span class="n">causal_conv_bn_actv</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;preprocess&quot;</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+        <span class="n">activation_fn</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+        <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+        <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+        <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span>
+    <span class="p">)</span>
+
+    <span class="c1"># dilation stack</span>
+    <span class="n">skips</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">for</span> <span class="n">block</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">blocks</span><span class="p">):</span>
+      <span class="n">inputs</span><span class="p">,</span> <span class="n">skip</span> <span class="o">=</span> <span class="n">wavenet_conv_block</span><span class="p">(</span>
+          <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+          <span class="n">name</span><span class="o">=</span><span class="n">block</span><span class="p">,</span>
+          <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
+          <span class="n">condition_filter</span><span class="o">=</span><span class="n">condition_filter</span><span class="p">,</span>
+          <span class="n">condition_gate</span><span class="o">=</span><span class="n">condition_gate</span><span class="p">,</span>
+          <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+          <span class="n">kernel_size</span><span class="o">=</span><span class="n">kernel_size</span><span class="p">,</span>
+          <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+          <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
+          <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+          <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+          <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+          <span class="n">layers_per_block</span><span class="o">=</span><span class="n">layers_per_block</span>
+      <span class="p">)</span>
+
+      <span class="k">if</span> <span class="n">skips</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">skips</span> <span class="o">=</span> <span class="n">skip</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">skips</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">skips</span><span class="p">,</span> <span class="n">skip</span><span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">skips</span><span class="p">,</span> <span class="n">inputs</span><span class="p">)</span>
+
+    <span class="c1"># postprocessing</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;postprocess_1&quot;</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">filters</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+    <span class="p">)</span>
+
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">(</span><span class="n">outputs</span><span class="p">)</span>
+    <span class="n">outputs</span> <span class="o">=</span> <span class="n">conv_1x1</span><span class="p">(</span>
+        <span class="n">layer_type</span><span class="o">=</span><span class="n">layer_type</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;postprocess_2&quot;</span><span class="p">,</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">outputs</span><span class="p">,</span>
+        <span class="n">filters</span><span class="o">=</span><span class="n">quantization_channels</span><span class="p">,</span>
+        <span class="n">strides</span><span class="o">=</span><span class="n">strides</span><span class="p">,</span>
+        <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span>
+    <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+      <span class="c1"># remove samples that would be predicted without the full receptive field</span>
+      <span class="n">prediction</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">outputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">receptive_field</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+      <span class="n">target_output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">slice</span><span class="p">(</span><span class="n">encoded_inputs</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">receptive_field</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">prediction</span> <span class="o">=</span> <span class="n">outputs</span>
+      <span class="n">target_output</span> <span class="o">=</span> <span class="n">encoded_inputs</span>
+
+    <span class="c1"># decode the predicted signal as audio</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">outputs</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">output_type</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">_mu_law_decode</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;quantization_channels&quot;</span><span class="p">])</span>
+    <span class="n">audio</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">audio</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span> <span class="s2">&quot;logits&quot;</span><span class="p">:</span> <span class="n">prediction</span><span class="p">,</span> <span class="s2">&quot;outputs&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">target_output</span><span class="p">,</span> <span class="n">audio</span><span class="p">]</span> <span class="p">}</span></div></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

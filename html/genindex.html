@@ -195,6 +195,8 @@
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.__init__">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer.Subtokenizer.__init__">(data.text2text.tokenizer.Subtokenizer method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.decoder.Decoder.__init__">(decoders.decoder.Decoder method)</a>
@@ -230,6 +232,8 @@
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.__init__">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.__init__">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.__init__">(encoders.wavenet_encoder.WavenetEncoder method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.__init__">(losses.ctc_loss.CTCLoss method)</a>
 </li>
@@ -325,6 +329,8 @@
 </li>
         <li><a href="api-docs/losses.html#losses.tacotron_loss.TacotronLoss._compute_loss">(losses.tacotron_loss.TacotronLoss method)</a>
 </li>
+        <li><a href="api-docs/losses.html#losses.wavenet_loss.WavenetLoss._compute_loss">(losses.wavenet_loss.WavenetLoss method)</a>
+</li>
       </ul></li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch._continue_search">_continue_search() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
@@ -372,6 +378,8 @@
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder._encode">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder._encode">(encoders.w2l_encoder.Wave2LetterEncoder method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder._encode">(encoders.wavenet_encoder.WavenetEncoder method)</a>
 </li>
       </ul></li>
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._escape_token">_escape_token() (in module data.text2text.tokenizer)</a>
@@ -447,7 +455,11 @@
       <li><a href="api-docs/data.text2text.html#data.text2text.tokenizer._native_to_unicode">_native_to_unicode() (in module data.text2text.tokenizer)</a>
 </li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_element">_parse_audio_element() (data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+
+      <ul>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer._parse_audio_element">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer._parse_audio_transcript_element">_parse_audio_transcript_element() (data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 
       <ul>
@@ -623,6 +635,8 @@
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.build_graph">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.build_graph">(data.text2text.text2text.TransformerDataLayer method)</a>
@@ -670,6 +684,8 @@
       </ul></li>
       <li><a href="api-docs/utils.html#utils.utils.cast_types">cast_types() (in module utils.utils)</a>
 </li>
+      <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.causal_conv_bn_actv">causal_conv_bn_actv() (in module encoders.wavenet_encoder)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.check_base_model_logdir">check_base_model_logdir() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.automatic_loss_scaler.AutomaticLossScaler.check_grads">check_grads() (optimizers.automatic_loss_scaler.AutomaticLossScaler static method)</a>
@@ -696,10 +712,10 @@
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.Attention.combine_heads">combine_heads() (parts.transformer.attention_layer.Attention method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/models.html#models.model.Model.compile">compile() (models.model.Model method)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/optimizers.html#optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper.compute_gradients">compute_gradients() (optimizers.mp_wrapper.MixedPrecisionOptimizerWrapper method)</a>
 </li>
       <li><a href="api-docs/losses.html#losses.loss.Loss.compute_loss">compute_loss() (losses.loss.Loss method)</a>
@@ -707,6 +723,8 @@
       <li><a href="api-docs/parts.convs2s.html#parts.convs2s.conv_wn_layer.Conv1DNetworkNormalized">Conv1DNetworkNormalized (class in parts.convs2s.conv_wn_layer)</a>
 </li>
       <li><a href="api-docs/encoders.html#encoders.resnet_blocks.conv2d_fixed_padding">conv2d_fixed_padding() (in module encoders.resnet_blocks)</a>
+</li>
+      <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.conv_1x1">conv_1x1() (in module encoders.wavenet_encoder)</a>
 </li>
       <li><a href="api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_actv">conv_actv() (in module parts.cnns.conv_blocks)</a>
 </li>
@@ -729,6 +747,8 @@
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.create_feed_dict">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.create_feed_dict">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.create_feed_dict">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
       </ul></li>
@@ -738,6 +758,8 @@
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.create_interactive_placeholders">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.create_interactive_placeholders">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.create_interactive_placeholders">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.create_interactive_placeholders">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
@@ -781,6 +803,8 @@
       <li><a href="api-docs/data.text2speech.html#module-data.text2speech.speech_utils">data.text2speech.speech_utils (module)</a>
 </li>
       <li><a href="api-docs/data.text2speech.html#module-data.text2speech.text2speech">data.text2speech.text2speech (module)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#module-data.text2speech.text2speech_wavenet">data.text2speech.text2speech_wavenet (module)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#module-data.text2text">data.text2text (module)</a>
 </li>
@@ -876,10 +900,10 @@
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.encoder">encoders.encoder (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_blocks">encoders.resnet_blocks (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_encoder">encoders.resnet_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.rnn_encoders">encoders.rnn_encoders (module)</a>
@@ -889,6 +913,8 @@
       <li><a href="api-docs/encoders.html#module-encoders.transformer_encoder">encoders.transformer_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.w2l_encoder">encoders.w2l_encoder (module)</a>
+</li>
+      <li><a href="api-docs/encoders.html#module-encoders.wavenet_encoder">encoders.wavenet_encoder (module)</a>
 </li>
       <li><a href="api-docs/data.text2text.html#data.text2text.text2text.SpecialTextTokens.END_OF_CHOICE">END_OF_CHOICE (data.text2text.text2text.SpecialTextTokens attribute)</a>
 </li>
@@ -904,6 +930,8 @@
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.evaluate">(models.speech2text.Speech2Text method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.evaluate">(models.text2speech.Text2Speech method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.evaluate">(models.text2speech_wavenet.Text2SpeechWavenet method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.evaluate">(models.text2text.Text2Text method)</a>
 </li>
@@ -933,6 +961,8 @@
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.finalize_evaluation">(models.text2speech.Text2Speech method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation">(models.text2speech_wavenet.Text2SpeechWavenet method)</a>
+</li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.finalize_evaluation">(models.text2text.Text2Text method)</a>
 </li>
       </ul></li>
@@ -942,6 +972,8 @@
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.finalize_inference">(models.speech2text.Speech2Text method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.finalize_inference">(models.text2speech.Text2Speech method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference">(models.text2speech_wavenet.Text2SpeechWavenet method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.finalize_inference">(models.text2text.Text2Text method)</a>
 </li>
@@ -1007,6 +1039,8 @@
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_optional_params">(data.text2speech.text2speech_wavenet.WavenetDataLayer static method)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_optional_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.get_optional_params">(data.text2text.text2text.TransformerDataLayer static method)</a>
@@ -1051,6 +1085,8 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_optional_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_optional_params">(encoders.wavenet_encoder.WavenetEncoder static method)</a>
+</li>
         <li><a href="api-docs/losses.html#losses.ctc_loss.CTCLoss.get_optional_params">(losses.ctc_loss.CTCLoss static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.loss.Loss.get_optional_params">(losses.loss.Loss static method)</a>
@@ -1064,6 +1100,8 @@
         <li><a href="api-docs/losses.html#losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing.get_optional_params">(losses.sequence_loss.PaddedCrossEntropyLossWithSmoothing static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.tacotron_loss.TacotronLoss.get_optional_params">(losses.tacotron_loss.TacotronLoss method)</a>
+</li>
+        <li><a href="api-docs/losses.html#losses.wavenet_loss.WavenetLoss.get_optional_params">(losses.wavenet_loss.WavenetLoss method)</a>
 </li>
         <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_optional_params">(models.encoder_decoder.EncoderDecoderModel static method)</a>
 </li>
@@ -1080,8 +1118,6 @@
 </li>
       <li><a href="api-docs/optimizers.html#optimizers.optimizers.get_regularization_loss">get_regularization_loss() (in module optimizers.optimizers)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_required_params">get_required_params() (data.data_layer.DataLayer static method)</a>
 
       <ul>
@@ -1092,6 +1128,8 @@
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_required_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_required_params">(data.text2speech.text2speech_wavenet.WavenetDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_required_params">(data.text2text.text2text.ParallelTextDataLayer static method)</a>
 </li>
@@ -1135,6 +1173,8 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder.get_required_params">(encoders.w2l_encoder.Wave2LetterEncoder static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_required_params">(encoders.wavenet_encoder.WavenetEncoder static method)</a>
+</li>
         <li><a href="api-docs/losses.html#losses.loss.Loss.get_required_params">(losses.loss.Loss static method)</a>
 </li>
         <li><a href="api-docs/losses.html#losses.sequence_loss.BasicSampledSequenceLoss.get_required_params">(losses.sequence_loss.BasicSampledSequenceLoss static method)</a>
@@ -1143,13 +1183,19 @@
 </li>
         <li><a href="api-docs/losses.html#losses.sequence_loss.CrossEntropyWithSmoothing.get_required_params">(losses.sequence_loss.CrossEntropyWithSmoothing static method)</a>
 </li>
+        <li><a href="api-docs/losses.html#losses.wavenet_loss.WavenetLoss.get_required_params">(losses.wavenet_loss.WavenetLoss method)</a>
+</li>
         <li><a href="api-docs/models.html#models.encoder_decoder.EncoderDecoderModel.get_required_params">(models.encoder_decoder.EncoderDecoderModel static method)</a>
 </li>
         <li><a href="api-docs/models.html#models.model.Model.get_required_params">(models.model.Model static method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.get_required_params">(models.text2speech.Text2Speech static method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.get_required_params">(models.text2speech_wavenet.Text2SpeechWavenet static method)</a>
+</li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/utils.html#utils.utils.get_results_for_epoch">get_results_for_epoch() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.get_size_in_samples">get_size_in_samples() (data.data_layer.DataLayer method)</a>
@@ -1162,6 +1208,8 @@
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_size_in_samples">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.get_size_in_samples">(data.text2text.text2text.ParallelTextDataLayer method)</a>
 </li>
@@ -1223,6 +1271,8 @@
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.infer">(models.text2speech.Text2Speech method)</a>
 </li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.infer">(models.text2speech_wavenet.Text2SpeechWavenet method)</a>
+</li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.infer">(models.text2text.Text2Text method)</a>
 </li>
       </ul></li>
@@ -1249,6 +1299,8 @@
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
 </li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.input_tensors">(data.text2speech.text2speech_wavenet.WavenetDataLayer attribute)</a>
+</li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.input_tensors">(data.text2text.text2text.ParallelTextDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.TransformerDataLayer.input_tensors">(data.text2text.text2text.TransformerDataLayer attribute)</a>
@@ -1270,6 +1322,8 @@
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.iterator">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.iterator">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.iterator">(data.text2speech.text2speech_wavenet.WavenetDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2text.html#data.text2text.text2text.ParallelTextDataLayer.iterator">(data.text2text.text2text.ParallelTextDataLayer attribute)</a>
 </li>
@@ -1334,6 +1388,8 @@
 </li>
       <li><a href="api-docs/losses.html#module-losses.tacotron_loss">losses.tacotron_loss (module)</a>
 </li>
+      <li><a href="api-docs/losses.html#module-losses.wavenet_loss">losses.wavenet_loss (module)</a>
+</li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongAttention">LuongAttention (class in parts.rnns.attention_wrapper)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.attention_wrapper.LuongMonotonicAttention">LuongMonotonicAttention (class in parts.rnns.attention_wrapper)</a>
@@ -1354,6 +1410,8 @@
         <li><a href="api-docs/models.html#models.speech2text.Speech2Text.maybe_print_logs">(models.speech2text.Speech2Text method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2speech.Text2Speech.maybe_print_logs">(models.text2speech.Text2Speech method)</a>
+</li>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet.maybe_print_logs">(models.text2speech_wavenet.Text2SpeechWavenet method)</a>
 </li>
         <li><a href="api-docs/models.html#models.text2text.Text2Text.maybe_print_logs">(models.text2text.Text2Text method)</a>
 </li>
@@ -1383,6 +1441,8 @@
       <li><a href="api-docs/models.html#module-models.speech2text">models.speech2text (module)</a>
 </li>
       <li><a href="api-docs/models.html#module-models.text2speech">models.text2speech (module)</a>
+</li>
+      <li><a href="api-docs/models.html#module-models.text2speech_wavenet">models.text2speech_wavenet (module)</a>
 </li>
       <li><a href="api-docs/models.html#module-models.text2text">models.text2text (module)</a>
 </li>
@@ -1643,7 +1703,11 @@
       <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.sampling_rate">sampling_rate (data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
 </li>
       <li><a href="api-docs/models.html#models.text2speech.save_audio">save_audio() (in module models.text2speech)</a>
+
+      <ul>
+        <li><a href="api-docs/models.html#models.text2speech_wavenet.save_audio">(in module models.text2speech_wavenet)</a>
 </li>
+      </ul></li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.beam_search.SequenceBeamSearch.search">search() (parts.transformer.beam_search.SequenceBeamSearch method)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.attention_layer.SelfAttention">SelfAttention (class in parts.transformer.attention_layer)</a>
@@ -1670,6 +1734,8 @@
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.split_data">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.split_data">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer.split_data">(data.text2speech.text2speech_wavenet.WavenetDataLayer method)</a>
 </li>
       </ul></li>
   </ul></td>
@@ -1748,10 +1814,12 @@
 </li>
       <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer">Text2SpeechDataLayer (class in data.text2speech.text2speech)</a>
 </li>
-      <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
+      <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet">Text2SpeechWavenet (class in models.text2speech_wavenet)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.text_ids_to_string">text_ids_to_string() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.tile_batch">tile_batch() (in module parts.rnns.rnn_beam_search_decoder)</a>
@@ -1808,8 +1876,16 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#encoders.w2l_encoder.Wave2LetterEncoder">Wave2LetterEncoder (class in encoders.w2l_encoder)</a>
 </li>
+      <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.wavenet_conv_block">wavenet_conv_block() (in module encoders.wavenet_encoder)</a>
+</li>
+      <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech_wavenet.WavenetDataLayer">WavenetDataLayer (class in data.text2speech.text2speech_wavenet)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder">WavenetEncoder (class in encoders.wavenet_encoder)</a>
+</li>
+      <li><a href="api-docs/losses.html#losses.wavenet_loss.WavenetLoss">WavenetLoss (class in losses.wavenet_loss)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.Logger.write">write() (utils.utils.Logger method)</a>
 </li>
   </ul></td>

@@ -46,6 +46,14 @@ text2speech
     :undoc-members:
     :show-inheritance:
 
+text2speech_wavenet
+-----------------------
+
+.. automodule:: models.text2speech_wavenet
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 image2label
 -------------------------
 

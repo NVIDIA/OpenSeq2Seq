@@ -17,6 +17,16 @@ General installation
 
 OpenSeq2Seq supports Python >= 3.5.
 We recommend to use `Anaconda Python distribution <https://www.anaconda.com/download>`_.
+
+.. note::
+   Currently, TensorFlow 1.11 doesn't support Python 3.7. 
+   Please make sure that your Anaconda environment
+   includes Python version which is compatible with TensorFlow. 
+   For example, you can download Anaconda with Python 3.6 for Linux::
+      
+     wget https://repo.continuum.io/archive/Anaconda3-5.0.1-Linux-x86_64.sh
+
+
 Clone OpenSeq2Seq and install Python requirements::
 
    git clone https://github.com/NVIDIA/OpenSeq2Seq
@@ -73,7 +83,7 @@ First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.
         ln -s <kenlm location> kenlm
         cd ..
 
-3. Download and build TensorFlow with custom decoder operation::
+3. Download and build TensorFlow with custom decoder operation (make sure that you have Bazel >= 0.15)::
 
         git clone https://github.com/tensorflow/tensorflow
         cd tensorflow

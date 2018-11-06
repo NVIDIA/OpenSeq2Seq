@@ -102,6 +102,7 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-models.speech2text">speech2text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.text2text">text2text</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech">text2speech</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-models.text2speech_wavenet">text2speech_wavenet</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-models.image2label">image2label</a></li>
 </ul>
 </li>
@@ -1684,6 +1685,224 @@ summary object. Each method can be enabled by passing save_format as
 </tbody>
 </table>
 </dd></dl>
+
+</div>
+<div class="section" id="module-models.text2speech_wavenet">
+<span id="text2speech-wavenet"></span><h2>text2speech_wavenet<a class="headerlink" href="#module-models.text2speech_wavenet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet">
+<em class="property">class </em><code class="descclassname">models.text2speech_wavenet.</code><code class="descname">Text2SpeechWavenet</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
+<dl class="method">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.evaluate">
+<code class="descname">evaluate</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.evaluate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation" title="models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation" title="models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+this function is not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting this function can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for evaluation finalization (e.g. accuracy on
+current batch, which will then be averaged in finalization method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation">
+<code class="descname">finalize_evaluation</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>training_step=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.finalize_evaluation"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method can be used in conjunction with
+<a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> to calculate
+evaluation metrics.
+For example, for speech-to-text models these methods can calculate
+word-error-rate on the validation data. For text-to-text models, these
+methods can compute BLEU score. Look at the corresponding derived classes
+for examples of this. These methods will be called every
+<code class="docutils literal notranslate"><span class="pre">eval_steps</span></code> (config parameter) iterations and
+input/output values will be populated automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code>
+on corresponding tensors (using evaluation model).
+The <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method is called on each batch data
+and it’s results will be collected and provided to
+<a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation" title="models.text2speech_wavenet.Text2SpeechWavenet.finalize_evaluation"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_evaluation()</span></code></a> for finalization.
+Note that
+these methods are not abstract and does not have to be implemented in
+derived classes. But if evaluation functionality is required,
+overwriting these methods can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>training_step</strong> (<em>int</em>) – current training step. Will only be passed if mode
+is “train_eval”.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference">
+<code class="descname">finalize_inference</code><span class="sig-paren">(</span><em>results_per_batch</em>, <em>output_file</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.finalize_inference"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method should be implemented if the model support inference mode.
+For example for speech-to-text and text-to-text models, this method will
+log the corresponding input-output pair to the output_file.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>results_per_batch</strong> (<em>list</em>) – aggregation of values returned from all calls
+to <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a> method (number of calls will be
+equal to number of evaluation batches).</li>
+<li><strong>output_file</strong> (<em>str</em>) – name of the output file that inference results should
+be saved to.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.infer">
+<code class="descname">infer</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.infer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.infer" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method is analogous to <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.evaluate" title="models.text2speech_wavenet.Text2SpeechWavenet.evaluate"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.evaluate()</span></code></a>, but used
+in conjunction with <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference" title="models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+to perform inference.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer().input_tensors</span></code></a> concatenated  across
+all workers. That is, input tensors for one batch combined
+from <em>all</em> GPUs.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors()</span></code> concatenated
+across all workers. That is, output tensors for one batch combined
+from <em>all</em> GPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">all necessary values for inference finalization (e.g. this method
+can return final generated sequences for each batch which will then be
+saved to file in <a class="reference internal" href="#models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference" title="models.text2speech_wavenet.Text2SpeechWavenet.finalize_inference"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.finalize_inference()</span></code></a>
+method).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="models.text2speech_wavenet.Text2SpeechWavenet.maybe_print_logs">
+<code class="descname">maybe_print_logs</code><span class="sig-paren">(</span><em>input_values</em>, <em>output_values</em>, <em>training_step</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#Text2SpeechWavenet.maybe_print_logs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.Text2SpeechWavenet.maybe_print_logs" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method can be used to print logs that help to visualize training.
+For example, you can print sample input sequences and their corresponding
+predictions. This method will be called every <code class="docutils literal notranslate"><span class="pre">print_samples_steps</span></code>
+(config parameter) iterations and input/output values will be populated
+automatically by calling <code class="docutils literal notranslate"><span class="pre">sess.run</span></code> on corresponding tensors. Note that
+this method is not abstract and does not have to be implemented in
+derived classes. But if additional printing functionality is required,
+overwriting this method can be a useful way to add it.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_values</strong> – evaluation of
+<a class="reference internal" href="data.html#data.data_layer.DataLayer.input_tensors" title="data.data_layer.DataLayer.input_tensors"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_data_layer(0).input_tensors</span></code></a>, that is, input tensors
+for one batch on the <em>first</em> GPU.</li>
+<li><strong>output_values</strong> – evaluation of
+<code class="xref py py-meth docutils literal notranslate"><span class="pre">self.get_output_tensors(0)</span></code>,
+that is, output tensors for one batch on the <em>first</em> GPU.</li>
+<li><strong>training_step</strong> (<em>int</em>) – Current training step.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">dictionary with values that need to be logged to TensorBoard
+(can be empty).</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="models.text2speech_wavenet.save_audio">
+<code class="descclassname">models.text2speech_wavenet.</code><code class="descname">save_audio</code><span class="sig-paren">(</span><em>signal</em>, <em>logdir</em>, <em>step</em>, <em>sampling_rate</em>, <em>mode</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/text2speech_wavenet.html#save_audio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.text2speech_wavenet.save_audio" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-models.image2label">

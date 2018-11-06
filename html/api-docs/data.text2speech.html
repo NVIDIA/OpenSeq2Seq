@@ -103,6 +103,7 @@
 <li class="toctree-l3"><a class="reference internal" href="data.text2text.html">text2text</a></li>
 <li class="toctree-l3 current"><a class="current reference internal" href="#">text2speech</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#id1">text2speech</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-data.text2speech.text2speech_wavenet">text2speech_wavenet</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#module-data.text2speech.speech_utils">speech_utils</a></li>
 </ul>
 </li>
@@ -416,6 +417,147 @@ Should be created by <a class="reference internal" href="#data.text2speech.text2
 <dl class="method">
 <dt id="data.text2speech.text2speech.Text2SpeechDataLayer.split_data">
 <code class="descname">split_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech.html#Text2SpeechDataLayer.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech.Text2SpeechDataLayer.split_data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-data.text2speech.text2speech_wavenet">
+<span id="text2speech-wavenet"></span><h2>text2speech_wavenet<a class="headerlink" href="#module-data.text2speech.text2speech_wavenet" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer">
+<em class="property">class </em><code class="descclassname">data.text2speech.text2speech_wavenet.</code><code class="descname">WavenetDataLayer</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">open_seq2seq.data.data_layer.DataLayer</span></code></p>
+<p>Text to speech data layer class for Wavenet</p>
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>num_workers=None</em>, <em>worker_id=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wavenet data layer constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>num_audio_features</strong> (int) — number of spectrogram audio features</li>
+<li><strong>dataset_files</strong> (list) — list with paths to all dataset .csv files</li>
+<li><strong>dataset_location</strong> (str) — string with path to directory where wavs
+are stored</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer._parse_audio_element">
+<code class="descname">_parse_audio_element</code><span class="sig-paren">(</span><em>element</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer._parse_audio_element"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer._parse_audio_element" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parses tf.data element from TextLineDataset into audio.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph">
+<code class="descname">build_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.build_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>builds data reading graph</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.create_feed_dict">
+<code class="descname">create_feed_dict</code><span class="sig-paren">(</span><em>model_in</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.create_feed_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.create_feed_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates the feed dict for interactive infer using a spectrogram</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>model_in</strong> – tuple containing source audio, length of the source,       conditioning spectrogram, length of the spectrogram, index of       receptive field window</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.create_interactive_placeholders">
+<code class="descname">create_interactive_placeholders</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.create_interactive_placeholders"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.create_interactive_placeholders" title="Permalink to this definition">¶</a></dt>
+<dd><p>A function that must be defined for data layers that support interactive
+infer. This function is intended to create placeholders that will be passed
+to self._input_tensors that will be passed to the model.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__" title="data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__" title="data.text2speech.text2speech_wavenet.WavenetDataLayer.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.get_size_in_samples">
+<code class="descname">get_size_in_samples</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.get_size_in_samples"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.get_size_in_samples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Should return the dataset size in samples.
+That is, the number of objects in the dataset. This method is used to
+calculate a valid epoch size. If this method is not defined, you will need
+to make sure that your dataset for evaluation is created only for
+one epoch. You will also not be able to use <code class="docutils literal notranslate"><span class="pre">num_epochs</span></code> parameter in the
+base config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">dataset size in samples.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.input_tensors">
+<code class="descname">input_tensors</code><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.input_tensors" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary containing input tensors.
+This dictionary has to define the following keys: <cite>source_tensors</cite>,
+which should contain all tensors describing the input object (i.e. tensors
+that are passed to the encoder, e.g. input sequence and input length). And
+when <code class="docutils literal notranslate"><span class="pre">self.params['mode']</span> <span class="pre">!=</span> <span class="pre">&quot;infer&quot;</span></code> data layer should also define
+<cite>target_tensors</cite> which is the list of all tensors related to the
+corresponding target object (i.e. tensors taht are passed to the decoder and
+loss, e.g. target sequence and target length). Note that all tensors have
+to be created inside <a class="reference internal" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph" title="data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a> method.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.iterator">
+<code class="descname">iterator</code><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.iterator" title="Permalink to this definition">¶</a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">tf.data.Dataset</span></code> iterator.
+Should be created by <a class="reference internal" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph" title="data.text2speech.text2speech_wavenet.WavenetDataLayer.build_graph"><code class="xref py py-meth docutils literal notranslate"><span class="pre">self.build_graph()</span></code></a>.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="data.text2speech.text2speech_wavenet.WavenetDataLayer.split_data">
+<code class="descname">split_data</code><span class="sig-paren">(</span><em>data</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/text2speech/text2speech_wavenet.html#WavenetDataLayer.split_data"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.text2speech.text2speech_wavenet.WavenetDataLayer.split_data" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
