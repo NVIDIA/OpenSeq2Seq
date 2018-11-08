@@ -12,8 +12,7 @@ from open_seq2seq.optimizers.lr_policies import fixed_lr, transformer_policy, ex
 base_model = Text2Speech
 
 dataset = "MAILABS"
-# dataset_location = "/data/speech/MAILABS"
-dataset_location = "/mnt/hdd/data/MAILABS/en_US/by_book"
+dataset_location = DL_REPLACE
 output_type = "both"
 
 if dataset == "MAILABS":
@@ -259,9 +258,7 @@ eval_params = {
 
 infer_params = {
   "data_layer_params": {
-    "dataset_files": [
-      os.path.join(dataset_location, "test.csv"),
-    ],
+    "dataset_files": ["generate.csv"],
     "duration_max":10000,
     "duration_min":0,
     "shuffle": False,
