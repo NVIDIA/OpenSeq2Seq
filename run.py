@@ -72,7 +72,7 @@ def main():
   with tf.Graph().as_default():
     model = create_model(
         args, base_config, config_module, base_model, hvd,
-        restore_best_checkpoint)
+        restore_best_checkpoint, checkpoint)
     if args.mode == "train_eval":
       train(model[0], model[1], debug_port=args.debug_port)
     elif args.mode == "train":

@@ -703,7 +703,8 @@ def create_logdir(args, base_config):
 
   return old_stdout, old_stderr, stdout_log, stderr_log
 
-def create_model(args, base_config, config_module, base_model, hvd, restore_best_checkpoint=False):
+def create_model(args, base_config, config_module, base_model, hvd,
+                 restore_best_checkpoint=False, checkpoint=None):
   """A helpful function that creates the train, eval, and infer models as
   needed.
 
@@ -789,9 +790,6 @@ def create_model(args, base_config, config_module, base_model, hvd, restore_best
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    if base_config['logdir'].endswith('logs'):
-      base_config['logdir'] =  base_config['logdir'][:-5]
-    checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
     model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
 
   return model
