@@ -58,7 +58,12 @@ class Speech2TextDataLayer(DataLayer):
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
-    * **autoregressive** (bool) --- boolean indicating whether the model is autoregressive.  
+    * **autoregressive** (bool) --- boolean indicating whether the model is
+      autoregressive.
+    * **syn_enable** (bool) --- boolean indicating whether the model is
+      using synthetic data.
+    * **syn_subdirs** (list) --- must be defined if using synthetic mode.
+      Contains a list of subdirectories that hold the synthetica wav files.
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
@@ -315,7 +320,7 @@ class Speech2TextDataLayer(DataLayer):
     target = np.array(target_indices)
 
     if self.params.get("syn_enable", False):
-      audio_filename = audio_filename.format(np.random.choice(self.params.get("syn_subdirs", [0])))
+      audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
     pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
