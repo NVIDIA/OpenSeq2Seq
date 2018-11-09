@@ -36,6 +36,8 @@ class Speech2TextDataLayer(DataLayer):
         'max_duration': float,
         'bpe': bool,
         'autoregressive': bool,
+        'syn_enable': bool,
+        'syn_subdirs': list,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -303,6 +305,7 @@ class Speech2TextDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
+      audio_filename = str(audio_filename, 'utf-8')
     if self.params['bpe']:
       target_indices = self.sp.EncodeAsIds(transcript)
     else:
@@ -310,6 +313,9 @@ class Speech2TextDataLayer(DataLayer):
     if self.autoregressive:
       target_indices = target_indices + [self.end_index]
     target = np.array(target_indices)
+
+    if self.params.get("syn_enable", False):
+      audio_filename = audio_filename.format(np.random.choice(self.params.get("syn_subdirs", [0])))
 
     pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
