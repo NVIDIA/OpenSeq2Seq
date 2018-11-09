@@ -12,7 +12,16 @@ paper in that we use Tacotron 2 from OpenSeq2Seq as opposed to Tacotron.
 
 Model Description
 ~~~~~~~~~~~~~~~~~~
-To be done.
+Tacotron 2 with Global Style Tokens adds a reference encoder to the Tacotron 2 model.
+The reference encoder takes as input a spectrogram which is treated as the style
+that the model should learn to match. The reference encoder is similar to the text
+encoder. It first passes through a stack of convolutional layers followed by a
+recurrent GRU network. We take the last state and treat that as the query vector to
+an attention mechanism. The attention mechanism is the same as the one used in the
+Transformer implementation. The keys and values are randomized at the beginning of training.
+The output of this attention module is called the style embedding and concatenated
+to the text embedding at every time step of the text embedding. This merged embedding
+is then passed to the tacotron attention and decoder block to be decoded into a spectrogram.
 
 Training
 ~~~~~~~~
