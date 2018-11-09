@@ -21,6 +21,10 @@ Currently we support following models:
      - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2speech/tacotron_LJ_float.py>`_
      - :doc:`here </speech-synthesis/tacotron-2-samples>`
      - `link <https://drive.google.com/open?id=1Ddf7nDI2PpgaxvZMm7bd8N_Evk_ExTwg>`_
+  * - :doc:`Tacotron-2 GST</speech-synthesis/tacotron-2-gst>`
+     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - :doc:`here </speech-synthesis/tacotron-2-samples>`
+     - `link <https://drive.google.com/open?id=1IdWnUIwV9NMe-1JSvcv4Ti4HZ8wPEvQr>`_
 
 The model specification and training parameters can be found in the corresponding config file.
 
@@ -29,6 +33,7 @@ The model specification and training parameters can be found in the correspondin
    :maxdepth: 1
 
    speech-synthesis/tacotron-2
+   speech-synthesis/tacotron-2-gst
 
 ################
 Getting started 
@@ -84,3 +89,4 @@ one audio sample per line and save the audio sample inside your ``log_dir``.
 Lastly, run ::
 
     python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=infer --infer_output_file=unused
+
