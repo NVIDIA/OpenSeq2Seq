@@ -193,8 +193,8 @@ def train(train_model, eval_model=None, debug_port=None):
       deco_print("Not enough steps for benchmarking")
 
 
-def restore_and_get_results(model, checkpoint, mode, use_trt=False):
-  if not use_trt:
+def restore_and_get_results(model, checkpoint, mode):
+  if not model.params.get("use_trt", False):
     # Checkpoint is restored prior to freezing graph when using TRT
     saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
@@ -204,7 +204,7 @@ def restore_and_get_results(model, checkpoint, mode, use_trt=False):
     # pylint: disable=no-member
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
-    if not use_trt:
+    if not model.params.get("use_trt", False):
       saver.restore(sess, checkpoint)
     results_per_batch = get_results_for_epoch(
         model, sess, mode=mode, compute_loss=False, verbose=True,
@@ -212,8 +212,8 @@ def restore_and_get_results(model, checkpoint, mode, use_trt=False):
   return results_per_batch
 
 
-def infer(model, checkpoint, output_file, use_trt=False):
-  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer", use_trt=use_trt)
+def infer(model, checkpoint, output_file):
+  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer")
   if not model.on_horovod or model.hvd.rank() == 0:
     model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")

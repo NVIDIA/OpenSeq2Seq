@@ -94,6 +94,14 @@ class Model:
         'iter_size': int,
         'lm_vocab_file': str, #TODO: move this paramters to lstm_lm.py
         'processed_data_folder': str,
+
+        # Parameters for TensorRT (infer mode only)
+        'use_trt': bool,
+        'trt_precision_mode': str,
+        'trt_max_workspace_size_bytes': int,
+        'trt_minimum_segment_size': int,
+        'trt_is_dynamic_op': bool,
+        'trt_maximum_cached_engines': int,
     }
 
   def __init__(self, params, mode="train", hvd=None):
@@ -237,6 +245,9 @@ class Model:
     if self._mode not in ["train", "infer", "eval"]:
       raise ValueError("Mode has to be one of ['train', 'infer', 'eval']")
 
+    if "use_trt" in params and self._mode != "infer":
+      raise ValueError("TensorRT can only be used in inference mode.")
+
     if "max_steps" in params and "num_epochs" in params:
       raise ValueError("You can't provide both max_steps and num_epochs. "
                        "Please, remove one of them from the config.")
@@ -357,7 +368,7 @@ class Model:
     self._num_objects_per_step = None
     self.skip_update_ph = None
 
-  def compile(self, force_var_reuse=False, checkpoint=None, use_trt=False, precision='FP32'):
+  def compile(self, force_var_reuse=False, checkpoint=None):
     """TensorFlow graph is built here."""
     if 'initializer' not in self.params:
       initializer = None
@@ -386,9 +397,7 @@ class Model:
           loss, self._outputs[gpu_cnt] = self.build_forward_pass_graph(
               input_tensors,
               gpu_id=gpu_cnt,
-              checkpoint=checkpoint,
-              use_trt=use_trt,
-              precision=precision
+              checkpoint=checkpoint
           )
           if self._outputs[gpu_cnt] is not None and \
              not isinstance(self._outputs[gpu_cnt], list):
@@ -416,8 +425,11 @@ class Model:
         self.get_data_layer().build_graph()
         input_tensors = self.get_data_layer().input_tensors
 
-        all_loss, self._output = self._build_forward_pass_graph(input_tensors,
-                                                            gpu_id=0)
+        all_loss, self._output = self.build_forward_pass_graph(
+            input_tensors,
+            gpu_id=0,
+            checkpoint=checkpoint
+        )
         if isinstance(all_loss, (dict,)):
             loss = all_loss['loss']
         else:
@@ -513,9 +525,9 @@ class Model:
         else:
           deco_print('Total trainable parameters: {}'.format(total_params))
 
-  def build_forward_pass_graph(self, input_tensors, gpu_id=0, checkpoint=None, use_trt=False, precision='FP32'):
+  def build_forward_pass_graph(self, input_tensors, gpu_id=0, checkpoint=None):
     """Wrapper around _build_forward_pass_graph with option of using TF-TRT"""
-    if use_trt:
+    if self.params.get("use_trt", False):
       import tensorflow.contrib.tensorrt as trt
       # Create temporary graph which will contain the native TF graph
       tf_config = tf.ConfigProto()
@@ -527,11 +539,11 @@ class Model:
             tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map1'),
             tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map2')
             ]}
-          loss, self._outputs[gpu_id] = self._build_forward_pass_graph(
+          loss, outputs = self._build_forward_pass_graph(
               input_placeholders,
               gpu_id=gpu_id
           )
-          output_node_names = [x.name.split(':0')[0] for x in self._outputs[gpu_id]]
+          output_node_names = [x.name.split(':0')[0] for x in outputs]
           # Restore checkpoint here because we have to freeze the graph
           tf_saver = tf.train.Saver()
           tf_saver.restore(save_path=checkpoint, sess=tf_sess)
@@ -545,20 +557,22 @@ class Model:
           frozen_graph = trt.create_inference_graph(
             input_graph_def=frozen_graph,
             outputs=output_node_names,
-            max_batch_size=64,
-            max_workspace_size_bytes=4096 << 20,
-            precision_mode=precision,
-            minimum_segment_size=3
+            max_batch_size=self.params.get("batch_size_per_gpu", 64),
+            max_workspace_size_bytes=self.params.get("trt_max_workspace_size_bytes", 4096 << 20 - 1000),
+            precision_mode=self.params.get("trt_precision_mode", "FP32"),
+            minimum_segment_size=self.params.get("trt_minimum_segment_size", 10),
+            is_dynamic_op=self.params.get("trt_is_dynamic_op", True),
+            maximum_cached_engines=self.params.get("trt_maximum_cached_engines", 1)
           )
           print('Total node count before and after TF-TRT conversion:', num_nodes, '->', len(frozen_graph.node))
           print('TRT node count:', len([1 for n in frozen_graph.node if str(n.op)=='TRTEngineOp']))
       # Perform calibration for INT8 precision mode
-      if precision == 'int8':
+      if self.params.get("trt_precision_mode", "FP32").upper() == 'INT8':
           with tf.Session(config=tf_config) as tf_sess:
             calib_graph = frozen_graph
             num_iterations = 10
             print('Calibrating INT8...')
-            self._outputs[gpu_id] = tf.import_graph_def(calib_graph,
+            outputs = tf.import_graph_def(calib_graph,
                 input_map={'input_map1': input_tensors['source_tensors'][0]},
                 return_elements=[x+':0' for x in output_node_names],
                 name='')
@@ -572,11 +586,11 @@ class Model:
             print('INT8 graph created.')
             print('Nodes INT8:', len(frozen_graph.node))
       # Import TRT converted graph to default graph, mapping it to the original input tensors
-      self._outputs[gpu_id] = tf.import_graph_def(frozen_graph,
+      outputs = tf.import_graph_def(frozen_graph,
           input_map={'input_map1': input_tensors['source_tensors'][0]},
           return_elements=[x+':0' for x in output_node_names],
           name='')
-      return loss, self._outputs[gpu_id]
+      return loss, outputs
     else:
       return self._build_forward_pass_graph(input_tensors, gpu_id)
 
