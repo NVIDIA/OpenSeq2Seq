@@ -2,7 +2,7 @@
 
 Creation of Synthetic Data
 ==========================
-Creating a synthetic dataset requires a trained speech synthesis model. This tutorial assumes that you have a trained Tactron 2 with Global Style Tokens. For details on how to train this model, see :ref:`here </speech-synthsis/tacotron-gst>`.
+Creating a synthetic dataset requires a trained speech synthesis model. This tutorial assumes that you have a trained Tactron 2 with Global Style Tokens. For details on how to train this model, see :doc:`here </speech-synthesis/tacotron-2-gst>`.
 
 We first need to create an infer csv that pairs MAILABS wav files with LibriSpeech transcripts through tacotron_gst_create_infer_csv.py. Using this infer csv, we can start generating audio through tacotron_gst_create_syn_data.py. Last, we need to create a csv that can be used to train speech recognition models that pairs the synthetic wavs with their transcripts through nsr_create_syn_train_csv.py.
 

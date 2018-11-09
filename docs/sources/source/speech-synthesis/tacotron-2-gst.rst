@@ -1,4 +1,4 @@
-.. _tacotron-2:
+.. _tacotron-2-gst:
 
 Tacotron 2 with Global Style Tokens
 ====================================
