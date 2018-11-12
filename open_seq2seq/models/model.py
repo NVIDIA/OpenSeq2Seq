@@ -558,7 +558,7 @@ class Model:
             input_graph_def=frozen_graph,
             outputs=output_node_names,
             max_batch_size=self.params.get("batch_size_per_gpu", 64),
-            max_workspace_size_bytes=self.params.get("trt_max_workspace_size_bytes", 4096 << 20 - 1000),
+            max_workspace_size_bytes=self.params.get("trt_max_workspace_size_bytes", (4096 << 20) - 1000),
             precision_mode=self.params.get("trt_precision_mode", "FP32"),
             minimum_segment_size=self.params.get("trt_minimum_segment_size", 10),
             is_dynamic_op=self.params.get("trt_is_dynamic_op", True),
