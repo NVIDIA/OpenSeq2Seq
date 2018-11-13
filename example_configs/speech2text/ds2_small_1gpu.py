@@ -9,6 +9,7 @@ from open_seq2seq.optimizers.lr_policies import exp_decay
 
 
 base_model = Speech2Text
+dataset_location = os.path.expanduser("~/datasets/speech/librispeech/")
 
 base_params = {
   "random_seed": 0,
@@ -103,10 +104,10 @@ train_params = {
                      'noise_level_max': -60},
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "data/librispeech/librivox-train-clean-100.csv",
-      "data/librispeech/librivox-train-clean-360.csv",
+      os.path.join(dataset_location,"librivox-train-clean-100.csv"),
+      os.path.join(dataset_location,"librivox-train-clean-360.csv"),
     ],
-    "max_duration": None,
+    "max_duration": 16.7,
     "shuffle": True,
   },
 }
@@ -114,12 +115,15 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-    "num_audio_features": 96,
-    "input_type": "spectrogram",
-    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-    "dataset_files": [
-      "data/librispeech/librivox-dev-clean.csv",
-    ],
-    "shuffle": False,
+	"cache_features": False,
+	"cache_format": "hdf5",
+	"cache_regenerate": False,
+	"num_audio_features": 96,
+	"input_type": "spectrogram",
+	"vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+	"dataset_files": [
+	os.path.join(dataset_location,"librivox-dev-clean.csv"),
+	],
+	"shuffle": False,
   },
 }

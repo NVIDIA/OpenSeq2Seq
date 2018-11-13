@@ -9,13 +9,115 @@ import python_speech_features as psf
 import resampy as rs
 import scipy.io.wavfile as wave
 
+import os
+import h5py
 
-def get_speech_features_from_file(filename, num_features, pad_to=8,
+
+class PreprocessOnTheFlyException(Exception):
+    """ Exception that is thrown to not load preprocessed features from disk; recompute on-the-fly.
+    This saves disk space (if you're experimenting with data input formats/preprocessing) but can be slower.
+    The slowdown is especially apparent for small, fast NNs."""
+    pass
+
+class RegenerateCacheException(Exception):
+    """ Exception that is thrown to force recomputation of (preprocessed) features
+    """
+    pass
+
+def load_features(path, format):
+    """ Function to load (preprocessed) features from disk
+
+    Args:
+        :param path:    the path where the features are stored
+        :param format:  the format in which the features are stored
+        :return:        tuple of (features, duration)
+        """
+    if format == 'hdf5':
+        with h5py.File(path + '.hdf5', "r") as hf:
+            features = hf["features"][:]
+            duration = hf["features"].attrs["duration"]
+    elif format == 'npy':
+        features, duration = np.load(path + '.npy')
+    elif format == 'npz':
+        data = np.load(path + '.npz')
+        features = data['features']
+        duration = data['duration']
+    else:
+        raise ValueError("Invalid data format for caching: ", format, "!\n",
+                         "options: hdf5, npy, npz")
+    return features, duration
+
+def save_features(features, duration, path, format, verbose=False):
+    """ Function to save (preprocessed) features to disk
+
+    Args:
+        :param features:            features
+        :param duration:            metadata: duration in seconds of audio file
+        :param path:                path to store the data
+        :param format:              format to store the data in ('npy', 'npz', 'hdf5')
+    """
+    if verbose: print("Saving to: ", path)
+
+    if format == 'hdf5':
+        with h5py.File(path + '.hdf5', "w") as hf:
+            dset = hf.create_dataset("features", data=features)
+            dset.attrs["duration"] = duration
+    elif format == 'npy':
+        np.save(path + '.npy', [features, duration])
+    elif format == 'npz':
+        np.savez(path + '.npz', features=features, duration=duration)
+    else:
+        raise ValueError("Invalid data format for caching: ", format, "!\n",
+                         "options: hdf5, npy, npz")
+
+def get_preprocessed_data_path(filename, params):
+    """ Function to convert the audio path into the path to the preprocessed version of this audio
+    Args:
+        :param filename:    WAVE filename
+        :param params:      dictionary containing preprocessing parameters
+        :return:            path to new file (without extension). The path is generated from the relevant preprocessing parameters.
+    """
+    filename = filename.decode('ascii')     # required b/c we read filename from csv in binary mode
+    filename = os.path.realpath(filename)   # decode symbolic links
+
+    ## filter relevant parameters # TODO is there a cleaner way of doing this?
+    # print(list(params.keys()))
+    ignored_params = ["cache_features", "cache_format", "cache_regenerate", "vocab_file", "dataset_files", "shuffle", "batch_size", "max_duration",
+                      "mode", "interactive", "autoregressive", "char2idx", "tgt_vocab_size", "idx2char", "dtype"]
+
+    def fix_kv(v):
+        """ Helper function to shorten length of filenames to get around filesystem path length limitations"""
+        v = str(v)
+        v = v.replace("time_stretch_ratio","tsr").replace("noise_level_min","nlmin",).replace("noise_level_max","nlmax")
+        v = v.replace("add_derivatives", "d").replace("add_second_derivatives", "dd")
+        return v
+
+    # generate the identifier by simply concatenating preprocessing key-value pairs as strings.
+    preprocess_id = "-".join([fix_kv(k)+"_"+fix_kv(v) for k,v in params.items() if k not in ignored_params])
+
+    preprocessed_dir = os.path.dirname(filename).replace("wav", "preprocessed-"+preprocess_id)
+    preprocessed_path = os.path.join(preprocessed_dir, os.path.basename(filename).replace(".wav",""))
+
+    # create dir if it doesn't exist yet
+    if not os.path.exists(preprocessed_dir):
+        os.makedirs(preprocessed_dir)
+
+    return preprocessed_path
+
+def get_speech_features_from_file(filename,
+                                  num_features,
+                                  pad_to=8,
                                   features_type='spectrogram',
                                   window_size=20e-3,
                                   window_stride=10e-3,
-                                  augmentation=None):
-  """Function to convert audio file to numpy array of features.
+                                  augmentation=None,
+                                  cache_features=False,
+                                  cache_format="hdf5",
+                                  cache_regenerate=False,
+                                  params={}):
+    """Function to get a numpy array of features, from an audio file.
+        if params['cache_features']==True, try load preprocessed data from disk, or store after preprocesseng.
+        else, perform preprocessing on-the-fly.
 
   Args:
     filename (string): WAVE filename.
@@ -34,12 +136,33 @@ def get_speech_features_from_file(filename, num_features, pad_to=8,
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps, num_features].
   """
-  # load audio signal
-  fs, signal = wave.read(filename)
-  return get_speech_features(
+    try:
+        if not cache_features:
+            raise PreprocessOnTheFlyException("on-the-fly preprocessing enforced with 'cache_features'==True")
+
+        if cache_regenerate:
+            raise RegenerateCacheException("regenerating cache...")
+
+        preprocessed_data_path = get_preprocessed_data_path(filename, params)
+        features, duration = load_features(preprocessed_data_path, format=cache_format)
+
+    except PreprocessOnTheFlyException:
+        fs, signal = wave.read(filename)
+        features, duration = get_speech_features(
       signal, fs, num_features, pad_to, features_type,
       window_size, window_stride, augmentation,
   )
+
+    except (OSError, FileNotFoundError, RegenerateCacheException):
+        fs, signal = wave.read(filename)
+        features, duration = get_speech_features(
+      signal, fs, num_features, pad_to, features_type,
+      window_size, window_stride, augmentation,
+  )
+        preprocessed_data_path = get_preprocessed_data_path(filename, params)
+        save_features(features, duration, preprocessed_data_path, format=cache_format)
+
+    return features, duration
 
 
 def normalize_signal(signal):

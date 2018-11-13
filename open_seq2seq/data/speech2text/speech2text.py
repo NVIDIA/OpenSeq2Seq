@@ -311,11 +311,15 @@ class Speech2TextDataLayer(DataLayer):
       target_indices = target_indices + [self.end_index]
     target = np.array(target_indices)
 
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'], pad_to,
+        audio_filename, self.params['num_audio_features'],
+        pad_to=self.params.get('pad_to', 8),
         features_type=self.params['input_type'],
         augmentation=self.params.get('augmentation', None),
+        cache_features=self.params.get('cache_features', False),
+        cache_format=self.params.get('cache_format', 'hdf5'),
+        cache_regenerate=self.params.get('cache_regenerate', False),
+        params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
