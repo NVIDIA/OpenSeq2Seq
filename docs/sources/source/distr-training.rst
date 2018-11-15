@@ -15,7 +15,7 @@ approach <https://www.tensorflow.org/programmers_guide/using_gpu#using_multiple_
 and `Horovod-based approach <https://github.com/uber/horovod>`_. 
 
 
-Standard Tesnroflow distributed training
+Standard Tensorflow distributed training
 ------------------------------
 For multi-GPU training with native `Distributed Tensorflow approach <https://www.tensorflow.org/deploy/distributed>`_ , 
 you  need to set ``use_horovod: False`` and  ``num_gpus=``
