@@ -22,13 +22,13 @@ num_layers = 6
 layer_norm_type = "L1"
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/data/wmt16-ende-sp/"
 #data_root = "/raid/wmt16/"
 
 base_params = {
   "use_horovod": True,
   "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
+  "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
   "max_steps": 440000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
