@@ -36,6 +36,8 @@ class Speech2TextDataLayer(DataLayer):
         'max_duration': float,
         'bpe': bool,
         'autoregressive': bool,
+        'window_length': float,
+        'window_step': float,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -110,7 +112,9 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
-    self.params['max_duration'] = params.get('max_duration', None)
+    self.params['max_duration'] = params.get('max_duration', -1.0)
+    self.params['window_size'] = params.get('window_size', 20e-3)
+    self.params['window_stride'] = params.get('window_stride', 10e-3)
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
@@ -146,7 +150,7 @@ class Speech2TextDataLayer(DataLayer):
           ),
           num_parallel_calls=8,
       )
-      if self.params['max_duration'] is not None:
+      if self.params['max_duration'] > 0:
         self._dataset = self._dataset.filter(
             lambda x, x_len, y, y_len, duration:
             tf.less_equal(duration, self.params['max_duration'])
@@ -181,7 +185,7 @@ class Speech2TextDataLayer(DataLayer):
           ),
           num_parallel_calls=8,
       )
-      if self.params['max_duration'] is not None:
+      if self.params['max_duration'] > 0:
         self._dataset = self._dataset.filter(
             lambda x, x_len, idx, duration:
             tf.less_equal(duration, self.params['max_duration'])
@@ -315,6 +319,8 @@ class Speech2TextDataLayer(DataLayer):
     source, audio_duration = get_speech_features_from_file(
         audio_filename, self.params['num_audio_features'], pad_to,
         features_type=self.params['input_type'],
+        window_size=self.params['window_size'],
+        window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
@@ -336,6 +342,8 @@ class Speech2TextDataLayer(DataLayer):
     source, audio_duration = get_speech_features(
         wav, 16000., self.params['num_audio_features'], pad_to,
         features_type=self.params['input_type'],
+        window_size=self.params['window_size'],
+        window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
@@ -356,6 +364,8 @@ class Speech2TextDataLayer(DataLayer):
     source, audio_duration = get_speech_features_from_file(
         audio_filename, self.params['num_audio_features'], pad_to,
         features_type=self.params['input_type'],
+        window_size=self.params['window_size'],
+        window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
