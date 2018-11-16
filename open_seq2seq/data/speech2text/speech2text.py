@@ -36,8 +36,8 @@ class Speech2TextDataLayer(DataLayer):
         'max_duration': float,
         'bpe': bool,
         'autoregressive': bool,
-        'window_length': float,
-        'window_step': float,
+        'window_size': float,
+        'window_stride': float,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
