@@ -10,7 +10,7 @@ from six.moves import range
 from open_seq2seq.parts.transformer import utils, attention_layer, \
                                            ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
-                                                  LayerNormalization
+                                    LayerNormalization, Transformer_BatchNorm
 from .decoder import Decoder
 
 
@@ -59,7 +59,7 @@ class TransformerDecoder(Decoder):
         'GO_SYMBOL': int,
         'PAD_SYMBOL': int,
         'END_SYMBOL': int,
-        'layer_norm_type': str,
+        'norm_type': str,
     })
 
   def _cast_types(self, input_dict):
@@ -70,13 +70,13 @@ class TransformerDecoder(Decoder):
     super(TransformerDecoder, self).__init__(params, model, name, mode)
     self.embedding_softmax_layer = None
     self.output_normalization = None
-    self._mode = mode
+    self.training = (mode == "train")
     self.layers = []
     # in original T paper embeddings are shared between encoder and decoder
     # also final projection = transpose(E_weights), we currently only support
     # this behaviour
     self.params['shared_embed'] = True
-    self.layer_norm_type = self.params.get("layer_norm_type", "L2")
+    self.norm_type = self.params.get("norm_type", "layernorm_L2")
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -100,31 +100,33 @@ class TransformerDecoder(Decoder):
           self_attention_layer = attention_layer.SelfAttention(
               self.params["hidden_size"], self.params["num_heads"],
               self.params["attention_dropout"],
-              self.mode == "train",
+              self.training,
           )
           enc_dec_attention_layer = attention_layer.Attention(
               self.params["hidden_size"], self.params["num_heads"],
               self.params["attention_dropout"],
-              self.mode == "train",
+              self.training,
           )
           feed_forward_network = ffn_layer.FeedFowardNetwork(
               self.params["hidden_size"], self.params["filter_size"],
-              self.params["relu_dropout"], self.mode == "train",
+              self.params["relu_dropout"],
+              self.training,
           )
 
           self.layers.append([
               PrePostProcessingWrapper(self_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       self.training),
               PrePostProcessingWrapper(enc_dec_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       self.training),
               PrePostProcessingWrapper(feed_forward_network, self.params,
-                                       self.mode == "train")
+                                       self.training)
           ])
 
-        self.output_normalization = LayerNormalization(
-          self.params["hidden_size"],
-          self.layer_norm_type
-        )
+        if self.norm_type=="batch_norm":
+          self.output_normalization = Transformer_BatchNorm(training=self.training)
+        else:
+          self.output_normalization = LayerNormalization(self.params["hidden_size"],
+                                                         self.norm_type )
 
       if targets is None:
         return self.predict(encoder_outputs, inputs_attention_bias)
@@ -200,9 +202,9 @@ class TransformerDecoder(Decoder):
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
-                                                                        dtype = tf.float32
-                                                                        #dtype=self._params["dtype"]
-                                                                        )
+                                            dtype = tf.float32
+                                            #dtype=self._params["dtype"]
+                                            )
 
     # do decode
     outputs = self._call(

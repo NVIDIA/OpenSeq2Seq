@@ -11,7 +11,7 @@ from open_seq2seq.encoders import Encoder
 from open_seq2seq.parts.transformer import attention_layer, ffn_layer, utils, \
                                            embedding_layer
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
-                                                  LayerNormalization
+                                    LayerNormalization, Transformer_BatchNorm
 
 
 class TransformerEncoder(Encoder):
@@ -54,7 +54,7 @@ class TransformerEncoder(Encoder):
         'initializer': None,  # any valid TensorFlow initializer
         'initializer_params': dict,
         'pad_embeddings_2_eight': bool,
-        "layer_norm_type": str,
+        "norm_type": str,
     })
 
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
@@ -63,9 +63,9 @@ class TransformerEncoder(Encoder):
     )
     self.layers = []
     self.output_normalization = None
-    self._mode = mode
+    self.training = (mode=="train")
     self.embedding_softmax_layer = None
-    self.layer_norm_type = self.params.get("layer_norm_type", "L2")
+    self.norm_type = self.params.get("norm_type", "layernorm_L2")
 
   def _call(self, encoder_inputs, attention_bias, inputs_padding):
     for n, layer in enumerate(self.layers):
@@ -93,23 +93,27 @@ class TransformerEncoder(Encoder):
         # Create sublayers for each layer.
         self_attention_layer = attention_layer.SelfAttention(
             self.params["hidden_size"], self.params["num_heads"],
-            self.params["attention_dropout"], self.mode == "train",
+            self.params["attention_dropout"], self.training,
         )
         feed_forward_network = ffn_layer.FeedFowardNetwork(
             self.params["hidden_size"], self.params["filter_size"],
-            self.params["relu_dropout"], self.mode == "train",
+            self.params["relu_dropout"], self.training,
         )
 
         self.layers.append([
             PrePostProcessingWrapper(self_attention_layer, self.params,
-                                     self.mode == "train"),
+                                     self.training),
             PrePostProcessingWrapper(feed_forward_network, self.params,
-                                     self.mode == "train")
+                                     self.training)
         ])
 
-      # Create final layer normalization layer.
-      self.output_normalization = LayerNormalization(self.params["hidden_size"],
-                                                     self.layer_norm_type )
+      # final normalization layer.
+      print("Encoder norm=", self.norm_type, " training=",self.training)
+      if self.norm_type =="batch_norm":
+        self.output_normalization = Transformer_BatchNorm(training=self.training)
+      else:
+        self.output_normalization = LayerNormalization(self.params["hidden_size"],
+                                                     self.norm_type )
 
     # actual encoder part
     with tf.name_scope("encode"):
@@ -132,7 +136,7 @@ class TransformerEncoder(Encoder):
         encoder_inputs = embedded_inputs + tf.cast(x=pos_encoding,
                                                    dtype=embedded_inputs.dtype)
 
-      if self.mode == "train":
+      if self.training:
         encoder_inputs = tf.nn.dropout(
             encoder_inputs, 1.0 - self.params["layer_postprocess_dropout"],
         )

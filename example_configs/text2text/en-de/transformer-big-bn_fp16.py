@@ -7,7 +7,7 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
-from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
+from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay, fixed_lr
 import tensorflow as tf
 
 """
@@ -17,58 +17,54 @@ https://arxiv.org/abs/1706.03762
 
 base_model = Text2Text
 d_model = 1024
-num_layers = 10
+num_layers = 6
 
-layer_norm_type = "L1"
-
+#norm_type = "layernorm_L2"
+norm_type = "batch_norm"
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-#data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
-#data_root = "/raid/wmt16/"
-data_root = "/data/wmt16-ende-sp/"
+#data_root = "/data/wmt16-ende-sp/"
+data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": True,
-  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-#  "max_steps": 440000,
-  "num_epochs": 100,
+  "use_horovod": False, #True,
+  "num_gpus": 2, # when using Horovod we set number of workers with params to mpirun
+  "batch_size_per_gpu": 128, #128,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps": 10000, #440000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 4401,
-  "save_checkpoint_steps": 110000,
-  "logdir": "logs/transformer-XL-fp16",
-  #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  "eval_steps": 1000, #4001,
+  "save_checkpoint_steps": 219999,
+  "logdir": "logs/transformer-bn_lr0.01",
+  #
+  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
-  "loss_scaling": "Backoff",
-
-  # "optimizer": "Momentum",
-  # "optimizer_params": {
-  #   "momentum": 0.90,
-  # },
-  # "lr_policy": poly_decay,
-  # "lr_policy_params": {
-  #   "learning_rate": 0.01,  # 0.001,
-  #   "power": 0.5,
-  # },
-
-  "larc_params": {
-    "larc_eta": 0.001,
-  },
+  "loss_scaling": 1000.0 ,
+#  "loss_scaling": "Backoff",
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
     "beta1": 0.9,
     "beta2": 0.997,
-    "epsilon": 1e-09,
+    "epsilon": 1e-03,
   },
 
-  "lr_policy": transformer_policy,
+  "lr_policy": fixed_lr, # poly_decay,
   "lr_policy_params": {
-    "learning_rate": 2.0,
-    "warmup_steps": 8000,
-    "d_model": d_model,
+    "learning_rate": 0.01,  # 0.001,
+   # "power": 0.5,
   },
+
+  # "larc_params": {
+  #   "larc_eta": 0.002,
+  # },
+
+  # "lr_policy": transformer_policy,
+  # "lr_policy_params": {
+  #   "learning_rate": 1.0,
+  #   "warmup_steps": 5000,
+  #   "d_model": d_model,
+  # },
 
   "encoder": TransformerEncoder,
   "encoder_params": {
@@ -80,7 +76,7 @@ base_params = {
     "relu_dropout": 0.3,
     "layer_postprocess_dropout": 0.3,
     "pad_embeddings_2_eight": True,
-    "layer_norm_type": layer_norm_type ,
+    "norm_type": norm_type ,
   },
 
   "decoder": TransformerDecoder,
@@ -99,7 +95,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-    "layer_norm_type": layer_norm_type,
+    "norm_type": norm_type,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,
@@ -114,11 +110,13 @@ train_params = {
     "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "m_common.vocab",
     "tgt_vocab_file": data_root + "m_common.vocab",
+    # "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
+    # "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
     "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 25000,
+    "shuffle_buffer_size": 50000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,
@@ -135,7 +133,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 256,
     },
 }
