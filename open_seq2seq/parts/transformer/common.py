@@ -11,14 +11,14 @@ import tensorflow as tf
 class Transformer_BatchNorm(tf.layers.Layer):
   """Transformer batch norn: supports [BTC] (default) and [BCT] formats. """
 
-  def __init__(self, training, data_format='channels_last',
-               momentum = 0.9, epsilon = 0.0001):
+  def __init__(self, training, params={}):
+        #data_format='channels_last', momentum = 0.9, epsilon = 0.0001):
     super(Transformer_BatchNorm, self).__init__()
     self.training = training
-    self.data_format=data_format
-    self.momentum = momentum
-    self.epsilon  = epsilon
-    print ("Batch norm, training=", training)
+    self.data_format=params.get('data_format','channels_last')
+    self.momentum = params.get('momentum',0.95)
+    self.epsilon  = params.get('momentum',0.0001)
+    print("Batch norm, training=", training, params)
 
 
   def call(self, x):
@@ -58,12 +58,13 @@ class Transformer_BatchNorm(tf.layers.Layer):
 class LayerNormalization(tf.layers.Layer):
   """Layer normalization for BTC format: supports L2(default) and L1 modes"""
 
-  def __init__(self, hidden_size, layer_norm_type="layernorm_L2", epsilon=1e-6):
+  def __init__(self, hidden_size, params={}):
+    #layer_norm_type="layernorm_L2", epsilon=1e-6):
     super(LayerNormalization, self).__init__()
     self.hidden_size = hidden_size
-    self.norm = layer_norm_type
-    self.epsilon = epsilon
-    print ("Layer norm, mode=", layer_norm_type)
+    self.norm_type = params.get("type", "layernorm_L2")
+    self.epsilon = params.get("epsilon", 1e-6)
+    print ("Layer norm, mode=", self.norm_type, params)
 
   def build(self, _):
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
@@ -108,15 +109,17 @@ class PrePostProcessingWrapper(object):
     self.training = training
 
     # Create normalization layer
-    self.norm_type = params.get("norm_type", "layernorm_L2")
-    if self.norm_type=="batch_norm":
-      self.norm = Transformer_BatchNorm(training=training)
-    elif self.norm_type=="layernorm_L2" or self.norm_type=="layernorm_L1":
+    self.norm_params = params.get("norm_params", {"type": "layernorm_L2"})
+    if self.norm_params["type"]=="batch_norm":
+      self.norm = Transformer_BatchNorm(training=training,
+                                        params=self.norm_params)
+    elif self.norm_params["type"]=="layernorm_L2" or self.norm_params["type"]=="layernorm_L1":
       self.norm = LayerNormalization(hidden_size=params["hidden_size"],
-                                     layer_norm_type=self.norm_type)
+                                     params=self.norm_params)
     else:
       print("WARNING: PrePostProcessingWrapper: unkonwn norm type=", self.norm_type)
-      self.norm = LayerNormalization(hidden_size=params["hidden_size"])
+      self.norm = LayerNormalization(hidden_size=params["hidden_size"],
+                                     params=self.norm_params)
 
 
   def __call__(self, x, *args, **kwargs):

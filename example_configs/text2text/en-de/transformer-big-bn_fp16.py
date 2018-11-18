@@ -19,46 +19,54 @@ base_model = Text2Text
 d_model = 1024
 num_layers = 6
 
-#norm_type = "layernorm_L2"
-norm_type = "batch_norm"
+norm_params= {
+  "type": "batch_norm", #"layernorm_L1"
+  "momentum": 0.95,
+  "epsilon":  0.001,
+}
+dropout = 0. #0.3
+
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 #data_root = "/data/wmt16-ende-sp/"
 data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": False, #True,
-  "num_gpus": 2, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 128, #128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 10000, #440000,
+  "use_horovod": True, #True,
+  "num_gpus": 4, # when using Horovod we set number of workers with params to mpirun
+  "batch_size_per_gpu": 128,   # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps": 200000, #10000, #440000,
+  #"num_epochs": 20,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 100,
-  "eval_steps": 1000, #4001,
-  "save_checkpoint_steps": 219999,
-  "logdir": "logs/transformer-bn_lr0.01",
-  #
+  "print_samples_steps": 1000,
+  "eval_steps": 10000, #4001,
+  "save_checkpoint_steps": 20000,
+  "logdir": "logs/tr_bn_sgd_lr0.1_larc",
+
   # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": 1000.0 ,
 #  "loss_scaling": "Backoff",
 
-  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  "optimizer": "Momentum",
   "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.997,
-    "epsilon": 1e-03,
+    "momentum": 0.95,
   },
-
-  "lr_policy": fixed_lr, # poly_decay,
+  "lr_policy":  poly_decay, #fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.01,  # 0.001,
-   # "power": 0.5,
+    "learning_rate": 0.1,  # 0.001,
+    "power": 2,
+  },
+  "larc_params": {
+    "larc_eta": 0.002,
   },
 
-  # "larc_params": {
-  #   "larc_eta": 0.002,
+  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  # "optimizer_params": {
+  #   "beta1": 0.9,
+  #   "beta2": 0.997,
+  #   "epsilon": 1e-03,
   # },
-
   # "lr_policy": transformer_policy,
   # "lr_policy_params": {
   #   "learning_rate": 1.0,
@@ -71,22 +79,22 @@ base_params = {
     "encoder_layers": num_layers,
     "hidden_size": d_model,
     "num_heads": 16,
-    "attention_dropout": 0.1,
     "filter_size": 4 * d_model,
-    "relu_dropout": 0.3,
-    "layer_postprocess_dropout": 0.3,
+    "attention_dropout": dropout,  # 0.1,
+    "relu_dropout": dropout, #0.3,
+    "layer_postprocess_dropout": dropout, #0.3,
     "pad_embeddings_2_eight": True,
-    "norm_type": norm_type ,
+    "norm_params": norm_params,
   },
 
   "decoder": TransformerDecoder,
   "decoder_params": {
-    "layer_postprocess_dropout": 0.3,
     "num_hidden_layers": num_layers,
     "hidden_size": d_model,
     "num_heads": 16,
-    "attention_dropout": 0.1,
-    "relu_dropout": 0.3,
+    "attention_dropout": dropout, #0.1,
+    "relu_dropout": dropout, #0.3,
+    "layer_postprocess_dropout": dropout,  # 0.3,
     "filter_size": 4 * d_model,
     "beam_size": 4,
     "alpha": 0.6,
@@ -95,7 +103,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-    "norm_type": norm_type,
+    "norm_params": norm_params,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,

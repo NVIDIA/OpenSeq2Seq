@@ -54,7 +54,7 @@ class TransformerEncoder(Encoder):
         'initializer': None,  # any valid TensorFlow initializer
         'initializer_params': dict,
         'pad_embeddings_2_eight': bool,
-        "norm_type": str,
+        'norm_params': dict,
     })
 
   def __init__(self, params, model, name="transformer_encoder", mode='train'):
@@ -65,7 +65,7 @@ class TransformerEncoder(Encoder):
     self.output_normalization = None
     self.training = (mode=="train")
     self.embedding_softmax_layer = None
-    self.norm_type = self.params.get("norm_type", "layernorm_L2")
+    self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2"})
 
   def _call(self, encoder_inputs, attention_bias, inputs_padding):
     for n, layer in enumerate(self.layers):
@@ -108,12 +108,13 @@ class TransformerEncoder(Encoder):
         ])
 
       # final normalization layer.
-      print("Encoder norm=", self.norm_type, " training=",self.training)
-      if self.norm_type =="batch_norm":
-        self.output_normalization = Transformer_BatchNorm(training=self.training)
+      print("Encoder norm=", self.norm_params["type"], " training=",self.training)
+      if self.norm_params["type"] =="batch_norm":
+        self.output_normalization = Transformer_BatchNorm(training=self.training,
+                                                          params=self.norm_params)
       else:
-        self.output_normalization = LayerNormalization(self.params["hidden_size"],
-                                                     self.norm_type )
+        self.output_normalization = LayerNormalization(
+          hidden_size=self.params["hidden_size"], params=self.norm_params)
 
     # actual encoder part
     with tf.name_scope("encode"):

@@ -59,7 +59,7 @@ class TransformerDecoder(Decoder):
         'GO_SYMBOL': int,
         'PAD_SYMBOL': int,
         'END_SYMBOL': int,
-        'norm_type': str,
+        'norm_params': dict,
     })
 
   def _cast_types(self, input_dict):
@@ -76,7 +76,7 @@ class TransformerDecoder(Decoder):
     # also final projection = transpose(E_weights), we currently only support
     # this behaviour
     self.params['shared_embed'] = True
-    self.norm_type = self.params.get("norm_type", "layernorm_L2")
+    self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2" })
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -122,11 +122,12 @@ class TransformerDecoder(Decoder):
                                        self.training)
           ])
 
-        if self.norm_type=="batch_norm":
-          self.output_normalization = Transformer_BatchNorm(training=self.training)
+        if self.norm_params["type"]=="batch_norm":
+          self.output_normalization = Transformer_BatchNorm(training=self.training,
+                                                            params=self.norm_params)
         else:
-          self.output_normalization = LayerNormalization(self.params["hidden_size"],
-                                                         self.norm_type )
+          self.output_normalization = LayerNormalization(hidden_size=self.params["hidden_size"],
+                                                         params=self.norm_params )
 
       if targets is None:
         return self.predict(encoder_outputs, inputs_attention_bias)
@@ -202,8 +203,8 @@ class TransformerDecoder(Decoder):
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
-                                            dtype = tf.float32
-                                            #dtype=self._params["dtype"]
+                                            #dtype = tf.float32
+                                            dtype=self._params["dtype"]
                                             )
 
     # do decode

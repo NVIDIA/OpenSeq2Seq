@@ -22,9 +22,8 @@ import math
 
 import tensorflow as tf
 
-_NEG_FP16_INF = -1e4
 _NEG_INF = -1e9
-
+_NEG_INF_FP16 = -1e4
 
 def get_position_encoding(
     length, hidden_size, min_timescale=1.0, max_timescale=1.0e4):
@@ -71,10 +70,12 @@ def get_decoder_self_attention_bias(length, dtype=tf.float32):
   print("get_decoder_self_attention_bias", dtype)
 
   with tf.name_scope("decoder_self_attention_bias"):
-    valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=dtype), -1, 0)
+    #valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=dtype), -1, 0)
+    valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=tf.float32), -1, 0)
     valid_locs = tf.reshape(valid_locs, [1, 1, length, length])
-    neg_inf=_NEG_INF if (dtype==tf.float32) else _NEG_FP16_INF
-    decoder_bias = neg_inf * (1.0 - valid_locs)
+    neg_inf=_NEG_INF if (dtype==tf.float32) else _NEG_INF_FP16
+    bias = neg_inf * (1.0 - valid_locs)
+    decoder_bias=tf.saturate_cast(bias, dtype=dtype)
   return decoder_bias
 
 
@@ -116,7 +117,7 @@ def get_padding_bias(x, res_rank=4, pad_sym=0, dtype=tf.float32):
   print("get_padding_bias", dtype)
   with tf.name_scope("attention_bias"):
     padding = get_padding(x, padding_value=pad_sym, dtype=dtype)
-    neg_inf=_NEG_INF if dtype==tf.float32 else _NEG_FP16_INF
+    neg_inf=_NEG_INF if dtype==tf.float32 else _NEG_INF_FP16
     attention_bias = padding * neg_inf
     if res_rank == 4:
       attention_bias = tf.expand_dims(tf.expand_dims(attention_bias, axis=1), axis=1)
