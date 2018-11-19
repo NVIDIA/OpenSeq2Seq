@@ -99,7 +99,7 @@ def train(train_model, eval_model=None, debug_port=None):
          for i in range(train_model.num_gpus)]
     )
 
-  fine_tuning = (not base_ckpt_dir) or tf.train.latest_checkpoint(checkpoint_dir)
+  fine_tuning = base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir)
   if fine_tuning:
     scaffold = TransferScaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)

@@ -457,7 +457,6 @@ def _restore_embed(embed_var, var_to_shape_map, reader):
 
 def get_assign_ops_and_restore_dict(filename, restore_all=False):
   assign_ops = []
-  vars_to_initialize = []
   restore_dict = {}
 
   try:
