@@ -1,8 +1,8 @@
 '''
-This file modifies standard TensorFlow modules necessary for transfer learning, 
+This file modifies standard TensorFlow modules necessary for transfer learning,
 such as MonitoredTrainingSession, ChiefSessionCreator, Scaffold, SessionManager
 '''
-
+import re
 import time
 
 import tensorflow as tf
@@ -10,6 +10,8 @@ from tensorflow.python.tools import inspect_checkpoint as chkp
 from tensorflow.python import pywrap_tensorflow
 from tensorflow.python.ops import resources
 from tensorflow.python.training import saver as training_saver
+
+fp32_test = re.compile(r'Loss_Optimization\/FP32-master-copy\/')
 
 # Value that indicates no value was provided.
 USE_DEFAULT = object()
@@ -105,15 +107,27 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
         master=master,
         config=config,
         max_wait_secs=max_wait_secs)
-    return tf.train.MonitoredSession(session_creator=session_creator, hooks=hooks or [],
-                            stop_grace_period_secs=stop_grace_period_secs)
+    return tf.train.MonitoredSession(
+        session_creator=session_creator, hooks=hooks or [],
+        stop_grace_period_secs=stop_grace_period_secs)
 
   all_hooks = []
   if chief_only_hooks:
     all_hooks.extend(chief_only_hooks)
 
-  if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):
+  restore_all = False
+  if not base_ckpt_dir:
+    base_ckpt_dir = checkpoint_dir
+    restore_all = True
+
+  assign_ops, restore_dict = get_assign_ops_and_restore_dict(
+      tf.train.latest_checkpoint(base_ckpt_dir), restore_all)
+
+  if ((restore_all or tf.train.latest_checkpoint(checkpoint_dir)) 
+       and len(assign_ops) == 0):
+  # if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):
   # if no base checkpoint or if checkpoint for the current model already exists
+  # If assign_ops == 0, then no dtype mismatch
     session_creator = tf.train.ChiefSessionCreator(
         scaffold=scaffold,
         checkpoint_dir=checkpoint_dir,
@@ -124,10 +138,12 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
     print("Loading the base model")
     session_creator = TransferChiefSessionCreator(
         scaffold=scaffold,
-        checkpoint_dir=base_ckpt_dir,
         master=master,
         config=config,
-        load_fc=load_fc)
+        checkpoint_dir=base_ckpt_dir,
+        load_fc=load_fc,
+        assign_ops=assign_ops,
+        restore_dict=restore_dict)
 
   summary_dir = summary_dir or checkpoint_dir
   if summary_dir:
@@ -155,8 +171,9 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
 
   if hooks:
     all_hooks.extend(hooks)
-  return tf.train.MonitoredSession(session_creator=session_creator, hooks=all_hooks,
-                          stop_grace_period_secs=stop_grace_period_secs)
+  return tf.train.MonitoredSession(
+      session_creator=session_creator, hooks=all_hooks,
+      stop_grace_period_secs=stop_grace_period_secs)
 
 class TransferChiefSessionCreator(tf.train.SessionCreator):
   def __init__(self,
@@ -165,7 +182,9 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
                config=None,
                checkpoint_dir=None,
                checkpoint_filename_with_path=None,
-               load_fc=False):
+               load_fc=False,
+               assign_ops=None,
+               restore_dict=None):
     """Initializes a chief session creator.
     Args:
       scaffold: A `Scaffold` used for gathering or building supportive ops. If
@@ -183,6 +202,9 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
     self._master = master
     self._config = config
     self._load_fc = load_fc
+    # self._restore_all = restore_all
+    self._assign_ops = assign_ops
+    self._restore_dict = restore_dict
 
   def _get_session_manager(self):
     if self._session_manager:
@@ -209,7 +231,9 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
         init_op=self._scaffold.init_op,
         init_feed_dict=self._scaffold.init_feed_dict,
         init_fn=self._scaffold.init_fn,
-        load_fc=self._load_fc)
+        load_fc=self._load_fc,
+        assign_ops=self._assign_ops,
+        restore_dict=self._restore_dict)
 
 class TransferScaffold(tf.train.Scaffold):
   def finalize(self):
@@ -267,7 +291,9 @@ class TransferSessionManager(tf.train.SessionManager):
                           wait_for_checkpoint=False,
                           max_wait_secs=7200,
                           config=None,
-                          load_fc=False):
+                          load_fc=False,
+                          assign_ops=None,
+                          restore_dict=None):
     """Creates a `Session`, and tries to restore a checkpoint.
     Args:
       master: `String` representation of the TensorFlow master to use.
@@ -300,7 +326,8 @@ class TransferSessionManager(tf.train.SessionManager):
 
     if checkpoint_filename_with_path:
       # saver.restore(sess, checkpoint_filename_with_path)
-      restore_certain_variables(sess, checkpoint_filename_with_path)
+      run_assign_and_saver(
+          sess, checkpoint_filename_with_path, assign_ops, restore_dict)
       return sess, True
 
     # Waits up until max_wait_secs for checkpoint to become available.
@@ -317,7 +344,7 @@ class TransferSessionManager(tf.train.SessionManager):
 
     # Loads the checkpoint.
     ckpt_file = ckpt.model_checkpoint_path
-    restore_certain_variables(sess, ckpt_file)
+    run_assign_and_saver(sess, ckpt_file, assign_ops, restore_dict)
     saver.recover_last_checkpoints(ckpt.all_model_checkpoint_paths)
     return sess, True
 
@@ -332,7 +359,9 @@ class TransferSessionManager(tf.train.SessionManager):
                       config=None,
                       init_feed_dict=None,
                       init_fn=None,
-                      load_fc=False):
+                      load_fc=False,
+                      assign_ops=None,
+                      restore_dict=None):
     """Creates a `Session`. Makes sure the model is ready to be used.
       Creates a `Session` on 'master'. If a `saver` object is passed in, and
       `checkpoint_dir` points to a directory containing valid checkpoint
@@ -392,8 +421,10 @@ class TransferSessionManager(tf.train.SessionManager):
                           wait_for_checkpoint=wait_for_checkpoint,
                           max_wait_secs=max_wait_secs,
                           config=config,
-                          load_fc=load_fc)
-    
+                          load_fc=load_fc,
+                          assign_ops=assign_ops,
+                          restore_dict=restore_dict)
+
 
     local_init_success, msg = self._try_run_local_init_op(sess)
     if not local_init_success:
@@ -418,37 +449,59 @@ def _restore_embed(embed_var, var_to_shape_map, reader):
   for var in var_to_shape_map:
     if var.endswith('dense/kernel') and var_to_shape_map[var] == tf.transpose(embed_var).shape:
       print('Assigning', var, 'to', embed_var.name)
-      return embed_var.assign(reader.get_tensor(var).T), True
+      tensor = reader.get_tensor(var).T
+      if tensor.dtype != var.dtype.as_numpy_dtype():
+        return embed_var.assign(tf.cast(tensor, embed_var.dtype)), True
+      return embed_var.assign(tensor), True
   return None, False
 
-def restore_certain_variables(sess, filename):
-  print('Restoring only the variables found in the checkpoint')
-  trainables = {v.name: v for v in tf.trainable_variables()}
+def get_assign_ops_and_restore_dict(filename, restore_all=False):
   assign_ops = []
   vars_to_initialize = []
+  restore_dict = {}
 
   try:
     reader = tf.train.NewCheckpointReader(filename)
     var_to_shape_map = reader.get_variable_to_shape_map()
-    non_loss_var = {var: var_to_shape_map[var] for var in var_to_shape_map if 'Loss_Optimization' not in var}
-    for var in var_to_shape_map:
-      if 'global_step' in var:
-        print('Restoring from the step', reader.get_tensor(var))
-    for name in trainables:
-      idx = name.find(":")
+
+    variables = tf.trainable_variables()
+    if restore_all:
+      variables = tf.get_collection(tf.GraphKeys.VARIABLES)
+    for var in variables:
+      idx = var.name.find(":")
       if idx != -1:
-        true_name = name[:idx]
-      # if name.endswith(':0'):
-      #   true_name = name[:-2]
-      if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
-        print('Restoring value to', true_name)
-        assign_ops.append(trainables[name].assign(reader.get_tensor(true_name)))
+        true_name = var.name[:idx]
+      loss_idx = re.search("Loss_Optimization", true_name)
       if 'EmbeddingMatrix' in true_name:
-        embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
+        embed_op, has_embed_op = _restore_embed(var, var_to_shape_map, reader)
         if has_embed_op:
           assign_ops.append(embed_op)
-
-    print('assign_ops', assign_ops)
+      if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+        tensor = reader.get_tensor(true_name)
+        if tensor.dtype != var.dtype.as_numpy_dtype():
+          assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+        else:
+          restore_dict[true_name] = var
+      elif loss_idx:
+        loss_idx = loss_idx.end()
+        if fp32_test.search(true_name):
+          true_name = fp32_test.sub("",true_name)
+        else:
+          true_name = true_name[:loss_idx] + "/Loss_Optimization/FP32-master-copy" + true_name[loss_idx:]
+        if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+          tensor = reader.get_tensor(true_name)
+          if tensor.dtype != var.dtype.as_numpy_dtype():
+            assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+          else:
+            restore_dict[true_name] = var
+      else:
+        print("Not restoring {}".format(var.name))
+        if true_name not in var_to_shape_map:
+          print("true name [{}] was not in shape map".format(true_name))
+        else:
+          if var.shape != var_to_shape_map[true_name]:
+            print("var.shape [{}] does not match var_to_shape_map[true_name] [{}]".format(var.shape, var_to_shape_map[true_name]))
+        print("WARNING: Run will mostly error out due to this")
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))
     if "corrupted compressed block contents" in str(e):
@@ -462,7 +515,154 @@ def restore_certain_variables(sess, filename):
       *prefix*.  Try removing the '.' and extension.  Try:
       inspect checkpoint --file_name = {}"""
       print(v2_file_error_template.format(proposed_file))
-  sess.run(assign_ops)
+    raise ValueError("Error in loading checkpoint")
+  return assign_ops, restore_dict
+
+def run_assign_and_saver(sess, filename, assign_ops, restore_dict):
+  if restore_dict:
+    restorer = tf.train.Saver(restore_dict)
+    restorer.restore(sess, filename)
+  if assign_ops:
+    sess.run(assign_ops)
+
+# def restore_certain_variables(sess, filename):
+#   print('Restoring only the variables found in the checkpoint')
+#   trainables = {v.name: v for v in tf.trainable_variables()}
+#   assign_ops = []
+#   vars_to_initialize = []
+
+#   try:
+#     reader = tf.train.NewCheckpointReader(filename)
+#     var_to_shape_map = reader.get_variable_to_shape_map()
+#     non_loss_var = {var: var_to_shape_map[var] for var in var_to_shape_map if 'Loss_Optimization' not in var}
+#     for var in var_to_shape_map:
+#       if 'global_step' in var:
+#         print('Restoring from the step', reader.get_tensor(var))
+#     for name in trainables:
+#       idx = name.find(":")
+#       if idx != -1:
+#         true_name = name[:idx]
+#       if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
+#         print('Restoring value to', true_name)
+#         tensor = reader.get_tensor(true_name)
+#         if tensor.dtype != var.dtype.as_numpy_dtype():
+#           assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+#         else:
+#           assign_ops.append(var.assign(tensor))
+#       if 'EmbeddingMatrix' in true_name:
+#         embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
+#         if has_embed_op:
+#           assign_ops.append(embed_op)
+
+#     print('assign_ops', assign_ops)
+#   except Exception as e:  # pylint: disable=broad-except
+#     print(str(e))
+#     if "corrupted compressed block contents" in str(e):
+#       print("It's likely that your checkpoint file has been compressed "
+#             "with SNAPPY.")
+#     if ("Data loss" in str(e) and
+#         (any([e in file_name for e in [".index", ".meta", ".data"]]))):
+#       proposed_file = ".".join(file_name.split(".")[0:-1])
+#       v2_file_error_template = """
+#       It's likely that this is a V2 checkpoint and you need to provide the filename
+#       *prefix*.  Try removing the '.' and extension.  Try:
+#       inspect checkpoint --file_name = {}"""
+#       print(v2_file_error_template.format(proposed_file))
+#   sess.run(assign_ops)
+
+# def check_dtype(filename):
+#   """
+#   A helper function that checks all saved variables and compares the type of the
+#   saved variable to the one instantiated in the current graph.
+
+#   Returns:
+#     bool, True if there is a mismatch in type, False otherwise
+
+#   """
+#   trainables = {v.name: v for v in tf.trainable_variables()}
+#   try:
+#     reader = tf.train.NewCheckpointReader(filename)
+#     for name in trainables:
+#       idx = name.find(":")
+#       if idx != -1:
+#         true_name = name[:idx]
+#       tensor = reader.get_tensor(true_name)
+#       if tensor.dtype != trainables[name].dtype.as_numpy_dtype():
+#         return True
+#   except Exception as e:  # pylint: disable=broad-except
+#     print(str(e))
+#     if "corrupted compressed block contents" in str(e):
+#       print("It's likely that your checkpoint file has been compressed "
+#             "with SNAPPY.")
+#     if ("Data loss" in str(e) and
+#         (any([e in file_name for e in [".index", ".meta", ".data"]]))):
+#       proposed_file = ".".join(file_name.split(".")[0:-1])
+#       v2_file_error_template = """
+#       It's likely that this is a V2 checkpoint and you need to provide the filename
+#       *prefix*.  Try removing the '.' and extension.  Try:
+#       inspect checkpoint --file_name = {}"""
+#       print(v2_file_error_template.format(proposed_file))
+#     raise ValueError("Error in loading checkpoint")
+#   return False
+
+# def cast_and_restore_checkpoint(sess, filename):
+#   print('There was a mismatch in model dtype and checkpoint dtype')
+#   print('Attempting to load checkpoint and casting to the appropriate type')
+
+#   assign_ops = []
+#   vars_to_initialize = []
+
+#   try:
+#     reader = tf.train.NewCheckpointReader(filename)
+#     var_to_shape_map = reader.get_variable_to_shape_map()
+#     for var in tf.get_collection(tf.GraphKeys.VARIABLES):
+#       idx = var.name.find(":")
+#       if idx != -1:
+#         true_name = var.name[:idx]
+#       loss_idx = re.search("Loss_Optimization", true_name)
+#       if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+#         print('Restoring value to', true_name)
+#         tensor = reader.get_tensor(true_name)
+#         if tensor.dtype != var.dtype.as_numpy_dtype():
+#           assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+#         else:
+#           assign_ops.append(var.assign(tensor))
+#       elif loss_idx:
+#         loss_idx = loss_idx.end()
+#         if fp32_test.search(true_name):
+#           true_name = fp32_test.sub("",true_name)
+#         else:
+#           true_name = true_name[:loss_idx] + "/Loss_Optimization/FP32-master-copy" + true_name[loss_idx:]
+#         if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+#           print('Restoring value to', true_name)
+#           tensor = reader.get_tensor(true_name)
+#           if tensor.dtype != var.dtype.as_numpy_dtype():
+#             assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
+#           else:
+#             assign_ops.append(var.assign(tensor))
+#       else:
+#         print("Not restoring {}".format(var.name))
+#         if true_name not in var_to_shape_map:
+#           print("true name [{}] was not in shape map".format(true_name))
+#         else:
+#           if var.shape != var_to_shape_map[true_name]:
+#             print("var.shape [{}] does not match var_to_shape_map[true_name] [{}]".format(var.shape, var_to_shape_map[true_name]))
+#         print("WARNING: Run will mostly error out due to this")
+#   except Exception as e:  # pylint: disable=broad-except
+#     print(str(e))
+#     if "corrupted compressed block contents" in str(e):
+#       print("It's likely that your checkpoint file has been compressed "
+#             "with SNAPPY.")
+#     if ("Data loss" in str(e) and
+#         (any([e in file_name for e in [".index", ".meta", ".data"]]))):
+#       proposed_file = ".".join(file_name.split(".")[0:-1])
+#       v2_file_error_template = """
+#       It's likely that this is a V2 checkpoint and you need to provide the filename
+#       *prefix*.  Try removing the '.' and extension.  Try:
+#       inspect checkpoint --file_name = {}"""
+#       print(v2_file_error_template.format(proposed_file))
+#     raise ValueError("Error in loading checkpoint")
+#   sess.run(assign_ops)
 
 def _maybe_name(obj):
   """Returns object name if it has one, or a message otherwise.

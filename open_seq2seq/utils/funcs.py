@@ -14,7 +14,8 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from .helpers import TransferMonitoredTrainingSession, TransferScaffold
+from .helpers import TransferMonitoredTrainingSession, TransferScaffold, \
+                     get_assign_ops_and_restore_dict, run_assign_and_saver
 from open_seq2seq.data import WKTDataLayer
 
 
@@ -97,14 +98,14 @@ def train(train_model, eval_model=None, debug_port=None):
         [train_model.get_data_layer(i).iterator.initializer
          for i in range(train_model.num_gpus)]
     )
-  
+
   fine_tuning = (not base_ckpt_dir) or tf.train.latest_checkpoint(checkpoint_dir)
-  if fine_tuning:   
-    scaffold = tf.train.Scaffold(
+  if fine_tuning:
+    scaffold = TransferScaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
     )
   else:
-    scaffold = TransferScaffold(
+    scaffold = tf.train.Scaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
     )
   fetches = [train_model.train_op]
@@ -120,26 +121,26 @@ def train(train_model, eval_model=None, debug_port=None):
   # starting training
   if fine_tuning:
     sess = TransferMonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks,
-      base_ckpt_dir=base_ckpt_dir,
-      load_fc=train_model.params['load_fc'])
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks,
+        base_ckpt_dir=base_ckpt_dir,
+        load_fc=train_model.params['load_fc'])
   else:
     sess = tf.train.MonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks)
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks)
   step = 0
   num_bench_updates = 0
   while True:
@@ -194,9 +195,6 @@ def train(train_model, eval_model=None, debug_port=None):
 
 
 def restore_and_get_results(model, checkpoint, mode, use_trt=False):
-  if not use_trt:
-    # Checkpoint is restored prior to freezing graph when using TRT
-    saver = tf.train.Saver()
   sess_config = tf.ConfigProto(allow_soft_placement=True)
   # pylint: disable=no-member
   sess_config.gpu_options.allow_growth = True
@@ -205,7 +203,13 @@ def restore_and_get_results(model, checkpoint, mode, use_trt=False):
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
     if not use_trt:
-      saver.restore(sess, checkpoint)
+      assign_ops, restore_dict = get_assign_ops_and_restore_dict(
+          checkpoint, True)
+      if assign_ops:
+        run_assign_and_saver(sess, checkpoint, assign_ops, restore_dict)
+      else:
+        saver = tf.train.Saver()
+        saver.restore(sess, checkpoint)
     results_per_batch = get_results_for_epoch(
         model, sess, mode=mode, compute_loss=False, verbose=True,
     )
@@ -213,7 +217,8 @@ def restore_and_get_results(model, checkpoint, mode, use_trt=False):
 
 
 def infer(model, checkpoint, output_file, use_trt=False):
-  results_per_batch = restore_and_get_results(model, checkpoint, mode="infer", use_trt=use_trt)
+  results_per_batch = restore_and_get_results(
+      model, checkpoint, mode="infer", use_trt=use_trt)
   if not model.on_horovod or model.hvd.rank() == 0:
     model.finalize_inference(results_per_batch, output_file)
     deco_print("Finished inference")

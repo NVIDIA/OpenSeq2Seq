@@ -7,8 +7,8 @@ from __future__ import unicode_literals
 import os
 import sys
 import tensorflow as tf
-from open_seq2seq.utils.utils import deco_print, get_base_config, create_model,\
-                                     create_logdir, check_logdir, \
+from open_seq2seq.utils.utils import deco_print, get_base_config, check_logdir,\
+                                     create_logdir, create_model,\
                                      check_base_model_logdir
 from open_seq2seq.utils import train, infer, evaluate
 
