@@ -123,8 +123,8 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
   assign_ops, restore_dict = get_assign_ops_and_restore_dict(
       tf.train.latest_checkpoint(base_ckpt_dir), restore_all)
 
-  if ((restore_all or tf.train.latest_checkpoint(checkpoint_dir)) 
-       and len(assign_ops) == 0):
+  if ((restore_all or tf.train.latest_checkpoint(checkpoint_dir))
+      and len(assign_ops) == 0):
   # if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):
   # if no base checkpoint or if checkpoint for the current model already exists
   # If assign_ops == 0, then no dtype mismatch
@@ -221,7 +221,7 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
     print('SCAFFOLD TYPE:', type(self._scaffold))
     self._scaffold.finalize()
     # tf.get_default_graph()._unsafe_unfinalize()
-    
+
     return self._get_session_manager().prepare_session(
         self._master,
         saver=self._scaffold.saver,
@@ -268,9 +268,8 @@ class TransferScaffold(tf.train.Scaffold):
           'local_init_op', tf.GraphKeys.LOCAL_INIT_OP,
           TransferScaffold.default_local_init_op)
     if self._summary_op is None:
-      self._summary_op = TransferScaffold.get_or_default('summary_op',
-                                                 tf.GraphKeys.SUMMARY_OP,
-                                                 tf.summary.merge_all)
+      self._summary_op = TransferScaffold.get_or_default(
+          'summary_op', tf.GraphKeys.SUMMARY_OP, tf.summary.merge_all)
     # pylint: disable=g-long-lambda
     if self._saver is None:
       self._saver = training_saver._get_saver_or_default()  # pylint: disable=protected-access
@@ -383,18 +382,19 @@ class TransferSessionManager(tf.train.SessionManager):
         master: `String` representation of the TensorFlow master to use.
         init_op: Optional `Operation` used to initialize the model.
         saver: A `Saver` object used to restore a model.
-        checkpoint_dir: Path to the checkpoint files. The latest checkpoint in the
-          dir will be used to restore.
-        checkpoint_filename_with_path: Full file name path to the checkpoint file.
+        checkpoint_dir: Path to the checkpoint files. The latest checkpoint in
+          the dir will be used to restore.
+        checkpoint_filename_with_path: Full file name path to the checkpoint
+          file.
         wait_for_checkpoint: Whether to wait for checkpoint to become available.
         max_wait_secs: Maximum time to wait for checkpoints to become available.
         config: Optional `ConfigProto` proto used to configure the session.
         init_feed_dict: Optional dictionary that maps `Tensor` objects to feed
-          values.  This feed dictionary is passed to the session `run()` call when
-          running the init op.
-        init_fn: Optional callable used to initialize the model. Called after the
-          optional `init_op` is called.  The callable must accept one argument,
-          the session being initialized.
+          values.  This feed dictionary is passed to the session `run()` call
+          when running the init op.
+        init_fn: Optional callable used to initialize the model. Called after
+          the optional `init_op` is called.  The callable must accept one
+          argument, the session being initialized.
       Returns:
         A `Session` object that can be used to drive the model.
       Raises:
@@ -413,17 +413,17 @@ class TransferSessionManager(tf.train.SessionManager):
     sess.run(tf.local_variables_initializer()) # why do i have to add this?
     print("LOCAL INIT OP", self._local_init_op)
     sess, is_loaded_from_checkpoint = self._restore_checkpoint(
-                          master,
-                          sess,
-                          saver,
-                          checkpoint_dir=checkpoint_dir,
-                          checkpoint_filename_with_path=checkpoint_filename_with_path,
-                          wait_for_checkpoint=wait_for_checkpoint,
-                          max_wait_secs=max_wait_secs,
-                          config=config,
-                          load_fc=load_fc,
-                          assign_ops=assign_ops,
-                          restore_dict=restore_dict)
+        master,
+        sess,
+        saver,
+        checkpoint_dir=checkpoint_dir,
+        checkpoint_filename_with_path=checkpoint_filename_with_path,
+        wait_for_checkpoint=wait_for_checkpoint,
+        max_wait_secs=max_wait_secs,
+        config=config,
+        load_fc=load_fc,
+        assign_ops=assign_ops,
+        restore_dict=restore_dict)
 
 
     local_init_success, msg = self._try_run_local_init_op(sess)
@@ -443,19 +443,28 @@ class TransferSessionManager(tf.train.SessionManager):
     return sess
 
 def _restore_embed(embed_var, var_to_shape_map, reader):
-  has_embed = len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0
-  if has_embed:
-    return None, False # assume same name
+  if len([var for var in var_to_shape_map if 'EmbeddingMatrix' in var]) > 0:
+    return None, None # assume same name
   for var in var_to_shape_map:
-    if var.endswith('dense/kernel') and var_to_shape_map[var] == tf.transpose(embed_var).shape:
+    if (var.endswith('dense/kernel')
+        and var_to_shape_map[var] == tf.transpose(embed_var).shape):
       print('Assigning', var, 'to', embed_var.name)
       tensor = reader.get_tensor(var).T
       if tensor.dtype != var.dtype.as_numpy_dtype():
         return embed_var.assign(tf.cast(tensor, embed_var.dtype)), True
-      return embed_var.assign(tensor), True
-  return None, False
+      return embed_var, False
+  return None, None
 
 def get_assign_ops_and_restore_dict(filename, restore_all=False):
+  def check_name_and_shape(name, var, shape_map):
+    if name in shape_map:
+      # Cannot check variables with unknown sizes such as cudnn rnns
+      if str(var.shape) == "<unknown>":
+        # Just return True and hope the shapes match
+        return True
+      elif var.shape == shape_map[name]:
+        return True
+    return False
   assign_ops = []
   restore_dict = {}
 
@@ -472,10 +481,12 @@ def get_assign_ops_and_restore_dict(filename, restore_all=False):
         true_name = var.name[:idx]
       loss_idx = re.search("Loss_Optimization", true_name)
       if 'EmbeddingMatrix' in true_name:
-        embed_op, has_embed_op = _restore_embed(var, var_to_shape_map, reader)
-        if has_embed_op:
-          assign_ops.append(embed_op)
-      if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+        embed_restore, assign = _restore_embed(var, var_to_shape_map, reader)
+        if assign:
+          assign_ops.append(embed_restore)
+        else:
+          restore_dict[true_name] = embed_restore
+      if check_name_and_shape(true_name, var, var_to_shape_map):
         tensor = reader.get_tensor(true_name)
         if tensor.dtype != var.dtype.as_numpy_dtype():
           assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
@@ -484,10 +495,12 @@ def get_assign_ops_and_restore_dict(filename, restore_all=False):
       elif loss_idx:
         loss_idx = loss_idx.end()
         if fp32_test.search(true_name):
-          true_name = fp32_test.sub("",true_name)
+          true_name = fp32_test.sub("", true_name)
         else:
-          true_name = true_name[:loss_idx] + "/Loss_Optimization/FP32-master-copy" + true_name[loss_idx:]
-        if true_name in var_to_shape_map and var.shape == var_to_shape_map[true_name]:
+          true_name = (true_name[:loss_idx]
+                       + "/Loss_Optimization/FP32-master-copy"
+                       + true_name[loss_idx:])
+        if check_name_and_shape(true_name, var, var_to_shape_map):
           tensor = reader.get_tensor(true_name)
           if tensor.dtype != var.dtype.as_numpy_dtype():
             assign_ops.append(var.assign(tf.cast(tensor, var.dtype)))
@@ -499,7 +512,8 @@ def get_assign_ops_and_restore_dict(filename, restore_all=False):
           print("true name [{}] was not in shape map".format(true_name))
         else:
           if var.shape != var_to_shape_map[true_name]:
-            print("var.shape [{}] does not match var_to_shape_map[true_name] [{}]".format(var.shape, var_to_shape_map[true_name]))
+            print(("var.shape [{}] does not match var_to_shape_map[true_name]"
+                   "[{}]").format(var.shape, var_to_shape_map[true_name]))
         print("WARNING: Run will mostly error out due to this")
   except Exception as e:  # pylint: disable=broad-except
     print(str(e))
@@ -510,8 +524,8 @@ def get_assign_ops_and_restore_dict(filename, restore_all=False):
         (any([e in file_name for e in [".index", ".meta", ".data"]]))):
       proposed_file = ".".join(file_name.split(".")[0:-1])
       v2_file_error_template = """
-      It's likely that this is a V2 checkpoint and you need to provide the filename
-      *prefix*.  Try removing the '.' and extension.  Try:
+      It's likely that this is a V2 checkpoint and you need to provide the
+      filename *prefix*.  Try removing the '.' and extension.  Try:
       inspect checkpoint --file_name = {}"""
       print(v2_file_error_template.format(proposed_file))
     raise ValueError("Error in loading checkpoint")
