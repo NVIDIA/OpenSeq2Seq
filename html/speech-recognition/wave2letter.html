@@ -33,7 +33,7 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Speech Synthesis" href="../speech-synthesis.html" />
+    <link rel="next" title="Creation of Synthetic Data" href="synthetic_dataset.html" />
     <link rel="prev" title="DeepSpeech2" href="deepspeech2.html" /> 
 
   
@@ -101,12 +101,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#synthetic-data">Synthetic Data</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
@@ -181,7 +182,7 @@
 <span id="id1"></span><h1>Wave2Letter+<a class="headerlink" href="#wave2letter" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="model">
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>This is a fully convolutional model, based on Facebook’s <a class="reference external" href="https://arxiv.org/abs/1609.03193">Wave2Letter</a> and <a class="reference external" href="https://arxiv.org/abs/1712.09444">Wave2LetterV2</a>  papers. The base model (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py">Wave2Letter+</a>) consists of 17 1D-Convolutional Layers and 2 Fully Connected Layers for a total of 19 layers:</p>
+<p>This is a fully convolutional model, based on Facebook’s <a class="reference external" href="https://arxiv.org/abs/1609.03193">Wave2Letter</a> and <a class="reference external" href="https://arxiv.org/abs/1712.09444">Wave2LetterV2</a>  papers. The base model (<a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py">Wave2Letter+</a>) consists of 17 1D-Convolutional Layers and 2 Fully Connected Layers for a total of 19 layers:</p>
 <img alt="../_images/wave2letter.png" src="../_images/wave2letter.png" />
 <p>We preprocess the speech signal by sampling the raw audio waveform of the signal using a sliding window of 20ms with stride 10ms. We then extract log-mel filterbank energies of size 64 from these frames as input features to the model.</p>
 <p>We use Connectionist Temporal Classification (CTC) loss to train the model. The output of the model is a sequence of letters corresponding to the speech input. The vocabulary consists of all alphabets (a-z), space, and the apostrophe symbol, a total of 29 symbols including the blank symbol used by the CTC loss.</p>
@@ -198,11 +199,12 @@ Both striding and dilation improved the WER from 7.17% to 6.67%.</p>
 </div>
 <div class="section" id="x-large-model">
 <h2>X Large Model<a class="headerlink" href="#x-large-model" title="Permalink to this headline">¶</a></h2>
-<p>The xlarge models, <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py">Wave2Letter+-34</a> and <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py">Wave2Letter+-54-syn</a>, are larger models with 34 and 54 layers. The base model contains of 15 convolutional layers which consists of 5 blocks of 3 repeating convolutional layers. For the xlarge model, we double the number of blocks to 10 for the 34 layer model. For the 54 layer model, we further increase the amount of repeating convolutional layers inside each block from 3 to 5.</p>
+<p>The xlarge models, <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py">Wave2Letter+-34</a> and <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py">Wave2Letter+-54-syn</a>, are larger models with 34 and 54 layers. The base model contains of 15 convolutional layers which consists of 5 blocks of 3 repeating convolutional layers. For the xlarge model, we double the number of blocks to 10 for the 34 layer model. For the 54 layer model, we further increase the amount of repeating convolutional layers inside each block from 3 to 5.</p>
 </div>
 <div class="section" id="synthetic-data">
 <h2>Synthetic Data<a class="headerlink" href="#synthetic-data" title="Permalink to this headline">¶</a></h2>
-<p>All models with “syn” in their name are trained using a combined dataset of Librispeech and synthetic data. The training details are to be announced. Stay tuned!</p>
+<p>All models with “syn” in their name are trained using a combined dataset of Librispeech and synthetic data.</p>
+<p>The training details can be found <a class="reference internal" href="synthetic_dataset.html#synthetic-data"><span class="std std-ref">here</span></a>.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
@@ -296,7 +298,7 @@ Both striding and dilation improved the WER from 7.17% to 6.67%.</p>
 </tbody>
 </table>
 <p>We used Open SLR language model while decoding with beam search using a beam width of 2048.</p>
-<p>The checkpoint for the model trained using the configuration <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a> can be found at <a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">Checkpoint</a>.</p>
+<p>The checkpoint for the model trained using the configuration <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py">w2l_plus_large_mp</a> can be found at <a class="reference external" href="https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing">Checkpoint</a>.</p>
 <p>The base model was trained for 200 epochs on 8 GPUs. We use:</p>
 <ul class="simple">
 <li>SGD with momentum = 0.9</li>
@@ -326,7 +328,7 @@ Both striding and dilation improved the WER from 7.17% to 6.67%.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../speech-synthesis.html" class="btn btn-neutral float-right" title="Speech Synthesis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="synthetic_dataset.html" class="btn btn-neutral float-right" title="Creation of Synthetic Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="deepspeech2.html" class="btn btn-neutral" title="DeepSpeech2" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

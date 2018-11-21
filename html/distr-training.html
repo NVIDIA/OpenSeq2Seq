@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Distributed training &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Multi-GPU and Distributed Training &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -91,7 +91,15 @@
 <li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Distributed training</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Multi-GPU and Distributed Training</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#standard-tensorflow-distributed-training">Standard Tensorflow distributed training</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#horovod">Horovod</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#layer-wise-adaptive-rate-control-larc">Layer-wise Adaptive Rate Control (LARC)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
@@ -141,7 +149,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>Distributed training</li>
+      <li>Multi-GPU and Distributed Training</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -160,21 +168,59 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="distributed-training">
-<span id="id1"></span><h1>Distributed training<a class="headerlink" href="#distributed-training" title="Permalink to this headline">¶</a></h1>
-<p>OpenSeq2Seq supports two modes for distributed training: <a class="reference external" href="https://www.tensorflow.org/programmers_guide/using_gpu#using_multiple_gpus">simple multi-tower
+  <div class="section" id="multi-gpu-and-distributed-training">
+<span id="distributed-training"></span><h1>Multi-GPU and Distributed Training<a class="headerlink" href="#multi-gpu-and-distributed-training" title="Permalink to this headline">¶</a></h1>
+<p>OpenSeq2Seq supports two modes for parallel training: <a class="reference external" href="https://www.tensorflow.org/programmers_guide/using_gpu#using_multiple_gpus">simple multi-tower
 approach</a>
-and <a class="reference external" href="https://github.com/uber/horovod">Horovod-based approach</a>. To run the
-mutli-GPU training using the first approach, you only need to change
-the configuration parameter <code class="docutils literal notranslate"><span class="pre">num_gpus</span></code>. To use Horovod you will need to set
-<code class="docutils literal notranslate"><span class="pre">use_horovod:</span> <span class="pre">True</span></code> in the config and start
-<code class="docutils literal notranslate"><span class="pre">run.py</span></code> script <a class="reference external" href="https://github.com/uber/horovod#running-horovod">using mpirun</a>.
-With Horovod you can also enable multi-node execution.</p>
+and <a class="reference external" href="https://github.com/uber/horovod">Horovod-based approach</a>.</p>
+<div class="section" id="standard-tensorflow-distributed-training">
+<h2>Standard Tensorflow distributed training<a class="headerlink" href="#standard-tensorflow-distributed-training" title="Permalink to this headline">¶</a></h2>
+<p>For multi-GPU training with native <a class="reference external" href="https://www.tensorflow.org/deploy/distributed">Distributed Tensorflow approach</a> ,
+you  need to set <code class="docutils literal notranslate"><span class="pre">use_horovod:</span> <span class="pre">False</span></code> and  <code class="docutils literal notranslate"><span class="pre">num_gpus=</span></code>
+in the configuration file. To start training use <code class="docutils literal notranslate"><span class="pre">run.py</span></code> script:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="horovod">
+<h2>Horovod<a class="headerlink" href="#horovod" title="Permalink to this headline">¶</a></h2>
+<p>To use Horovod you will need to set <code class="docutils literal notranslate"><span class="pre">use_horovod:</span> <span class="pre">True</span></code> in the config and <a class="reference external" href="https://github.com/uber/horovod#running-horovod">use mpirun</a>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">mpiexec</span> <span class="o">-</span><span class="n">np</span> <span class="o">&lt;</span><span class="n">num_gpus</span><span class="o">&gt;</span> <span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=...</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train_eval</span> <span class="o">--</span><span class="n">use_horovod</span><span class="o">=</span><span class="kc">True</span> <span class="o">--</span><span class="n">enable_logs</span>
+</pre></div>
+</div>
+<p>You can use Horovod both for multi-GPU and for multi-node training.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p class="last"><code class="docutils literal notranslate"><span class="pre">num_gpus</span></code> parameter will be ignored when <code class="docutils literal notranslate"><span class="pre">use_horovod</span></code> is set to True.
 In that case the number of GPUs to use is specified in the command line with
 <code class="docutils literal notranslate"><span class="pre">mpirun</span></code> arguments.</p>
+</div>
+</div>
+<div class="section" id="layer-wise-adaptive-rate-control-larc">
+<h2>Layer-wise Adaptive Rate Control (LARC)<a class="headerlink" href="#layer-wise-adaptive-rate-control-larc" title="Permalink to this headline">¶</a></h2>
+<p>Disitributed training can be tricky because global batch size increases with the number of nodes.
+For large batch training we use Layer-wise Adaptive Rate Control (LARC). The key idea of LARC is to adjust learning rate (LR) for each layer in such way that the magnitude of weight updates would be small compared to weights’ norm.</p>
+<p>Neural networks (NN-s) training is based on  Stochastic Gradient Descent (SGD). For example, for the “vanilla” SGD, a mini-batch of <em>B</em> samples <span class="math notranslate nohighlight">\(x_i\)</span> is selected from the training set at each step <em>t</em>. Then the stocahtsic gradient <span class="math notranslate nohighlight">\(g(t)\)</span> of loss function <span class="math notranslate nohighlight">\(\nabla L(x_i, w)\)</span> wrt weights is computed for a mini-batch:</p>
+<div class="math notranslate nohighlight">
+\[g_t = \frac{1}{B} {\sum}_{i=1}^{B} \nabla L(x_i,  w_t)\]</div>
+<p>and then weights <em>w</em> are updated based on this stochastic gradient:</p>
+<div class="math notranslate nohighlight">
+\[w_{t+1} = w_t - \lambda * g_t\]</div>
+<p>The standard SGD uses the same LR <span class="math notranslate nohighlight">\(\lambda\)</span> for all layers. We found that the ratio of the L2-norm of weights and gradients <span class="math notranslate nohighlight">\(\frac{| w |}{| g_t |}\)</span> varies significantly between weights and biases and between different layers. The ratio is high during the initial phase, and it is rapidly decreasing after few iterations. When <span class="math notranslate nohighlight">\(\lambda\)</span> is large, the update  <span class="math notranslate nohighlight">\(| \lambda * g_t |\)</span> can become much larger than  <span class="math notranslate nohighlight">\(| w |\)</span>, and this can cause divergence. This makes the initial phase of training highly sensitive to the weight initialization and initial LR.
+To stabilize training, we propose to clip the global LR <span class="math notranslate nohighlight">\(\gamma\)</span> for each layer <em>k</em>:</p>
+<div class="math notranslate nohighlight">
+\[\lambda^k = \min (\gamma, \eta * \frac{| w^k |}{| g^k |} )\]</div>
+<p>where  <span class="math notranslate nohighlight">\(\eta &lt; 1\)</span> is the LARC “trust” coeffcient. The coeffecient <span class="math notranslate nohighlight">\(\eta\)</span>  montonically increases with the batch size <em>B</em>.</p>
+<p>To use LARC you should add the following lines to model configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;larc_params&quot;</span><span class="p">:</span> <span class="p">{</span>
+  <span class="s2">&quot;larc_eta&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
+<p>The idea of choosing different LR for each layer is known “trick” since 90-s. For example, LeCun etc [“Efficient Backprop” 1998, §4.7] suggested to use larger LR in lower layers than in higher layer, based on the observation that the second derivative of loss function is higher in the upper layers than in small layers. He scaled the global LR for fully-connected layer with <em>n</em> of incoming connections by <span class="math notranslate nohighlight">\(\frac{1}{\sqrt{n}}\)</span>. For convolutional layers, this method would scale global LR for layer <em>k</em> with <em>c</em> input channels and kernel size <span class="math notranslate nohighlight">\((k \times k)\)</span> will be <span class="math notranslate nohighlight">\(\lambda_k =  \frac{1}{\sqrt{c}*k}\)</span>.</p>
+</div>
 </div>
 </div>
 

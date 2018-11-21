@@ -89,8 +89,9 @@ First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.
         cd tensorflow
         ./configure
         ln -s <OpenSeq2Seq location>/ctc_decoder_with_lm ./
-        bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --copt=-O3  --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so
+        bazel build -c opt --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --copt=-msse4.2 --copt=-O3  --config=cuda //tensorflow/tools/pip_package:build_pip_package //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
         cp bazel-bin/ctc_decoder_with_lm/*.so ctc_decoder_with_lm/
+        cp bazel-bin/ctc_decoder_with_lm/generate_trie ctc_decoder_with_lm/
         bazel-bin/tensorflow/tools/pip_package/build_pip_package /tmp/tensorflow_pkg
         pip install /tmp/tensorflow_pkg/<your tensorflow build>.whl
 

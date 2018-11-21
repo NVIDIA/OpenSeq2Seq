@@ -3,7 +3,6 @@
 Speech Recognition
 ==================
 
-
 ######
 Models
 ######
@@ -21,22 +20,22 @@ Currently we support following models:
 
    * - :doc:`DeepSpeech2 </speech-recognition/deepspeech2>`
      - 6.71
-     - `ds2_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
+     - `ds2_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX>`_
 
    * - :doc:`Wave2Letter+ </speech-recognition/wave2letter>`
      - 6.67
-     - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
+     - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_
 
    * - :doc:`Wave2Letter+-34 </speech-recognition/wave2letter>`
      - 5.10
-     - `w2lplus_xlarge_34_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_
+     - `w2lplus_xlarge_34_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing>`_
 
    * - :doc:`Wave2Letter+-54-syn </speech-recognition/wave2letter>`
      - 4.32
-     - `w2lplus_xlarge_54_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_
+     - `w2lplus_xlarge_54_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing>`_
 
 
@@ -46,7 +45,7 @@ For the evaluation we used ``batch_size_per_gpu = 1``
 to eliminate the effect of `cudnn padding issue <https://github.com/NVIDIA/OpenSeq2Seq/issues/69>`_.
 
 For more details about model and training parameters,
-have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text>`_ and specific model's documentation.
+have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text>`_ and specific model's documentation.
 
 .. toctree::
    :hidden:
@@ -131,3 +130,15 @@ To train with Horovod on <N> GPUs, use the following command::
 
     mpiexec --allow-run-as-root -np <N> python run.py --config_file=... --mode=train_eval --use_horovod=True
 
+##############
+Synthetic Data
+##############
+
+Our current best model was trained using synthetic data. The creation of the synthetic data and training process is described :ref:`here <synthetic_data>`.
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   speech-recognition/synthetic_dataset

@@ -91,7 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
@@ -1701,6 +1701,34 @@ class.</p>
 </li>
 <li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-5.</p>
 </li>
+<li><p class="first"><strong>style_embedding_enable</strong> (bool) — Whether to enable GST. Defaults to
+False.</p>
+</li>
+<li><p class="first"><strong>style_embedding_params</strong> (dict) — Parameters for GST layer. See
+_embed_style documentation.</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="encoders.tacotron2_encoder.Tacotron2Encoder._embed_style">
+<code class="descname">_embed_style</code><span class="sig-paren">(</span><em>style_spec</em>, <em>style_len</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tacotron2_encoder.html#Tacotron2Encoder._embed_style"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tacotron2_encoder.Tacotron2Encoder._embed_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Code that implements the reference encoder as described in “Towards
+end-to-end prosody transfer for expressive speech synthesis with Tacotron”,
+and “Style Tokens: Unsupervised Style Modeling, Control and Transfer in
+End-to-End Speech Synthesis”</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>conv_layers</strong> (list) — See the conv_layers parameter for the
+Tacotron-2 model.</li>
+<li><strong>num_rnn_layers</strong> (int) — Number of rnn layers in the reference encoder</li>
+<li><strong>rnn_cell_dim</strong> (int) — Size of rnn layer</li>
+<li><strong>rnn_unidirectional</strong> (bool) — Uni- or bi-directional rnn.</li>
+<li><strong>rnn_type</strong> — Must be a valid tf rnn cell class</li>
+<li><strong>emb_size</strong> (int) — Size of gst</li>
+<li><strong>attention_layer_size</strong> (int) — Size of linear layers in attention</li>
+<li><strong>num_tokens</strong> (int) — Number of tokens for gst</li>
+<li><strong>num_heads</strong> (int) — Number of attention heads</li>
 </ul>
 </dd></dl>
 

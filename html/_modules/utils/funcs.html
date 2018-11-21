@@ -89,7 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Distributed training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed precision training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
@@ -352,8 +352,8 @@
       <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Not enough steps for benchmarking&quot;</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-  <span class="k">if</span> <span class="ow">not</span> <span class="n">use_trt</span><span class="p">:</span>
+<div class="viewcode-block" id="restore_and_get_results"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.restore_and_get_results">[docs]</a><span class="k">def</span> <span class="nf">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="p">):</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_trt&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
     <span class="c1"># Checkpoint is restored prior to freezing graph when using TRT</span>
     <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">()</span>
   <span class="n">sess_config</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">ConfigProto</span><span class="p">(</span><span class="n">allow_soft_placement</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -363,7 +363,7 @@
     <span class="c1"># pylint: disable=no-member</span>
     <span class="n">sess_config</span><span class="o">.</span><span class="n">gpu_options</span><span class="o">.</span><span class="n">visible_device_list</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">local_rank</span><span class="p">())</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">Session</span><span class="p">(</span><span class="n">config</span><span class="o">=</span><span class="n">sess_config</span><span class="p">)</span> <span class="k">as</span> <span class="n">sess</span><span class="p">:</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">use_trt</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_trt&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
       <span class="n">saver</span><span class="o">.</span><span class="n">restore</span><span class="p">(</span><span class="n">sess</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">)</span>
     <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">get_results_for_epoch</span><span class="p">(</span>
         <span class="n">model</span><span class="p">,</span> <span class="n">sess</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">,</span> <span class="n">compute_loss</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
@@ -371,8 +371,8 @@
   <span class="k">return</span> <span class="n">results_per_batch</span></div>
 
 
-<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
-  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span> <span class="n">use_trt</span><span class="o">=</span><span class="n">use_trt</span><span class="p">)</span>
+<div class="viewcode-block" id="infer"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.infer">[docs]</a><span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
+  <span class="n">results_per_batch</span> <span class="o">=</span> <span class="n">restore_and_get_results</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">checkpoint</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s2">&quot;infer&quot;</span><span class="p">)</span>
   <span class="k">if</span> <span class="ow">not</span> <span class="n">model</span><span class="o">.</span><span class="n">on_horovod</span> <span class="ow">or</span> <span class="n">model</span><span class="o">.</span><span class="n">hvd</span><span class="o">.</span><span class="n">rank</span><span class="p">()</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
     <span class="n">model</span><span class="o">.</span><span class="n">finalize_inference</span><span class="p">(</span><span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">)</span>
     <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Finished inference&quot;</span><span class="p">)</span></div>

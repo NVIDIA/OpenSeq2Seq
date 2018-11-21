@@ -19,19 +19,19 @@ Currently we support following models:
      - Checkpoint
    * - :doc:`Transformer </machine-translation/transformer>`
      - 27.52
-     - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/transformer-big.py>`_
+     - `transformer-big.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-big.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1TZ8Hppn2NfbPOZ2rpfBVV8jbWJZ1KueL/view?usp=sharing>`_
    * - :doc:`Transformer </machine-translation/transformer>`
      - 26.4
-     - `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/transformer-base.py>`_
+     - `transformer-base.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/transformer-base.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1wGCZ6ktnW_m9Ie2ynbZ49t332enjbLde/view?usp=sharing>`_
    * - :doc:`ConvS2S </machine-translation/convs2s>`
      - 25.0
-     - `en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_
+     - `en-de-convs2s-8-gpu.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-convs2s-8-gpu.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1Xkg5N_nJOvkDx7IDjIAMUWWn3caHNBtj/view?usp=sharing>`_
    * - :doc:`GNMT </machine-translation/gnmt>`
      - 23.0
-     - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
+     - `en-de-gnmt-like-4GPUs.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2text/en-de/en-de-gnmt-like-4GPUs.py>`_
      - TBD
 
 The model specification and training parameters can be found in the corresponding config file. We measure BLEU scores using SacreBLEU.

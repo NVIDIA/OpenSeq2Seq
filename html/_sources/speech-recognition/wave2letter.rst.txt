@@ -7,7 +7,7 @@ Wave2Letter+
 Model
 ~~~~~
 
-This is a fully convolutional model, based on Facebook's `Wave2Letter <https://arxiv.org/abs/1609.03193>`_ and `Wave2LetterV2 <https://arxiv.org/abs/1712.09444>`_  papers. The base model (`Wave2Letter+ <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_) consists of 17 1D-Convolutional Layers and 2 Fully Connected Layers for a total of 19 layers:
+This is a fully convolutional model, based on Facebook's `Wave2Letter <https://arxiv.org/abs/1609.03193>`_ and `Wave2LetterV2 <https://arxiv.org/abs/1712.09444>`_  papers. The base model (`Wave2Letter+ <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_) consists of 17 1D-Convolutional Layers and 2 Fully Connected Layers for a total of 19 layers:
 
 .. image:: wave2letter.png
 
@@ -28,11 +28,13 @@ Both striding and dilation improved the WER from 7.17% to 6.67%.
 
 X Large Model
 ~~~~~~~~~~~~~~
-The xlarge models, `Wave2Letter+-34 <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_ and `Wave2Letter+-54-syn <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.11-dev/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_, are larger models with 34 and 54 layers. The base model contains of 15 convolutional layers which consists of 5 blocks of 3 repeating convolutional layers. For the xlarge model, we double the number of blocks to 10 for the 34 layer model. For the 54 layer model, we further increase the amount of repeating convolutional layers inside each block from 3 to 5.
+The xlarge models, `Wave2Letter+-34 <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_ and `Wave2Letter+-54-syn <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_, are larger models with 34 and 54 layers. The base model contains of 15 convolutional layers which consists of 5 blocks of 3 repeating convolutional layers. For the xlarge model, we double the number of blocks to 10 for the 34 layer model. For the 54 layer model, we further increase the amount of repeating convolutional layers inside each block from 3 to 5.
 
 Synthetic Data
 ~~~~~~~~~~~~~~
-All models with "syn" in their name are trained using a combined dataset of Librispeech and synthetic data. The training details are to be announced. Stay tuned!
+All models with "syn" in their name are trained using a combined dataset of Librispeech and synthetic data.
+
+The training details can be found :ref:`here <synthetic_data>`.
 
 Training
 ~~~~~~~~
@@ -56,7 +58,7 @@ Our current best WER is a 54 layer model trained using synthetic data. We achiev
 
 We used Open SLR language model while decoding with beam search using a beam width of 2048.
 
-The checkpoint for the model trained using the configuration `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_ can be found at `Checkpoint <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_.
+The checkpoint for the model trained using the configuration `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_ can be found at `Checkpoint <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_.
 
 The base model was trained for 200 epochs on 8 GPUs. We use:
 

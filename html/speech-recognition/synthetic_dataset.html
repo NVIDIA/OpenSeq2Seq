@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>WaveNet &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Creation of Synthetic Data &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Language Model" href="../language-model.html" />
-    <link rel="prev" title="Tacotron 2 with Global Style Tokens" href="tacotron-2-gst.html" /> 
+    <link rel="next" title="Speech Synthesis" href="../speech-synthesis.html" />
+    <link rel="prev" title="Wave2Letter+" href="wave2letter.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -87,22 +87,17 @@
 <li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
-<li class="toctree-l1 current"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a><ul class="current">
-<li class="toctree-l2 current"><a class="reference internal" href="../speech-synthesis.html#models">Models</a><ul class="current">
-<li class="toctree-l3"><a class="reference internal" href="tacotron-2.html">Tacotron 2</a></li>
-<li class="toctree-l3"><a class="reference internal" href="tacotron-2-gst.html">Tacotron 2 with Global Style Tokens</a></li>
-<li class="toctree-l3 current"><a class="current reference internal" href="#">WaveNet</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#inference">Inference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#models">Models</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
+<li class="toctree-l2 current"><a class="reference internal" href="../speech-recognition.html#synthetic-data">Synthetic Data</a><ul class="current">
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Creation of Synthetic Data</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#training-with-synthetic-data">Training With Synthetic Data</a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="../speech-synthesis.html#getting-started">Getting started</a></li>
-</ul>
-</li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
@@ -155,15 +150,15 @@
     
       <li><a href="../index.html">Docs</a> &raquo;</li>
         
-          <li><a href="../speech-synthesis.html">Speech Synthesis</a> &raquo;</li>
+          <li><a href="../speech-recognition.html">Speech Recognition</a> &raquo;</li>
         
-      <li>WaveNet</li>
+      <li>Creation of Synthetic Data</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/speech-synthesis/wavenet.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/speech-recognition/synthetic_dataset.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -176,27 +171,45 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="wavenet">
-<span id="id1"></span><h1>WaveNet<a class="headerlink" href="#wavenet" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="model">
-<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>This is an implementation of the <a class="reference external" href="https://deepmind.com/blog/wavenet-generative-model-raw-audio/">WaveNet model</a> (see <a class="reference external" href="https://arxiv.org/abs/1609.03499">paper</a>) and is intended to be used as a vocoder for Tacotron2, replacing Griffin-Lim.</p>
-<p>The WaveNet vocoder is an autoregressive network that takes a raw audio signal as input and tries to predict the next value in the signal. The input is locally conditioned on mel spectrograms (see <a class="reference external" href="https://arxiv.org/abs/1712.05884">paper</a>) that are generated by Tacotron2 and are upsampled to match the audio length by repeating each value a number of times equal to the scale factor.</p>
-<p>The main feature of the network is dilated causal convolutions. By stacking layers with an increasing amount of dilation, we can easily increase the receptive field with relatively fewer layers, which allows the network to learn dense audio signals. The architecture of our implementation matches the one described in the paper, consisting of a single preprocessing causal convolution layer, several blocks of dilated causal convolution layers that use both skip and residual connections followed by postprocessing.</p>
-<div class="figure align-center" id="id4">
-<a class="reference internal image-reference" href="../_images/wavenet.png"><img alt="../_images/wavenet.png" src="../_images/wavenet.png" style="width: 506.5px; height: 269.0px;" /></a>
-<p class="caption"><span class="caption-text">WaveNet architecture</span></p>
+  <div class="section" id="creation-of-synthetic-data">
+<span id="synthetic-data"></span><h1>Creation of Synthetic Data<a class="headerlink" href="#creation-of-synthetic-data" title="Permalink to this headline">¶</a></h1>
+<p>Creating a synthetic dataset requires a trained speech synthesis model. This tutorial assumes that you have a trained Tactron 2 with Global Style Tokens. For details on how to train this model, see <a class="reference internal" href="../speech-synthesis/tacotron-2-gst.html"><span class="doc">here</span></a>.</p>
+<p>We first need to create an infer csv that pairs MAILABS wav files with LibriSpeech transcripts through tacotron_gst_create_infer_csv.py. Using this infer csv, we can start generating audio through tacotron_gst_create_syn_data.py. Last, we need to create a csv that can be used to train speech recognition models that pairs the synthetic wavs with their transcripts through nsr_create_syn_train_csv.py.</p>
+<dl class="docutils">
+<dt>Steps:</dt>
+<dd><ol class="first last arabic simple">
+<li>Inside tacotron_gst_create_infer_csv.py, change MAILABS_data_root and libri_data_root
+to where the MAILABS and LibriSpeech datasets are located</li>
+<li>Run tacotron_gst_create_infer_csv.py, it will create a file called generate.csv</li>
+<li>Move tacotron_gst_create_syn_data.py to the top-level OpenSeq2Seq directory
+where run.py is located, or otherwise ensure that the OpenSeq2Seq imports
+will be loaded</li>
+<li>Change config_file_path, checkpoint_path, and syn_save_dir as needed. config_file_path
+should point to tacotron_gst.py. checkpoint_path should be the directory holding the
+tacotron-gst checkpoints. syn_save_dir should be an existing directory where the synthetic
+wavs will be saved to.</li>
+<li>Run tacotron_gst_create_syn_data.py. 281241 wav files will be created. Note
+that the generation of a synthetic dataset could take as long as 1 day.</li>
+<li>Repeat steps 1-5 as many times as needed. You can change the decoder dropout
+parameter if wanted on line 63 of tacotron2_decoder.py if wanted. Be sure to
+save to a different directory to avoid overwriting the files.</li>
+<li>You should have a folder containing a number of sub-directories with each
+sub-directory holding a different synthetic dataset, each the size of
+LibriSpeech, depending on how many times step 6 was done.</li>
+<li>Inside nsr_create_syn_train_csv.py, change synthetic_data_root to point on the folder
+mentioned in step 7.</li>
+<li>Run nsr_create_syn_train_csv.py, this will create synthetic_data.csv.</li>
+<li>Add synthetic_data.csv to your speech recognition config under <code class="docutils literal notranslate"><span class="pre">dataset_files</span></code>.
+Add <code class="docutils literal notranslate"><span class="pre">syn_enable</span></code> and set it to True. Add <code class="docutils literal notranslate"><span class="pre">syn_subdirs</span></code> which is a list
+of strings containing the names of the sub-directories mentioned in step 7.</li>
+<li>Train with this new config file.</li>
+</ol>
+</dd>
+</dl>
 </div>
-</div>
-<div class="section" id="training">
-<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>The model is trained on .wav audio files from the LJSpeech dataset. If the optional <code class="docutils literal notranslate"><span class="pre">local_conditioning</span></code> parameter is set to <code class="docutils literal notranslate"><span class="pre">False</span></code>, the model will train on only the raw audio signal, Otherwise, the data layer will extract spectrograms from the audio and use them to condition the inputs.</p>
-<p>WaveNet is a highly memory intensive model, so only very small batch sizes are supported. Switching to mixed precision training will generally halve the memory requirements, allowing the batch size to be doubled.</p>
-</div>
-<div class="section" id="inference">
-<h2>Inference<a class="headerlink" href="#inference" title="Permalink to this headline">¶</a></h2>
-<p>Due to the autoregressive nature of the model, we can only infer one value at a time, making inference prohibitively slow. For real use, consider implementing the faster generation algorithm (see <a class="reference external" href="https://arxiv.org/abs/1611.09482">paper</a>).</p>
-</div>
+<div class="section" id="training-with-synthetic-data">
+<h1>Training With Synthetic Data<a class="headerlink" href="#training-with-synthetic-data" title="Permalink to this headline">¶</a></h1>
+<p>We found that augmenting LibriSpeech with synthetic data allowed for a large improvement in WER compared to training on only LibriSpeech and training with traditional speech augmentation. Despite the larger amount of synthetic data, models performed best if the training data was sampled at a 50-50 ratio between LibriSpeech and synthetic samples. Since the size of the synthetic dataset is the same as the training set of LibriSpeech, this should be done automatically if training using the steps above.</p>
 </div>
 
 
@@ -207,10 +220,10 @@
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../language-model.html" class="btn btn-neutral float-right" title="Language Model" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../speech-synthesis.html" class="btn btn-neutral float-right" title="Speech Synthesis" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="tacotron-2-gst.html" class="btn btn-neutral" title="Tacotron 2 with Global Style Tokens" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="wave2letter.html" class="btn btn-neutral" title="Wave2Letter+" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
