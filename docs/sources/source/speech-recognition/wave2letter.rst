@@ -32,7 +32,9 @@ The xlarge models, `Wave2Letter+-34 <https://github.com/NVIDIA/OpenSeq2Seq/blob/
 
 Synthetic Data
 ~~~~~~~~~~~~~~
-All models with "syn" in their name are trained using a combined dataset of Librispeech and synthetic data. The training details are to be announced. Stay tuned!
+All models with "syn" in their name are trained using a combined dataset of Librispeech and synthetic data.
+
+The training details can be found :ref:`here <synthetic_data>`.
 
 Training
 ~~~~~~~~

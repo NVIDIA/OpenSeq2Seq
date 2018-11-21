@@ -25,6 +25,12 @@ The example notebook takes an English sentence as input, produces English audio
 via a Text2Speech model, and recognizes the generated speech via a Speech2Text
 model. The model requires a trained Text2Speech and a trained Speech2Text model.
 
+Please note that the config files should include an interactive_infer_params
+dictionary containing the parameters of the data layer for interactive infer.
+This is not included by default on all configs. For more details, see here:
+`https://github.com/NVIDIA/OpenSeq2Seq/issues/278 <https://github.com/NVIDIA/OpenSeq2Seq/issues/278>`_
+
+
 Setup for the notebook:
   1. Make a new directory called Infer_S2T in the same directory as the notebook
   2. Copy the Speech2Text configuration file to Infer_S2T and rename it to

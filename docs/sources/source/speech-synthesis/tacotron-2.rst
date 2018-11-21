@@ -86,3 +86,13 @@ between 10k - 20k steps.
 It seems that dropout is just as effective as zoneout when training. Since
 dropout is faster during training then zoneout, we have decided to switch to
 dropout.
+
+Audio Samples
+~~~~~~~~~~~~~
+Audio samples with the tacotron model can be found :doc:`here </speech-synthesis/tacotron-2-samples>`.
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   tacotron-2-samples

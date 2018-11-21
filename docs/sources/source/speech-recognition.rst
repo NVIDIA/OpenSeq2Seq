@@ -3,7 +3,6 @@
 Speech Recognition
 ==================
 
-
 ######
 Models
 ######
@@ -131,3 +130,15 @@ To train with Horovod on <N> GPUs, use the following command::
 
     mpiexec --allow-run-as-root -np <N> python run.py --config_file=... --mode=train_eval --use_horovod=True
 
+##############
+Synthetic Data
+##############
+
+Our current best model was trained using synthetic data. The creation of the synthetic data and training process is described :ref:`here <synthetic_data>`.
+
+
+.. toctree::
+   :hidden:
+   :maxdepth: 1
+
+   speech-recognition/synthetic_dataset
