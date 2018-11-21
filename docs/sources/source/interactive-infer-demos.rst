@@ -7,7 +7,7 @@ Introduction
 ------------
 Interactive infer is a mode that makes it easy to demo trained models. An
 example
-`jupyter notebook <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.09-dev/Interactive_Infer_example.ipynb>`_
+`jupyter notebook <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/Interactive_Infer_example.ipynb>`_
 is provided to showcase how the mode works.
 
 The mode is completely abstracted away from the model. The model is simply run

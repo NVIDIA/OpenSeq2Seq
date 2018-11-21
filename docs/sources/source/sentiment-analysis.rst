@@ -21,10 +21,10 @@ The datasets we currently support include SST (Stanford Sentiment Treebank) and 
      - Config file
      - Checkpoint
    * - :doc:`IDMB`
-     - `imdb-wkt103.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/transfer/imdb-wkt103.py>`_
+     - `imdb-wkt103.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/transfer/imdb-wkt103.py>`_
      - Accuracy=?
    * - :doc:`SST`
-     - `sst-wkt2.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/18.10-dev/example_configs/transfer/sst-wkt2.py>`_
+     - `sst-wkt2.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/transfer/sst-wkt2.py>`_
      - Accuracy=?
 
 The model specification and training parameters can be found in the corresponding config file.
