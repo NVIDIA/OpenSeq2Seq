@@ -19,7 +19,13 @@ base_model = Text2Text
 d_model = 1024
 num_layers = 6
 
-#layer_norm_type = "L1"
+norm_params= {
+  "type": "layernorm_L2", #"layernorm_L1"
+  "epsilon":  0.001,
+}
+
+attention_dropout = 0.1
+dropout = 0.25
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "/data/wmt16-ende-sp/"
@@ -27,18 +33,18 @@ data_root = "/data/wmt16-ende-sp/"
 
 base_params = {
   "use_horovod": True,
-  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
+  "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 440000,
+  "max_steps": 500000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 100,
-  "eval_steps": 4001,
-  "save_checkpoint_steps": 219999,
-  "logdir": "logs/Transformer-big-fp16",
-  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  #"dtype": "mixed",
-  #"loss_scaling": "Backoff",
+  "print_samples_steps": 10000,
+  "eval_steps": 10000,
+  "save_checkpoint_steps": 50000,
+  "logdir": "logs/tr-ln1-big-fp16",
+  #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  "dtype": "mixed",
+  "loss_scaling": "Backoff", #1000.0,
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -59,23 +65,23 @@ base_params = {
     "encoder_layers": num_layers,
     "hidden_size": d_model,
     "num_heads": 16,
-    "attention_dropout": 0.1,
     "filter_size": 4 * d_model,
-    "relu_dropout": 0.3,
-    "layer_postprocess_dropout": 0.3,
+    "attention_dropout": attention_dropout,  # 0.1,
+    "relu_dropout": dropout,                 # 0.3,
+    "layer_postprocess_dropout": dropout,    # 0.3,
     "pad_embeddings_2_eight": True,
- #   "layer_norm_type": layer_norm_type ,
+    "norm_params": norm_params,
   },
 
   "decoder": TransformerDecoder,
   "decoder_params": {
-    "layer_postprocess_dropout": 0.3,
     "num_hidden_layers": num_layers,
     "hidden_size": d_model,
     "num_heads": 16,
-    "attention_dropout": 0.1,
-    "relu_dropout": 0.3,
     "filter_size": 4 * d_model,
+    "attention_dropout": attention_dropout,  # 0.1,
+    "relu_dropout": dropout,                 # 0.3,
+    "layer_postprocess_dropout": dropout,    # 0.3,
     "beam_size": 4,
     "alpha": 0.6,
     "extra_decode_length": 50,
@@ -83,7 +89,7 @@ base_params = {
     "GO_SYMBOL": SpecialTextTokens.S_ID.value,
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
-  #  "layer_norm_type": layer_norm_type,
+    "norm_params": norm_params,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,
@@ -98,11 +104,13 @@ train_params = {
     "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "m_common.vocab",
     "tgt_vocab_file": data_root + "m_common.vocab",
+    # "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
+    # "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
     "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 25000,
+    "shuffle_buffer_size": 5000000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,
@@ -119,7 +127,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat":  True,
     "max_length": 256,
     },
 }
@@ -134,7 +142,7 @@ infer_params = {
     "target_file": data_root+"wmt14-en-de.src.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat":  False,
     "max_length": 256,
   },
 }

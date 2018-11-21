@@ -88,14 +88,14 @@ class LayerNormalization(tf.layers.Layer):
   def call(self, x): # epsilon=1e-6):
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     x = x - mean
-    if self.norm=="layernorm_L2":
+    if self.norm_type=="layernorm_L2":
       variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
       norm_x = x * tf.rsqrt(variance + self.epsilon)
-    elif self.norm=="layernorm_L1":
+    elif self.norm_type=="layernorm_L1":
       variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
       norm_x = tf.div(x , variance + self.epsilon)
     else:
-      print("WARNING: Layer norm: type ", self.norm, "not supported")
+      print("WARNING: Layer norm: type ", self.norm_type, "not supported")
       norm_x = x
     y = norm_x * self.scale + self.bias
     return y

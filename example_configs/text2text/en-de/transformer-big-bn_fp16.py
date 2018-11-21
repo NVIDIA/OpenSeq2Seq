@@ -20,33 +20,34 @@ d_model = 1024
 num_layers = 6
 
 norm_params= {
-  "type": "batch_norm", #"layernorm_L1"
+  "type": "batch_norm", #"layernorm_L2" #"layernorm_L1"
   "momentum": 0.95,
   "epsilon":  0.001,
 }
-dropout = 0. #0.3
+
+attention_dropout = 0.1
+dropout = 0.25          #0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-#data_root = "/data/wmt16-ende-sp/"
-data_root = "/raid/wmt16/"
+data_root = "/data/wmt16-ende-sp/"
+#data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": True, #True,
-  "num_gpus": 4, # when using Horovod we set number of workers with params to mpirun
+  "use_horovod": True,  #
+  "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128,   # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 200000, #10000, #440000,
-  #"num_epochs": 20,
+  "max_steps": 500000,
+  #"num_epochs": 50,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 1000,
-  "eval_steps": 10000, #4001,
+  "print_samples_steps": 10000,
+  "eval_steps": 10000,
   "save_checkpoint_steps": 20000,
-  "logdir": "logs/tr_bn_sgd_lr0.1_larc",
+  "logdir": "logs/tr1024x6_bn_sgd_lr0.2_larc_drop0.1_0.25",
 
   # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
-  "loss_scaling": 1000.0 ,
-#  "loss_scaling": "Backoff",
+  "loss_scaling": "Backoff", #1000.0 ,
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -54,7 +55,7 @@ base_params = {
   },
   "lr_policy":  poly_decay, #fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1,  # 0.001,
+    "learning_rate": 0.2,
     "power": 2,
   },
   "larc_params": {
@@ -80,9 +81,9 @@ base_params = {
     "hidden_size": d_model,
     "num_heads": 16,
     "filter_size": 4 * d_model,
-    "attention_dropout": dropout,  # 0.1,
-    "relu_dropout": dropout, #0.3,
-    "layer_postprocess_dropout": dropout, #0.3,
+    "attention_dropout": attention_dropout,  # 0.1,
+    "relu_dropout": dropout,                 # 0.3,
+    "layer_postprocess_dropout": dropout ,   # 0.3,
     "pad_embeddings_2_eight": True,
     "norm_params": norm_params,
   },
@@ -92,9 +93,9 @@ base_params = {
     "num_hidden_layers": num_layers,
     "hidden_size": d_model,
     "num_heads": 16,
-    "attention_dropout": dropout, #0.1,
-    "relu_dropout": dropout, #0.3,
-    "layer_postprocess_dropout": dropout,  # 0.3,
+    "attention_dropout": attention_dropout, # 0.1,
+    "relu_dropout": dropout,                # 0.3,
+    "layer_postprocess_dropout": dropout,   # 0.3,
     "filter_size": 4 * d_model,
     "beam_size": 4,
     "alpha": 0.6,
@@ -124,7 +125,7 @@ train_params = {
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 50000,
+    "shuffle_buffer_size": 6000000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,
