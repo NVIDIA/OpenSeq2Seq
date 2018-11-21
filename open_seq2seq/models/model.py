@@ -435,14 +435,14 @@ class Model:
 
         if self.params.get("use_trt", False):
           # Build TF-TRT graph
-          all_loss, self._output = build_forward_pass_graph_fn(
+          all_loss, self._output = self.build_trt_forward_pass_graph(
               input_tensors,
               gpu_id=0,
               checkpoint=checkpoint
           )
         else:
           # Build regular TF graph
-          all_loss, self._output = build_forward_pass_graph_fn(
+          all_loss, self._output = self._build_forward_pass_graph(
               input_tensors,
               gpu_id=0
           )
