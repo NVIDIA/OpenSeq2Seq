@@ -17,7 +17,7 @@ https://arxiv.org/abs/1706.03762
 
 base_model = Text2Text
 d_model = 512
-num_layers = 16
+num_layers = 12
 
 norm_params= {
   "type": "batch_norm", #"layernorm_L2" #"layernorm_L1"
@@ -26,7 +26,7 @@ norm_params= {
 }
 
 attention_dropout = 0.1
-dropout = 0.25          #0.3
+dropout = 0.3          #0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "/data/wmt16-ende-sp/"
@@ -40,10 +40,10 @@ base_params = {
   #"num_epochs": 50,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 10000,
-  "eval_steps": 10000,
-  "save_checkpoint_steps": 20000,
-  "logdir": "logs/tr512x16_bn_sgd_lr0.2_larc_drop0.1_0.25",
+  "print_samples_steps": 20000,
+  "eval_steps": 20000,
+  "save_checkpoint_steps": 50000,
+  "logdir": "logs/tr512x12_bn_sgd_lr0.2_larc_drop0.1_0.3",
 
   # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
