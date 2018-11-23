@@ -21,11 +21,11 @@ num_layers = 6
 
 norm_params= {
   "type": "layernorm_L2", #"layernorm_L1"
-  "epsilon":  0.001,
+  "epsilon": 0.001,
 }
 
 attention_dropout = 0.1
-dropout = 0.25
+dropout = 0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "/data/wmt16-ende-sp/"
@@ -38,10 +38,10 @@ base_params = {
   "max_steps": 500000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
-  "print_samples_steps": 10000,
-  "eval_steps": 10000,
-  "save_checkpoint_steps": 50000,
-  "logdir": "logs/tr-ln1-big-fp16",
+  "print_samples_steps": 20000,
+  "eval_steps": 20000,
+  "save_checkpoint_steps": 100000,
+  "logdir": "logs/tr-ln2-adam_lr0.5",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff", #1000.0,
@@ -55,8 +55,8 @@ base_params = {
 
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 2.0,
-    "warmup_steps": 8000,
+    "learning_rate": 0.5,
+    "warmup_steps": 16000,
     "d_model": d_model,
   },
 
