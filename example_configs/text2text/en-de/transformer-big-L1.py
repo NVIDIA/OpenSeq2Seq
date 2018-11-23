@@ -7,7 +7,7 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
-from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
 import tensorflow as tf
 
 """
@@ -46,19 +46,32 @@ base_params = {
   "dtype": "mixed",
   "loss_scaling": "Backoff", #1000.0,
 
-  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  "optimizer": "Momentum",
   "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.997,
-    "epsilon": 1e-09,
+    "momentum": 0.95,
+  },
+  "lr_policy": poly_decay,  # fixed_lr,
+  "lr_policy_params": {
+    "learning_rate": 0.2,
+    "power": 2,
+  },
+  "larc_params": {
+    "larc_eta": 0.002,
   },
 
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "learning_rate": 2.0,
-    "warmup_steps": 8000,
-    "d_model": d_model,
-  },
+  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  # "optimizer_params": {
+  #   "beta1": 0.9,
+  #   "beta2": 0.997,
+  #   "epsilon": 1e-09,
+  # },
+  #
+  # "lr_policy": transformer_policy,
+  # "lr_policy_params": {
+  #   "learning_rate": 2.0,
+  #   "warmup_steps": 8000,
+  #   "d_model": d_model,
+  # },
 
   "encoder": TransformerEncoder,
   "encoder_params": {
