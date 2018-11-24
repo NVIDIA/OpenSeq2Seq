@@ -17,7 +17,7 @@ https://arxiv.org/abs/1706.03762
 
 base_model = Text2Text
 d_model = 512
-num_layers = 12
+num_layers = 16
 
 norm_params= {
   "type": "batch_norm", #"layernorm_L2" #"layernorm_L1"
