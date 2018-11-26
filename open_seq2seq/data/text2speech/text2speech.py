@@ -49,7 +49,8 @@ class Text2SpeechDataLayer(DataLayer):
             'duration_min': int,
             'duration_max': int,
             'mel_type': ['slaney', 'htk'],
-            "exp_mag": bool
+            "exp_mag": bool,
+            'style_input': [None, 'wav'],
         }
     )
 
@@ -98,9 +99,11 @@ class Text2SpeechDataLayer(DataLayer):
     * **duration_max** (int) --- Maximum duration in steps for speech signal.
       All signals greater than this will be cut from the training set. Defaults 
       to 4000.
-    * **mel_type** (str): One of ['slaney', 'htk']. Decides which algorithm to
+    * **mel_type** (str) --- One of ['slaney', 'htk']. Decides which algorithm to
       use to compute mel specs.
       Defaults to htk.
+    * **style_input** (str) --- Can be either None or "wav". Must be set to "wav"
+      for GST. Defaults to None.
 
     """
     super(Text2SpeechDataLayer, self).__init__(
@@ -224,7 +227,8 @@ class Text2SpeechDataLayer(DataLayer):
       else:
         self._files = self._files.append(files)
 
-    if self.params['mode'] != 'infer':
+    if (self.params['mode'] != 'infer'
+        or self.params.get("style_input", None) == "wav"):
       cols = ['wav_filename', 'transcript']
     else:
       cols = 'transcript'
@@ -265,7 +269,8 @@ class Text2SpeechDataLayer(DataLayer):
     else:
       num_audio_features = self.params['num_audio_features']
 
-    if self.params['mode'] != 'infer':
+    if (self.params['mode'] != 'infer'
+        or self.params.get("style_input", None) == "wav"):
       self._dataset = self._dataset.map(
           lambda line: tf.py_func(
               self._parse_audio_transcript_element,
@@ -325,7 +330,8 @@ class Text2SpeechDataLayer(DataLayer):
     self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
                                   .make_initializable_iterator()
 
-    if self.params['mode'] != 'infer':
+    if (self.params['mode'] != 'infer'
+        or self.params.get("style_input", None) == "wav"):
       text, text_length, spec, stop_token_target, spec_length = self._iterator\
                                                                     .get_next()
       # need to explicitly set batch size dimension
@@ -342,6 +348,22 @@ class Text2SpeechDataLayer(DataLayer):
 
     self._input_tensors = {}
     self._input_tensors["source_tensors"] = [text, text_length]
+    if self.params.get("style_input", None) == "wav":
+      # mag - not supported currently
+      if not self._mel and not self._both:
+        raise ValueError(
+            "GST is currently only supported on mel and both output modes.")
+      # mel
+      mel_spec = spec
+      if self._both:
+        mel_spec, _ = tf.split(
+            mel_spec,
+            [self.params['num_audio_features']['mel'],
+             self.params['num_audio_features']['magnitude']],
+            axis=2
+        )
+      self._input_tensors["source_tensors"].extend([mel_spec, spec_length])
+      # both
     if self.params['mode'] != 'infer':
       self._input_tensors['target_tensors'] = [
           spec, stop_token_target, spec_length
@@ -386,10 +408,16 @@ class Text2SpeechDataLayer(DataLayer):
           constant_values=self.params['char2idx']["<p>"]
       )
 
-
-    file_path = os.path.join(
-        self.params['dataset_location'], "wavs", audio_filename + ".wav"
-    )
+    # Mainly used for GST
+    if "wavs" in audio_filename:
+      file_path = os.path.join(
+          self.params['dataset_location'], audio_filename + ".wav"
+      )
+    # Default path for LJ and MAILABS
+    else:
+      file_path = os.path.join(
+          self.params['dataset_location'], "wavs", audio_filename + ".wav"
+      )
     if self._mel:
       features_type = "mel_htk"
       if self.params.get('mel_type', 'htk') == 'slaney':

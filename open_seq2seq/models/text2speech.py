@@ -117,7 +117,9 @@ def save_audio(
     mode="train",
     number=0,
     save_format="tensorboard",
-    power=1.5
+    power=1.5,
+    gl_iters=50,
+    verbose=True
 ):
   """
   Helper function to create a wav file to be logged to disk or a tf.Summary to
@@ -143,9 +145,10 @@ def save_audio(
   """
   # Clip signal max and min
   if np.min(magnitudes) < 0 or np.max(magnitudes) > 255:
-    print("WARNING: {} audio was clipped at step {}".format(mode.capitalize(), step))
+    if verbose:
+      print("WARNING: {} audio was clipped at step {}".format(mode.capitalize(), step))
     magnitudes = np.clip(magnitudes, a_min=0, a_max=255)
-  signal = griffin_lim(magnitudes.T**power, n_fft=n_fft)
+  signal = griffin_lim(magnitudes.T**power, n_iters=gl_iters, n_fft=n_fft)
   if save_format == "np.array":
     return signal
   elif save_format == "tensorboard":

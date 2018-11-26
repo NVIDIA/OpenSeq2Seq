@@ -36,6 +36,8 @@ class Speech2TextDataLayer(DataLayer):
         'max_duration': float,
         'bpe': bool,
         'autoregressive': bool,
+        'syn_enable': bool,
+        'syn_subdirs': list,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -56,7 +58,12 @@ class Speech2TextDataLayer(DataLayer):
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
-    * **autoregressive** (bool) --- boolean indicating whether the model is autoregressive.  
+    * **autoregressive** (bool) --- boolean indicating whether the model is
+      autoregressive.
+    * **syn_enable** (bool) --- boolean indicating whether the model is
+      using synthetic data.
+    * **syn_subdirs** (list) --- must be defined if using synthetic mode.
+      Contains a list of subdirectories that hold the synthetica wav files.
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
@@ -303,6 +310,7 @@ class Speech2TextDataLayer(DataLayer):
     audio_filename, transcript = element
     if not six.PY2:
       transcript = str(transcript, 'utf-8')
+      audio_filename = str(audio_filename, 'utf-8')
     if self.params['bpe']:
       target_indices = self.sp.EncodeAsIds(transcript)
     else:
@@ -310,6 +318,9 @@ class Speech2TextDataLayer(DataLayer):
     if self.autoregressive:
       target_indices = target_indices + [self.end_index]
     target = np.array(target_indices)
+
+    if self.params.get("syn_enable", False):
+      audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
     source, audio_duration = get_speech_features_from_file(
         audio_filename, self.params['num_audio_features'],

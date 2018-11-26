@@ -80,7 +80,7 @@ def main():
     elif args.mode == "eval":
       evaluate(model, checkpoint)
     elif args.mode == "infer":
-      infer(model, checkpoint, args.infer_output_file, args.use_trt)
+      infer(model, checkpoint, args.infer_output_file)
 
   if args.enable_logs and (hvd is None or hvd.rank() == 0):
     sys.stdout = old_stdout
