@@ -72,7 +72,7 @@ def detokenize(args):
   sp.Load(model_prefix+".model")
   input_file = args.text_input
   output_file = args.decoded_output
-  with open(output_file, 'w') as otpt:
+  with open(output_file, 'wb') as otpt:
     with open(input_file, 'r') as inpt:
       for line in inpt:
         decoded_line = sp.DecodePieces(line.split(" "))
