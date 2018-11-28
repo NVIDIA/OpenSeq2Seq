@@ -1,6 +1,6 @@
 .. _mixed_precision:
 
-Mixed precision training
+Mixed Precision Training
 ========================
 
 .. epigraph::

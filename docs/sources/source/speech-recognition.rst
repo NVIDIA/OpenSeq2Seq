@@ -28,12 +28,12 @@ Currently we support following models:
      - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_
 
-   * - :doc:`Wave2Letter+-34 </speech-recognition/wave2letter>`
+   * - :doc:`Jasper 10x3 </speech-recognition/jasper>`
      - 5.10
      - `w2lplus_xlarge_34_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing>`_
 
-   * - :doc:`Wave2Letter+-54-syn </speech-recognition/wave2letter>`
+   * - :doc:`Jasper 10x5 syn </speech-recognition/jasper>`
      - 4.32
      - `w2lplus_xlarge_54_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing>`_
@@ -131,7 +131,7 @@ To train with Horovod on <N> GPUs, use the following command::
     mpiexec --allow-run-as-root -np <N> python run.py --config_file=... --mode=train_eval --use_horovod=True
 
 ##############
-Synthetic Data
+Synthetic data
 ##############
 
 Our current best model was trained using synthetic data. The creation of the synthetic data and training process is described :ref:`here <synthetic_data>`.

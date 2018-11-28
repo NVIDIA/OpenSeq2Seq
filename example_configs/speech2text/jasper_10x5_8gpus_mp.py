@@ -1,11 +1,14 @@
 # pylint: skip-file
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import Wave2LetterEncoder
+from open_seq2seq.encoders import TDNNEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
+
+### If training with synthetic data, don't forget to add your synthetic csv
+### to dataset files
 
 base_model = Speech2Text
 
@@ -50,7 +53,7 @@ base_params = {
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-    "encoder": Wave2LetterEncoder,
+    "encoder": TDNNEncoder,
     "encoder_params": {
         "convnet_layers": [
             {
@@ -173,21 +176,24 @@ base_params = {
     "loss_params": {},
 }
 
-# train_params = {
-#     "data_layer": Speech2TextDataLayer,
-#     "data_layer_params": {
-#         "num_audio_features": 64,
-#         "input_type": "logfbank",
-#         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-#         "dataset_files": [
-#             "/data/librispeech/librivox-train-clean-100.csv",
-#             "/data/librispeech/librivox-train-clean-360.csv",
-#             "/data/librispeech/librivox-train-other-500.csv",
-#         ],
-#         "max_duration": 16.7,
-#         "shuffle": True,
-#     },
-# }
+train_params = {
+    "data_layer": Speech2TextDataLayer,
+    "data_layer_params": {
+        "num_audio_features": 64,
+        "input_type": "logfbank",
+        "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+        "dataset_files": [
+            "/data/librispeech/librivox-train-clean-100.csv",
+            "/data/librispeech/librivox-train-clean-360.csv",
+            "/data/librispeech/librivox-train-other-500.csv",
+            # Add synthetic csv here
+        ],
+        "syn_enable": False, # Change to True if using synthetic data
+        "syn_subdirs": [], # Add subdirs of synthetic data
+        "max_duration": 16.7,
+        "shuffle": True,
+    },
+}
 
 eval_params = {
     "data_layer": Speech2TextDataLayer,
