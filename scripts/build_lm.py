@@ -11,14 +11,13 @@ def get_corpus(csv_files):
   for f in csv_files:
     df = pd.read_csv(f)
     corpus += SEP.join(df['transcript']) + SEP
-  # remove the last SEP
-  corpus = corpus[:-1]
   return corpus
 
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser(description='Build N-gram LM model from CSV files')
-  parser.add_argument('csv', metavar='csv', type=str, nargs='+', help='DeepSpeech CSV file')
+  parser.add_argument('csv', metavar='csv', type=str, nargs='+',
+                      help='CSV file with transcripts')
   parser.add_argument('--n', type=int, help='n for n-grams', default=3)
   args = parser.parse_args()
 
@@ -28,6 +27,7 @@ if __name__ == '__main__':
   corpus_name = path_prefix + '.txt'
   arpa_name = path_prefix + '.arpa'
   lm_name = path_prefix + '-lm.binary'
+  trie_name = path_prefix + '-lm.trie'
   with open(corpus_name, 'w') as f:
     f.write(corpus)
 
