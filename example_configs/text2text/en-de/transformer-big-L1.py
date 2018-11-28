@@ -7,7 +7,7 @@ from open_seq2seq.data.text2text.text2text import ParallelTextDataLayer
 from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
-from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
 import tensorflow as tf
 
 """
@@ -20,12 +20,12 @@ d_model = 1024
 num_layers = 6
 
 norm_params= {
-  "type": "batch_norm", #"layernorm_L1", #"layernorm_L2" ,
-  "epsilon": 0.001,
+  "type": "layernorm_L1", #"layernorm_L1"
+  "epsilon":  0.001,
 }
 
 attention_dropout = 0.1
-dropout = 0.3
+dropout = 0.25
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "/data/wmt16-ende-sp/"
@@ -35,30 +35,43 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 1000, #000,
+  "max_steps": 500000,
   "save_summaries_steps": 100,
-  "print_loss_steps": 10, #0,
-  "print_samples_steps": 20000,
-  "eval_steps": 20000,
-  "save_checkpoint_steps": 100000,
-  "logdir": "logs/tr-merge",
+  "print_loss_steps": 100,
+  "print_samples_steps": 10000,
+  "eval_steps": 10000,
+  "save_checkpoint_steps": 50000,
+  "logdir": "logs/tr-ln1-big-fp16",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff", #1000.0,
 
-  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  "optimizer": "Momentum",
   "optimizer_params": {
-    "beta1": 0.9,
-    "beta2": 0.997,
-    "epsilon": 1e-09,
+    "momentum": 0.95,
+  },
+  "lr_policy": poly_decay,  # fixed_lr,
+  "lr_policy_params": {
+    "learning_rate": 0.2,
+    "power": 2,
+  },
+  "larc_params": {
+    "larc_eta": 0.002,
   },
 
-  "lr_policy": transformer_policy,
-  "lr_policy_params": {
-    "learning_rate": 2.0,
-    "warmup_steps": 8000,
-    "d_model": d_model,
-  },
+  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  # "optimizer_params": {
+  #   "beta1": 0.9,
+  #   "beta2": 0.997,
+  #   "epsilon": 1e-09,
+  # },
+  #
+  # "lr_policy": transformer_policy,
+  # "lr_policy_params": {
+  #   "learning_rate": 2.0,
+  #   "warmup_steps": 8000,
+  #   "d_model": d_model,
+  # },
 
   "encoder": TransformerEncoder,
   "encoder_params": {
@@ -70,7 +83,6 @@ base_params = {
     "relu_dropout": dropout,                 # 0.3,
     "layer_postprocess_dropout": dropout,    # 0.3,
     "pad_embeddings_2_eight": True,
-    "remove_padding": True,
     "norm_params": norm_params,
   },
 
@@ -105,13 +117,13 @@ train_params = {
     "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "m_common.vocab",
     "tgt_vocab_file": data_root + "m_common.vocab",
-    "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
-    # "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
-    # "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+    # "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
+    # "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 5000, #000,
+    "shuffle_buffer_size": 5000000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,

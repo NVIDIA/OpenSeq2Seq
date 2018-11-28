@@ -139,17 +139,18 @@ class Attention(tf.layers.Layer):
       #logits += bias
       #weights = tf.nn.softmax(logits, name="attention_weights")
       logits = tf.matmul(q, k, transpose_b=True)
-      dtype = logits.dtype
-      if dtype != tf.float32:
-        # upcast softmax inputs
-        logits = tf.cast(x=logits, dtype=tf.float32)
-        logits += bias
-        weights = tf.nn.softmax(logits, name="attention_weights")
-        # downcast softmax output
-        weights = tf.cast(weights, dtype=dtype)
-      else:
-        logits += bias
-        weights = tf.nn.softmax(logits, name="attention_weights")
+      # dtype = logits.dtype
+      # if False: # dtype != tf.float32:
+      #   # upcast softmax inputs
+      #   logits = tf.cast(x=logits, dtype=tf.float32)
+      #   logits += bias
+      #   weights = tf.nn.softmax(logits, name="attention_weights")
+      #   # downcast softmax output
+      #   weights = tf.cast(weights, dtype=dtype)
+      # else:
+      logits += bias
+      weights = tf.nn.softmax(logits, name="attention_weights")
+
     elif self.mode == "bahdanau":
       att_v = tf.get_variable(
           "attention_v", [self.hidden_size // self.num_heads], dtype=q.dtype

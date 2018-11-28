@@ -10,7 +10,7 @@ from six.moves import range
 from open_seq2seq.parts.transformer import utils, attention_layer, \
                                            ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
-                                                  LayerNormalization
+                                    LayerNormalization, Transformer_BatchNorm
 from .decoder import Decoder
 
 
@@ -59,6 +59,7 @@ class TransformerDecoder(Decoder):
         'GO_SYMBOL': int,
         'PAD_SYMBOL': int,
         'END_SYMBOL': int,
+        'norm_params': dict,
     })
 
   def _cast_types(self, input_dict):
@@ -69,12 +70,13 @@ class TransformerDecoder(Decoder):
     super(TransformerDecoder, self).__init__(params, model, name, mode)
     self.embedding_softmax_layer = None
     self.output_normalization = None
-    self._mode = mode
+    self.training = (mode == "train")
     self.layers = []
     # in original T paper embeddings are shared between encoder and decoder
     # also final projection = transpose(E_weights), we currently only support
     # this behaviour
     self.params['shared_embed'] = True
+    self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2" })
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -85,6 +87,8 @@ class TransformerDecoder(Decoder):
     inputs_attention_bias = (
       input_dict['encoder_output']['inputs_attention_bias']
     )
+    print("decoder inputs_attention_bias:", inputs_attention_bias.dtype)
+
     self.embedding_softmax_layer = (
       input_dict['encoder_output']['embedding_softmax_layer']
     )
@@ -96,30 +100,34 @@ class TransformerDecoder(Decoder):
           self_attention_layer = attention_layer.SelfAttention(
               self.params["hidden_size"], self.params["num_heads"],
               self.params["attention_dropout"],
-              self.mode == "train",
+              self.training,
           )
           enc_dec_attention_layer = attention_layer.Attention(
               self.params["hidden_size"], self.params["num_heads"],
               self.params["attention_dropout"],
-              self.mode == "train",
+              self.training,
           )
           feed_forward_network = ffn_layer.FeedFowardNetwork(
               self.params["hidden_size"], self.params["filter_size"],
-              self.params["relu_dropout"], self.mode == "train",
+              self.params["relu_dropout"],
+              self.training,
           )
 
           self.layers.append([
               PrePostProcessingWrapper(self_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       self.training),
               PrePostProcessingWrapper(enc_dec_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       self.training),
               PrePostProcessingWrapper(feed_forward_network, self.params,
-                                       self.mode == "train")
+                                       self.training)
           ])
 
-        self.output_normalization = LayerNormalization(
-            self.params["hidden_size"]
-        )
+        if self.norm_params["type"]=="batch_norm":
+          self.output_normalization = Transformer_BatchNorm(training=self.training,
+                                                            params=self.norm_params)
+        else:
+          self.output_normalization = LayerNormalization(hidden_size=self.params["hidden_size"],
+                                                         params=self.norm_params )
 
       if targets is None:
         return self.predict(encoder_outputs, inputs_attention_bias)
@@ -173,6 +181,7 @@ class TransformerDecoder(Decoder):
     """
     # Prepare inputs to decoder layers by shifting targets, adding positional
     # encoding and applying dropout.
+
     decoder_inputs = self.embedding_softmax_layer(targets)
     with tf.name_scope("shift_targets"):
       # Shift targets to the right, and remove the last element
@@ -193,7 +202,10 @@ class TransformerDecoder(Decoder):
       )
 
     # Run values
-    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
+                                            #dtype = tf.float32
+                                            dtype=self._params["dtype"]
+                                            )
 
     # do decode
     outputs = self._call(
@@ -214,6 +226,7 @@ class TransformerDecoder(Decoder):
     )
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
         max_decode_length,
+        dtype=self._params["dtype"]
     )
 
     def symbols_to_logits_fn(ids, i, cache):
