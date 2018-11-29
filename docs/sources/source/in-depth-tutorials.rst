@@ -1,6 +1,6 @@
 .. _in_depth:
 
-In-depth tutorials
+In-depth Tutorials
 ==================
 
 .. toctree::
