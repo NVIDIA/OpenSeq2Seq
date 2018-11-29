@@ -30,12 +30,12 @@ Currently we support following models:
 
    * - :doc:`Jasper 10x3 </speech-recognition/jasper>`
      - 5.10
-     - `w2lplus_xlarge_34_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_34_8gpus_mp.py>`_
+     - `jasper_10x3_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x3_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing>`_
 
    * - :doc:`Jasper 10x5 syn </speech-recognition/jasper>`
      - 4.32
-     - `w2lplus_xlarge_54_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_xlarge_54_8gpus_mp.py>`_
+     - `jasper_10x5_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x5_8gpus_mp.py>`_
      - `link <https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing>`_
 
 
@@ -53,6 +53,7 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
 
    speech-recognition/deepspeech2
    speech-recognition/wave2letter
+   speech-recognition/jasper
 
 
 ################
