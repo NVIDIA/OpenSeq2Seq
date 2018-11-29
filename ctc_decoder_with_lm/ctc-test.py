@@ -23,6 +23,7 @@ class CTCCustomDecoderTests(tf.test.TestCase):
     self.seq, self.label = load_test_sample('ctc_decoder_with_lm/ctc-test.pickle')
     self.vocab = load_vocab('open_seq2seq/test_utils/toy_speech_data/vocab.txt')
     self.beam_width = 16
+    self.tol = 1e-3
 
 
   def test_decoders(self):
@@ -62,17 +63,17 @@ class CTCCustomDecoderTests(tf.test.TestCase):
 
     decoded_greedy, prob_greedy = res_greedy
     decoded_text = ''.join([self.vocab[c] for c in decoded_greedy[0].values])
-    self.assertTrue( prob_greedy[0][0] < 0 )
+    self.assertTrue( abs(7079.117 + prob_greedy[0][0]) < self.tol )
     self.assertTrue( decoded_text == 'then seconds' )
 
     decoded_beam, prob_beam = res_beam
     decoded_text = ''.join([self.vocab[c] for c in decoded_beam[0].values])
     if tf.__version__ >= '1.11':
       # works for newer versions only (with CTC decoder fix)
-      self.assertTrue( prob_beam[0][0] < 0 )
+      self.assertTrue( abs(1.1842575 + prob_beam[0][0]) < self.tol )
     self.assertTrue( decoded_text == 'then seconds' )
 
-    self.assertTrue( res_probs[0][0] < 0 )
+    self.assertTrue( abs(4.619581 + res_probs[0][0]) < self.tol )
     decoded_text = ''.join([self.vocab[c] for c in res_vals[0]])
     self.assertTrue( decoded_text == self.label )
 
@@ -111,12 +112,12 @@ class CTCCustomDecoderTests(tf.test.TestCase):
 
     decoded_beam, prob_beam = res_beam
     prob1 = prob_beam[0][0]
-    if tf.__version__ >= '1.11':
-      # works for newer versions only (with CTC decoder fix)
-      self.assertTrue( prob1 < 0 )
     decoded_text1 = ''.join([self.vocab[c] for c in decoded_beam[0].values])
 
     prob2 = res_probs[0][0]
+    if tf.__version__ >= '1.11':
+      # works for newer versions only (with CTC decoder fix)
+      self.assertTrue( abs(prob1 - prob2) < self.tol )
     self.assertTrue( prob2 < 0 )
     decoded_text2 = ''.join([self.vocab[c] for c in res_vals[0]])
 
