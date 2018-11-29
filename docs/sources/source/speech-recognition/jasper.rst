@@ -47,8 +47,6 @@ Our current best WER is a 54 layer model trained using synthetic data. We achiev
 
 We used Open SLR language model while decoding with beam search using a beam width of 128.
 
-The checkpoint for the model trained using the configuration `jasper_10x3_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x3_8gpus_mp.py>`_ can be found at `Checkpoint <https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing>`_.
-
 The models were trained for 400 (200 for syn) epochs on 8 GPUs. We use:
 
 * SGD with momentum = 0.9
