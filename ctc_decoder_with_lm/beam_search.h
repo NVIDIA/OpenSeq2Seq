@@ -35,11 +35,12 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
   public:
     WordLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path, 
                      const std::string &alphabet_path,
-                     float alpha, float beta)
+                     float alpha, float beta, float trie_weight)
       : model_(kenlm_path.c_str(), GetLMConfig())
       , alphabet_(alphabet_path.c_str())
       , alpha_(alpha)
       , beta_(beta)
+      , trie_weight_(trie_weight)
     {
       Model::State out;
       std::ifstream in(trie_path, std::ios::in);
@@ -126,7 +127,7 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       if (state.new_word)
         score += alpha_ * state.language_model_score + beta_;
       else
-        score += 0.1 * state.score;
+        score += trie_weight_ * state.score;
       return score;
     }
     // GetStateEndExpansionScore should be an inexpensive method to retrieve the
@@ -150,12 +151,17 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
       this->beta_ = beta;
     }
 
+    void SetTrieWeight (float trie_weight) {
+      this->trie_weight_ = trie_weight;
+    }
+
 
   private:
     Model model_;
     Alphabet alphabet_;
     float alpha_;
     float beta_;
+    float trie_weight_;
     TrieNode *trieRoot_;
     float oov_score_;
 
