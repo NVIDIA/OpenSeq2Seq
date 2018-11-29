@@ -1,15 +1,15 @@
 # pylint: skip-file
 import tensorflow as tf
-from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import DeepSpeech2Encoder
-from open_seq2seq.decoders import FullyConnectedCTCDecoder
+
 from open_seq2seq.data import Speech2TextDataLayer
+from open_seq2seq.decoders import FullyConnectedCTCDecoder
+from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.losses import CTCLoss
+from open_seq2seq.models import Speech2Text
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
 
 base_model = Speech2Text
-dataset_location = os.path.expanduser("~/datasets/speech/librispeech/")
 
 base_params = {
   "random_seed": 0,
@@ -99,15 +99,17 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 96,
     "input_type": "spectrogram",
-    "augmentation": {'time_stretch_ratio': 0.05,
-                     'noise_level_min': -90,
-                     'noise_level_max': -60},
+    "augmentation": {
+      'time_stretch_ratio': 0.05,
+      'noise_level_min': -90,
+      'noise_level_max': -60
+    },
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      os.path.join(dataset_location,"librivox-train-clean-100.csv"),
-      os.path.join(dataset_location,"librivox-train-clean-360.csv"),
+      "data/librispeech/librivox-train-clean-100.csv",
+      "data/librispeech/librivox-train-clean-360.csv",
     ],
-    "max_duration": 16.7,
+    "max_duration": None,
     "shuffle": True,
   },
 }
@@ -115,15 +117,12 @@ train_params = {
 eval_params = {
   "data_layer": Speech2TextDataLayer,
   "data_layer_params": {
-	"cache_features": False,
-	"cache_format": "hdf5",
-	"cache_regenerate": False,
-	"num_audio_features": 96,
-	"input_type": "spectrogram",
-	"vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-	"dataset_files": [
-	os.path.join(dataset_location,"librivox-dev-clean.csv"),
-	],
-	"shuffle": False,
+    "num_audio_features": 96,
+    "input_type": "spectrogram",
+    "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "dataset_files": [
+      "data/librispeech/librivox-dev-clean.csv",
+    ],
+    "shuffle": False,
   },
 }
