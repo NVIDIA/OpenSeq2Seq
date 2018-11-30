@@ -23,3 +23,10 @@ imagenet\_preprocessing
     :undoc-members:
     :show-inheritance:
 
+speech_commands
+---------------
+
+.. automodule:: data.image2label.speech_commands
+    :members:
+    :undoc-members:
+    :show-inheritance:
