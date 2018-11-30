@@ -73,7 +73,7 @@ Get data
 
 Download and preprocess Librispeech dataset::
 
- python scripts/import_librivox.py
+ python scripts/import_librivox.py data/librispeech
 
 Download and preprocess OpenSLR language model::
 
