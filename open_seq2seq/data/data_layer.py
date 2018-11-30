@@ -42,6 +42,7 @@ class DataLayer:
     return {
         'batch_size': int,
         'shuffle': bool,
+        'repeat': bool,
         'dtype': [tf.float32, tf.float16],
         'interactive': bool,
     }
