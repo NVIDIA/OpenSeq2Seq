@@ -16,7 +16,7 @@ Assuming you are in the base folder, run::
 
     sudo apt-get -y install sox libsox-dev
     mkdir -p data
-    python import_librivox.py data/librispeech
+    python scripts/import_librivox.py data/librispeech
 
 Note, that this will take a lot of time, since
 it needs to download, extract and convert around 55GB of audio files. The final
