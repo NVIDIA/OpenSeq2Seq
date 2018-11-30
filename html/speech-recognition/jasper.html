@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>DeepSpeech2 &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Jasper &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Wave2Letter+" href="wave2letter.html" />
-    <link rel="prev" title="Speech Recognition" href="../speech-recognition.html" /> 
+    <link rel="next" title="Speech Commands" href="speech_commands.html" />
+    <link rel="prev" title="Wave2Letter+" href="wave2letter.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -89,15 +89,15 @@
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../speech-recognition.html#models">Models</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">DeepSpeech2</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="deepspeech2.html">DeepSpeech2</a></li>
+<li class="toctree-l3"><a class="reference internal" href="wave2letter.html">Wave2Letter+</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Jasper</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#synthetic-data">Synthetic Data</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pre-trained-model">Pre-trained model</a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="wave2letter.html">Wave2Letter+</a></li>
-<li class="toctree-l3"><a class="reference internal" href="jasper.html">Jasper</a></li>
 <li class="toctree-l3"><a class="reference internal" href="speech_commands.html">Speech Commands</a></li>
 </ul>
 </li>
@@ -160,13 +160,13 @@
         
           <li><a href="../speech-recognition.html">Speech Recognition</a> &raquo;</li>
         
-      <li>DeepSpeech2</li>
+      <li>Jasper</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/speech-recognition/deepspeech2.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/speech-recognition/jasper.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -179,74 +179,109 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="deepspeech2">
-<span id="id1"></span><h1>DeepSpeech2<a class="headerlink" href="#deepspeech2" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="jasper">
+<span id="id1"></span><h1>Jasper<a class="headerlink" href="#jasper" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="model">
 <h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>DeepSpeech2 is a set of speech recognition models based on <a class="reference external" href="https://arxiv.org/abs/1512.02595">Baidu DeepSpeech2</a>. It is summarized in the following scheme:</p>
-<img alt="DeepSpeech2 architecture" class="align-center" src="../_images/ds2.png" />
-<p>The preprocessing part takes a raw audio waveform signal and converts it into a log-spectrogram of size (<em>N_timesteps</em>, <em>N_frequency_features</em>). <em>N_timesteps</em> depends on an original audio file’s duration, <em>N_frequency_features</em> can be assigned in the model’s configuration file as “<em>num_audio_features</em>” parameter.</p>
-<p>The Deep Neural Network (DNN) part produces a probability distribution <em>P_t(c)</em> over vocabulary characters <em>c</em> per each time step <em>t</em>.</p>
-<p>DeepSpeech2 is trained with CTC loss.</p>
-<p><a class="reference external" href="https://en.wikipedia.org/wiki/Word_error_rate">Word Error Rate (WER)</a> is the main evaluation metric. In order to get words out of a trained model one needs to use a decoder. Decoder converts a probability distribution over characters into text. There are two types of decoders that are usually employed with CTC-based models: greedy decoder and beam search decoder with language model re-scoring. A greedy decoder outputs the most probable character at each time step. It is very fast and it can produce transcripts that are very close to the original pronunciation. But it may introduce many small misspelling errors. But due to the nature of WER metric, even one character error makes a whole word incorrect. A beam search decoder with language model re-scoring allows checking many possible decodings (beams) at once with assigning a higher score for more probable N-grams according to a given language model. The language model helps to correct misspelling errors. The downside is that it is significantly slower than a greedy decoder.</p>
-<p>One of the best performing on LibriSpeech topologies can be found in <cite>example_configs/speech2text/ds2_large_8gpus.py</cite> configuration file.
-It consists of:</p>
+<p>Jasper (Just Another Speech Recognizer) is a deep time delay neural network (TDNN) comprising of blocks of 1D-convolutional layers. Jasper is a family of models where each model has a different number of layers. Jasper models are denoted as Jasper bxr where b and r represent:</p>
 <ul class="simple">
-<li>two convolutional layers<ol class="arabic">
-<li>number of channels is 32, kernel size is [11, 41], stride is [2, 2]</li>
-<li>number of channels is 32, kernel size is [11, 21], stride is [1, 2]</li>
-</ol>
-</li>
-<li>five bidirectional GRU layers (size is 800)</li>
-<li>one fully connected layer (size is 1600)</li>
-<li>one projection layer (size is number of characters plus 1 for CTC blank symbol, 29)</li>
+<li>b: the number of blocks</li>
+<li>r: the number of repetitions of each convolutional layer within a block</li>
 </ul>
-<p>The model uses spectrograms where number of frequency features is 160 (that is, the frequency range without filtering).</p>
+<img alt="../_images/jasper.png" src="../_images/jasper.png" />
+<p>All models have 4 common layers. There is an initial convolutional layer with stride 2 to decrease the time dimension of the speech. The other 3 layers are at the end of the network. The first layer has a dilation of 2 to increase the model’s receptive field. The last two layers are fully connected layers that are used to project the final output to a distribution over characters.</p>
+<p>Each 1D-convolutional layer consists of a convolutional operation, batch normalization, clipped relu activation, and dropout. Shown on the left.</p>
+<p>There is a residual connection between each block which consists of a projection layer, followed by batch normalization. The residual is then added to the output of the last 1D-convolutional layer in the block before the clipped relu activation and dropout. Shown on the right.</p>
+<img alt="../_images/jasper_layers.png" src="../_images/jasper_layers.png" />
+<p>We preprocess the speech signal by sampling the raw audio waveform of the signal using a sliding window of 20ms with stride 10ms. We then extract log-mel filterbank energies of size 64 from these frames as input features to the model.</p>
+<p>We use Connectionist Temporal Classification (CTC) loss to train the model. The output of the model is a sequence of letters corresponding to the speech input. The vocabulary consists of all alphabets (a-z), space, and the apostrophe symbol, a total of 29 symbols including the blank symbol used by the CTC loss.</p>
 </div>
 <div class="section" id="training">
 <h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>The model was trained with a Stochastic Gradient Descent with Momentum optimizer which was extended with Layer-wise Adaptive Rate Clipping (LARC) algorithm.
-The optimizer’s parameters are the following:</p>
-<ul class="simple">
-<li>learning rate policy is polynomial with initial learning rate = 0.001 and power = 0.5</li>
-<li>momentum is 0.9</li>
-<li>batch size per GPU is 16</li>
-</ul>
-<p>L2 weight decay (0.0005), dropout (0.5) and batch normalization were employed for regularization.</p>
-<p>In training mode preprocessing augments original audio clips with additive noise and slight time stretching (to make speech faster/slower and increase/decrease its pitch).
-Duration of audio samples in LibriSpeech train dataset varies from 0.8 to 30 seconds:</p>
-<img alt="LibriSpeech training samples' length" class="align-center" src="../_images/train_duration_histogram.png" />
-<p>Since 99.05% of the samples are shorter than 16.7 seconds, the preprocessing part ignores longer samples during the training. Such a filtering threshold can be set in the model’s configuration file as “<em>max_duration</em>” parameter.</p>
-</div>
-<div class="section" id="mixed-precision">
-<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
-<p>Mixed precision training works quite well for DeepSpeech2 even without dynamic loss scaling. It allows us to get the same WER level as float32.</p>
-</div>
-<div class="section" id="pre-trained-model">
-<h2>Pre-trained model<a class="headerlink" href="#pre-trained-model" title="Permalink to this headline">¶</a></h2>
-<p>Here is a pre-trained model which was trained for 200 epochs in a mixed precision mode.</p>
-<table border="1" class="colwidths-given docutils">
+<p>Our current best WER is a 54 layer model trained using synthetic data. We achieved a WER of 4.32% on the librispeech test-clean dataset using greedy decoding:</p>
+<table border="1" class="docutils">
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="40%" />
-<col width="20%" />
+<col width="25%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
+<col width="9%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Model description</th>
-<th class="head">Greedy WER, %</th>
-<th class="head">Config file</th>
-<th class="head">Checkpoint</th>
+<tr class="row-odd"><th class="head" rowspan="3">Model</th>
+<th class="head" colspan="8">LibriSpeech Dataset</th>
+</tr>
+<tr class="row-even"><th class="head" colspan="2">Dev-Clean</th>
+<th class="head" colspan="2">Dev-Other</th>
+<th class="head" colspan="2">Test-Clean</th>
+<th class="head" colspan="2">Test-Other</th>
+</tr>
+<tr class="row-odd"><th class="head">Greedy</th>
+<th class="head">Beam</th>
+<th class="head">Greedy</th>
+<th class="head">Beam</th>
+<th class="head">Greedy</th>
+<th class="head">Beam</th>
+<th class="head">Greedy</th>
+<th class="head">Beam</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="#"><span class="doc">DeepSpeech2</span></a></td>
-<td>6.71</td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_8gpus_mp</a></td>
-<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
+<tr class="row-even"><td>Jasper 10x3</td>
+<td>5.10</td>
+<td>4.37</td>
+<td>15.49</td>
+<td>13.46</td>
+<td>5.10</td>
+<td>5.14</td>
+<td>16.21</td>
+<td>14.35</td>
+</tr>
+<tr class="row-odd"><td>Jasper 10x5</td>
+<td>4.51</td>
+<td>3.77</td>
+<td>13.88</td>
+<td>12.20</td>
+<td>4.59</td>
+<td>4.46</td>
+<td>14.34</td>
+<td>12.79</td>
+</tr>
+<tr class="row-even"><td>Jasper 10x5 syn</td>
+<td>4.32</td>
+<td>3.74</td>
+<td>13.74</td>
+<td>11.57</td>
+<td>4.32</td>
+<td>4.39</td>
+<td>14.08</td>
+<td>12.21</td>
 </tr>
 </tbody>
 </table>
+<p>We used Open SLR language model while decoding with beam search using a beam width of 128.</p>
+<p>The models were trained for 400 (200 for syn) epochs on 8 GPUs. We use:</p>
+<ul class="simple">
+<li>SGD with momentum = 0.9</li>
+<li>a learning rate with polynomial decay using an initial learning rate of 0.05</li>
+<li>Layer-wise Adative Rate Control (LARC) with eta = 0.001</li>
+<li>weight-decay = 0.001</li>
+<li>dropout (varible per layer: 0.2-0.4)</li>
+</ul>
+</div>
+<div class="section" id="synthetic-data">
+<h2>Synthetic Data<a class="headerlink" href="#synthetic-data" title="Permalink to this headline">¶</a></h2>
+<p>All models with “syn” in their name are trained using a combined dataset of Librispeech and synthetic data.</p>
+<p>The training details can be found <a class="reference internal" href="synthetic_dataset.html#synthetic-data"><span class="std std-ref">here</span></a>.</p>
+</div>
+<div class="section" id="mixed-precision">
+<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
+<p>To use mixed precision (float16) during training we made a few minor changes to the model. Tensorflow by default calls Keras Batch Normalization on 3D input (BxTxC) and cuDNN on 4D input (BxHxWxC). In order to use cuDNN’s BN we added an extra dimension to the 3D input to make it a 4D tensor (BxTx1xC).</p>
+<p>We also use backoff loss scaling.</p>
 </div>
 </div>
 
@@ -258,10 +293,10 @@ Duration of audio samples in LibriSpeech train dataset varies from 0.8 to 30 sec
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="wave2letter.html" class="btn btn-neutral float-right" title="Wave2Letter+" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="speech_commands.html" class="btn btn-neutral float-right" title="Speech Commands" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../speech-recognition.html" class="btn btn-neutral" title="Speech Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="wave2letter.html" class="btn btn-neutral" title="Wave2Letter+" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

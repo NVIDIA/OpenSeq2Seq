@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>DeepSpeech2 &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>Speech Commands &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -33,8 +33,8 @@
   <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="Wave2Letter+" href="wave2letter.html" />
-    <link rel="prev" title="Speech Recognition" href="../speech-recognition.html" /> 
+    <link rel="next" title="Creation of Synthetic Data" href="synthetic_dataset.html" />
+    <link rel="prev" title="Jasper" href="jasper.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -89,16 +89,16 @@
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="../speech-recognition.html#models">Models</a><ul class="current">
-<li class="toctree-l3 current"><a class="current reference internal" href="#">DeepSpeech2</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
-<li class="toctree-l4"><a class="reference internal" href="#pre-trained-model">Pre-trained model</a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="deepspeech2.html">DeepSpeech2</a></li>
 <li class="toctree-l3"><a class="reference internal" href="wave2letter.html">Wave2Letter+</a></li>
 <li class="toctree-l3"><a class="reference internal" href="jasper.html">Jasper</a></li>
-<li class="toctree-l3"><a class="reference internal" href="speech_commands.html">Speech Commands</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">Speech Commands</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#introduction">Introduction</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#dataset">Dataset</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#model-details-and-results">Model Details and Results</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../speech-recognition.html#getting-started">Getting started</a></li>
@@ -160,13 +160,13 @@
         
           <li><a href="../speech-recognition.html">Speech Recognition</a> &raquo;</li>
         
-      <li>DeepSpeech2</li>
+      <li>Speech Commands</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
             
-            <a href="../_sources/speech-recognition/deepspeech2.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/speech-recognition/speech_commands.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -179,74 +179,59 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="deepspeech2">
-<span id="id1"></span><h1>DeepSpeech2<a class="headerlink" href="#deepspeech2" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="model">
-<h2>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h2>
-<p>DeepSpeech2 is a set of speech recognition models based on <a class="reference external" href="https://arxiv.org/abs/1512.02595">Baidu DeepSpeech2</a>. It is summarized in the following scheme:</p>
-<img alt="DeepSpeech2 architecture" class="align-center" src="../_images/ds2.png" />
-<p>The preprocessing part takes a raw audio waveform signal and converts it into a log-spectrogram of size (<em>N_timesteps</em>, <em>N_frequency_features</em>). <em>N_timesteps</em> depends on an original audio file’s duration, <em>N_frequency_features</em> can be assigned in the model’s configuration file as “<em>num_audio_features</em>” parameter.</p>
-<p>The Deep Neural Network (DNN) part produces a probability distribution <em>P_t(c)</em> over vocabulary characters <em>c</em> per each time step <em>t</em>.</p>
-<p>DeepSpeech2 is trained with CTC loss.</p>
-<p><a class="reference external" href="https://en.wikipedia.org/wiki/Word_error_rate">Word Error Rate (WER)</a> is the main evaluation metric. In order to get words out of a trained model one needs to use a decoder. Decoder converts a probability distribution over characters into text. There are two types of decoders that are usually employed with CTC-based models: greedy decoder and beam search decoder with language model re-scoring. A greedy decoder outputs the most probable character at each time step. It is very fast and it can produce transcripts that are very close to the original pronunciation. But it may introduce many small misspelling errors. But due to the nature of WER metric, even one character error makes a whole word incorrect. A beam search decoder with language model re-scoring allows checking many possible decodings (beams) at once with assigning a higher score for more probable N-grams according to a given language model. The language model helps to correct misspelling errors. The downside is that it is significantly slower than a greedy decoder.</p>
-<p>One of the best performing on LibriSpeech topologies can be found in <cite>example_configs/speech2text/ds2_large_8gpus.py</cite> configuration file.
-It consists of:</p>
-<ul class="simple">
-<li>two convolutional layers<ol class="arabic">
-<li>number of channels is 32, kernel size is [11, 41], stride is [2, 2]</li>
-<li>number of channels is 32, kernel size is [11, 21], stride is [1, 2]</li>
-</ol>
-</li>
-<li>five bidirectional GRU layers (size is 800)</li>
-<li>one fully connected layer (size is 1600)</li>
-<li>one projection layer (size is number of characters plus 1 for CTC blank symbol, 29)</li>
-</ul>
-<p>The model uses spectrograms where number of frequency features is 160 (that is, the frequency range without filtering).</p>
+  <div class="section" id="speech-commands">
+<span id="id1"></span><h1>Speech Commands<a class="headerlink" href="#speech-commands" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>The ability to recognize spoken commands with high accuracy can be useful in a variety of contexts. To this end, Google recently released the Speech Commands dataset (see <a class="reference external" href="https://arxiv.org/abs/1804.03209">paper</a>), which contains short audio clips of a fixed number of command words such as “stop”, “go”, “up”, “down”, etc spoken by a large number of speakers. To promote the use of the set, Google also hosted a <a class="reference external" href="https://www.kaggle.com/c/tensorflow-speech-recognition-challenge">Kaggle competition</a>, in which the winning team attained a multiclass accuracy of 91%.</p>
+<p>We started by experimenting with applying OpenSeq2Seq’s existing image classification models on mel spectrograms of the audio clips and found that they worked surprisingly well. Adding data augmentation further improved the results.</p>
 </div>
-<div class="section" id="training">
-<h2>Training<a class="headerlink" href="#training" title="Permalink to this headline">¶</a></h2>
-<p>The model was trained with a Stochastic Gradient Descent with Momentum optimizer which was extended with Layer-wise Adaptive Rate Clipping (LARC) algorithm.
-The optimizer’s parameters are the following:</p>
-<ul class="simple">
-<li>learning rate policy is polynomial with initial learning rate = 0.001 and power = 0.5</li>
-<li>momentum is 0.9</li>
-<li>batch size per GPU is 16</li>
-</ul>
-<p>L2 weight decay (0.0005), dropout (0.5) and batch normalization were employed for regularization.</p>
-<p>In training mode preprocessing augments original audio clips with additive noise and slight time stretching (to make speech faster/slower and increase/decrease its pitch).
-Duration of audio samples in LibriSpeech train dataset varies from 0.8 to 30 seconds:</p>
-<img alt="LibriSpeech training samples' length" class="align-center" src="../_images/train_duration_histogram.png" />
-<p>Since 99.05% of the samples are shorter than 16.7 seconds, the preprocessing part ignores longer samples during the training. Such a filtering threshold can be set in the model’s configuration file as “<em>max_duration</em>” parameter.</p>
+<div class="section" id="dataset">
+<h2>Dataset<a class="headerlink" href="#dataset" title="Permalink to this headline">¶</a></h2>
+<p>Google released two versions of the dataset with the first version containing 65k samples over 30 classes and the second containing 110k samples over 35 classes. However, the Kaggle contest specification used only 10 of the provided classes, grouped the others as “unknown” and added “silence” for a total of 12 labels. We refer to these datasets as v1-12, v1-30 and v2, and have separate metrics for each version in order to compare to the different metrics used by other papers.</p>
+<p>To preprocess a given version, we run <code class="docutils literal notranslate"><span class="pre">speech_commands_preprocessing.py</span></code> which balances the number of samples in each class by duplicating the samples in each class. This effectively grows the dataset, as we apply random transformations to each sample in the data layer. The script then separates each class into training, validation and test samples via an 80-10-10 split.</p>
+<p>These samples are fed into the data layer, which randomly stretches and adds noise to each audio sample. These augmented samples are then converted into mel spectrograms and either randomly sliced or symmetrically padded with zeros until they are fixed dimension and square (120x120). This dataset is then cached during the first epoch in order to increase GPU utilization.</p>
 </div>
-<div class="section" id="mixed-precision">
-<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
-<p>Mixed precision training works quite well for DeepSpeech2 even without dynamic loss scaling. It allows us to get the same WER level as float32.</p>
-</div>
-<div class="section" id="pre-trained-model">
-<h2>Pre-trained model<a class="headerlink" href="#pre-trained-model" title="Permalink to this headline">¶</a></h2>
-<p>Here is a pre-trained model which was trained for 200 epochs in a mixed precision mode.</p>
+<div class="section" id="model-details-and-results">
+<h2>Model Details and Results<a class="headerlink" href="#model-details-and-results" title="Permalink to this headline">¶</a></h2>
+<p>The output of the data layer is a 120x120 image, which is fed into an unmodified ResNet-50 architecture consisting of several convolutional blocks. We obtained the following results by adding data augmentation and training ResNet-50 in float over 10 epochs.</p>
 <table border="1" class="colwidths-given docutils">
 <colgroup>
-<col width="20%" />
-<col width="20%" />
-<col width="40%" />
-<col width="20%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
+<col width="25%" />
 </colgroup>
 <thead valign="bottom">
-<tr class="row-odd"><th class="head">Model description</th>
-<th class="head">Greedy WER, %</th>
-<th class="head">Config file</th>
+<tr class="row-odd"><th class="head">Dataset</th>
+<th class="head">Validation Accuracy</th>
+<th class="head">Test Accuracy</th>
 <th class="head">Checkpoint</th>
 </tr>
 </thead>
 <tbody valign="top">
-<tr class="row-even"><td><a class="reference internal" href="#"><span class="doc">DeepSpeech2</span></a></td>
-<td>6.71</td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/ds2_large_8gpus_mp.py">ds2_large_8gpus_mp</a></td>
-<td><a class="reference external" href="https://drive.google.com/open?id=1EDvL9wMCO2vVE-ynBvpwkFTultbzLNQX">link</a></td>
+<tr class="row-even"><td>v1-12</td>
+<td>94.7%</td>
+<td>94.7%</td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1NDPaUuwuL2G2ZhgBL75RHOfpIs4ewCOg">link</a></td>
+</tr>
+<tr class="row-odd"><td>v1-30</td>
+<td>96.6%</td>
+<td>95.8%</td>
+<td><a class="reference external" href="https://drive.google.com/open?id=1MwUX8EqGEjrSbxOyGHOLeOeqco-RF9vT">link</a></td>
+</tr>
+<tr class="row-even"><td>v2</td>
+<td>95.0%</td>
+<td>95.1%</td>
+<td><a class="reference external" href="https://drive.google.com/open?id=199HYZRX2O1tWFGZYkYP_E-R8SvrHIiqn">link</a></td>
 </tr>
 </tbody>
 </table>
+<p>The configuration file used for all models is <a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/image2label/speech_commands_float.py">here</a>. The only change between datasets is the <code class="docutils literal notranslate"><span class="pre">dataset_version</span></code> parameter, which should be set to one of <code class="docutils literal notranslate"><span class="pre">v1-12</span></code>, <code class="docutils literal notranslate"><span class="pre">v1-30</span></code> or <code class="docutils literal notranslate"><span class="pre">v2</span></code>.</p>
+</div>
+<div class="section" id="mixed-precision">
+<h2>Mixed Precision<a class="headerlink" href="#mixed-precision" title="Permalink to this headline">¶</a></h2>
+<p>We found that the model trains just as well in mixed precision using a constant loss scaling of 512. This roughly halves the required GPU memory.</p>
 </div>
 </div>
 
@@ -258,10 +243,10 @@ Duration of audio samples in LibriSpeech train dataset varies from 0.8 to 30 sec
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="wave2letter.html" class="btn btn-neutral float-right" title="Wave2Letter+" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="synthetic_dataset.html" class="btn btn-neutral float-right" title="Creation of Synthetic Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="../speech-recognition.html" class="btn btn-neutral" title="Speech Recognition" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="jasper.html" class="btn btn-neutral" title="Jasper" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

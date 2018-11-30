@@ -83,15 +83,15 @@
             
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../index.html">Introduction</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed precision training</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
 </ul>
@@ -164,6 +164,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">librosa</span>
 <span class="kn">import</span> <span class="nn">librosa.filters</span>
+<span class="kn">import</span> <span class="nn">resampy</span> <span class="k">as</span> <span class="nn">rs</span>
 
 <div class="viewcode-block" id="get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_from_file</span><span class="p">(</span>
     <span class="n">filename</span><span class="p">,</span>
@@ -178,6 +179,7 @@
     <span class="n">trim</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
     <span class="n">data_min</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">,</span>
     <span class="n">return_raw_audio</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span>
 <span class="p">):</span>
   <span class="sd">&quot;&quot;&quot; Helper function to retrieve spectrograms from wav files</span>
@@ -212,6 +214,28 @@
         <span class="n">frame_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">n_fft</span><span class="o">/</span><span class="mi">2</span><span class="p">),</span>
         <span class="n">hop_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">hop_length</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
     <span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">augmentation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+
+      <span class="c1"># time stretch</span>
+      <span class="n">stretch_amount</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> \
+          <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
+      <span class="n">signal</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span>
+          <span class="n">signal</span><span class="p">,</span>
+          <span class="n">fs</span><span class="p">,</span>
+          <span class="nb">int</span><span class="p">(</span><span class="n">fs</span> <span class="o">*</span> <span class="n">stretch_amount</span><span class="p">),</span>
+          <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;kaiser_fast&#39;</span><span class="p">,</span>
+      <span class="p">)</span>
+
+      <span class="c1"># noise</span>
+      <span class="n">noise_level_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span>
+          <span class="n">low</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_min&#39;</span><span class="p">],</span>
+          <span class="n">high</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_max&#39;</span><span class="p">]</span>
+      <span class="p">)</span>
+      <span class="n">signal</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> \
+          <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">noise_level_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
+
   <span class="n">speech_features</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
       <span class="n">signal</span><span class="p">,</span> <span class="n">fs</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span> <span class="n">n_fft</span><span class="p">,</span>
       <span class="n">hop_length</span><span class="p">,</span> <span class="n">mag_power</span><span class="p">,</span> <span class="n">feature_normalize</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">std</span><span class="p">,</span> <span class="n">data_min</span><span class="p">,</span> <span class="n">mel_basis</span>
