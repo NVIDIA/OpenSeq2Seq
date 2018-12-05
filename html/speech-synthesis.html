@@ -195,7 +195,7 @@
 </thead>
 <tbody valign="top">
 <tr class="row-even"><td><a class="reference internal" href="speech-synthesis/tacotron-2.html"><span class="doc">Tacotron-2</span></a></td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py">tacotron_LJ_float.py</a></td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_float.py">tacotron_float.py</a></td>
 <td><a class="reference internal" href="speech-synthesis/tacotron-2-samples.html"><span class="doc">here</span></a></td>
 <td><a class="reference external" href="https://drive.google.com/open?id=1Ddf7nDI2PpgaxvZMm7bd8N_Evk_ExTwg">link</a></td>
 </tr>
@@ -205,7 +205,7 @@
 <td><a class="reference external" href="https://drive.google.com/open?id=1IdWnUIwV9NMe-1JSvcv4Ti4HZ8wPEvQr">link</a></td>
 </tr>
 <tr class="row-even"><td><a class="reference internal" href="speech-synthesis/wavenet.html"><span class="doc">WaveNet</span></a></td>
-<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/wavenet_float.py">wavenet_LJ_float.py</a></td>
+<td><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/wavenet_float.py">wavenet_float.py</a></td>
 <td>n/a</td>
 <td>n/a</td>
 </tr>
@@ -240,11 +240,11 @@ transcripts delimited by the ‘|’ character.</p>
 <li>rename <code class="docutils literal notranslate"><span class="pre">metadata.csv</span></code> to <code class="docutils literal notranslate"><span class="pre">train.csv</span></code></li>
 </ul>
 <p>To start training Tacotron:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
 </pre></div>
 </div>
 <p>Similarly, to start training WaveNet:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">wavenet_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">wavenet_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">train</span>
 </pre></div>
 </div>
 <p>If your GPU does not have enough memory, reduce the <code class="docutils literal notranslate"><span class="pre">batch_size_per_gpu</span></code>
@@ -261,7 +261,7 @@ location as <code class="docutils literal notranslate"><span class="pre">train.c
 <p>You can put as many lines inside the csv as you want. The model will produce
 one audio sample per line and save the audio sample inside your <code class="docutils literal notranslate"><span class="pre">log_dir</span></code>.
 Lastly, run</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_LJ_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">unused</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=</span><span class="n">example_configs</span><span class="o">/</span><span class="n">text2speech</span><span class="o">/</span><span class="n">tacotron_float</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=</span><span class="n">unused</span>
 </pre></div>
 </div>
 <p>For WaveNet, only interactive infer is supported. First, start a jupyter notebook in the root
