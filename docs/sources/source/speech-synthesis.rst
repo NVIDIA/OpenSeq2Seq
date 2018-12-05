@@ -18,7 +18,7 @@ Currently we support following models:
      - Audio Samples
      - Checkpoint
    * - :doc:`Tacotron-2 </speech-synthesis/tacotron-2>`
-     - `tacotron_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_LJ_float.py>`_
+     - `tacotron_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/tacotron_float.py>`_
      - :doc:`here </speech-synthesis/tacotron-2-samples>`
      - `link <https://drive.google.com/open?id=1Ddf7nDI2PpgaxvZMm7bd8N_Evk_ExTwg>`_
    * - :doc:`Tacotron-2 GST</speech-synthesis/tacotron-2-gst>`
@@ -26,7 +26,7 @@ Currently we support following models:
      - N/A
      - `link <https://drive.google.com/open?id=1IdWnUIwV9NMe-1JSvcv4Ti4HZ8wPEvQr>`_
    * - :doc:`WaveNet </speech-synthesis/wavenet>`
-     - `wavenet_LJ_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/wavenet_float.py>`_
+     - `wavenet_float.py <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/text2speech/wavenet_float.py>`_
      - n/a
      - n/a
 
@@ -75,11 +75,11 @@ Both WaveNet and Tacotron 2 can be trained using LJSpeech. For this:
 
 To start training Tacotron::
 
-    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=train
+    python run.py --config_file=example_configs/text2speech/tacotron_float.py --mode=train
 
 Similarly, to start training WaveNet::
 
-    python run.py --config_file=example_configs/text2speech/wavenet_LJ_float.py --mode=train
+    python run.py --config_file=example_configs/text2speech/wavenet_float.py --mode=train
 
 If your GPU does not have enough memory, reduce the ``batch_size_per_gpu``
 parameter.
@@ -98,7 +98,7 @@ You can put as many lines inside the csv as you want. The model will produce
 one audio sample per line and save the audio sample inside your ``log_dir``.
 Lastly, run ::
 
-    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=infer --infer_output_file=unused
+    python run.py --config_file=example_configs/text2speech/tacotron_float.py --mode=infer --infer_output_file=unused
 
 For WaveNet, only interactive infer is supported. First, start a jupyter notebook in the root 
 directory and replace the contents of the first box of with `tacotron_save_spec.py 
