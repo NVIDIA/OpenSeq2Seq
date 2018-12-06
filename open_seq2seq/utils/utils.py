@@ -637,12 +637,12 @@ def check_base_model_logdir(base_logdir, args, restore_best_checkpoint=False):
     raise IOError("The log directory for the base model is empty or does not exist.")
 
   if args.enable_logs:
-      ckpt_dir = os.path.join(base_logdir, 'logs')
-      if not os.path.isdir(ckpt_dir):
-        raise IOError("There's no folder 'logs' in the base model logdir. \
-                        If checkpoints exist, put them in the 'logs' folder.")
+    ckpt_dir = os.path.join(base_logdir, 'logs')
+    if not os.path.isdir(ckpt_dir):
+      raise IOError("There's no folder 'logs' in the base model logdir. \
+                    If checkpoints exist, put them in the 'logs' folder.")
   else:
-      ckpt_dir = base_logdir
+    ckpt_dir = base_logdir
 
   if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
     ckpt_dir = os.path.join(ckpt_dir, 'best_models')
