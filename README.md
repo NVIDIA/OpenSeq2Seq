@@ -54,11 +54,12 @@ This is a research project, not an official NVIDIA product.
 ## Paper
 If you use OpenSeq2Seq, please cite [this paper](https://arxiv.org/abs/1805.10387)
 ```
-@article{openseq2seq,
-  title={
-OpenSeq2Seq: extensible toolkit for distributed and mixed precision training of sequence-to-sequence models},
-  author={Kuchaiev, Oleksii and Ginsburg, Boris and Gitman, Igor and Lavrukhin, Vitaly and  Case, Carl and Micikevicius, Paulius},
-  journal={arXiv preprint arXiv:1805.10387},
-  year={2018}
+@misc{openseq2seq,
+    title={Mixed-Precision Training for NLP and Speech Recognition with OpenSeq2Seq},
+    author={Oleksii Kuchaiev and Boris Ginsburg and Igor Gitman and Vitaly Lavrukhin and Jason Li and Huyen Nguyen and Carl Case and Paulius Micikevicius},
+    year={2018},
+    eprint={1805.10387},
+    archivePrefix={arXiv},
+    primaryClass={cs.CL}
 }
 ```
