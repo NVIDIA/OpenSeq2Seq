@@ -35,6 +35,7 @@ def _maybe_download(fname, data_dir, data_url):
     os.rename(data_path + '.tmp', data_path)
   else:
     print("Skipping file '{}'".format(data_path))
+  return data_path
 
 def _download_and_preprocess_data(data_dir):
   # Conditionally download data to data_dir
