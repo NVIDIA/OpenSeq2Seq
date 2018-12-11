@@ -24,8 +24,17 @@ import tarfile
 import unicodedata
 
 from sox import Transformer
-from tensorflow.contrib.learn.python.learn.datasets import base
+import urllib
 from tensorflow.python.platform import gfile
+
+def _maybe_download(fname, data_dir, data_url):
+  data_path = os.path.join(data_dir, fname)
+  if not os.path.exists(data_path):
+    print("Can't find '{}'. Downloading...".format(data_path))
+    urllib.request.urlretrieve(data_url, filename=data_path + '.tmp')
+    os.rename(data_path + '.tmp', data_path)
+  else:
+    print("Skipping file '{}'".format(data_path))
 
 def _download_and_preprocess_data(data_dir):
   # Conditionally download data to data_dir
@@ -42,21 +51,21 @@ def _download_and_preprocess_data(data_dir):
     TEST_OTHER_URL = "http://www.openslr.org/resources/12/test-other.tar.gz"
 
     def filename_of(x): return os.path.split(x)[1]
-    train_clean_100 = base.maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
+    train_clean_100 = _maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
     bar.update(1)
-    train_clean_360 = base.maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
+    train_clean_360 = _maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
     bar.update(1)
-    train_other_500 = base.maybe_download(filename_of(TRAIN_OTHER_500_URL), data_dir, TRAIN_OTHER_500_URL)
-    bar.update(1)
-
-    dev_clean = base.maybe_download(filename_of(DEV_CLEAN_URL), data_dir, DEV_CLEAN_URL)
-    bar.update(1)
-    dev_other = base.maybe_download(filename_of(DEV_OTHER_URL), data_dir, DEV_OTHER_URL)
+    train_other_500 = _maybe_download(filename_of(TRAIN_OTHER_500_URL), data_dir, TRAIN_OTHER_500_URL)
     bar.update(1)
 
-    test_clean = base.maybe_download(filename_of(TEST_CLEAN_URL), data_dir, TEST_CLEAN_URL)
+    dev_clean = _maybe_download(filename_of(DEV_CLEAN_URL), data_dir, DEV_CLEAN_URL)
     bar.update(1)
-    test_other = base.maybe_download(filename_of(TEST_OTHER_URL), data_dir, TEST_OTHER_URL)
+    dev_other = _maybe_download(filename_of(DEV_OTHER_URL), data_dir, DEV_OTHER_URL)
+    bar.update(1)
+
+    test_clean = _maybe_download(filename_of(TEST_CLEAN_URL), data_dir, TEST_CLEAN_URL)
+    bar.update(1)
+    test_other = _maybe_download(filename_of(TEST_OTHER_URL), data_dir, TEST_OTHER_URL)
     bar.update(1)
 
   # Conditionally extract LibriSpeech data
