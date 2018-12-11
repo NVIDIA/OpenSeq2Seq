@@ -326,13 +326,17 @@ class Speech2TextDataLayer(DataLayer):
     if self.params.get("syn_enable", False):
       audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'], pad_to,
+        audio_filename, self.params['num_audio_features'],
+        pad_to=self.params.get('pad_to', 8),
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
+        cache_features=self.params.get('cache_features', False),
+        cache_format=self.params.get('cache_format', 'hdf5'),
+        cache_regenerate=self.params.get('cache_regenerate', False),
+        params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \

@@ -1,10 +1,11 @@
 # pylint: skip-file
 import tensorflow as tf
-from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import DeepSpeech2Encoder
-from open_seq2seq.decoders import FullyConnectedCTCDecoder
+
 from open_seq2seq.data import Speech2TextDataLayer
+from open_seq2seq.decoders import FullyConnectedCTCDecoder
+from open_seq2seq.encoders import DeepSpeech2Encoder
 from open_seq2seq.losses import CTCLoss
+from open_seq2seq.models import Speech2Text
 from open_seq2seq.optimizers.lr_policies import exp_decay
 
 
@@ -98,9 +99,11 @@ train_params = {
   "data_layer_params": {
     "num_audio_features": 96,
     "input_type": "spectrogram",
-    "augmentation": {'time_stretch_ratio': 0.05,
-                     'noise_level_min': -90,
-                     'noise_level_max': -60},
+    "augmentation": {
+      'time_stretch_ratio': 0.05,
+      'noise_level_min': -90,
+      'noise_level_max': -60
+    },
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
       "data/librispeech/librivox-train-clean-100.csv",

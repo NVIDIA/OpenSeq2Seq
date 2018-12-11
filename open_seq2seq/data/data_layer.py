@@ -45,6 +45,9 @@ class DataLayer:
         'repeat': bool,
         'dtype': [tf.float32, tf.float16],
         'interactive': bool,
+        'cache_features': bool,
+        'cache_format': str,
+        'cache_regenerate': bool
     }
 
   @abc.abstractmethod
