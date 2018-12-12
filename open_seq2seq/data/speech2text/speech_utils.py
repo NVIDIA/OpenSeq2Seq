@@ -86,8 +86,9 @@ def get_preprocessed_data_path(filename, params):
       :return:            path to new file (without extension). The path is
       generated from the relevant preprocessing parameters.
   """
-  filename = filename.decode(
-      'ascii')  # required b/c we read filename from csv in binary mode
+  if isinstance(bytes, filename):  # convert binary string to normal string
+      filename = filename.decode('ascii')
+
   filename = os.path.realpath(filename)  # decode symbolic links
 
   ## filter relevant parameters # TODO is there a cleaner way of doing this?
