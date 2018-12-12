@@ -1,5 +1,5 @@
 '''
-This file modifies standard TensorFlow modules necessary for transfer learning, 
+This file modifies standard TensorFlow modules necessary for transfer learning,
 such as MonitoredTrainingSession, ChiefSessionCreator, Scaffold, SessionManager
 '''
 
@@ -29,7 +29,7 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
                                      max_wait_secs=7200,
                                      save_checkpoint_steps=USE_DEFAULT,
                                      summary_dir=None,
-                                     base_ckpt_dir=None,
+                                     load_model_dir=None,
                                      load_fc=False):
   """Creates a `MonitoredSession` for training.
   For a chief, this utility sets proper session initializer/restorer. It also
@@ -112,7 +112,7 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
   if chief_only_hooks:
     all_hooks.extend(chief_only_hooks)
 
-  if not base_ckpt_dir or tf.train.latest_checkpoint(checkpoint_dir):
+  if not load_model_dir or tf.train.latest_checkpoint(checkpoint_dir):
   # if no base checkpoint or if checkpoint for the current model already exists
     session_creator = tf.train.ChiefSessionCreator(
         scaffold=scaffold,
@@ -121,10 +121,11 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
         config=config)
 
   else: # load variables from the base model's checkpoint
-    print("Loading the base model")
+    if load_model_dir:
+        print("Loading the base model from {}.".format(load_model_dir))
     session_creator = TransferChiefSessionCreator(
         scaffold=scaffold,
-        checkpoint_dir=base_ckpt_dir,
+        checkpoint_dir=load_model_dir,
         master=master,
         config=config,
         load_fc=load_fc)
@@ -199,7 +200,7 @@ class TransferChiefSessionCreator(tf.train.SessionCreator):
     print('SCAFFOLD TYPE:', type(self._scaffold))
     self._scaffold.finalize()
     # tf.get_default_graph()._unsafe_unfinalize()
-    
+
     return self._get_session_manager().prepare_session(
         self._master,
         saver=self._scaffold.saver,
@@ -393,7 +394,7 @@ class TransferSessionManager(tf.train.SessionManager):
                           max_wait_secs=max_wait_secs,
                           config=config,
                           load_fc=load_fc)
-    
+
 
     local_init_success, msg = self._try_run_local_init_op(sess)
     if not local_init_success:

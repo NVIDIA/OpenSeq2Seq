@@ -1,6 +1,6 @@
 .. _installation:
 
-Installation instructions
+Installation Instructions
 =========================
 
 Pre-built docker container

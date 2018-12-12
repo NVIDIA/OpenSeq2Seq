@@ -1,7 +1,7 @@
 # pylint: skip-file
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import Wave2LetterEncoder
+from open_seq2seq.encoders import TDNNEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
@@ -23,7 +23,7 @@ base_params = {
     "print_samples_steps": 2200,
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
-    "logdir": "w2l_log_folder",
+    "logdir": "jasper_log_folder",
 
     "optimizer": "Momentum",
     "optimizer_params": {
@@ -50,7 +50,7 @@ base_params = {
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-    "encoder": Wave2LetterEncoder,
+    "encoder": TDNNEncoder,
     "encoder_params": {
         "convnet_layers": [
             {
@@ -60,70 +60,70 @@ base_params = {
                 "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": 3,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation":[1], "dropout_keep_prob": 0.7,
@@ -173,21 +173,21 @@ base_params = {
     "loss_params": {},
 }
 
-# train_params = {
-#     "data_layer": Speech2TextDataLayer,
-#     "data_layer_params": {
-#         "num_audio_features": 64,
-#         "input_type": "logfbank",
-#         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-#         "dataset_files": [
-#             "/data/librispeech/librivox-train-clean-100.csv",
-#             "/data/librispeech/librivox-train-clean-360.csv",
-#             "/data/librispeech/librivox-train-other-500.csv",
-#         ],
-#         "max_duration": 16.7,
-#         "shuffle": True,
-#     },
-# }
+train_params = {
+    "data_layer": Speech2TextDataLayer,
+    "data_layer_params": {
+        "num_audio_features": 64,
+        "input_type": "logfbank",
+        "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+        "dataset_files": [
+            "/data/librispeech/librivox-train-clean-100.csv",
+            "/data/librispeech/librivox-train-clean-360.csv",
+            "/data/librispeech/librivox-train-other-500.csv",
+        ],
+        "max_duration": 16.7,
+        "shuffle": True,
+    },
+}
 
 eval_params = {
     "data_layer": Speech2TextDataLayer,

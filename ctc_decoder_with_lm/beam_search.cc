@@ -457,6 +457,7 @@ REGISTER_OP("CTCBeamSearchDecoderWithLM")
     .Attr("alphabet_path: string")
     .Attr("alpha: float")
     .Attr("beta: float")
+    .Attr("trie_weight: float")
     .Attr("beam_width: int >= 1 = 100")
     .Attr("top_paths: int >= 1 = 1")
     .Attr("merge_repeated: bool = true")
@@ -510,6 +511,7 @@ trie_path: A string containing the path to the trie file built from the vocabula
 alphabet_path: A string containing the path to the alphabet file (see alphabet.h).
 alpha: alpha hyperparameter of CTC decoder. LM weight.
 beta: beta hyperparameter of CTC decoder. Word insertion weight.
+trie_weight: weight for trie vocabulary based rescoring.
 beam_width: A scalar >= 0 (beam search beam width).
 top_paths: A scalar >= 0, <= beam_width (controls output size).
 merge_repeated: If true, merge repeated classes in output.
@@ -657,7 +659,8 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
                    GetTriePath(ctx),
                    GetAlphabetPath(ctx),
                    GetAlpha(ctx),
-                   GetBeta(ctx))
+                   GetBeta(ctx),
+                   GetTrieWeight(ctx))
   {
     OP_REQUIRES_OK(ctx, ctx->GetAttr("merge_repeated", &merge_repeated_));
     OP_REQUIRES_OK(ctx, ctx->GetAttr("beam_width", &beam_width_));
@@ -787,6 +790,12 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     float beta;
     ctx->GetAttr("beta", &beta);
     return beta;
+  }
+
+  float GetTrieWeight(tf::OpKernelConstruction *ctx) {
+    float trie_weight;
+    ctx->GetAttr("trie_weight", &trie_weight);
+    return trie_weight;
   }
 
 };

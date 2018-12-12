@@ -23,13 +23,13 @@ val, and test sets. you would have to split metadata.csv into three separate
 csvs on your own called train.csv, val.csv, and test.csv. You can train the
 model via::
 
-    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=train_eval
+    python run.py --config_file=example_configs/text2speech/tacotron_float.py --mode=train_eval
 
 If you do not want to split the dataset and want to train the model using the
 entire dataset, change ``dataset_files`` inside train_params to point to
 metadata.csv and run::
 
-    python run.py --config_file=example_configs/text2speech/tacotron_LJ_float.py --mode=train
+    python run.py --config_file=example_configs/text2speech/tacotron_float.py --mode=train
 
 If you want to run evaluation/inference with the trained model, replace
 ``--mode=train_eval`` with ``--mode=eval`` or ``--mode=infer``.
