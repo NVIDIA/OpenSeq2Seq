@@ -43,10 +43,10 @@ def train(train_model, eval_model=None, debug_port=None):
 
   if master_worker:
     checkpoint_dir = train_model.params['logdir']
-    base_ckpt_dir = train_model.params['load_model']
+    load_model_dir = train_model.params['load_model']
   else:
     checkpoint_dir = None
-    base_ckpt_dir = None
+    load_model_dir = None
 
   if eval_model is not None:
     # noinspection PyTypeChecker
@@ -97,9 +97,8 @@ def train(train_model, eval_model=None, debug_port=None):
         [train_model.get_data_layer(i).iterator.initializer
          for i in range(train_model.num_gpus)]
     )
-  
-  fine_tuning = (not base_ckpt_dir) or tf.train.latest_checkpoint(checkpoint_dir)
-  if fine_tuning:   
+
+  if (not load_model_dir) or tf.train.latest_checkpoint(checkpoint_dir):
     scaffold = tf.train.Scaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
     )
@@ -118,7 +117,7 @@ def train(train_model, eval_model=None, debug_port=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  if fine_tuning:
+  if load_model_dir or tf.train.latest_checkpoint(checkpoint_dir):
     sess = TransferMonitoredTrainingSession(
       scaffold=scaffold,
       checkpoint_dir=checkpoint_dir,
@@ -128,7 +127,7 @@ def train(train_model, eval_model=None, debug_port=None):
       log_step_count_steps=train_model.params['save_summaries_steps'],
       stop_grace_period_secs=300,
       hooks=hooks,
-      base_ckpt_dir=base_ckpt_dir,
+      load_model_dir=load_model_dir,
       load_fc=train_model.params['load_fc'])
   else:
     sess = tf.train.MonitoredTrainingSession(

@@ -8,8 +8,9 @@ from .encoder import Encoder
 from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv
 
 
-class Wave2LetterEncoder(Encoder):
-  """Wave2Letter like encoder. Fully convolutional model"""
+class TDNNEncoder(Encoder):
+  """General time delay neural network (TDNN) encoder. Fully convolutional model
+  """
 
   @staticmethod
   def get_required_params():
@@ -29,7 +30,7 @@ class Wave2LetterEncoder(Encoder):
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
-    """Wave2Letter like encoder constructor.
+    """TDNN encoder constructor.
 
     See parent class for arguments description.
 
@@ -68,7 +69,7 @@ class Wave2LetterEncoder(Encoder):
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
-    super(Wave2LetterEncoder, self).__init__(params, model, name, mode)
+    super(TDNNEncoder, self).__init__(params, model, name, mode)
 
   def _encode(self, input_dict):
     """Creates TensorFlow graph for Wav2Letter like encoder.

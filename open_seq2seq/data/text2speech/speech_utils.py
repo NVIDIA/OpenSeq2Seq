@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import numpy as np
 import librosa
 import librosa.filters
+import resampy as rs
 
 def get_speech_features_from_file(
     filename,
@@ -19,6 +20,7 @@ def get_speech_features_from_file(
     trim=False,
     data_min=1e-5,
     return_raw_audio=False,
+    augmentation=None,
     mel_basis=None
 ):
   """ Helper function to retrieve spectrograms from wav files
@@ -53,6 +55,28 @@ def get_speech_features_from_file(
         frame_length=int(n_fft/2),
         hop_length=int(hop_length/2)
     )
+
+  if augmentation is not None:
+    if augmentation['time_stretch_ratio'] > 0:
+
+      # time stretch
+      stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
+          augmentation['time_stretch_ratio']
+      signal = rs.resample(
+          signal,
+          fs,
+          int(fs * stretch_amount),
+          filter='kaiser_fast',
+      )
+
+      # noise
+      noise_level_db = np.random.randint(
+          low=augmentation['noise_level_min'],
+          high=augmentation['noise_level_max']
+      )
+      signal += np.random.randn(signal.shape[0]) * \
+          10.0 ** (noise_level_db / 20.0)
+
   speech_features = get_speech_features(
       signal, fs, num_features, features_type, n_fft,
       hop_length, mag_power, feature_normalize, mean, std, data_min, mel_basis

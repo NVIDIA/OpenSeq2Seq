@@ -18,19 +18,29 @@ sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import codecs
 import fnmatch
 import pandas
-import progressbar
+import tqdm
 import subprocess
 import tarfile
 import unicodedata
 
 from sox import Transformer
-from tensorflow.contrib.learn.python.learn.datasets import base
+import urllib
 from tensorflow.python.platform import gfile
+
+def _maybe_download(fname, data_dir, data_url):
+  data_path = os.path.join(data_dir, fname)
+  if not os.path.exists(data_path):
+    print("Can't find '{}'. Downloading...".format(data_path))
+    urllib.request.urlretrieve(data_url, filename=data_path + '.tmp')
+    os.rename(data_path + '.tmp', data_path)
+  else:
+    print("Skipping file '{}'".format(data_path))
+  return data_path
 
 def _download_and_preprocess_data(data_dir):
   # Conditionally download data to data_dir
   print("Downloading Librivox data set (55GB) into {} if not already present...".format(data_dir))
-  with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
+  with tqdm.tqdm(total=7) as bar:
     TRAIN_CLEAN_100_URL = "http://www.openslr.org/resources/12/train-clean-100.tar.gz"
     TRAIN_CLEAN_360_URL = "http://www.openslr.org/resources/12/train-clean-360.tar.gz"
     TRAIN_OTHER_500_URL = "http://www.openslr.org/resources/12/train-other-500.tar.gz"
@@ -42,47 +52,47 @@ def _download_and_preprocess_data(data_dir):
     TEST_OTHER_URL = "http://www.openslr.org/resources/12/test-other.tar.gz"
 
     def filename_of(x): return os.path.split(x)[1]
-    train_clean_100 = base.maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
-    bar.update(0)
-    train_clean_360 = base.maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
+    train_clean_100 = _maybe_download(filename_of(TRAIN_CLEAN_100_URL), data_dir, TRAIN_CLEAN_100_URL)
     bar.update(1)
-    train_other_500 = base.maybe_download(filename_of(TRAIN_OTHER_500_URL), data_dir, TRAIN_OTHER_500_URL)
-    bar.update(2)
+    train_clean_360 = _maybe_download(filename_of(TRAIN_CLEAN_360_URL), data_dir, TRAIN_CLEAN_360_URL)
+    bar.update(1)
+    train_other_500 = _maybe_download(filename_of(TRAIN_OTHER_500_URL), data_dir, TRAIN_OTHER_500_URL)
+    bar.update(1)
 
-    dev_clean = base.maybe_download(filename_of(DEV_CLEAN_URL), data_dir, DEV_CLEAN_URL)
-    bar.update(3)
-    dev_other = base.maybe_download(filename_of(DEV_OTHER_URL), data_dir, DEV_OTHER_URL)
-    bar.update(4)
+    dev_clean = _maybe_download(filename_of(DEV_CLEAN_URL), data_dir, DEV_CLEAN_URL)
+    bar.update(1)
+    dev_other = _maybe_download(filename_of(DEV_OTHER_URL), data_dir, DEV_OTHER_URL)
+    bar.update(1)
 
-    test_clean = base.maybe_download(filename_of(TEST_CLEAN_URL), data_dir, TEST_CLEAN_URL)
-    bar.update(5)
-    test_other = base.maybe_download(filename_of(TEST_OTHER_URL), data_dir, TEST_OTHER_URL)
-    bar.update(6)
+    test_clean = _maybe_download(filename_of(TEST_CLEAN_URL), data_dir, TEST_CLEAN_URL)
+    bar.update(1)
+    test_other = _maybe_download(filename_of(TEST_OTHER_URL), data_dir, TEST_OTHER_URL)
+    bar.update(1)
 
   # Conditionally extract LibriSpeech data
   # We extract each archive into data_dir, but test for existence in
   # data_dir/LibriSpeech because the archives share that root.
   print("Extracting librivox data if not already extracted...")
-  with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
+  with tqdm.tqdm(total=7) as bar:
     LIBRIVOX_DIR = "LibriSpeech"
     work_dir = os.path.join(data_dir, LIBRIVOX_DIR)
 
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "train-clean-100"), train_clean_100)
-    bar.update(0)
+    bar.update(1)
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "train-clean-360"), train_clean_360)
     bar.update(1)
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "train-other-500"), train_other_500)
-    bar.update(2)
+    bar.update(1)
 
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "dev-clean"), dev_clean)
-    bar.update(3)
+    bar.update(1)
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "dev-other"), dev_other)
-    bar.update(4)
+    bar.update(1)
 
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "test-clean"), test_clean)
-    bar.update(5)
+    bar.update(1)
     _maybe_extract(data_dir, os.path.join(LIBRIVOX_DIR, "test-other"), test_other)
-    bar.update(6)
+    bar.update(1)
 
   # Convert FLAC data to wav, from:
   # data_dir/LibriSpeech/split/1/2/1-2-3.flac
@@ -97,23 +107,23 @@ def _download_and_preprocess_data(data_dir):
   # data_dir/LibriSpeech/split-wav/1-2-2.txt
   # ...
   print("Converting FLAC to WAV and splitting transcriptions...")
-  with progressbar.ProgressBar(max_value=7, widget=progressbar.AdaptiveETA) as bar:
+  with tqdm.tqdm(total=7) as bar:
     train_100 = _convert_audio_and_split_sentences(work_dir, "train-clean-100", "train-clean-100-wav")
-    bar.update(0)
+    bar.update(1)
     train_360 = _convert_audio_and_split_sentences(work_dir, "train-clean-360", "train-clean-360-wav")
     bar.update(1)
     train_500 = _convert_audio_and_split_sentences(work_dir, "train-other-500", "train-other-500-wav")
-    bar.update(2)
+    bar.update(1)
 
     dev_clean = _convert_audio_and_split_sentences(work_dir, "dev-clean", "dev-clean-wav")
-    bar.update(3)
+    bar.update(1)
     dev_other = _convert_audio_and_split_sentences(work_dir, "dev-other", "dev-other-wav")
-    bar.update(4)
+    bar.update(1)
 
     test_clean = _convert_audio_and_split_sentences(work_dir, "test-clean", "test-clean-wav")
-    bar.update(5)
+    bar.update(1)
     test_other = _convert_audio_and_split_sentences(work_dir, "test-other", "test-other-wav")
-    bar.update(6)
+    bar.update(1)
 
   # Write sets to disk as CSV files
   train_100.to_csv(os.path.join(data_dir, "librivox-train-clean-100.csv"), index=False)

@@ -1,7 +1,7 @@
 # pylint: skip-file
 import tensorflow as tf
 from open_seq2seq.models import Speech2Text
-from open_seq2seq.encoders import Wave2LetterEncoder
+from open_seq2seq.encoders import TDNNEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
@@ -49,7 +49,7 @@ base_params = {
     "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                   'variable_norm', 'gradient_norm', 'global_gradient_norm'],
 
-    "encoder": Wave2LetterEncoder,
+    "encoder": TDNNEncoder,
     "encoder_params": {
         "convnet_layers": [
             {

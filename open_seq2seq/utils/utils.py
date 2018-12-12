@@ -597,7 +597,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
         else:
           deco_print("Restoring from the latest checkpoint")
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
-        
+
         if checkpoint is None:
           raise IOError(
               "There is no valid TensorFlow checkpoint in the "
@@ -618,7 +618,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
 
   return checkpoint
 
-def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
+def check_base_model_logdir(base_logdir, args, restore_best_checkpoint=False):
   """A helper function that ensures the logdir is setup correctly
 
   Args:
@@ -636,10 +636,13 @@ def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
   if (not os.path.isdir(base_logdir)) or len(os.listdir(base_logdir)) == 0:
     raise IOError("The log directory for the base model is empty or does not exist.")
 
-  ckpt_dir = os.path.join(base_logdir, 'logs')
-  if not os.path.isdir(ckpt_dir):
-    raise IOError("There's no folder 'logs' in the base model logdir. \
+  if args.enable_logs:
+    ckpt_dir = os.path.join(base_logdir, 'logs')
+    if not os.path.isdir(ckpt_dir):
+      raise IOError("There's no folder 'logs' in the base model logdir. \
                     If checkpoints exist, put them in the 'logs' folder.")
+  else:
+    ckpt_dir = base_logdir
 
   if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
     ckpt_dir = os.path.join(ckpt_dir, 'best_models')

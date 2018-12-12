@@ -38,7 +38,7 @@ base_params = {
   },
   "dtype": tf.float32,
   #"dtype": "mixed",
-  #"automatic_loss_scaling": "Backoff",
+  #"loss_scaling": "Backoff",
 
   "encoder": BidirectionalRNNEncoderWithEmbedding,
   "encoder_params": {

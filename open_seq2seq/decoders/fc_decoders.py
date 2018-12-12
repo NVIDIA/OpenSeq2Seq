@@ -174,6 +174,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         'beam_width': int,
         'alpha': float,
         'beta': float,
+        'trie_weight': float,
         'lm_path': str,
         'trie_path': str,
         'alphabet_config_path': str,
@@ -199,6 +200,8 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
       probabilities.
     * **beta** (float) --- weight that is assigned to the
       word count.
+    * **trie_weight** (float) --- weight for prefix tree vocabulary
+      based character level rescoring.
     """
     super(FullyConnectedCTCDecoder, self).__init__(params, model, name, mode)
 
@@ -226,6 +229,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
                 alphabet_path=self.params['alphabet_config_path'],
                 alpha=self.params['alpha'],
                 beta=self.params['beta'],
+                trie_weight=self.params.get('trie_weight', 0.1),
                 top_paths=top_paths, merge_repeated=merge_repeated,
             )
         )
