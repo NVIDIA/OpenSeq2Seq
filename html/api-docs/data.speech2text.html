@@ -400,9 +400,27 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 </div>
 <div class="section" id="module-data.speech2text.speech_utils">
 <span id="speech-utils"></span><h2>speech_utils<a class="headerlink" href="#module-data.speech2text.speech_utils" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="data.speech2text.speech_utils.PreprocessOnTheFlyException">
+<em class="property">exception </em><code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">PreprocessOnTheFlyException</code><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#PreprocessOnTheFlyException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.PreprocessOnTheFlyException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception that is thrown to not load preprocessed features from disk;
+recompute on-the-fly.
+This saves disk space (if you’re experimenting with data input
+formats/preprocessing) but can be slower.
+The slowdown is especially apparent for small, fast NNs.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="data.speech2text.speech_utils.RegenerateCacheException">
+<em class="property">exception </em><code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">RegenerateCacheException</code><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#RegenerateCacheException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.RegenerateCacheException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception that is thrown to force recomputation of (preprocessed) features</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="data.speech2text.speech_utils.augment_audio_signal">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">augment_audio_signal</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>augmentation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#augment_audio_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.augment_audio_signal" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">augment_audio_signal</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>augmentation</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#augment_audio_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.augment_audio_signal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function that performs audio signal augmentation.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -410,7 +428,7 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>signal</strong> (<em>np.array</em>) – np.array containing raw audio signal.</li>
-<li><strong>fs</strong> (<em>float</em>) – frames per second.</li>
+<li><strong>sample_freq</strong> (<em>float</em>) – frames per second.</li>
 <li><strong>augmentation</strong> (<em>dict</em>) – dictionary of augmentation parameters. See
 <a class="reference internal" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="data.speech2text.speech_utils.get_speech_features_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_speech_features_from_file()</span></code></a> for specification and example.</li>
 </ul>
@@ -427,8 +445,19 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 </dd></dl>
 
 <dl class="function">
+<dt id="data.speech2text.speech_utils.get_preprocessed_data_path">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_preprocessed_data_path</code><span class="sig-paren">(</span><em>filename</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_preprocessed_data_path"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_preprocessed_data_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert the audio path into the path to the preprocessed
+version of this audio
+:param : param filename:    WAVE filename
+:param : param params:      dictionary containing preprocessing parameters
+:param : return:            path to new file (without extension). The path is
+:param generated from the relevant preprocessing parameters.:</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="data.speech2text.speech_utils.get_speech_features">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>fs</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to convert raw audio signal to numpy array of features.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -436,7 +465,7 @@ class <a class="reference internal" href="#data.speech2text.speech2text.Speech2T
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>signal</strong> (<em>np.array</em>) – np.array containing raw audio signal.</li>
-<li><strong>fs</strong> (<em>float</em>) – frames per second.</li>
+<li><strong>sample_freq</strong> (<em>float</em>) – frames per second.</li>
 <li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
 <li><strong>pad_to</strong> (<em>int</em>) – if specified, the length will be padded to become divisible
 by <code class="docutils literal notranslate"><span class="pre">pad_to</span></code> parameter.</li>
@@ -448,7 +477,8 @@ by <code class="docutils literal notranslate"><span class="pre">pad_to</span></c
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps, num_features].
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
+num_features].
 audio_duration (float): duration of the signal in seconds</p>
 </td>
 </tr>
@@ -461,8 +491,13 @@ audio_duration (float): duration of the signal in seconds</p>
 
 <dl class="function">
 <dt id="data.speech2text.speech_utils.get_speech_features_from_file">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to convert audio file to numpy array of features.</p>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>cache_features=False</em>, <em>cache_format='hdf5'</em>, <em>cache_regenerate=False</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Function to get a numpy array of features, from an audio file.</dt>
+<dd>if params[‘cache_features’]==True, try load preprocessed data from
+disk, or store after preprocesseng.
+else, perform preprocessing on-the-fly.</dd>
+</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -487,7 +522,8 @@ If not None, has to have ‘time_stretch_ratio’,
 </ul>
 </td>
 </tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps, num_features].</p>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
+num_features].</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
@@ -498,9 +534,30 @@ If not None, has to have ‘time_stretch_ratio’,
 </dd></dl>
 
 <dl class="function">
+<dt id="data.speech2text.speech_utils.load_features">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">load_features</code><span class="sig-paren">(</span><em>path</em>, <em>data_format</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#load_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.load_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to load (preprocessed) features from disk</p>
+<p>:param : param path:    the path where the features are stored
+:param : param data_format:  the format in which the features are stored
+:param : return:        tuple of (features, duration)</p>
+</dd></dl>
+
+<dl class="function">
 <dt id="data.speech2text.speech_utils.normalize_signal">
 <code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">normalize_signal</code><span class="sig-paren">(</span><em>signal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#normalize_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.normalize_signal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize float32 signal to [-1, 1] range</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.speech2text.speech_utils.save_features">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">save_features</code><span class="sig-paren">(</span><em>features</em>, <em>duration</em>, <em>path</em>, <em>data_format</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#save_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.save_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to save (preprocessed) features to disk</p>
+<p>:param : param features:            features
+:param : param duration:            metadata: duration in seconds of audio file
+:param : param path:                path to store the data
+:param : param data_format:              format to store the data in (‘npy’,
+:param ‘npz’,:
+:param ‘hdf5’):</p>
 </dd></dl>
 
 </div>

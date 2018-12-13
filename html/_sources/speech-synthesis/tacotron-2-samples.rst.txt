@@ -6,13 +6,14 @@ Tacotron 2 Audio Samples
 Audio Samples
 ~~~~~~~~~~~~~~
 
-Please note that the audio samples might not play in firefox due to a bug.
-Please retry in chrome, or download the samples inside the github repo located
-`here <https://github.com/NVIDIA/OpenSeq2Seq/tree/18.09/docs/samples>`_.
+Please note that the audio samples are original (without any resampling or other post-processing).
+So they might not play in Firefox, IE and other browsers that are not supporting WAV format with 
+16 kHz and 22.05 kHz sampling rates.
+Please try in Chrome, or download the samples from the GitHub repo located
+`here <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/docs/samples>`_.
 
 
 MAILAIBS US was trained using the book "Jane Eyre" read by Elizabeth Klett.
-
 MAILAIBS UK was trained using the book "North And South" read by Mary Ann.
 
 .. list-table::
