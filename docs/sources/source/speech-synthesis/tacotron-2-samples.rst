@@ -8,7 +8,7 @@ Audio Samples
 
 Please note that the audio samples might not play in firefox due to a bug.
 Please retry in chrome, or download the samples inside the github repo located
-`here <https://github.com/NVIDIA/OpenSeq2Seq/tree/18.09/docs/samples>`_.
+`here <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/docs/samples>`_.
 
 
 MAILAIBS US was trained using the book "Jane Eyre" read by Elizabeth Klett.
