@@ -117,7 +117,7 @@ def train(train_model, eval_model=None, debug_port=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  if load_model_dir or tf.train.latest_checkpoint(checkpoint_dir):
+  if load_model_dir and not tf.train.latest_checkpoint(checkpoint_dir):
     sess = TransferMonitoredTrainingSession(
       scaffold=scaffold,
       checkpoint_dir=checkpoint_dir,
