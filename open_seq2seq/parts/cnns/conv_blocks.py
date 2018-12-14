@@ -48,7 +48,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
                         bn_epsilon, dilation=1):
   layer = layers_dict[layer_type]
 
-  res = tf.layers.conv1d(
+  res = layer(
       res_inputs,
       filters,
       1,

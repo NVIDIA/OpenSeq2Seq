@@ -26,25 +26,25 @@ base_params = {
   "use_horovod": False,
   "num_gpus": 1,
 
-  "num_epochs": 10,
+  "num_epochs": 20,
   "batch_size_per_gpu": 32,
   "dtype": "mixed",
   "loss_scaling": 512.0,
 
-  "save_summaries_steps": 1000,
+  "save_summaries_steps": 10000,
   "print_loss_steps": 10,
-  "print_samples_steps": 10000,
-  "eval_steps": 200,
+  "print_samples_steps": 1000,
+  "eval_steps": 100,
   "save_checkpoint_steps": 10000,
-  "logdir": "experiments/speech_commands_mixed",
+  "logdir": "result/resnet_commands",
 
   "optimizer": "Momentum",
   "optimizer_params": {
-    "momentum": 0.90,
+    "momentum": 0.95,
   },
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.1,
+    "learning_rate": 0.2,
     "power": 2,
   },
 
@@ -70,19 +70,22 @@ base_params = {
   "data_layer_params": {
     "dataset_location": dataset_location,
     "num_audio_features": 120,
+    "audio_length": 120,
     "num_labels": num_labels,
     "cache_data": True,
-    "augment_data": True
+    "augment_data": True,
+    "model_format": "resnet"
   },
 }
 
 train_params = {
   "data_layer_params": {
     "dataset_files": [
-      "v1-12-train.txt"
+      dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True
+    "repeat": True,
+    "repeat_samples": 1
   },
 }
 
@@ -90,7 +93,7 @@ eval_params = {
   "batch_size_per_gpu": 16,
   "data_layer_params": {
     "dataset_files": [
-      "v1-12-val.txt"
+      dataset_version + "-val.txt"
     ],
     "shuffle": False,
     "repeat": False
