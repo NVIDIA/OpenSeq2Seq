@@ -276,7 +276,7 @@
                <span class="s2">&quot;train model does not define get_num_objects_per_step method.&quot;</span><span class="p">)</span>
 
   <span class="c1"># starting training</span>
-  <span class="k">if</span> <span class="n">load_model_dir</span> <span class="ow">or</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">):</span>
+  <span class="k">if</span> <span class="n">load_model_dir</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">latest_checkpoint</span><span class="p">(</span><span class="n">checkpoint_dir</span><span class="p">):</span>
     <span class="n">sess</span> <span class="o">=</span> <span class="n">TransferMonitoredTrainingSession</span><span class="p">(</span>
       <span class="n">scaffold</span><span class="o">=</span><span class="n">scaffold</span><span class="p">,</span>
       <span class="n">checkpoint_dir</span><span class="o">=</span><span class="n">checkpoint_dir</span><span class="p">,</span>
