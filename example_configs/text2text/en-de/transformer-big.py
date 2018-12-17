@@ -20,31 +20,32 @@ d_model = 1024
 num_layers = 6
 
 norm_params= {
-  "type": "batch_norm", #"layernorm_L1", #"layernorm_L2" ,
-  "epsilon": 0.001,
+  "type": "layernorm_L2" , #"batch_norm", #"layernorm_L1", #
+  "epsilon": 0.000001,
 }
 
 attention_dropout = 0.1
 dropout = 0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "/data/wmt16-ende-sp/"
-#data_root = "/raid/wmt16/"
+#data_root = "/data/wmt16-ende-sp/"
+data_root = "/raid/wmt16/"
 
 base_params = {
   "use_horovod": True,
   "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 1000, #000,
+  "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps": 70000, #1000
   "save_summaries_steps": 100,
-  "print_loss_steps": 10, #0,
-  "print_samples_steps": 20000,
-  "eval_steps": 20000,
-  "save_checkpoint_steps": 100000,
-  "logdir": "logs/tr-merge",
+  "print_loss_steps": 100,
+  "print_samples_steps": 10000,
+  "eval_steps": 20001,
+  "save_checkpoint_steps": 299998,
+  "logdir": "logs/tr-fp16-ln2",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff", #1000.0,
+  "iter_size": 1,
 
   "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   "optimizer_params": {
@@ -55,7 +56,7 @@ base_params = {
 
   "lr_policy": transformer_policy,
   "lr_policy_params": {
-    "learning_rate": 2.0,
+    "learning_rate": 2.5,
     "warmup_steps": 8000,
     "d_model": d_model,
   },
@@ -105,13 +106,13 @@ train_params = {
     "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "m_common.vocab",
     "tgt_vocab_file": data_root + "m_common.vocab",
-    "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
-    "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
-    # "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
-    # "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+    # "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
+    # "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
+    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 5000, #000,
+    "shuffle_buffer_size": 25000, #000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,

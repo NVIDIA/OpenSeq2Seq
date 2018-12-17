@@ -17,7 +17,7 @@ class Transformer_BatchNorm(tf.layers.Layer):
     self.training = training
     self.data_format=params.get('data_format','channels_last')
     self.momentum = params.get('momentum',0.95)
-    self.epsilon  = params.get('momentum',0.0001)
+    self.epsilon  = params.get('epsilon',0.0001)
     print("Batch norm, training=", training, params)
 
 
@@ -86,11 +86,21 @@ class LayerNormalization(tf.layers.Layer):
   #   return tf.cast(x=result, dtype=dtype)
 
   def call(self, x): # epsilon=1e-6):
+    dtype = x.dtype
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     x = x - mean
     if self.norm_type=="layernorm_L2":
+      # variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
+      # norm_x = x * tf.rsqrt(variance + self.epsilon)
+      if dtype==tf.float16:
+        x = tf.cast(x, dtype=tf.float32)
+
       variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
       norm_x = x * tf.rsqrt(variance + self.epsilon)
+
+      if dtype == tf.float16:
+        norm_x= tf.saturate_cast(norm_x, dtype)
+
     elif self.norm_type=="layernorm_L1":
       variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
       norm_x = tf.div(x , variance + self.epsilon)
