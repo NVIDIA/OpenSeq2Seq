@@ -35,12 +35,12 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 70000, #1000
+  "max_steps": 700000, #1000
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 20001,
-  "save_checkpoint_steps": 299998,
+  "save_checkpoint_steps": 299999,
   "logdir": "logs/tr-fp16-ln2",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
@@ -112,7 +112,7 @@ train_params = {
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 25000, #000,
+    "shuffle_buffer_size": 500000, #450000,
     "repeat": True,
     "map_parallel_calls": 16,
     "max_length": 56,

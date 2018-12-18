@@ -94,10 +94,8 @@ class LayerNormalization(tf.layers.Layer):
       # norm_x = x * tf.rsqrt(variance + self.epsilon)
       if dtype==tf.float16:
         x = tf.cast(x, dtype=tf.float32)
-
       variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
       norm_x = x * tf.rsqrt(variance + self.epsilon)
-
       if dtype == tf.float16:
         norm_x= tf.saturate_cast(norm_x, dtype)
 
