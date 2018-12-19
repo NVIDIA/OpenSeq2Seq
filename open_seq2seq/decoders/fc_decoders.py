@@ -248,3 +248,61 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         return decoded
 
       self.params['logits_to_outputs_func'] = decode_without_lm
+
+
+class FullyConnectedSCDecoder(Decoder):
+  """Fully connected decoder constructor for speech commands.
+  """
+  @staticmethod
+  def get_required_params():
+    return dict(Decoder.get_required_params(), **{
+        'output_dim': int,
+    })
+
+  def __init__(self, params, model,
+               name="fully_connected_decoder", mode='train'):
+    """Fully connected decoder constructor.
+
+    See parent class for arguments description.
+
+    Config parameters:
+
+    * **output_dim** (int) --- output dimension.
+    """
+    super(FullyConnectedSCDecoder, self).__init__(params, model, name, mode)
+
+  def _decode(self, input_dict):
+    """This method performs linear transformation of input.
+
+    Args:
+      input_dict (dict): input dictionary that has to contain
+          the following fields::
+            input_dict = {
+              'encoder_output': {
+                'outputs': output of encoder (shape=[batch_size, num_features])
+              }
+            }
+
+    Returns:
+      dict: dictionary with the following tensors::
+
+        {
+          'logits': logits with the shape=[batch_size, output_dim]
+          'outputs': [logits] (same as logits but wrapped in list)
+        }
+    """
+    inputs = input_dict['encoder_output']['outputs']
+    lengths = input_dict['encoder_output']['src_length']
+    regularizer = self.params.get('regularizer', None)
+
+    inputs = tf.layers.flatten(inputs=inputs)
+
+    # activation is linear by default
+    logits = tf.layers.dense(
+        inputs=inputs,
+        units=self.params['output_dim'],
+        kernel_regularizer=regularizer,
+        name='fully_connected',
+    )
+
+    return {'logits': logits, 'outputs': [logits]}

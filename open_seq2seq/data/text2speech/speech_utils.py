@@ -20,6 +20,7 @@ def get_speech_features_from_file(
     trim=False,
     data_min=1e-5,
     return_raw_audio=False,
+    return_audio_duration=False,
     augmentation=None,
     mel_basis=None
 ):
@@ -57,8 +58,12 @@ def get_speech_features_from_file(
     )
 
   if augmentation is not None:
-    if augmentation['time_stretch_ratio'] > 0:
+    if 'pitch_shift_steps' in augmentation:
+      pitch_shift_steps = (2.0 * augmentation['pitch_shift_steps'] * \
+          np.random.rand()) - augmentation['pitch_shift_steps']
+      signal = librosa.effects.pitch_shift(signal, fs, pitch_shift_steps)
 
+    if augmentation['time_stretch_ratio'] > 0:
       # time stretch
       stretch_amount = 1.0 + (2.0 * np.random.rand() - 1.0) * \
           augmentation['time_stretch_ratio']
@@ -84,6 +89,8 @@ def get_speech_features_from_file(
 
   if return_raw_audio:
     return signal, speech_features
+  elif return_audio_duration:
+    return speech_features, len(signal) * 1.0 / fs
   else:
     return speech_features
 
