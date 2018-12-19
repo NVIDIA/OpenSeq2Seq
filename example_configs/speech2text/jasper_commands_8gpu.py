@@ -23,7 +23,7 @@ else:
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 100,
+    "num_epochs": 200,
 
     "num_gpus": 8,
     "batch_size_per_gpu": 64,
@@ -201,8 +201,7 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True,
-    "repeat_samples": 1
+    "repeat": True
   },
 }
 

@@ -36,7 +36,7 @@ base_params = {
   "print_samples_steps": 1000,
   "eval_steps": 100,
   "save_checkpoint_steps": 10000,
-  "logdir": "result/resnet_commands",
+  "logdir": "result/" + dataset_version + "-resnet",
 
   "optimizer": "Momentum",
   "optimizer_params": {
@@ -84,8 +84,7 @@ train_params = {
       dataset_version + "-train.txt"
     ],
     "shuffle": True,
-    "repeat": True,
-    "repeat_samples": 1
+    "repeat": True
   },
 }
 
