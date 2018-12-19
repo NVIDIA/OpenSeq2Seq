@@ -122,6 +122,8 @@ class TDNNEncoder(Encoder):
     else:
       conv_feats = tf.transpose(conv_inputs, [0, 2, 1])  # B F T
 
+    residual_aggregation = []
+
     # ----- Convolutional layers ---------------------------------------------
     convnet_layers = self.params['convnet_layers']
 
@@ -136,9 +138,13 @@ class TDNNEncoder(Encoder):
       dropout_keep = convnet_layers[idx_convnet].get(
           'dropout_keep_prob', dropout_keep_prob) if training else 1.0
       residual = convnet_layers[idx_convnet].get('residual', False)
+      residual_dense = convnet_layers[idx_convnet].get('residual_dense', False)
 
       if residual:
         layer_res = conv_feats
+        if residual_dense:
+          residual_aggregation.append(layer_res)
+          layer_res = residual_aggregation
       for idx_layer in range(layer_repeat):
         if padding == "VALID":
           src_length = (src_length - kernel_size[0]) // strides[0] + 1
