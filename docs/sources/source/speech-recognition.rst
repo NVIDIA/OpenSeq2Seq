@@ -41,7 +41,7 @@ Currently we support following models:
    * - :doc:`Jasper 10x5 dense res syn </speech-recognition/jasper>`
      - 4.15
      - `jasper_10x5_8gpus_dr_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x5_8gpus_dr_mp.py>`_
-     - `link <>`_
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1QMIHurNukxcorgmU5n2v1pnghGlg7dDr/view?usp=sharing>`_
 
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
