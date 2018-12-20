@@ -14,6 +14,14 @@ speech2text
     :undoc-members:
     :show-inheritance:
 
+speech_commands
+-----------
+
+.. automodule:: data.speech2text.speech_commands
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 speech\_utils
 -------------
 
