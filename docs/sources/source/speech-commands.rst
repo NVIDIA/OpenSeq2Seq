@@ -10,7 +10,7 @@ Introduction
 
 The ability to recognize spoken commands with high accuracy can be useful in a variety of contexts. To this end, Google recently released the Speech Commands dataset (see `paper <https://arxiv.org/abs/1804.03209>`_), which contains short audio clips of a fixed number of command words such as "stop", "go", "up", "down", etc spoken by a large number of speakers. To promote the use of the set, Google also hosted a `Kaggle competition <https://www.kaggle.com/c/tensorflow-speech-recognition-challenge>`_, in which the winning team attained a multiclass accuracy of 91%.
 
-We started by experimenting with applying OpenSeq2Seq's existing image classification models on mel spectrograms of the audio clips and found that they worked surprisingly well. Adding data augmentation further improved the results.  
+We experimented with applying OpenSeq2Seq's existing image classification models on mel spectrograms of the audio clips and found that they worked surprisingly well. Adding data augmentation further improved the results.  
 
 
 #######
@@ -19,16 +19,22 @@ Dataset
 
 Google released two versions of the dataset with the first version containing 65k samples over 30 classes and the second containing 110k samples over 35 classes. However, the Kaggle contest specification used only 10 of the provided classes, grouped the others as "unknown" and added "silence" for a total of 12 labels. We refer to these datasets as v1-12, v1-30 and v2, and have separate metrics for each version in order to compare to the different metrics used by other papers.
 
-To preprocess a given version, we run ``speech_commands_preprocessing.py`` which balances the number of samples in each class by duplicating the samples in each class. This effectively grows the dataset, as we apply random transformations to each sample in the data layer. The script then separates each class into training, validation and test samples via an 80-10-10 split.
+To preprocess a given version, we run ``speech_commands_preprocessing.py`` which first separates each class into training, validation and test sets with an 80-10-10 split. The script then balances the number of samples in each class by randomly duplicating samples in each class, which effectively grows the dataset since we apply random transformations to each sample in the data layer.
 
-These samples are fed into the data layer, which randomly stretches and adds noise to each audio sample. These augmented samples are then converted into mel spectrograms and either randomly sliced or symmetrically padded with zeros until they are fixed dimension and square. These spectrograms are then cached during the first epoch in order to increase GPU utilization. 
+These samples are fed into the data layer, which randomly pitch shifts, time stretches and adds noise to each audio sample. These augmented samples are then converted into mel spectrograms and either randomly sliced or symmetrically padded with zeros until they are fixed dimension and square. These transformations are shown below.
+
+.. figure:: CommandAugmentations.png
+   :scale: 80 %
+   :align: center
+
+To solve the bounded host bottleneck, the transformed images are cached during the first epoch in order to increase GPU utilization on subsequent epochs. 
 
 
 ######
 Models
 ######
 
-The output of the data layer is a square image, which can then be fed into either ResNet or :doc:`Jasper </speech-recognition/jasper>`. 
+The output of the data layer is a square image (128x128), which can then be fed into either ResNet or :doc:`Jasper </speech-recognition/jasper>`. 
 
 *********
 ResNet-50
