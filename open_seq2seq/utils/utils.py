@@ -504,11 +504,6 @@ def get_base_config(args):
                       help='run TensorFlow in debug mode on specified port')
   parser.add_argument('--enable_logs', dest='enable_logs', action='store_true',
                       help='whether to log output, git info, cmd args, etc.')
-  parser.add_argument('--use_trt', dest='use_trt', action='store_true',
-                      help='use TF-TRT to optimize graph for inference (mode must be infer)')
-  parser.add_argument('--precision', type=str, default='fp32',
-                      choices=['fp32', 'fp16', 'int8'],
-                      help='precision for TF-TRT (only valid with --use_trt')  
   args, unknown = parser.parse_known_args(args)
 
   if args.mode not in [
@@ -530,9 +525,6 @@ def get_base_config(args):
   base_model = config_module.get('base_model', None)
   if base_model is None:
     raise ValueError('base_config class has to be defined in the config file')
-
-  if args.use_trt and args.mode != 'infer':
-    raise ValueError("TensorRT is only supported for inference mode.")
 
   # after we read the config, trying to overwrite some of the properties
   # with command line arguments that were passed to the script
@@ -605,7 +597,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
         else:
           deco_print("Restoring from the latest checkpoint")
           checkpoint = tf.train.latest_checkpoint(ckpt_dir)
-        
+
         if checkpoint is None:
           raise IOError(
               "There is no valid TensorFlow checkpoint in the "
@@ -626,7 +618,7 @@ def check_logdir(args, base_config, restore_best_checkpoint=False):
 
   return checkpoint
 
-def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
+def check_base_model_logdir(base_logdir, args, restore_best_checkpoint=False):
   """A helper function that ensures the logdir is setup correctly
 
   Args:
@@ -644,10 +636,13 @@ def check_base_model_logdir(base_logdir, restore_best_checkpoint=False):
   if (not os.path.isdir(base_logdir)) or len(os.listdir(base_logdir)) == 0:
     raise IOError("The log directory for the base model is empty or does not exist.")
 
-  ckpt_dir = os.path.join(base_logdir, 'logs')
-  if not os.path.isdir(ckpt_dir):
-    raise IOError("There's no folder 'logs' in the base model logdir. \
+  if args.enable_logs:
+    ckpt_dir = os.path.join(base_logdir, 'logs')
+    if not os.path.isdir(ckpt_dir):
+      raise IOError("There's no folder 'logs' in the base model logdir. \
                     If checkpoints exist, put them in the 'logs' folder.")
+  else:
+    ckpt_dir = base_logdir
 
   if restore_best_checkpoint and os.path.isdir(os.path.join(ckpt_dir, 'best_models')):
     ckpt_dir = os.path.join(ckpt_dir, 'best_models')
@@ -704,7 +699,7 @@ def create_logdir(args, base_config):
   return old_stdout, old_stderr, stdout_log, stderr_log
 
 def create_model(args, base_config, config_module, base_model, hvd,
-                 restore_best_checkpoint=False, checkpoint=None):
+                 checkpoint=False):
   """A helpful function that creates the train, eval, and infer models as
   needed.
 
@@ -715,6 +710,8 @@ def create_model(args, base_config, config_module, base_model, hvd,
     base_model (OpenSeq2Seq model): Dictionary as returned from
       get_base_config()
     hvd: Either None if Horovod is not enabled, or the Horovod library
+    checkpoint (str): checkpoint path as returned from
+      tf.train.latest_checkpoint
 
   Returns:
     model: A compiled model. For the 'train_eval' mode, a tuple containing the
@@ -790,6 +787,6 @@ def create_model(args, base_config, config_module, base_model, hvd,
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    model.compile(checkpoint=checkpoint, use_trt=args.use_trt, precision=args.precision)
+    model.compile(checkpoint=checkpoint)
 
   return model
