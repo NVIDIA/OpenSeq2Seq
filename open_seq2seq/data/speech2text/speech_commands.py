@@ -26,8 +26,7 @@ class SpeechCommandsDataLayer(DataLayer):
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
         "cache_data": bool,
-        "augment_data": bool,
-        "repeat_samples": int
+        "augment_data": bool
     })
 
   def split_data(self, data):
@@ -76,8 +75,6 @@ class SpeechCommandsDataLayer(DataLayer):
     
     * **cache_data** (bool) --- cache the training data in the first epoch
     * **augment_data** (bool) --- add time stretch and noise to training data
-    * **repeat_samples** (int) --- number of times to repeat training samples
-      before caching
     """
 
     super(SpeechCommandsDataLayer, self).__init__(params, model, num_workers, worker_id)
@@ -106,10 +103,6 @@ class SpeechCommandsDataLayer(DataLayer):
     if self._files is not None:
       all_files = self._files.loc[:, cols].values
       self._files = self.split_data(all_files)
-
-    copy = self._files
-    for i in range(self.params.get("repeat_samples", 0)):
-      self._files = np.append(self._files, copy, axis=0)
 
     self._size = self.get_size_in_samples()
     self._iterator = None
