@@ -698,7 +698,8 @@ def create_logdir(args, base_config):
 
   return old_stdout, old_stderr, stdout_log, stderr_log
 
-def create_model(args, base_config, config_module, base_model, hvd, restore_best_checkpoint=False):
+def create_model(args, base_config, config_module, base_model, hvd,
+                 checkpoint=None):
   """A helpful function that creates the train, eval, and infer models as
   needed.
 
@@ -709,6 +710,8 @@ def create_model(args, base_config, config_module, base_model, hvd, restore_best
     base_model (OpenSeq2Seq model): Dictionary as returned from
       get_base_config()
     hvd: Either None if Horovod is not enabled, or the Horovod library
+    checkpoint (str): checkpoint path as returned from
+      tf.train.latest_checkpoint
 
   Returns:
     model: A compiled model. For the 'train_eval' mode, a tuple containing the
@@ -784,9 +787,6 @@ def create_model(args, base_config, config_module, base_model, hvd, restore_best
     model.compile(force_var_reuse=False)
   else:
     model = base_model(params=infer_config, mode=args.mode, hvd=hvd)
-    if base_config['logdir'].endswith('logs'):
-      base_config['logdir'] =  base_config['logdir'][:-5]
-    checkpoint = check_logdir(args, base_config, restore_best_checkpoint)
     model.compile(checkpoint=checkpoint)
 
   return model
