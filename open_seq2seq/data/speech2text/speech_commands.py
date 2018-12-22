@@ -17,7 +17,9 @@ class SpeechCommandsDataLayer(DataLayer):
         "dataset_files": list,
         "dataset_location": str,
         "num_audio_features": int,
-        "num_labels": int
+        "audio_length": int,
+        "num_labels": int,
+        "model_format": str
     })
 
   @staticmethod
@@ -65,8 +67,11 @@ class SpeechCommandsDataLayer(DataLayer):
     * **dataset_location** (str) --- string with path to directory where .wavs
       are stored
     * **num_audio_features** (int) --- number of spectrogram audio features and 
-      image dimension
+      image length
+    * **audio_length** (int) --- cropping length of spectrogram and image width
     * **num_labels** (int) --- number of classes in dataset
+    * **model_format** (str) --- determines input format, should be one of
+      "jasper" or "resnet"
     
     * **cache_data** (bool) --- cache the training data in the first epoch
     * **augment_data** (bool) --- add time stretch and noise to training data
@@ -106,17 +111,18 @@ class SpeechCommandsDataLayer(DataLayer):
   def preprocess_image(self, image):
     """Crops or pads a spectrogram into a fixed dimension square image
     """
-    dim = self.params["num_audio_features"]
+    num_audio_features = self.params["num_audio_features"]
+    audio_length = self.params["audio_length"]
 
-    if image.shape[0] > dim: # randomly slice to square
-      offset = np.random.randint(0, image.shape[0] - dim + 1)
-      image = image[offset:offset + dim, :]
+    if image.shape[0] > audio_length: # randomly slice
+      offset = np.random.randint(0, image.shape[0] - audio_length + 1)
+      image = image[offset:offset + audio_length, :]
 
-    else: # symmetrically pad with zeros to square
-      pad_left = (dim - image.shape[0]) // 2
-      pad_right = (dim - image.shape[0]) // 2
+    else: # symmetrically pad with zeros
+      pad_left = (audio_length - image.shape[0]) // 2
+      pad_right = (audio_length - image.shape[0]) // 2
 
-      if (dim - image.shape[0]) % 2 == 1:
+      if (audio_length - image.shape[0]) % 2 == 1:
         pad_right += 1
 
       image = np.pad(
@@ -125,10 +131,13 @@ class SpeechCommandsDataLayer(DataLayer):
           "constant"
       )
 
-    assert image.shape == (dim, dim)
+    assert image.shape == (audio_length, num_audio_features)
 
-    # add dummy dimension as channels
-    image = np.expand_dims(image, -1)
+    # add dummy dimension
+    if self.params["model_format"] == "jasper": # for batch norm
+      image = np.expand_dims(image, 1)
+    else: # for channel
+      image = np.expand_dims(image, -1)
 
     return image
 
@@ -149,6 +158,7 @@ class SpeechCommandsDataLayer(DataLayer):
 
     if self.params["mode"] == "train" and self.params.get("augment_data", False):
       augmentation = { 
+        "pitch_shift_steps": 2,
         "time_stretch_ratio": 0.2,
         "noise_level_min": -90,
         "noise_level_max": -46,
@@ -165,8 +175,9 @@ class SpeechCommandsDataLayer(DataLayer):
     )
 
     image = self.preprocess_image(spectrogram)
-
-    return np.float32(image), np.int32(label)
+    
+    return image.astype(self.params["dtype"].as_numpy_dtype()), \
+        np.int32(self.params["num_audio_features"]), np.int32(label) 
 
   def build_graph(self):
     dataset = tf.data.Dataset.from_tensor_slices(self._files)
@@ -181,7 +192,7 @@ class SpeechCommandsDataLayer(DataLayer):
         lambda line: tf.py_func(
             self.parse_element,
             [line],
-            [tf.float32, tf.int32],
+            [self.params["dtype"], tf.int32, tf.int32],
             stateful=False
         ),
         num_parallel_calls=8
@@ -199,21 +210,30 @@ class SpeechCommandsDataLayer(DataLayer):
     dataset = dataset.prefetch(tf.contrib.data.AUTOTUNE)
 
     self._iterator = dataset.make_initializable_iterator()
-    inputs, labels = self._iterator.get_next()
+    inputs, lengths, labels = self._iterator.get_next()
 
-    inputs.set_shape([
-        self.params["batch_size"], 
-        self.params["num_audio_features"], 
-        self.params["num_audio_features"], 
-        1
-    ])
+    if self.params["model_format"] == "jasper": 
+      inputs.set_shape([
+          self.params["batch_size"], 
+          self.params["audio_length"],
+          1,
+          self.params["num_audio_features"],
+      ]) # B T 1 C
+      lengths.set_shape([self.params["batch_size"]])
+      source_tensors = [inputs, lengths]
+    else:
+      inputs.set_shape([
+          self.params["batch_size"], 
+          self.params["num_audio_features"], 
+          self.params["num_audio_features"], 
+          1
+      ]) # B W L C
+      source_tensors = [inputs]
+    
     labels = tf.one_hot(labels, self.params["num_labels"])
     labels.set_shape([self.params["batch_size"], self.params["num_labels"]])
 
-    if self.params["mode"] == "train":
-      tf.summary.image("augmented_images", inputs, max_outputs=1)
-
     self._input_tensors = {
-        "source_tensors": [inputs],
+        "source_tensors": source_tensors,
         "target_tensors": [labels]
     }

@@ -59,7 +59,6 @@ have a look at the `configuration files <https://github.com/NVIDIA/OpenSeq2Seq/b
    speech-recognition/deepspeech2
    speech-recognition/wave2letter
    speech-recognition/jasper
-   speech-recognition/speech_commands
 
 
 ################

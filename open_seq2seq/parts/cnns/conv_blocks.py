@@ -59,7 +59,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
 
   res_aggregation = 0
   for i, res in enumerate(res_inputs):
-    res = tf.layers.conv1d(
+    res = layer(
         res,
         filters,
         1,
@@ -84,7 +84,7 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
       res = tf.squeeze(res, axis=axis)
 
     res_aggregation += res
-
+  
   conv = layer(
       name="{}".format(name),
       inputs=inputs,

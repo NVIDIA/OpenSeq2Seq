@@ -11,6 +11,7 @@
    speech-synthesis
    language-model
    sentiment-analysis
+   speech-commands
    distr-training
    mixed-precision
    in-depth-tutorials
