@@ -42,7 +42,7 @@ if __name__ == '__main__':
   os.system(command)
 
   command = 'ctc_decoder_with_lm/generate_trie \
-    open_seq2seq/test_utils/toy_speech_data/alphabet.txt {} {} {}'.format(
+    open_seq2seq/test_utils/toy_speech_data/vocab.txt {} {} {}'.format(
       lm_name, corpus_name, trie_name)
   print(command)
   os.system(command)
