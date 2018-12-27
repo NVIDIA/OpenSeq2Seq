@@ -66,13 +66,10 @@ class Attention(tf.layers.Layer):
     with tf.name_scope("split_heads"):
       batch_size = tf.shape(x)[0]
       length = tf.shape(x)[1]
-
       # Calculate depth of last dimension after it has been split.
       depth = (self.hidden_size // self.num_heads)
-
       # Split the last dimension
       x = tf.reshape(x, [batch_size, length, self.num_heads, depth])
-
       # Transpose the result
       return tf.transpose(x, [0, 2, 1, 3])
 
@@ -111,6 +108,7 @@ class Attention(tf.layers.Layer):
     # learned projections. This is in preparation of splitting them into
     # multiple heads. Multi-head attention uses multiple queries, keys, and
     # values rather than regular attention (which uses a single q, k, v).
+
     q = self.q_dense_layer(x)
     k = self.k_dense_layer(y)
     v = self.v_dense_layer(y)
@@ -119,7 +117,6 @@ class Attention(tf.layers.Layer):
       # Combine cached keys and values with new keys and values.
       k = tf.concat([cache["k"], k], axis=1)
       v = tf.concat([cache["v"], v], axis=1)
-
       # Update cache
       cache["k"] = k
       cache["v"] = v
@@ -139,23 +136,22 @@ class Attention(tf.layers.Layer):
       #logits += bias
       #weights = tf.nn.softmax(logits, name="attention_weights")
       logits = tf.matmul(q, k, transpose_b=True)
-      # dtype = logits.dtype
-      # if False: # dtype != tf.float32:
-      #   # upcast softmax inputs
-      #   logits = tf.cast(x=logits, dtype=tf.float32)
-      #   logits += bias
-      #   weights = tf.nn.softmax(logits, name="attention_weights")
-      #   # downcast softmax output
-      #   weights = tf.cast(weights, dtype=dtype)
-      # else:
-      logits += bias
-      weights = tf.nn.softmax(logits, name="attention_weights")
+      dtype = logits.dtype
+      if dtype != tf.float32:
+        # upcast softmax inputs
+        logits = tf.cast(x=logits, dtype=tf.float32)
+        logits += bias
+        weights = tf.nn.softmax(logits, name="attention_weights")
+        # downcast softmax output
+        weights = tf.cast(weights, dtype=dtype)
+      else:
+        logits += bias
+        weights = tf.nn.softmax(logits, name="attention_weights")
 
     elif self.mode == "bahdanau":
       att_v = tf.get_variable(
           "attention_v", [self.hidden_size // self.num_heads], dtype=q.dtype
       )
-
       # Compute the attention score
       if bias is not None:
         weights = tf.reduce_sum(

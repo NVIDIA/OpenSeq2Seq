@@ -67,16 +67,16 @@ def get_decoder_self_attention_bias(length, dtype=tf.float32):
   Returns:
     float tensor of shape [1, 1, length, length]
   """
-  print("get_decoder_self_attention_bias", dtype)
+  #print("get_decoder_self_attention_bias", dtype)
 
   with tf.name_scope("decoder_self_attention_bias"):
     #valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=dtype), -1, 0)
     valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=tf.float32), -1, 0)
     valid_locs = tf.reshape(valid_locs, [1, 1, length, length])
-    neg_inf=_NEG_INF if (dtype==tf.float32) else _NEG_INF_FP16
+    neg_inf=_NEG_INF #if (dtype==tf.float32) else _NEG_INF_FP16
     bias = neg_inf * (1.0 - valid_locs)
-    decoder_bias=tf.saturate_cast(bias, dtype=dtype)
-  return decoder_bias
+    #bias=tf.saturate_cast(bias, dtype=dtype)
+  return bias
 
 
 def get_padding(x, padding_value=0, dtype=tf.float32 ):
@@ -91,7 +91,7 @@ def get_padding(x, padding_value=0, dtype=tf.float32 ):
     float tensor with same shape as x containing values 0 or 1.
       0 -> non-padding, 1 -> padding
   """
-  print("get_padding", dtype)
+  #print("get_padding", dtype)
   with tf.name_scope("padding"):
     return tf.cast(tf.equal(x, padding_value), dtype=dtype)
 
@@ -114,10 +114,11 @@ def get_padding_bias(x, res_rank=4, pad_sym=0, dtype=tf.float32):
     [batch_size, 1, 1, length] if  res_rank = 4 - for Transformer
     or [batch_size, 1, length] if res_rank = 3 - for ConvS2S
   """
-  print("get_padding_bias", dtype)
+  #print("get_padding_bias", dtype)
   with tf.name_scope("attention_bias"):
-    padding = get_padding(x, padding_value=pad_sym, dtype=dtype)
-    neg_inf=_NEG_INF if dtype==tf.float32 else _NEG_INF_FP16
+    padding = get_padding(x, padding_value=pad_sym, dtype=tf.float32)
+    # padding = get_padding(x, padding_value=pad_sym, dtype=dtype)
+    neg_inf=_NEG_INF #if dtype==tf.float32 else _NEG_INF_FP16
     attention_bias = padding * neg_inf
     if res_rank == 4:
       attention_bias = tf.expand_dims(tf.expand_dims(attention_bias, axis=1), axis=1)
