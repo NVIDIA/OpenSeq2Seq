@@ -91,6 +91,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
@@ -499,6 +500,75 @@ the following fields:</p>
 <tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
 included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
 class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedDecoder.__init__" title="decoders.fc_decoders.FullyConnectedDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="decoders.fc_decoders.FullyConnectedSCDecoder">
+<em class="property">class </em><code class="descclassname">decoders.fc_decoders.</code><code class="descname">FullyConnectedSCDecoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedSCDecoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedSCDecoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#decoders.decoder.Decoder" title="decoders.decoder.Decoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">decoders.decoder.Decoder</span></code></a></p>
+<p>Fully connected decoder constructor for speech commands.</p>
+<dl class="method">
+<dt id="decoders.fc_decoders.FullyConnectedSCDecoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='fully_connected_decoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedSCDecoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedSCDecoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>Fully connected decoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul class="simple">
+<li><strong>output_dim</strong> (int) — output dimension.</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="decoders.fc_decoders.FullyConnectedSCDecoder._decode">
+<code class="descname">_decode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedSCDecoder._decode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedSCDecoder._decode" title="Permalink to this definition">¶</a></dt>
+<dd><p>This method performs linear transformation of input.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
+the following fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s1">&#39;encoder_output&#39;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">output</span> <span class="n">of</span> <span class="n">encoder</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">num_features</span><span class="p">])</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span> <span class="k">with</span> <span class="n">the</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">output_dim</span><span class="p">]</span>
+  <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">logits</span><span class="p">]</span> <span class="p">(</span><span class="n">same</span> <span class="k">as</span> <span class="n">logits</span> <span class="n">but</span> <span class="n">wrapped</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="decoders.fc_decoders.FullyConnectedSCDecoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/decoders/fc_decoders.html#FullyConnectedSCDecoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#decoders.fc_decoders.FullyConnectedSCDecoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#decoders.fc_decoders.FullyConnectedSCDecoder.__init__" title="decoders.fc_decoders.FullyConnectedSCDecoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
 </tr>
 <tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
 </tr>

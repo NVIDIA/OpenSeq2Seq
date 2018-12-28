@@ -89,6 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
@@ -207,30 +208,43 @@
                         <span class="n">bn_epsilon</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
   <span class="n">layer</span> <span class="o">=</span> <span class="n">layers_dict</span><span class="p">[</span><span class="n">layer_type</span><span class="p">]</span>
 
-  <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">conv1d</span><span class="p">(</span>
-      <span class="n">res_inputs</span><span class="p">,</span>
-      <span class="n">filters</span><span class="p">,</span>
-      <span class="mi">1</span><span class="p">,</span>
-      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-      <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-  <span class="p">)</span>
-  <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">False</span>
-  <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
-    <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">2</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>  <span class="c1"># NWC --&gt; NHWC</span>
-    <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">True</span>
-  <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
-      <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res_bn&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
-      <span class="n">inputs</span><span class="o">=</span><span class="n">res</span><span class="p">,</span>
-      <span class="n">gamma_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
-      <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-      <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
-      <span class="n">momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
-      <span class="n">epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
-  <span class="p">)</span>
-  <span class="k">if</span> <span class="n">squeeze</span><span class="p">:</span>
-    <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+  <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res_inputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+    <span class="n">res_inputs</span> <span class="o">=</span> <span class="p">[</span><span class="n">res_inputs</span><span class="p">]</span>
+    <span class="c1"># For backwards compatibiliaty with earlier models</span>
+    <span class="n">res_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res&quot;</span>
+    <span class="n">res_bn_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res_bn&quot;</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">res_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res_</span><span class="si">{}</span><span class="s2">&quot;</span>
+    <span class="n">res_bn_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">{}</span><span class="s2">/res_bn_</span><span class="si">{}</span><span class="s2">&quot;</span>
 
+  <span class="n">res_aggregation</span> <span class="o">=</span> <span class="mi">0</span>
+  <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">res</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">res_inputs</span><span class="p">):</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
+        <span class="n">res</span><span class="p">,</span>
+        <span class="n">filters</span><span class="p">,</span>
+        <span class="mi">1</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">res_name</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="k">if</span> <span class="n">layer_type</span> <span class="o">==</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">:</span>
+      <span class="n">axis</span> <span class="o">=</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">2</span>
+      <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>  <span class="c1"># NWC --&gt; NHWC</span>
+      <span class="n">squeeze</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">batch_normalization</span><span class="p">(</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">res_bn_name</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">i</span><span class="p">),</span>
+        <span class="n">inputs</span><span class="o">=</span><span class="n">res</span><span class="p">,</span>
+        <span class="n">gamma_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+        <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span> <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span> <span class="k">else</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="n">momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
+        <span class="n">epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">squeeze</span><span class="p">:</span>
+      <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
+
+    <span class="n">res_aggregation</span> <span class="o">+=</span> <span class="n">res</span>
+  
   <span class="n">conv</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
@@ -265,7 +279,7 @@
   <span class="k">if</span> <span class="n">squeeze</span><span class="p">:</span>
     <span class="n">bn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">bn</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
 
-  <span class="n">output</span> <span class="o">=</span> <span class="n">bn</span> <span class="o">+</span> <span class="n">res</span>
+  <span class="n">output</span> <span class="o">=</span> <span class="n">bn</span> <span class="o">+</span> <span class="n">res_aggregation</span>
   <span class="k">if</span> <span class="n">activation_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">output</span></div>

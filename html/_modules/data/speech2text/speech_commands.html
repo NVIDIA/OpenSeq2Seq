@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>data.image2label.speech_commands &mdash; OpenSeq2Seq 0.2 documentation</title>
+  <title>data.speech2text.speech_commands &mdash; OpenSeq2Seq 0.2 documentation</title>
   
 
   
@@ -89,6 +89,7 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
@@ -141,7 +142,7 @@
         
           <li><a href="../../index.html">Module code</a> &raquo;</li>
         
-      <li>data.image2label.speech_commands</li>
+      <li>data.speech2text.speech_commands</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -156,7 +157,7 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <h1>Source code for data.image2label.speech_commands</h1><div class="highlight"><pre>
+  <h1>Source code for data.speech2text.speech_commands</h1><div class="highlight"><pre>
 <span></span><span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">six</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -168,25 +169,27 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.text2speech.speech_utils</span> <span class="k">import</span> \
   <span class="n">get_speech_features_from_file</span>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer">[docs]</a><span class="k">class</span> <span class="nc">SpeechCommandsDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer">[docs]</a><span class="k">class</span> <span class="nc">SpeechCommandsDataLayer</span><span class="p">(</span><span class="n">DataLayer</span><span class="p">):</span>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.get_required_params"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_required_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_required_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_required_params</span><span class="p">(),</span> <span class="o">**</span> <span class="p">{</span>
         <span class="s2">&quot;dataset_files&quot;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
         <span class="s2">&quot;dataset_location&quot;</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
         <span class="s2">&quot;num_audio_features&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="s2">&quot;num_labels&quot;</span><span class="p">:</span> <span class="nb">int</span>
+        <span class="s2">&quot;audio_length&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;num_labels&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s2">&quot;model_format&quot;</span><span class="p">:</span> <span class="nb">str</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s2">&quot;cache_data&quot;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s2">&quot;augment_data&quot;</span><span class="p">:</span> <span class="nb">bool</span>
     <span class="p">})</span></div>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.split_data"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.split_data">[docs]</a>  <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.split_data"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.split_data">[docs]</a>  <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span> <span class="o">!=</span> <span class="s2">&quot;train&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="n">size</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
       <span class="n">start</span> <span class="o">=</span> <span class="n">size</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">_worker_id</span>
@@ -208,13 +211,13 @@
   <span class="k">def</span> <span class="nf">iterator</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_files</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
       <span class="k">return</span> <span class="mi">0</span></div>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.__init__"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.__init__"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    ResNet Speech Commands data layer constructor.</span>
 
@@ -224,8 +227,11 @@
 <span class="sd">    * **dataset_location** (str) --- string with path to directory where .wavs</span>
 <span class="sd">      are stored</span>
 <span class="sd">    * **num_audio_features** (int) --- number of spectrogram audio features and </span>
-<span class="sd">      image dimension</span>
+<span class="sd">      image length</span>
+<span class="sd">    * **audio_length** (int) --- cropping length of spectrogram and image width</span>
 <span class="sd">    * **num_labels** (int) --- number of classes in dataset</span>
+<span class="sd">    * **model_format** (str) --- determines input format, should be one of</span>
+<span class="sd">      &quot;jasper&quot; or &quot;resnet&quot;</span>
 <span class="sd">    </span>
 <span class="sd">    * **cache_data** (bool) --- cache the training data in the first epoch</span>
 <span class="sd">    * **augment_data** (bool) --- add time stretch and noise to training data</span>
@@ -262,20 +268,21 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.preprocess_image"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.preprocess_image">[docs]</a>  <span class="k">def</span> <span class="nf">preprocess_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.preprocess_image"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.preprocess_image">[docs]</a>  <span class="k">def</span> <span class="nf">preprocess_image</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">image</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Crops or pads a spectrogram into a fixed dimension square image</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">dim</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">]</span>
+    <span class="n">num_audio_features</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">]</span>
+    <span class="n">audio_length</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;audio_length&quot;</span><span class="p">]</span>
 
-    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">dim</span><span class="p">:</span> <span class="c1"># randomly slice to square</span>
-      <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">dim</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
-      <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span> <span class="o">+</span> <span class="n">dim</span><span class="p">,</span> <span class="p">:]</span>
+    <span class="k">if</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">audio_length</span><span class="p">:</span> <span class="c1"># randomly slice</span>
+      <span class="n">offset</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">audio_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">image</span><span class="p">[</span><span class="n">offset</span><span class="p">:</span><span class="n">offset</span> <span class="o">+</span> <span class="n">audio_length</span><span class="p">,</span> <span class="p">:]</span>
 
-    <span class="k">else</span><span class="p">:</span> <span class="c1"># symmetrically pad with zeros to square</span>
-      <span class="n">pad_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
-      <span class="n">pad_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># symmetrically pad with zeros</span>
+      <span class="n">pad_left</span> <span class="o">=</span> <span class="p">(</span><span class="n">audio_length</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
+      <span class="n">pad_right</span> <span class="o">=</span> <span class="p">(</span><span class="n">audio_length</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="mi">2</span>
 
-      <span class="k">if</span> <span class="p">(</span><span class="n">dim</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+      <span class="k">if</span> <span class="p">(</span><span class="n">audio_length</span> <span class="o">-</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">pad_right</span> <span class="o">+=</span> <span class="mi">1</span>
 
       <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
@@ -284,14 +291,17 @@
           <span class="s2">&quot;constant&quot;</span>
       <span class="p">)</span>
 
-    <span class="k">assert</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="n">dim</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">image</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="p">(</span><span class="n">audio_length</span><span class="p">,</span> <span class="n">num_audio_features</span><span class="p">)</span>
 
-    <span class="c1"># add dummy dimension as channels</span>
-    <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># add dummy dimension</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;model_format&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;jasper&quot;</span><span class="p">:</span> <span class="c1"># for batch norm</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="c1"># for channel</span>
+      <span class="n">image</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">image</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">image</span></div>
 
-<div class="viewcode-block" id="SpeechCommandsDataLayer.parse_element"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.parse_element">[docs]</a>  <span class="k">def</span> <span class="nf">parse_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.parse_element"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.parse_element">[docs]</a>  <span class="k">def</span> <span class="nf">parse_element</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">element</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Reads an audio file and returns the augmented spectrogram image</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">label</span><span class="p">,</span> <span class="n">audio_filename</span> <span class="o">=</span> <span class="n">element</span>
@@ -308,6 +318,7 @@
 
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;augment_data&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
       <span class="n">augmentation</span> <span class="o">=</span> <span class="p">{</span> 
+        <span class="s2">&quot;pitch_shift_steps&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
         <span class="s2">&quot;time_stretch_ratio&quot;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
         <span class="s2">&quot;noise_level_min&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
         <span class="s2">&quot;noise_level_max&quot;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
@@ -324,10 +335,11 @@
     <span class="p">)</span>
 
     <span class="n">image</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">preprocess_image</span><span class="p">(</span><span class="n">spectrogram</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">image</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
+        <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">label</span><span class="p">)</span> </div>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">(</span><span class="n">image</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">(</span><span class="n">label</span><span class="p">)</span></div>
-
-<div class="viewcode-block" id="SpeechCommandsDataLayer.build_graph"><a class="viewcode-back" href="../../../api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="SpeechCommandsDataLayer.build_graph"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.build_graph">[docs]</a>  <span class="k">def</span> <span class="nf">build_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">Dataset</span><span class="o">.</span><span class="n">from_tensor_slices</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span>
 
     <span class="n">cache_data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;cache_data&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -340,7 +352,7 @@
         <span class="k">lambda</span> <span class="n">line</span><span class="p">:</span> <span class="n">tf</span><span class="o">.</span><span class="n">py_func</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">parse_element</span><span class="p">,</span>
             <span class="p">[</span><span class="n">line</span><span class="p">],</span>
-            <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
+            <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;dtype&quot;</span><span class="p">],</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">],</span>
             <span class="n">stateful</span><span class="o">=</span><span class="kc">False</span>
         <span class="p">),</span>
         <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span>
@@ -358,22 +370,31 @@
     <span class="n">dataset</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">prefetch</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">contrib</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">AUTOTUNE</span><span class="p">)</span>
 
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">make_initializable_iterator</span><span class="p">()</span>
-    <span class="n">inputs</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
+    <span class="n">inputs</span><span class="p">,</span> <span class="n">lengths</span><span class="p">,</span> <span class="n">labels</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span><span class="o">.</span><span class="n">get_next</span><span class="p">()</span>
 
-    <span class="n">inputs</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> 
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span> 
-        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span> 
-        <span class="mi">1</span>
-    <span class="p">])</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;model_format&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;jasper&quot;</span><span class="p">:</span> 
+      <span class="n">inputs</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> 
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;audio_length&quot;</span><span class="p">],</span>
+          <span class="mi">1</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span>
+      <span class="p">])</span> <span class="c1"># B T 1 C</span>
+      <span class="n">lengths</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">]])</span>
+      <span class="n">source_tensors</span> <span class="o">=</span> <span class="p">[</span><span class="n">inputs</span><span class="p">,</span> <span class="n">lengths</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">inputs</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> 
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span> 
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span> 
+          <span class="mi">1</span>
+      <span class="p">])</span> <span class="c1"># B W L C</span>
+      <span class="n">source_tensors</span> <span class="o">=</span> <span class="p">[</span><span class="n">inputs</span><span class="p">]</span>
+    
     <span class="n">labels</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">one_hot</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_labels&quot;</span><span class="p">])</span>
     <span class="n">labels</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;batch_size&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_labels&quot;</span><span class="p">]])</span>
 
-    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;mode&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
-      <span class="n">tf</span><span class="o">.</span><span class="n">summary</span><span class="o">.</span><span class="n">image</span><span class="p">(</span><span class="s2">&quot;augmented_images&quot;</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">max_outputs</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-
     <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">inputs</span><span class="p">],</span>
+        <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="n">source_tensors</span><span class="p">,</span>
         <span class="s2">&quot;target_tensors&quot;</span><span class="p">:</span> <span class="p">[</span><span class="n">labels</span><span class="p">]</span>
     <span class="p">}</span></div></div>
 </pre></div>

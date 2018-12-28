@@ -90,6 +90,7 @@
 <li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth Tutorials</a></li>
@@ -191,9 +192,9 @@
       <li><a href="api-docs/data.html#data.data_layer.DataLayer.__init__">__init__() (data.data_layer.DataLayer method)</a>
 
       <ul>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.__init__">(data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.__init__">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.__init__">(data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.__init__">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
@@ -206,6 +207,8 @@
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedCTCDecoder.__init__">(decoders.fc_decoders.FullyConnectedCTCDecoder method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedDecoder.__init__">(decoders.fc_decoders.FullyConnectedDecoder method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedSCDecoder.__init__">(decoders.fc_decoders.FullyConnectedSCDecoder method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder.__init__">(decoders.fc_decoders.FullyConnectedTimeDecoder method)</a>
 </li>
@@ -354,6 +357,8 @@
 
       <ul>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedDecoder._decode">(decoders.fc_decoders.FullyConnectedDecoder method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedSCDecoder._decode">(decoders.fc_decoders.FullyConnectedSCDecoder method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder._decode">(decoders.fc_decoders.FullyConnectedTimeDecoder method)</a>
 </li>
@@ -629,9 +634,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.build_graph">(data.image2label.image2label.ImagenetDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.build_graph">(data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.build_graph">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.build_graph">(data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.build_graph">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
@@ -794,11 +799,11 @@
 </li>
       <li><a href="api-docs/data.image2label.html#module-data.image2label.imagenet_preprocessing">data.image2label.imagenet_preprocessing (module)</a>
 </li>
-      <li><a href="api-docs/data.image2label.html#module-data.image2label.speech_commands">data.image2label.speech_commands (module)</a>
-</li>
       <li><a href="api-docs/data.speech2text.html#module-data.speech2text">data.speech2text (module)</a>
 </li>
       <li><a href="api-docs/data.speech2text.html#module-data.speech2text.speech2text">data.speech2text.speech2text (module)</a>
+</li>
+      <li><a href="api-docs/data.speech2text.html#module-data.speech2text.speech_commands">data.speech2text.speech_commands (module)</a>
 </li>
       <li><a href="api-docs/data.speech2text.html#module-data.speech2text.speech_utils">data.speech2text.speech_utils (module)</a>
 </li>
@@ -1002,6 +1007,8 @@
 </li>
       <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedDecoder">FullyConnectedDecoder (class in decoders.fc_decoders)</a>
 </li>
+      <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedSCDecoder">FullyConnectedSCDecoder (class in decoders.fc_decoders)</a>
+</li>
       <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder">FullyConnectedTimeDecoder (class in decoders.fc_decoders)</a>
 </li>
   </ul></td>
@@ -1037,9 +1044,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_optional_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_optional_params">(data.image2label.speech_commands.SpeechCommandsDataLayer static method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_optional_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_optional_params">(data.speech2text.speech_commands.SpeechCommandsDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_optional_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
 </li>
@@ -1129,9 +1136,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_required_params">(data.image2label.image2label.ImagenetDataLayer static method)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_required_params">(data.image2label.speech_commands.SpeechCommandsDataLayer static method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_required_params">(data.speech2text.speech2text.Speech2TextDataLayer static method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_required_params">(data.speech2text.speech_commands.SpeechCommandsDataLayer static method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_required_params">(data.text2speech.text2speech.Text2SpeechDataLayer static method)</a>
 </li>
@@ -1148,6 +1155,8 @@
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedCTCDecoder.get_required_params">(decoders.fc_decoders.FullyConnectedCTCDecoder static method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedDecoder.get_required_params">(decoders.fc_decoders.FullyConnectedDecoder static method)</a>
+</li>
+        <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedSCDecoder.get_required_params">(decoders.fc_decoders.FullyConnectedSCDecoder static method)</a>
 </li>
         <li><a href="api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder.get_required_params">(decoders.fc_decoders.FullyConnectedTimeDecoder static method)</a>
 </li>
@@ -1209,9 +1218,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.get_size_in_samples">(data.image2label.image2label.ImagenetDataLayer method)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.get_size_in_samples">(data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.get_size_in_samples">(data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.get_size_in_samples">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
@@ -1301,9 +1310,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.input_tensors">(data.image2label.image2label.ImagenetDataLayer attribute)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.input_tensors">(data.image2label.speech_commands.SpeechCommandsDataLayer attribute)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.input_tensors">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.input_tensors">(data.speech2text.speech_commands.SpeechCommandsDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.input_tensors">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
 </li>
@@ -1327,9 +1336,9 @@
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.iterator">(data.image2label.image2label.ImagenetDataLayer attribute)</a>
 </li>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.iterator">(data.image2label.speech_commands.SpeechCommandsDataLayer attribute)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.iterator">(data.speech2text.speech2text.Speech2TextDataLayer attribute)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.iterator">(data.speech2text.speech_commands.SpeechCommandsDataLayer attribute)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.iterator">(data.text2speech.text2speech.Text2SpeechDataLayer attribute)</a>
 </li>
@@ -1570,7 +1579,7 @@
         <li><a href="api-docs/models.html#models.model.Model.params">(models.model.Model attribute)</a>
 </li>
       </ul></li>
-      <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.parse_element">parse_element() (data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.parse_element">parse_element() (data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
       <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.parse_record">parse_record() (data.image2label.image2label.CifarDataLayer method)</a>
 
@@ -1657,7 +1666,7 @@
       <li><a href="api-docs/data.image2label.html#data.image2label.image2label.CifarDataLayer.preprocess_image">preprocess_image() (data.image2label.image2label.CifarDataLayer method)</a>
 
       <ul>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.preprocess_image">(data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.preprocess_image">(data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.image2label.html#data.image2label.imagenet_preprocessing.preprocess_image">(in module data.image2label.imagenet_preprocessing)</a>
 </li>
@@ -1750,14 +1759,14 @@
 </li>
       <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer">Speech2TextDataLayer (class in data.speech2text.speech2text)</a>
 </li>
-      <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer">SpeechCommandsDataLayer (class in data.image2label.speech_commands)</a>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer">SpeechCommandsDataLayer (class in data.speech2text.speech_commands)</a>
 </li>
       <li><a href="api-docs/data.image2label.html#data.image2label.image2label.ImagenetDataLayer.split_data">split_data() (data.image2label.image2label.ImagenetDataLayer method)</a>
 
       <ul>
-        <li><a href="api-docs/data.image2label.html#data.image2label.speech_commands.SpeechCommandsDataLayer.split_data">(data.image2label.speech_commands.SpeechCommandsDataLayer method)</a>
-</li>
         <li><a href="api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.split_data">(data.speech2text.speech2text.Speech2TextDataLayer method)</a>
+</li>
+        <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_commands.SpeechCommandsDataLayer.split_data">(data.speech2text.speech_commands.SpeechCommandsDataLayer method)</a>
 </li>
         <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer.split_data">(data.text2speech.text2speech.Text2SpeechDataLayer method)</a>
 </li>
