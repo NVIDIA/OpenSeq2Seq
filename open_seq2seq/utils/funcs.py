@@ -98,12 +98,13 @@ def train(train_model, eval_model=None, debug_port=None):
          for i in range(train_model.num_gpus)]
     )
 
-  if (not load_model_dir) or tf.train.latest_checkpoint(checkpoint_dir):
-    scaffold = tf.train.Scaffold(
+  restoring = load_model_dir or tf.train.latest_checkpoint(checkpoint_dir)
+  if restoring:
+    scaffold = TransferScaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
     )
   else:
-    scaffold = TransferScaffold(
+    scaffold = tf.train.Scaffold(
         local_init_op=tf.group(tf.local_variables_initializer(), init_data_layer)
     )
   fetches = [train_model.train_op]
@@ -117,28 +118,28 @@ def train(train_model, eval_model=None, debug_port=None):
                "train model does not define get_num_objects_per_step method.")
 
   # starting training
-  if load_model_dir and not tf.train.latest_checkpoint(checkpoint_dir):
+  if restoring:
     sess = TransferMonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks,
-      load_model_dir=load_model_dir,
-      load_fc=train_model.params['load_fc'])
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks,
+        load_model_dir=load_model_dir,
+        load_fc=train_model.params['load_fc'])
   else:
     sess = tf.train.MonitoredTrainingSession(
-      scaffold=scaffold,
-      checkpoint_dir=checkpoint_dir,
-      save_summaries_steps=train_model.params['save_summaries_steps'],
-      config=sess_config,
-      save_checkpoint_secs=None,
-      log_step_count_steps=train_model.params['save_summaries_steps'],
-      stop_grace_period_secs=300,
-      hooks=hooks)
+        scaffold=scaffold,
+        checkpoint_dir=checkpoint_dir,
+        save_summaries_steps=train_model.params['save_summaries_steps'],
+        config=sess_config,
+        save_checkpoint_secs=None,
+        log_step_count_steps=train_model.params['save_summaries_steps'],
+        stop_grace_period_secs=300,
+        hooks=hooks)
   step = 0
   num_bench_updates = 0
   while True:
@@ -204,7 +205,13 @@ def restore_and_get_results(model, checkpoint, mode):
     sess_config.gpu_options.visible_device_list = str(model.hvd.local_rank())
   with tf.Session(config=sess_config) as sess:
     if not model.params.get("use_trt", False):
-      saver.restore(sess, checkpoint)
+      assign_ops, restore_dict = get_assign_ops_and_restore_dict(
+          checkpoint, True)
+      if assign_ops:
+        run_assign_and_saver(sess, checkpoint, assign_ops, restore_dict)
+      else:
+        saver = tf.train.Saver()
+        saver.restore(sess, checkpoint)
     results_per_batch = get_results_for_epoch(
         model, sess, mode=mode, compute_loss=False, verbose=True,
     )
