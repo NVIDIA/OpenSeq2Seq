@@ -14,7 +14,8 @@ from open_seq2seq.utils.utils import deco_print, get_results_for_epoch, \
                                      collect_if_horovod
 from .hooks import PrintSamplesHook, RunEvaluationHook, PrintLossAndTimeHook, \
                    BroadcastGlobalVariablesHook
-from .helpers import TransferMonitoredTrainingSession, TransferScaffold
+from .helpers import TransferMonitoredTrainingSession, TransferScaffold, \
+                     get_assign_ops_and_restore_dict, run_assign_and_saver
 from open_seq2seq.data import WKTDataLayer
 
 
