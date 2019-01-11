@@ -9,34 +9,29 @@ import tensorflow as tf
 
 
 class Transformer_BatchNorm(tf.layers.Layer):
-  """Transformer batch norn: supports [BTC] (default) and [BCT] formats. """
+  """Transformer batch norn: supports [BTC](default) and [BCT] formats. """
 
   def __init__(self, training, params={}):
-        #data_format='channels_last', momentum = 0.9, epsilon = 0.0001):
     super(Transformer_BatchNorm, self).__init__()
     self.training = training
     self.data_format=params.get('data_format','channels_last')
     self.momentum = params.get('momentum',0.95)
     self.epsilon  = params.get('epsilon',0.0001)
-    # print("Batch norm, training=", training, params)
+    self.center_scale = params.get('center_scale', True)
+    self.regularizer = params.get('regularizer', None) if self.center_scale else None
+    #print("Batch norm, training=", training, params)
 
   def call(self, x):
-    x1 = tf.expand_dims(x, axis=2)
-    if (self.data_format=='channels_last'):
-      axis=-1
-    else:
-      axis=1
-    y1 = tf.layers.batch_normalization(
-      center=True,
-      scale=True,
-      inputs=x1,
-      training= self.training,
-      axis= axis,
-      momentum= self.momentum,
-      epsilon = self.epsilon,
+    x = tf.expand_dims(x, axis=2)
+    axis = -1 if (self.data_format=='channels_last') else 1
+    y = tf.layers.batch_normalization(inputs=x, axis=axis,
+      momentum=self.momentum, epsilon=self.epsilon,
+      center=self.center_scale, scale=self.center_scale,
+      beta_regularizer=self.regularizer, gamma_regularizer=self.regularizer,
+      training=self.training,
     )
-    y2 = tf.squeeze(y1, axis=[2])
-    return y2
+    y = tf.squeeze(y, axis=[2])
+    return y
 
 class LayerNormalization(tf.layers.Layer):
   """Layer normalization for BTC format: supports L2(default) and L1 modes"""

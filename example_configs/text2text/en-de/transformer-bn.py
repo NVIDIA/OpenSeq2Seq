@@ -20,11 +20,14 @@ d_model = 1024
 num_layers = 6
 
 norm_params= {
-  "type": "layernorm_L2", #"batch_norm", # "layernorm_L1" , "layernorm_L2" #
+  "type": "batch_norm", # "layernorm_L1" , "layernorm_L2" #
+  "momentum":0.95,
   "epsilon": 0.00001,
+  "center_scale": False,
+  "regularizer":tf.contrib.layers.l2_regularizer(scale=0.0005)
 }
 
-attention_dropout = 0.1
+attention_dropout = 0.05
 dropout = 0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
@@ -35,40 +38,48 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps": 1000000, #5000,
+  "max_steps":  500000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 20001,
   "save_checkpoint_steps": 99999,
-  "logdir": "logs/tr-big-test-fp16_ln2",
+  "logdir": "logs/tr-bn2",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff",
+
+  # "regularizer": tf.contrib.layers.l2_regularizer,
+  # "regularizer_params": {
+  #   'scale': 0.0005
+  # },
+  # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
+  #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   #"iter_size": 1,
 
-  # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+  "optimizer_params": {
+    "beta1": 0.9,
+    "beta2": 0.997,
+    "epsilon": 1e-09,
+  },
+  "lr_policy": transformer_policy,
+  "lr_policy_params": {
+    "learning_rate": 2.0,
+    "warmup_steps": 8000,
+    "d_model": d_model,
+  },
+
+  # "optimizer": "Momentum",
   # "optimizer_params": {
-  #   "beta1": 0.9,
-  #   "beta2": 0.997,
-  #   "epsilon": 1e-09,
+  #   "momentum": 0.95,
   # },
-  # "lr_policy": transformer_policy,
+  # "lr_policy": poly_decay,  # fixed_lr,
   # "lr_policy_params": {
-  #   "learning_rate": 2.5,
-  #   "warmup_steps": 8000,
-  #   "d_model": d_model,
+  #   "learning_rate": 0.1, #  0,2 for 4 GPU
+  #   "power": 2,
   # },
 
-  "optimizer": "Momentum",
-  "optimizer_params": {
-    "momentum": 0.95,
-  },
-  "lr_policy": poly_decay,  # fixed_lr,
-  "lr_policy_params": {
-    "learning_rate": 0.2, #  4 GPU
-    "power": 2,
-  },
   "larc_params": {
     "larc_eta": 0.001,
   },
@@ -124,10 +135,10 @@ train_params = {
     "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
-    "shuffle_buffer_size": 500000, #4500000
+    "shuffle_buffer_size": 4500000,
     "repeat": True,
     "map_parallel_calls": 16,
-    "max_length": 56,
+    "max_length": 64,
   },
 }
 
