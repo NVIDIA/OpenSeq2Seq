@@ -19,15 +19,19 @@ base_model = Text2Text
 d_model = 1024
 num_layers = 6
 
+regularizer=tf.contrib.layers.l2_regularizer # None
+regularizer_params = {'scale': 0.001}
+
 norm_params= {
   "type": "batch_norm", # "layernorm_L1" , "layernorm_L2" #
   "momentum":0.95,
   "epsilon": 0.00001,
-  "center_scale": False,
-  "regularizer":tf.contrib.layers.l2_regularizer(scale=0.0005)
+  "center_scale": False, #True,
+  "regularizer":regularizer,
+  "regularizer_params": regularizer_params
 }
 
-attention_dropout = 0.05
+attention_dropout = 0.02
 dropout = 0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
@@ -35,24 +39,20 @@ dropout = 0.3
 data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": True,
-  "num_gpus": 8, # when using Horovod we set number of workers with params to mpirun
+  "use_horovod": False, #True,
+  "num_gpus": 2, #8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  500000,
+  "max_steps":  1000000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
-  "eval_steps": 20001,
+  "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "logs/tr-bn2",
+  "logdir": "logs/tr-bn2-reg",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff",
 
-  # "regularizer": tf.contrib.layers.l2_regularizer,
-  # "regularizer_params": {
-  #   'scale': 0.0005
-  # },
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   #"iter_size": 1,
@@ -96,6 +96,8 @@ base_params = {
     "pad_embeddings_2_eight": True,
     "remove_padding": True,
     "norm_params": norm_params,
+    "regularizer": regularizer,
+    "regularizer_params": regularizer_params,
   },
 
   "decoder": TransformerDecoder,
@@ -115,6 +117,8 @@ base_params = {
     "END_SYMBOL": SpecialTextTokens.EOS_ID.value,
     "PAD_SYMBOL": SpecialTextTokens.PAD_ID.value,
     "norm_params": norm_params,
+    "regularizer": regularizer,
+    "regularizer_params": regularizer_params,
   },
 
   "loss": PaddedCrossEntropyLossWithSmoothing,

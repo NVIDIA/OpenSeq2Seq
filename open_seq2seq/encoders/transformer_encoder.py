@@ -58,7 +58,7 @@ class TransformerEncoder(Encoder):
         'norm_params': dict,
     })
 
-  def __init__(self, params, model, name="transformer_encoder", mode='train'):
+  def __init__(self, params, model, name="transformer_encoder", mode='train' ):
     super(TransformerEncoder, self).__init__(
         params, model, name=name, mode=mode,
     )
@@ -68,6 +68,12 @@ class TransformerEncoder(Encoder):
 
     self.embedding_softmax_layer = None
     self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2"})
+    self.regularizer = self.params.get("regularizer", None)
+    if self.regularizer != None:
+      self.regularizer_params = params.get("regularizer_params", {'scale': 0.0})
+      self.regularizer=self.regularizer(self.regularizer_params['scale']) \
+        if self.regularizer_params['scale'] > 0.0 else None
+
 
   def _call(self, encoder_inputs, attention_bias, inputs_padding):
     for n, layer in enumerate(self.layers):
@@ -85,6 +91,7 @@ class TransformerEncoder(Encoder):
 
   def _encode(self, input_dict):
     training=(self.mode == "train")
+
     if len(self.layers) == 0:
       # prepare encoder graph
       self.embedding_softmax_layer = embedding_layer.EmbeddingSharedWeights(
@@ -97,10 +104,12 @@ class TransformerEncoder(Encoder):
         self_attention_layer = attention_layer.SelfAttention(
             self.params["hidden_size"], self.params["num_heads"],
             self.params["attention_dropout"], training,
+            regularizer=self.regularizer
         )
         feed_forward_network = ffn_layer.FeedFowardNetwork(
             self.params["hidden_size"], self.params["filter_size"],
             self.params["relu_dropout"], training,
+            regularizer=self.regularizer
         )
 
         self.layers.append([

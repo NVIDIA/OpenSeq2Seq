@@ -19,6 +19,11 @@ class Transformer_BatchNorm(tf.layers.Layer):
     self.epsilon  = params.get('epsilon',0.0001)
     self.center_scale = params.get('center_scale', True)
     self.regularizer = params.get('regularizer', None) if self.center_scale else None
+    if self.regularizer != None:
+      self.regularizer_params = params.get("regularizer_params", {'scale': 0.0})
+      self.regularizer=self.regularizer(self.regularizer_params['scale']) \
+        if self.regularizer_params['scale'] > 0.0 else None
+
     #print("Batch norm, training=", training, params)
 
   def call(self, x):

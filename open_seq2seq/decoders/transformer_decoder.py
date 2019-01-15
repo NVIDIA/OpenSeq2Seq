@@ -77,6 +77,12 @@ class TransformerDecoder(Decoder):
     # this behaviour
     self.params['shared_embed'] = True
     self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2" })
+    self.regularizer = self.params.get("regularizer", None)
+    if self.regularizer != None:
+      self.regularizer_params = params.get("regularizer_params", {'scale': 0.0})
+      self.regularizer=self.regularizer(self.regularizer_params['scale']) \
+        if self.regularizer_params['scale'] > 0.0 else None
+      #print("reg", self.regularizer)
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -97,18 +103,25 @@ class TransformerDecoder(Decoder):
       if len(self.layers) == 0:
         for _ in range(self.params["num_hidden_layers"]):
           self_attention_layer = attention_layer.SelfAttention(
-              self.params["hidden_size"], self.params["num_heads"],
-              self.params["attention_dropout"],
-              self.mode == "train",
+            hidden_size = self.params["hidden_size"],
+            num_heads = self.params["num_heads"],
+            attention_dropout = self.params["attention_dropout"],
+            train = (self.mode == "train"),
+            regularizer=self.regularizer
           )
           enc_dec_attention_layer = attention_layer.Attention(
-              self.params["hidden_size"], self.params["num_heads"],
-              self.params["attention_dropout"],
-              self.mode == "train",
+            hidden_size = self.params["hidden_size"],
+            num_heads = self.params["num_heads"],
+            attention_dropout = self.params["attention_dropout"],
+            train = (self.mode == "train"),
+            regularizer=self.regularizer
           )
           feed_forward_network = ffn_layer.FeedFowardNetwork(
-              self.params["hidden_size"], self.params["filter_size"],
-              self.params["relu_dropout"], training,
+            self.params["hidden_size"],
+            self.params["filter_size"],
+            self.params["relu_dropout"],
+            training,
+            regularizer=self.regularizer
           )
 
           self.layers.append([
