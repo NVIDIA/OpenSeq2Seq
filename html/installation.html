@@ -177,13 +177,54 @@
 <span id="installation"></span><h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="pre-built-docker-container">
 <h2>Pre-built docker container<a class="headerlink" href="#pre-built-docker-container" title="Permalink to this headline">¶</a></h2>
-<p>If you’d like to skip installation of all pre-requisite software (such as CUDA, cuDNN, OpenMPI, Horovod, TensorFlow, etc.)
-then please try our free optimized TensorFlow Docker container:
-<a class="reference external" href="https://www.nvidia.com/en-us/gpu-cloud/deep-learning-containers/">https://www.nvidia.com/en-us/gpu-cloud/deep-learning-containers/</a></p>
-<p>It contains OpenSeq2Seq in <code class="docutils literal notranslate"><span class="pre">/workspace/nvidia-examples/OpenSeq2Seq</span></code> directory.</p>
+<p>The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker container.</p>
+<ol class="arabic">
+<li><p class="first">Install CUDA 10 from <a class="reference external" href="https://developer.nvidia.com/cuda-downloads">https://developer.nvidia.com/cuda-downloads</a></p>
+</li>
+<li><p class="first">Install Docker ( see <a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites">https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites</a> )</p>
+<p>use version compatible with nvidia-docker, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">docker</span><span class="o">-</span><span class="n">ce</span><span class="o">=</span><span class="mi">5</span><span class="p">:</span><span class="mf">18.09</span><span class="o">.</span><span class="mi">03</span><span class="o">-</span><span class="mi">0</span><span class="n">ubuntu</span><span class="o">-</span><span class="n">xenial</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Verify the installation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">docker</span> <span class="n">container</span> <span class="n">run</span> <span class="n">hello</span><span class="o">-</span><span class="n">world</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Add yourself to docker group:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>sudo usermod -a -G docker $USER
+</pre></div>
+</div>
+<p>logout after that</p>
+</li>
+<li><p class="first">Install nvidia-docker2 ( see <a class="reference external" href="https://github.com/nvidia/nvidia-docker/wiki/Installation-(version-2.0)">documentation</a> ):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">nvidia</span><span class="o">-</span><span class="n">docker2</span>
+<span class="n">sudo</span> <span class="n">pkill</span> <span class="o">-</span><span class="n">SIGHUP</span> <span class="n">dockerd</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Pull latest NVIDIA TensorFlow container from NVIDIA GPU Cloud</p>
+<blockquote>
+<div><p>see <a class="reference external" href="https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html">https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html</a>:</p>
+<p>docker pull nvcr.io/nvidia/tensorflow:18.12-py3</p>
+</div></blockquote>
+</li>
+<li><p class="first">Run contrainer:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nvidia</span><span class="o">-</span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">it</span> <span class="o">--</span><span class="n">rm</span> <span class="n">nvcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">nvidia</span><span class="o">/</span><span class="n">tensorflow</span><span class="p">:</span><span class="mf">18.12</span><span class="o">-</span><span class="n">py3</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">Pull OpenSeq2Seq from GitHub inside the container:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">NVIDIA</span><span class="o">/</span><span class="n">OpenSeq2Seq</span>
+</pre></div>
+</div>
+</li>
+</ol>
 </div>
 <div class="section" id="general-installation">
 <h2>General installation<a class="headerlink" href="#general-installation" title="Permalink to this headline">¶</a></h2>
+<p>If you are feeling adventurous, then feel free to try these instructions.</p>
 <p>OpenSeq2Seq supports Python &gt;= 3.5.
 We recommend to use <a class="reference external" href="https://www.anaconda.com/download">Anaconda Python distribution</a>.</p>
 <div class="admonition note">
