@@ -24,7 +24,7 @@ base_params = {
   "print_samples_steps": 100,
   "eval_steps": 500,
   "save_checkpoint_steps": 500,
-  "logdir": "ds2_log/fp16_BFTC",
+  "logdir": "ds2_log/toy",
 
   "optimizer": "Momentum",
   "optimizer_params": {
