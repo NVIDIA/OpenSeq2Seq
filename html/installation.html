@@ -211,7 +211,7 @@
 </div></blockquote>
 </li>
 <li><p class="first">Run contrainer:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nvidia</span><span class="o">-</span><span class="n">docker</span> <span class="n">run</span> <span class="o">-</span><span class="n">it</span> <span class="o">--</span><span class="n">rm</span> <span class="n">nvcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">nvidia</span><span class="o">/</span><span class="n">tensorflow</span><span class="p">:</span><span class="mf">18.12</span><span class="o">-</span><span class="n">py3</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">nvidia</span><span class="o">-</span><span class="n">docker</span> <span class="n">run</span> <span class="o">--</span><span class="n">shm</span><span class="o">-</span><span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="n">g</span> <span class="o">--</span><span class="n">ulimit</span> <span class="n">memlock</span><span class="o">=-</span><span class="mi">1</span> <span class="o">--</span><span class="n">ulimit</span> <span class="n">stack</span><span class="o">=</span><span class="mi">67108864</span> <span class="o">-</span><span class="n">it</span> <span class="o">--</span><span class="n">rm</span> <span class="n">nvcr</span><span class="o">.</span><span class="n">io</span><span class="o">/</span><span class="n">nvidia</span><span class="o">/</span><span class="n">tensorflow</span><span class="p">:</span><span class="mf">18.12</span><span class="o">-</span><span class="n">py3</span>
 </pre></div>
 </div>
 </li>

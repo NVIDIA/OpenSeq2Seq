@@ -265,7 +265,7 @@
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Encoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;row_conv_width&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
-        <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;data_format&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;channels_first&#39;</span><span class="p">,</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">,</span> <span class="s1">&#39;BCTF&#39;</span><span class="p">,</span> <span class="s1">&#39;BTFC&#39;</span><span class="p">,</span> <span class="s1">&#39;BCFT&#39;</span><span class="p">,</span> <span class="s1">&#39;BFTC&#39;</span><span class="p">],</span>
         <span class="s1">&#39;bn_momentum&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s1">&#39;bn_epsilon&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
     <span class="p">})</span></div>
@@ -307,8 +307,9 @@
 <span class="sd">      convolutional layer.</span>
 <span class="sd">    * **n_hidden** (int) --- number of hidden units for the last fully connected</span>
 <span class="sd">      layer.</span>
-<span class="sd">    * **data_format** (string) --- could be either &quot;channels_first&quot; or</span>
-<span class="sd">      &quot;channels_last&quot;. Defaults to &quot;channels_last&quot;.</span>
+<span class="sd">    * **data_format** (string) --- could be either</span>
+<span class="sd">      &quot;channels_first&quot;, &quot;channels_last&quot;, &quot;BCTF&quot;, &quot;BTFC&quot;, &quot;BCFT&quot;, &quot;BFTC&quot;.</span>
+<span class="sd">       Defaults to &quot;channels_last&quot;.</span>
 <span class="sd">    * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.</span>
 <span class="sd">    * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -345,26 +346,68 @@
     <span class="n">bn_momentum</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_momentum&#39;</span><span class="p">,</span> <span class="mf">0.99</span><span class="p">)</span>
     <span class="n">bn_epsilon</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bn_epsilon&#39;</span><span class="p">,</span> <span class="mf">1e-3</span><span class="p">)</span>
 
-    <span class="n">input_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">source_sequence</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">input_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">source_sequence</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="c1"># BTFC</span>
+    <span class="c1"># print(&quot;&lt;&lt;&lt; input   :&quot;, input_layer.get_shape().as_list())</span>
+
     <span class="n">batch_size</span> <span class="o">=</span> <span class="n">input_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_last&#39;</span><span class="p">:</span>
-      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">input_layer</span>
+    <span class="n">freq</span> <span class="o">=</span> <span class="n">input_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
+
+    <span class="c1"># supported data_formats:</span>
+    <span class="c1">#    BTFC = channel_last (legacy)</span>
+    <span class="c1">#    BCTF = channel_first(legacy)</span>
+    <span class="c1">#    BFTC</span>
+    <span class="c1">#    BCFT</span>
+
+    <span class="k">if</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;channels_last&#39;</span> <span class="ow">or</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;BTFC&#39;</span><span class="p">:</span>
+      <span class="n">layout</span>  <span class="o">=</span> <span class="s1">&#39;BTFC&#39;</span>
+      <span class="n">dformat</span> <span class="o">=</span> <span class="s1">&#39;channels_last&#39;</span>
+    <span class="k">elif</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;channels_first&#39;</span> <span class="ow">or</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;BCTF&#39;</span><span class="p">:</span>
+      <span class="n">layout</span>  <span class="o">=</span> <span class="s1">&#39;BCTF&#39;</span>
+      <span class="n">dformat</span> <span class="o">=</span> <span class="s1">&#39;channels_first&#39;</span>
+    <span class="k">elif</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;BFTC&#39;</span><span class="p">:</span>
+      <span class="n">layout</span>  <span class="o">=</span> <span class="s1">&#39;BFTC&#39;</span>
+      <span class="n">dformat</span> <span class="o">=</span> <span class="s1">&#39;channels_last&#39;</span>
+    <span class="k">elif</span> <span class="n">data_format</span><span class="o">==</span><span class="s1">&#39;BCFT&#39;</span><span class="p">:</span>
+      <span class="n">layout</span>  <span class="o">=</span> <span class="s1">&#39;BCFT&#39;</span>
+      <span class="n">dformat</span> <span class="o">=</span> <span class="s1">&#39;channels_first&#39;</span>
     <span class="k">else</span><span class="p">:</span>
+      <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: unsupported data format: will use channels_last (BTFC) instead&quot;</span><span class="p">)</span>
+      <span class="n">layout</span>  <span class="o">=</span> <span class="s1">&#39;BTFC&#39;</span>
+      <span class="n">dformat</span> <span class="o">=</span> <span class="s1">&#39;channels_last&#39;</span>
+
+    <span class="c1">#input_layer is BTFC</span>
+
+    <span class="k">if</span>   <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BCTF&#39;</span><span class="p">:</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">input_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BFTC&#39;</span><span class="p">:</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">input_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BCFT&#39;</span><span class="p">:</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">input_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">input_layer</span>
+
+    <span class="c1"># print(&quot;&lt;&lt;&lt; pre-conv:&quot;, top_layer.get_shape().as_list())</span>
 
     <span class="c1"># ----- Convolutional layers ---------------------------------------------</span>
     <span class="n">conv_layers</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;conv_layers&#39;</span><span class="p">]</span>
 
     <span class="k">for</span> <span class="n">idx_conv</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">conv_layers</span><span class="p">)):</span>
       <span class="n">ch_out</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;num_channels&#39;</span><span class="p">]</span>
-      <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;kernel_size&#39;</span><span class="p">]</span>  <span class="c1"># [time, freq]</span>
-      <span class="n">strides</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;stride&#39;</span><span class="p">]</span>
+      <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;kernel_size&#39;</span><span class="p">]</span>  <span class="c1"># [T,F] format</span>
+      <span class="n">strides</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;stride&#39;</span><span class="p">]</span>           <span class="c1"># [T,F] format</span>
       <span class="n">padding</span> <span class="o">=</span> <span class="n">conv_layers</span><span class="p">[</span><span class="n">idx_conv</span><span class="p">][</span><span class="s1">&#39;padding&#39;</span><span class="p">]</span>
 
       <span class="k">if</span> <span class="n">padding</span> <span class="o">==</span> <span class="s2">&quot;VALID&quot;</span><span class="p">:</span>
         <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">-</span> <span class="n">kernel_size</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="p">(</span><span class="n">freq</span> <span class="o">-</span> <span class="n">kernel_size</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
       <span class="k">else</span><span class="p">:</span>
         <span class="n">src_length</span> <span class="o">=</span> <span class="p">(</span><span class="n">src_length</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="p">(</span><span class="n">freq</span> <span class="o">+</span> <span class="n">strides</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">strides</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+      <span class="k">if</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BFTC&#39;</span> <span class="ow">or</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BCFT&#39;</span><span class="p">:</span>
+        <span class="n">kernel_size</span> <span class="o">=</span> <span class="n">kernel_size</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">strides</span> <span class="o">=</span> <span class="n">strides</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="c1"># print(kernel_size, strides)</span>
 
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">conv_bn_actv</span><span class="p">(</span>
           <span class="n">layer_type</span><span class="o">=</span><span class="s2">&quot;conv2d&quot;</span><span class="p">,</span>
@@ -377,12 +420,25 @@
           <span class="n">padding</span><span class="o">=</span><span class="n">padding</span><span class="p">,</span>
           <span class="n">regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
           <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
-          <span class="n">data_format</span><span class="o">=</span><span class="n">data_format</span><span class="p">,</span>
+          <span class="n">data_format</span><span class="o">=</span><span class="n">dformat</span><span class="p">,</span>
           <span class="n">bn_momentum</span><span class="o">=</span><span class="n">bn_momentum</span><span class="p">,</span>
           <span class="n">bn_epsilon</span><span class="o">=</span><span class="n">bn_epsilon</span><span class="p">,</span>
       <span class="p">)</span>
-    <span class="k">if</span> <span class="n">data_format</span> <span class="o">==</span> <span class="s1">&#39;channels_first&#39;</span><span class="p">:</span>
+      <span class="c1"># print(idx_conv, &quot;++++&quot;, top_layer.get_shape().as_list())</span>
+
+    <span class="c1"># convert layout --&gt; BTFC</span>
+    <span class="c1"># if data_format == &#39;channels_first&#39;:</span>
+    <span class="c1">#   top_layer = tf.transpose(top_layer, [0, 2, 3, 1])</span>
+
+    <span class="k">if</span>   <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BCTF&#39;</span><span class="p">:</span> <span class="c1"># BCTF --&gt; BTFC</span>
       <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BFTC&#39;</span><span class="p">:</span> <span class="c1"># BFTC --&gt; BTFC</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">layout</span> <span class="o">==</span> <span class="s1">&#39;BCFT&#39;</span><span class="p">:</span> <span class="c1"># BCFT --&gt; BTFC</span>
+      <span class="n">top_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">top_layer</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+
+
+    <span class="c1"># print(&quot;&gt;&gt;&gt; post-conv:&quot;, top_layer.get_shape().as_list())</span>
 
     <span class="c1"># reshape to [B, T, FxC]</span>
     <span class="n">f</span> <span class="o">=</span> <span class="n">top_layer</span><span class="o">.</span><span class="n">get_shape</span><span class="p">()</span><span class="o">.</span><span class="n">as_list</span><span class="p">()[</span><span class="mi">2</span><span class="p">]</span>
