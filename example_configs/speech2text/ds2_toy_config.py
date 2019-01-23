@@ -38,7 +38,7 @@ base_params = {
   "larc_params": {
     "larc_eta": 0.001,
   },
-  "dtype": "mixed", # tf.float32,
+  "dtype": tf.float32,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
