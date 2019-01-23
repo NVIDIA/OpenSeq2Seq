@@ -38,7 +38,7 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
 
 7. Run contrainer::
 
-    nvidia-docker run -it --rm nvcr.io/nvidia/tensorflow:18.12-py3
+    nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/tensorflow:18.12-py3
 
 8. Pull OpenSeq2Seq from GitHub inside the container::
 
