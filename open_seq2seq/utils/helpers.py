@@ -79,6 +79,8 @@ def TransferMonitoredTrainingSession(master='',  # pylint: disable=invalid-name
       `save_checkpoint_secs` is used. Default not enabled.
     summary_dir: A string.  Optional path to a directory where to
       save summaries. If None, checkpoint_dir is used instead.
+    load_model_dir (str): The location of the checkpoint file used to load the
+      model weights.
   Returns:
     A `MonitoredSession` object.
   """
@@ -268,9 +270,8 @@ class TransferScaffold(tf.train.Scaffold):
           'local_init_op', tf.GraphKeys.LOCAL_INIT_OP,
           TransferScaffold.default_local_init_op)
     if self._summary_op is None:
-      self._summary_op = TransferScaffold.get_or_default('summary_op',
-                                                 tf.GraphKeys.SUMMARY_OP,
-                                                 tf.summary.merge_all)
+      self._summary_op = TransferScaffold.get_or_default(
+          'summary_op', tf.GraphKeys.SUMMARY_OP, tf.summary.merge_all)
     # pylint: disable=g-long-lambda
     if self._saver is None:
       self._saver = training_saver._get_saver_or_default()  # pylint: disable=protected-access
@@ -459,15 +460,21 @@ def _restore_embed(embed_var, var_to_shape_map, reader):
   return None, None
 
 def get_assign_ops_and_restore_dict(filename, restore_all=False):
+  """Helper function to read variable checkpoints from filename.
+  Iterates through all vars in restore_all=False else all trainable vars. It
+  attempts to match variables by name and variable shape. Returns a possibly
+  empty list of assign_ops, and a possibly empty dictionary for tf.train.Saver()
+  """
   def check_name_and_shape(name, var, shape_map):
     if name in shape_map:
       # Cannot check variables with unknown sizes such as cudnn rnns
       if str(var.shape) == "<unknown>":
         # Just return True and hope the shapes match
         return True
-      elif var.shape == shape_map[name]:
+      if var.shape == shape_map[name]:
         return True
     return False
+
   assign_ops = []
   restore_dict = {}
 
@@ -535,54 +542,15 @@ def get_assign_ops_and_restore_dict(filename, restore_all=False):
   return assign_ops, restore_dict
 
 def run_assign_and_saver(sess, filename, assign_ops, restore_dict):
+  """Helper function to restore variables. All variables with the same dtype
+  can be restored using tf.train.Saver(). All variables with different dtype
+  are restored using assign_ops
+  """
   if restore_dict:
     restorer = tf.train.Saver(restore_dict)
     restorer.restore(sess, filename)
   if assign_ops:
     sess.run(assign_ops)
-
-# def restore_certain_variables(sess, filename):
-#   print('Restoring only the variables found in the checkpoint')
-#   trainables = {v.name: v for v in tf.trainable_variables()}
-#   assign_ops = []
-#   vars_to_initialize = []
-
-#   try:
-#     reader = tf.train.NewCheckpointReader(filename)
-#     var_to_shape_map = reader.get_variable_to_shape_map()
-#     non_loss_var = {var: var_to_shape_map[var] for var in var_to_shape_map if 'Loss_Optimization' not in var}
-#     for var in var_to_shape_map:
-#       if 'global_step' in var:
-#         print('Restoring from the step', reader.get_tensor(var))
-#     for name in trainables:
-#       idx = name.find(":")
-#       if idx != -1:
-#         true_name = name[:idx]
-#       # if name.endswith(':0'):
-#       #   true_name = name[:-2]
-#       if true_name in var_to_shape_map and trainables[name].shape == var_to_shape_map[true_name]:
-#         print('Restoring value to', true_name)
-#         assign_ops.append(trainables[name].assign(reader.get_tensor(true_name)))
-#       if 'EmbeddingMatrix' in true_name:
-#         embed_op, has_embed_op = _restore_embed(trainables[name], var_to_shape_map, reader)
-#         if has_embed_op:
-#           assign_ops.append(embed_op)
-
-#     print('assign_ops', assign_ops)
-#   except Exception as e:  # pylint: disable=broad-except
-#     print(str(e))
-#     if "corrupted compressed block contents" in str(e):
-#       print("It's likely that your checkpoint file has been compressed "
-#             "with SNAPPY.")
-#     if ("Data loss" in str(e) and
-#         (any([e in file_name for e in [".index", ".meta", ".data"]]))):
-#       proposed_file = ".".join(file_name.split(".")[0:-1])
-#       v2_file_error_template = """
-#       It's likely that this is a V2 checkpoint and you need to provide the filename
-#       *prefix*.  Try removing the '.' and extension.  Try:
-#       inspect checkpoint --file_name = {}"""
-#       print(v2_file_error_template.format(proposed_file))
-#   sess.run(assign_ops)
 
 def _maybe_name(obj):
   """Returns object name if it has one, or a message otherwise.
