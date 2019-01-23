@@ -105,7 +105,7 @@ class DeepSpeech2Encoder(Encoder):
   def get_optional_params():
     return dict(Encoder.get_optional_params(), **{
         'row_conv_width': int,
-        'data_format': ['channels_first', 'channels_last'],
+        'data_format': ['channels_first', 'channels_last', 'BCTF', 'BTFC', 'BCFT', 'BFTC'],
         'bn_momentum': float,
         'bn_epsilon': float,
     })
@@ -147,8 +147,9 @@ class DeepSpeech2Encoder(Encoder):
       convolutional layer.
     * **n_hidden** (int) --- number of hidden units for the last fully connected
       layer.
-    * **data_format** (string) --- could be either "channels_first" or
-      "channels_last". Defaults to "channels_last".
+    * **data_format** (string) --- could be either
+      "channels_first", "channels_last", "BCTF", "BTFC", "BCFT", "BFTC".
+       Defaults to "channels_last".
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.99.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
@@ -185,26 +186,68 @@ class DeepSpeech2Encoder(Encoder):
     bn_momentum = self.params.get('bn_momentum', 0.99)
     bn_epsilon = self.params.get('bn_epsilon', 1e-3)
 
-    input_layer = tf.expand_dims(source_sequence, axis=-1)
+    input_layer = tf.expand_dims(source_sequence, axis=-1) # BTFC
+    # print("<<< input   :", input_layer.get_shape().as_list())
+
     batch_size = input_layer.get_shape().as_list()[0]
-    if data_format == 'channels_last':
-      top_layer = input_layer
+    freq = input_layer.get_shape().as_list()[2]
+
+    # supported data_formats:
+    #    BTFC = channel_last (legacy)
+    #    BCTF = channel_first(legacy)
+    #    BFTC
+    #    BCFT
+
+    if data_format=='channels_last' or data_format=='BTFC':
+      layout  = 'BTFC'
+      dformat = 'channels_last'
+    elif data_format=='channels_first' or data_format=='BCTF':
+      layout  = 'BCTF'
+      dformat = 'channels_first'
+    elif data_format=='BFTC':
+      layout  = 'BFTC'
+      dformat = 'channels_last'
+    elif data_format=='BCFT':
+      layout  = 'BCFT'
+      dformat = 'channels_first'
     else:
+      print("WARNING: unsupported data format: will use channels_last (BTFC) instead")
+      layout  = 'BTFC'
+      dformat = 'channels_last'
+
+    #input_layer is BTFC
+
+    if   layout == 'BCTF':
       top_layer = tf.transpose(input_layer, [0, 3, 1, 2])
+    elif layout == 'BFTC':
+      top_layer = tf.transpose(input_layer, [0, 2, 1, 3])
+    elif layout == 'BCFT':
+      top_layer = tf.transpose(input_layer, [0, 3, 2, 1])
+    else:
+      top_layer = input_layer
+
+    # print("<<< pre-conv:", top_layer.get_shape().as_list())
 
     # ----- Convolutional layers ---------------------------------------------
     conv_layers = self.params['conv_layers']
 
     for idx_conv in range(len(conv_layers)):
       ch_out = conv_layers[idx_conv]['num_channels']
-      kernel_size = conv_layers[idx_conv]['kernel_size']  # [time, freq]
-      strides = conv_layers[idx_conv]['stride']
+      kernel_size = conv_layers[idx_conv]['kernel_size']  # [T,F] format
+      strides = conv_layers[idx_conv]['stride']           # [T,F] format
       padding = conv_layers[idx_conv]['padding']
 
       if padding == "VALID":
         src_length = (src_length - kernel_size[0] + strides[0]) // strides[0]
+        freq = (freq - kernel_size[1] + strides[1]) // strides[1]
       else:
         src_length = (src_length + strides[0] - 1) // strides[0]
+        freq = (freq + strides[1] -1) // strides[1]
+
+      if layout == 'BFTC' or layout == 'BCFT':
+        kernel_size = kernel_size[::-1]
+        strides = strides[::-1]
+        # print(kernel_size, strides)
 
       top_layer = conv_bn_actv(
           layer_type="conv2d",
@@ -217,12 +260,25 @@ class DeepSpeech2Encoder(Encoder):
           padding=padding,
           regularizer=regularizer,
           training=training,
-          data_format=data_format,
+          data_format=dformat,
           bn_momentum=bn_momentum,
           bn_epsilon=bn_epsilon,
       )
-    if data_format == 'channels_first':
+      # print(idx_conv, "++++", top_layer.get_shape().as_list())
+
+    # convert layout --> BTFC
+    # if data_format == 'channels_first':
+    #   top_layer = tf.transpose(top_layer, [0, 2, 3, 1])
+
+    if   layout == 'BCTF': # BCTF --> BTFC
       top_layer = tf.transpose(top_layer, [0, 2, 3, 1])
+    elif layout == 'BFTC': # BFTC --> BTFC
+      top_layer = tf.transpose(top_layer, [0, 2, 1, 3])
+    elif layout == 'BCFT': # BCFT --> BTFC
+      top_layer = tf.transpose(top_layer, [0, 3, 2, 1])
+
+
+    # print(">>> post-conv:", top_layer.get_shape().as_list())
 
     # reshape to [B, T, FxC]
     f = top_layer.get_shape().as_list()[2]
