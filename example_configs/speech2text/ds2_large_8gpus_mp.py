@@ -9,20 +9,22 @@ from open_seq2seq.optimizers.lr_policies import poly_decay
 
 
 base_model = Speech2Text
+#data_root = "[REPLACE THIS TO THE PATH WITH YOUR LIBRISPEECH DATA]"
+data_root =  "/raid/speech"
 
 base_params = {
   "random_seed": 0,
   "use_horovod": False,
   "num_gpus": 8,
   "batch_size_per_gpu": 16,
-
+  # "max_steps": 1000,
   "num_epochs": 50,
 
   "save_summaries_steps": 100,
-  "print_loss_steps": 10,
+  "print_loss_steps": 100,
   "print_samples_steps": 5000,
   "eval_steps": 5000,
-  "save_checkpoint_steps": 1000,
+  "save_checkpoint_steps": 10000,
   "logdir": "experiments/librispeech",
 
   "optimizer": "Momentum",
@@ -73,7 +75,7 @@ base_params = {
 
     "dropout_keep_prob": 0.5,
     "activation_fn": tf.nn.relu,
-    "data_format": "channels_first",
+    "data_format": "BCFT", # "channels_first",'BCTF', 'BTFC', 'BCFT', 'BFTC'
   },
 
   "decoder": FullyConnectedCTCDecoder,
@@ -104,9 +106,9 @@ train_params = {
                      'noise_level_max': -60},
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "data/librispeech/librivox-train-clean-100.csv",
-      "data/librispeech/librivox-train-clean-360.csv",
-      "data/librispeech/librivox-train-other-500.csv",
+      data_root + "/librispeech/librivox-train-clean-100.csv",
+      data_root + "/librispeech/librivox-train-clean-360.csv",
+      data_root + "/librispeech/librivox-train-other-500.csv",
     ],
     "max_duration": 16.7,
     "shuffle": True,
@@ -120,7 +122,7 @@ eval_params = {
     "input_type": "spectrogram",
     "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
     "dataset_files": [
-      "data/librispeech/librivox-dev-clean.csv",
+      data_root + "/librispeech/librivox-dev-clean.csv",
     ],
     "shuffle": False,
   },
