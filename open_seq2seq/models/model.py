@@ -65,6 +65,7 @@ class Model:
         'print_samples_steps': None,  # could be int or None
         'print_bench_info_steps': None,  # could be int or None
         'save_checkpoint_steps': None,  # could be int or None
+        'num_checkpoints': int,  # maximum number of last checkpoints to keep
         'restore_best_checkpoint': bool, # if True,restore best check point instead of latest checkpoint
         'eval_steps': int,
         'finetune': bool,
@@ -166,6 +167,7 @@ class Model:
       after the last iteration.
     * **save_checkpoint_steps** (int or None) --- how often to save model
       checkpoints. Setting it to None disables checkpoint saving.
+    * **num_checkpoints** (int) --- number of last checkpoints to keep.
     * **eval_steps** (int) --- how often to run evaluation during training.
       This parameter is only checked if ``--mode`` argument of ``run.py`` is
       "train\_eval". If no evaluation is needed you should use "train" mode.
@@ -267,6 +269,7 @@ class Model:
     if 'print_bench_info_steps' not in self._params:
       self._params['print_bench_info_steps'] = None
 
+    self._params['num_checkpoints'] = self._params.get('num_checkpoints', 5)
     self._params['finetune'] = self._params.get('finetune', False)
     # self._params['base_logdir'] = self._params.get('base_logdir', None)
     self._params['load_model'] = self._params.get('load_model', None)

@@ -62,7 +62,10 @@ def train(train_model, eval_model=None, debug_port=None):
   if master_worker:
     if train_model.params['save_checkpoint_steps'] is not None:
       # noinspection PyTypeChecker
-      saver = tf.train.Saver(save_relative_paths=True)
+      saver = tf.train.Saver(
+          save_relative_paths=True,
+          max_to_keep=train_model.params['num_checkpoints']
+      )
       hooks.append(tf.train.CheckpointSaverHook(
           checkpoint_dir,
           saver=saver,

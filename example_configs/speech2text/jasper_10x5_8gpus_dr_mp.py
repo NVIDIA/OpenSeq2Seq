@@ -26,6 +26,7 @@ base_params = {
     "print_samples_steps": 2200,
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
+    "num_checkpoints": 5,
     "logdir": "w2l_log_folder",
 
     "optimizer": "Momentum",
