@@ -65,6 +65,7 @@ class Model:
         'print_samples_steps': None,  # could be int or None
         'print_bench_info_steps': None,  # could be int or None
         'save_checkpoint_steps': None,  # could be int or None
+        'num_checkpoints': int,  # maximum number of last checkpoints to keep
         'restore_best_checkpoint': bool, # if True,restore best check point instead of latest checkpoint
         'eval_steps': int,
         'finetune': bool,
@@ -166,6 +167,7 @@ class Model:
       after the last iteration.
     * **save_checkpoint_steps** (int or None) --- how often to save model
       checkpoints. Setting it to None disables checkpoint saving.
+    * **num_checkpoints** (int) --- number of last checkpoints to keep.
     * **eval_steps** (int) --- how often to run evaluation during training.
       This parameter is only checked if ``--mode`` argument of ``run.py`` is
       "train\_eval". If no evaluation is needed you should use "train" mode.
@@ -267,6 +269,7 @@ class Model:
     if 'print_bench_info_steps' not in self._params:
       self._params['print_bench_info_steps'] = None
 
+    self._params['num_checkpoints'] = self._params.get('num_checkpoints', 5)
     self._params['finetune'] = self._params.get('finetune', False)
     # self._params['base_logdir'] = self._params.get('base_logdir', None)
     self._params['load_model'] = self._params.get('load_model', None)
@@ -541,8 +544,10 @@ class Model:
         else:
           deco_print('Total trainable parameters: {}'.format(total_params))
 
-  def build_trt_forward_pass_graph(self, input_tensors, gpu_id=0, checkpoint=None):
-    """Wrapper around _build_forward_pass_graph which converts graph using TF-TRT"""
+  def build_trt_forward_pass_graph(self, input_tensors, gpu_id=0,
+                                   checkpoint=None):
+    """Wrapper around _build_forward_pass_graph which converts graph using
+    TF-TRT"""
     import tensorflow.contrib.tensorrt as trt
     # Default parameters
     trt_params = {
@@ -561,17 +566,46 @@ class Model:
     tf_config = tf.ConfigProto()
     tf_config.gpu_options.allow_growth = True
     temp_graph = tf.Graph()
+    input_map = {}
+    # We have to deconstruct SparseTensors into their 3 internal tensors
+    # (indicies, values, dense_shape). This maps each tensor name to a list of
+    # all 3 tensor names in its SparseTensor.
+    output_sparse_tensor_map = {}
     with temp_graph.as_default() as tf_graph:
       with tf.Session(config=tf_config) as tf_sess:
-        input_placeholders = {'source_tensors': [
-            tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map1'),
-            tf.placeholder(shape=(None, None), dtype=tf.int32, name='input_map2')
-        ]}
+        # Create temporary input placeholders used to build native TF graph
+        input_placeholders = {'source_tensors': []}
+        for i, original_input in enumerate(input_tensors['source_tensors']):
+          name = 'input_map_%d' % i
+          input_placeholders['source_tensors'].append(
+              tf.placeholder(shape=original_input.shape,
+                             dtype=original_input.dtype,
+                             name=name))
+          # And map it back to original input
+          input_map[name] = original_input
+        # Build native graph
         loss, outputs = self._build_forward_pass_graph(
             input_placeholders,
             gpu_id=gpu_id
         )
-        output_node_names = [x.name.split(':0')[0] for x in outputs]
+        # Gather output tensors
+        output_node_names = []
+        output_node_names_and_ports = []
+        for x in outputs:
+          if isinstance(x, tf.SparseTensor):
+            components = [x.indices.name, x.values.name, x.dense_shape.name]
+            fetch_names = [tensor.split(':')[0] for tensor in components]
+            # Remove duplicates (i.e. if SparseTensor is output of one node)
+            fetch_names = list(set(fetch_names))
+            output_node_names.extend(fetch_names)
+            output_node_names_and_ports.extend(components)
+            # Add all components to map so SparseTensor can be reconstructed
+            # from tensor components which will be outputs of new graph
+            for tensor in components:
+              output_sparse_tensor_map[tensor] = components
+          else:
+            output_node_names.append(x.name.split(':')[0])
+            output_node_names_and_ports.append(x.name)
         # Restore checkpoint here because we have to freeze the graph
         tf_saver = tf.train.Saver()
         tf_saver.restore(save_path=checkpoint, sess=tf_sess)
@@ -592,22 +626,30 @@ class Model:
             is_dynamic_op=trt_params["trt_is_dynamic_op"],
             maximum_cached_engines=trt_params["trt_maximum_cached_engines"]
         )
+        # Remove unused inputs from input_map.
+        inputs_to_remove = []
+        for k in input_map:
+          if k not in [node.name for node in frozen_graph.node]:
+            inputs_to_remove.append(k)
+        for k in inputs_to_remove:
+          del input_map[k]
         print('Total node count before and after TF-TRT conversion:',
-            num_nodes, '->', len(frozen_graph.node))
+              num_nodes, '->', len(frozen_graph.node))
         print('TRT node count:',
-            len([1 for n in frozen_graph.node if str(n.op)=='TRTEngineOp']))
+              len([1 for n in frozen_graph.node if str(n.op) == 'TRTEngineOp']))
     # Perform calibration for INT8 precision mode
     if self.params.get("trt_precision_mode", "FP32").upper() == 'INT8':
       with tf.Session(config=tf_config) as tf_sess:
         calib_graph = frozen_graph
         num_iterations = 10
         print('Calibrating INT8...')
-        outputs = tf.import_graph_def(calib_graph,
-            input_map={'input_map1': input_tensors['source_tensors'][0]},
-            return_elements=[x+':0' for x in output_node_names],
+        outputs = tf.import_graph_def(
+            calib_graph,
+            input_map=input_map,
+            return_elements=output_node_names_and_ports,
             name='')
         self._num_objects_per_step = [self._get_num_objects_per_step(worker_id)
-            for worker_id in range(self.num_gpus)]
+                                      for worker_id in range(self.num_gpus)]
         results_per_batch = iterate_data(
             self, tf_sess, compute_loss=False, mode='infer', verbose=False,
             num_steps=num_iterations
@@ -618,11 +660,28 @@ class Model:
         print('Nodes INT8:', len(frozen_graph.node))
     # Import TRT converted graph to default graph, mapping it to the original
     # input tensors.
-    outputs = tf.import_graph_def(frozen_graph,
-        input_map={'input_map1': input_tensors['source_tensors'][0]},
-        return_elements=[x+':0' for x in output_node_names],
+    outputs = tf.import_graph_def(
+        frozen_graph,
+        input_map=input_map,
+        return_elements=output_node_names_and_ports,
         name='')
-    return loss, outputs
+    # Reconstruct SparseTensors
+    final_outputs = []
+    for tensor in outputs:
+      if tensor.name in output_sparse_tensor_map:
+        component_names = output_sparse_tensor_map[tensor.name]
+        # Find tensors in outputs for components
+        component_tensors = [[x for x in outputs if x.name == name][0]
+                             for name in component_names]
+        # Remove all components from outputs so we don't create duplicates of
+        # this SparseTensor
+        for x in component_tensors:
+          if x in outputs:
+            outputs.remove(x)
+        final_outputs.append(tf.SparseTensor(*component_tensors))
+      else:
+        final_outputs.append(tensor)
+    return loss, final_outputs
 
   @abc.abstractmethod
   def _build_forward_pass_graph(self, input_tensors, gpu_id=0):

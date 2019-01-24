@@ -6,14 +6,49 @@ Installation Instructions
 Pre-built docker container
 --------------------------
 
-If you'd like to skip installation of all pre-requisite software (such as CUDA, cuDNN, OpenMPI, Horovod, TensorFlow, etc.)
-then please try our free optimized TensorFlow Docker container:
-https://www.nvidia.com/en-us/gpu-cloud/deep-learning-containers/
+The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker container.
 
-It contains OpenSeq2Seq in ``/workspace/nvidia-examples/OpenSeq2Seq`` directory.
+1. Install CUDA 10 from https://developer.nvidia.com/cuda-downloads
+2. Install Docker ( see https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites )
+
+   use version compatible with nvidia-docker, e.g.::
+
+    sudo apt-get install docker-ce=5:18.09.03-0ubuntu-xenial
+
+3. Verify the installation::
+
+    sudo docker container run hello-world
+
+4. Add yourself to docker group::
+
+    sudo usermod -a -G docker $USER
+
+   logout after that
+
+5. Install nvidia-docker2 ( see `documentation <https://github.com/nvidia/nvidia-docker/wiki/Installation-(version-2.0)>`_ )::
+
+    sudo apt-get install nvidia-docker2
+    sudo pkill -SIGHUP dockerd
+
+6. Pull latest NVIDIA TensorFlow container from NVIDIA GPU Cloud
+
+    see https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html::
+
+    docker pull nvcr.io/nvidia/tensorflow:18.12-py3
+
+7. Run contrainer::
+
+    nvidia-docker run --shm-size=1g --ulimit memlock=-1 --ulimit stack=67108864 -it --rm nvcr.io/nvidia/tensorflow:18.12-py3
+
+8. Pull OpenSeq2Seq from GitHub inside the container::
+
+    git clone https://github.com/NVIDIA/OpenSeq2Seq
+
 
 General installation
 --------------------
+
+If you are feeling adventurous, then feel free to try these instructions.
 
 OpenSeq2Seq supports Python >= 3.5.
 We recommend to use `Anaconda Python distribution <https://www.anaconda.com/download>`_.
