@@ -90,7 +90,7 @@ class TransformerEncoder(Encoder):
     return self.output_normalization(encoder_inputs)
 
   def _encode(self, input_dict):
-    training=(self.mode == "train")
+    training = (self.mode == "train")
 
     if len(self.layers) == 0:
       # prepare encoder graph
@@ -102,14 +102,18 @@ class TransformerEncoder(Encoder):
       for _ in range(self.params['encoder_layers']):
         # Create sublayers for each layer.
         self_attention_layer = attention_layer.SelfAttention(
-            self.params["hidden_size"], self.params["num_heads"],
-            self.params["attention_dropout"], training,
-            regularizer=self.regularizer
+          hidden_size=self.params["hidden_size"],
+          num_heads=self.params["num_heads"],
+          attention_dropout=self.params["attention_dropout"],
+          train=training,
+          regularizer=self.regularizer
         )
         feed_forward_network = ffn_layer.FeedFowardNetwork(
-            self.params["hidden_size"], self.params["filter_size"],
-            self.params["relu_dropout"], training,
-            regularizer=self.regularizer
+          hidden_size=self.params["hidden_size"],
+          filter_size=self.params["filter_size"],
+          relu_dropout=self.params["relu_dropout"],
+          train=training,
+          regularizer=self.regularizer
         )
 
         self.layers.append([
@@ -122,8 +126,9 @@ class TransformerEncoder(Encoder):
       # final normalization layer.
       print("Encoder:", self.norm_params["type"], self.mode)
       if self.norm_params["type"] =="batch_norm":
-        self.output_normalization = Transformer_BatchNorm(training=training,
-                                                          params=self.norm_params)
+        self.output_normalization = Transformer_BatchNorm(
+          training=training,
+          params=self.norm_params)
       else:
         self.output_normalization = LayerNormalization(
           hidden_size=self.params["hidden_size"], params=self.norm_params)
@@ -140,7 +145,9 @@ class TransformerEncoder(Encoder):
       else:
         inputs_padding = None
       # inputs_attention_bias = utils.get_padding_bias(inputs)
-      inputs_attention_bias = utils.get_padding_bias(inputs, dtype=self._params["dtype"])
+      inputs_attention_bias = utils.get_padding_bias(
+        inputs,
+        dtype=self._params["dtype"])
 
       with tf.name_scope("add_pos_encoding"):
         length = tf.shape(embedded_inputs)[1]

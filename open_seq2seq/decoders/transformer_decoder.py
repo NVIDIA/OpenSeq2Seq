@@ -103,24 +103,24 @@ class TransformerDecoder(Decoder):
       if len(self.layers) == 0:
         for _ in range(self.params["num_hidden_layers"]):
           self_attention_layer = attention_layer.SelfAttention(
-            hidden_size = self.params["hidden_size"],
-            num_heads = self.params["num_heads"],
-            attention_dropout = self.params["attention_dropout"],
-            train = (self.mode == "train"),
+            hidden_size=self.params["hidden_size"],
+            num_heads=self.params["num_heads"],
+            attention_dropout=self.params["attention_dropout"],
+            train=training,
             regularizer=self.regularizer
           )
           enc_dec_attention_layer = attention_layer.Attention(
-            hidden_size = self.params["hidden_size"],
-            num_heads = self.params["num_heads"],
-            attention_dropout = self.params["attention_dropout"],
-            train = (self.mode == "train"),
+            hidden_size=self.params["hidden_size"],
+            num_heads=self.params["num_heads"],
+            attention_dropout=self.params["attention_dropout"],
+            train=training,
             regularizer=self.regularizer
           )
           feed_forward_network = ffn_layer.FeedFowardNetwork(
-            self.params["hidden_size"],
-            self.params["filter_size"],
-            self.params["relu_dropout"],
-            training,
+            hidden_size=self.params["hidden_size"],
+            filter_size=self.params["filter_size"],
+            relu_dropout=self.params["relu_dropout"],
+            train=training,
             regularizer=self.regularizer
           )
 
@@ -133,13 +133,14 @@ class TransformerDecoder(Decoder):
                                        training)
           ])
         print("Decoder:", self.norm_params["type"], self.mode)
-        if self.norm_params["type"]=="batch_norm":
-#          print("Decoder:", self.norm_params["type"], self.mode)
-          self.output_normalization = Transformer_BatchNorm(training=training,
-                                                            params=self.norm_params)
+        if self.norm_params["type"] == "batch_norm":
+          self.output_normalization = Transformer_BatchNorm(
+            training=training,
+            params=self.norm_params)
         else:
-          self.output_normalization = LayerNormalization(hidden_size=self.params["hidden_size"],
-                                                         params=self.norm_params )
+          self.output_normalization = LayerNormalization(
+            hidden_size=self.params["hidden_size"],
+            params=self.norm_params)
 
       if targets is None:
         return self.predict(encoder_outputs, inputs_attention_bias)
