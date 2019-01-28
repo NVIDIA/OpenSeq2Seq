@@ -189,7 +189,7 @@ class TransformerDecoder(Decoder):
       )
     if self.mode == "train":
       decoder_inputs = tf.nn.dropout(
-          decoder_inputs, 1 - self.params["layer_postprocess_dropout"],
+          decoder_inputs, rate = self.params["layer_postprocess_dropout"],
       )
 
     # Run values

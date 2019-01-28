@@ -275,14 +275,14 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
         y = tf.pad(y, [[0, 0], [0, max_length - y_length]])
         return x, y
 
-    with tf.name_scope("loss", [logits, labels]):
+    with tf.name_scope(name="loss", values= [logits, labels]):
       logits, labels = _pad_tensors_to_same_length(logits, labels)
 
       # Calculate smoothing cross entropy
-      with tf.name_scope("smoothing_cross_entropy", [logits, labels]):
+      with tf.name_scope(name="smoothing_cross_entropy", values=[logits, labels]):
         confidence = 1.0 - self._label_smoothing
         low_confidence = (1.0 - confidence) / \
-            tf.to_float(self._tgt_vocab_size - 1)
+            tf.cast(self._tgt_vocab_size - 1, dtype=tf.float32)
         soft_targets = tf.one_hot(
             tf.cast(labels, tf.int32),
             depth=self._tgt_vocab_size,
@@ -297,12 +297,12 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
         # subtract from the cross entropy loss.
         normalizing_constant = -(
             confidence * tf.log(confidence) +
-            tf.to_float(self._tgt_vocab_size - 1) *
+            tf.cast(self._tgt_vocab_size - 1, dtype=tf.float32) *
             low_confidence * tf.log(low_confidence + 1e-20)
         )
         xentropy -= normalizing_constant
 
-      weights = tf.to_float(tf.not_equal(labels, 0))
+      weights = tf.cast(tf.not_equal(labels, 0), dtype=tf.float32)
       xentropy = xentropy * weights
       loss = tf.reduce_sum(xentropy * weights) / tf.reduce_sum(weights)
 

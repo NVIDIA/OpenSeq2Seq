@@ -173,7 +173,7 @@ class Attention(tf.layers.Layer):
       )
 
     if self.train:
-      weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)
+      weights = tf.nn.dropout(weights, rate=  self.attention_dropout)
     attention_output = tf.matmul(weights, v)
 
     # Recombine heads --> [batch_size, length, hidden_size]
