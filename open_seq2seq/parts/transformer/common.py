@@ -48,8 +48,8 @@ class LayerNormalization(tf.layers.Layer):
     self.epsilon = params.get("epsilon", 1e-6)
 
   def build(self, _):
-    dtype = self.dtype
-    #print ("Layer norm:", self.norm_type, self.dtype)
+    #print ("Layer norm:", self.norm_type, self.dtype)`
+    dtype = tf.float32
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
                            initializer=tf.ones_initializer(dtype=dtype),
                            dtype=dtype)
@@ -69,25 +69,25 @@ class LayerNormalization(tf.layers.Layer):
 
   def call(self, x): # epsilon=1e-6):
     dtype = x.dtype
+    if dtype==tf.float16:
+      x = tf.cast(x, dtype=tf.float32)
+
     mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
     x = x - mean
+
     if self.norm_type=="layernorm_L2":
-      if dtype==tf.float16:
-        x = tf.cast(x, dtype=tf.float32)
       variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
       norm_x = x * tf.rsqrt(variance + self.epsilon)
-      if dtype == tf.float16:
-        norm_x = tf.saturate_cast(norm_x, dtype)
-
     elif self.norm_type=="layernorm_L1":
       variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
       norm_x = tf.div(x , variance + self.epsilon)
-
     else:
       print("WARNING: Layer norm: type ", self.norm_type, "not supported")
       norm_x = x
 
     y = norm_x * self.scale + self.bias
+    if dtype == tf.float16:
+      y = tf.saturate_cast(y, dtype)
     return y
 
 class PrePostProcessingWrapper(object):
