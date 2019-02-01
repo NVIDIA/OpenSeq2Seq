@@ -70,10 +70,10 @@ class BasicSequenceLoss(Loss):
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      )) - 1
+      ), tf.int32) - 1
 
       logits = tf.slice(
           logits,
@@ -84,10 +84,10 @@ class BasicSequenceLoss(Loss):
                                  begin=[0, 1],
                                  size=[-1, current_ts])
     else:
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      ))
+      ),tf.int32)
 
     # Cast logits after potential slice
     if logits.dtype.base_dtype != tf.float32:
@@ -177,10 +177,10 @@ class CrossEntropyWithSmoothing(Loss):
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      )) - 1
+      ),tf.int32) - 1
 
       logits = tf.slice(
           logits,
@@ -191,10 +191,10 @@ class CrossEntropyWithSmoothing(Loss):
                                  begin=[0, 1],
                                  size=[-1, current_ts])
     else:
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      ))
+      ), tf.int32)
 
     # Cast logits after potential slice
     if logits.dtype.base_dtype != tf.float32:
@@ -408,10 +408,10 @@ class BasicSampledSequenceLoss(Loss):
 
       if self._offset_target_by_one:
         # this is necessary for auto-regressive models
-        current_ts = tf.to_int32(tf.minimum(
+        current_ts = tf.cast(tf.minimum(
             tf.shape(target_sequence)[1],
             tf.shape(logits)[1],
-        )) - 1
+        ), tf.int32) - 1
 
         logits = tf.slice(
             logits,
@@ -422,10 +422,10 @@ class BasicSampledSequenceLoss(Loss):
                                    begin=[0, 1],
                                    size=[-1, current_ts])
       else:
-        current_ts = tf.to_int32(tf.minimum(
+        current_ts = tf.cast(tf.minimum(
             tf.shape(target_sequence)[1],
             tf.shape(logits)[1],
-        ))
+        ),tf.int32)
 
       # Cast logits after potential slice
       if logits.dtype.base_dtype != tf.float32:

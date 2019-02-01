@@ -81,11 +81,11 @@ class TacotronLoss(Loss):
     spec = tf.cast(spec, dtype=tf.float32)
     stop_token = tf.cast(stop_token, dtype=tf.float32)
 
-    max_length = tf.to_int32(
+    max_length = tf.cast(
         tf.maximum(
             tf.shape(spec)[1],
             tf.shape(decoder_predictions)[1],
-        )
+        ), tf.int32
     )
 
     decoder_pad = tf.zeros(

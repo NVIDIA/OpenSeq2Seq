@@ -22,6 +22,7 @@ from six.moves import range
 
 import collections
 import numpy as np
+import tensorflow as tf
 
 from tensorflow.contrib.seq2seq.python.ops import beam_search_ops
 from tensorflow.contrib.seq2seq.python.ops import decoder
@@ -351,8 +352,8 @@ class BeamSearchDecoder(decoder.Decoder):
     """
     del sequence_lengths
     # Get max_sequence_length across all beams for each batch.
-    max_sequence_lengths = math_ops.to_int32(
-        math_ops.reduce_max(final_state.lengths, axis=1))
+    max_sequence_lengths = tf.cast(
+        math_ops.reduce_max(final_state.lengths, axis=1),tf.int32)
     predicted_ids = beam_search_ops.gather_tree(
         outputs.predicted_ids,
         outputs.parent_ids,
@@ -575,7 +576,7 @@ def _beam_search_step(time, logits, next_cell_state, beam_state, batch_size,
       on_value=np.int64(0),
       off_value=np.int64(1),
       dtype=dtypes.int64)
-  add_mask = math_ops.to_int64(math_ops.logical_not(previously_finished))
+  add_mask = tf.cast(math_ops.logical_not(previously_finished), tf.int64)
   lengths_to_add *= array_ops.expand_dims(add_mask, 2)
   new_prediction_lengths = (
       lengths_to_add + array_ops.expand_dims(prediction_lengths, 2))
@@ -616,10 +617,9 @@ def _beam_search_step(time, logits, next_cell_state, beam_state, batch_size,
   # the op which prevents capturing it with tfdbg debug ops.
   raw_next_word_ids = math_ops.mod(
       word_indices, vocab_size, name="next_beam_word_ids")
-  next_word_ids = math_ops.to_int32(raw_next_word_ids)
-  next_beam_ids = math_ops.to_int32(
-      word_indices / vocab_size, name="next_beam_parent_ids")
-
+  next_word_ids = tf.cast(raw_next_word_ids, tf.int32)
+  next_beam_ids = tf.cast(word_indices / vocab_size,
+                          name="next_beam_parent_ids", dtype=tf.int32)
   # Append new ids to current predictions
   previously_finished = _tensor_gather_helper(
       gather_indices=next_beam_ids,
@@ -637,7 +637,7 @@ def _beam_search_step(time, logits, next_cell_state, beam_state, batch_size,
   # 2. Beams that are now finished (EOS predicted) have their length
   #    increased by 1.
   # 3. Beams that are not yet finished have their length increased by 1.
-  lengths_to_add = math_ops.to_int64(math_ops.logical_not(previously_finished))
+  lengths_to_add = tf.cast(math_ops.logical_not(previously_finished), tf.int64)
   next_prediction_len = _tensor_gather_helper(
       gather_indices=next_beam_ids,
       gather_from=beam_state.lengths,
