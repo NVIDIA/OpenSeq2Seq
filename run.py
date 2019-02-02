@@ -8,7 +8,8 @@ import os
 import sys
 import tensorflow as tf
 
-tf.compat.v1.disable_eager_execution()
+if hasattr(tf.compat, 'v1'):
+  tf.compat.v1.disable_eager_execution()
 
 from open_seq2seq.utils.utils import deco_print, get_base_config, create_model,\
                                      create_logdir, check_logdir, \

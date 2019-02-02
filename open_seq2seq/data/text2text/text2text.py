@@ -11,7 +11,8 @@ from open_seq2seq.data.utils import load_pre_existing_vocabulary, pad_vocab_to_e
 from open_seq2seq.data.text2text.t2t import _read_and_batch_from_files
 from open_seq2seq.data.text2text.tokenizer import PAD_ID
 
-tf.compat.v1.disable_eager_execution()
+# if hasattr(tf.compat, 'v1'):
+#   tf.compat.v1.disable_eager_execution()
 
 class SpecialTextTokens(Enum):
   PAD_ID = 0  # special padding token
@@ -162,7 +163,7 @@ class ParallelTextDataLayer(DataLayer):
       return lst + [SpecialTextTokens.PAD_ID.value] * (8 - len(lst) % 8)
 
   def _src_token_to_id(self, line):
-    tokens = line.numpy().decode("utf-8").split(self._delimiter)
+    tokens = line.decode("utf-8").split(self._delimiter) #line.numpy().
     if self._use_start_token:
       return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
              [self.src_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
@@ -173,7 +174,7 @@ class ParallelTextDataLayer(DataLayer):
                                       [SpecialTextTokens.EOS_ID.value], self._pad_lengths_to_eight), dtype="int32")
 
   def _tgt_token_to_id(self, line):
-    tokens = line.numpy().decode("utf-8").split(self._delimiter)
+    tokens = line.decode("utf-8").split(self._delimiter) #line.numpy().
     if self._use_start_token:
       return np.array(self._pad2eight([SpecialTextTokens.S_ID.value] + \
              [self.tgt_seq2idx.get(token, SpecialTextTokens.UNK_ID.value) for token in tokens[:self.max_len-2]] + \
@@ -197,14 +198,14 @@ class ParallelTextDataLayer(DataLayer):
         _targets = _targets.shard(num_shards=self._num_workers,
                                   index=self._worker_id)
 
-      _sources = _sources.map(lambda line: tf.py_function(func=self._src_token_to_id, inp=[line],
-                                     Tout=[tf.int32]), # stateful=False),
+      _sources = _sources.map(lambda line: tf.py_func(func=self._src_token_to_id, inp=[line],
+                                     Tout=[tf.int32], stateful=False),
              num_parallel_calls=self._map_parallel_calls) \
         .map(lambda tokens: (tokens, tf.size(tokens)),
              num_parallel_calls=self._map_parallel_calls)
 
-      _targets = _targets.map(lambda line: tf.py_function(func=self._tgt_token_to_id, inp=[line],
-                                     Tout=[tf.int32]),# stateful=False),
+      _targets = _targets.map(lambda line: tf.py_func(func=self._tgt_token_to_id, inp=[line],
+                                     Tout=[tf.int32], stateful=False),
              num_parallel_calls=self._map_parallel_calls) \
         .map(lambda tokens: (tokens, tf.size(tokens)),
              num_parallel_calls=self._map_parallel_calls)
