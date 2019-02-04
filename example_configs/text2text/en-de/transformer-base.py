@@ -20,11 +20,11 @@ d_model = 512
 num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-#data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
-data_root = "/raid/wmt16/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+#data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": False, #True,
+  "use_horovod": True,
   "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
   "max_steps": 300000,

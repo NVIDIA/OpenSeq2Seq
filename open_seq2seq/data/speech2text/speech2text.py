@@ -16,8 +16,7 @@ from open_seq2seq.data.utils import load_pre_existing_vocabulary
 from .speech_utils import get_speech_features_from_file, get_speech_features
 import sentencepiece as spm
 
-# numpy.fft with MKL bug
-# see https://github.com/IntelPython/mkl_fft/issues/11
+# numpy.fft MKL bug: https://github.com/IntelPython/mkl_fft/issues/11
 if hasattr(np.fft, 'restore_all'):
   np.fft.restore_all()
 

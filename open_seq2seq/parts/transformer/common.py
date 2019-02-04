@@ -55,5 +55,5 @@ class PrePostProcessingWrapper(object):
 
     # Postprocessing: apply dropout and residual connection
     if self.train:
-      y = tf.nn.dropout(y, rate = self.postprocess_dropout)
+      y = tf.nn.dropout(y, keep_prob = 1 - self.postprocess_dropout)
     return x + y

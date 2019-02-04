@@ -4,6 +4,8 @@
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import inspect
+
 import tensorflow as tf
 from six.moves import range
 
@@ -188,9 +190,8 @@ class TransformerDecoder(Decoder):
           dtype=self.params['dtype'],
       )
     if self.mode == "train":
-      decoder_inputs = tf.nn.dropout(
-          decoder_inputs, rate = self.params["layer_postprocess_dropout"],
-      )
+        decoder_inputs = tf.nn.dropout(decoder_inputs,
+            keep_prob = 1 - self.params["layer_postprocess_dropout"] )
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
