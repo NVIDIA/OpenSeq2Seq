@@ -37,8 +37,8 @@ class CTCLoss(Loss):
     super(CTCLoss, self).__init__(params, model, name)
     self._mask_nan = self.params.get("mask_nan", True)
     # this loss can only operate in full precision
-    if self.params['dtype'] != tf.float32:
-      deco_print("Warning: defaulting CTC loss to work in float32")
+    # if self.params['dtype'] != tf.float32:
+    #   deco_print("Warning: defaulting CTC loss to work in float32")
     self.params['dtype'] = tf.float32
 
   def _compute_loss(self, input_dict):

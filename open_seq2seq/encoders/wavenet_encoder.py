@@ -16,7 +16,7 @@ def _mu_law_encode(signal, channels, dtype):
   safe_audio_abs = tf.minimum(tf.abs(signal), 1.0)
   magnitude = tf.log1p(mu * safe_audio_abs) / tf.log1p(mu)
   signal = tf.sign(signal) * magnitude
-  return tf.to_int32((signal + 1) / 2 * mu + 0.5)
+  return tf.cast((signal + 1) / 2 * mu + 0.5, tf.int32)
 
 def _mu_law_decode(output, channels):
   mu = channels - 1

@@ -188,9 +188,8 @@ class TransformerDecoder(Decoder):
           dtype=self.params['dtype'],
       )
     if self.mode == "train":
-      decoder_inputs = tf.nn.dropout(
-          decoder_inputs, 1 - self.params["layer_postprocess_dropout"],
-      )
+        decoder_inputs = tf.nn.dropout(decoder_inputs,
+            keep_prob = 1 - self.params["layer_postprocess_dropout"] )
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)

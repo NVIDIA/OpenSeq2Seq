@@ -18,10 +18,10 @@ class LayerNormalization(tf.layers.Layer):
 
   def build(self, _):
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
-                                 initializer=tf.ones_initializer(dtype=tf.float32),
+                                 initializer= tf.keras.initializers.Ones(), #dtype=tf.float32), #tf.ones_initializer(dtype=tf.float32),
                                  dtype=tf.float32)
     self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
-                                initializer=tf.zeros_initializer(dtype=tf.float32),
+                                initializer=tf.keras.initializers.Zeros(), #dtype=tf.float32), #tf.zeros_initializer(dtype=tf.float32),
                                 dtype=tf.float32)
     self.built = True
 
@@ -55,5 +55,5 @@ class PrePostProcessingWrapper(object):
 
     # Postprocessing: apply dropout and residual connection
     if self.train:
-      y = tf.nn.dropout(y, 1 - self.postprocess_dropout)
+      y = tf.nn.dropout(y, keep_prob = 1 - self.postprocess_dropout)
     return x + y

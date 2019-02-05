@@ -21,6 +21,7 @@ num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+#data_root = "/raid/wmt16/"
 
 base_params = {
   "use_horovod": True,
@@ -32,7 +33,7 @@ base_params = {
   "print_samples_steps": 100,
   "eval_steps": 4001,
   "save_checkpoint_steps": 299998,
-  "logdir": "Transformer-FP32-H-256",
+  "logdir": "logs/transformer/",
   "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   #"dtype": "mixed",
   #"loss_scaling": "Backoff",

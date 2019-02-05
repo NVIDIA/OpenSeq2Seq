@@ -131,8 +131,8 @@ class TransformerEncoder(Encoder):
                                                    dtype=embedded_inputs.dtype)
 
       if self.mode == "train":
-        encoder_inputs = tf.nn.dropout(
-            encoder_inputs, 1 - self.params["layer_postprocess_dropout"],
+        encoder_inputs = tf.nn.dropout(encoder_inputs,
+            keep_prob = 1.0 - self.params["layer_postprocess_dropout"],
         )
 
       encoded = self._call(encoder_inputs, inputs_attention_bias,
