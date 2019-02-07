@@ -48,7 +48,7 @@ class LayerNormalization(tf.layers.Layer):
     self.epsilon = params.get("epsilon", 1e-6)
 
   def build(self, _):
-    print ("Layer norm:", self.norm_type, self.dtype)
+    #print ("Layer norm:", self.norm_type, self.dtype)
     dtype = tf.float32
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
                                  initializer= tf.keras.initializers.Ones(),
