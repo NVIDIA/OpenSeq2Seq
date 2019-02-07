@@ -43,7 +43,6 @@ class Attention(tf.layers.Layer):
     self.attention_dropout = attention_dropout
     self.train = train
     self.mode = mode
-    #self.regularizer = regularizer
 
     # Layers for linearly projecting the queries, keys, and values.
     self.q_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="q",
@@ -116,7 +115,6 @@ class Attention(tf.layers.Layer):
     # learned projections. This is in preparation of splitting them into
     # multiple heads. Multi-head attention uses multiple queries, keys, and
     # values rather than regular attention (which uses a single q, k, v).
-
     q = self.q_dense_layer(x)
     k = self.k_dense_layer(y)
     v = self.v_dense_layer(y)
@@ -179,7 +177,7 @@ class Attention(tf.layers.Layer):
       )
 
     if self.train:
-      weights = tf.nn.dropout(weights, 1.0 - self.attention_dropout)
+      weights = tf.nn.dropout(weights, keep_prob = 1 - self.attention_dropout)
     attention_output = tf.matmul(weights, v)
 
     # Recombine heads --> [batch_size, length, hidden_size]

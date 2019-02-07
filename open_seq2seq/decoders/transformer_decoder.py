@@ -209,14 +209,13 @@ class TransformerDecoder(Decoder):
           dtype=self.params['dtype'],
       )
     if self.mode == "train":
-      decoder_inputs = tf.nn.dropout(
-          decoder_inputs, 1 - self.params["layer_postprocess_dropout"],
-      )
+        decoder_inputs = tf.nn.dropout(decoder_inputs,
+            keep_prob = 1 - self.params["layer_postprocess_dropout"] )
 
     # Run values
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
-                                            #dtype = tf.float32
-                                            dtype=self._params["dtype"]
+                                            dtype = tf.float32
+                                            # dtype=self._params["dtype"]
                                             )
 
     # do decode
@@ -237,8 +236,8 @@ class TransformerDecoder(Decoder):
         max_decode_length + 1, self.params["hidden_size"],
     )
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
-        max_decode_length,
-        dtype=self._params["dtype"]
+        max_decode_length, dtype = tf.float32
+        # dtype=self._params["dtype"]
     )
 
     def symbols_to_logits_fn(ids, i, cache):

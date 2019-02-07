@@ -48,14 +48,16 @@ class LayerNormalization(tf.layers.Layer):
     self.epsilon = params.get("epsilon", 1e-6)
 
   def build(self, _):
-    #print ("Layer norm:", self.norm_type, self.dtype)`
+    print ("Layer norm:", self.norm_type, self.dtype)
     dtype = tf.float32
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
-                           initializer=tf.ones_initializer(dtype=dtype),
-                           dtype=dtype)
+                                 initializer= tf.keras.initializers.Ones(),
+                                 #tf.ones_initializer(dtype=tf.float32),
+                                 dtype=tf.float32)
     self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
-                           initializer=tf.zeros_initializer(dtype=dtype),
-                           dtype=dtype)
+                                 initializer=tf.keras.initializers.Zeros(),
+                                 #tf.zeros_initializer(dtype=tf.float32),
+                                 dtype=tf.float32)
     self.built = True
 
   # def call(self, x, epsilon=1e-6):
@@ -68,27 +70,28 @@ class LayerNormalization(tf.layers.Layer):
   #   return tf.cast(x=result, dtype=dtype)
 
   def call(self, x): # epsilon=1e-6):
-    dtype = x.dtype
-    if dtype==tf.float16:
-      x = tf.cast(x, dtype=tf.float32)
-
-    mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
-    x = x - mean
-
     if self.norm_type=="layernorm_L2":
-      variance = tf.reduce_mean(tf.square(x), axis=[-1], keepdims=True)
-      norm_x = x * tf.rsqrt(variance + self.epsilon)
-    elif self.norm_type=="layernorm_L1":
+      epsilon = self.epsilon
+      dtype = x.dtype
+      x = tf.cast(x=x, dtype=tf.float32)
+      mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
+      variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
+      norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
+      result = norm_x * self.scale + self.bias
+      return tf.cast(x=result, dtype=dtype)
+
+    else: #if self.norm_type=="layernorm_L1":
+      dtype = x.dtype
+      if dtype==tf.float16:
+        x = tf.cast(x, dtype=tf.float32)
+      mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
+      x = x - mean
       variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
       norm_x = tf.div(x , variance + self.epsilon)
-    else:
-      print("WARNING: Layer norm: type ", self.norm_type, "not supported")
-      norm_x = x
-
-    y = norm_x * self.scale + self.bias
-    if dtype == tf.float16:
-      y = tf.saturate_cast(y, dtype)
-    return y
+      y = norm_x * self.scale + self.bias
+      if dtype == tf.float16:
+        y = tf.saturate_cast(y, dtype)
+      return y
 
 class PrePostProcessingWrapper(object):
   """Wrapper around layer, that applies pre-processing and post-processing."""
@@ -102,20 +105,17 @@ class PrePostProcessingWrapper(object):
     if self.norm_params["type"]=="batch_norm":
       self.norm = Transformer_BatchNorm(training=training,
                                         params=self.norm_params)
-    elif self.norm_params["type"]=="layernorm_L2" or \
-            self.norm_params["type"]=="layernorm_L1":
-      self.norm = LayerNormalization(hidden_size=params["hidden_size"],
-                                     params=self.norm_params)
     else:
-      print("WARNING: PrePostProcessingWrapper: unkonwn type=", self.norm_type)
+      # self.norm_params["type"]=="layernorm_L2" or
+      # self.norm_params["type"]=="layernorm_L1":
       self.norm = LayerNormalization(hidden_size=params["hidden_size"],
                                      params=self.norm_params)
 
   def __call__(self, x, *args, **kwargs):
     # Preprocessing: normalization
-    x_norm = self.norm(x)
-    y = self.layer(x_norm, *args, **kwargs)
+    y = self.norm(x)
+    y = self.layer(y, *args, **kwargs)
     # Postprocessing: dropout and residual connection
     if self.training:
-      y = tf.nn.dropout(y, 1 - self.postprocess_dropout)
+      y = tf.nn.dropout(y, keep_prob = 1 - self.postprocess_dropout)
     return x + y

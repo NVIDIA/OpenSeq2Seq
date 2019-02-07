@@ -70,10 +70,10 @@ class BasicSequenceLoss(Loss):
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      )) - 1
+      ), tf.int32) - 1
 
       logits = tf.slice(
           logits,
@@ -84,10 +84,10 @@ class BasicSequenceLoss(Loss):
                                  begin=[0, 1],
                                  size=[-1, current_ts])
     else:
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      ))
+      ),tf.int32)
 
     # Cast logits after potential slice
     if logits.dtype.base_dtype != tf.float32:
@@ -177,10 +177,10 @@ class CrossEntropyWithSmoothing(Loss):
 
     if self._offset_target_by_one:
       # this is necessary for auto-regressive models
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      )) - 1
+      ),tf.int32) - 1
 
       logits = tf.slice(
           logits,
@@ -191,10 +191,10 @@ class CrossEntropyWithSmoothing(Loss):
                                  begin=[0, 1],
                                  size=[-1, current_ts])
     else:
-      current_ts = tf.to_int32(tf.minimum(
+      current_ts = tf.cast(tf.minimum(
           tf.shape(target_sequence)[1],
           tf.shape(logits)[1],
-      ))
+      ), tf.int32)
 
     # Cast logits after potential slice
     if logits.dtype.base_dtype != tf.float32:
@@ -275,14 +275,14 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
         y = tf.pad(y, [[0, 0], [0, max_length - y_length]])
         return x, y
 
-    with tf.name_scope("loss", [logits, labels]):
+    with tf.name_scope(name="loss", values= [logits, labels]):
       logits, labels = _pad_tensors_to_same_length(logits, labels)
 
       # Calculate smoothing cross entropy
-      with tf.name_scope("smoothing_cross_entropy", [logits, labels]):
+      with tf.name_scope(name="smoothing_cross_entropy", values=[logits, labels]):
         confidence = 1.0 - self._label_smoothing
         low_confidence = (1.0 - confidence) / \
-            tf.to_float(self._tgt_vocab_size - 1)
+            tf.cast(self._tgt_vocab_size - 1, dtype=tf.float32)
         soft_targets = tf.one_hot(
             tf.cast(labels, tf.int32),
             depth=self._tgt_vocab_size,
@@ -297,12 +297,12 @@ class PaddedCrossEntropyLossWithSmoothing(Loss):
         # subtract from the cross entropy loss.
         normalizing_constant = -(
             confidence * tf.log(confidence) +
-            tf.to_float(self._tgt_vocab_size - 1) *
+            tf.cast(self._tgt_vocab_size - 1, dtype=tf.float32) *
             low_confidence * tf.log(low_confidence + 1e-20)
         )
         xentropy -= normalizing_constant
 
-      weights = tf.to_float(tf.not_equal(labels, 0))
+      weights = tf.cast(tf.not_equal(labels, 0), dtype=tf.float32)
       xentropy = xentropy * weights
       loss = tf.reduce_sum(xentropy * weights) / tf.reduce_sum(weights)
 
@@ -408,10 +408,10 @@ class BasicSampledSequenceLoss(Loss):
 
       if self._offset_target_by_one:
         # this is necessary for auto-regressive models
-        current_ts = tf.to_int32(tf.minimum(
+        current_ts = tf.cast(tf.minimum(
             tf.shape(target_sequence)[1],
             tf.shape(logits)[1],
-        )) - 1
+        ), tf.int32) - 1
 
         logits = tf.slice(
             logits,
@@ -422,10 +422,10 @@ class BasicSampledSequenceLoss(Loss):
                                    begin=[0, 1],
                                    size=[-1, current_ts])
       else:
-        current_ts = tf.to_int32(tf.minimum(
+        current_ts = tf.cast(tf.minimum(
             tf.shape(target_sequence)[1],
             tf.shape(logits)[1],
-        ))
+        ),tf.int32)
 
       # Cast logits after potential slice
       if logits.dtype.base_dtype != tf.float32:

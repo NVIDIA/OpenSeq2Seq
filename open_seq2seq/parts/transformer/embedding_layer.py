@@ -68,9 +68,9 @@ class EmbeddingSharedWeights(tf.layers.Layer):
     """
     with tf.name_scope("embedding"):
       # fills out of bound values with padding symbol
-      out_bound_mask = tf.to_int32(x > (self.vocab_size - 1))
+      out_bound_mask = tf.cast(x > (self.vocab_size - 1), dtype=tf.int32)
       x *= 1 - out_bound_mask
-      x += out_bound_mask * tf.to_int32(self.pad_sym)
+      x += out_bound_mask * tf.cast(self.pad_sym, dtype=tf.int32)
 
       embeddings = tf.gather(self.shared_weights, x)
       if self.embed_scale:
