@@ -192,7 +192,25 @@ def griffin_lim(magnitudes, n_iters=50, n_fft=1024):
     signal = librosa.istft(complex_spec)
   return signal
 
-
+def fast_griffin_lim(magnitudes, n_iters=50, n_fft=1024, alpha_loc=0.1, alpha_scale=0.4, hop_length=256):
+  '''
+    This version of Griffin-Lim converges faster
+    magnitudes -> Magnitude Spectrogram
+    n_iters -> number of iterations to run (ideally max(50,original_griffin_lim/2))
+  '''
+  mag = magnitudes
+  approximated_signal= None
+  for k in range(n_iters):
+      if approximated_signal is None:
+          phase = np.random.randn(*mag.shape)
+      else:
+          F_x = librosa.stft(approximated_signal, n_fft=n_fft, hop_length=hop_length)
+          phase = np.angle(F_x)
+      F_x = mag * np.exp(1j * phase)
+      alpha = np.random.normal(alpha_loc, alpha_scale)
+      mag = magnitudes + (alpha * np.abs(F_x))
+      approximated_signal = librosa.istft(F_x, hop_length=hop_length)
+  return approximated_signal
 
 class Text2Speech(EncoderDecoderModel):
 
