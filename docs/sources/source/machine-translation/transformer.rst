@@ -71,6 +71,6 @@ Other languages
 ~~~~~~~~
 There is support for the following language combinations:
 
-*  `English to German <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de)>`_
+*  `English to German <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de>`_
 *  `English to Spanish <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-es>`_
 *  `Spanish to English <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/es-en>`_
