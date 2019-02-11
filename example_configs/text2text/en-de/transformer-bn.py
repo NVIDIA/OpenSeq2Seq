@@ -35,8 +35,7 @@ attention_dropout = 0.02
 dropout = 0.3
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-#data_root = "/data/wmt16-ende-sp/"
-data_root = "/raid/wmt16/"
+data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
   "use_horovod": False, #True,
