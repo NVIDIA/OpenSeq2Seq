@@ -222,7 +222,10 @@
   <span class="k">if</span> <span class="n">master_worker</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
       <span class="c1"># noinspection PyTypeChecker</span>
-      <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+      <span class="n">saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span>
+          <span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+          <span class="n">max_to_keep</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_checkpoints&#39;</span><span class="p">]</span>
+      <span class="p">)</span>
       <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">CheckpointSaverHook</span><span class="p">(</span>
           <span class="n">checkpoint_dir</span><span class="p">,</span>
           <span class="n">saver</span><span class="o">=</span><span class="n">saver</span><span class="p">,</span>

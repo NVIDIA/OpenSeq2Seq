@@ -182,9 +182,8 @@
 
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
-<span class="c1">#_NEG_INF = -1e4</span>
 <span class="n">_NEG_INF</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1e9</span>
-
+<span class="c1">#_NEG_INF_FP16 = -1e4</span>
 
 <div class="viewcode-block" id="get_position_encoding"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_position_encoding">[docs]</a><span class="k">def</span> <span class="nf">get_position_encoding</span><span class="p">(</span>
     <span class="n">length</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">min_timescale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">max_timescale</span><span class="o">=</span><span class="mf">1.0e4</span><span class="p">):</span>
@@ -203,19 +202,19 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    Tensor with shape [length, hidden_size]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="n">position</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">length</span><span class="p">))</span>
+  <span class="n">position</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">length</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
   <span class="n">num_timescales</span> <span class="o">=</span> <span class="n">hidden_size</span> <span class="o">//</span> <span class="mi">2</span>
   <span class="n">log_timescale_increment</span> <span class="o">=</span> <span class="p">(</span>
       <span class="n">math</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">max_timescale</span><span class="p">)</span> <span class="o">/</span> <span class="nb">float</span><span class="p">(</span><span class="n">min_timescale</span><span class="p">))</span> <span class="o">/</span>
-      <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">num_timescales</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+      <span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">((</span><span class="n">num_timescales</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)))</span>
   <span class="n">inv_timescales</span> <span class="o">=</span> <span class="n">min_timescale</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
-      <span class="n">tf</span><span class="o">.</span><span class="n">to_float</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_timescales</span><span class="p">))</span> <span class="o">*</span> <span class="o">-</span><span class="n">log_timescale_increment</span><span class="p">)</span>
+      <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">range</span><span class="p">(</span><span class="n">num_timescales</span><span class="p">),</span><span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span> <span class="p">)</span> <span class="o">*</span> <span class="o">-</span><span class="n">log_timescale_increment</span><span class="p">)</span>
   <span class="n">scaled_time</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">position</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">inv_timescales</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
   <span class="n">signal</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">concat</span><span class="p">([</span><span class="n">tf</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">scaled_time</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">scaled_time</span><span class="p">)],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">signal</span></div>
 
 
-<div class="viewcode-block" id="get_decoder_self_attention_bias"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_decoder_self_attention_bias">[docs]</a><span class="k">def</span> <span class="nf">get_decoder_self_attention_bias</span><span class="p">(</span><span class="n">length</span><span class="p">):</span>
+<div class="viewcode-block" id="get_decoder_self_attention_bias"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_decoder_self_attention_bias">[docs]</a><span class="k">def</span> <span class="nf">get_decoder_self_attention_bias</span><span class="p">(</span><span class="n">length</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Calculate bias for decoder that maintains model&#39;s autoregressive property.</span>
 
 <span class="sd">  Creates a tensor that masks out locations that correspond to illegal</span>
@@ -228,11 +227,16 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    float tensor of shape [1, 1, length, length]</span>
 <span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1">#print(&quot;get_decoder_self_attention_bias&quot;, dtype)</span>
+
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;decoder_self_attention_bias&quot;</span><span class="p">):</span>
-    <span class="n">valid_locs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matrix_band_part</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">]),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="c1">#valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=dtype), -1, 0)</span>
+    <span class="n">valid_locs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">matrix_band_part</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">ones</span><span class="p">([</span><span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
     <span class="n">valid_locs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">valid_locs</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">length</span><span class="p">])</span>
-    <span class="n">decoder_bias</span> <span class="o">=</span> <span class="n">_NEG_INF</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">valid_locs</span><span class="p">)</span>
-  <span class="k">return</span> <span class="n">decoder_bias</span></div>
+    <span class="n">neg_inf</span><span class="o">=</span><span class="n">_NEG_INF</span> <span class="c1">#if (dtype==tf.float32) else _NEG_INF_FP16</span>
+    <span class="n">bias</span> <span class="o">=</span> <span class="n">neg_inf</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">valid_locs</span><span class="p">)</span>
+    <span class="c1">#bias=tf.saturate_cast(bias, dtype=dtype)</span>
+  <span class="k">return</span> <span class="n">bias</span></div>
 
 
 <div class="viewcode-block" id="get_padding"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_padding">[docs]</a><span class="k">def</span> <span class="nf">get_padding</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
@@ -244,14 +248,15 @@
 <span class="sd">    dtype: type of the output</span>
 
 <span class="sd">  Returns:</span>
-<span class="sd">    flaot tensor with same shape as x containing values 0 or 1.</span>
+<span class="sd">    float tensor with same shape as x containing values 0 or 1.</span>
 <span class="sd">      0 -&gt; non-padding, 1 -&gt; padding</span>
 <span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1">#print(&quot;get_padding&quot;, dtype)</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;padding&quot;</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">equal</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">padding_value</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dtype</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_padding_bias"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_padding_bias">[docs]</a><span class="k">def</span> <span class="nf">get_padding_bias</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">res_rank</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">pad_sym</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+<div class="viewcode-block" id="get_padding_bias"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.utils.get_padding_bias">[docs]</a><span class="k">def</span> <span class="nf">get_padding_bias</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">res_rank</span><span class="o">=</span><span class="mi">4</span><span class="p">,</span> <span class="n">pad_sym</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Calculate bias tensor from padding values in tensor.</span>
 
 <span class="sd">  Bias tensor that is added to the pre-softmax multi-headed attention logits,</span>
@@ -269,9 +274,12 @@
 <span class="sd">    [batch_size, 1, 1, length] if  res_rank = 4 - for Transformer</span>
 <span class="sd">    or [batch_size, 1, length] if res_rank = 3 - for ConvS2S</span>
 <span class="sd">  &quot;&quot;&quot;</span>
+  <span class="c1">#print(&quot;get_padding_bias&quot;, dtype)</span>
   <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;attention_bias&quot;</span><span class="p">):</span>
-    <span class="n">padding</span> <span class="o">=</span> <span class="n">get_padding</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="n">pad_sym</span><span class="p">)</span>
-    <span class="n">attention_bias</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">*</span> <span class="n">_NEG_INF</span>
+    <span class="n">padding</span> <span class="o">=</span> <span class="n">get_padding</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">padding_value</span><span class="o">=</span><span class="n">pad_sym</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="c1"># padding = get_padding(x, padding_value=pad_sym, dtype=dtype)</span>
+    <span class="n">neg_inf</span><span class="o">=</span><span class="n">_NEG_INF</span> <span class="c1">#if dtype==tf.float32 else _NEG_INF_FP16</span>
+    <span class="n">attention_bias</span> <span class="o">=</span> <span class="n">padding</span> <span class="o">*</span> <span class="n">neg_inf</span>
     <span class="k">if</span> <span class="n">res_rank</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
       <span class="n">attention_bias</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">attention_bias</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="k">elif</span> <span class="n">res_rank</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>

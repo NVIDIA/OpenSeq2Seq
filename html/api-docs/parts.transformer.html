@@ -197,7 +197,7 @@
 <p>Implementation of multiheaded attention and self-attention layers.</p>
 <dl class="class">
 <dt id="parts.transformer.attention_layer.Attention">
-<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">Attention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">Attention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#Attention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.Attention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Multi-headed attention layer.</p>
 <dl class="method">
@@ -270,7 +270,7 @@ values during the matrix multiplication.</p>
 
 <dl class="class">
 <dt id="parts.transformer.attention_layer.SelfAttention">
-<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">SelfAttention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.attention_layer.</code><code class="descname">SelfAttention</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>num_heads</em>, <em>attention_dropout</em>, <em>train</em>, <em>mode='loung'</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/attention_layer.html#SelfAttention"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.attention_layer.SelfAttention" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#parts.transformer.attention_layer.Attention" title="parts.transformer.attention_layer.Attention"><code class="xref py py-class docutils literal notranslate"><span class="pre">parts.transformer.attention_layer.Attention</span></code></a></p>
 <p>Multiheaded self-attention layer.</p>
 <dl class="method">
@@ -687,9 +687,9 @@ sequence scores [batch_size, beam_size]</p>
 <span id="common"></span><h2>common<a class="headerlink" href="#module-parts.transformer.common" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="parts.transformer.common.LayerNormalization">
-<em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">LayerNormalization</code><span class="sig-paren">(</span><em>hidden_size</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">LayerNormalization</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
-<p>Applies layer normalization.</p>
+<p>Layer normalization for BTC format: supports L2(default) and L1 modes</p>
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.build">
 <code class="descname">build</code><span class="sig-paren">(</span><em>_</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.build"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.build" title="Permalink to this definition">¶</a></dt>
@@ -698,7 +698,7 @@ sequence scores [batch_size, beam_size]</p>
 
 <dl class="method">
 <dt id="parts.transformer.common.LayerNormalization.call">
-<code class="descname">call</code><span class="sig-paren">(</span><em>x</em>, <em>epsilon=1e-06</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.call" title="Permalink to this definition">¶</a></dt>
+<code class="descname">call</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#LayerNormalization.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.LayerNormalization.call" title="Permalink to this definition">¶</a></dt>
 <dd><p>This is where the layer’s logic lives.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -721,9 +721,37 @@ sequence scores [batch_size, beam_size]</p>
 
 <dl class="class">
 <dt id="parts.transformer.common.PrePostProcessingWrapper">
-<em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">PrePostProcessingWrapper</code><span class="sig-paren">(</span><em>layer</em>, <em>params</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#PrePostProcessingWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.PrePostProcessingWrapper" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">PrePostProcessingWrapper</code><span class="sig-paren">(</span><em>layer</em>, <em>params</em>, <em>training</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#PrePostProcessingWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.PrePostProcessingWrapper" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Wrapper class that applies layer pre-processing and post-processing.</p>
+<p>Wrapper around layer, that applies pre-processing and post-processing.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="parts.transformer.common.Transformer_BatchNorm">
+<em class="property">class </em><code class="descclassname">parts.transformer.common.</code><code class="descname">Transformer_BatchNorm</code><span class="sig-paren">(</span><em>training</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#Transformer_BatchNorm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.Transformer_BatchNorm" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
+<p>Transformer batch norn: supports [BTC](default) and [BCT] formats.</p>
+<dl class="method">
+<dt id="parts.transformer.common.Transformer_BatchNorm.call">
+<code class="descname">call</code><span class="sig-paren">(</span><em>x</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/common.html#Transformer_BatchNorm.call"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.common.Transformer_BatchNorm.call" title="Permalink to this definition">¶</a></dt>
+<dd><p>This is where the layer’s logic lives.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>inputs</strong> – Input tensor, or list/tuple of input tensors.</li>
+<li><strong>**kwargs</strong> – Additional keyword arguments.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">A tensor or list/tuple of tensors.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
 </dd></dl>
 
 </div>
@@ -786,7 +814,7 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <p>Implementation of fully connected network.</p>
 <dl class="class">
 <dt id="parts.transformer.ffn_layer.FeedFowardNetwork">
-<em class="property">class </em><code class="descclassname">parts.transformer.ffn_layer.</code><code class="descname">FeedFowardNetwork</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>filter_size</em>, <em>relu_dropout</em>, <em>train</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">parts.transformer.ffn_layer.</code><code class="descname">FeedFowardNetwork</code><span class="sig-paren">(</span><em>hidden_size</em>, <em>filter_size</em>, <em>relu_dropout</em>, <em>train</em>, <em>regularizer=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/ffn_layer.html#FeedFowardNetwork"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.ffn_layer.FeedFowardNetwork" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tensorflow.python.layers.base.Layer</span></code></p>
 <p>Fully connected feedforward network.</p>
 <dl class="method">
@@ -818,7 +846,7 @@ padding: float32 tensor with shape [batch_size, length] indicating the<blockquot
 <p>Transformer model helper methods.</p>
 <dl class="function">
 <dt id="parts.transformer.utils.get_decoder_self_attention_bias">
-<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_decoder_self_attention_bias</code><span class="sig-paren">(</span><em>length</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_decoder_self_attention_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_decoder_self_attention_bias" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_decoder_self_attention_bias</code><span class="sig-paren">(</span><em>length</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_decoder_self_attention_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_decoder_self_attention_bias" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate bias for decoder that maintains model’s autoregressive property.</p>
 <p>Creates a tensor that masks out locations that correspond to illegal
 connections, so prediction at position i cannot draw information from future
@@ -851,7 +879,7 @@ positions.</p>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><dl class="docutils">
-<dt>flaot tensor with same shape as x containing values 0 or 1.</dt>
+<dt>float tensor with same shape as x containing values 0 or 1.</dt>
 <dd><p class="first last">0 -&gt; non-padding, 1 -&gt; padding</p>
 </dd>
 </dl>
@@ -864,7 +892,7 @@ positions.</p>
 
 <dl class="function">
 <dt id="parts.transformer.utils.get_padding_bias">
-<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding_bias</code><span class="sig-paren">(</span><em>x</em>, <em>res_rank=4</em>, <em>pad_sym=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding_bias" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">parts.transformer.utils.</code><code class="descname">get_padding_bias</code><span class="sig-paren">(</span><em>x</em>, <em>res_rank=4</em>, <em>pad_sym=0</em>, <em>dtype=tf.float32</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/parts/transformer/utils.html#get_padding_bias"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#parts.transformer.utils.get_padding_bias" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate bias tensor from padding values in tensor.</p>
 <p>Bias tensor that is added to the pre-softmax multi-headed attention logits,
 which has shape [batch_size, num_heads, length, length]. The tensor is zero at

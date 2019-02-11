@@ -334,7 +334,10 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_model</span> <span class="o">=</span> <span class="n">model</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_triggered</span> <span class="o">=</span> <span class="kc">False</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_last_step</span> <span class="o">=</span> <span class="n">last_step</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span><span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">_eval_saver</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">Saver</span><span class="p">(</span>
+        <span class="n">save_relative_paths</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">max_to_keep</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_model</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_checkpoints&#39;</span><span class="p">]</span>
+    <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_best_eval_loss</span> <span class="o">=</span> <span class="mf">1e9</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_print_ppl</span> <span class="o">=</span> <span class="n">print_ppl</span>
 

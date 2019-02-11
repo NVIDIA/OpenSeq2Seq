@@ -66,3 +66,11 @@ Thus, in this particular configuration, *mixed precision* is about *x1.53* times
 Your speedups will vary depending on the number of GPUs, batch size per GPU, interconnect between GPUs and software versions.
 Since *mixed precision* almost halves memory requirements per GPU, it is sometimes possible to fit a double batch size in *mixed precision* model, therefore,
 achieving even bigger speedups.
+
+Other languages
+~~~~~~~~
+There is support for the following language combinations:
+
+*  `English to German <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de>`_
+*  `English to Spanish <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-es>`_
+*  `Spanish to English <https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/es-en>`_

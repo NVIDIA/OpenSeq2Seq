@@ -92,6 +92,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#model">Model</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#training">Training</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#mixed-precision">Mixed Precision</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#other-languages">Other languages</a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="convs2s.html">ConvS2S</a></li>
@@ -228,6 +229,15 @@ how many steps per second each model achieves:</p>
 Your speedups will vary depending on the number of GPUs, batch size per GPU, interconnect between GPUs and software versions.
 Since <em>mixed precision</em> almost halves memory requirements per GPU, it is sometimes possible to fit a double batch size in <em>mixed precision</em> model, therefore,
 achieving even bigger speedups.</p>
+</div>
+<div class="section" id="other-languages">
+<h2>Other languages<a class="headerlink" href="#other-languages" title="Permalink to this headline">¶</a></h2>
+<p>There is support for the following language combinations:</p>
+<ul class="simple">
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-de">English to German</a></li>
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/en-es">English to Spanish</a></li>
+<li><a class="reference external" href="https://github.com/NVIDIA/OpenSeq2Seq/tree/master/example_configs/text2text/es-en">Spanish to English</a></li>
+</ul>
 </div>
 </div>
 

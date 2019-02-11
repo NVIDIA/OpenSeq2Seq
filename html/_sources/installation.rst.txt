@@ -13,7 +13,7 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
 
    use version compatible with nvidia-docker, e.g.::
 
-    sudo apt-get install docker-ce=5:18.09.03-0ubuntu-xenial
+    sudo apt-get install docker-ce=5:18.09.1~3-0~ubuntu-xenial
 
 3. Verify the installation::
 
@@ -34,7 +34,7 @@ The recommended way to install OpenSeq2Seq is to use NVIDIA TensorFlow Docker co
 
     see https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html::
 
-    docker pull nvcr.io/nvidia/tensorflow:18.12-py3
+    docker pull nvcr.io/nvidia/tensorflow:19.01-py3
 
 7. Run contrainer::
 
@@ -118,9 +118,9 @@ First of all, make sure that you installed CUDA >= 9.2, cuDNN >= 7.0, NCCL >= 2.
         ln -s <kenlm location> kenlm
         cd ..
 
-3. Download and build TensorFlow with custom decoder operation (make sure that you have Bazel >= 0.15)::
+3. Download and build the latest stable 1.x TensorFlow with custom decoder operation (make sure that you have Bazel >= 0.15)::
 
-        git clone https://github.com/tensorflow/tensorflow
+        git clone https://github.com/tensorflow/tensorflow -b r1.13
         cd tensorflow
         ./configure
         ln -s <OpenSeq2Seq location>/ctc_decoder_with_lm ./

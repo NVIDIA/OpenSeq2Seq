@@ -170,7 +170,7 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer</span> <span class="k">import</span> <span class="n">utils</span><span class="p">,</span> <span class="n">attention_layer</span><span class="p">,</span> \
                                            <span class="n">ffn_layer</span><span class="p">,</span> <span class="n">beam_search</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.parts.transformer.common</span> <span class="k">import</span> <span class="n">PrePostProcessingWrapper</span><span class="p">,</span> \
-                                                  <span class="n">LayerNormalization</span>
+                                    <span class="n">LayerNormalization</span><span class="p">,</span> <span class="n">Transformer_BatchNorm</span>
 <span class="kn">from</span> <span class="nn">.decoder</span> <span class="k">import</span> <span class="n">Decoder</span>
 
 
@@ -219,6 +219,7 @@
         <span class="s1">&#39;GO_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;PAD_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;END_SYMBOL&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;norm_params&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
     <span class="p">})</span></div>
 
   <span class="k">def</span> <span class="nf">_cast_types</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
@@ -235,6 +236,13 @@
     <span class="c1"># also final projection = transpose(E_weights), we currently only support</span>
     <span class="c1"># this behaviour</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;shared_embed&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">norm_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;norm_params&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;layernorm_L2&quot;</span> <span class="p">})</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regularizer&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span> <span class="o">!=</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_params</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;regularizer_params&quot;</span><span class="p">,</span> <span class="p">{</span><span class="s1">&#39;scale&#39;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">})</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer_params</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">])</span> \
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">regularizer_params</span><span class="p">[</span><span class="s1">&#39;scale&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mf">0.0</span> <span class="k">else</span> <span class="kc">None</span>
+      <span class="c1">#print(&quot;reg&quot;, self.regularizer)</span>
 
   <span class="k">def</span> <span class="nf">_decode</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">):</span>
     <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">in</span> <span class="n">input_dict</span><span class="p">:</span>
@@ -250,36 +258,49 @@
     <span class="p">)</span>
 
     <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="s2">&quot;decode&quot;</span><span class="p">):</span>
+      <span class="n">training</span> <span class="o">=</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
       <span class="c1"># prepare decoder layers</span>
       <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_hidden_layers&quot;</span><span class="p">]):</span>
           <span class="n">self_attention_layer</span> <span class="o">=</span> <span class="n">attention_layer</span><span class="o">.</span><span class="n">SelfAttention</span><span class="p">(</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_heads&quot;</span><span class="p">],</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;attention_dropout&quot;</span><span class="p">],</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+            <span class="n">num_heads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_heads&quot;</span><span class="p">],</span>
+            <span class="n">attention_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;attention_dropout&quot;</span><span class="p">],</span>
+            <span class="n">train</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span>
           <span class="p">)</span>
           <span class="n">enc_dec_attention_layer</span> <span class="o">=</span> <span class="n">attention_layer</span><span class="o">.</span><span class="n">Attention</span><span class="p">(</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_heads&quot;</span><span class="p">],</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;attention_dropout&quot;</span><span class="p">],</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+            <span class="n">num_heads</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_heads&quot;</span><span class="p">],</span>
+            <span class="n">attention_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;attention_dropout&quot;</span><span class="p">],</span>
+            <span class="n">train</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span>
           <span class="p">)</span>
           <span class="n">feed_forward_network</span> <span class="o">=</span> <span class="n">ffn_layer</span><span class="o">.</span><span class="n">FeedFowardNetwork</span><span class="p">(</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;filter_size&quot;</span><span class="p">],</span>
-              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;relu_dropout&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">,</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+            <span class="n">filter_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;filter_size&quot;</span><span class="p">],</span>
+            <span class="n">relu_dropout</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;relu_dropout&quot;</span><span class="p">],</span>
+            <span class="n">train</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">regularizer</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">regularizer</span>
           <span class="p">)</span>
 
           <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">append</span><span class="p">([</span>
               <span class="n">PrePostProcessingWrapper</span><span class="p">(</span><span class="n">self_attention_layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">),</span>
+                                       <span class="n">training</span><span class="p">),</span>
               <span class="n">PrePostProcessingWrapper</span><span class="p">(</span><span class="n">enc_dec_attention_layer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">),</span>
+                                       <span class="n">training</span><span class="p">),</span>
               <span class="n">PrePostProcessingWrapper</span><span class="p">(</span><span class="n">feed_forward_network</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">,</span>
-                                       <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">)</span>
+                                       <span class="n">training</span><span class="p">)</span>
           <span class="p">])</span>
-
-        <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">]</span>
-        <span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Decoder:&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">norm_params</span><span class="p">[</span><span class="s2">&quot;type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;batch_norm&quot;</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="n">Transformer_BatchNorm</span><span class="p">(</span>
+            <span class="n">training</span><span class="o">=</span><span class="n">training</span><span class="p">,</span>
+            <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">output_normalization</span> <span class="o">=</span> <span class="n">LayerNormalization</span><span class="p">(</span>
+            <span class="n">hidden_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
+            <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">norm_params</span><span class="p">)</span>
 
       <span class="k">if</span> <span class="n">targets</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">encoder_outputs</span><span class="p">,</span> <span class="n">inputs_attention_bias</span><span class="p">)</span>
@@ -348,12 +369,14 @@
           <span class="n">dtype</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">],</span>
       <span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span><span class="p">:</span>
-      <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span>
-          <span class="n">decoder_inputs</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;layer_postprocess_dropout&quot;</span><span class="p">],</span>
-      <span class="p">)</span>
+        <span class="n">decoder_inputs</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">decoder_inputs</span><span class="p">,</span>
+            <span class="n">keep_prob</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;layer_postprocess_dropout&quot;</span><span class="p">]</span> <span class="p">)</span>
 
     <span class="c1"># Run values</span>
-    <span class="n">decoder_self_attention_bias</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_decoder_self_attention_bias</span><span class="p">(</span><span class="n">length</span><span class="p">)</span>
+    <span class="n">decoder_self_attention_bias</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_decoder_self_attention_bias</span><span class="p">(</span><span class="n">length</span><span class="p">,</span>
+                                            <span class="n">dtype</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
+                                            <span class="c1"># dtype=self._params[&quot;dtype&quot;]</span>
+                                            <span class="p">)</span>
 
     <span class="c1"># do decode</span>
     <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_call</span><span class="p">(</span>
@@ -373,7 +396,8 @@
         <span class="n">max_decode_length</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;hidden_size&quot;</span><span class="p">],</span>
     <span class="p">)</span>
     <span class="n">decoder_self_attention_bias</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">get_decoder_self_attention_bias</span><span class="p">(</span>
-        <span class="n">max_decode_length</span><span class="p">,</span>
+        <span class="n">max_decode_length</span><span class="p">,</span> <span class="n">dtype</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span>
+        <span class="c1"># dtype=self._params[&quot;dtype&quot;]</span>
     <span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">symbols_to_logits_fn</span><span class="p">(</span><span class="n">ids</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">cache</span><span class="p">):</span>

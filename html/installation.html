@@ -183,7 +183,7 @@
 </li>
 <li><p class="first">Install Docker ( see <a class="reference external" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites">https://docs.docker.com/install/linux/docker-ce/ubuntu/#prerequisites</a> )</p>
 <p>use version compatible with nvidia-docker, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">docker</span><span class="o">-</span><span class="n">ce</span><span class="o">=</span><span class="mi">5</span><span class="p">:</span><span class="mf">18.09</span><span class="o">.</span><span class="mi">03</span><span class="o">-</span><span class="mi">0</span><span class="n">ubuntu</span><span class="o">-</span><span class="n">xenial</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sudo</span> <span class="n">apt</span><span class="o">-</span><span class="n">get</span> <span class="n">install</span> <span class="n">docker</span><span class="o">-</span><span class="n">ce</span><span class="o">=</span><span class="mi">5</span><span class="p">:</span><span class="mf">18.09</span><span class="o">.</span><span class="mi">1</span><span class="o">~</span><span class="mi">3</span><span class="o">-</span><span class="mi">0</span><span class="o">~</span><span class="n">ubuntu</span><span class="o">-</span><span class="n">xenial</span>
 </pre></div>
 </div>
 </li>
@@ -207,7 +207,7 @@
 <li><p class="first">Pull latest NVIDIA TensorFlow container from NVIDIA GPU Cloud</p>
 <blockquote>
 <div><p>see <a class="reference external" href="https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html">https://docs.nvidia.com/deeplearning/dgx/tensorflow-user-guide/index.html</a>:</p>
-<p>docker pull nvcr.io/nvidia/tensorflow:18.12-py3</p>
+<p>docker pull nvcr.io/nvidia/tensorflow:19.01-py3</p>
 </div></blockquote>
 </li>
 <li><p class="first">Run contrainer:</p>
@@ -290,8 +290,8 @@ you will need to set the corresponding symlink:</p>
 </pre></div>
 </div>
 </li>
-<li><p class="first">Download and build TensorFlow with custom decoder operation (make sure that you have Bazel &gt;= 0.15):</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span>
+<li><p class="first">Download and build the latest stable 1.x TensorFlow with custom decoder operation (make sure that you have Bazel &gt;= 0.15):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">git</span> <span class="n">clone</span> <span class="n">https</span><span class="p">:</span><span class="o">//</span><span class="n">github</span><span class="o">.</span><span class="n">com</span><span class="o">/</span><span class="n">tensorflow</span><span class="o">/</span><span class="n">tensorflow</span> <span class="o">-</span><span class="n">b</span> <span class="n">r1</span><span class="o">.</span><span class="mi">13</span>
 <span class="n">cd</span> <span class="n">tensorflow</span>
 <span class="o">./</span><span class="n">configure</span>
 <span class="n">ln</span> <span class="o">-</span><span class="n">s</span> <span class="o">&lt;</span><span class="n">OpenSeq2Seq</span> <span class="n">location</span><span class="o">&gt;/</span><span class="n">ctc_decoder_with_lm</span> <span class="o">./</span>

@@ -241,11 +241,11 @@
     <span class="n">spec</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">spec</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
     <span class="n">stop_token</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">stop_token</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 
-    <span class="n">max_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span>
+    <span class="n">max_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
         <span class="n">tf</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span>
             <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">spec</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
             <span class="n">tf</span><span class="o">.</span><span class="n">shape</span><span class="p">(</span><span class="n">decoder_predictions</span><span class="p">)[</span><span class="mi">1</span><span class="p">],</span>
-        <span class="p">)</span>
+        <span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span>
     <span class="p">)</span>
 
     <span class="n">decoder_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span>

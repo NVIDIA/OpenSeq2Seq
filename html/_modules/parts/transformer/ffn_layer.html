@@ -184,17 +184,29 @@
 <div class="viewcode-block" id="FeedFowardNetwork"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.ffn_layer.FeedFowardNetwork">[docs]</a><span class="k">class</span> <span class="nc">FeedFowardNetwork</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Layer</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Fully connected feedforward network.&quot;&quot;&quot;</span>
 
-  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">relu_dropout</span><span class="p">,</span> <span class="n">train</span><span class="p">):</span>
+  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">hidden_size</span><span class="p">,</span> <span class="n">filter_size</span><span class="p">,</span> <span class="n">relu_dropout</span><span class="p">,</span> <span class="n">train</span><span class="p">,</span> <span class="n">regularizer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">FeedFowardNetwork</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span> <span class="o">=</span> <span class="n">hidden_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">filter_size</span> <span class="o">=</span> <span class="n">filter_size</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">relu_dropout</span> <span class="o">=</span> <span class="n">relu_dropout</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">train</span> <span class="o">=</span> <span class="n">train</span>
 
+    <span class="c1"># regularizer = tf.contrib.layers.l2_regularizer(0.0005)</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">filter_dense_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
-        <span class="n">filter_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;filter_layer&quot;</span><span class="p">)</span>
+        <span class="n">filter_size</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">activation</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">relu</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;filter_layer&quot;</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">bias_regularizer</span><span class="o">=</span><span class="n">regularizer</span>
+    <span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">output_dense_layer</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">layers</span><span class="o">.</span><span class="n">Dense</span><span class="p">(</span>
-        <span class="n">hidden_size</span><span class="p">,</span> <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;output_layer&quot;</span><span class="p">)</span>
+        <span class="n">hidden_size</span><span class="p">,</span>
+        <span class="n">use_bias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="s2">&quot;output_layer&quot;</span><span class="p">,</span>
+        <span class="n">kernel_regularizer</span><span class="o">=</span><span class="n">regularizer</span><span class="p">,</span>
+        <span class="n">bias_regularizer</span><span class="o">=</span><span class="n">regularizer</span> <span class="p">)</span>
 
 <div class="viewcode-block" id="FeedFowardNetwork.call"><a class="viewcode-back" href="../../../api-docs/parts.transformer.html#parts.transformer.ffn_layer.FeedFowardNetwork.call">[docs]</a>  <span class="k">def</span> <span class="nf">call</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="c1"># Retrieve dynamically known shapes</span>
@@ -206,7 +218,7 @@
         <span class="c1"># Flatten padding to [batch_size*length]</span>
         <span class="n">pad_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">padding</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
 
-        <span class="n">nonpad_ids</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pad_mask</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">))</span>
+        <span class="n">nonpad_ids</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">pad_mask</span> <span class="o">&lt;</span> <span class="mf">1e-9</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
 
         <span class="c1"># Reshape x to [batch_size*length, hidden_size] to remove padding</span>
         <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">hidden_size</span><span class="p">])</span>
@@ -218,7 +230,7 @@
 
     <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filter_dense_layer</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">train</span><span class="p">:</span>
-      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="mf">1.0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu_dropout</span><span class="p">)</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">nn</span><span class="o">.</span><span class="n">dropout</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">keep_prob</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">relu_dropout</span><span class="p">)</span>
     <span class="n">output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dense_layer</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">padding</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>

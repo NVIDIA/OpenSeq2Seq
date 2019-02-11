@@ -225,6 +225,7 @@
         <span class="s1">&#39;print_samples_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
         <span class="s1">&#39;save_checkpoint_steps&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># could be int or None</span>
+        <span class="s1">&#39;num_checkpoints&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>  <span class="c1"># maximum number of last checkpoints to keep</span>
         <span class="s1">&#39;restore_best_checkpoint&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span> <span class="c1"># if True,restore best check point instead of latest checkpoint</span>
         <span class="s1">&#39;eval_steps&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;finetune&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
@@ -326,6 +327,7 @@
 <span class="sd">      after the last iteration.</span>
 <span class="sd">    * **save_checkpoint_steps** (int or None) --- how often to save model</span>
 <span class="sd">      checkpoints. Setting it to None disables checkpoint saving.</span>
+<span class="sd">    * **num_checkpoints** (int) --- number of last checkpoints to keep.</span>
 <span class="sd">    * **eval_steps** (int) --- how often to run evaluation during training.</span>
 <span class="sd">      This parameter is only checked if ``--mode`` argument of ``run.py`` is</span>
 <span class="sd">      &quot;train\_eval&quot;. If no evaluation is needed you should use &quot;train&quot; mode.</span>
@@ -427,6 +429,7 @@
     <span class="k">if</span> <span class="s1">&#39;print_bench_info_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">:</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;print_bench_info_steps&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;num_checkpoints&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_checkpoints&#39;</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;finetune&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;finetune&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="c1"># self._params[&#39;base_logdir&#39;] = self._params.get(&#39;base_logdir&#39;, None)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="p">[</span><span class="s1">&#39;load_model&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;load_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>

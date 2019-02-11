@@ -182,6 +182,7 @@
 
 <span class="kn">import</span> <span class="nn">collections</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops</span> <span class="k">import</span> <span class="n">beam_search_ops</span>
 <span class="kn">from</span> <span class="nn">tensorflow.contrib.seq2seq.python.ops</span> <span class="k">import</span> <span class="n">decoder</span>
@@ -511,8 +512,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">del</span> <span class="n">sequence_lengths</span>
     <span class="c1"># Get max_sequence_length across all beams for each batch.</span>
-    <span class="n">max_sequence_lengths</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span>
-        <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">lengths</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+    <span class="n">max_sequence_lengths</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span>
+        <span class="n">math_ops</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">final_state</span><span class="o">.</span><span class="n">lengths</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
     <span class="n">predicted_ids</span> <span class="o">=</span> <span class="n">beam_search_ops</span><span class="o">.</span><span class="n">gather_tree</span><span class="p">(</span>
         <span class="n">outputs</span><span class="o">.</span><span class="n">predicted_ids</span><span class="p">,</span>
         <span class="n">outputs</span><span class="o">.</span><span class="n">parent_ids</span><span class="p">,</span>
@@ -735,7 +736,7 @@
       <span class="n">on_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">0</span><span class="p">),</span>
       <span class="n">off_value</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int64</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span>
       <span class="n">dtype</span><span class="o">=</span><span class="n">dtypes</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
-  <span class="n">add_mask</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_int64</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">previously_finished</span><span class="p">))</span>
+  <span class="n">add_mask</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">previously_finished</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
   <span class="n">lengths_to_add</span> <span class="o">*=</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">add_mask</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
   <span class="n">new_prediction_lengths</span> <span class="o">=</span> <span class="p">(</span>
       <span class="n">lengths_to_add</span> <span class="o">+</span> <span class="n">array_ops</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">prediction_lengths</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
@@ -776,10 +777,9 @@
   <span class="c1"># the op which prevents capturing it with tfdbg debug ops.</span>
   <span class="n">raw_next_word_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span>
       <span class="n">word_indices</span><span class="p">,</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;next_beam_word_ids&quot;</span><span class="p">)</span>
-  <span class="n">next_word_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span><span class="n">raw_next_word_ids</span><span class="p">)</span>
-  <span class="n">next_beam_ids</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_int32</span><span class="p">(</span>
-      <span class="n">word_indices</span> <span class="o">/</span> <span class="n">vocab_size</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;next_beam_parent_ids&quot;</span><span class="p">)</span>
-
+  <span class="n">next_word_ids</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">raw_next_word_ids</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
+  <span class="n">next_beam_ids</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">word_indices</span> <span class="o">/</span> <span class="n">vocab_size</span><span class="p">,</span>
+                          <span class="n">name</span><span class="o">=</span><span class="s2">&quot;next_beam_parent_ids&quot;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">tf</span><span class="o">.</span><span class="n">int32</span><span class="p">)</span>
   <span class="c1"># Append new ids to current predictions</span>
   <span class="n">previously_finished</span> <span class="o">=</span> <span class="n">_tensor_gather_helper</span><span class="p">(</span>
       <span class="n">gather_indices</span><span class="o">=</span><span class="n">next_beam_ids</span><span class="p">,</span>
@@ -797,7 +797,7 @@
   <span class="c1"># 2. Beams that are now finished (EOS predicted) have their length</span>
   <span class="c1">#    increased by 1.</span>
   <span class="c1"># 3. Beams that are not yet finished have their length increased by 1.</span>
-  <span class="n">lengths_to_add</span> <span class="o">=</span> <span class="n">math_ops</span><span class="o">.</span><span class="n">to_int64</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">previously_finished</span><span class="p">))</span>
+  <span class="n">lengths_to_add</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">math_ops</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(</span><span class="n">previously_finished</span><span class="p">),</span> <span class="n">tf</span><span class="o">.</span><span class="n">int64</span><span class="p">)</span>
   <span class="n">next_prediction_len</span> <span class="o">=</span> <span class="n">_tensor_gather_helper</span><span class="p">(</span>
       <span class="n">gather_indices</span><span class="o">=</span><span class="n">next_beam_ids</span><span class="p">,</span>
       <span class="n">gather_from</span><span class="o">=</span><span class="n">beam_state</span><span class="o">.</span><span class="n">lengths</span><span class="p">,</span>
