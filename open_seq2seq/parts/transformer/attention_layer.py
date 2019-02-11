@@ -30,7 +30,8 @@ class Attention(tf.layers.Layer):
       num_heads,
       attention_dropout,
       train,
-      mode="loung"
+      mode="loung",
+      regularizer=None
   ):
     if hidden_size % num_heads != 0:
       raise ValueError("Hidden size must be evenly divisible by the number of "
@@ -44,12 +45,15 @@ class Attention(tf.layers.Layer):
     self.mode = mode
 
     # Layers for linearly projecting the queries, keys, and values.
-    self.q_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="q")
-    self.k_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="k")
-    self.v_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="v")
-
+    self.q_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="q",
+                                         kernel_regularizer=regularizer)
+    self.k_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="k",
+                                         kernel_regularizer=regularizer)
+    self.v_dense_layer = tf.layers.Dense(hidden_size, use_bias=False, name="v",
+                                         kernel_regularizer=regularizer)
     self.output_dense_layer = tf.layers.Dense(hidden_size, use_bias=False,
-                                              name="output_transform")
+                                         name="output_transform",
+                                         kernel_regularizer=regularizer)
 
   def split_heads(self, x):
     """Split x into different heads, and transpose the resulting value.

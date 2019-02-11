@@ -115,7 +115,8 @@ class Decoder:
 
       if 'regularizer' in self._params:
         init_dict = self._params.get('regularizer_params', {})
-        self._params['regularizer'] = self._params['regularizer'](**init_dict)
+        if self._params['regularizer'] is not None:
+          self._params['regularizer'] = self._params['regularizer'](**init_dict)
         if self._params['dtype'] == 'mixed':
           self._params['regularizer'] = mp_regularizer_wrapper(
               self._params['regularizer'],

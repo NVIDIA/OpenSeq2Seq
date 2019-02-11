@@ -22,9 +22,8 @@ import math
 
 import tensorflow as tf
 
-#_NEG_INF = -1e4
 _NEG_INF = -1e9
-
+#_NEG_INF_FP16 = -1e4
 
 def get_position_encoding(
     length, hidden_size, min_timescale=1.0, max_timescale=1.0e4):
@@ -55,7 +54,7 @@ def get_position_encoding(
   return signal
 
 
-def get_decoder_self_attention_bias(length):
+def get_decoder_self_attention_bias(length, dtype=tf.float32):
   """Calculate bias for decoder that maintains model's autoregressive property.
 
   Creates a tensor that masks out locations that correspond to illegal
@@ -68,11 +67,16 @@ def get_decoder_self_attention_bias(length):
   Returns:
     float tensor of shape [1, 1, length, length]
   """
+  #print("get_decoder_self_attention_bias", dtype)
+
   with tf.name_scope("decoder_self_attention_bias"):
-    valid_locs = tf.matrix_band_part(tf.ones([length, length]), -1, 0)
+    #valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=dtype), -1, 0)
+    valid_locs = tf.matrix_band_part(tf.ones([length, length], dtype=tf.float32), -1, 0)
     valid_locs = tf.reshape(valid_locs, [1, 1, length, length])
-    decoder_bias = _NEG_INF * (1.0 - valid_locs)
-  return decoder_bias
+    neg_inf=_NEG_INF #if (dtype==tf.float32) else _NEG_INF_FP16
+    bias = neg_inf * (1.0 - valid_locs)
+    #bias=tf.saturate_cast(bias, dtype=dtype)
+  return bias
 
 
 def get_padding(x, padding_value=0, dtype=tf.float32):
@@ -84,14 +88,15 @@ def get_padding(x, padding_value=0, dtype=tf.float32):
     dtype: type of the output
 
   Returns:
-    flaot tensor with same shape as x containing values 0 or 1.
+    float tensor with same shape as x containing values 0 or 1.
       0 -> non-padding, 1 -> padding
   """
+  #print("get_padding", dtype)
   with tf.name_scope("padding"):
     return tf.cast(tf.equal(x, padding_value), dtype=dtype)
 
 
-def get_padding_bias(x, res_rank=4, pad_sym=0):
+def get_padding_bias(x, res_rank=4, pad_sym=0, dtype=tf.float32):
   """Calculate bias tensor from padding values in tensor.
 
   Bias tensor that is added to the pre-softmax multi-headed attention logits,
@@ -109,9 +114,12 @@ def get_padding_bias(x, res_rank=4, pad_sym=0):
     [batch_size, 1, 1, length] if  res_rank = 4 - for Transformer
     or [batch_size, 1, length] if res_rank = 3 - for ConvS2S
   """
+  #print("get_padding_bias", dtype)
   with tf.name_scope("attention_bias"):
-    padding = get_padding(x, padding_value=pad_sym)
-    attention_bias = padding * _NEG_INF
+    padding = get_padding(x, padding_value=pad_sym, dtype=tf.float32)
+    # padding = get_padding(x, padding_value=pad_sym, dtype=dtype)
+    neg_inf=_NEG_INF #if dtype==tf.float32 else _NEG_INF_FP16
+    attention_bias = padding * neg_inf
     if res_rank == 4:
       attention_bias = tf.expand_dims(tf.expand_dims(attention_bias, axis=1), axis=1)
     elif res_rank == 3:
