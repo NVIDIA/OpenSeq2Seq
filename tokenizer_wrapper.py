@@ -18,7 +18,7 @@ def train_tokenizer_model(args):
   input_file = args.text_input
 
   spm.SentencePieceTrainer.Train(
-    "--input={0} --model_type=bpe --model_prefix={1} --vocab_size={2} --pad_id={3} --eos_id={4} --bos_id={5} --unk_id={6}"
+    "--input={0} --model_type=bpe --model_prefix={1} --vocab_size={2} --pad_id={3} --eos_id={4} --bos_id={5} --unk_id={6} --character_coverage=1.0"
       .format(input_file,
               model_prefix, vocab_size, 0, # PAD. TODO: these should not be hardcoded
               1, 2, # EOS, SID

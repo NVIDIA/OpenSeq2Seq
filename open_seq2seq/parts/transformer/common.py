@@ -48,28 +48,15 @@ class LayerNormalization(tf.layers.Layer):
     self.epsilon = params.get("epsilon", 1e-6)
 
   def build(self, _):
-    #print ("Layer norm:", self.norm_type, self.dtype)
-    dtype = tf.float32
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
                                  initializer= tf.keras.initializers.Ones(),
-                                 #tf.ones_initializer(dtype=tf.float32),
                                  dtype=tf.float32)
     self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
                                  initializer=tf.keras.initializers.Zeros(),
-                                 #tf.zeros_initializer(dtype=tf.float32),
                                  dtype=tf.float32)
     self.built = True
 
-  # def call(self, x, epsilon=1e-6):
-  #   dtype = x.dtype
-  #   x = tf.cast(x=x, dtype=tf.float32)
-  #   mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
-  #   variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
-  #   norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
-  #   result = norm_x * self.scale + self.bias
-  #   return tf.cast(x=result, dtype=dtype)
-
-  def call(self, x): # epsilon=1e-6):
+  def call(self, x):
     if self.norm_type=="layernorm_L2":
       epsilon = self.epsilon
       dtype = x.dtype
@@ -80,7 +67,7 @@ class LayerNormalization(tf.layers.Layer):
       result = norm_x * self.scale + self.bias
       return tf.cast(x=result, dtype=dtype)
 
-    else: #if self.norm_type=="layernorm_L1":
+    else:
       dtype = x.dtype
       if dtype==tf.float16:
         x = tf.cast(x, dtype=tf.float32)
@@ -106,8 +93,6 @@ class PrePostProcessingWrapper(object):
       self.norm = Transformer_BatchNorm(training=training,
                                         params=self.norm_params)
     else:
-      # self.norm_params["type"]=="layernorm_L2" or
-      # self.norm_params["type"]=="layernorm_L1":
       self.norm = LayerNormalization(hidden_size=params["hidden_size"],
                                      params=self.norm_params)
 
@@ -117,5 +102,5 @@ class PrePostProcessingWrapper(object):
     y = self.layer(y, *args, **kwargs)
     # Postprocessing: dropout and residual connection
     if self.training:
-      y = tf.nn.dropout(y, keep_prob = 1 - self.postprocess_dropout)
+      y = tf.nn.dropout(y, keep_prob=1 - self.postprocess_dropout)
     return x + y

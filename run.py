@@ -7,6 +7,10 @@ from __future__ import unicode_literals
 import os
 import sys
 import tensorflow as tf
+
+if hasattr(tf.compat, 'v1'):
+  tf.compat.v1.disable_eager_execution()
+
 from open_seq2seq.utils.utils import deco_print, get_base_config, create_model,\
                                      create_logdir, check_logdir, \
                                      check_base_model_logdir
