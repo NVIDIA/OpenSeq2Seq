@@ -14,7 +14,7 @@ from .decoder import Decoder
 
 
 class FakeDecoder(Decoder):
-  """Fakde decoder for LM
+  """Fake decoder for LM
   """
   def __init__(self, params, model,
                name="fake_decoder", mode='train'):
@@ -40,10 +40,10 @@ class FakeDecoder(Decoder):
           'outputs': [logits] (same as logits but wrapped in list)
         }
     """
-    # return {'logits': input_dict['encoder_output']['logits'], 
+    # return {'logits': input_dict['encoder_output']['logits'],
     #         'outputs': [input_dict['encoder_output']['outputs']]}
     # if 'logits' in input_dict['encoder_output']:
-    #   return {'logits': input_dict['encoder_output']['logits'], 
+    #   return {'logits': input_dict['encoder_output']['logits'],
     #           'outputs': [input_dict['encoder_output']['outputs']]}
     # else:
     #   return {}
