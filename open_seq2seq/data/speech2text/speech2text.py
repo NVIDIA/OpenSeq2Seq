@@ -39,12 +39,16 @@ class Speech2TextDataLayer(DataLayer):
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
+        'min_duration': float,
         'bpe': bool,
         'autoregressive': bool,
         'syn_enable': bool,
         'syn_subdirs': list,
         'window_size': float,
         'window_stride': float,
+        'dither': float,
+        'norm_per_feature': bool,
+        'window_type': ['hanning', 'hamming', 'none']
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -76,6 +80,7 @@ class Speech2TextDataLayer(DataLayer):
                                                num_workers, worker_id)
     # we need this until python_speech_features gets update on pypi.org
     self.apply_window = 'winfunc' in inspect.getargspec(psf.logfbank)[0]
+    self.window_fns = {"hanning": np.hanning, "hamming": np.hamming, "none": None}
     if not self.apply_window and \
         (self.params['input_type'] == 'mfcc' or \
          self.params['input_type'] == 'logfbank'):
@@ -130,6 +135,7 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
+    self.params['min_duration'] = params.get('min_duration', -1.0)
     self.params['max_duration'] = params.get('max_duration', -1.0)
     self.params['window_size'] = params.get('window_size', 20e-3)
     self.params['window_stride'] = params.get('window_stride', 10e-3)
@@ -174,6 +180,11 @@ class Speech2TextDataLayer(DataLayer):
           self._dataset = self._dataset.filter(
               lambda x, x_len, y, y_len, duration:
               tf.less_equal(duration, self.params['max_duration'])
+          )
+        if self.params['min_duration'] > 0:
+          self._dataset = self._dataset.filter(
+            lambda x, x_len, y, y_len, duration:
+            tf.greater_equal(duration, self.params['min_duration'])
           )
         self._dataset = self._dataset.map(
             lambda x, x_len, y, y_len, duration:
@@ -346,10 +357,13 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window,
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
         cache_features=self.params.get('cache_features', False),
         cache_format=self.params.get('cache_format', 'hdf5'),
         cache_regenerate=self.params.get('cache_regenerate', False),
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', None),
+        norm_per_feature=self.params.get('norm_per_feature', False),
         params=self.params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
@@ -374,7 +388,10 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', None),
+        norm_per_feature=self.params.get('norm_per_feature', False)
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -397,7 +414,10 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        apply_window=self.apply_window
+        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        dither=self.params.get('dither', 0.0),
+        num_fft=self.params.get('num_fft', None),
+        norm_per_feature=self.params.get('norm_per_feature', False)
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \
