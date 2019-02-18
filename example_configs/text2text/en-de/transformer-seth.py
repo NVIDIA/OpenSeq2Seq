@@ -51,10 +51,10 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-seth-m0.9_lr0.2",
-  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  "dtype": "mixed",
-  "loss_scaling": "Backoff", # 100., #
+  "logdir": "tr-seth-m0.9_lr0.1-fp32",
+  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff", # 100., #
 
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
