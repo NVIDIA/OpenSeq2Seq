@@ -51,7 +51,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-seth-m0.9_lr0.1-fp32",
+  "logdir": "tr-seth-m0.8_lr0.001-fp32",
   "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   # "dtype": "mixed",
   # "loss_scaling": "Backoff", # 100., #
@@ -80,7 +80,7 @@ base_params = {
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1,   # 0.1
+    "learning_rate": 0.001,   # 0.1
     "power": 2,
   },
 
