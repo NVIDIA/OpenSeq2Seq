@@ -75,12 +75,12 @@ base_params = {
 
   "optimizer": SethOptimizer, #"Momentum",
   "optimizer_params": {
-    "momentum": 0.9,
+    "momentum": 0.8,
     "epsilon":  1e-06,
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.02,   # 0.1
+    "learning_rate": 0.1,   # 0.1
     "power": 2,
   },
 
