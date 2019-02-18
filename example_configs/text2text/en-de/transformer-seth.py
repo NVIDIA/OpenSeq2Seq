@@ -44,8 +44,8 @@ data_root = "/data/wmt16-ende-sp/"
 base_params = {
   "use_horovod": True,
   "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 128,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  300000,
+  "batch_size_per_gpu": 64,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps":  600000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
