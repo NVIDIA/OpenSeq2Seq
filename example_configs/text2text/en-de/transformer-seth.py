@@ -8,8 +8,9 @@ from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
-from open_seq2seq.optimizers.seth import SethOptimizer
+from open_seq2seq.optimizers.seth import SethOptimizer, NoahOptimizer
 import tensorflow as tf
+import numpy as np
 
 
 """
@@ -44,17 +45,17 @@ data_root = "/data/wmt16-ende-sp/"
 base_params = {
   "use_horovod": True,
   "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 64,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  600000,
+  "batch_size_per_gpu": 128, #64,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps":  300000, #1000, #000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-seth-m0.8_lr0.001-fp32",
-  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  # "dtype": "mixed",
-  # "loss_scaling": "Backoff", # 100., #
+  "logdir": "tr-noah-lr0.1_fp16",
+  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  "dtype": "mixed",
+  "loss_scaling": "Backoff", # 100., #
 
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
@@ -73,15 +74,16 @@ base_params = {
   #   "d_model": d_model,
   # },
 
-  "optimizer": SethOptimizer, #"Momentum",
+  "optimizer": NoahOptimizer, #"Momentum",
   "optimizer_params": {
-    "momentum": 0.8,
+    "beta1": 0.8,
+    "beta2": 0.8,
     "epsilon":  1e-06,
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.001,   # 0.1
-    "power": 2,
+    "learning_rate": 0.1,   #for 02  0.1
+    "power": 1,
   },
 
   "encoder": TransformerEncoder,
