@@ -52,9 +52,9 @@ base_params = {
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
   "logdir": "tr-noah-b64lr0.1_fp32",
-  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  "dtype": "mixed",
-  "loss_scaling": "Backoff", # 100., #
+  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff", # 100., #
 
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
