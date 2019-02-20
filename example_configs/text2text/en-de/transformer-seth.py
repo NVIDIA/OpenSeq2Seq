@@ -43,7 +43,7 @@ data_root = "/data/wmt16-ende-sp/"
 
 base_params = {
   "use_horovod": False,
-  "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
+  "num_gpus": 8, #8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 64, #64,  # this size is in sentence pairs, reduce it if you get OOM
   "max_steps":  600000, #1000, #000,
   "save_summaries_steps": 100,
@@ -52,9 +52,9 @@ base_params = {
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
   "logdir": "tr-noah-b64lr0.1_fp32",
-  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  "dtype": "mixed",
-  "loss_scaling": "Backoff", # 100., #
+  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  # "dtype": "mixed",
+  # "loss_scaling": "Backoff", # 100., #
 
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
