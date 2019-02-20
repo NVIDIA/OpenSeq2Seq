@@ -82,7 +82,7 @@ base_params = {
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1,   #for 02  0.1
+    "learning_rate": 0.2,   #for 02  0.1
     "power": 1,
   },
 
