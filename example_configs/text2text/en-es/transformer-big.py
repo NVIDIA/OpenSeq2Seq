@@ -115,7 +115,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-es.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 256,
     },
 }
