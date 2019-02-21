@@ -23,8 +23,8 @@ num_layers = 6
 data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 2, # when using Horovod we set number of workers with params to mpirun
+  "use_horovod": True,
+  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
   "max_steps": 300000,
   "save_summaries_steps": 100,
