@@ -137,22 +137,19 @@ class Attention(tf.layers.Layer):
       # Scale q to prevent the dot product between q and k from growing too large.
       depth = (self.hidden_size // self.num_heads)
       q *= depth ** -0.5
-
-      # Calculate dot product attention
-      #logits = tf.matmul(q, k, transpose_b=True)
-      #logits += bias
-      #weights = tf.nn.softmax(logits, name="attention_weights")
       logits = tf.matmul(q, k, transpose_b=True)
       dtype = logits.dtype
       if dtype != tf.float32:
         # upcast softmax inputs
         logits = tf.cast(x=logits, dtype=tf.float32)
-        logits += bias
+        if bias is not None:
+          logits += bias
         weights = tf.nn.softmax(logits, name="attention_weights")
         # downcast softmax output
         weights = tf.cast(weights, dtype=dtype)
       else:
-        logits += bias
+        if bias is not None:
+          logits += bias
         weights = tf.nn.softmax(logits, name="attention_weights")
     elif self.mode == "bahdanau":
       att_v = tf.get_variable(

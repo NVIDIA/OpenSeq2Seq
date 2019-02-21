@@ -8,13 +8,14 @@ from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Speech2Text
+data_root = '/mnt/D1/Data/librispeech/'
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": True,
+    "use_horovod": False,
     "num_epochs": 400,
 
-    "num_gpus": 1,
+    "num_gpus": 2,
     "batch_size_per_gpu": 64,
     "iter_size": 1,
 
@@ -181,9 +182,9 @@ train_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-train-clean-100.csv",
-            "/data/librispeech/librivox-train-clean-360.csv",
-            "/data/librispeech/librivox-train-other-500.csv",
+            data_root + "librivox-train-clean-100.csv",
+            data_root + "librivox-train-clean-360.csv",
+            data_root + "librivox-train-other-500.csv",
         ],
         "max_duration": 16.7,
         "shuffle": True,
@@ -197,7 +198,7 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-dev-clean.csv",
+            data_root + "librivox-dev-clean.csv",
         ],
         "shuffle": False,
     },
@@ -210,7 +211,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/librispeech/librivox-test-clean.csv",
+            data_root + "librivox-test-clean.csv",
         ],
         "shuffle": False,
     },

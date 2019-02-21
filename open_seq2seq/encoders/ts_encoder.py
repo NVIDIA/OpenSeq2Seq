@@ -5,10 +5,13 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, \
+  conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv
+from open_seq2seq.parts.transformer import attention_layer, ffn_layer, utils
+from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
+                                    LayerNormalization, Transformer_BatchNorm
 
-
-class TDNNEncoder(Encoder):
+class TSSEncoder(Encoder):
   """General time delay neural network (TDNN) encoder. Fully convolutional model
   """
 
@@ -18,6 +21,13 @@ class TDNNEncoder(Encoder):
         'dropout_keep_prob': float,
         'convnet_layers': list,
         'activation_fn': None,  # any valid callable
+        "encoder_layers": int,
+        "hidden_size": int,
+        "num_heads": int,
+        "attention_dropout": float,
+        "filter_size": int,
+        "relu_dropout": float,
+        "layer_postprocess_dropout": float,
     })
 
   @staticmethod
@@ -29,8 +39,9 @@ class TDNNEncoder(Encoder):
         'bn_epsilon': float,
     })
 
-  def __init__(self, params, model, name="w2l_encoder", mode='train'):
-    """TDNN encoder constructor.
+  def __init__(self, params, model, name="transformer_speech_encoder",
+               mode='train'):
+    """TSSEncoder encoder constructor.
 
     See parent class for arguments description.
 
@@ -65,11 +76,36 @@ class TDNNEncoder(Encoder):
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
     * **normalization** --- normalization to use. Accepts [None, 'batch_norm'].
-      Use None if you don't want to use normalization. Defaults to 'batch_norm'.     
+      Use None if you don't want to use normalization. Defaults to 'batch_norm'.
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
-    super(TDNNEncoder, self).__init__(params, model, name, mode)
+    super(TSSEncoder, self).__init__(params, model, name, mode)
+    self.layers = []
+    self.output_normalization = None
+    self._mode = mode
+
+    self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2"})
+    self.regularizer = self.params.get("regularizer", None)
+    if self.regularizer != None:
+      self.regularizer_params = params.get("regularizer_params", {'scale': 0.0})
+      self.regularizer=self.regularizer(self.regularizer_params['scale']) \
+        if self.regularizer_params['scale'] > 0.0 else None
+
+
+  def _call(self, encoder_inputs):
+    for n, layer in enumerate(self.layers):
+      # Run inputs through the sublayers.
+      self_attention_layer = layer[0]
+      feed_forward_network = layer[1]
+
+      with tf.variable_scope("layer_%d" % n):
+        with tf.variable_scope("self_attention"):
+          encoder_inputs = self_attention_layer(encoder_inputs, None)
+        with tf.variable_scope("ffn"):
+          encoder_inputs = feed_forward_network(encoder_inputs, None)
+
+    return self.output_normalization(encoder_inputs)
 
   def _encode(self, input_dict):
     """Creates TensorFlow graph for Wav2Letter like encoder.
@@ -94,11 +130,6 @@ class TDNNEncoder(Encoder):
     """
 
     source_sequence, src_length = input_dict['source_tensors']
-
-    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
-    print(source_sequence)
-    print(src_length)
-    print('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
@@ -197,10 +228,60 @@ class TDNNEncoder(Encoder):
     if data_format == 'channels_first':
       outputs = tf.transpose(outputs, [0, 2, 1])
 
-    print("BBBBBBBBBBBBBBBBBBBBBBB")
-    print(outputs)
-    print(src_length)
-    print("BBBBBBBBBBBBBBBBBBBBBBB")
+    # ----- Transformer layers -------------------------------------------
+
+    if len(self.layers) == 0:
+      for _ in range(self.params['encoder_layers']):
+        # Create sublayers for each layer.
+        self_attention_layer = attention_layer.SelfAttention(
+          hidden_size=self.params["hidden_size"],
+          num_heads=self.params["num_heads"],
+          attention_dropout=self.params["attention_dropout"],
+          train=training,
+          regularizer=self.regularizer
+        )
+        feed_forward_network = ffn_layer.FeedFowardNetwork(
+          hidden_size=self.params["hidden_size"],
+          filter_size=self.params["filter_size"],
+          relu_dropout=self.params["relu_dropout"],
+          train=training,
+          regularizer=self.regularizer
+        )
+
+        self.layers.append([
+            PrePostProcessingWrapper(self_attention_layer, self.params,
+                                     training),
+            PrePostProcessingWrapper(feed_forward_network, self.params,
+                                     training)
+        ])
+
+      # final normalization layer.
+      print("Encoder:", self.norm_params["type"], self.mode)
+      if self.norm_params["type"] =="batch_norm":
+        self.output_normalization = Transformer_BatchNorm(
+          training=training,
+          params=self.norm_params)
+      else:
+        self.output_normalization = LayerNormalization(
+          hidden_size=self.params["hidden_size"], params=self.norm_params)
+
+    # actual encoder part
+    with tf.name_scope("transformer_encode"):
+      embedded_inputs = outputs # this is output from conv layers
+      with tf.name_scope("add_pos_encoding"):
+        length = tf.shape(embedded_inputs)[1]
+        pos_encoding = utils.get_position_encoding(
+            length, self.params["hidden_size"],
+        )
+        encoder_inputs = embedded_inputs + tf.cast(x=pos_encoding,
+                                                   dtype=embedded_inputs.dtype)
+
+      if self.mode == "train":
+        encoder_inputs = tf.nn.dropout(encoder_inputs,
+            keep_prob = 1.0 - self.params["layer_postprocess_dropout"],
+        )
+
+      outputs = self._call(encoder_inputs)
 
     return {
         'outputs': outputs,

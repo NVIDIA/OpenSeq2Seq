@@ -57,28 +57,31 @@ class LayerNormalization(tf.layers.Layer):
     self.built = True
 
   def call(self, x):
-    if self.norm_type=="layernorm_L2":
-      epsilon = self.epsilon
-      dtype = x.dtype
-      x = tf.cast(x=x, dtype=tf.float32)
-      mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
-      variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
-      norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
-      result = norm_x * self.scale + self.bias
-      return tf.cast(x=result, dtype=dtype)
+    with tf.name_scope("Normalization"):
+      print('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
+      if self.norm_type == "layernorm_L2":
+        print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb")
+        epsilon = self.epsilon
+        dtype = x.dtype
+        x = tf.cast(x=x, dtype=tf.float32)
+        mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
+        variance = tf.reduce_mean(tf.square(x - mean), axis=[-1], keepdims=True)
+        norm_x = (x - mean) * tf.rsqrt(variance + epsilon)
+        result = norm_x * self.scale + self.bias
+        return tf.cast(x=result, dtype=dtype)
 
-    else:
-      dtype = x.dtype
-      if dtype==tf.float16:
-        x = tf.cast(x, dtype=tf.float32)
-      mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
-      x = x - mean
-      variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
-      norm_x = tf.div(x , variance + self.epsilon)
-      y = norm_x * self.scale + self.bias
-      if dtype == tf.float16:
-        y = tf.saturate_cast(y, dtype)
-      return y
+      else:
+        dtype = x.dtype
+        if dtype==tf.float16:
+          x = tf.cast(x, dtype=tf.float32)
+        mean = tf.reduce_mean(x, axis=[-1], keepdims=True)
+        x = x - mean
+        variance = tf.reduce_mean(tf.abs(x), axis=[-1], keepdims=True)
+        norm_x = tf.div(x , variance + self.epsilon)
+        y = norm_x * self.scale + self.bias
+        if dtype == tf.float16:
+          y = tf.saturate_cast(y, dtype)
+        return y
 
 class PrePostProcessingWrapper(object):
   """Wrapper around layer, that applies pre-processing and post-processing."""
@@ -89,7 +92,7 @@ class PrePostProcessingWrapper(object):
     self.training = training
     self.norm_params = params.get("norm_params", {"type": "layernorm_L2"})
     # Create normalization layer
-    if self.norm_params["type"]=="batch_norm":
+    if self.norm_params["type"] == "batch_norm":
       self.norm = Transformer_BatchNorm(training=training,
                                         params=self.norm_params)
     else:
@@ -98,9 +101,10 @@ class PrePostProcessingWrapper(object):
 
   def __call__(self, x, *args, **kwargs):
     # Preprocessing: normalization
-    y = self.norm(x)
-    y = self.layer(y, *args, **kwargs)
-    # Postprocessing: dropout and residual connection
-    if self.training:
-      y = tf.nn.dropout(y, keep_prob=1 - self.postprocess_dropout)
-    return x + y
+    with tf.name_scope("PrePostProcessing"):
+      y = self.norm(x)
+      y = self.layer(y, *args, **kwargs)
+      # Postprocessing: dropout and residual connection
+      if self.training:
+        y = tf.nn.dropout(y, keep_prob=1 - self.postprocess_dropout)
+      return x + y
