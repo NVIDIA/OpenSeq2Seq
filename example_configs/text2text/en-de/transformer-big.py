@@ -20,17 +20,17 @@ d_model = 1024
 num_layers = 6
 
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
-data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
+data_root = "/mnt/D1/Data/Translate/wmt16_de_en/"
 
 base_params = {
-  "use_horovod": True,
-  "num_gpus": 1, # when using Horovod we set number of workers with params to mpirun
+  "use_horovod": False,
+  "num_gpus": 2, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 256,  # this size is in sentence pairs, reduce it if you get OOM
   "max_steps": 300000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 4001,
+  "eval_steps": 4000,
   "save_checkpoint_steps": 299998,
   "logdir": "Transformer-BIG",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
@@ -115,7 +115,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 256,
     },
 }
