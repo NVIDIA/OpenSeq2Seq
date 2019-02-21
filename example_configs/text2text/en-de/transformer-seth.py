@@ -39,27 +39,28 @@ dropout = 0.3
 # REPLACE THIS TO THE PATH WITH YOUR WMT DATA
 #data_root = "[REPLACE THIS TO THE PATH WITH YOUR WMT DATA]"
 data_root = "/data/wmt16-ende-sp/"
-# data_root = "/raid/wmt16/"
+#data_root = "/raid/wmt16/"
 
 base_params = {
-  "use_horovod": False,
-  "num_gpus": 8, #8, # when using Horovod we set number of workers with params to mpirun
-  "batch_size_per_gpu": 64, #64,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  600000, #1000, #000,
+  "use_horovod": True,
+  "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
+  "batch_size_per_gpu": 128, #64,  # this size is in sentence pairs, reduce it if you get OOM
+  "max_steps":  300000, #1000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-noah-b64lr0.1_fp32",
-  "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
-  # "dtype": "mixed",
-  # "loss_scaling": "Backoff", # 100., #
+  "logdir": "tr-noah-b128lr0.1_fp16",
+  # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
+  "dtype": "mixed",
+  "loss_scaling": "Backoff", # 100., #
 
   # "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
   #               'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   #"iter_size": 1,
 
+  #-------------------------------------------------------
   # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
   # "optimizer_params": {
   #   "beta1": 0.9,
@@ -72,7 +73,11 @@ base_params = {
   #   "warmup_steps": 8000,
   #   "d_model": d_model,
   # },
-
+  # "optimizer": "Momentum",
+  # "optimizer_params": {
+  #   "momentum": 0.95,
+  # },
+  #---------------------------------------------------------
   "optimizer": NoahOptimizer, #"Momentum",
   "optimizer_params": {
     "beta1": 0.8,
@@ -81,9 +86,10 @@ base_params = {
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1,   #for 02  0.1
+    "learning_rate": 0.2, # 0.1
     "power": 1,
   },
+
 
   "encoder": TransformerEncoder,
   "encoder_params": {
@@ -134,10 +140,10 @@ train_params = {
     "pad_vocab_to_eight": True,
     "src_vocab_file": data_root + "m_common.vocab",
     "tgt_vocab_file": data_root + "m_common.vocab",
-    # "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
-    # "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
-    "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
-    "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
+    "source_file": data_root + "wmt13-en-de.src.BPE_common.32K.tok",
+    "target_file": data_root + "wmt13-en-de.ref.BPE_common.32K.tok",
+    # "source_file": data_root + "train.clean.en.shuffled.BPE_common.32K.tok",
+    # "target_file": data_root + "train.clean.de.shuffled.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": True,
     "shuffle_buffer_size": 25000,
@@ -157,7 +163,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 256,
     },
 }
