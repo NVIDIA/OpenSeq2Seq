@@ -51,7 +51,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-noah-b128lr0.1_fp16",
+  "logdir": "tr-noah-b128_0.90.8_lr0.1_fp16",
   # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff", # 100., #
@@ -80,13 +80,13 @@ base_params = {
   #---------------------------------------------------------
   "optimizer": NoahOptimizer, #"Momentum",
   "optimizer_params": {
-    "beta1": 0.8,
+    "beta1": 0.9,
     "beta2": 0.8,
     "epsilon":  1e-06,
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.2, # 0.1
+    "learning_rate": 0.1, # 0.1
     "power": 1,
   },
 
