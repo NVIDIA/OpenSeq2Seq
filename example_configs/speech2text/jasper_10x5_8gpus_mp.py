@@ -17,8 +17,8 @@ base_params = {
     "use_horovod": True,
     "num_epochs": 400,
 
-    "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "num_gpus": 1,
+    "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -27,7 +27,7 @@ base_params = {
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
     "num_checkpoints": 5,
-    "logdir": "jasper_log_folder",
+    "logdir": "jasper_sgd_lr0.01_fp16",
 
     "optimizer": "Momentum",
     "optimizer_params": {
@@ -36,8 +36,8 @@ base_params = {
     "lr_policy": poly_decay,
     "lr_policy_params": {
         "learning_rate": 0.01,
-        "min_lr": 1e-5,
-        "power": 2.0,
+        # "min_lr": 1e-5,
+        "power": 1.0,
     },
     "larc_params": {
         "larc_eta": 0.001,
