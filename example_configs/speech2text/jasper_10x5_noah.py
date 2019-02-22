@@ -13,26 +13,28 @@ from open_seq2seq.optimizers.seth import SethOptimizer, NoahOptimizer
 
 # REPLACE THIS TO THE PATH TO LIBRISPEECH
 #data_root = "[REPLACE THIS TO THE PATH TO LIBRISPEECH]"
-data_root = "/raid/speech/librispeech/"
+# data_root = "/raid/speech/librispeech/"
+# data_root = "/raid/speech/librispeech/"
+data_root ="/data/librispeech/"
 
 base_model = Speech2Text
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": False,
-#    "num_epochs": 400,
-    "max_steps": 10000, #000,
-    "num_gpus": 2,
+    "use_horovod": True,
+    "num_epochs": 400,
+#     "max_steps": 10000, #000,
+    "num_gpus": 1,
     "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
-    "print_loss_steps": 10,
+    "print_loss_steps": 100,
     "print_samples_steps": 22000,
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
-    "num_checkpoints": 5,
-    "logdir": "logs/jasper/noah_0,02",
+    "num_checkpoints": 1,
+    "logdir": "jasper_noah_lr0.02",
 
     "optimizer": NoahOptimizer,  # "Momentum",
     "optimizer_params": {
@@ -78,93 +80,93 @@ base_params = {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.8,
+                "dilation":[1], "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 5,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.7,
+                "dilation":[1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[2], "dropout_keep_prob": 1.0, # 0.6,
+                "dilation":[2], "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
                 "num_channels": 1024, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 1.0, # 0.6,
+                "dilation":[1], "dropout_keep_prob": 0.6,
             }
         ],
 
-        "dropout_keep_prob": 1.0, # 0.7,
+        "dropout_keep_prob": 0.7,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
@@ -200,15 +202,15 @@ train_params = {
         "num_audio_features": 64,
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-        "dataset_files": [
-            data_root + "librivox-dev-clean.csv",
-        ],
         # "dataset_files": [
-        #     data_root+"librivox-train-clean-100.csv",
-        #     data_root+"librivox-train-clean-360.csv",
-        #     data_root+"librivox-train-other-500.csv",
-        #     # Add synthetic csv here
+        #     data_root + "librivox-dev-clean.csv",
         # ],
+        "dataset_files": [
+            data_root+"librivox-train-clean-100.csv",
+            data_root+"librivox-train-clean-360.csv",
+            data_root+"librivox-train-other-500.csv",
+            # Add synthetic csv here
+        ],
         "syn_enable": False, # Change to True if using synthetic data
         "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
