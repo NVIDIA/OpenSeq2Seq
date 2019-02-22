@@ -29,7 +29,7 @@ base_params = {
     "iter_size": 1,
 
     "save_summaries_steps": 100,
-    "print_loss_steps": 100,
+    "print_loss_steps": 10,
     "print_samples_steps": 22000,
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
@@ -44,7 +44,7 @@ base_params = {
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.02,  # for 02  0.1
+        "learning_rate": 0.01,  # for 02  0.1
         "power": 1,
     },
 
