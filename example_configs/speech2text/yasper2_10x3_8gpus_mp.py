@@ -120,35 +120,35 @@ base_params = {
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [21], "stride": [1],
+                "kernel_size": [17], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation": [1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [21], "stride": [1],
+                "kernel_size": [17], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
                 "dilation": [1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [25], "stride": [1],
+                "kernel_size": [17], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation": [1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 3,
-                "kernel_size": [25], "stride": [1],
+                "kernel_size": [17], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
                 "dilation": [1], "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
-                "kernel_size": [29], "stride": [1],
+                "kernel_size": [17], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
                 "dilation": [2], "dropout_keep_prob": 0.6,
             },
