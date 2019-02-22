@@ -3,6 +3,9 @@ project(External-LM)
 
 find_package(Torch REQUIRED)
 
+add_library(externallm STATIC external_lm.cpp)
 add_executable(extlm extlm.cpp)
-target_link_libraries(extlm "${TORCH_LIBRARIES}")
+
+target_link_libraries(externallm "${TORCH_LIBRARIES}")
+target_link_libraries(extlm externallm)
 set_property(TARGET extlm PROPERTY CXX_STANDARD 11)
