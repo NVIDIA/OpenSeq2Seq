@@ -15,6 +15,8 @@ from io import BytesIO
 from open_seq2seq.utils.utils import deco_print
 from .encoder_decoder import EncoderDecoderModel
 
+import pickle
+
 
 def sparse_tensor_to_chars(tensor, idx2char):
   text = [''] * tensor.dense_shape[0]
@@ -101,6 +103,8 @@ class Speech2Text(EncoderDecoderModel):
         data_layer.params['tgt_vocab_size']
     )
 
+    self.dump_outputs = self.params['decoder_params'].get('infer_logits_to_pickle', False)
+
     self.is_bpe = data_layer.params.get('bpe', False)
     self.tensor_to_chars = sparse_tensor_to_chars
     self.tensor_to_char_params = {}
@@ -122,6 +126,74 @@ class Speech2Text(EncoderDecoderModel):
           self.get_data_layer().params['tgt_vocab_size']
       )
     return super(Speech2Text, self)._create_loss()
+
+  def _build_forward_pass_graph(self, input_tensors, gpu_id=0):
+    """TensorFlow graph for speech2text model is created here.
+    This function connects encoder, decoder and loss together. As an input for
+    encoder it will specify source tensors (as returned from
+    the data layer). As an input for decoder it will specify target tensors
+    as well as all output returned from encoder. For loss it
+    will also specify target tensors and all output returned from
+    decoder. Note that loss will only be built for mode == "train" or "eval".
+
+    Args:
+      input_tensors (dict): ``input_tensors`` dictionary that has to contain
+          ``source_tensors`` key with the list of all source tensors, and
+          ``target_tensors`` with the list of all target tensors. Note that
+          ``target_tensors`` only need to be provided if mode is
+          "train" or "eval".
+      gpu_id (int, optional): id of the GPU where the current copy of the model
+          is constructed. For Horovod this is always zero.
+
+    Returns:
+      tuple: tuple containing loss tensor as returned from
+      ``loss.compute_loss()`` and list of outputs tensors, which is taken from
+      ``decoder.decode()['outputs']``. When ``mode == 'infer'``, loss will
+      be None.
+    """
+    if not isinstance(input_tensors, dict) or \
+       'source_tensors' not in input_tensors:
+      raise ValueError('Input tensors should be a dict containing '
+                       '"source_tensors" key')
+
+    if not isinstance(input_tensors['source_tensors'], list):
+      raise ValueError('source_tensors should be a list')
+
+    source_tensors = input_tensors['source_tensors']
+    if self.mode == "train" or self.mode == "eval":
+      if 'target_tensors' not in input_tensors:
+        raise ValueError('Input tensors should contain "target_tensors" key'
+                         'when mode != "infer"')
+      if not isinstance(input_tensors['target_tensors'], list):
+        raise ValueError('target_tensors should be a list')
+      target_tensors = input_tensors['target_tensors']
+
+    with tf.variable_scope("ForwardPass"):
+      encoder_input = {"source_tensors": source_tensors}
+      encoder_output = self.encoder.encode(input_dict=encoder_input)
+
+      decoder_input = {"encoder_output": encoder_output}
+      if self.mode == "train" or self.mode == "eval":
+        decoder_input['target_tensors'] = target_tensors
+      decoder_output = self.decoder.decode(input_dict=decoder_input)
+      model_outputs = decoder_output.get("outputs", None)
+
+      if self.mode == "train" or self.mode == "eval":
+        with tf.variable_scope("Loss"):
+          loss_input_dict = {
+              "decoder_output": decoder_output,
+              "target_tensors": target_tensors,
+          }
+          loss = self.loss_computator.compute_loss(loss_input_dict)
+      else:
+        deco_print("Inference Mode. Loss part of graph isn't built.")
+        loss = None
+        if self.dump_outputs:
+          model_logits = decoder_output.get("logits", None)
+          return loss, [model_logits]
+    return loss, model_outputs
+
+
 
   def maybe_print_logs(self, input_values, output_values, training_step):
     y, len_y = input_values['target_tensors']
@@ -224,13 +296,20 @@ class Speech2Text(EncoderDecoderModel):
   def infer(self, input_values, output_values):
     preds = []
     decoded_sequence = output_values[0]
-    decoded_texts = self.tensor_to_chars(
-        decoded_sequence,
-        self.get_data_layer().params['idx2char'],
-        **self.tensor_to_char_params
-    )
-    for decoded_text in decoded_texts:
-      preds.append("".join(decoded_text))
+
+    if self.dump_outputs:
+      # decoded_sequence has 'time_major' shape: [T, B, C]
+      for i in range(decoded_sequence.shape[1]):
+        preds.append(decoded_sequence[:, i, :].squeeze())
+    else:
+      decoded_texts = self.tensor_to_chars(
+          decoded_sequence,
+          self.get_data_layer().params['idx2char'],
+          **self.tensor_to_char_params
+      )
+      for decoded_text in decoded_texts:
+        preds.append("".join(decoded_text))
+
     return preds, input_values['source_ids']
 
   def finalize_inference(self, results_per_batch, output_file):
@@ -245,14 +324,17 @@ class Speech2Text(EncoderDecoderModel):
     ids = np.hstack(ids)
     # restoring the correct order
     preds = preds[np.argsort(ids)]
-
-    pd.DataFrame(
-        {
-            'wav_filename': self.get_data_layer().all_files,
-            'predicted_transcript': preds,
-        },
-        columns=['wav_filename', 'predicted_transcript'],
-    ).to_csv(output_file, index=False)
+    if self.dump_outputs:
+      with open(output_file, 'wb') as f:
+        pickle.dump(preds, f, protocol=pickle.HIGHEST_PROTOCOL)
+    else:
+      pd.DataFrame(
+          {
+              'wav_filename': self.get_data_layer().all_files,
+              'predicted_transcript': preds,
+          },
+          columns=['wav_filename', 'predicted_transcript'],
+      ).to_csv(output_file, index=False)
 
   def _get_num_objects_per_step(self, worker_id=0):
     """Returns number of audio frames in current batch."""
