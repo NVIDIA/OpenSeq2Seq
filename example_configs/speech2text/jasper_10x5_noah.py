@@ -34,7 +34,7 @@ base_params = {
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
     "num_checkpoints": 1,
-    "logdir": "jasper_noah_lr0.2_fp16",
+    "logdir": "jasper_noah_lr0.1_fp16",
 
     "optimizer": NoahOptimizer,  # "Momentum",
     "optimizer_params": {
@@ -44,8 +44,9 @@ base_params = {
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.2,  # for 02  0.1
+        "learning_rate": 0.1,  # for 02  0.1
         "power": 1,
+        "warmup_steps": 500,
     },
 
     # "optimizer": "Momentum",
