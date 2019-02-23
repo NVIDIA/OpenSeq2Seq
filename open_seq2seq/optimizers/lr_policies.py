@@ -91,7 +91,7 @@ def exp_decay(global_step, learning_rate, decay_steps, decay_rate,
 
 
 def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
-               begin_decay_at=0, min_lr=0.0):
+               begin_decay_at=0, min_lr=0.0, warmup_steps=0):
   """Polynomial decay learning rate policy.
   This function is equivalent to ``tensorflow.train.polynomial_decay`` with
   some additional functionality. Namely, it adds ``begin_decay_at`` parameter
@@ -109,6 +109,16 @@ def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
   Returns:
     learning rate at step ``global_step``.
   """
+  begin_decay_at = max(warmup_steps, begin_decay_at)
+  if warmup_steps > 0:
+    # g_step = tf.cast(global_step, dtype=tf.float32)
+    # warmup = tf.cast(warmup_steps, dtype=tf.float32)
+    learning_rate = tf.cond(
+      global_step < warmup_steps,
+      lambda: (learning_rate*tf.cast(global_step,tf.float32)/
+               tf.cast(warmup_steps,tf.float32)),
+      lambda: learning_rate,
+    )
   lr = tf.cond(
       global_step < begin_decay_at,
       lambda: learning_rate,
