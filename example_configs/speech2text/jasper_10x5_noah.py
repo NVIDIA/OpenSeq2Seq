@@ -44,9 +44,9 @@ base_params = {
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.1,  # for 02  0.1
+        "learning_rate": 0.05,  # for 02  0.1
         "power": 1,
-        "warmup_steps": 500,
+        "warmup_steps": 1000,
     },
 
     # "optimizer": "Momentum",
