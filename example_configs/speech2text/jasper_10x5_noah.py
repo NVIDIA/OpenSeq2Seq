@@ -34,12 +34,12 @@ base_params = {
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
     "num_checkpoints": 1,
-    "logdir": "jasper_noah0.80.8_lr0.05larc_fp16",
+    "logdir": "jasper_noah0.90.9_lr0.02_fp16",
 
     "optimizer": NoahOptimizer,  # "Momentum",
     "optimizer_params": {
-        "beta1": 0.8,
-        "beta2": 0.8,
+        "beta1": 0.9,
+        "beta2": 0.95,
         "epsilon": 1e-05,
     },
     "lr_policy": poly_decay,  # fixed_lr,
