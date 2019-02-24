@@ -45,13 +45,13 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128, #64,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  300000, #1000,
+  "max_steps":  500000, #1000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
   "eval_steps": 10000,
   "save_checkpoint_steps": 99999,
-  "logdir": "tr-noah-b128_0.90.8_lr0.1_fp16",
+  "logdir": "tr-noah-b128_0.90.8_lr0.05_fp16",
   # "dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
   "dtype": "mixed",
   "loss_scaling": "Backoff", # 100., #
@@ -86,10 +86,9 @@ base_params = {
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1, # 0.1
+    "learning_rate": 0.05, # 0.1
     "power": 1,
   },
-
 
   "encoder": TransformerEncoder,
   "encoder_params": {
