@@ -34,7 +34,7 @@ base_params = {
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
     "num_checkpoints": 1,
-    "logdir": "jasper_noah0.80.8_lr0.02_fp16",
+    "logdir": "jasper_noah0.80.8_lr0.05larc_fp16",
 
     "optimizer": NoahOptimizer,  # "Momentum",
     "optimizer_params": {
@@ -59,9 +59,9 @@ base_params = {
     #     "min_lr": 1e-5,
     #     "power": 2.0,
     # },
-    # "larc_params": {
-    #     "larc_eta": 0.001,
-    # },
+    "larc_params": {
+        "larc_eta": 0.001,
+    },
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
