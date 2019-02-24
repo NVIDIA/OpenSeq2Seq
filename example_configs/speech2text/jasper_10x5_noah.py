@@ -39,13 +39,13 @@ base_params = {
     "optimizer": NoahOptimizer,  # "Momentum",
     "optimizer_params": {
         "beta1": 0.9,
-        "beta2": 0.95,
+        "beta2": 0.97,
         "epsilon": 1e-05,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.005,  #
-        "power": 2,
+        "learning_rate": 0.01,  #
+        "power": 0.5,
         # "warmup_steps": 200,
     },
 
@@ -59,9 +59,9 @@ base_params = {
     #     "min_lr": 1e-5,
     #     "power": 2.0,
     # },
-    "larc_params": {
-        "larc_eta": 0.001,
-    },
+    # "larc_params": {
+    #     "larc_eta": 0.001,
+    # },
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
