@@ -30,7 +30,7 @@ base_params = {
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 100,
-  "eval_steps": 4001,
+  "eval_steps": 4000,
   "save_checkpoint_steps": 299998,
   "logdir": "Transformer-BIG",
   #"dtype": tf.float32, # to enable mixed precision, comment this line and uncomment two below lines
@@ -115,7 +115,7 @@ eval_params = {
     "target_file": data_root+"wmt13-en-de.ref.BPE_common.32K.tok",
     "delimiter": " ",
     "shuffle": False,
-    "repeat": False,
+    "repeat": True,
     "max_length": 256,
     },
 }
