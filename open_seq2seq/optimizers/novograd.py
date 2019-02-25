@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 # ==============================================================================
-"""Implementation of Stochastic Average Gradient."""
 
 from __future__ import absolute_import
 from __future__ import division
@@ -28,40 +27,39 @@ from tensorflow.python.training import training_ops
 from tensorflow.train import MomentumOptimizer
 import tensorflow as tf
 
-class NoahOptimizer(MomentumOptimizer):
-  """Optimizer that implements SAG with ema-normalized gradients.
-   The algorithm is similar to Layerwise ADAM:
+class NovoGrad(MomentumOptimizer):
+  """
+  Optimizer that implements Stochastic Average Gradient(SAG)
+  with first momentum = ema of layer-wise normalized gradients,
+  when normalization is done by ema of norm for layer gradients
 
     ```
-     Layer-wise ema of grad norms per layer:
+    Layer-wise momentum for norm of grads:
        u_t <-- beta1 * u_{t-1} + (1 - beta1) * |g_t|
 
-    1st order SAG with grads normalized by u_t:
+    momentum = ema of grads normalized by u_t:
        m_t <- beta1 * m_{t-1} + (1 - beta1) * ( g_t / u_t )
 
-    Weight update:
-       w_t <- w_{t-1} - lr_t * m_t
     ```
 
   """
 
   def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.95,
-               epsilon=1e-6, ord =2, use_locking=False, name='NoahOptimizer'):
-    """Constructs a new NoahOptimizer
+               epsilon=1e-6, ord =2, use_locking=False, name='NovoGrad'):
+    """Constructs a new NovoGrad
 
     Args:
       learning_rate: A `Tensor` or a floating point value.  The learning rate.
       beta1: A `Tensor` or a float, used in ema for momentum.
       beta2: A `Tensor` or a float, used in ema for grad norms,
       epsilon: a float.  Default = 1e-6.
-      ord: a float. Ord if grad norms  Default = 2.
       use_locking: If `True` use locks for update operations.
       name: Optional, name prefix for the ops created when applying
-        gradients.  Defaults to "NoahOptimizer".
+        gradients.  Defaults to "NovoGrad".
       use_nesterov: If `True` use Nesterov Momentum.
 
     """
-    super(NoahOptimizer, self).__init__(learning_rate, momentum=beta1,
+    super(NovoGrad, self).__init__(learning_rate, momentum=beta1,
                  use_locking=use_locking, name=name, use_nesterov=False)
     self._beta1 = beta1
     self._beta2 = beta2
@@ -80,7 +78,7 @@ class NoahOptimizer(MomentumOptimizer):
     if self._grads_ema is None:
       self._grads_ema = [None] * len_vars
       for i in range(len_vars):
-        self._grads_ema[i] = tf.get_variable(name="grad_ema"+str(i),
+        self._grads_ema[i] = tf.get_variable(name="novograd_ema"+str(i),
                                     shape=[], dtype=tf.float32,
                                     initializer=tf.keras.initializers.Zeros(),
                                     trainable=False)
@@ -95,8 +93,86 @@ class NoahOptimizer(MomentumOptimizer):
       grad = tf.scalar_mul(g_factor, grad)
       grads_and_vars[i] = (grad, var)
 
-    return super(NoahOptimizer, self).apply_gradients(
+    return super(NovoGrad, self).apply_gradients(
       grads_and_vars, global_step=global_step, name=name)
+
+#-----------------------------------------------------------------------------
+class NovoGrad2(MomentumOptimizer):
+  """
+  Optimizer that implements Stochastic Average Gradient(SAG)
+  with first momentum = ema of layer-wise normalized gradients,
+  when normalization is done by sqrt(ema of sqr(grads)),
+  similar to ADAM
+
+    ```
+    ema of Layer-wise norm of grads:
+       v_t <-- beta1 * v_{t-1} + (1 - beta1) * (g_t)^2
+
+    momentum = ema of grads normalized by u_t:
+       m_t <- beta1 * m_{t-1} + (1 - beta1) * (g_t / sqrt(v_t+epsilon)
+
+    Weight update:
+       w_t <- w_{t-1} - lr_t * m_t
+    ```
+
+  """
+
+  def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.95,
+               epsilon=1e-6, ord=2, use_locking=False, name='NovoGrad2'):
+    """Constructs a new NovoGrad
+
+    Args:
+      learning_rate: A `Tensor` or a floating point value.  The learning rate.
+      beta1: A `Tensor` or a float, used in ema for momentum.
+      beta2: A `Tensor` or a float, used in ema for grad norms,
+      epsilon: a float.  Default = 1e-6.
+      use_locking: If `True` use locks for update operations.
+      name: Optional, name prefix for the ops created when applying
+        gradients.  Defaults to "NovoGrad".
+      use_nesterov: If `True` use Nesterov Momentum.
+
+    """
+    super(NovoGrad2, self).__init__(learning_rate, momentum=beta1,
+                                   use_locking=use_locking, name=name,
+                                   use_nesterov=False)
+    self._beta1 = beta1
+    self._beta2 = beta2
+    self._epsilon = epsilon
+    self._ord = ord
+    # Tensor versions, converted to tensors in apply_gradients
+    self._beta1_t = None
+    self._beta2_t = None
+    self._grads_ema = None
+
+  def apply_gradients(self, grads_and_vars, global_step=None, name=None):
+    self._beta1_t = ops.convert_to_tensor(self._beta1, name='beta1')
+    self._beta2_t = ops.convert_to_tensor(self._beta2, name='beta2')
+    len_vars = len(grads_and_vars)
+    # init ema variables if required
+    if self._grads_ema is None:
+      self._grads_ema = [None] * len_vars
+      for i in range(len_vars):
+        self._grads_ema[i] = tf.get_variable(name="novograd2_ema" + str(i),
+                                             shape=[], dtype=tf.float32,
+                                             initializer=tf.keras.initializers.Zeros(),
+                                             trainable=False)
+    # compute ema for each layer
+    for i, (grad, var) in enumerate(grads_and_vars):
+      # g_norm = tf.norm(tensor=tf.cast(grad, tf.float32), ord=self._ord)
+      g_norm = tf.reduce_sum(tf.square(x=tf.cast(grad, tf.float32)))
+      self._grads_ema[i] = tf.cond(tf.equal(self._grads_ema[i], 0.),
+                                   lambda: g_norm,
+                                   lambda: self._grads_ema[
+                                             i] * self._beta2_t + g_norm * (
+                                   1. - self._beta2_t)
+                                   )
+      g_factor = self._beta1_t / tf.sqrt(self._grads_ema[i] + self._epsilon)
+      grad = tf.scalar_mul(g_factor, grad)
+      grads_and_vars[i] = (grad, var)
+
+    return super(NovoGrad2, self).apply_gradients(
+      grads_and_vars, global_step=global_step, name=name)
+
 
 #------------------------------------------------------------------------------
 class SethOptimizer(MomentumOptimizer):
