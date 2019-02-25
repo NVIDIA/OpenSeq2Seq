@@ -73,7 +73,7 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "data_dir": "/data/tf-imagenet",
+    "data_dir": "data",
     "image_size": 224,
     "num_classes": 1000,
   },
