@@ -36,16 +36,16 @@ base_params = {
     "num_checkpoints": 1,
     "logdir": "jasper_noah0.90.9_lr0.005p2_fp16",
 
-    "optimizer": NovoGrad,
+    "optimizer": NovoGrad2,
     "optimizer_params": {
         "beta1": 0.9,
-        "beta2": 0.97,
-        "epsilon": 1e-05,
+        "beta2": 0.99,
+        "epsilon": 1e-08,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
         "learning_rate": 0.01,  #
-        "power": 0.5,
+        "power": 1.,
         # "warmup_steps": 200,
     },
 
