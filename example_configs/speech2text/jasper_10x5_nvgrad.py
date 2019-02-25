@@ -6,7 +6,7 @@ from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
-from open_seq2seq.optimizers.seth import SethOptimizer, NoahOptimizer
+from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2
 
 ### If training with synthetic data, don't forget to add your synthetic csv
 ### to dataset files
@@ -36,7 +36,7 @@ base_params = {
     "num_checkpoints": 1,
     "logdir": "jasper_noah0.90.9_lr0.005p2_fp16",
 
-    "optimizer": NoahOptimizer,  # "Momentum",
+    "optimizer": NovoGrad,
     "optimizer_params": {
         "beta1": 0.9,
         "beta2": 0.97,

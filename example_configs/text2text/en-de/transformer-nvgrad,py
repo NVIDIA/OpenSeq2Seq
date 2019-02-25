@@ -8,7 +8,7 @@ from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
-from open_seq2seq.optimizers.seth import SethOptimizer, NoahOptimizer
+from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2
 import tensorflow as tf
 
 
@@ -78,7 +78,7 @@ base_params = {
   #   "momentum": 0.95,
   # },
   #---------------------------------------------------------
-  "optimizer": NoahOptimizer, #"Momentum",
+  "optimizer": NovoGrad, #"Momentum",
   "optimizer_params": {
     "beta1": 0.9,
     "beta2": 0.8,
