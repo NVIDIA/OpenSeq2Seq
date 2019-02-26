@@ -28,7 +28,7 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgd_lr0.1",
+  "logdir": "logs/rn50/nvgd_lr0.2",
 
   "optimizer": NovoGrad2,
   "optimizer_params": {
@@ -39,7 +39,7 @@ base_params = {
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.1,
+    "learning_rate": 0.2,
     "power": 1,
     # "warmup_steps": 200,
   },
@@ -76,10 +76,9 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "data_dir": data_root+"data",
+    "data_dir": data_root+"data", # "data",
     "image_size": 224,
     "num_classes": 1000,
-    "shuffle": True,
-    "shuffle_buffer":65536,
+#    "shuffle_buffer":65536,
   },
 }
