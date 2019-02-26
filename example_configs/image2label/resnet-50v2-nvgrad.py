@@ -9,6 +9,8 @@ from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2
 
 import tensorflow as tf
 
+data_root =""
+# data_root = "/raid/Imagenet/tf-imagenet/"
 base_model = Image2Label
 
 base_params = {
@@ -23,10 +25,10 @@ base_params = {
 
   "save_summaries_steps": 2000,
   "print_loss_steps": 100,
-  "print_samples_steps": 2000,
+  "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "resnet50-novograd",
+  "logdir": "logs/rn50/nvgd_lr0.1",
 
   "optimizer": NovoGrad2,
   "optimizer_params": {
@@ -34,6 +36,7 @@ base_params = {
     "beta2": 0.98,
     "epsilon": 1e-08,
   },
+
   "lr_policy": poly_decay,
   "lr_policy_params": {
     "learning_rate": 0.1,
@@ -43,7 +46,7 @@ base_params = {
 
   # "optimizer": "Momentum",
   # "optimizer_params": {
-  #   "momentum": 0.90,
+  #   "momentum": 0.95,
   # },
   # "lr_policy": piecewise_constant,
   # "lr_policy_params": {
@@ -73,8 +76,10 @@ base_params = {
   "loss": CrossEntropyLoss,
   "data_layer": ImagenetDataLayer,
   "data_layer_params": {
-    "data_dir": "data",
+    "data_dir": data_root+"data",
     "image_size": 224,
     "num_classes": 1000,
+    "shuffle": True,
+    "shuffle_buffer":65536,
   },
 }
