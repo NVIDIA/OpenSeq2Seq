@@ -15,11 +15,12 @@ base_model = Image2Label
 
 base_params = {
   "random_seed": 0,
-  "use_horovod": True,
+  "use_horovod": True, #True,
   "num_gpus": 1,
   "batch_size_per_gpu": 128,
 
   "num_epochs": 100,
+
   "dtype": "mixed",
   "loss_scaling": "Backoff",
 
@@ -28,9 +29,10 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgd_lr0.2",
+  # "logdir": "logs/rn50/nvgd_lr0.01",
+  "logdir": "rn50/nvgd1_lr0.01",
 
-  "optimizer": NovoGrad2,
+  "optimizer": NovoGrad,
   "optimizer_params": {
     "beta1": 0.9,
     "beta2": 0.98,
@@ -39,7 +41,7 @@ base_params = {
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.2,
+    "learning_rate": 0.01,
     "power": 1,
     # "warmup_steps": 200,
   },
