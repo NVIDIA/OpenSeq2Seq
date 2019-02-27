@@ -84,6 +84,7 @@ class FullyConnectedTimeDecoder(Decoder):
   def get_optional_params():
     return dict(Decoder.get_optional_params(), **{
         'logits_to_outputs_func': None,  # user defined function
+        'infer_logits_to_pickle': bool,
     })
 
   def __init__(self, params, model,
