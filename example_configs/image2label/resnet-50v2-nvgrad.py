@@ -31,7 +31,7 @@ base_params = {
   "save_checkpoint_steps": 5000,
   "logdir": "logs/rn50/nvgd2_lr0.02",
 
-  "optimizer": NovoGrad2,
+  "optimizer": NovoGrad, #NovoGrad2,
   "optimizer_params": {
     "beta1": 0.95,
     "beta2": 0.98,
