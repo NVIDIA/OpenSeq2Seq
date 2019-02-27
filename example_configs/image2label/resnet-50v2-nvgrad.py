@@ -29,19 +29,19 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgd2_lr0.005",
+  "logdir": "logs/rn50/nvgd2_lr0.02",
 
   "optimizer": NovoGrad2,
   "optimizer_params": {
-    "beta1": 0.9,
+    "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
   },
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.005,
-    "power": 1,
+    "learning_rate": 0.02,
+    "power": 2,
     # "warmup_steps": 200,
   },
 
@@ -55,7 +55,6 @@ base_params = {
   #   "boundaries": [30, 60, 80, 90],
   #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
   # },
-
 
   "initializer": tf.variance_scaling_initializer,
 
