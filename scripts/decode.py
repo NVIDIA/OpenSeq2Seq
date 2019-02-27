@@ -1,0 +1,186 @@
+'''
+Interface to Baidu's CTC decoders
+from https://github.com/PaddlePaddle/DeepSpeech/decoders/swig
+'''
+
+import argparse
+
+import pickle
+import numpy as np
+
+from ctc_decoders import Scorer
+from ctc_decoders import ctc_greedy_decoder
+from ctc_decoders import ctc_beam_search_decoder_batch, ctc_beam_search_decoder
+from collections import defaultdict
+import multiprocessing
+
+
+parser = argparse.ArgumentParser(
+    description='CTC decoding and tuning with LM rescoring'
+)
+parser.add_argument('--logits', 
+    help='pickle file with CTC logits',
+    required=True
+)
+parser.add_argument('--labels',
+    help='CSV file with ground truth transcriptions',
+    required=True
+)
+parser.add_argument('--lm',
+    help='KenLM binary file',
+    required=True
+)
+parser.add_argument('--vocab',
+    help='vocab file with characters (alphabet)',
+    required=True
+)
+parser.add_argument('--alpha_min', type=float,
+    help='minimum value of LM weight',
+    required=True
+)
+parser.add_argument('--alpha_max', type=float,
+    help='maximum value of LM weight',
+    required=False
+)
+parser.add_argument('--alpha_step', type=float,
+    help='step for LM weight\'s tuning',
+    required=False, default=0.1
+)
+parser.add_argument('--beta_min', type=float,
+    help='minimum value of beta',
+    required=True
+)
+parser.add_argument('--beta_max', type=float,
+    help='maximum value of beta',
+    required=False
+)
+parser.add_argument('--beta_step', type=float,
+    help='step for beta\'s tuning',
+    required=False, default=0.1
+)
+parser.add_argument('--beam_width', type=int,
+    help='beam width for beam search decoder',
+    required=False, default=128
+)
+args = parser.parse_args()
+
+if args.alpha_max is None:
+  args.alpha_max = args.alpha_min
+# include alpha_max in tuning range
+args.alpha_max += args.alpha_step/10.0
+
+if args.beta_max is None:
+  args.beta_max = args.beta_min
+# include beta_max in tuning range
+args.beta_max += args.beta_step/10.0
+
+num_cpus = multiprocessing.cpu_count()
+
+
+def levenshtein(a, b):
+    """Calculates the Levenshtein distance between a and b.
+    The code was taken from: http://hetland.org/coding/python/levenshtein.py
+    """
+    n, m = len(a), len(b)
+    if n > m:
+        # Make sure n <= m, to use O(min(n,m)) space
+        a, b = b, a
+        n, m = m, n
+    current = list(range(n + 1))
+    for i in range(1, m + 1):
+        previous, current = current, [i] + [0] * n
+        for j in range(1, n + 1):
+            add, delete = previous[j] + 1, current[j - 1] + 1
+            change = previous[j - 1]
+            if a[j - 1] != b[i - 1]:
+                change = change + 1
+            current[j] = min(add, delete, change)
+    return current[n]
+
+def load_dump(pickle_file):
+    with open(pickle_file, 'rb') as f:
+        data = pickle.load(f, encoding='bytes')
+    return data
+
+def load_labels(csv_file):
+    labels = np.loadtxt(csv_file, skiprows=1, delimiter=',', dtype=str)
+    return labels
+        
+def load_vocab(vocab_file):
+    vocab = []
+    with open(vocab_file, 'r') as f:
+        for line in f:
+            vocab.append(line[0])
+    vocab.append('_')
+    return vocab
+
+def greedy_decoder(logits, vocab, merge=True):
+    s = ''
+    c = ''
+    for i in range(logits.shape[0]):
+        c_i = vocab[np.argmax(logits[i])]
+        if merge and c_i == c:
+            continue 
+        s += c_i
+        c = c_i
+    if merge:
+        s = s.replace('_', '')
+    return s
+
+def softmax(x):
+    m = np.expand_dims(np.max(x, axis=-1), -1)
+    e = np.exp(x - m)
+    return e / np.expand_dims(e.sum(axis=-1), -1)
+
+def evaluate_wer(data, labels, vocab, decoder):
+    total_dist = 0.0
+    total_count = 0.0
+    wer_per_sample = np.empty(shape=len(labels))
+    
+    empty_preds = 0
+    for idx, line in enumerate(labels):
+        label = line[-1]
+        pred = decoder(data[idx], vocab)
+        dist = levenshtein(label.lower().split(), pred.lower().split())
+        if pred=='':
+            empty_preds += 1
+        total_dist += dist
+        total_count += len(label.split())
+        wer_per_sample[idx] = dist / len(label.split())
+    print('# empty preds: {}'.format(empty_preds))
+    wer = total_dist / total_count
+    return wer, wer_per_sample
+
+
+data = load_dump(args.logits)
+labels = load_labels(args.labels)
+vocab = load_vocab(args.vocab)
+vocab[-1] = '_'
+
+wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
+print('Greedy WER = {:.4f}'.format(wer))
+
+probs_batch = []
+for idx in range(len(data)):
+    probs_batch.append(softmax(data[idx]))
+
+for alpha in np.arange(args.alpha_min, args.alpha_max, args.alpha_step):
+    for beta in np.arange(args.beta_min, args.beta_max, args.beta_step):
+        scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
+
+        res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                            beam_size=args.beam_width, 
+                                            num_processes=num_cpus,
+                                            ext_scoring_func=scorer)
+        total_dist = 0.0
+        total_count = 0.0
+        for idx, line in enumerate(labels):
+            label = line[-1]
+            score, text = [v for v in zip(*res[idx])]
+            pred = text[0]
+            dist = levenshtein(label.lower().split(), pred.lower().split())
+            total_dist += dist
+            total_count += len(label.split())
+        wer = total_dist / total_count
+        print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
+
