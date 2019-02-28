@@ -1,8 +1,12 @@
-FROM gitlab-dl.nvidia.com:5005/dgx/tensorflow:18.04-py2-devel
+FROM tensorflow/tensorflow:1.12.0-devel-gpu-py3
+
+RUN cd /tensorflow; 
+RUN ln -s /tensorflow /opt/tensorflow
+RUN ls -al /opt/tensorflow 
 
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib64:/usr/local/cuda/lib64/stubs:/usr/local/cuda/extras/CUPTI/lib64:${LD_LIBRARY_PATH}
 
-ARG PYVER=2.7
+ARG PYVER=3.5
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         cmake \
@@ -15,7 +19,7 @@ WORKDIR /opt/tensorflow
 
 
 ENV CUDA_TOOLKIT_PATH /usr/local/cuda
-ENV TF_CUDA_VERSION "9.0"
+ENV TF_CUDA_VERSION "10.0"
 ENV TF_CUDNN_VERSION "7"
 ENV CUDNN_INSTALL_PATH /usr/lib/x86_64-linux-gnu
 ENV TF_NEED_CUDA 1
@@ -52,20 +56,19 @@ WORKDIR /opt
 RUN pip install --upgrade numpy librosa scipy
 
 #------------------------------------------------------------------------------
-#RUN git clone https://nvdl.githost.io/dl-algo/OpenSeq2Seq -b v2
+RUN mkdir -p /opt/OpenSeq2Seq
 COPY . /opt/OpenSeq2Seq
-
 RUN cd OpenSeq2Seq/ && pip install -r requirements.txt
 
 RUN ln -s /opt/kenlm /opt/OpenSeq2Seq/ctc_decoder_with_lm/kenlm
-
 
 WORKDIR /opt/tensorflow
 
 RUN ln -s /usr/local/cuda/lib64/stubs/libcuda.so /usr/local/cuda/lib64/stubs/libcuda.so.1
 
-RUN ln -s ../OpenSeq2Seq/ctc_decoder_with_lm ./
-RUN bazel build -c opt --copt=-msse4.2 --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --config=cuda  //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so  //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
+RUN ln -s /opt/OpenSeq2Seq/ctc_decoder_with_lm /opt/tensorflow/ctc_decoder_with_lm
+
+RUN bazel build -c opt --copt="-D_GLIBCXX_USE_CXX11_ABI=0"  --copt=-msse4.2 --copt=-mavx --copt=-mavx2 --copt=-mfma --copt=-mfpmath=both --config=cuda  //tensorflow:libtensorflow_cc.so //tensorflow:libtensorflow_framework.so  //ctc_decoder_with_lm:libctc_decoder_with_kenlm.so //ctc_decoder_with_lm:generate_trie
 
 RUN cp /opt/tensorflow/bazel-bin/ctc_decoder_with_lm/*.so /opt/OpenSeq2Seq/ctc_decoder_with_lm/
 
@@ -73,11 +76,10 @@ RUN mkdir /opt/OpenSeq2Seq/language_model
 RUN ln -s /data/speech/LM/mozilla-lm.binary /opt/OpenSeq2Seq/language_model/lm.binary
 RUN ln -s /data/speech/LM/mozilla-lm.trie   /opt/OpenSeq2Seq/language_model/trie 
 
-ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/opt/OpenSeq2Seq/ctc_decoder_with_lm:/usr/local/lib/python2.7/dist-packages/tensorflow:$LD_LIBRARY_PATH 
+ENV LD_LIBRARY_PATH /usr/lib/x86_64-linux-gnu:/opt/OpenSeq2Seq/ctc_decoder_with_lm:/usr/local/lib/python3.5/dist-packages/tensorflow:$LD_LIBRARY_PATH 
 
 #================================================================================
 
 WORKDIR /opt/OpenSeq2Seq
-
 
 

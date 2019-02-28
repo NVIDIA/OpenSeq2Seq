@@ -402,7 +402,8 @@ class SSTCorpus(object):
     rating_file = open(os.path.join(self.proc_path, mode + '.rat'), 'w')
     for _, row in data.iterrows():
       review = self.tokenize(row['sentence'])
-      review_file.write(review + '\n')
+      review = review.encode('ascii', 'replace')
+      review_file.write(review.decode() + '\n')
       rating_file.write(str(row['label']) + '\n')
 
   def txt2ids(self, mode):
