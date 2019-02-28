@@ -12,8 +12,8 @@ activation = tf.nn.relu
 # gate_activation = None
 
 residual = True
-repeat_1 = 5
-repeat_2 = 5
+repeat_1 = 4
+repeat_2 = 4
 dropout_factor = 1.
 training_set = "libri"
 data_aug_enable = False
@@ -198,7 +198,7 @@ base_params = {
         "normalization": normalization,
         "activation_fn": activation,
         "data_format": "channels_last",
-        "use_conv_mask": True,
+        "use_conv_mask": False,
     },
 
     "decoder": FullyConnectedCTCDecoder,
