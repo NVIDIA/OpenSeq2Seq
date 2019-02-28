@@ -171,7 +171,7 @@ class TDNNEncoder(Encoder):
           conv_feats = conv_feats * mask
 
         # Since we have a stride 2 layer, we need to update mask for future operations
-        if strides[0] > 1 and self.params.get("use_conv_mask", False)::
+        if strides[0] > 1 and self.params.get("use_conv_mask", False):
           mask = tf.sequence_mask(
               lengths=src_length,
               maxlen=tf.reduce_max(src_length),
