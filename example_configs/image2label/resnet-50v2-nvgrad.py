@@ -31,7 +31,7 @@ base_params = {
   "save_checkpoint_steps": 5000,
   "logdir": "logs/rn50/nvgd2_lr0.02",
 
-  "optimizer": NovoGrad, #NovoGrad2,
+  "optimizer": NovoGrad2, #NovoGrad2,
   "optimizer_params": {
     "beta1": 0.95,
     "beta2": 0.98,
@@ -60,8 +60,9 @@ base_params = {
 
   "regularizer": tf.contrib.layers.l2_regularizer,
   "regularizer_params": {
-    'scale': 0.0001,
+    'scale': 0.0005, # 0.0001,
   },
+
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
   "encoder": ResNetEncoder,
