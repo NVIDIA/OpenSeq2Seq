@@ -266,7 +266,7 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     num_features].
     audio_duration (float): duration of the signal in seconds
   """
-  if augmentation is not None:
+  if augmentation:
     if 'time_stretch_ratio' not in augmentation:
       raise ValueError('time_stretch_ratio has to be included in augmentation '
                        'when augmentation it is not None')
