@@ -27,6 +27,7 @@ class TDNNEncoder(Encoder):
         'normalization': [None, 'batch_norm', 'layer_norm', 'instance_norm'],
         'bn_momentum': float,
         'bn_epsilon': float,
+        'use_conv_mask': bool,
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -102,6 +103,14 @@ class TDNNEncoder(Encoder):
     normalization = self.params.get('normalization', 'batch_norm')
 
     normalization_params = {}
+
+    if self.params.get("use_conv_mask", False):
+      mask = tf.sequence_mask(
+          lengths=src_length, maxlen=tf.reduce_max(src_length),
+          dtype=source_sequence.dtype
+      )
+      mask = tf.expand_dims(mask, 2)
+
     if normalization is None:
       conv_block = conv_actv
     elif normalization == "batch_norm":
@@ -140,16 +149,36 @@ class TDNNEncoder(Encoder):
       residual = convnet_layers[idx_convnet].get('residual', False)
       residual_dense = convnet_layers[idx_convnet].get('residual_dense', False)
 
+      # For the first layer in the block, apply a mask
+      if self.params.get("use_conv_mask", False):
+        conv_feats = conv_feats * mask
+
       if residual:
         layer_res = conv_feats
         if residual_dense:
           residual_aggregation.append(layer_res)
           layer_res = residual_aggregation
+
       for idx_layer in range(layer_repeat):
+
         if padding == "VALID":
           src_length = (src_length - kernel_size[0]) // strides[0] + 1
         else:
           src_length = (src_length + strides[0] - 1) // strides[0]
+
+        # For all layers other than first layer, apply mask
+        if idx_layer > 0 and self.params.get("use_conv_mask", False):
+          conv_feats = conv_feats * mask
+
+        # Since we have a stride 2 layer, we need to update mask for future operations
+        if strides[0] > 1 and self.params.get("use_conv_mask", False):
+          mask = tf.sequence_mask(
+              lengths=src_length,
+              maxlen=tf.reduce_max(src_length),
+              dtype=conv_feats.dtype
+          )
+          mask = tf.expand_dims(mask, 2)
+
         if residual and idx_layer == layer_repeat - 1:
           conv_feats = conv_bn_res_bn_actv(
               layer_type=layer_type,
@@ -185,6 +214,7 @@ class TDNNEncoder(Encoder):
               data_format=data_format,
               **normalization_params
           )
+
         conv_feats = tf.nn.dropout(x=conv_feats, keep_prob=dropout_keep)
 
     outputs = conv_feats
