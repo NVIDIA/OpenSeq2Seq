@@ -178,6 +178,8 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         'lm_path': str,
         'trie_path': str,
         'alphabet_config_path': str,
+        'mode': int,
+        'neural_lm_path': str,
     })
 
   def __init__(self, params, model,
@@ -230,6 +232,8 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
                 alpha=self.params['alpha'],
                 beta=self.params['beta'],
                 trie_weight=self.params.get('trie_weight', 0.1),
+                mode=self.params.get('mode', 0),
+                neural_lm_path=self.params.get('neural_lm_path', ""),
                 top_paths=top_paths, merge_repeated=merge_repeated,
             )
         )

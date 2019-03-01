@@ -458,6 +458,8 @@ REGISTER_OP("CTCBeamSearchDecoderWithLM")
     .Attr("alpha: float")
     .Attr("beta: float")
     .Attr("trie_weight: float")
+    .Attr("mode: int")
+    .Attr("neural_lm_path: string")
     .Attr("beam_width: int >= 1 = 100")
     .Attr("top_paths: int >= 1 = 1")
     .Attr("merge_repeated: bool = true")
@@ -660,7 +662,9 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
                    GetAlphabetPath(ctx),
                    GetAlpha(ctx),
                    GetBeta(ctx),
-                   GetTrieWeight(ctx))
+                   GetTrieWeight(ctx),
+                   GetMode(ctx),
+                   GetNeuralLmPath(ctx))
   {
     OP_REQUIRES_OK(ctx, ctx->GetAttr("merge_repeated", &merge_repeated_));
     OP_REQUIRES_OK(ctx, ctx->GetAttr("beam_width", &beam_width_));
@@ -766,7 +770,7 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     std::string model_path;
     ctx->GetAttr("model_path", &model_path);
     return model_path;
-  }
+  }  
 
   std::string GetTriePath(tf::OpKernelConstruction *ctx) {
     std::string trie_path;
@@ -778,6 +782,12 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     std::string alphabet_path;
     ctx->GetAttr("alphabet_path", &alphabet_path);
     return alphabet_path;
+  }
+
+  std::string GetNeuralLmPath(tf::OpKernelConstruction *ctx) {
+    std::string neural_lm_path;
+    ctx->GetAttr("neural_lm_path", &neural_lm_path);
+    return neural_lm_path;
   }
 
   float GetAlpha(tf::OpKernelConstruction *ctx) {
@@ -796,6 +806,12 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     float trie_weight;
     ctx->GetAttr("trie_weight", &trie_weight);
     return trie_weight;
+  }
+
+  int GetMode(tf::OpKernelConstruction *ctx) {
+    int mode;
+    ctx->GetAttr("mode", &mode);
+    return mode;
   }
 
 };

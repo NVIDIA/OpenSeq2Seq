@@ -15,7 +15,7 @@
 #include "alphabet.h"
 #include "trie_node.h"
 #include "tensorflow/core/util/ctc/ctc_beam_search.h"
-
+#include "external_lm.h"
 #include "kenlm/lm/model.hh"
 #include <iostream>
 
@@ -35,17 +35,50 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
   public:
     WordLMBeamScorer(const std::string &kenlm_path, const std::string &trie_path, 
                      const std::string &alphabet_path,
-                     float alpha, float beta, float trie_weight)
+                     float alpha, float beta, float trie_weight, int mode, 
+                     const std::string &neural_lm_path)
       : model_(kenlm_path.c_str(), GetLMConfig())
       , alphabet_(alphabet_path.c_str())
       , alpha_(alpha)
       , beta_(beta)
       , trie_weight_(trie_weight)
+      , mode_(mode)      
     {
       Model::State out;
       std::ifstream in(trie_path, std::ios::in);
       TrieNode::ReadFromStream(in, trieRoot_, alphabet_.GetSize());
-      oov_score_ = model_.FullScore(model_.NullContextState(), model_.GetVocabulary().NotFound(), out).prob;
+      oov_score_ = model_.FullScore(model_.NullContextState(), model_.GetVocabulary().NotFound(), out).prob;     
+      if (mode_ == 1) {
+        neural_lm_ = ExternalLanguageModel(neural_lm_path.c_str());
+        std::cout<<"============>>>>>>>>>>>>> TESTING NEURAL LM"<<std::endl;
+        std::vector<std::string> ex2;
+        ex2.push_back("where");  
+        ex2.push_back("who");
+        ex2.push_back("go");
+        ex2.push_back("table");
+        ex2.push_back("sit");  
+        std::cout<<"String: "<<ex2<<"   Score: "<<neural_lm_.score_phrase(ex2)<<std::endl;
+
+        std::vector<std::string> ex3;
+        ex3.push_back("the");  
+        ex3.push_back("fox");
+        ex3.push_back("jumps");
+        ex3.push_back("on");
+        ex3.push_back("the");  
+        ex3.push_back("box");  
+        std::cout<<"String: "<<ex3<<"   Score: "<<neural_lm_.score_phrase(ex3)<<std::endl;
+        
+
+        std::vector<std::string> ex4;
+        ex4.push_back("the");  
+        ex4.push_back("fox");
+        ex4.push_back("jump");
+        ex4.push_back("at");
+        ex4.push_back("the");  
+        ex4.push_back("box");  
+        std::cout<<"String: "<<ex4<<"   Score: "<<neural_lm_.score_phrase(ex4)<<std::endl;
+        std::cout<<"============>>>>>>>>>>>>>END TESTING NEURAL LM"<<std::endl;
+      }
     }
 
     virtual ~WordLMBeamScorer() {
@@ -157,6 +190,7 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
 
 
   private:
+    ExternalLanguageModel neural_lm_;
     Model model_;
     Alphabet alphabet_;
     float alpha_;
@@ -164,6 +198,7 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
     float trie_weight_;
     TrieNode *trieRoot_;
     float oov_score_;
+    int mode_;
 
     lm::ngram::Config GetLMConfig() {
       lm::ngram::Config config;
@@ -179,30 +214,36 @@ class WordLMBeamScorer : public tensorflow::ctc::BaseBeamScorer<WordLMBeamState>
 
     float ScoreNGram(const std::vector<std::string>& prefix) const {
       float prob;
-      Model::State state, out_state;
-      model_.NullContextWrite(&state);
-      int order = model_.Order();
-      int ngram_start = 0;
-      int ngram_end = prefix.size();
-      if (prefix.size() < order) {
-        for (size_t i = 0; i < order - prefix.size(); ++i) {
-          lm::WordIndex word_index = model_.BaseVocabulary().Index("<s>");
+      if (mode_ == 0) {             
+        Model::State state, out_state;
+        model_.NullContextWrite(&state);
+        int order = model_.Order();
+        int ngram_start = 0;
+        int ngram_end = prefix.size();
+        if (prefix.size() < order) {
+          for (size_t i = 0; i < order - prefix.size(); ++i) {
+            lm::WordIndex word_index = model_.BaseVocabulary().Index("<s>");
+            prob = model_.BaseScore(&state, word_index, &out_state);
+            state = out_state;
+          }
+        } else {
+          ngram_start = ngram_end - order;
+        }
+        for (size_t i = ngram_start; i < ngram_end; ++i) {
+          lm::WordIndex word_index = model_.BaseVocabulary().Index(prefix[i]);
+          if (word_index == model_.BaseVocabulary().NotFound()) {
+            return -100.;
+          }
+          
           prob = model_.BaseScore(&state, word_index, &out_state);
           state = out_state;
         }
-      } else {
-        ngram_start = ngram_end - order;
+      
+      } else {      
+        prob = neural_lm_.score_phrase(prefix);        
       }
-      for (size_t i = ngram_start; i < ngram_end; ++i) {
-        lm::WordIndex word_index = model_.BaseVocabulary().Index(prefix[i]);
-        if (word_index == model_.BaseVocabulary().NotFound()) {
-          return -100.;
-        }
-        
-        prob = model_.BaseScore(&state, word_index, &out_state);
-        state = out_state;
-      }
-      return prob;
+      //std::cout<<"Mode: "<<mode_<<"    "<<prob<<std::endl;
+      return prob;      
     }
 
 
