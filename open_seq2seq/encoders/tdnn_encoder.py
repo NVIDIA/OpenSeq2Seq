@@ -28,6 +28,7 @@ class TDNNEncoder(Encoder):
         'bn_momentum': float,
         'bn_epsilon': float,
         'use_conv_mask': bool,
+        'use_bn_mask': bool,
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -107,10 +108,13 @@ class TDNNEncoder(Encoder):
     mask = None
     if self.params.get("use_conv_mask", False):
       mask = tf.sequence_mask(
-          lengths=src_length, maxlen=tf.reduce_max(src_length),
-          dtype=source_sequence.dtype
+          lengths=src_length,
+          maxlen=tf.reduce_max(src_length),
+          dtype=tf.float32
       )
       mask = tf.expand_dims(mask, 2)
+      if self.params.get("use_bn_mask", False):
+        normalization_params['mask'] = mask
 
     if normalization is None:
       conv_block = conv_actv
@@ -152,7 +156,7 @@ class TDNNEncoder(Encoder):
 
       # For the first layer in the block, apply a mask
       if self.params.get("use_conv_mask", False):
-        conv_feats = conv_feats * mask
+        conv_feats = conv_feats * tf.cast(mask, dtype=conv_feats.dtype)
 
       if residual:
         layer_res = conv_feats
@@ -169,16 +173,18 @@ class TDNNEncoder(Encoder):
 
         # For all layers other than first layer, apply mask
         if idx_layer > 0 and self.params.get("use_conv_mask", False):
-          conv_feats = conv_feats * mask
+          conv_feats = conv_feats * tf.cast(mask, dtype=conv_feats.dtype)
 
         # Since we have a stride 2 layer, we need to update mask for future operations
         if strides[0] > 1 and self.params.get("use_conv_mask", False):
           mask = tf.sequence_mask(
               lengths=src_length,
               maxlen=tf.reduce_max(src_length),
-              dtype=conv_feats.dtype
+              dtype=tf.float32
           )
           mask = tf.expand_dims(mask, 2)
+          if self.params.get("use_bn_mask", False):
+            normalization_params['mask'] = mask
 
         if residual and idx_layer == layer_repeat - 1:
           conv_feats = conv_bn_res_bn_actv(
