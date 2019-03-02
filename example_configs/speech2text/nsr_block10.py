@@ -198,8 +198,8 @@ base_params = {
         "normalization": normalization,
         "activation_fn": activation,
         "data_format": "channels_last",
-        "use_conv_mask": True,
-        "use_bn_mask": True,
+        "use_conv_mask": False,
+        "use_bn_mask": False,
     },
 
     "decoder": FullyConnectedCTCDecoder,
