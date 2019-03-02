@@ -25,6 +25,7 @@ from tensorflow.python.ops import state_ops
 from tensorflow.python.training import optimizer
 from tensorflow.python.training import training_ops
 from tensorflow.train import MomentumOptimizer
+from tensorflow.contrib.opt.python.training.weight_decay_optimizers import DecoupledWeightDecayExtension
 import tensorflow as tf
 
 class NovoGrad(MomentumOptimizer):
@@ -118,7 +119,7 @@ class NovoGrad2(MomentumOptimizer):
   """
 
   def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.95,
-               epsilon=1e-6, ord=2, use_locking=False, name='NovoGrad2', weight_decay=0.0):
+               epsilon=1e-6, use_locking=False, name='NovoGrad2'):
     """Constructs a new NovoGrad
 
     Args:
@@ -141,21 +142,27 @@ class NovoGrad2(MomentumOptimizer):
     self._ord = ord
 
     self._lr = learning_rate
-    self._wd = weight_decay
     self._use_locking = use_locking
+
 
     # Tensor versions, converted to tensors in apply_gradients
     self._beta1_t = None
     self._beta2_t = None
     self._lr_t =  None
-    self._wd_t =  None
     self._grads_ema = None
+
+  # def _decay_weights_op(self, var):
+  #   if self._wd > 0.:
+  #       return var.assign_sub(self._wd * var, self._use_locking)
+  #   else:
+  #    return control_flow_ops.no_op()
+
 
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
     self._beta1_t = ops.convert_to_tensor(self._beta1, name='beta1', dtype = tf.float32)
     self._beta2_t = ops.convert_to_tensor(self._beta2, name='beta2', dtype = tf.float32)
-    self._wd_t = ops.convert_to_tensor(self._wd, name='wd', dtype = tf.float32)
-    self._lr_t = ops.convert_to_tensor(self._lr, name='lr', dtype = tf.float32)
+    # self._wd_t = ops.convert_to_tensor(self._wd, name='wd', dtype = tf.float32)
+    # self._lr_t = ops.convert_to_tensor(self._lr, name='lr', dtype = tf.float32)
 
     len_vars = len(grads_and_vars)
     # init ema variables if required
@@ -178,14 +185,47 @@ class NovoGrad2(MomentumOptimizer):
       g_factor = self._beta1_t / tf.sqrt(self._grads_ema[i] + self._epsilon)
       grad = tf.scalar_mul(g_factor, grad)
 
-      if (self._wd > 0.):
-        # var.assign_sub((2*self._wd_t * self._lr_t)*var, self._use_locking)
-        var.assign_sub((2*self._wd_t)*var, self._use_locking)
+      # if (self._wd > 0.):
+      #   # var.assign_sub((2*self._wd_t * self._lr_t)*var, self._use_locking)
+      #   var.assign_sub((2*self._wd_t)*var, self._use_locking)
 
+      # if (self._wd > 0.):
+      #   with ops.control_dependencies([self._decay_weights_op(var)]):
+      #     grads_and_vars[i] = (grad, var)
+      #
+      # else:
       grads_and_vars[i] = (grad, var)
 
     return super(NovoGrad2, self).apply_gradients(
-      grads_and_vars, global_step=global_step, name=name)
+         grads_and_vars, global_step=global_step, name=name)
+
+#==============================================================================
+#-----------------------------------------------------------------------------
+class NovoGradW(DecoupledWeightDecayExtension, NovoGrad2):
+
+
+  def __init__(self, weight_decay=0.0, learning_rate=0.001, beta1=0.9, beta2=0.95,
+               epsilon=1e-6,  use_locking=False, name='NovoGradW'):
+
+    """Then Novograd with the decoupled weight decay  by Loshchilov & Hutter
+    (https://arxiv.org/pdf/1711.05101.pdf),
+
+    Args:
+      weight decay:A `Tensor` or a float,
+      learning_rate: A `Tensor` or a floating point value.  The learning rate.
+      beta1: A `Tensor` or a float, used in ema for momentum.
+      beta2: A `Tensor` or a float, used in ema for grad norms,
+      epsilon: a float.  Default = 1e-6.
+      use_locking: If `True` use locks for update operations.
+      name: Optional, name prefix for the ops created when applying
+        gradients.  Defaults to "NovoGradW".
+
+    """
+    super(NovoGradW, self).__init__(weight_decay=weight_decay,
+                 learning_rate=learning_rate,
+                  beta1=beta1, beta2=beta2, epsilon=epsilon,
+                  use_locking=use_locking, name=name,
+                    )
 
 
 #------------------------------------------------------------------------------
