@@ -118,7 +118,7 @@ class NovoGrad2(MomentumOptimizer):
   """
 
   def __init__(self, learning_rate=0.001, beta1=0.9, beta2=0.95,
-               epsilon=1e-6, ord=2, use_locking=False, name='NovoGrad2'):
+               epsilon=1e-6, ord=2, use_locking=False, name='NovoGrad2', weight_decay=0.0):
     """Constructs a new NovoGrad
 
     Args:
@@ -139,14 +139,24 @@ class NovoGrad2(MomentumOptimizer):
     self._beta2 = beta2
     self._epsilon = epsilon
     self._ord = ord
+
+    self._lr = learning_rate
+    self._wd = weight_decay
+    self._use_locking = use_locking
+
     # Tensor versions, converted to tensors in apply_gradients
     self._beta1_t = None
     self._beta2_t = None
+    self._lr_t =  None
+    self._wd_t =  None
     self._grads_ema = None
 
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
-    self._beta1_t = ops.convert_to_tensor(self._beta1, name='beta1')
-    self._beta2_t = ops.convert_to_tensor(self._beta2, name='beta2')
+    self._beta1_t = ops.convert_to_tensor(self._beta1, name='beta1', dtype = tf.float32)
+    self._beta2_t = ops.convert_to_tensor(self._beta2, name='beta2', dtype = tf.float32)
+    self._wd_t = ops.convert_to_tensor(self._wd, name='wd', dtype = tf.float32)
+    self._lr_t = ops.convert_to_tensor(self._lr, name='lr', dtype = tf.float32)
+
     len_vars = len(grads_and_vars)
     # init ema variables if required
     if self._grads_ema is None:
@@ -156,18 +166,22 @@ class NovoGrad2(MomentumOptimizer):
                                              shape=[], dtype=tf.float32,
                                              initializer=tf.keras.initializers.Zeros(),
                                              trainable=False)
-    # compute ema for each layer
+    # compute ema for grads^2 for each layer
     for i, (grad, var) in enumerate(grads_and_vars):
       # g_norm = tf.norm(tensor=tf.cast(grad, tf.float32), ord=self._ord)
       g_norm = tf.reduce_sum(tf.square(x=tf.cast(grad, tf.float32)))
       self._grads_ema[i] = tf.cond(tf.equal(self._grads_ema[i], 0.),
-                                   lambda: g_norm,
-                                   lambda: self._grads_ema[
-                                             i] * self._beta2_t + g_norm * (
-                                   1. - self._beta2_t)
+            lambda: g_norm,
+            lambda: self._grads_ema[i]*self._beta2_t + g_norm*(1.-self._beta2_t)
                                    )
+      # rescale grads                              )
       g_factor = self._beta1_t / tf.sqrt(self._grads_ema[i] + self._epsilon)
       grad = tf.scalar_mul(g_factor, grad)
+
+      if (self._wd > 0.):
+        # var.assign_sub((2*self._wd_t * self._lr_t)*var, self._use_locking)
+        var.assign_sub((2*self._wd_t)*var, self._use_locking)
+
       grads_and_vars[i] = (grad, var)
 
     return super(NovoGrad2, self).apply_gradients(
