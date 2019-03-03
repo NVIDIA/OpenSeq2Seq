@@ -29,19 +29,19 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgdw_lr0.02",
+  "logdir": "logs/rn50/nvgd2w_lr1.0_wd0.001",
 
-  "optimizer": NovoGradW, #NovoGrad2,
+  "optimizer": NovoGrad2,
   "optimizer_params": {
     "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
-    "weight_decay": 0.0001,
+    "weight_decay": 0.001,
   },
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 0.02,
+    "learning_rate": 1.0,
     "power": 2,
     # "warmup_steps": 200,
   },
@@ -56,13 +56,12 @@ base_params = {
   #   "boundaries": [30, 60, 80, 90],
   #   "decay_rates": [0.1, 0.01, 0.001, 1e-4],
   # },
-
-  "initializer": tf.variance_scaling_initializer,
-
   # "regularizer": tf.contrib.layers.l2_regularizer,
   # "regularizer_params": {
   #   'scale': 0.0001, # 0.0001,
   # },
+
+  "initializer": tf.variance_scaling_initializer,
 
   "summaries": ['learning_rate', 'variables', 'gradients', 'larc_summaries',
                 'variable_norm', 'gradient_norm', 'global_gradient_norm'],
