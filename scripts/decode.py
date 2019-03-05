@@ -18,12 +18,21 @@ import multiprocessing
 parser = argparse.ArgumentParser(
     description='CTC decoding and tuning with LM rescoring'
 )
+parser.add_argument('--mode',
+    help='either \'eval\' (default) or \'infer\'',
+    default='eval'
+)
+parser.add_argument('--infer_output_file',
+    help='output CSV file for \'infer\' mode',
+    required=False
+)
 parser.add_argument('--logits', 
     help='pickle file with CTC logits',
     required=True
 )
 parser.add_argument('--labels',
-    help='CSV file with ground truth transcriptions',
+    help='CSV file with audio filenames \
+      (and ground truth transcriptions for \'eval\' mode)',
     required=True
 )
 parser.add_argument('--lm',
@@ -34,28 +43,29 @@ parser.add_argument('--vocab',
     help='vocab file with characters (alphabet)',
     required=True
 )
-parser.add_argument('--alpha_min', type=float,
-    help='minimum value of LM weight',
+parser.add_argument('--alpha', type=float,
+    help='value of LM weight',
     required=True
 )
 parser.add_argument('--alpha_max', type=float,
-    help='maximum value of LM weight',
+    help='maximum value of LM weight (for a grid search in \'eval\' mode)',
     required=False
 )
 parser.add_argument('--alpha_step', type=float,
-    help='step for LM weight\'s tuning',
+    help='step for LM weight\'s tuning in \'eval\' mode',
     required=False, default=0.1
 )
-parser.add_argument('--beta_min', type=float,
-    help='minimum value of beta',
+parser.add_argument('--beta', type=float,
+    help='value of word count weight',
     required=True
 )
 parser.add_argument('--beta_max', type=float,
-    help='maximum value of beta',
+    help='maximum value of word count weight (for a grid search in \
+      \'eval\' mode',
     required=False
 )
 parser.add_argument('--beta_step', type=float,
-    help='step for beta\'s tuning',
+    help='step for word count weight\'s tuning in \'eval\' mode',
     required=False, default=0.1
 )
 parser.add_argument('--beam_width', type=int,
@@ -65,12 +75,12 @@ parser.add_argument('--beam_width', type=int,
 args = parser.parse_args()
 
 if args.alpha_max is None:
-  args.alpha_max = args.alpha_min
+  args.alpha_max = args.alpha
 # include alpha_max in tuning range
 args.alpha_max += args.alpha_step/10.0
 
 if args.beta_max is None:
-  args.beta_max = args.beta_min
+  args.beta_max = args.beta
 # include beta_max in tuning range
 args.beta_max += args.beta_step/10.0
 
@@ -157,30 +167,52 @@ labels = load_labels(args.labels)
 vocab = load_vocab(args.vocab)
 vocab[-1] = '_'
 
-wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
-print('Greedy WER = {:.4f}'.format(wer))
-
 probs_batch = []
 for idx in range(len(data)):
     probs_batch.append(softmax(data[idx]))
 
-for alpha in np.arange(args.alpha_min, args.alpha_max, args.alpha_step):
-    for beta in np.arange(args.beta_min, args.beta_max, args.beta_step):
-        scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
+if args.mode == 'eval':
+    wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
+    print('Greedy WER = {:.4f}'.format(wer))
+    best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0} 
+    for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
+        for beta in np.arange(args.beta, args.beta_max, args.beta_step):
+            scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
 
-        res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                            beam_size=args.beam_width, 
-                                            num_processes=num_cpus,
-                                            ext_scoring_func=scorer)
-        total_dist = 0.0
-        total_count = 0.0
-        for idx, line in enumerate(labels):
-            label = line[-1]
-            score, text = [v for v in zip(*res[idx])]
-            pred = text[0]
-            dist = levenshtein(label.lower().split(), pred.lower().split())
-            total_dist += dist
-            total_count += len(label.split())
-        wer = total_dist / total_count
-        print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
+            res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                                beam_size=args.beam_width, 
+                                                num_processes=num_cpus,
+                                                ext_scoring_func=scorer)
+            total_dist = 0.0
+            total_count = 0.0
+            for idx, line in enumerate(labels):
+                label = line[-1]
+                score, text = [v for v in zip(*res[idx])]
+                pred = text[0]
+                dist = levenshtein(label.lower().split(), pred.lower().split())
+                total_dist += dist
+                total_count += len(label.split())
+            wer = total_dist / total_count
+            if wer < best_result['wer']:
+                best_result['wer'] = wer
+                best_result['alpha'] = alpha
+                best_result['beta'] = beta
+            print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
+    print('BEST: alpha={:.2f}, beta={:.2f}, WER={:.4f}'.format(
+        best_result['alpha'], best_result['beta'], best_result['wer']))
 
+elif args.mode == 'infer':
+    scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
+    res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                        beam_size=args.beam_width, 
+                                        num_processes=num_cpus,
+                                        ext_scoring_func=scorer)
+    infer_preds = np.empty(shape=(len(labels), 2), dtype=object)
+    for idx, line in enumerate(labels):
+        filename = line[0]
+        score, text = [v for v in zip(*res[idx])]
+        infer_preds[idx, 0] = filename
+        infer_preds[idx, 1] = text[0]
+    
+    np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',
+               header='wav_filename,transcript')
