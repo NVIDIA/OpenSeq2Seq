@@ -49,7 +49,7 @@ class LayerNormalization(tf.layers.Layer):
 
   def build(self, _):
     self.scale = tf.get_variable("layer_norm_scale", [self.hidden_size],
-                                 initializer= tf.keras.initializers.Ones(),
+                                 initializer=tf.keras.initializers.Ones(),
                                  dtype=tf.float32)
     self.bias = tf.get_variable("layer_norm_bias", [self.hidden_size],
                                  initializer=tf.keras.initializers.Zeros(),
@@ -58,9 +58,7 @@ class LayerNormalization(tf.layers.Layer):
 
   def call(self, x):
     with tf.name_scope("Normalization"):
-      print('LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
       if self.norm_type == "layernorm_L2":
-        print("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBb")
         epsilon = self.epsilon
         dtype = x.dtype
         x = tf.cast(x=x, dtype=tf.float32)

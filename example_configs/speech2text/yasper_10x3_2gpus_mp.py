@@ -26,7 +26,7 @@ base_params = {
     "eval_steps": 2200,
     "save_checkpoint_steps": 1100,
     "num_checkpoints": 5,
-    "logdir": "jasper_log_folder",
+    "logdir": "yasper_log_folder",
 
     # "optimizer": "Momentum",
     # "optimizer_params": {
@@ -52,7 +52,7 @@ base_params = {
     "lr_policy": transformer_policy,
     "lr_policy_params": {
         "learning_rate": 2.0,
-        "warmup_steps": 8000,
+        "warmup_steps": 2000,
         "d_model": d_model,
     },
 
@@ -73,15 +73,8 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
-                "num_channels": 128, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
-            },
-            {
-                "type": "conv1d", "repeat": 1,
-                "kernel_size": [1], "stride": [1],
                 "num_channels": d_model, "padding": "SAME",
-                "dilation": [1], "dropout_keep_prob": 0.8,
-                "residual": True
+                "dilation":[1], "dropout_keep_prob": 0.8,
             },
 
         ],
@@ -94,7 +87,7 @@ base_params = {
         "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
         "data_format": "channels_last",
 
-        "encoder_layers": 4,
+        "encoder_layers": [(32, 32)]*10,
         "hidden_size": d_model,
         "num_heads": 16,
         "attention_dropout": 0.1,

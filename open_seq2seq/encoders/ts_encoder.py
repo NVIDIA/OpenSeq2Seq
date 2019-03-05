@@ -21,7 +21,7 @@ class TSSEncoder(Encoder):
         'dropout_keep_prob': float,
         'convnet_layers': list,
         'activation_fn': None,  # any valid callable
-        "encoder_layers": int,
+        "encoder_layers": None,
         "hidden_size": int,
         "num_heads": int,
         "attention_dropout": float,
@@ -228,17 +228,29 @@ class TSSEncoder(Encoder):
     if data_format == 'channels_first':
       outputs = tf.transpose(outputs, [0, 2, 1])
 
-    # ----- Transformer layers -------------------------------------------
+    # ----- Construct Transformer layers --------------------------------------
+    transformer_layer_specs = []
+    if isinstance(self.params['encoder_layers'], list):
+      transformer_layer_specs = self.params['encoder_layers']
+    elif isinstance(self.params['encoder_layers'], int):
+      transformer_layer_specs = [(None, None)] * self.params['encoder_layers']
+    else:
+      raise ValueError("encoder_layers parameter must be list or int")
 
-    if len(self.layers) == 0:
-      for _ in range(self.params['encoder_layers']):
+    if len(self.layers) == 0: # <- this is a bad practice
+      for layer_spec in transformer_layer_specs:
+        # if block width and filter_width are None, then it is full attention
+        # otherwise it is a local attention
+        block_width, filter_width = layer_spec
         # Create sublayers for each layer.
         self_attention_layer = attention_layer.SelfAttention(
           hidden_size=self.params["hidden_size"],
           num_heads=self.params["num_heads"],
           attention_dropout=self.params["attention_dropout"],
           train=training,
-          regularizer=self.regularizer
+          regularizer=self.regularizer,
+          block_length=block_width,
+          filter_width=filter_width
         )
         feed_forward_network = ffn_layer.FeedFowardNetwork(
           hidden_size=self.params["hidden_size"],
@@ -247,7 +259,6 @@ class TSSEncoder(Encoder):
           train=training,
           regularizer=self.regularizer
         )
-
         self.layers.append([
             PrePostProcessingWrapper(self_attention_layer, self.params,
                                      training),
@@ -255,15 +266,15 @@ class TSSEncoder(Encoder):
                                      training)
         ])
 
-      # final normalization layer.
-      print("Encoder:", self.norm_params["type"], self.mode)
-      if self.norm_params["type"] =="batch_norm":
-        self.output_normalization = Transformer_BatchNorm(
-          training=training,
-          params=self.norm_params)
-      else:
-        self.output_normalization = LayerNormalization(
-          hidden_size=self.params["hidden_size"], params=self.norm_params)
+        # final normalization layer.
+        print("Encoder:", self.norm_params["type"], self.mode)
+        if self.norm_params["type"] =="batch_norm":
+          self.output_normalization = Transformer_BatchNorm(
+            training=training,
+            params=self.norm_params)
+        else:
+          self.output_normalization = LayerNormalization(
+            hidden_size=self.params["hidden_size"], params=self.norm_params)
 
     # actual encoder part
     with tf.name_scope("transformer_encode"):
