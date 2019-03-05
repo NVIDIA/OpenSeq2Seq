@@ -30,30 +30,37 @@ import tensorflow as tf
 
 class NovoGrad2(MomentumOptimizer):
   """
-  Optimizer that implements Stochastic Average Gradient(SAG)
-  with first momentum = ema of layer-wise normalized gradients,
-  when normalization is done by sqrt(ema of sqr(grads)),
-  similar to ADAM
+  Optimizer that implements SGD with layer-wise normalized gradients,
+  when normalization is done by sqrt(ema(sqr(grads))), similar to ADAM
 
     ```
-    ema of Layer-wise  sqr of grads:
+    Second moment = ema of Layer-wise  sqr of grads:
        v_t <-- beta2*v_{t-1} + (1-beta2)*(g_t)^2
 
-    momentum = ema of grads normalized by u_t:
-       m_t <- beta1*m_{t-1} + (1-beta1)*(g_t/sqrt(v_t+epsilon))
+    First momentum has two mode:
+    1. momentum of grads normalized by u_t:
+       m_t <- beta1*m_{t-1} + lr_t * [ g_t/sqrt(v_t+epsilon)]
+    1. momentum is similar to Adam: ema of grads normalized by u_t:
+       m_t <- beta1*m_{t-1} + lr_t * [(1-beta1)*(g_t/sqrt(v_t+epsilon))]
 
     if weight decay add it after grads are rescaled by 1/sqrt(v_t):
-       m_t <- beta1*m_{t-1} + (1-beta1)*[g_t/sqrt(v_t+epsilon) + wd*w_{t-1}]
+       m_t <- beta1*m_{t-1} + lr_t * [g_t/sqrt(v_t+epsilon) + wd*w_{t-1}]
 
     Weight update:
-       w_t <- w_{t-1} - lr_t*m_t
+       w_t <- w_{t-1} - *m_t
     ```
 
   """
 
-  def __init__(self, learning_rate=1.0, beta1=0.95, beta2=0.98,
-               epsilon=1e-8, weight_decay=0.0,
-               use_locking=False, name='NovoGrad2'):
+  def __init__(self,
+               learning_rate=1.0,
+               beta1=0.95,
+               beta2=0.98,
+               epsilon=1e-8,
+               weight_decay=0.0,
+               grad_averaging=False,
+               use_locking=False,
+               name='NovoGrad2'):
     """Constructs a new NovoGrad
 
     Args:
@@ -75,7 +82,7 @@ class NovoGrad2(MomentumOptimizer):
     self._beta2 = beta2
     self._epsilon = epsilon
     self._wd  = weight_decay
-
+    self._grad_averaging  = grad_averaging
     self._grads_ema = None
 
     # Tensor versions, converted to tensors in apply_gradients
@@ -86,8 +93,6 @@ class NovoGrad2(MomentumOptimizer):
   def apply_gradients(self, grads_and_vars, global_step=None, name=None):
     # self._beta1_t = ops.convert_to_tensor(self._beta1, name='beta1', dtype = tf.float32)
     # self._beta2_t = ops.convert_to_tensor(self._beta2, name='beta2', dtype = tf.float32)
-    if (self._wd > 0.):
-      wd_factor = (1.-self._beta1)*self._wd
 
     len_vars = len(grads_and_vars)
     # init ema variables if required
@@ -103,16 +108,17 @@ class NovoGrad2(MomentumOptimizer):
     for i, (grad, var) in enumerate(grads_and_vars):
       g_2 = tf.reduce_sum(tf.square(x=tf.cast(grad, tf.float32)))
       self._grads_ema[i] = tf.cond(tf.equal(self._grads_ema[i], 0.),
-            lambda: g_2,
-            lambda: self._grads_ema[i]*self._beta2 + g_2*(1.-self._beta2)
-            # lambda: self._grads_ema[i]*self._beta2_t + g_2*(1.-self._beta2_t)
-                                   )
-      # extra rescale grads by (1.-beta1) to use Momentum as SAG
-      g_factor = (1.-self._beta1)/tf.sqrt(self._grads_ema[i]+self._epsilon)
-      grad *= g_factor
-      # add wd to rescaled grads
+                  lambda: g_2,
+                  lambda: self._grads_ema[i]*self._beta2 + g_2*(1.-self._beta2)
+                  )
+
+      grad *= 1.0 / tf.sqrt(self._grads_ema[i] + self._epsilon)
+      # weight decay
       if (self._wd > 0.):
-        grad += wd_factor*var
+        grad += (self._wd * var)
+      # Momentum --> SAG
+      if self._grad_averaging:
+        grad *= (1.-self._beta1)
       grads_and_vars[i] = (grad, var)
 
     # call Momentum to do update

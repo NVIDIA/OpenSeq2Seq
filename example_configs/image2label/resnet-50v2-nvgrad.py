@@ -29,19 +29,20 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgd2w_lr1.0_wd0.001",
+  "logdir": "logs/rn50/nvgd2m_lr1.0_wd0.001",
 
   "optimizer": NovoGrad2,
   "optimizer_params": {
     "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
-    "weight_decay": 0.001,
+    "weight_decay": 0.0001,
+    "grad_averaging": False
   },
 
   "lr_policy": poly_decay,
   "lr_policy_params": {
-    "learning_rate": 1.0,
+    "learning_rate": 0.02,
     "power": 2,
     # "warmup_steps": 200,
   },
