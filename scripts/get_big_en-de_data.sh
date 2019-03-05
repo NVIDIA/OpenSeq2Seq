@@ -65,7 +65,7 @@ tar -xvzf "${OUTPUT_DIR_DATA}/dev.tgz" -C "${OUTPUT_DIR_DATA}/dev"
 mkdir -p "${OUTPUT_DIR_DATA}/test"
 tar -xvzf "${OUTPUT_DIR_DATA}/test.tgz" -C "${OUTPUT_DIR_DATA}/test"
 
- Concatenate Training data
+# Concatenate Training data
 cat "${OUTPUT_DIR_DATA}/paracrawl-v1-2-de-en/paracrawl-release1.en-de.zipporah0-dedup-clean.en" \
   "${OUTPUT_DIR_DATA}/europarl-v7-de-en/europarl-v7.de-en.en" \
   "${OUTPUT_DIR_DATA}/common-crawl/commoncrawl.de-en.en" \

@@ -137,6 +137,7 @@ def get_speech_features_from_file(filename,
                                   window_size=20e-3,
                                   window_stride=10e-3,
                                   augmentation=None,
+                                  apply_window=False,
                                   cache_features=False,
                                   cache_format="hdf5",
                                   cache_regenerate=False,
@@ -160,6 +161,8 @@ Args:
           'noise_level_min': -90,
           'noise_level_max': -46,
         }
+  apply_window (bool): whether to apply Hann window for mfcc and logfbank.
+        python_speech_features version should accept winfunc if it is True.
 Returns:
   np.array: np.array of audio features with shape=[num_time_steps,
   num_features].
@@ -180,14 +183,14 @@ Returns:
     sample_freq, signal = wave.read(filename)
     features, duration = get_speech_features(
         signal, sample_freq, num_features, pad_to, features_type,
-        window_size, window_stride, augmentation,
+        window_size, window_stride, augmentation, apply_window
     )
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
     features, duration = get_speech_features(
         signal, sample_freq, num_features, pad_to, features_type,
-        window_size, window_stride, augmentation,
+        window_size, window_stride, augmentation, apply_window
     )
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
     save_features(features, duration, preprocessed_data_path,
@@ -240,7 +243,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         features_type='spectrogram',
                         window_size=20e-3,
                         window_stride=10e-3,
-                        augmentation=None):
+                        augmentation=None,
+                        apply_window=False):
   """Function to convert raw audio signal to numpy array of features.
 
   Args:
@@ -254,6 +258,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     window_stride (float): stride of analysis window in milli-seconds.
     augmentation (dict, optional): dictionary of augmentation parameters. See
         :func:`get_speech_features_from_file` for specification and example.
+    apply_window (bool): whether to apply Hann window for mfcc and logfbank.
+        python_speech_features version should accept winfunc if it is True.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,
@@ -304,27 +310,52 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     features = features[:, :num_features]
 
   elif features_type == 'mfcc':
-    features = psf.mfcc(signal=signal,
-                        samplerate=sample_freq,
-                        winlen=window_size,
-                        winstep=window_stride,
-                        numcep=num_features,
-                        nfilt=2 * num_features,
-                        nfft=512,
-                        lowfreq=0, highfreq=None,
-                        preemph=0.97,
-                        ceplifter=2 * num_features,
-                        appendEnergy=False)
+    if apply_window:
+      features = psf.mfcc(signal=signal,
+                          samplerate=sample_freq,
+                          winlen=window_size,
+                          winstep=window_stride,
+                          numcep=num_features,
+                          nfilt=2 * num_features,
+                          nfft=512,
+                          lowfreq=0, highfreq=None,
+                          preemph=0.97,
+                          ceplifter=2 * num_features,
+                          appendEnergy=False,
+                          winfunc=np.hanning)
+    else:
+      features = psf.mfcc(signal=signal,
+                          samplerate=sample_freq,
+                          winlen=window_size,
+                          winstep=window_stride,
+                          numcep=num_features,
+                          nfilt=2 * num_features,
+                          nfft=512,
+                          lowfreq=0, highfreq=None,
+                          preemph=0.97,
+                          ceplifter=2 * num_features,
+                          appendEnergy=False)
 
   elif features_type == 'logfbank':
-    features = psf.logfbank(signal=signal,
-                            samplerate=sample_freq,
-                            winlen=window_size,
-                            winstep=window_stride,
-                            nfilt=num_features,
-                            nfft=512,
-                            lowfreq=0, highfreq=sample_freq / 2,
-                            preemph=0.97)
+    if apply_window:
+      features = psf.logfbank(signal=signal,
+                              samplerate=sample_freq,
+                              winlen=window_size,
+                              winstep=window_stride,
+                              nfilt=num_features,
+                              nfft=512,
+                              lowfreq=0, highfreq=sample_freq / 2,
+                              preemph=0.97,
+                              winfunc=np.hanning)
+    else:
+      features = psf.logfbank(signal=signal,
+                              samplerate=sample_freq,
+                              winlen=window_size,
+                              winstep=window_stride,
+                              nfilt=num_features,
+                              nfft=512,
+                              lowfreq=0, highfreq=sample_freq / 2,
+                              preemph=0.97)
 
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))

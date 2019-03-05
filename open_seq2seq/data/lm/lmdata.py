@@ -1,4 +1,5 @@
 # Copyright (c) 2018 NVIDIA Corporation
+# -*- coding: utf-8 -*-
 import random
 
 import numpy as np

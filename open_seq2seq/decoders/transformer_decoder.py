@@ -10,7 +10,7 @@ from six.moves import range
 from open_seq2seq.parts.transformer import utils, attention_layer, \
                                            ffn_layer, beam_search
 from open_seq2seq.parts.transformer.common import PrePostProcessingWrapper, \
-                                                  LayerNormalization
+                                    LayerNormalization, Transformer_BatchNorm
 from .decoder import Decoder
 
 
@@ -59,6 +59,7 @@ class TransformerDecoder(Decoder):
         'GO_SYMBOL': int,
         'PAD_SYMBOL': int,
         'END_SYMBOL': int,
+        'norm_params': dict,
     })
 
   def _cast_types(self, input_dict):
@@ -75,6 +76,13 @@ class TransformerDecoder(Decoder):
     # also final projection = transpose(E_weights), we currently only support
     # this behaviour
     self.params['shared_embed'] = True
+    self.norm_params = self.params.get("norm_params", {"type": "layernorm_L2" })
+    self.regularizer = self.params.get("regularizer", None)
+    if self.regularizer != None:
+      self.regularizer_params = params.get("regularizer_params", {'scale': 0.0})
+      self.regularizer=self.regularizer(self.regularizer_params['scale']) \
+        if self.regularizer_params['scale'] > 0.0 else None
+      #print("reg", self.regularizer)
 
   def _decode(self, input_dict):
     if 'target_tensors' in input_dict:
@@ -90,36 +98,49 @@ class TransformerDecoder(Decoder):
     )
 
     with tf.name_scope("decode"):
+      training = (self.mode == "train")
       # prepare decoder layers
       if len(self.layers) == 0:
         for _ in range(self.params["num_hidden_layers"]):
           self_attention_layer = attention_layer.SelfAttention(
-              self.params["hidden_size"], self.params["num_heads"],
-              self.params["attention_dropout"],
-              self.mode == "train",
+            hidden_size=self.params["hidden_size"],
+            num_heads=self.params["num_heads"],
+            attention_dropout=self.params["attention_dropout"],
+            train=training,
+            regularizer=self.regularizer
           )
           enc_dec_attention_layer = attention_layer.Attention(
-              self.params["hidden_size"], self.params["num_heads"],
-              self.params["attention_dropout"],
-              self.mode == "train",
+            hidden_size=self.params["hidden_size"],
+            num_heads=self.params["num_heads"],
+            attention_dropout=self.params["attention_dropout"],
+            train=training,
+            regularizer=self.regularizer
           )
           feed_forward_network = ffn_layer.FeedFowardNetwork(
-              self.params["hidden_size"], self.params["filter_size"],
-              self.params["relu_dropout"], self.mode == "train",
+            hidden_size=self.params["hidden_size"],
+            filter_size=self.params["filter_size"],
+            relu_dropout=self.params["relu_dropout"],
+            train=training,
+            regularizer=self.regularizer
           )
 
           self.layers.append([
               PrePostProcessingWrapper(self_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       training),
               PrePostProcessingWrapper(enc_dec_attention_layer, self.params,
-                                       self.mode == "train"),
+                                       training),
               PrePostProcessingWrapper(feed_forward_network, self.params,
-                                       self.mode == "train")
+                                       training)
           ])
-
-        self.output_normalization = LayerNormalization(
-            self.params["hidden_size"]
-        )
+        print("Decoder:", self.norm_params["type"], self.mode)
+        if self.norm_params["type"] == "batch_norm":
+          self.output_normalization = Transformer_BatchNorm(
+            training=training,
+            params=self.norm_params)
+        else:
+          self.output_normalization = LayerNormalization(
+            hidden_size=self.params["hidden_size"],
+            params=self.norm_params)
 
       if targets is None:
         return self.predict(encoder_outputs, inputs_attention_bias)
@@ -192,7 +213,10 @@ class TransformerDecoder(Decoder):
             keep_prob = 1 - self.params["layer_postprocess_dropout"] )
 
     # Run values
-    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length)
+    decoder_self_attention_bias = utils.get_decoder_self_attention_bias(length,
+                                            dtype = tf.float32
+                                            # dtype=self._params["dtype"]
+                                            )
 
     # do decode
     outputs = self._call(
@@ -212,7 +236,8 @@ class TransformerDecoder(Decoder):
         max_decode_length + 1, self.params["hidden_size"],
     )
     decoder_self_attention_bias = utils.get_decoder_self_attention_bias(
-        max_decode_length,
+        max_decode_length, dtype = tf.float32
+        # dtype=self._params["dtype"]
     )
 
     def symbols_to_logits_fn(ids, i, cache):

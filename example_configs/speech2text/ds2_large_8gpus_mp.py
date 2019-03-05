@@ -75,7 +75,7 @@ base_params = {
 
     "dropout_keep_prob": 0.5,
     "activation_fn": tf.nn.relu,
-    "data_format": "BCFT", # "channels_first",'BCTF', 'BTFC', 'BCFT', 'BFTC'
+    # "data_format": "BCFT", # "channels_first",'BCTF', 'BTFC', 'BCFT', 'BFTC'
   },
 
   "decoder": FullyConnectedCTCDecoder,

@@ -10,6 +10,8 @@ import tensorflow as tf
 import six
 from six import string_types
 from six.moves import range
+import inspect
+import python_speech_features as psf
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.utils import load_pre_existing_vocabulary
@@ -72,7 +74,13 @@ class Speech2TextDataLayer(DataLayer):
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
-
+    # we need this until python_speech_features gets update on pypi.org
+    self.apply_window = 'winfunc' in inspect.getargspec(psf.logfbank)[0]
+    if not self.apply_window and \
+        (self.params['input_type'] == 'mfcc' or \
+         self.params['input_type'] == 'logfbank'):
+      print('WARNING: using python_speech_features WITHOUT windowing function')
+      print('Please install the latest python_speech_features (from GitHub)')
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
@@ -144,97 +152,97 @@ class Speech2TextDataLayer(DataLayer):
     return self._iterator
 
   def build_graph(self):
-      with tf.device('/cpu:0'):
+    with tf.device('/cpu:0'):
 
-        """Builds data processing graph using ``tf.data`` API."""
-        if self.params['mode'] != 'infer':
-          self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
-          if self.params['shuffle']:
-            self._dataset = self._dataset.shuffle(self._size)
-          self._dataset = self._dataset.repeat()
-          self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
-          self._dataset = self._dataset.map(
-              lambda line: tf.py_func(
-                  self._parse_audio_transcript_element,
-                  [line],
-                  [self.params['dtype'], tf.int32, tf.int32, tf.int32, tf.float32],
-                  stateful=False,
-              ),
-              num_parallel_calls=8,
-          )
-          if self.params['max_duration'] > 0:
-            self._dataset = self._dataset.filter(
-                lambda x, x_len, y, y_len, duration:
-                tf.less_equal(duration, self.params['max_duration'])
-            )
-          self._dataset = self._dataset.map(
+      """Builds data processing graph using ``tf.data`` API."""
+      if self.params['mode'] != 'infer':
+        self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
+        if self.params['shuffle']:
+          self._dataset = self._dataset.shuffle(self._size)
+        self._dataset = self._dataset.repeat()
+        self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        self._dataset = self._dataset.map(
+            lambda line: tf.py_func(
+                self._parse_audio_transcript_element,
+                [line],
+                [self.params['dtype'], tf.int32, tf.int32, tf.int32, tf.float32],
+                stateful=False,
+            ),
+            num_parallel_calls=8,
+        )
+        if self.params['max_duration'] > 0:
+          self._dataset = self._dataset.filter(
               lambda x, x_len, y, y_len, duration:
-              [x, x_len, y, y_len],
-              num_parallel_calls=8,
+              tf.less_equal(duration, self.params['max_duration'])
           )
-          self._dataset = self._dataset.padded_batch(
-              self.params['batch_size'],
-              padded_shapes=([None, self.params['num_audio_features']],
-                             1, [None], 1),
-              padding_values=(
-                  tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
-          )
-        else:
-          indices = self.split_data(
-              np.array(list(map(str, range(len(self.all_files)))))
-          )
-          self._dataset = tf.data.Dataset.from_tensor_slices(
-              np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
-          )
-          self._dataset = self._dataset.repeat()
-          self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
-          self._dataset = self._dataset.map(
-              lambda line: tf.py_func(
-                  self._parse_audio_element,
-                  [line],
-                  [self.params['dtype'], tf.int32, tf.int32, tf.float32],
-                  stateful=False,
-              ),
-              num_parallel_calls=8,
-          )
-          if self.params['max_duration'] > 0:
-            self._dataset = self._dataset.filter(
-                lambda x, x_len, idx, duration:
-                tf.less_equal(duration, self.params['max_duration'])
-            )
-          self._dataset = self._dataset.map(
+        self._dataset = self._dataset.map(
+            lambda x, x_len, y, y_len, duration:
+            [x, x_len, y, y_len],
+            num_parallel_calls=8,
+        )
+        self._dataset = self._dataset.padded_batch(
+            self.params['batch_size'],
+            padded_shapes=([None, self.params['num_audio_features']],
+                           1, [None], 1),
+            padding_values=(
+                tf.cast(0, self.params['dtype']), 0, self.target_pad_value, 0),
+        )
+      else:
+        indices = self.split_data(
+            np.array(list(map(str, range(len(self.all_files)))))
+        )
+        self._dataset = tf.data.Dataset.from_tensor_slices(
+            np.hstack((indices[:, np.newaxis], self._files[:, np.newaxis]))
+        )
+        self._dataset = self._dataset.repeat()
+        self._dataset = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)
+        self._dataset = self._dataset.map(
+            lambda line: tf.py_func(
+                self._parse_audio_element,
+                [line],
+                [self.params['dtype'], tf.int32, tf.int32, tf.float32],
+                stateful=False,
+            ),
+            num_parallel_calls=8,
+        )
+        if self.params['max_duration'] > 0:
+          self._dataset = self._dataset.filter(
               lambda x, x_len, idx, duration:
-              [x, x_len, idx],
-              num_parallel_calls=8,
+              tf.less_equal(duration, self.params['max_duration'])
           )
-          self._dataset = self._dataset.padded_batch(
-              self.params['batch_size'],
-              padded_shapes=([None, self.params['num_audio_features']], 1, 1)
-          )
+        self._dataset = self._dataset.map(
+            lambda x, x_len, idx, duration:
+            [x, x_len, idx],
+            num_parallel_calls=8,
+        )
+        self._dataset = self._dataset.padded_batch(
+            self.params['batch_size'],
+            padded_shapes=([None, self.params['num_audio_features']], 1, 1)
+        )
 
-        self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
-                             .make_initializable_iterator()
+      self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                           .make_initializable_iterator()
 
-        if self.params['mode'] != 'infer':
-          x, x_length, y, y_length = self._iterator.get_next()
-          # need to explicitly set batch size dimension
-          # (it is employed in the model)
-          y.set_shape([self.params['batch_size'], None])
-          y_length = tf.reshape(y_length, [self.params['batch_size']])
-        else:
-          x, x_length, x_id = self._iterator.get_next()
-          x_id = tf.reshape(x_id, [self.params['batch_size']])
+      if self.params['mode'] != 'infer':
+        x, x_length, y, y_length = self._iterator.get_next()
+        # need to explicitly set batch size dimension
+        # (it is employed in the model)
+        y.set_shape([self.params['batch_size'], None])
+        y_length = tf.reshape(y_length, [self.params['batch_size']])
+      else:
+        x, x_length, x_id = self._iterator.get_next()
+        x_id = tf.reshape(x_id, [self.params['batch_size']])
 
-        x.set_shape([self.params['batch_size'], None,
-                     self.params['num_audio_features']])
-        x_length = tf.reshape(x_length, [self.params['batch_size']])
+      x.set_shape([self.params['batch_size'], None,
+                   self.params['num_audio_features']])
+      x_length = tf.reshape(x_length, [self.params['batch_size']])
 
-        self._input_tensors = {}
-        self._input_tensors["source_tensors"] = [x, x_length]
-        if self.params['mode'] != 'infer':
-          self._input_tensors['target_tensors'] = [y, y_length]
-        else:
-          self._input_tensors['source_ids'] = [x_id]
+      self._input_tensors = {}
+      self._input_tensors["source_tensors"] = [x, x_length]
+      if self.params['mode'] != 'infer':
+        self._input_tensors['target_tensors'] = [y, y_length]
+      else:
+        self._input_tensors['source_ids'] = [x_id]
 
   def create_interactive_placeholders(self):
     self._x = tf.placeholder(
@@ -338,6 +346,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
+        apply_window=self.apply_window,
         cache_features=self.params.get('cache_features', False),
         cache_format=self.params.get('cache_format', 'hdf5'),
         cache_regenerate=self.params.get('cache_regenerate', False),
@@ -365,6 +374,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
+        apply_window=self.apply_window
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -387,6 +397,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
+        apply_window=self.apply_window
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \

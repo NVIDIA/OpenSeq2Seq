@@ -257,117 +257,118 @@ class Text2SpeechDataLayer(DataLayer):
     return self._iterator
 
   def build_graph(self):
-    """Builds data reading graph."""
-    self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
-    if self.params['shuffle']:
-      self._dataset = self._dataset.shuffle(self._size)
-    self._dataset = self._dataset.repeat()
+    with tf.device('/cpu:0'):
+      """Builds data reading graph."""
+      self._dataset = tf.data.Dataset.from_tensor_slices(self._files)
+      if self.params['shuffle']:
+        self._dataset = self._dataset.shuffle(self._size)
+      self._dataset = self._dataset.repeat()
 
-    if self._both:
-      num_audio_features = self.params['num_audio_features']['mel'] 
-      num_audio_features += self.params['num_audio_features']['magnitude']
-    else:
-      num_audio_features = self.params['num_audio_features']
-
-    if (self.params['mode'] != 'infer'
-        or self.params.get("style_input", None) == "wav"):
-      self._dataset = self._dataset.map(
-          lambda line: tf.py_func(
-              self._parse_audio_transcript_element,
-              [line],
-              [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'],\
-               tf.int32],
-              stateful=False,
-          ),
-          num_parallel_calls=8,
-      )
-      if (self.params.get("duration_max", None) or
-          self.params.get("duration_max", None)):
-        self._dataset = self._dataset.filter(
-            lambda txt, txt_len, spec, stop, spec_len:
-                tf.logical_and(
-                    tf.less_equal(
-                        spec_len,
-                        self.params.get("duration_max", 4000)
-                    ),
-                    tf.greater_equal(
-                        spec_len,
-                        self.params.get("duration_min", 0)
-                    )
-                )
-        )
       if self._both:
-        default_pad_value = 0.
+        num_audio_features = self.params['num_audio_features']['mel']
+        num_audio_features += self.params['num_audio_features']['magnitude']
       else:
-        default_pad_value = np.log(self.params.get("data_min", 1e-5))
-      pad_value = self.params.get("pad_value", default_pad_value)
-      if self.params["feature_normalize"]:
-        pad_value = self._normalize(pad_value)
-      self._dataset = self._dataset.padded_batch(
-          self.params['batch_size'],
-          padded_shapes=(
-              [None], 1, [None, num_audio_features], [None], 1
-          ),
-          padding_values=(
-              0, 0, tf.cast(pad_value, dtype=self.params['dtype']),
-              tf.cast(1., dtype=self.params['dtype']), 0
-          )
-      )
-    else:
-      self._dataset = self._dataset.map(
-          lambda line: tf.py_func(
-              self._parse_transcript_element,
-              [line],
-              [tf.int32, tf.int32],
-              stateful=False,
-          ),
-          num_parallel_calls=8,
-      )
-      self._dataset = self._dataset.padded_batch(
-          self.params['batch_size'], padded_shapes=([None], 1)
-      )
+        num_audio_features = self.params['num_audio_features']
 
-    self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
-                                  .make_initializable_iterator()
-
-    if (self.params['mode'] != 'infer'
-        or self.params.get("style_input", None) == "wav"):
-      text, text_length, spec, stop_token_target, spec_length = self._iterator\
-                                                                    .get_next()
-      # need to explicitly set batch size dimension
-      # (it is employed in the model)
-      spec.set_shape(
-          [self.params['batch_size'], None, num_audio_features]
-      )
-      stop_token_target.set_shape([self.params['batch_size'], None])
-      spec_length = tf.reshape(spec_length, [self.params['batch_size']])
-    else:
-      text, text_length = self._iterator.get_next()
-    text.set_shape([self.params['batch_size'], None])
-    text_length = tf.reshape(text_length, [self.params['batch_size']])
-
-    self._input_tensors = {}
-    self._input_tensors["source_tensors"] = [text, text_length]
-    if self.params.get("style_input", None) == "wav":
-      # mag - not supported currently
-      if not self._mel and not self._both:
-        raise ValueError(
-            "GST is currently only supported on mel and both output modes.")
-      # mel
-      mel_spec = spec
-      if self._both:
-        mel_spec, _ = tf.split(
-            mel_spec,
-            [self.params['num_audio_features']['mel'],
-             self.params['num_audio_features']['magnitude']],
-            axis=2
+      if (self.params['mode'] != 'infer'
+          or self.params.get("style_input", None) == "wav"):
+        self._dataset = self._dataset.map(
+            lambda line: tf.py_func(
+                self._parse_audio_transcript_element,
+                [line],
+                [tf.int32, tf.int32, self.params['dtype'], self.params['dtype'],\
+                 tf.int32],
+                stateful=False,
+            ),
+            num_parallel_calls=8,
         )
-      self._input_tensors["source_tensors"].extend([mel_spec, spec_length])
-      # both
-    if self.params['mode'] != 'infer':
-      self._input_tensors['target_tensors'] = [
-          spec, stop_token_target, spec_length
-      ]
+        if (self.params.get("duration_max", None) or
+            self.params.get("duration_max", None)):
+          self._dataset = self._dataset.filter(
+              lambda txt, txt_len, spec, stop, spec_len:
+                  tf.logical_and(
+                      tf.less_equal(
+                          spec_len,
+                          self.params.get("duration_max", 4000)
+                      ),
+                      tf.greater_equal(
+                          spec_len,
+                          self.params.get("duration_min", 0)
+                      )
+                  )
+          )
+        if self._both:
+          default_pad_value = 0.
+        else:
+          default_pad_value = np.log(self.params.get("data_min", 1e-5))
+        pad_value = self.params.get("pad_value", default_pad_value)
+        if self.params["feature_normalize"]:
+          pad_value = self._normalize(pad_value)
+        self._dataset = self._dataset.padded_batch(
+            self.params['batch_size'],
+            padded_shapes=(
+                [None], 1, [None, num_audio_features], [None], 1
+            ),
+            padding_values=(
+                0, 0, tf.cast(pad_value, dtype=self.params['dtype']),
+                tf.cast(1., dtype=self.params['dtype']), 0
+            )
+        )
+      else:
+        self._dataset = self._dataset.map(
+            lambda line: tf.py_func(
+                self._parse_transcript_element,
+                [line],
+                [tf.int32, tf.int32],
+                stateful=False,
+            ),
+            num_parallel_calls=8,
+        )
+        self._dataset = self._dataset.padded_batch(
+            self.params['batch_size'], padded_shapes=([None], 1)
+        )
+
+      self._iterator = self._dataset.prefetch(tf.contrib.data.AUTOTUNE)\
+                                    .make_initializable_iterator()
+
+      if (self.params['mode'] != 'infer'
+          or self.params.get("style_input", None) == "wav"):
+        text, text_length, spec, stop_token_target, spec_length = self._iterator\
+                                                                      .get_next()
+        # need to explicitly set batch size dimension
+        # (it is employed in the model)
+        spec.set_shape(
+            [self.params['batch_size'], None, num_audio_features]
+        )
+        stop_token_target.set_shape([self.params['batch_size'], None])
+        spec_length = tf.reshape(spec_length, [self.params['batch_size']])
+      else:
+        text, text_length = self._iterator.get_next()
+      text.set_shape([self.params['batch_size'], None])
+      text_length = tf.reshape(text_length, [self.params['batch_size']])
+
+      self._input_tensors = {}
+      self._input_tensors["source_tensors"] = [text, text_length]
+      if self.params.get("style_input", None) == "wav":
+        # mag - not supported currently
+        if not self._mel and not self._both:
+          raise ValueError(
+              "GST is currently only supported on mel and both output modes.")
+        # mel
+        mel_spec = spec
+        if self._both:
+          mel_spec, _ = tf.split(
+              mel_spec,
+              [self.params['num_audio_features']['mel'],
+               self.params['num_audio_features']['magnitude']],
+              axis=2
+          )
+        self._input_tensors["source_tensors"].extend([mel_spec, spec_length])
+        # both
+      if self.params['mode'] != 'infer':
+        self._input_tensors['target_tensors'] = [
+            spec, stop_token_target, spec_length
+        ]
 
   def _parse_audio_transcript_element(self, element):
     """Parses tf.data element from TextLineDataset into audio and text.

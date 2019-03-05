@@ -24,17 +24,29 @@ import tensorflow as tf
 class FeedFowardNetwork(tf.layers.Layer):
   """Fully connected feedforward network."""
 
-  def __init__(self, hidden_size, filter_size, relu_dropout, train):
+  def __init__(self, hidden_size, filter_size, relu_dropout, train, regularizer=None):
     super(FeedFowardNetwork, self).__init__()
     self.hidden_size = hidden_size
     self.filter_size = filter_size
     self.relu_dropout = relu_dropout
     self.train = train
 
+    # regularizer = tf.contrib.layers.l2_regularizer(0.0005)
+
     self.filter_dense_layer = tf.layers.Dense(
-        filter_size, use_bias=True, activation=tf.nn.relu, name="filter_layer")
+        filter_size,
+        use_bias=True,
+        activation=tf.nn.relu,
+        name="filter_layer",
+        kernel_regularizer=regularizer,
+        bias_regularizer=regularizer
+    )
     self.output_dense_layer = tf.layers.Dense(
-        hidden_size, use_bias=True, name="output_layer")
+        hidden_size,
+        use_bias=True,
+        name="output_layer",
+        kernel_regularizer=regularizer,
+        bias_regularizer=regularizer )
 
   def call(self, x, padding=None):
     # Retrieve dynamically known shapes
