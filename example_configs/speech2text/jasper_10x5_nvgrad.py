@@ -34,18 +34,20 @@ base_params = {
     "eval_steps": 22000,
     "save_checkpoint_steps": 11000,
     "num_checkpoints": 1,
-    "logdir": "jasper_noah0.90.9_lr0.005p2_fp16",
+    "logdir": "jasper_nvgdM_0.95.9_lr0.01p2_wd0.0001_fp16",
 
     "optimizer": NovoGrad2,
     "optimizer_params": {
-        "beta1": 0.9,
-        "beta2": 0.99,
+        "beta1": 0.95,
+        "beta2": 0.98,
         "epsilon": 1e-08,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
         "learning_rate": 0.01,  #
-        "power": 1.,
+        "power": 2.0,
+        "weight_decay": 0.001,
+        "grad_averaging": False
         # "warmup_steps": 200,
     },
 
@@ -63,10 +65,10 @@ base_params = {
     #     "larc_eta": 0.001,
     # },
 
-    "regularizer": tf.contrib.layers.l2_regularizer,
-    "regularizer_params": {
-        'scale': 0.001
-    },
+    # "regularizer": tf.contrib.layers.l2_regularizer,
+    # "regularizer_params": {
+    #     'scale': 0.001
+    # },
 
     "dtype": "mixed",
     "loss_scaling": "Backoff",
