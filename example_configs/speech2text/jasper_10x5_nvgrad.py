@@ -41,13 +41,13 @@ base_params = {
         "beta1": 0.95,
         "beta2": 0.98,
         "epsilon": 1e-08,
+        "weight_decay": 0.001,
+        "grad_averaging": False
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
         "learning_rate": 0.01,  #
         "power": 2.0,
-        "weight_decay": 0.001,
-        "grad_averaging": False
         # "warmup_steps": 200,
     },
 
