@@ -8,15 +8,15 @@ from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import transformer_policy
 
 base_model = Speech2Text
-data_root = '/mnt/D1/Data/librispeech/'
+data_root = '/data/librispeech/'
 d_model = 1024
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": False,
-    "num_epochs": 400,
+    "use_horovod": True,
+    "num_epochs": 50,
 
-    "num_gpus": 2,
+    "num_gpus": 1,
     "batch_size_per_gpu": 32,
     "iter_size": 1,
 

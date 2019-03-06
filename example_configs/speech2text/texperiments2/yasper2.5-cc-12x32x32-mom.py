@@ -5,18 +5,18 @@ from open_seq2seq.encoders import TSSEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import transformer_policy
+from open_seq2seq.optimizers.lr_policies import poly_decay
 
 base_model = Speech2Text
-data_root = '/mnt/D1/Data/librispeech/'
+data_root = '/data/librispeech/'
 d_model = 1024
 
 base_params = {
     "random_seed": 0,
-    "use_horovod": False,
-    "num_epochs": 400,
+    "use_horovod": True,
+    "num_epochs": 50,
 
-    "num_gpus": 2,
+    "num_gpus": 1,
     "batch_size_per_gpu": 32,
     "iter_size": 1,
 
@@ -28,33 +28,33 @@ base_params = {
     "num_checkpoints": 5,
     "logdir": "yasper_log_folder",
 
-    # "optimizer": "Momentum",
-    # "optimizer_params": {
-    #     "momentum": 0.90,
-    # },
-    # "lr_policy": poly_decay,
-    # "lr_policy_params": {
-    #     "learning_rate": 0.01,
-    #     "min_lr": 1e-5,
-    #     "power": 2.0,
-    # },
-    # "larc_params": {
-    #     "larc_eta": 0.001,
-    # },
-
-    "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+    "optimizer": "Momentum",
     "optimizer_params": {
-        "beta1": 0.9,
-        "beta2": 0.997,
-        "epsilon": 1e-09,
+        "momentum": 0.90,
+    },
+    "lr_policy": poly_decay,
+    "lr_policy_params": {
+        "learning_rate": 0.01,
+        "min_lr": 1e-5,
+        "power": 2.0,
+    },
+    "larc_params": {
+        "larc_eta": 0.001,
     },
 
-    "lr_policy": transformer_policy,
-    "lr_policy_params": {
-        "learning_rate": 2.0,
-        "warmup_steps": 2000,
-        "d_model": d_model,
-    },
+    # "optimizer": tf.contrib.opt.LazyAdamOptimizer,
+    # "optimizer_params": {
+    #     "beta1": 0.9,
+    #     "beta2": 0.997,
+    #     "epsilon": 1e-09,
+    # },
+    #
+    # "lr_policy": transformer_policy,
+    # "lr_policy_params": {
+    #     "learning_rate": 2.0,
+    #     "warmup_steps": 2000,
+    #     "d_model": d_model,
+    # },
 
     "regularizer": tf.contrib.layers.l2_regularizer,
     "regularizer_params": {
