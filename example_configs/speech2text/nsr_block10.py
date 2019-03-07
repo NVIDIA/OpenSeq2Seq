@@ -200,6 +200,7 @@ base_params = {
         "data_format": "channels_last",
         "use_conv_mask": False,
         "use_bn_mask": False,
+        "version": 1,
     },
 
     "decoder": FullyConnectedCTCDecoder,
