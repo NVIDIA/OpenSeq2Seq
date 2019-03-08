@@ -104,6 +104,9 @@ class TDNNEncoder(Encoder):
     data_format = self.params.get('data_format', 'channels_last')
     normalization = self.params.get('normalization', 'batch_norm')
 
+    drop_block_prob = self.params.get('drop_block_prob', 0.0)
+    drop_block_index = self.params.get('drop_block_index', -1)
+
     normalization_params = {}
 
     if self.params.get("use_conv_mask", False):
@@ -151,6 +154,7 @@ class TDNNEncoder(Encoder):
       residual = convnet_layers[idx_convnet].get('residual', False)
       residual_dense = convnet_layers[idx_convnet].get('residual_dense', False)
 
+
       # For the first layer in the block, apply a mask
       if self.params.get("use_conv_mask", False):
         conv_feats = conv_feats * mask
@@ -197,8 +201,8 @@ class TDNNEncoder(Encoder):
               regularizer=regularizer,
               training=training,
               data_format=data_format,
-              drop_block_prob=self.params['drop_block_prob'],
-              drop_block=(self.params['drop_block_index'] == idx_convnet),
+              drop_block_prob=drop_block_prob,
+              drop_block=(drop_block_index == idx_convnet),
               **normalization_params
           )
         else:

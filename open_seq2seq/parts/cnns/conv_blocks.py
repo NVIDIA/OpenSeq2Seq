@@ -121,14 +121,16 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
     bn = tf.squeeze(bn, axis=axis)
 
   output = bn + res_aggregation
-  if training:
-    output = tf.cond(
-      tf.random_uniform(shape=[]) < drop_block_prob,
-      lambda: res_aggregation,
-      lambda: bn + res_aggregation
-      )
-  elif drop_block:
-    output = res_aggregation
+
+  if drop_block_prob > 0:
+    if training:
+      output = tf.cond(
+        tf.random_uniform(shape=[]) < drop_block_prob,
+        lambda: res_aggregation,
+        lambda: bn + res_aggregation
+        )
+    elif drop_block:
+      output = res_aggregation
 
   if activation_fn is not None:
     output = activation_fn(output)
