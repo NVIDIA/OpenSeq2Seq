@@ -299,8 +299,9 @@ class Speech2Text(EncoderDecoderModel):
 
     if self.dump_outputs:
       # decoded_sequence has 'time_major' shape: [T, B, C]
-      for i in range(decoded_sequence.shape[1]):
-        preds.append(decoded_sequence[:, i, :].squeeze())
+      for i in range(decoded_sequence.shape[0]):
+        preds.append(decoded_sequence[i, :, :].squeeze())
+
     else:
       decoded_texts = self.tensor_to_chars(
           decoded_sequence,
@@ -325,8 +326,21 @@ class Speech2Text(EncoderDecoderModel):
     # restoring the correct order
     preds = preds[np.argsort(ids)]
     if self.dump_outputs:
+      dump_out = {}
+      dump_results = {}
+      files = self.get_data_layer().all_files
+      for i,f in enumerate(files):
+        dump_results[f]=preds[i]
+      dump_out["results"] = dump_results
+      dump_out["stride"] = self.get_data_layer().params["window_stride"]
+      convs = self.encoder.params["convnet_layers"]
+      scale = 1
+      for c in convs:
+        scale*=c["stride"][0]
+      dump_out["scale"] = scale
+      dump_out["dictionary"] = self.get_data_layer().params['idx2char']
       with open(output_file, 'wb') as f:
-        pickle.dump(preds, f, protocol=pickle.HIGHEST_PROTOCOL)
+        pickle.dump(dump_out, f, protocol=pickle.HIGHEST_PROTOCOL)
     else:
       pd.DataFrame(
           {

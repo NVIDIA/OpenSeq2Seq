@@ -106,7 +106,6 @@ class Speech2TextDataLayer(DataLayer):
       self.params['idx2char'] = {i: w for w,
                                  i in self.params['char2idx'].items()}
     self.target_pad_value = 0
-
     self._files = None
     if self.params["interactive"]:
       return
