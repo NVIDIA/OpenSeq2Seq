@@ -28,6 +28,8 @@ class TDNNEncoder(Encoder):
         'bn_momentum': float,
         'bn_epsilon': float,
         'use_conv_mask': bool,
+        'drop_block_prob': float,
+        'drop_block_index': int,
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -66,7 +68,7 @@ class TDNNEncoder(Encoder):
     * **data_format** (string) --- could be either "channels_first" or
       "channels_last". Defaults to "channels_last".
     * **normalization** --- normalization to use. Accepts [None, 'batch_norm'].
-      Use None if you don't want to use normalization. Defaults to 'batch_norm'.     
+      Use None if you don't want to use normalization. Defaults to 'batch_norm'.
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
     """
@@ -195,6 +197,8 @@ class TDNNEncoder(Encoder):
               regularizer=regularizer,
               training=training,
               data_format=data_format,
+              drop_block_prob=self.params['drop_block_prob'],
+              drop_block=(self.params['drop_block_index'] == idx_convnet),
               **normalization_params
           )
         else:
