@@ -16,21 +16,24 @@ scale = dump["scale"]
 def ctc_greedy_decoder(logits,wordmap):
     prev_idx = -1
     output = []
-    ts = []
+    start = []
+    end = []
     for i,l in enumerate(logits):
         idx = np.argmax(l)
         if(idx!=28 and prev_idx!=idx):
             if(len(output)==0):
-                ts.append(stride*scale*i)
+                start.append(stride*scale*i)
             else:
                 if(output[-1]==" "):
-                    ts.append(stride*scale*i)
+                    start.append(stride*scale*i)
             output+=wordmap[idx]
+            if output[-1]==" ":
+                end.append(stride*scale*(i-1))
 
         prev_idx=idx
 
     output = "".join(output)
-    return output,ts
+    return output,(start,end)
 for r in results:
     op,ts=ctc_greedy_decoder(results[r],lettermap)
     print(op)
