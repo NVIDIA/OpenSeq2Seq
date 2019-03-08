@@ -30,19 +30,19 @@ base_params = {
 
     "save_summaries_steps": 100,
     "print_loss_steps": 100,
-    "print_samples_steps": 22000,
-    "eval_steps": 22000,
-    "save_checkpoint_steps": 11000,
+    "print_samples_steps": 20000,
+    "eval_steps": 10000,
+    "save_checkpoint_steps": 10000,
     "num_checkpoints": 1,
     "logdir": "jasper_nvgdM_0.95.9_lr0.01p2_wd0.0001_fp16",
 
     "optimizer": NovoGrad2,
     "optimizer_params": {
-        "beta1": 0.95,
+        "beta1": 0.90,
         "beta2": 0.98,
         "epsilon": 1e-08,
         "weight_decay": 0.001,
-        "grad_averaging": False
+        "grad_averaging": False,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
