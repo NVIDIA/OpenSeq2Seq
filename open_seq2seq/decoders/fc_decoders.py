@@ -148,9 +148,10 @@ class FullyConnectedTimeDecoder(Decoder):
 
     if 'logits_to_outputs_func' in self.params:
       outputs = self.params['logits_to_outputs_func'](logits, input_dict)
+      logits_t = tf.transpose(logits, [1, 0, 2])
       return {
           'outputs': outputs,
-          'logits': logits,
+          'logits': logits_t,
           'src_length': input_dict['encoder_output']['src_length'],
       }
     return {'logits': logits,
