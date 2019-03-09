@@ -64,3 +64,12 @@ scripts/multi-bleu.perl toy_text_data/test/target.txt < log_text2text_small/TT.o
 echo 'TT BLEU:'
 cat log_text2text_small/TT.BLEU
 
+python run.py --config_file=open_seq2seq/test_utils/test_speech_configs/jasper_res_blockout_test_config.py \
+  --mode=train_eval --encoder_params/drop_block_prob=0.98
+python run.py --config_file=open_seq2seq/test_utils/test_speech_configs/jasper_res_blockout_test_config.py \
+  --mode=eval --encoder_params/drop_block_index=0
+python run.py --config_file=open_seq2seq/test_utils/test_speech_configs/jasper_res_blockout_test_config.py \
+  --mode=eval --encoder_params/drop_block_index=1
+python run.py --config_file=open_seq2seq/test_utils/test_speech_configs/jasper_res_blockout_test_config.py \
+  --mode=eval --encoder_params/drop_block_index=2
+rm -rf tmp_log_folder/
