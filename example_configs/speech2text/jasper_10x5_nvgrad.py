@@ -6,7 +6,7 @@ from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
 from open_seq2seq.optimizers.lr_policies import poly_decay
-from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2
+from open_seq2seq.optimizers.novograd  import NovoGrad
 
 ### If training with synthetic data, don't forget to add your synthetic csv
 ### to dataset files
@@ -34,11 +34,11 @@ base_params = {
     "eval_steps": 10000,
     "save_checkpoint_steps": 10000,
     "num_checkpoints": 1,
-    "logdir": "jasper_nvgdM_0.95.9_lr0.01p2_wd0.0001_fp16",
+    "logdir": "jasper_nvgd_lr0.02p2_wd0.001_fp16",
 
-    "optimizer": NovoGrad2,
+    "optimizer": NovoGrad,
     "optimizer_params": {
-        "beta1": 0.90,
+        "beta1": 0.95,
         "beta2": 0.98,
         "epsilon": 1e-08,
         "weight_decay": 0.001,
@@ -46,7 +46,7 @@ base_params = {
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.01,  #
+        "learning_rate": 0.02,  #
         "power": 2.0,
         # "warmup_steps": 200,
     },
