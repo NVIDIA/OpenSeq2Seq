@@ -216,11 +216,11 @@ train_params = {
             "/data/WSJ/train_si284.csv"
             # Add synthetic csv here
         ],
-        "augmentation": {
-            'noise_level_min': -120,
-            'noise_level_max': -110,
-            'time_stretch_ratio': 0.1,
-        },
+        # "augmentation": {
+        #     'noise_level_min': -120,
+        #     'noise_level_max': -110,
+        #     'time_stretch_ratio': 0.1,
+        # },
         "syn_enable": False, # Change to True if using synthetic data
         "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
