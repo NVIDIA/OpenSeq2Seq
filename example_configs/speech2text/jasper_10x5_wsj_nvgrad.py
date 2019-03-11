@@ -24,7 +24,7 @@ num_audio_features=64
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 400,
+    "num_epochs": 400,  # 1 epoch = 150 steps
 #     "max_steps": 10000, #000,
     "num_gpus": 1,
     "batch_size_per_gpu": 32,
@@ -32,9 +32,9 @@ base_params = {
 
     "save_summaries_steps": 100,
     "print_loss_steps": 100,
-    "print_samples_steps": 20000,
-    "eval_steps": 10000,
-    "save_checkpoint_steps": 10000,
+    "print_samples_steps": 1500,
+    "eval_steps": 1500,
+    "save_checkpoint_steps": 15000,
     "num_checkpoints": 1,
     "logdir": "jasper_wsj_nvgd_lr0.02p2_wd0.001_fp16",
 
@@ -216,11 +216,11 @@ train_params = {
             "/data/WSJ/train_si284.csv"
             # Add synthetic csv here
         ],
-        # "augmentation": {
-        #     'noise_level_min': -120,
-        #     'noise_level_max': -110,
-        #     'time_stretch_ratio': 0.1,
-        # },
+        "augmentation": {
+            'noise_level_min': -120,
+            'noise_level_max': -110,
+            'time_stretch_ratio': 0.1,
+        },
         "syn_enable": False, # Change to True if using synthetic data
         "syn_subdirs": [], # Add subdirs of synthetic data
         "max_duration": 16.7,
