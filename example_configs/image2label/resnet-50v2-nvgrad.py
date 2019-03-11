@@ -5,7 +5,7 @@ from open_seq2seq.decoders import FullyConnectedDecoder
 from open_seq2seq.losses import CrossEntropyLoss
 from open_seq2seq.data import ImagenetDataLayer
 from open_seq2seq.optimizers.lr_policies import piecewise_constant,  poly_decay
-from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2, NovoGradW
+from open_seq2seq.optimizers.novograd  import NovoGrad
 
 import tensorflow as tf
 
@@ -29,14 +29,14 @@ base_params = {
   "print_samples_steps": 10000,
   "eval_steps": 5000,
   "save_checkpoint_steps": 5000,
-  "logdir": "logs/rn50/nvgd2m_lr1.0_wd0.001",
+  "logdir": "logs/rn50/nvgd_lr0.02_wd0.001",
 
-  "optimizer": NovoGrad2,
+  "optimizer": NovoGrad,
   "optimizer_params": {
     "beta1": 0.95,
     "beta2": 0.98,
     "epsilon": 1e-08,
-    "weight_decay": 0.0001,
+    "weight_decay": 0.001,
     "grad_averaging": False
   },
 
