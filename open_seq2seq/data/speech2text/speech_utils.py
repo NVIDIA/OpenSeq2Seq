@@ -277,7 +277,6 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     window_stride (float): stride of analysis window in milli-seconds.
     augmentation (dict, optional): dictionary of augmentation parameters. See
         :func:`get_speech_features_from_file` for specification and example.
-    apply_window (bool): whether to apply Hann window for mfcc and logfbank.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,

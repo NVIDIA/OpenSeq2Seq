@@ -380,7 +380,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        window_fn=self.window_fns[self.params.get('window', "hanning")],
         dither=self.params.get('dither', 0.0),
         num_fft=self.params.get('num_fft', None),
         norm_per_feature=self.params.get('norm_per_feature', False)
@@ -406,7 +406,7 @@ class Speech2TextDataLayer(DataLayer):
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
         augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")] if self.apply_window else None,
+        window_fn=self.window_fns[self.params.get('window', "hanning")],
         dither=self.params.get('dither', 0.0),
         num_fft=self.params.get('num_fft', None),
         norm_per_feature=self.params.get('norm_per_feature', False)
