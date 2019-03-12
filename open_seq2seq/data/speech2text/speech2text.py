@@ -81,7 +81,7 @@ class Speech2TextDataLayer(DataLayer):
       Contains a list of subdirectories that hold the synthetica wav files.
     * **precompute_mel_basis** (bool) --- compute and store mel basis. If False,
       it will compute it for every get_speech_features call. Default: False
-    * **precompute_mel_basis** (int) --- required for precompute_mel_basis
+    * **sample_freq** (int) --- required for precompute_mel_basis
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
