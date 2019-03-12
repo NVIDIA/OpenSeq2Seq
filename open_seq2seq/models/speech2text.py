@@ -340,6 +340,7 @@ class Speech2Text(EncoderDecoderModel):
       dump_out["vocab"] = self.get_data_layer().params['idx2char']
       with open(output_file, 'wb') as f:
         pickle.dump(dump_out, f, protocol=pickle.HIGHEST_PROTOCOL)
+      f.close()
     else:
       pd.DataFrame(
           {
