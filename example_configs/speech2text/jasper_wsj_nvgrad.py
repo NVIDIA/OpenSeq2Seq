@@ -11,20 +11,18 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 ### If training with synthetic data, don't forget to add your synthetic csv
 ### to dataset files
 
-# REPLACE THIS TO THE PATH TO LIBRISPEECH
-#data_root = "[REPLACE THIS TO THE PATH TO LIBRISPEECH]"
-# data_root = "/raid/speech/librispeech/"
-# data_root = "/raid/speech/librispeech/"
-data_root ="/data/librispeech/"
+#data_root = "[REPLACE THIS TO THE PATH TO WSJ]"
+data_root ="/data/WSJ/"
+
+num_audio_features = 48
+repeat = 5
+dropout_keep_prob = 0.6
 
 base_model = Speech2Text
-
-num_audio_features=64
-
 base_params = {
     "random_seed": 0,
     "use_horovod": True,
-    "num_epochs": 400,  # 1 epoch = 150 steps
+    "num_epochs": 200,  # 1 epoch = 150 steps
 #     "max_steps": 10000, #000,
     "num_gpus": 1,
     "batch_size_per_gpu": 32,
@@ -36,19 +34,19 @@ base_params = {
     "eval_steps": 1500,
     "save_checkpoint_steps": 15000,
     "num_checkpoints": 1,
-    "logdir": "jasper_wsj_nvgd_lr0.02p2_wd0.001_fp16",
+    "logdir": "jasper_wsj_nvgd_lr0.01p2_wd0.005_fp16",
 
     "optimizer": NovoGrad,
     "optimizer_params": {
         "beta1": 0.95,
         "beta2": 0.98,
         "epsilon": 1e-08,
-        "weight_decay": 0.001,
+        "weight_decay": 0.005,
         "grad_averaging": False,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.02,  #
+        "learning_rate": 0.01,  #
         "power": 2.0,
         # "warmup_steps": 200,
     },
@@ -85,100 +83,99 @@ base_params = {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.8,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
                 "residual": True
             },
             {
-                "type": "conv1d", "repeat": 5,
+                "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.7,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[2], "dropout_keep_prob": 0.6,
+                "dilation":[2], "dropout_keep_prob": dropout_keep_prob, # 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
                 "num_channels": 1024, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": 0.6,
+                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.6,
             }
         ],
 
-        "dropout_keep_prob": 0.7,
+        "dropout_keep_prob": dropout_keep_prob, # 0.7,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
             'uniform': False,
         },
         "normalization": "batch_norm",
-        "activation_fn": lambda x: tf.minimum(tf.nn.relu(x), 20.0),
+        "activation_fn": tf.nn.relu, #lambda x: tf.minimum(tf.nn.relu(x), 20.0),
         "data_format": "channels_last",
     },
 
@@ -209,21 +206,19 @@ train_params = {
         "num_audio_features": num_audio_features,
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
-        # "dataset_files": [
-        #     data_root + "librivox-dev-clean.csv",
-        # ],
         "dataset_files": [
-            "/data/WSJ/train_si284.csv"
+            data_root +"train_si284.csv",
+            #"/data/WSJ/train_si284.csv"
             # Add synthetic csv here
         ],
         "augmentation": {
             'noise_level_min': -120,
             'noise_level_max': -110,
-            'time_stretch_ratio': 0.1,
+            'time_stretch_ratio': 0.15, #0.1,
         },
         "syn_enable": False, # Change to True if using synthetic data
-        "syn_subdirs": [], # Add subdirs of synthetic data
-        "max_duration": 16.7,
+        "syn_subdirs": [],   # Add subdirs of synthetic data
+        "max_duration": 20.0, #16.7,
         "shuffle": True,
     },
 }
@@ -235,8 +230,8 @@ eval_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/WSJ/dev_93.csv"
-#            data_root+"librivox-dev-clean.csv",
+            data_root +"dev_93.csv",
+            # "/data/WSJ/dev_93.csv"
         ],
         "shuffle": False,
     },
@@ -249,8 +244,7 @@ infer_params = {
         "input_type": "logfbank",
         "vocab_file": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
         "dataset_files": [
-            "/data/WSJ/eval_92.csv"
-            # data_root+"librivox-test-clean.csv",
+            data_root+ "eval_92.csv"
         ],
         "shuffle": False,
     },
