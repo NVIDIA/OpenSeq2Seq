@@ -87,7 +87,7 @@ def get_preprocessed_data_path(filename, params):
       generated from the relevant preprocessing parameters.
   """
   if isinstance(filename, bytes):  # convert binary string to normal string
-      filename = filename.decode('ascii')
+    filename = filename.decode('ascii')
 
   filename = os.path.realpath(filename)  # decode symbolic links
 
@@ -190,6 +190,12 @@ Returns:
 
   except PreprocessOnTheFlyException:
     sample_freq, signal = wave.read(filename)
+    if mel_basis is not None and sample_freq != params["sample_freq"]:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params["sample_freq"],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(
         signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
@@ -199,6 +205,12 @@ Returns:
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
+    if mel_basis is not None and sample_freq != params["sample_freq"]:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params["sample_freq"],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(
         signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
@@ -302,7 +314,8 @@ def get_speech_features(signal, sample_freq, num_features,
 
   if features_type == 'spectrogram':
     # ignore 1/n_fft multiplier, since there is a post-normalization
-    powspec = np.square(np.abs(librosa.core.stft(signal, n_fft=n_window_size,
+    powspec = np.square(np.abs(librosa.core.stft(
+        signal, n_fft=n_window_size,
         hop_length=n_window_stride, win_length=n_window_size, center=True,
         window=window_fn)))
     # remove small bins
