@@ -7,7 +7,6 @@ import os
 
 import h5py
 import numpy as np
-import python_speech_features as psf
 import resampy as rs
 import scipy.io.wavfile as wave
 import librosa
@@ -166,7 +165,6 @@ Args:
           'noise_level_max': -46,
         }
   window_fn (bool): window function to apply, or None for no window
-        python_speech_features version should accept winfunc if not None.
   dither (float): weight of Gaussian noise to apply to input signal for
         dithering/preventing quantization noise
   num_fft (int): size of fft window to use if features require fft,
@@ -244,7 +242,7 @@ def augment_audio_signal(signal, sample_freq, augmentation):
     )
 
   # noise
-  if 'noise_level_min' and 'noise_level_max' in augmentation:
+  if 'noise_level_min' in augmentation and 'noise_level_max' in augmentation:
     noise_level_db = np.random.randint(low=augmentation['noise_level_min'],
                                        high=augmentation['noise_level_max'])
     signal_float += np.random.randn(signal_float.shape[0]) * \
@@ -280,7 +278,6 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     augmentation (dict, optional): dictionary of augmentation parameters. See
         :func:`get_speech_features_from_file` for specification and example.
     apply_window (bool): whether to apply Hann window for mfcc and logfbank.
-        python_speech_features version should accept winfunc if it is True.
 
   Returns:
     np.array: np.array of audio features with shape=[num_time_steps,
@@ -302,13 +299,14 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     signal += dither*np.random.randn(*signal.shape)
 
   if features_type == 'spectrogram':
-    frames = psf.sigproc.framesig(sig=signal,
-                                  frame_len=n_window_size,
-                                  frame_step=n_window_stride,
-                                  winfunc=np.hanning)
+    # ignore 1/n_fft multiplier, since there is a post-normalization
+    powspec = np.square(np.abs(librosa.core.stft(signal, n_fft=n_window_size,
+        hop_length=n_window_stride, win_length=n_window_size, center=True,
+        window=window_fn)))
+    # remove small bins
+    powspec[powspec <= 1e-30] = 1e-30
+    features = 10 * np.log10(powspec.T)
 
-    # features = np.log1p(psf.sigproc.powspec(frames, NFFT=N_window_size))
-    features = psf.sigproc.logpowspec(frames, NFFT=n_window_size)
     assert num_features <= n_window_size // 2 + 1, \
       "num_features for spectrogram should be <= (sample_freq * window_size // 2 + 1)"
 
@@ -316,18 +314,12 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     features = features[:, :num_features]
 
   elif features_type == 'mfcc':
-    features = psf.mfcc(signal=signal,
-                        samplerate=sample_freq,
-                        winlen=window_size,
-                        winstep=window_stride,
-                        numcep=num_features,
-                        nfilt=2 * num_features,
-                        nfft=num_fft,
-                        lowfreq=0, highfreq=None,
-                        preemph=0.97,
-                        ceplifter=2 * num_features,
-                        appendEnergy=False,
-                        winfunc=window_fn)
+    signal = preemphasis(signal, coeff=0.97)
+    S = np.square(np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
+                         win_length=int(window_size * sample_freq), center=True,
+                         window=window_fn)))
+    features = librosa.feature.mfcc(sr=sr, S=S,
+        n_mfcc=num_features, n_mels=2*num_features).T
   elif features_type == 'logfbank':
     signal = preemphasis(signal,coeff=0.97)
     S = np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
@@ -336,16 +328,6 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     # Build a Mel filter
     mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features, fmin=0, fmax=int(sample_freq/2))
     features = np.log(np.dot(mel_basis, S) + 1e-20).T
-  elif features_type == 'logfbank_psf':
-    features = psf.logfbank(signal=signal,
-                          samplerate=sample_freq,
-                          winlen=window_size,
-                          winstep=window_stride,
-                          nfilt=num_features,
-                          nfft=num_fft,
-                          lowfreq=0, highfreq=sample_freq / 2,
-                          preemph=0.97,
-                          winfunc=window_fn)
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
