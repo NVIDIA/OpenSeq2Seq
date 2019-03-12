@@ -94,7 +94,8 @@ class TDNNEncoder(Encoder):
         }
     """
 
-    source_sequence, src_length = input_dict['source_tensors']
+    source_sequence, src_length, num_pad = input_dict['source_tensors']
+    max_len = tf.reduce_max(src_length) + num_pad
 
     training = (self._mode == "train")
     dropout_keep_prob = self.params['dropout_keep_prob'] if training else 1.0
@@ -106,7 +107,7 @@ class TDNNEncoder(Encoder):
 
     if self.params.get("use_conv_mask", False):
       mask = tf.sequence_mask(
-          lengths=src_length, maxlen=tf.reduce_max(src_length),
+          lengths=src_length, maxlen=max_len,
           dtype=source_sequence.dtype
       )
       mask = tf.expand_dims(mask, 2)
@@ -174,7 +175,7 @@ class TDNNEncoder(Encoder):
         if strides[0] > 1 and self.params.get("use_conv_mask", False):
           mask = tf.sequence_mask(
               lengths=src_length,
-              maxlen=tf.reduce_max(src_length),
+              maxlen=max_len//2,
               dtype=conv_feats.dtype
           )
           mask = tf.expand_dims(mask, 2)
