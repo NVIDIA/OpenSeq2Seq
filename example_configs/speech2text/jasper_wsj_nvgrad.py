@@ -16,7 +16,6 @@ data_root ="/data/WSJ/"
 
 num_audio_features = 48
 repeat = 5
-dropout_keep_prob = 0.6
 
 base_model = Speech2Text
 base_params = {
@@ -34,7 +33,7 @@ base_params = {
     "eval_steps": 1500,
     "save_checkpoint_steps": 15000,
     "num_checkpoints": 1,
-    "logdir": "jasper_wsj_nvgd_lr0.01p2_wd0.005_fp16",
+    "logdir": "jasper_wsj_nvgd_lr0.01_wd0.005_fp16",
 
     "optimizer": NovoGrad,
     "optimizer_params": {
@@ -88,87 +87,87 @@ base_params = {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [13], "stride": [1],
                 "num_channels": 384, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [17], "stride": [1],
                 "num_channels": 512, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.8,
+                "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
+                "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [21], "stride": [1],
                 "num_channels": 640, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
+                "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
+                "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
                 "num_channels": 768, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.7,
+                "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
                 "num_channels": 896, "padding": "SAME",
-                "dilation":[2], "dropout_keep_prob": dropout_keep_prob, # 0.6,
+                "dilation":[2], # "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
                 "num_channels": 1024, "padding": "SAME",
-                "dilation":[1], "dropout_keep_prob": dropout_keep_prob, # 0.6,
+                "dilation":[1], # "dropout_keep_prob": 0.6,
             }
         ],
 
-        "dropout_keep_prob": dropout_keep_prob, # 0.7,
+        "dropout_keep_prob": 0.5,
 
         "initializer": tf.contrib.layers.xavier_initializer,
         "initializer_params": {
