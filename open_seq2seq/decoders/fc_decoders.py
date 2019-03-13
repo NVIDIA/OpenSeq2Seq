@@ -179,6 +179,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
         'lm_path': str,
         'trie_path': str,
         'alphabet_config_path': str,
+        'out_file_path': str,
     })
 
   def __init__(self, params, model,
@@ -232,6 +233,7 @@ class FullyConnectedCTCDecoder(FullyConnectedTimeDecoder):
                 beta=self.params['beta'],
                 trie_weight=self.params.get('trie_weight', 0.1),
                 top_paths=top_paths, merge_repeated=merge_repeated,
+                out_file_path=self.params.get('out_file_path', "here.txt"),
             )
         )
         return [tf.SparseTensor(decoded_ixs[0], decoded_vals[0],

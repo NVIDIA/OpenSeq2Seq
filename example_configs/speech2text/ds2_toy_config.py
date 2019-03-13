@@ -16,8 +16,8 @@ base_params = {
   #"num_epochs":  200,
   "max_steps": 1000,
 
-  "num_gpus": 2,
-  "batch_size_per_gpu": 8,
+  "num_gpus": 1,
+  "batch_size_per_gpu": 1,
 
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
@@ -83,7 +83,7 @@ base_params = {
   "decoder": FullyConnectedCTCDecoder,
   "decoder_params": {
     "initializer": tf.contrib.layers.xavier_initializer,
-    "use_language_model": False,
+    "use_language_model": True,
 
     # params for decoding the sequence with language model
     "beam_width": 64,
@@ -94,6 +94,7 @@ base_params = {
     "lm_path": "language_model/4-gram.binary",
     "trie_path": "language_model/trie.binary",
     "alphabet_config_path": "open_seq2seq/test_utils/toy_speech_data/vocab.txt",
+    "out_file_path": "/home/okuchaiev/repos/OpenSeq2Seq/here.txt",
   },
   "loss": CTCLoss,
   "loss_params": {},

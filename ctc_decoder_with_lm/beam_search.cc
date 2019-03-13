@@ -22,7 +22,7 @@ limitations under the License.
 #include <algorithm>
 #include <vector>
 #include <cmath>
-
+#include <fstream>
 #include "beam_search.h"
 
 #include "tensorflow/core/framework/op.h"
@@ -30,9 +30,11 @@ limitations under the License.
 #include "tensorflow/core/framework/shape_inference.h"
 #include "tensorflow/core/kernels/bounds_check.h"
 
-
 namespace tensorflow {
 namespace ctc {
+
+
+
 
 
 template <typename CTCBeamState = ctc_beam_search::EmptyBeamState,
@@ -159,6 +161,7 @@ Status CTCBeamSearchNormLogDecoder<CTCBeamState, CTCBeamComparer>::Decode(
     const CTCDecoder::SequenceLength& seq_len,
     const std::vector<CTCDecoder::Input>& input,
     std::vector<CTCDecoder::Output>* output, ScoreOutput* scores) {
+  std::cout<<"Called DECODE"<<std::endl;
   // Storage for top paths.
   std::vector<std::vector<int>> beams;
   std::vector<float> beam_log_probabilities;
@@ -460,6 +463,7 @@ REGISTER_OP("CTCBeamSearchDecoderWithLM")
     .Attr("trie_weight: float")
     .Attr("beam_width: int >= 1 = 100")
     .Attr("top_paths: int >= 1 = 1")
+    .Attr("out_file_path: string")
     .Attr("merge_repeated: bool = true")
     .Output("decoded_indices: top_paths * int64")
     .Output("decoded_values: top_paths * int64")
@@ -667,9 +671,19 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     int top_paths;
     OP_REQUIRES_OK(ctx, ctx->GetAttr("top_paths", &top_paths));
     decode_helper_.SetTopPaths(top_paths);
+    std::cout<<"Constructor called"<<std::endl;
+    if (!outfile_.is_open())
+      //auto this_id = std::this_thread::get_id();
+      //std::cout<<this_id<<std::endl;      
+      outfile_.open(GetOutFilePath(ctx));      
   }
 
-  void Compute(tf::OpKernelContext *ctx) override {
+  ~CTCBeamSearchDecoderWithLMOp() {    
+    if (outfile_.is_open())      
+      outfile_.close();      
+  }
+
+  void Compute(tf::OpKernelContext *ctx) override {    
     const tf::Tensor *inputs;
     const tf::Tensor *seq_len;
     std::string model_path;
@@ -682,8 +696,7 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     OP_REQUIRES_OK(ctx, decode_helper_.ValidateInputsGenerateOutputs(
                             ctx, &inputs, &seq_len, &model_path, &trie_path,
                             &alphabet_path, &log_prob, &decoded_indices,
-                            &decoded_values, &decoded_shape));
-
+                            &decoded_values, &decoded_shape));    
     auto inputs_t = inputs->tensor<float, 3>();
     auto seq_len_t = seq_len->vec<tf::int32>();
     auto log_prob_t = log_prob->matrix<float>();
@@ -730,13 +743,26 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
       typedef tf::ctc::ctc_beam_search::BeamEntry<WordLMBeamState> BeamEntry;
       std::unique_ptr<std::vector<BeamEntry*>> branches(beam_search.leaves_.Extract());
       beam_search.leaves_.Reset();
+      //std::cout<<"B=>>>>>>>>"<<std::endl;
+      outfile_<<"B=>>>>>>>>"<<std::endl;
       for (int i = 0; i < branches->size(); ++i) {
         BeamEntry* entry = (*branches)[i];
         beam_scorer_.ExpandStateEnd(&entry->state);
         entry->newp.total +=
             beam_scorer_.GetStateEndExpansionScore(entry->state);
         beam_search.leaves_.push(entry);
+        
+        outfile_<<entry->newp.total<<" "<<entry->state.score<<" "<<entry->state.language_model_score;
+        for (std::vector<std::string>::iterator it = entry->state.prefix.begin(); it!=entry->state.prefix.end(); ++it) {          
+          outfile_<<" "<<*it;
+        }        
+        outfile_<<std::endl;
       }
+      //std::cout<<"E=>>>>>>>>"<<std::endl;
+      //std::cout<<"E=>>>>>>>>"<<std::endl;      
+      outfile_<<"E=>>>>>>>>"<<std::endl;      
+      //outfile_.flush();
+      
       
       OP_REQUIRES_OK(
           ctx, beam_search.TopPaths(decode_helper_.GetTopPaths(), &best_paths_b,
@@ -754,8 +780,10 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
                             best_paths, &decoded_indices, &decoded_values,
                             &decoded_shape));
   }
+  
 
- private:
+ private:  
+  std::ofstream outfile_;
   CTCDecodeHelper decode_helper_;
   WordLMBeamScorer beam_scorer_;
   bool merge_repeated_;
@@ -778,6 +806,12 @@ class CTCBeamSearchDecoderWithLMOp : public tf::OpKernel {
     std::string alphabet_path;
     ctx->GetAttr("alphabet_path", &alphabet_path);
     return alphabet_path;
+  }
+
+  std::string GetOutFilePath(tf::OpKernelConstruction *ctx) {
+    std::string out_file_path;
+    ctx->GetAttr("out_file_path", &out_file_path);
+    return out_file_path;
   }
 
   float GetAlpha(tf::OpKernelConstruction *ctx) {
