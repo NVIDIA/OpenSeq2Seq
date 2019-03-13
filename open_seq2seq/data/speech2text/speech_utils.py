@@ -347,7 +347,7 @@ def get_speech_features(signal, sample_freq, num_features,
                                  hop_length=int(window_stride * sample_freq),
                                  win_length=int(window_size * sample_freq),
                                  center=True, window=window_fn))**2.0
-    if mel_basis is not None:
+    if mel_basis is None:
       # Build a Mel filter
       mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features,
                                       fmin=0, fmax=int(sample_freq/2))
