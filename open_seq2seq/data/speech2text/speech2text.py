@@ -271,7 +271,8 @@ class Speech2TextDataLayer(DataLayer):
         x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
 
       self._input_tensors = {}
-      self._input_tensors["source_tensors"] = [x, x_length, num_pad]
+      self._input_tensors["source_tensors"] = [x, x_length]
+      self._input_tensors["num_pad"] = num_pad
       if self.params['mode'] != 'infer':
         self._input_tensors['target_tensors'] = [y, y_length]
       else:

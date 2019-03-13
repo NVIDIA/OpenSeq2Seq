@@ -94,7 +94,8 @@ class TDNNEncoder(Encoder):
         }
     """
 
-    source_sequence, src_length, num_pad = input_dict['source_tensors']
+    source_sequence, src_length = input_dict['source_tensors']
+    num_pad = input_dict["num_pad"]
     max_len = tf.reduce_max(src_length) + num_pad
 
     training = (self._mode == "train")
