@@ -169,8 +169,7 @@ class Speech2Text(EncoderDecoderModel):
       target_tensors = input_tensors['target_tensors']
 
     with tf.variable_scope("ForwardPass"):
-      encoder_input = {"source_tensors": source_tensors,
-                       "num_pad":input_tensors["num_pad"]}
+      encoder_input = {"source_tensors": source_tensors}
       encoder_output = self.encoder.encode(input_dict=encoder_input)
 
       decoder_input = {"encoder_output": encoder_output}
