@@ -3,18 +3,22 @@
   words to speech and writes them in a csv file
 
 """
+from __future__ import absolute_import, division, print_function
 import pickle
 import argparse
 import sys
 import csv
+import os
+sys.path.append(os.getcwd())
+print(sys.path)
 from open_seq2seq.utils.ctc_decoder import ctc_greedy_decoder
 args = sys.argv[1:]
 parser = argparse.ArgumentParser(description='Experiment parameters')
 parser.add_argument("--dumpfile", required=False, type=str, default="/raid/Speech/dump.pkl",
                     help="Path to the configuration file")
 parser.add_argument("--blank_index", type=int, default=-1, help="Index of blank char")
-parser.add_argument("--start_shift", type=int, default=-0.16, help="Word start shift for JASPER 10x_3 model")
-parser.add_argument("--end_shift", type=int, default=0, help="Word end shift for JASPER 10x_3 model")
+parser.add_argument("--start_shift", type=float, default=-0.16, help="Word start shift for JASPER 10x_3 model")
+parser.add_argument("--end_shift", type=float, default=0, help="Word end shift for JASPER 10x_3 model")
 parser.add_argument("--save_file", type=str, default="sample.csv")
 args = parser.parse_args(args)
 dump = pickle.load(open(args.dumpfile, "rb"))
