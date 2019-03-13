@@ -34,19 +34,19 @@ base_params = {
     "eval_steps": 10000,
     "save_checkpoint_steps": 10000,
     "num_checkpoints": 1,
-    "logdir": "jasper_nvgd_lr0.02p2_wd0.001_fp16",
+    "logdir": "jasper_nvgd_lr0.01p2_wd0.002_fp16",
 
     "optimizer": NovoGrad,
     "optimizer_params": {
         "beta1": 0.95,
         "beta2": 0.98,
         "epsilon": 1e-08,
-        "weight_decay": 0.001,
+        "weight_decay": 0.002,
         "grad_averaging": False,
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.02,  #
+        "learning_rate": 0.01,  #
         "power": 2.0,
         # "warmup_steps": 200,
     },
