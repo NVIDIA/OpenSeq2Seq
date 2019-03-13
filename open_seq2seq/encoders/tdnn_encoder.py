@@ -164,8 +164,10 @@ class TDNNEncoder(Encoder):
 
         if padding == "VALID":
           src_length = (src_length - kernel_size[0]) // strides[0] + 1
+          max_len = (max_len - kernel_size[0]) // strides[0] + 1
         else:
           src_length = (src_length + strides[0] - 1) // strides[0]
+          max_len = (max_len + strides[0] - 1) // strides[0]
 
         # For all layers other than first layer, apply mask
         if idx_layer > 0 and self.params.get("use_conv_mask", False):
@@ -175,7 +177,7 @@ class TDNNEncoder(Encoder):
         if strides[0] > 1 and self.params.get("use_conv_mask", False):
           mask = tf.sequence_mask(
               lengths=src_length,
-              maxlen=max_len//2,
+              maxlen=max_len,
               dtype=conv_feats.dtype
           )
           mask = tf.expand_dims(mask, 2)
