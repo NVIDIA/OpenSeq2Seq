@@ -96,11 +96,10 @@ class TDNNEncoder(Encoder):
 
     source_sequence, src_length = input_dict['source_tensors']
     
-    pad_to = self._model.get_data_layer().params.get("pad_to", 8)
+    pad_to = self._model.get_data_layer().params.get("pad_to", 0)
     num_pad = tf.constant(0)
     if pad_to > 0:
       num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(src_length), pad_to), pad_to)
-      source_sequence = tf.pad(source_sequence, [[0, 0], [0, num_pad], [0, 0]])
     max_len = tf.reduce_max(src_length) + num_pad
 
     training = (self._mode == "train")

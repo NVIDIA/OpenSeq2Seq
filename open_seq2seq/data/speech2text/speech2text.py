@@ -265,6 +265,11 @@ class Speech2TextDataLayer(DataLayer):
                    self.params['num_audio_features']])
       x_length = tf.reshape(x_length, [self.params['batch_size']])
 
+      pad_to = self.params.get("pad_to", 8)
+      if pad_to > 0:
+        num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
+        x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
+
       self._input_tensors = {}
       self._input_tensors["source_tensors"] = [x, x_length]
       if self.params['mode'] != 'infer':
