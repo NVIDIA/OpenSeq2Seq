@@ -234,7 +234,7 @@ base_params = {
         "norm_per_feature": True,
         "window_type": "hamming",
         "syn_enable": False,
-        "syn_subdirs" :["1_50", "2_44", "3_47", "50", "46", "48"],
+        "syn_subdirs": ["1_50", "2_44", "3_47", "50", "46", "48"],
         "precompute_mel_basis": True,
         "sample_freq": 16000,
         "pad_to": 8
