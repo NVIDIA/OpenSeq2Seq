@@ -62,7 +62,7 @@ base_params = {
     "num_epochs": 50,
 
     "num_gpus": 8,
-    "batch_size_per_gpu": 64,
+    "batch_size_per_gpu": 32,
     "iter_size": 1,
 
     "save_summaries_steps": 100,
@@ -237,7 +237,7 @@ base_params = {
         "syn_subdirs": ["1_50", "2_44", "3_47", "50", "46", "48"],
         "precompute_mel_basis": True,
         "sample_freq": 16000,
-        "pad_to": 8
+        "pad_to": 16
     },
 }
 

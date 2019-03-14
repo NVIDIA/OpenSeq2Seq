@@ -5,7 +5,10 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv
+from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv,\
+                                                conv_ln_actv, conv_in_actv,\
+                                                conv_bn_res_bn_actv
 
 
 class TDNNEncoder(Encoder):
@@ -96,10 +99,17 @@ class TDNNEncoder(Encoder):
 
     source_sequence, src_length = input_dict['source_tensors']
     
-    pad_to = self._model.get_data_layer().params.get("pad_to", 0)
     num_pad = tf.constant(0)
-    if pad_to > 0:
-      num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(src_length), pad_to), pad_to)
+
+    if isinstance(self._model.get_data_layer(), Speech2TextDataLayer):
+      pad_to = self._model.get_data_layer().params.get("pad_to", 8)
+      if pad_to > 0:
+        num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(src_length), pad_to), pad_to)
+    else:
+      print("WARNING: TDNNEncoder is currently meant to be used with the",
+            "Speech2Text data layer. Assuming that this data layer does not",
+            "do additional padding past padded_batch.")
+
     max_len = tf.reduce_max(src_length) + num_pad
 
     training = (self._mode == "train")
