@@ -87,7 +87,7 @@ def get_preprocessed_data_path(filename, params):
       generated from the relevant preprocessing parameters.
   """
   if isinstance(filename, bytes):  # convert binary string to normal string
-      filename = filename.decode('ascii')
+    filename = filename.decode('ascii')
 
   filename = os.path.realpath(filename)  # decode symbolic links
 
@@ -132,7 +132,6 @@ def get_preprocessed_data_path(filename, params):
 
 def get_speech_features_from_file(filename,
                                   num_features,
-                                  pad_to=8,
                                   features_type='spectrogram',
                                   window_size=20e-3,
                                   window_stride=10e-3,
@@ -144,7 +143,8 @@ def get_speech_features_from_file(filename,
                                   cache_features=False,
                                   cache_format="hdf5",
                                   cache_regenerate=False,
-                                  params={}):
+                                  params={},
+                                  mel_basis=None):
   """Function to get a numpy array of features, from an audio file.
       if params['cache_features']==True, try load preprocessed data from
       disk, or store after preprocesseng.
@@ -190,18 +190,32 @@ Returns:
 
   except PreprocessOnTheFlyException:
     sample_freq, signal = wave.read(filename)
+    if mel_basis is not None and sample_freq != params["sample_freq"]:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params["sample_freq"],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(
-        signal, sample_freq, num_features, pad_to, features_type,
+        signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
-        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft
+        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft,
+        mel_basis=mel_basis
     )
 
   except (OSError, FileNotFoundError, RegenerateCacheException):
     sample_freq, signal = wave.read(filename)
+    if mel_basis is not None and sample_freq != params["sample_freq"]:
+      raise ValueError(
+          ("The sampling frequency set in params {} does not match the "
+           "frequency {} read from file {}").format(params["sample_freq"],
+                                                    sample_freq, filename)
+      )
     features, duration = get_speech_features(
-        signal, sample_freq, num_features, pad_to, features_type,
+        signal, sample_freq, num_features, features_type,
         window_size, window_stride, augmentation, window_fn=window_fn,
-        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft
+        dither=dither, norm_per_feature=norm_per_feature, num_fft=num_fft,
+        mel_basis=mel_basis
     )
     preprocessed_data_path = get_preprocessed_data_path(filename, params)
     save_features(features, duration, preprocessed_data_path,
@@ -255,7 +269,7 @@ def preemphasis(signal, coeff=0.97):
   return np.append(signal[0], signal[1:] - coeff * signal[:-1])
 
 
-def get_speech_features(signal, sample_freq, num_features, pad_to=8,
+def get_speech_features(signal, sample_freq, num_features,
                         features_type='spectrogram',
                         window_size=20e-3,
                         window_stride=10e-3,
@@ -263,7 +277,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
                         window_fn=np.hanning,
                         num_fft=None,
                         dither=0.0,
-                        norm_per_feature=False):
+                        norm_per_feature=False,
+                        mel_basis=None):
   """Function to convert raw audio signal to numpy array of features.
 
   Args:
@@ -283,7 +298,7 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
     num_features].
     audio_duration (float): duration of the signal in seconds
   """
-  if augmentation is not None:
+  if augmentation:
     signal = augment_audio_signal(signal.astype(np.float32), sample_freq, augmentation)
   else:
     signal = normalize_signal(signal.astype(np.float32))
@@ -299,7 +314,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
 
   if features_type == 'spectrogram':
     # ignore 1/n_fft multiplier, since there is a post-normalization
-    powspec = np.square(np.abs(librosa.core.stft(signal, n_fft=n_window_size,
+    powspec = np.square(np.abs(librosa.core.stft(
+        signal, n_fft=n_window_size,
         hop_length=n_window_stride, win_length=n_window_size, center=True,
         window=window_fn)))
     # remove small bins
@@ -314,18 +330,27 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
 
   elif features_type == 'mfcc':
     signal = preemphasis(signal, coeff=0.97)
-    S = np.square(np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
-                         win_length=int(window_size * sample_freq), center=True,
-                         window=window_fn)))
+    S = np.square(
+            np.abs(
+                librosa.core.stft(signal, n_fft=num_fft,
+                                  hop_length=int(window_stride * sample_freq),
+                                  win_length=int(window_size * sample_freq),
+                                  center=True, window=window_fn
+                )
+            )
+        )
     features = librosa.feature.mfcc(sr=sr, S=S,
         n_mfcc=num_features, n_mels=2*num_features).T
   elif features_type == 'logfbank':
     signal = preemphasis(signal,coeff=0.97)
-    S = np.abs(librosa.core.stft(signal, n_fft=num_fft, hop_length=int(window_stride * sample_freq),
-                        win_length=int(window_size * sample_freq), center=True,
-                        window=window_fn))**2.0
-    # Build a Mel filter
-    mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features, fmin=0, fmax=int(sample_freq/2))
+    S = np.abs(librosa.core.stft(signal, n_fft=num_fft,
+                                 hop_length=int(window_stride * sample_freq),
+                                 win_length=int(window_size * sample_freq),
+                                 center=True, window=window_fn))**2.0
+    if mel_basis is None:
+      # Build a Mel filter
+      mel_basis = librosa.filters.mel(sample_freq, num_fft, n_mels=num_features,
+                                      fmin=0, fmax=int(sample_freq/2))
     features = np.log(np.dot(mel_basis, S) + 1e-20).T
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
@@ -336,9 +361,9 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
   features = (features - mean) / std_dev
 
   # now it is safe to pad
-  if pad_to > 0:
-    if features.shape[0] % pad_to != 0:
-      pad_size = pad_to - features.shape[0] % pad_to
-      if pad_size != 0:
-          features = np.pad(features, ((0,pad_size), (0,0)), mode='constant')
+  # if pad_to > 0:
+  #   if features.shape[0] % pad_to != 0:
+  #     pad_size = pad_to - features.shape[0] % pad_to
+  #     if pad_size != 0:
+  #         features = np.pad(features, ((0,pad_size), (0,0)), mode='constant')
   return features, audio_duration

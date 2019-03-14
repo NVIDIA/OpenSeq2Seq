@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 import six
+import math
+import librosa
 from six import string_types
 from six.moves import range
 import inspect
@@ -47,7 +49,10 @@ class Speech2TextDataLayer(DataLayer):
         'window_stride': float,
         'dither': float,
         'norm_per_feature': bool,
-        'window_type': ['hanning', 'hamming', 'none']
+        'window_type': ['hanning', 'hamming', 'none'],
+        'num_fft': int,
+        'precompute_mel_basis': bool,
+        'sample_freq': int,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -74,6 +79,9 @@ class Speech2TextDataLayer(DataLayer):
       using synthetic data.
     * **syn_subdirs** (list) --- must be defined if using synthetic mode.
       Contains a list of subdirectories that hold the synthetica wav files.
+    * **precompute_mel_basis** (bool) --- compute and store mel basis. If False,
+      it will compute it for every get_speech_features call. Default: False
+    * **sample_freq** (int) --- required for precompute_mel_basis
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
@@ -127,10 +135,27 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
-    self.params['min_duration'] = params.get('min_duration', -1.0)
-    self.params['max_duration'] = params.get('max_duration', -1.0)
-    self.params['window_size'] = params.get('window_size', 20e-3)
-    self.params['window_stride'] = params.get('window_stride', 10e-3)
+    self.params['min_duration'] = self.params.get('min_duration', -1.0)
+    self.params['max_duration'] = self.params.get('max_duration', -1.0)
+    self.params['window_size'] = self.params.get('window_size', 20e-3)
+    self.params['window_stride'] = self.params.get('window_stride', 10e-3)
+
+    self.mel_basis = None
+    if (self.params.get("precompute_mel_basis", False) and 
+        self.params["input_type"] == "logfbank"):
+      num_fft = (
+          self.params.get("num_fft", None) or 
+          2**math.ceil(math.log2(
+              self.params['window_size']*self.params["sample_freq"])
+          )
+      )
+      self.mel_basis = librosa.filters.mel(
+          self.params["sample_freq"],
+          num_fft,
+          n_mels=self.params["num_audio_features"],
+          fmin=0,
+          fmax=int(self.params["sample_freq"]/2)
+      )
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
@@ -240,6 +265,11 @@ class Speech2TextDataLayer(DataLayer):
                    self.params['num_audio_features']])
       x_length = tf.reshape(x_length, [self.params['batch_size']])
 
+      pad_to = self.params.get("pad_to", 8)
+      if pad_to > 0:
+        num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
+        x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
+
       self._input_tensors = {}
       self._input_tensors["source_tensors"] = [x, x_length]
       if self.params['mode'] != 'infer':
@@ -344,7 +374,6 @@ class Speech2TextDataLayer(DataLayer):
 
     source, audio_duration = get_speech_features_from_file(
         audio_filename, self.params['num_audio_features'],
-        pad_to=self.params.get('pad_to', 8),
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -356,7 +385,8 @@ class Speech2TextDataLayer(DataLayer):
         dither=self.params.get('dither', 0.0),
         num_fft=self.params.get('num_fft', None),
         norm_per_feature=self.params.get('norm_per_feature', False),
-        params=self.params
+        params=self.params,
+        mel_basis=self.mel_basis
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
@@ -373,9 +403,8 @@ class Speech2TextDataLayer(DataLayer):
       tuple: source audio features as ``np.array``, length of source sequence,
       sample id.
     """
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features(
-        wav, 16000., self.params['num_audio_features'], pad_to,
+        wav, 16000., self.params['num_audio_features'],
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -383,7 +412,8 @@ class Speech2TextDataLayer(DataLayer):
         window_fn=self.window_fns[self.params.get('window', "hanning")],
         dither=self.params.get('dither', 0.0),
         num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False)
+        norm_per_feature=self.params.get('norm_per_feature', False),
+        mel_basis=self.mel_basis
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -399,9 +429,8 @@ class Speech2TextDataLayer(DataLayer):
       sample id.
     """
     idx, audio_filename = id_and_audio_filename
-    pad_to = self.params.get('pad_to', 8)
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'], pad_to,
+        audio_filename, self.params['num_audio_features'],
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -409,7 +438,9 @@ class Speech2TextDataLayer(DataLayer):
         window_fn=self.window_fns[self.params.get('window', "hanning")],
         dither=self.params.get('dither', 0.0),
         num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False)
+        norm_per_feature=self.params.get('norm_per_feature', False),
+        params=self.params,
+        mel_basis=self.mel_basis
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \
