@@ -216,11 +216,13 @@ class ImagenetDataLayer(DataLayer):
     # convert to individual records
     dataset = dataset.flat_map(tf.data.TFRecordDataset)
 
-    dataset = dataset.prefetch(buffer_size=self.params['batch_size'])
-    if self.params['shuffle']:
+    dataset = dataset.prefetch(buffer_size=self.params['batch_size']*10)
+
+    if self.params['mode'] == 'train' and self.params['shuffle']:
+      print("training with shuffle")
       # shuffling images
       dataset = dataset.shuffle(buffer_size=self.params.get('shuffle_buffer',
-                                                            1500))
+                                                            1024))
     dataset = dataset.repeat()
 
     dataset = dataset.map(
