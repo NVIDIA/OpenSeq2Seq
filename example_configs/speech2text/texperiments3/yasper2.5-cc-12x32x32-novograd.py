@@ -71,7 +71,7 @@ base_params = {
           {
             "type": "conv1d", "repeat": repeat_1,
             "kernel_size": [11], "stride": [1],
-            "num_channels": 256, "padding": "SAME",
+            "num_channels": d_model, "padding": "SAME",
             "dilation": [1], "dropout_keep_prob": 0.8 * dropout_factor,
             "residual": residual, "residual_dense": residual_dense
           },
