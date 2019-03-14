@@ -7,6 +7,7 @@ from six.moves import range
 
 import tensorflow as tf
 from .tcn import tcn
+from .sequencebatchnorm import SequenceBatchNormalization
 
 layers_dict = {
     "conv1d": tf.layers.conv1d,
@@ -45,7 +46,7 @@ def conv_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
 def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
                         kernel_size, activation_fn, strides, padding,
                         regularizer, training, data_format, bn_momentum,
-                        bn_epsilon, dilation=1):
+                        bn_epsilon, dilation=1, mask=None):
   layer = layers_dict[layer_type]
 
   if not isinstance(res_inputs, list):
@@ -66,25 +67,32 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
         name=res_name.format(name, i),
         use_bias=False,
     )
-    squeeze = False
-    if layer_type == "conv1d":
-      axis = 1 if data_format == 'channels_last' else 2
-      res = tf.expand_dims(res, axis=axis)  # NWC --> NHWC
-      squeeze = True
-    res = tf.layers.batch_normalization(
-        name=res_bn_name.format(name, i),
-        inputs=res,
-        gamma_regularizer=regularizer,
-        training=training,
-        axis=-1 if data_format == 'channels_last' else 1,
-        momentum=bn_momentum,
-        epsilon=bn_epsilon,
-    )
-    if squeeze:
-      res = tf.squeeze(res, axis=axis)
+    if mask is not None:
+      batchnorm_layer = SequenceBatchNormalization(
+          res.get_shape().as_list()[-1],
+          bn_momentum,
+          gamma_regularizer=regularizer)
+      res = batchnorm_layer(res, mask, training, bn_epsilon)
+    else:
+      squeeze = False
+      if layer_type == "conv1d":
+        axis = 1 if data_format == 'channels_last' else 2
+        res = tf.expand_dims(res, axis=axis)  # NWC --> NHWC
+        squeeze = True
+      res = tf.layers.batch_normalization(
+          name=res_bn_name.format(name, i),
+          inputs=res,
+          gamma_regularizer=regularizer,
+          training=training,
+          axis=-1 if data_format == 'channels_last' else 1,
+          momentum=bn_momentum,
+          epsilon=bn_epsilon,
+      )
+      if squeeze:
+        res = tf.squeeze(res, axis=axis)
 
     res_aggregation += res
-  
+
   conv = layer(
       name="{}".format(name),
       inputs=inputs,
@@ -98,17 +106,56 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
       data_format=data_format,
   )
 
+  if mask is not None:
+    batchnorm_layer = SequenceBatchNormalization(
+        conv.get_shape().as_list()[-1],
+        bn_momentum,
+        gamma_regularizer=regularizer)
+    bn = batchnorm_layer(conv, mask, training, bn_epsilon)
+  else:
+    # trick to make batchnorm work for mixed precision training.
+    # To-Do check if batchnorm works smoothly for >4 dimensional tensors
+    squeeze = False
+    if layer_type == "conv1d":
+      axis = 1 if data_format == 'channels_last' else 2
+      conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
+      squeeze = True
+
+    bn = tf.layers.batch_normalization(
+        name="{}/bn".format(name),
+        inputs=conv,
+        gamma_regularizer=regularizer,
+        training=training,
+        axis=-1 if data_format == 'channels_last' else 1,
+        momentum=bn_momentum,
+        epsilon=bn_epsilon,
+    )
+
+    if squeeze:
+      bn = tf.squeeze(bn, axis=axis)
+
+  output = bn + res_aggregation
+  if activation_fn is not None:
+    output = activation_fn(output)
+  return output
+
+def bn_relu_conv_res_v2(layer_type, name, inputs, filters,
+                        kernel_size, activation_fn, strides, padding,
+                        regularizer, training, data_format, bn_momentum,
+                        bn_epsilon, dilation=1, res_inputs=None):
+  layer = layers_dict[layer_type]
+
   # trick to make batchnorm work for mixed precision training.
   # To-Do check if batchnorm works smoothly for >4 dimensional tensors
   squeeze = False
   if layer_type == "conv1d":
     axis = 1 if data_format == 'channels_last' else 2
-    conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
+    inputs = tf.expand_dims(inputs, axis=axis)  # NWC --> NHWC
     squeeze = True
 
   bn = tf.layers.batch_normalization(
       name="{}/bn".format(name),
-      inputs=conv,
+      inputs=inputs,
       gamma_regularizer=regularizer,
       training=training,
       axis=-1 if data_format == 'channels_last' else 1,
@@ -119,14 +166,55 @@ def conv_bn_res_bn_actv(layer_type, name, inputs, res_inputs, filters,
   if squeeze:
     bn = tf.squeeze(bn, axis=axis)
 
-  output = bn + res_aggregation
   if activation_fn is not None:
-    output = activation_fn(output)
+    actv = activation_fn(bn)
+
+  conv = layer(
+      name="{}".format(name),
+      inputs=actv,
+      filters=filters,
+      kernel_size=kernel_size,
+      strides=strides,
+      padding=padding,
+      dilation_rate=dilation,
+      kernel_regularizer=regularizer,
+      use_bias=False,
+      data_format=data_format,
+  )
+
+  if res_inputs is not None:
+    if not isinstance(res_inputs, list):
+      res_inputs = [res_inputs]
+      # For backwards compatibiliaty with earlier models
+      res_name = "{}/res"
+    else:
+      res_name = "{}/res_{}"
+    res_aggregation = 0
+    for i, res in enumerate(res_inputs):
+      res = layer(
+          res,
+          filters,
+          1,
+          name=res_name.format(name, i),
+          use_bias=False,
+      )
+      squeeze = False
+      if layer_type == "conv1d":
+        axis = 1 if data_format == 'channels_last' else 2
+        res = tf.expand_dims(res, axis=axis)  # NWC --> NHWC
+        squeeze = True
+      if squeeze:
+        res = tf.squeeze(res, axis=axis)
+      res_aggregation += res
+
+    output = conv + res_aggregation
+  else:
+    output = conv
   return output
 
 def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
                  strides, padding, regularizer, training, data_format,
-                 bn_momentum, bn_epsilon, dilation=1):
+                 bn_momentum, bn_epsilon, dilation=1, mask=None):
   """Helper function that applies convolution, batch norm and activation.
     Args:
       layer_type: the following types are supported
@@ -147,26 +235,33 @@ def conv_bn_actv(layer_type, name, inputs, filters, kernel_size, activation_fn,
       data_format=data_format,
   )
 
-  # trick to make batchnorm work for mixed precision training.
-  # To-Do check if batchnorm works smoothly for >4 dimensional tensors
-  squeeze = False
-  if layer_type == "conv1d":
-    axis = 1 if data_format == 'channels_last' else 2
-    conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
-    squeeze = True
+  if mask is not None:
+    batchnorm_layer = SequenceBatchNormalization(
+        conv.get_shape().as_list()[-1],
+        bn_momentum,
+        gamma_regularizer=regularizer)
+    bn = batchnorm_layer(conv, mask, training, bn_epsilon)
+  else:
+    # trick to make batchnorm work for mixed precision training.
+    # To-Do check if batchnorm works smoothly for >4 dimensional tensors
+    squeeze = False
+    if layer_type == "conv1d":
+      axis = 1 if data_format == 'channels_last' else 2
+      conv = tf.expand_dims(conv, axis=axis)  # NWC --> NHWC
+      squeeze = True
 
-  bn = tf.layers.batch_normalization(
-      name="{}/bn".format(name),
-      inputs=conv,
-      gamma_regularizer=regularizer,
-      training=training,
-      axis=-1 if data_format == 'channels_last' else 1,
-      momentum=bn_momentum,
-      epsilon=bn_epsilon,
-  )
+    bn = tf.layers.batch_normalization(
+        name="{}/bn".format(name),
+        inputs=conv,
+        gamma_regularizer=regularizer,
+        training=training,
+        axis=-1 if data_format == 'channels_last' else 1,
+        momentum=bn_momentum,
+        epsilon=bn_epsilon,
+    )
 
-  if squeeze:
-    bn = tf.squeeze(bn, axis=axis)
+    if squeeze:
+      bn = tf.squeeze(bn, axis=axis)
 
   output = bn
   if activation_fn is not None:

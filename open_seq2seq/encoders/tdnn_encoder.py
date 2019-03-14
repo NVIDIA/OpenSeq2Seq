@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 import tensorflow as tf
 
 from .encoder import Encoder
-from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv
+from open_seq2seq.parts.cnns.conv_blocks import conv_actv, conv_bn_actv, conv_ln_actv, conv_in_actv, conv_bn_res_bn_actv, bn_relu_conv_res_v2
 
 
 class TDNNEncoder(Encoder):
@@ -28,6 +28,8 @@ class TDNNEncoder(Encoder):
         'bn_momentum': float,
         'bn_epsilon': float,
         'use_conv_mask': bool,
+        'use_bn_mask': bool,
+        'version': [1, 2],
     })
 
   def __init__(self, params, model, name="w2l_encoder", mode='train'):
@@ -104,17 +106,25 @@ class TDNNEncoder(Encoder):
 
     normalization_params = {}
 
+    mask = None
     if self.params.get("use_conv_mask", False):
       mask = tf.sequence_mask(
-          lengths=src_length, maxlen=tf.reduce_max(src_length),
-          dtype=source_sequence.dtype
+          lengths=src_length,
+          maxlen=tf.reduce_max(src_length),
+          dtype=tf.float32
       )
       mask = tf.expand_dims(mask, 2)
+      if self.params.get("use_bn_mask", False):
+        normalization_params['mask'] = mask
 
     if normalization is None:
       conv_block = conv_actv
     elif normalization == "batch_norm":
-      conv_block = conv_bn_actv
+      if self.params.get("version", 1) == 1:
+        conv_block = conv_bn_actv
+        conv_res_block = conv_bn_res_bn_actv
+      else:
+        conv_block = conv_res_block = bn_relu_conv_res_v2
       normalization_params['bn_momentum'] = self.params.get(
           'bn_momentum', 0.90)
       normalization_params['bn_epsilon'] = self.params.get('bn_epsilon', 1e-3)
@@ -151,7 +161,7 @@ class TDNNEncoder(Encoder):
 
       # For the first layer in the block, apply a mask
       if self.params.get("use_conv_mask", False):
-        conv_feats = conv_feats * mask
+        conv_feats = conv_feats * tf.cast(mask, dtype=conv_feats.dtype)
 
       if residual:
         layer_res = conv_feats
@@ -168,19 +178,21 @@ class TDNNEncoder(Encoder):
 
         # For all layers other than first layer, apply mask
         if idx_layer > 0 and self.params.get("use_conv_mask", False):
-          conv_feats = conv_feats * mask
+          conv_feats = conv_feats * tf.cast(mask, dtype=conv_feats.dtype)
 
         # Since we have a stride 2 layer, we need to update mask for future operations
         if strides[0] > 1 and self.params.get("use_conv_mask", False):
           mask = tf.sequence_mask(
               lengths=src_length,
               maxlen=tf.reduce_max(src_length),
-              dtype=conv_feats.dtype
+              dtype=tf.float32
           )
           mask = tf.expand_dims(mask, 2)
+          if self.params.get("use_bn_mask", False):
+            normalization_params['mask'] = mask
 
         if residual and idx_layer == layer_repeat - 1:
-          conv_feats = conv_bn_res_bn_actv(
+          conv_feats = conv_res_block(
               layer_type=layer_type,
               name="conv{}{}".format(
                   idx_convnet + 1, idx_layer + 1),
