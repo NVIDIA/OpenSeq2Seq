@@ -72,6 +72,9 @@ parser.add_argument('--beam_width', type=int,
     help='beam width for beam search decoder',
     required=False, default=128
 )
+parser.add_argument('--dump_all_beams_to', 
+    help='filename to dump all beams in eval mode for debug purposes',
+    required=False, default='')
 args = parser.parse_args()
 
 if args.alpha_max is None:
@@ -174,7 +177,7 @@ for idx in range(len(data)):
 if args.mode == 'eval':
     wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
     print('Greedy WER = {:.4f}'.format(wer))
-    best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0} 
+    best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0, 'beams': None} 
     for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
         for beta in np.arange(args.beta, args.beta_max, args.beta_step):
             scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
@@ -197,9 +200,19 @@ if args.mode == 'eval':
                 best_result['wer'] = wer
                 best_result['alpha'] = alpha
                 best_result['beta'] = beta
+                best_result['beams'] = res
             print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
     print('BEST: alpha={:.2f}, beta={:.2f}, WER={:.4f}'.format(
         best_result['alpha'], best_result['beta'], best_result['wer']))
+    
+    if args.dump_all_beams_to:
+        with open(args.dump_all_beams_to, 'w') as f:
+            for beam in best_result['beams']:
+                f.write('B=>>>>>>>>\n')
+                for pred in beam:
+                    f.write('{} 0.0 0.0 {}\n'.format(pred[0], pred[1]))
+                f.write('E=>>>>>>>>\n')
+    
 
 elif args.mode == 'infer':
     scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
