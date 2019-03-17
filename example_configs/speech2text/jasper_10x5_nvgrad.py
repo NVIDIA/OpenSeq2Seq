@@ -5,7 +5,7 @@ from open_seq2seq.encoders import TDNNEncoder
 from open_seq2seq.decoders import FullyConnectedCTCDecoder
 from open_seq2seq.data.speech2text.speech2text import Speech2TextDataLayer
 from open_seq2seq.losses import CTCLoss
-from open_seq2seq.optimizers.lr_policies import poly_decay
+from open_seq2seq.optimizers.lr_policies import poly_decay, inv_poly_decay
 from open_seq2seq.optimizers.novograd  import NovoGrad
 
 ### If training with synthetic data, don't forget to add your synthetic csv
@@ -13,9 +13,8 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 
 # REPLACE THIS TO THE PATH TO LIBRISPEECH
 #data_root = "[REPLACE THIS TO THE PATH TO LIBRISPEECH]"
-# data_root = "/raid/speech/librispeech/"
-# data_root = "/raid/speech/librispeech/"
-data_root ="/data/librispeech/"
+data_root = "/raid/speech/librispeech/"
+#data_root ="/data/librispeech/"
 
 base_model = Speech2Text
 
@@ -34,22 +33,31 @@ base_params = {
     "eval_steps": 10000,
     "save_checkpoint_steps": 10000,
     "num_checkpoints": 1,
-    "logdir": "jasper_nvgd_lr0.01p2_wd0.002_fp16",
+    "logdir": "logs/jasper/nvgd_ilr0.01p2_wd0.002_fp16",
 
     "optimizer": NovoGrad,
     "optimizer_params": {
         "beta1": 0.95,
         "beta2": 0.98,
         "epsilon": 1e-08,
-        "weight_decay": 0.002,
+        "weight_decay": 0.001,
         "grad_averaging": False,
     },
-    "lr_policy": poly_decay,  # fixed_lr,
+
+    "lr_policy": inv_poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,  #
+        "learning_rate": 0.02,
+        "min_lr": 8.0e-6,
         "power": 2.0,
         # "warmup_steps": 200,
     },
+
+    # "lr_policy": poly_decay,  # fixed_lr,
+    # "lr_policy_params": {
+    #     "learning_rate": 0.01,  #
+    #     "power": 2.0,
+    #     # "warmup_steps": 200,
+    # },
 
     # "optimizer": "Momentum",
     # "optimizer_params": {
