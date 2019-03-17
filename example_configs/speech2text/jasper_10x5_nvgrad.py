@@ -13,8 +13,8 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 
 # REPLACE THIS TO THE PATH TO LIBRISPEECH
 #data_root = "[REPLACE THIS TO THE PATH TO LIBRISPEECH]"
-data_root = "/raid/speech/librispeech/"
-#data_root ="/data/librispeech/"
+#data_root = "/raid/speech/librispeech/"
+data_root ="/data/librispeech/"
 
 base_model = Speech2Text
 
