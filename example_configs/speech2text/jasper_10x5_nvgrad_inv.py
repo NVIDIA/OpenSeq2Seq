@@ -44,20 +44,20 @@ base_params = {
         "grad_averaging": False,
     },
 
-    # "lr_policy": inv_poly_decay,
-    # "lr_policy_params": {
-    #     "learning_rate": 0.02,
-    #     "min_lr": 8.0e-6,
-    #     "power": 2.0,
-    #     # "warmup_steps": 200,
-    # },
-
-    "lr_policy": poly_decay,  # fixed_lr,
+    "lr_policy": inv_poly_decay,
     "lr_policy_params": {
-        "learning_rate": 0.01,  #
+        "learning_rate": 0.02,
+        "min_lr": 8.0e-6,
         "power": 2.0,
         # "warmup_steps": 200,
     },
+
+    # "lr_policy": poly_decay,  # fixed_lr,
+    # "lr_policy_params": {
+    #     "learning_rate": 0.01,  #
+    #     "power": 2.0,
+    #     # "warmup_steps": 200,
+    # },
 
     # "optimizer": "Momentum",
     # "optimizer_params": {
