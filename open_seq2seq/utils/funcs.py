@@ -18,7 +18,7 @@ from .helpers import TransferMonitoredTrainingSession, TransferScaffold
 from open_seq2seq.data import WKTDataLayer
 
 
-def train(train_model, eval_model=None, debug_port=None):
+def train(train_model, eval_model=None, debug_port=None, custom_hooks=None):
   if eval_model is not None and 'eval_steps' not in eval_model.params:
     raise ValueError("eval_steps parameter has to be specified "
                      "if eval_model is provided")
@@ -38,6 +38,10 @@ def train(train_model, eval_model=None, debug_port=None):
 
   # defining necessary hooks
   hooks = [tf.train.StopAtStepHook(last_step=train_model.last_step)]
+  if custom_hooks:
+    for custom_hook in custom_hooks:
+      hooks.append(custom_hook(train_model=train_model, eval_model=eval_model))
+
   if hvd is not None:
     hooks.append(BroadcastGlobalVariablesHook(0))
 

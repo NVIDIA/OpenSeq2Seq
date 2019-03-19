@@ -76,10 +76,17 @@ def main():
   with tf.Graph().as_default():
     model = create_model(
         args, base_config, config_module, base_model, hvd, checkpoint)
+    hooks = None
+    if ('train_params' in config_module and
+        'hooks' in config_module['train_params']):
+      hooks = config_module['train_params']['hooks']
     if args.mode == "train_eval":
-      train(model[0], model[1], debug_port=args.debug_port)
+      train(
+        model[0], eval_model=model[1], debug_port=args.debug_port,
+        custom_hooks=hooks)
     elif args.mode == "train":
-      train(model, None, debug_port=args.debug_port)
+      train(
+        model, eval_model=None, debug_port=args.debug_port, custom_hooks=hooks)
     elif args.mode == "eval":
       evaluate(model, checkpoint)
     elif args.mode == "infer":
