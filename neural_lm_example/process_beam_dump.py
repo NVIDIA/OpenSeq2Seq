@@ -53,6 +53,7 @@ def score_fun_linear(s1, s2, s3, s4):
 class Scorer:
   def __init__(self, model, path_2_vocab, score_fn=score_fun_linear):
     self._model = model
+    self._model.eval()
     #self._vocab = Scorer._read_vocab(path_2_vocab)
     self._vocab = Vocab(vocab_file=path_2_vocab)
     self._vocab.build_vocab()
@@ -93,16 +94,17 @@ class Scorer:
     # #loss = loss * mask.float()
     # return torch.sum(loss, dim=0)
     result = []
-    sents = self._vocab.encode_sents(
-      [['<S>'] + string.strip().lower().split() + ['<S>'] for string in
-       candidates])
-    for sent in sents:
-      sent = sent[:, None].cuda()
-      mems = tuple()
-      ret = self._model(sent[:-1], sent[1:], *mems)
-      loss, mems = ret[0], ret[1:]
-      result.append(-1.0*torch.sum(loss).unsqueeze(0))
-    return torch.cat(result, dim=0)
+    with torch.no_grad():
+      sents = self._vocab.encode_sents(
+        [['<S>'] + string.strip().lower().split() + ['<S>'] for string in
+        candidates])
+      for sent in sents:
+        sent = sent[:, None].cuda()
+        mems = tuple()
+        ret = self._model(sent[:-1], sent[1:], *mems)
+        loss, mems = ret[0], ret[1:]
+        result.append(-1.0*torch.sum(loss).unsqueeze(0))    
+      return torch.cat(result, dim=0)
 
   def test_model(self, candidates):
     for item in zip(list(self.nlm_compute(candidates).cpu().detach().numpy()), candidates):
