@@ -118,3 +118,7 @@ if __name__ == '__main__':
                                    "calibration/target.json")
   print("Mean start shift is:\n{} seconds \nand \nmean \
     end shift is:\n{} seconds".format(start_mean, end_mean))
+  with open("calibration.txt","w") as f:
+    string = "{} {}".format(start_mean, end_mean)
+    f.write(string)
+    f.close()
