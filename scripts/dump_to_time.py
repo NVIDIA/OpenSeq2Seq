@@ -17,8 +17,9 @@ parser = argparse.ArgumentParser(description='Experiment parameters')
 parser.add_argument("--dumpfile", required=False, type=str, default="/raid/Speech/dump.pkl",
                     help="Path to the configuration file")
 parser.add_argument("--blank_index", type=int, default=-1, help="Index of blank char")
-parser.add_argument("--start_shift", type=float, default=-0.16, help="Word start shift for JASPER 10x_3 model")
-parser.add_argument("--end_shift", type=float, default=0, help="Word end shift for JASPER 10x_3 model")
+parser.add_argument("--start_shift", type=float, default=None, help="Word start shift for JASPER 10x_3 model")
+parser.add_argument("--end_shift", type=float, default=None, help="Word end shift for JASPER 10x_3 model")
+parser.add_argument("--calibration_file", type=str, default=None, help="Word end shift for JASPER 10x_3 model")
 parser.add_argument("--save_file", type=str, default="sample.csv")
 args = parser.parse_args(args)
 dump = pickle.load(open(args.dumpfile, "rb"))
@@ -29,6 +30,14 @@ step_size = dump["step_size"]
 start_shift = args.start_shift
 end_shift = args.end_shift
 save_file = args.save_file
+calibration_file = args.calibration_file
+if start_shift is None and end_shift is None:
+  if calibration_file is None:
+    start_shift, end_shift = 0, 0
+  else:
+    with open(calibration_file) as calib:
+      line = calib.readline()
+      start_shift, end_shift = line.split(" ")
 if blank_idx == -1:
   blank_idx = len(vocab)
 csv_file = open(save_file,"w")
