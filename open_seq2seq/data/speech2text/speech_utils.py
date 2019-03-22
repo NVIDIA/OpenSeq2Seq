@@ -267,35 +267,35 @@ def augment_audio_signal(signal, sample_freq, augmentation):
   return signal_float
 
 def aug_custom_noise(original_sound,custom_noise,augmentation):
-    original = copy.deepcopy(original_sound)
-    original_sound /= (original_sound.std() + 1e-20)
-    noise_file = custom_noise[np.random.randint(0,len(custom_noise),1)[0]]
+  original_sound = normalize_signal(original_sound.astype(np.float32))
+  original = copy.deepcopy(original_sound)
+  original_sound /= (original_sound.std() + 1e-20)
+  noise_file = custom_noise[np.random.randint(0,len(custom_noise),1)[0]]
 
-    noise_sound = noise_file / (noise_file.std() + 1e-20)
-    len_soundfile = original_sound.shape[0]
-    low = augmentation['noise_level_min']
-    high = augmentation['noise_level_max']
-    signal_to_noise = np.random.randint(low,high,1)[0]
-    max_noise_segment_percent = np.random.randint(50,100,1)[0]
-    noise_level = 10.0 ** (signal_to_noise / 20.0)
-    noise_length = int(len_soundfile * 0.01 * max_noise_segment_percent)
+  noise_sound = noise_file / (noise_file.std() + 1e-20)
+  len_soundfile = original_sound.shape[0]
+  low = augmentation['noise_level_min']
+  high = augmentation['noise_level_max']
+  signal_to_noise = np.random.randint(low,high,1)[0]
+  max_noise_segment_percent = np.random.randint(50,100,1)[0]
+  noise_level = 10.0 ** (signal_to_noise / 20.0)
+  noise_length = int(len_soundfile * 0.01 * max_noise_segment_percent)
 
-    noise_start = np.random.randint(noise_sound.shape[0])
+  noise_start = np.random.randint(noise_sound.shape[0])
 
-    try:
-      start_index = np.random.randint(len_soundfile - noise_length)
-    except:
-      start_index = 0
+  try:
+    start_index = np.random.randint(len_soundfile - noise_length)
+  except:
+    start_index = 0
 
-    noise = np.zeros(len_soundfile)
-    indices = np.arange(noise_length) + start_index
-    noise_segment = noise_sound[noise_start:noise_start + noise_length]
-    np.put(noise, indices, noise_segment)
-    # add noise to original sound
-    signal = original_sound + noise_level * noise
-    signal *= original.std()
-    signal = np.clip(signal, a_min=-1, a_max=1)
-    return signal
+  noise = np.zeros(len_soundfile)
+  indices = np.arange(noise_length) + start_index
+  noise_segment = noise_sound[noise_start:noise_start + noise_length]
+  np.put(noise, indices, noise_segment)
+  # add noise to original sound
+  signal = original_sound + noise_level * noise
+  signal *= original.std()
+  return signal
 
 def preemphasis(signal, coeff=0.97):
   return np.append(signal[0], signal[1:] - coeff * signal[:-1])
