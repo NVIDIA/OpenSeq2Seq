@@ -14,7 +14,7 @@ import json
 import numpy as np
 import tensorflow as tf
 sys.path.append(os.getcwd())
-print(sys.path)
+
 from open_seq2seq.utils.utils import deco_print, get_calibration_config, create_model,\
                                 create_logdir, check_logdir, \
                                 check_base_model_logdir
