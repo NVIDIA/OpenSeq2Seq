@@ -562,6 +562,7 @@ def get_calibration_config(arguments):
                       help="Path to the output of inference")
   parser.add_argument("--calibration_out", default = "calibration.txt",
                       help="Path to calibration output")
+
   class CustomSpace(object):
     def __init__(self, **kwargs):
       for name in kwargs:
@@ -595,6 +596,7 @@ def get_calibration_config(arguments):
 
     def __contains__(self, key):
       return key in self.__dict__
+
   custom_dict = {"benchmark":False,
                  "enable_logs":False,
                  "mode":"infer",
