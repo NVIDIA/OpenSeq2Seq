@@ -13,7 +13,9 @@ import pickle
 import json
 import numpy as np
 import tensorflow as tf
-from open_seq2seq.utils.utils import deco_print, get_base_config, create_model,\
+sys.path.append(os.getcwd())
+print(sys.path)
+from open_seq2seq.utils.utils import deco_print, get_calibration_config, create_model,\
                                 create_logdir, check_logdir, \
                                 check_base_model_logdir
 from open_seq2seq.utils import infer
@@ -31,10 +33,9 @@ def run():
 
   :return: None
   """
-  args, base_config, base_model, config_module = get_base_config(sys.argv[1:])
+  args, base_config, base_model, config_module = get_calibration_config(sys.argv[1:])
   config_module["infer_params"]["data_layer_params"]["dataset_files"] = \
     ["calibration/sample.csv"]
-  args.infer_output_file = "calibration/sample.pkl"
   load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint',
                                             False)
@@ -74,16 +75,13 @@ def run():
         args, base_config, config_module, base_model, hvd, checkpoint)
     infer(model, checkpoint, args.infer_output_file)
 
-  if args.enable_logs and (hvd is None or hvd.rank() == 0):
-    sys.stdout = old_stdout
-    sys.stderr = old_stderr
-    stdout_log.close()
-    stderr_log.close()
+  return args.calibration_out
 
 def calibrate(source, target):
   """This function calculates the mean start and end shift
   needed for your model to get word to speech alignments
   """
+  print("calibrating {}".format(source))
   start_shift = []
   end_shift = []
   dump = pickle.load(open(source, "rb"))
@@ -94,10 +92,12 @@ def calibrate(source, target):
   with open(target, "r") as read_file:
     target = json.load(read_file)
   for wave_file in results:
+
     transcript, start, end = ctc_greedy_decoder(results[wave_file], vocab,
                                                 step_size, blank_idx, 0, 0)
     words = transcript.split(" ")
     k = 0
+    print(words)
     alignments = []
     for new_word in words:
       alignments.append({"word": new_word, "start": start[k], "end": end[k]})
@@ -113,12 +113,11 @@ def calibrate(source, target):
   return mean_start_shift, mean_end_shift
 
 if __name__ == '__main__':
-  run()
+  calibration_out = run()
   start_mean, end_mean = calibrate("calibration/sample.pkl",
                                    "calibration/target.json")
   print("Mean start shift is:\n{} seconds \nand \nmean \
     end shift is:\n{} seconds".format(start_mean, end_mean))
-  with open("calibration.txt","w") as f:
+  with open(calibration_out,"w") as f:
     string = "{} {}".format(start_mean, end_mean)
     f.write(string)
-    f.close()

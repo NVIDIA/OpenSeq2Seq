@@ -12,5 +12,5 @@ sentencepiece
 sacrebleu
 h5py
 tqdm
-pysoundfile
+soundfile
 

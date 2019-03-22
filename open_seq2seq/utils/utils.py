@@ -540,6 +540,90 @@ def get_base_config(args):
 
   return args, base_config, base_model, config_module
 
+def get_calibration_config(arguments):
+  """This function parses the command line arguments, reads the config file, and
+  gets the base_model from the config.
+
+  Args:
+    args (str): The command line arguments
+
+  Returns
+    args (dict): The arguments parsed into a dictionary
+    base_config (dict): The config read from the file and ammended with the
+      command line arguments
+    base_model (OpenSeq2Seq model): The model specified in the config file
+    config_module (dict): The raw config file processed by runpy
+  """
+
+  parser = argparse.ArgumentParser(description='Calibration parameters')
+  parser.add_argument("--config_file", required=True,
+                      help="Path to the configuration file")
+  parser.add_argument("--infer_output_file", default="calibration/sample.pkl",
+                      help="Path to the output of inference")
+  parser.add_argument("--calibration_out", default = "calibration.txt",
+                      help="Path to calibration output")
+  class CustomSpace(object):
+    def __init__(self, **kwargs):
+      for name in kwargs:
+        setattr(self, name, kwargs[name])
+
+    __hash__ = None
+    def __repr__(self):
+      type_name = type(self).__name__
+      arg_strings = []
+      for arg in self._get_args():
+          arg_strings.append(repr(arg))
+      for name, value in self._get_kwargs():
+          arg_strings.append('%s=%r' % (name, value))
+      return '%s(%s)' % (type_name, ', '.join(arg_strings))
+
+    def _get_kwargs(self):
+      return sorted(self.__dict__.items())
+
+    def _get_args(self):
+      return []
+
+    def __eq__(self, other):
+      if not isinstance(other, CustomSpace):
+        return NotImplemented
+      return vars(self) == vars(other)
+
+    def __ne__(self, other):
+      if not isinstance(other, CustomSpace):
+        return NotImplemented
+      return not (self == other)
+
+    def __contains__(self, key):
+      return key in self.__dict__
+  custom_dict = {"benchmark":False,
+                 "enable_logs":False,
+                 "mode":"infer",
+                 "continue_learning":False,
+                 }
+  args, unknown = parser.parse_known_args(arguments,namespace=CustomSpace(**custom_dict))
+  config_module = runpy.run_path(args.config_file, init_globals={'tf': tf})
+
+  base_config = config_module.get('base_params', None)
+  if base_config is None:
+    raise ValueError('base_config dictionary has to be '
+                     'defined in the config file')
+  base_model = config_module.get('base_model', None)
+  if base_model is None:
+    raise ValueError('base_config class has to be defined in the config file')
+
+  # after we read the config, trying to overwrite some of the properties
+  # with command line arguments that were passed to the script
+  parser_unk = argparse.ArgumentParser()
+  for pm, value in flatten_dict(base_config).items():
+    if type(value) == int or type(value) == float or \
+       isinstance(value, string_types):
+      parser_unk.add_argument('--' + pm, default=value, type=type(value))
+    elif type(value) == bool:
+      parser_unk.add_argument('--' + pm, default=value, type=ast.literal_eval)
+  config_update = parser_unk.parse_args(unknown)
+  nested_update(base_config, nest_dict(vars(config_update)))
+
+  return args, base_config, base_model, config_module
 def check_logdir(args, base_config, restore_best_checkpoint=False):
   """A helper function that ensures the logdir is setup correctly
 
