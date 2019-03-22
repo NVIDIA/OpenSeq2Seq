@@ -4,7 +4,6 @@ import argparse
 import soundfile as sf
 import librosa
 
-args = sys.argv[1:]
 parser = argparse.ArgumentParser(description='Conversion parameters')
 parser.add_argument("--source_dir", required=False, type=str, default="calibration/sound_files/",
                     help="Path to source of flac LibriSpeech files")
@@ -12,7 +11,7 @@ parser.add_argument("--target_dir", required=False, type=str, default="calibrati
                     help="Path to source of flac LibriSpeech files")
 parser.add_argument("--sample_rate", required=False, type=int, default=16000,
                     help="Output sample rate")
-args = parser.parse_args(args)
+args = parser.parse_args()
 source_dir = args.source_dir
 sample_rate = args.sample_rate
 target_dir = args.target_dir
