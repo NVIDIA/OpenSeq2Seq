@@ -244,6 +244,8 @@ train_params = {
         "max_duration": 16.7,
         "shuffle": True,
         "dither": 1e-5,
+        "augmentation":{"noise_level_min":-50,"noise_level_max":-10},
+        "noise_files":"/noise/sample_noises.csv"
     },
 }
 
@@ -251,6 +253,7 @@ eval_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "dataset_files": [
+            "/data/librispeech/librivox-dev-other.csv",
             "/data/librispeech/librivox-dev-clean.csv",
         ],
         "shuffle": False,

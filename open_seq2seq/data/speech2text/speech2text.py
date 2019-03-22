@@ -53,6 +53,7 @@ class Speech2TextDataLayer(DataLayer):
         'num_fft': int,
         'precompute_mel_basis': bool,
         'sample_freq': int,
+        'noise_files': str,
     })
 
   def __init__(self, params, model, num_workers, worker_id):
@@ -115,6 +116,19 @@ class Speech2TextDataLayer(DataLayer):
     self._files = None
     if self.params["interactive"]:
       return
+    all_noise = []
+    if "noise_files" in params:
+      noise_files_df = pd.read_csv(params["noise_files"], encoding='utf-8')
+      noise_files = noise_files_df.loc[:,"filename"].values
+      if noise_files is not None:
+        for n in params["noise_files"]:
+          print("Adding noise file {}".format(n))
+          noise,sr = librosa.load(n,16000)
+          all_noise.append(noise)
+    if len(all_noise)>0:
+        self.all_noise=all_noise
+    else:
+        self.all_noise=None
     for csv in params['dataset_files']:
       files = pd.read_csv(csv, encoding='utf-8')
       if self._files is None:
@@ -386,7 +400,8 @@ class Speech2TextDataLayer(DataLayer):
         num_fft=self.params.get('num_fft', None),
         norm_per_feature=self.params.get('norm_per_feature', False),
         params=self.params,
-        mel_basis=self.mel_basis
+        mel_basis=self.mel_basis,
+        custom_noise=self.all_noise
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
