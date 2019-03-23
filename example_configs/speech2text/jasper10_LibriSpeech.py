@@ -245,7 +245,7 @@ train_params = {
         "shuffle": True,
         "dither": 1e-5,
         "augmentation":{"noise_level_min":-50,"noise_level_max":-10},
-        "noise_files":"/noise/sample_noises.csv"
+        "noise_files":"/noise/noise_files.csv"
     },
 }
 
