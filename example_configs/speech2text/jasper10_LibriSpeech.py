@@ -253,8 +253,7 @@ eval_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "dataset_files": [
-            "/data/librispeech/librivox-dev-other.csv",
-            "/data/librispeech/librivox-dev-clean.csv",
+            "/data/librispeech/librivox-dev-other.csv"
         ],
         "shuffle": False,
     },
