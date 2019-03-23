@@ -121,7 +121,7 @@ class Speech2TextDataLayer(DataLayer):
       noise_files_df = pd.read_csv(params["noise_files"], encoding='utf-8')
       noise_files = noise_files_df.loc[:,"filename"].values
       if noise_files is not None:
-        for n in params["noise_files"]:
+        for n in noise_files:
           print("Adding noise file {}".format(n))
           noise,sr = librosa.load(n,16000)
           all_noise.append(noise)
