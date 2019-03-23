@@ -15,7 +15,7 @@ from open_seq2seq.optimizers.novograd  import NovoGrad
 data_root ="/data/WSJ/"
 
 num_audio_features = 48
-repeat = 5
+repeat = 3
 
 base_model = Speech2Text
 base_params = {
@@ -45,7 +45,7 @@ base_params = {
     },
     "lr_policy": poly_decay,  # fixed_lr,
     "lr_policy_params": {
-        "learning_rate": 0.01,  #
+        "learning_rate": 0.02,  #
         "power": 2.0,
         # "warmup_steps": 200,
     },
@@ -81,89 +81,89 @@ base_params = {
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [11], "stride": [2],
-                "num_channels": 256, "padding": "SAME",
+                "num_channels": 64, "padding": "SAME",
                 "dilation":[1],
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
-                "num_channels": 256, "padding": "SAME",
+                "num_channels": 64, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.8,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [11], "stride": [1],
+                "num_channels": 64, "padding": "SAME",
+                "dilation":[1], # "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": repeat,
+                "kernel_size": [13], "stride": [1],
+                "num_channels": 96, "padding": "SAME",
+                "dilation":[1], # "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": repeat,
+                "kernel_size": [13], "stride": [1],
+                "num_channels": 128, "padding": "SAME",
+                "dilation":[1], # "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": repeat,
+                "kernel_size": [17], "stride": [1],
+                "num_channels": 160, "padding": "SAME",
+                "dilation":[1], # "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": repeat,
+                "kernel_size": [17], "stride": [1],
+                "num_channels": 196, "padding": "SAME",
+                "dilation":[1], # "dropout_keep_prob": 0.8,
+                "residual": True
+            },
+            {
+                "type": "conv1d", "repeat": repeat,
+                "kernel_size": [21], "stride": [1],
                 "num_channels": 256, "padding": "SAME",
-                "dilation":[1], # "dropout_keep_prob": 0.8,
-                "residual": True
-            },
-            {
-                "type": "conv1d", "repeat": repeat,
-                "kernel_size": [13], "stride": [1],
-                "num_channels": 384, "padding": "SAME",
-                "dilation":[1], # "dropout_keep_prob": 0.8,
-                "residual": True
-            },
-            {
-                "type": "conv1d", "repeat": repeat,
-                "kernel_size": [13], "stride": [1],
-                "num_channels": 384, "padding": "SAME",
-                "dilation":[1], # "dropout_keep_prob": 0.8,
-                "residual": True
-            },
-            {
-                "type": "conv1d", "repeat": repeat,
-                "kernel_size": [17], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dilation":[1], # "dropout_keep_prob": 0.8,
-                "residual": True
-            },
-            {
-                "type": "conv1d", "repeat": repeat,
-                "kernel_size": [17], "stride": [1],
-                "num_channels": 512, "padding": "SAME",
-                "dilation":[1], # "dropout_keep_prob": 0.8,
-                "residual": True
-            },
-            {
-                "type": "conv1d", "repeat": repeat,
-                "kernel_size": [21], "stride": [1],
-                "num_channels": 640, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [21], "stride": [1],
-                "num_channels": 640, "padding": "SAME",
+                "num_channels": 320, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
-                "num_channels": 768, "padding": "SAME",
+                "num_channels": 352, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": repeat,
                 "kernel_size": [25], "stride": [1],
-                "num_channels": 768, "padding": "SAME",
+                "num_channels": 384, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.7,
                 "residual": True
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [29], "stride": [1],
-                "num_channels": 896, "padding": "SAME",
+                "num_channels": 480, "padding": "SAME",
                 "dilation":[2], # "dropout_keep_prob": 0.6,
             },
             {
                 "type": "conv1d", "repeat": 1,
                 "kernel_size": [1], "stride": [1],
-                "num_channels": 1024, "padding": "SAME",
+                "num_channels": 512, "padding": "SAME",
                 "dilation":[1], # "dropout_keep_prob": 0.6,
             }
         ],
