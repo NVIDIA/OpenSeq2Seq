@@ -16,7 +16,7 @@ residual_dense = True
 repeat_1 = 5
 repeat_2 = 5
 dropout_factor = 1.
-training_set = "libri"
+training_set = "combined_33_66"
 data_aug_enable = False
 
 if training_set == "libri":
@@ -44,7 +44,7 @@ elif training_set == "combined_33_66":
             "/data/librispeech/librivox-train-clean-360.csv",
             "/data/librispeech/librivox-train-other-500.csv",
             "/data/speech/LibriSpeech/LibriSpeech/data_syn.txt",
-            "/data/speech/LibriSpeech/LibriSpeech/data_syn.txt"]
+            "/data/speech/LibriSpeech/LibriSpeech/data_syn_v2.txt"]
 
 data_aug = {}
 if data_aug_enable == True:
