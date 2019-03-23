@@ -43,8 +43,7 @@ elif training_set == "combined_33_66":
             "/data/librispeech/librivox-train-clean-100.csv",
             "/data/librispeech/librivox-train-clean-360.csv",
             "/data/librispeech/librivox-train-other-500.csv",
-            "/data/speech/LibriSpeech/LibriSpeech/data_syn.txt",
-            "/data/speech/LibriSpeech/LibriSpeech/data_syn_v2.txt"]
+            "/data/speech/LibriSpeech/LibriSpeech/data_syn_50_old.txt"]
 
 data_aug = {}
 if data_aug_enable == True:
