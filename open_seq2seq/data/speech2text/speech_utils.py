@@ -271,7 +271,10 @@ def aug_with_pitch(original_sound,sample_freq):
   pitch_shift = np.random.randint(0,10)
   prob = np.random.rand()
   pitch_side = 1 if prob > 0.5 else -1
-  shifted_wave = librosa.effects.pitch_shift(original_sound, sample_freq, n_steps=pitch_shift*pitch_side,bins_per_octave=128)
+  try:
+    shifted_wave = librosa.effects.pitch_shift(original_sound, sample_freq, n_steps=pitch_shift*pitch_side,bins_per_octave=128)
+  except:
+    shifted_wave = original_sound
   return shifted_wave
 
 def aug_custom_noise(original_sound,custom_noise,augmentation):
@@ -353,9 +356,9 @@ def get_speech_features(signal, sample_freq, num_features,
       signal = augment_audio_signal(signal, sample_freq, augmentation)
     else:
       prob = np.random.rand()
-      if prob > 0.5:
+      if prob > 0.6:
         signal = aug_custom_noise(signal, custom_noise, augmentation)
-      elif prob > 0.2:
+      elif prob > 0.3:
         signal = aug_with_pitch(signal, sample_freq)
 
   signal = normalize_signal(signal.astype(np.float32))
