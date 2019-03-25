@@ -148,3 +148,9 @@ Our current best model was trained using synthetic data. The creation of the syn
    :maxdepth: 1
 
    speech-recognition/synthetic_dataset
+
+
+##############
+Tools
+##############
+Word alignments : :doc:`Align words </speech-recognition/speech-to-text-align>`
