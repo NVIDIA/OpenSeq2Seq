@@ -43,7 +43,7 @@ def convert_to_wav(flac_files,sample_rate,target_dir):
     name = dir_tree[-1][:-4] + "wav"
     if not os.path.isdir(save_path):
       os.makedirs(save_path)
-    sig, sr = sf.read(sound_file)
+    sig, sr = librosa.load(sound_file,sample_rate)
     output_dir = target_dir+save_path
     if not os.path.isdir(output_dir):
       os.makedirs(output_dir)
