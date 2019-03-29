@@ -39,6 +39,7 @@ class Speech2TextDataLayer(DataLayer):
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
+        'min_duration': float,
         'bpe': bool,
         'autoregressive': bool,
         'syn_enable': bool,
@@ -130,6 +131,7 @@ class Speech2TextDataLayer(DataLayer):
     self._iterator = None
     self._input_tensors = None
 
+    self.params['min_duration'] = self.params.get('min_duration', -1.0)
     self.params['max_duration'] = params.get('max_duration', -1.0)
     self.params['window_size'] = params.get('window_size', 20e-3)
     self.params['window_stride'] = params.get('window_stride', 10e-3)
@@ -175,6 +177,11 @@ class Speech2TextDataLayer(DataLayer):
               lambda x, x_len, y, y_len, duration:
               tf.less_equal(duration, self.params['max_duration'])
           )
+        if self.params['min_duration'] > 0:
+            self._dataset = self._dataset.filter(
+              lambda x, x_len, y, y_len, duration:
+              tf.greater_equal(duration, self.params['min_duration'])
+          )
         self._dataset = self._dataset.map(
             lambda x, x_len, y, y_len, duration:
             [x, x_len, y, y_len],
@@ -209,6 +216,11 @@ class Speech2TextDataLayer(DataLayer):
           self._dataset = self._dataset.filter(
               lambda x, x_len, idx, duration:
               tf.less_equal(duration, self.params['max_duration'])
+          )
+        if self.params['min_duration'] > 0:
+            self._dataset = self._dataset.filter(
+              lambda x, x_len, y, y_len, duration:
+              tf.greater_equal(duration, self.params['min_duration'])
           )
         self._dataset = self._dataset.map(
             lambda x, x_len, idx, duration:

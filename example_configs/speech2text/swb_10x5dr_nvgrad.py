@@ -233,7 +233,7 @@ train_params = {
             'noise_level_max': -110,
             'time_stretch_ratio': 0.1,
         },
-        # "min_duration": 1.2,
+        "min_duration": 1.2,
         "max_duration": 16.7,
         "shuffle": True,
     },
