@@ -8,7 +8,7 @@ from open_seq2seq.losses import PaddedCrossEntropyLossWithSmoothing
 from open_seq2seq.data.text2text.text2text import SpecialTextTokens
 from open_seq2seq.data.text2text.tokenizer import EOS_ID
 from open_seq2seq.optimizers.lr_policies import transformer_policy, poly_decay
-from open_seq2seq.optimizers.novograd  import NovoGrad, NovoGrad2
+from open_seq2seq.optimizers.novograd  import NovoGrad
 import tensorflow as tf
 
 
@@ -45,7 +45,7 @@ base_params = {
   "use_horovod": True,
   "num_gpus": 1, #8, # when using Horovod we set number of workers with params to mpirun
   "batch_size_per_gpu": 128, #64,  # this size is in sentence pairs, reduce it if you get OOM
-  "max_steps":  500000, #1000,
+    "max_steps":  400000, #1000,
   "save_summaries_steps": 100,
   "print_loss_steps": 100,
   "print_samples_steps": 10000,
@@ -78,16 +78,18 @@ base_params = {
   #   "momentum": 0.95,
   # },
   #---------------------------------------------------------
-  "optimizer": NovoGrad2, #"Momentum",
+  "optimizer": NovoGrad, #"Momentum",
   "optimizer_params": {
-    "beta1": 0.9,
+    "beta1": 0.95,
     "beta2": 0.99,
     "epsilon":  1e-08,
+    "weight_decay": 0.001,
+    "grad_averaging": False,
   },
   "lr_policy": poly_decay,  # fixed_lr,
   "lr_policy_params": {
-    "learning_rate": 0.1, # 0.1
-    "power": 1,
+    "learning_rate": 0.01, # 0.1
+    "power": 2,
   },
 
   "encoder": TransformerEncoder,
