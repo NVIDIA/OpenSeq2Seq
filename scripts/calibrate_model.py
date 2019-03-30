@@ -24,6 +24,7 @@ from open_seq2seq.utils.ctc_decoder import ctc_greedy_decoder
 if hasattr(tf.compat, 'v1'):
   tf.compat.v1.disable_eager_execution()
 
+
 def run():
   """This function executes a saved checkpoint for
   50 LibriSpeech dev clean files whose alignments are stored in
@@ -36,6 +37,7 @@ def run():
   args, base_config, base_model, config_module = get_calibration_config(sys.argv[1:])
   config_module["infer_params"]["data_layer_params"]["dataset_files"] = \
     ["calibration/sample.csv"]
+  config_module["base_params"]["decoder_params"]["infer_logits_to_pickle"] = True
   load_model = base_config.get('load_model', None)
   restore_best_checkpoint = base_config.get('restore_best_checkpoint',
                                             False)
@@ -77,6 +79,7 @@ def run():
 
   return args.calibration_out
 
+
 def calibrate(source, target):
   """This function calculates the mean start and end shift
   needed for your model to get word to speech alignments
@@ -112,12 +115,13 @@ def calibrate(source, target):
   mean_end_shift = np.mean(end_shift)
   return mean_start_shift, mean_end_shift
 
+
 if __name__ == '__main__':
   calibration_out = run()
   start_mean, end_mean = calibrate("calibration/sample.pkl",
                                    "calibration/target.json")
-  print("Mean start shift is:\n{} seconds \nand \nmean \
-    end shift is:\n{} seconds".format(start_mean, end_mean))
-  with open(calibration_out,"w") as f:
+  print("Mean start shift is {:.5f} seconds".format(start_mean))
+  print("Mean end shift is: {:.5f} seconds".format(end_mean))
+  with open(calibration_out, "w") as f:
     string = "{} {}".format(start_mean, end_mean)
     f.write(string)
