@@ -700,6 +700,92 @@
 
   <span class="k">return</span> <span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">config_module</span></div>
 
+<div class="viewcode-block" id="get_calibration_config"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.get_calibration_config">[docs]</a><span class="k">def</span> <span class="nf">get_calibration_config</span><span class="p">(</span><span class="n">arguments</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;This function parses the command line arguments, reads the config file, and</span>
+<span class="sd">  gets the base_model from the config.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    args (str): The command line arguments</span>
+
+<span class="sd">  Returns</span>
+<span class="sd">    args (dict): The arguments parsed into a dictionary</span>
+<span class="sd">    base_config (dict): The config read from the file and ammended with the</span>
+<span class="sd">      command line arguments</span>
+<span class="sd">    base_model (OpenSeq2Seq model): The model specified in the config file</span>
+<span class="sd">    config_module (dict): The raw config file processed by runpy</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">parser</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s1">&#39;Calibration parameters&#39;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--config_file&quot;</span><span class="p">,</span> <span class="n">required</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the configuration file&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--infer_output_file&quot;</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="s2">&quot;calibration/sample.pkl&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to the output of inference&quot;</span><span class="p">)</span>
+  <span class="n">parser</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s2">&quot;--calibration_out&quot;</span><span class="p">,</span> <span class="n">default</span> <span class="o">=</span> <span class="s2">&quot;calibration.txt&quot;</span><span class="p">,</span>
+                      <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Path to calibration output&quot;</span><span class="p">)</span>
+
+  <span class="k">class</span> <span class="nc">CustomSpace</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+      <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="p">:</span>
+        <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
+
+    <span class="fm">__hash__</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="n">type_name</span> <span class="o">=</span> <span class="nb">type</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="vm">__name__</span>
+      <span class="n">arg_strings</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_args</span><span class="p">():</span>
+          <span class="n">arg_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">repr</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span>
+      <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_kwargs</span><span class="p">():</span>
+          <span class="n">arg_strings</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">%s</span><span class="s1">=</span><span class="si">%r</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+      <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">type_name</span><span class="p">,</span> <span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">arg_strings</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_get_kwargs</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+
+    <span class="k">def</span> <span class="nf">_get_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+      <span class="k">return</span> <span class="p">[]</span>
+
+    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CustomSpace</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span>
+      <span class="k">return</span> <span class="nb">vars</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">==</span> <span class="nb">vars</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">CustomSpace</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">NotImplemented</span>
+      <span class="k">return</span> <span class="ow">not</span> <span class="p">(</span><span class="bp">self</span> <span class="o">==</span> <span class="n">other</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+      <span class="k">return</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span>
+
+  <span class="n">custom_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;benchmark&quot;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="s2">&quot;enable_logs&quot;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="s2">&quot;mode&quot;</span><span class="p">:</span><span class="s2">&quot;infer&quot;</span><span class="p">,</span>
+                 <span class="s2">&quot;continue_learning&quot;</span><span class="p">:</span><span class="kc">False</span><span class="p">,</span>
+                 <span class="p">}</span>
+  <span class="n">args</span><span class="p">,</span> <span class="n">unknown</span> <span class="o">=</span> <span class="n">parser</span><span class="o">.</span><span class="n">parse_known_args</span><span class="p">(</span><span class="n">arguments</span><span class="p">,</span><span class="n">namespace</span><span class="o">=</span><span class="n">CustomSpace</span><span class="p">(</span><span class="o">**</span><span class="n">custom_dict</span><span class="p">))</span>
+  <span class="n">config_module</span> <span class="o">=</span> <span class="n">runpy</span><span class="o">.</span><span class="n">run_path</span><span class="p">(</span><span class="n">args</span><span class="o">.</span><span class="n">config_file</span><span class="p">,</span> <span class="n">init_globals</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;tf&#39;</span><span class="p">:</span> <span class="n">tf</span><span class="p">})</span>
+
+  <span class="n">base_config</span> <span class="o">=</span> <span class="n">config_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_params&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">base_config</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config dictionary has to be &#39;</span>
+                     <span class="s1">&#39;defined in the config file&#39;</span><span class="p">)</span>
+  <span class="n">base_model</span> <span class="o">=</span> <span class="n">config_module</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;base_model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">base_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;base_config class has to be defined in the config file&#39;</span><span class="p">)</span>
+
+  <span class="c1"># after we read the config, trying to overwrite some of the properties</span>
+  <span class="c1"># with command line arguments that were passed to the script</span>
+  <span class="n">parser_unk</span> <span class="o">=</span> <span class="n">argparse</span><span class="o">.</span><span class="n">ArgumentParser</span><span class="p">()</span>
+  <span class="k">for</span> <span class="n">pm</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">flatten_dict</span><span class="p">(</span><span class="n">base_config</span><span class="p">)</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">int</span> <span class="ow">or</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">float</span> <span class="ow">or</span> \
+       <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+      <span class="n">parser_unk</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">pm</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="o">==</span> <span class="nb">bool</span><span class="p">:</span>
+      <span class="n">parser_unk</span><span class="o">.</span><span class="n">add_argument</span><span class="p">(</span><span class="s1">&#39;--&#39;</span> <span class="o">+</span> <span class="n">pm</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="n">value</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="n">ast</span><span class="o">.</span><span class="n">literal_eval</span><span class="p">)</span>
+  <span class="n">config_update</span> <span class="o">=</span> <span class="n">parser_unk</span><span class="o">.</span><span class="n">parse_args</span><span class="p">(</span><span class="n">unknown</span><span class="p">)</span>
+  <span class="n">nested_update</span><span class="p">(</span><span class="n">base_config</span><span class="p">,</span> <span class="n">nest_dict</span><span class="p">(</span><span class="nb">vars</span><span class="p">(</span><span class="n">config_update</span><span class="p">)))</span>
+
+  <span class="k">return</span> <span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">base_model</span><span class="p">,</span> <span class="n">config_module</span></div>
 <div class="viewcode-block" id="check_logdir"><a class="viewcode-back" href="../../api-docs/utils.html#utils.utils.check_logdir">[docs]</a><span class="k">def</span> <span class="nf">check_logdir</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">base_config</span><span class="p">,</span> <span class="n">restore_best_checkpoint</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;A helper function that ensures the logdir is setup correctly</span>
 

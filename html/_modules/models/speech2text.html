@@ -175,6 +175,8 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.utils.utils</span> <span class="k">import</span> <span class="n">deco_print</span>
 <span class="kn">from</span> <span class="nn">.encoder_decoder</span> <span class="k">import</span> <span class="n">EncoderDecoderModel</span>
 
+<span class="kn">import</span> <span class="nn">pickle</span>
+
 
 <div class="viewcode-block" id="sparse_tensor_to_chars"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.sparse_tensor_to_chars">[docs]</a><span class="k">def</span> <span class="nf">sparse_tensor_to_chars</span><span class="p">(</span><span class="n">tensor</span><span class="p">,</span> <span class="n">idx2char</span><span class="p">):</span>
   <span class="n">text</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">]</span> <span class="o">*</span> <span class="n">tensor</span><span class="o">.</span><span class="n">dense_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -261,6 +263,8 @@
         <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
     <span class="p">)</span>
 
+    <span class="bp">self</span><span class="o">.</span><span class="n">dump_outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;decoder_params&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;infer_logits_to_pickle&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
     <span class="bp">self</span><span class="o">.</span><span class="n">is_bpe</span> <span class="o">=</span> <span class="n">data_layer</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span> <span class="o">=</span> <span class="n">sparse_tensor_to_chars</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span> <span class="o">=</span> <span class="p">{}</span>
@@ -282,6 +286,74 @@
           <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;tgt_vocab_size&#39;</span><span class="p">]</span>
       <span class="p">)</span>
     <span class="k">return</span> <span class="nb">super</span><span class="p">(</span><span class="n">Speech2Text</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">_create_loss</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Speech2Text._build_forward_pass_graph"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text._build_forward_pass_graph">[docs]</a>  <span class="k">def</span> <span class="nf">_build_forward_pass_graph</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_tensors</span><span class="p">,</span> <span class="n">gpu_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;TensorFlow graph for speech2text model is created here.</span>
+<span class="sd">    This function connects encoder, decoder and loss together. As an input for</span>
+<span class="sd">    encoder it will specify source tensors (as returned from</span>
+<span class="sd">    the data layer). As an input for decoder it will specify target tensors</span>
+<span class="sd">    as well as all output returned from encoder. For loss it</span>
+<span class="sd">    will also specify target tensors and all output returned from</span>
+<span class="sd">    decoder. Note that loss will only be built for mode == &quot;train&quot; or &quot;eval&quot;.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">      input_tensors (dict): ``input_tensors`` dictionary that has to contain</span>
+<span class="sd">          ``source_tensors`` key with the list of all source tensors, and</span>
+<span class="sd">          ``target_tensors`` with the list of all target tensors. Note that</span>
+<span class="sd">          ``target_tensors`` only need to be provided if mode is</span>
+<span class="sd">          &quot;train&quot; or &quot;eval&quot;.</span>
+<span class="sd">      gpu_id (int, optional): id of the GPU where the current copy of the model</span>
+<span class="sd">          is constructed. For Horovod this is always zero.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">      tuple: tuple containing loss tensor as returned from</span>
+<span class="sd">      ``loss.compute_loss()`` and list of outputs tensors, which is taken from</span>
+<span class="sd">      ``decoder.decode()[&#39;outputs&#39;]``. When ``mode == &#39;infer&#39;``, loss will</span>
+<span class="sd">      be None.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">,</span> <span class="nb">dict</span><span class="p">)</span> <span class="ow">or</span> \
+       <span class="s1">&#39;source_tensors&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_tensors</span><span class="p">:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input tensors should be a dict containing &#39;</span>
+                       <span class="s1">&#39;&quot;source_tensors&quot; key&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;source_tensors should be a list&#39;</span><span class="p">)</span>
+
+    <span class="n">source_tensors</span> <span class="o">=</span> <span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;source_tensors&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+      <span class="k">if</span> <span class="s1">&#39;target_tensors&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">input_tensors</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input tensors should contain &quot;target_tensors&quot; key&#39;</span>
+                         <span class="s1">&#39;when mode != &quot;infer&quot;&#39;</span><span class="p">)</span>
+      <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;target_tensors should be a list&#39;</span><span class="p">)</span>
+      <span class="n">target_tensors</span> <span class="o">=</span> <span class="n">input_tensors</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
+
+    <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;ForwardPass&quot;</span><span class="p">):</span>
+      <span class="n">encoder_input</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="n">source_tensors</span><span class="p">}</span>
+      <span class="n">encoder_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">input_dict</span><span class="o">=</span><span class="n">encoder_input</span><span class="p">)</span>
+
+      <span class="n">decoder_input</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;encoder_output&quot;</span><span class="p">:</span> <span class="n">encoder_output</span><span class="p">}</span>
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+        <span class="n">decoder_input</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">target_tensors</span>
+      <span class="n">decoder_output</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">decoder</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">input_dict</span><span class="o">=</span><span class="n">decoder_input</span><span class="p">)</span>
+      <span class="n">model_outputs</span> <span class="o">=</span> <span class="n">decoder_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;outputs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+      <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;train&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">mode</span> <span class="o">==</span> <span class="s2">&quot;eval&quot;</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">tf</span><span class="o">.</span><span class="n">variable_scope</span><span class="p">(</span><span class="s2">&quot;Loss&quot;</span><span class="p">):</span>
+          <span class="n">loss_input_dict</span> <span class="o">=</span> <span class="p">{</span>
+              <span class="s2">&quot;decoder_output&quot;</span><span class="p">:</span> <span class="n">decoder_output</span><span class="p">,</span>
+              <span class="s2">&quot;target_tensors&quot;</span><span class="p">:</span> <span class="n">target_tensors</span><span class="p">,</span>
+          <span class="p">}</span>
+          <span class="n">loss</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss_computator</span><span class="o">.</span><span class="n">compute_loss</span><span class="p">(</span><span class="n">loss_input_dict</span><span class="p">)</span>
+      <span class="k">else</span><span class="p">:</span>
+        <span class="n">deco_print</span><span class="p">(</span><span class="s2">&quot;Inference Mode. Loss part of graph isn&#39;t built.&quot;</span><span class="p">)</span>
+        <span class="n">loss</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dump_outputs</span><span class="p">:</span>
+          <span class="n">model_logits</span> <span class="o">=</span> <span class="n">decoder_output</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;logits&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+          <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="p">[</span><span class="n">model_logits</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">loss</span><span class="p">,</span> <span class="n">model_outputs</span></div>
+
+
 
 <div class="viewcode-block" id="Speech2Text.maybe_print_logs"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.maybe_print_logs">[docs]</a>  <span class="k">def</span> <span class="nf">maybe_print_logs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">,</span> <span class="n">training_step</span><span class="p">):</span>
     <span class="n">y</span><span class="p">,</span> <span class="n">len_y</span> <span class="o">=</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;target_tensors&#39;</span><span class="p">]</span>
@@ -384,13 +456,20 @@
 <div class="viewcode-block" id="Speech2Text.infer"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.infer">[docs]</a>  <span class="k">def</span> <span class="nf">infer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">input_values</span><span class="p">,</span> <span class="n">output_values</span><span class="p">):</span>
     <span class="n">preds</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">decoded_sequence</span> <span class="o">=</span> <span class="n">output_values</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="n">decoded_texts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
-        <span class="n">decoded_sequence</span><span class="p">,</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
-        <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
-    <span class="p">)</span>
-    <span class="k">for</span> <span class="n">decoded_text</span> <span class="ow">in</span> <span class="n">decoded_texts</span><span class="p">:</span>
-      <span class="n">preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_text</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dump_outputs</span><span class="p">:</span>
+      <span class="c1"># decoded_sequence has &#39;time_major&#39; shape: [T, B, C]</span>
+      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">decoded_sequence</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+        <span class="n">preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">decoded_sequence</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">decoded_texts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_chars</span><span class="p">(</span>
+          <span class="n">decoded_sequence</span><span class="p">,</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">],</span>
+          <span class="o">**</span><span class="bp">self</span><span class="o">.</span><span class="n">tensor_to_char_params</span>
+      <span class="p">)</span>
+      <span class="k">for</span> <span class="n">decoded_text</span> <span class="ow">in</span> <span class="n">decoded_texts</span><span class="p">:</span>
+        <span class="n">preds</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">decoded_text</span><span class="p">))</span>
+
     <span class="k">return</span> <span class="n">preds</span><span class="p">,</span> <span class="n">input_values</span><span class="p">[</span><span class="s1">&#39;source_ids&#39;</span><span class="p">]</span></div>
 
 <div class="viewcode-block" id="Speech2Text.finalize_inference"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text.finalize_inference">[docs]</a>  <span class="k">def</span> <span class="nf">finalize_inference</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">results_per_batch</span><span class="p">,</span> <span class="n">output_file</span><span class="p">):</span>
@@ -405,14 +484,31 @@
     <span class="n">ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">(</span><span class="n">ids</span><span class="p">)</span>
     <span class="c1"># restoring the correct order</span>
     <span class="n">preds</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">ids</span><span class="p">)]</span>
-
-    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
-        <span class="p">{</span>
-            <span class="s1">&#39;wav_filename&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">all_files</span><span class="p">,</span>
-            <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
-        <span class="p">},</span>
-        <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">],</span>
-    <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">dump_outputs</span><span class="p">:</span>
+      <span class="n">dump_out</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="n">dump_results</span> <span class="o">=</span> <span class="p">{}</span>
+      <span class="n">files</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">all_files</span>
+      <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">files</span><span class="p">):</span>
+        <span class="n">dump_results</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">preds</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+      <span class="n">dump_out</span><span class="p">[</span><span class="s2">&quot;logits&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dump_results</span>
+      <span class="n">step_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;window_stride&quot;</span><span class="p">]</span>
+      <span class="n">convs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">encoder</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;convnet_layers&quot;</span><span class="p">]</span>
+      <span class="n">scale</span> <span class="o">=</span> <span class="mi">1</span>
+      <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">convs</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">*=</span> <span class="n">c</span><span class="p">[</span><span class="s2">&quot;stride&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+      <span class="n">dump_out</span><span class="p">[</span><span class="s2">&quot;step_size&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale</span><span class="o">*</span><span class="n">step_size</span>
+      <span class="n">dump_out</span><span class="p">[</span><span class="s2">&quot;vocab&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;idx2char&#39;</span><span class="p">]</span>
+      <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="s1">&#39;wb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dump_out</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">protocol</span><span class="o">=</span><span class="n">pickle</span><span class="o">.</span><span class="n">HIGHEST_PROTOCOL</span><span class="p">)</span>
+      <span class="n">f</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+          <span class="p">{</span>
+              <span class="s1">&#39;wav_filename&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_data_layer</span><span class="p">()</span><span class="o">.</span><span class="n">all_files</span><span class="p">,</span>
+              <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">:</span> <span class="n">preds</span><span class="p">,</span>
+          <span class="p">},</span>
+          <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;wav_filename&#39;</span><span class="p">,</span> <span class="s1">&#39;predicted_transcript&#39;</span><span class="p">],</span>
+      <span class="p">)</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">output_file</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Speech2Text._get_num_objects_per_step"><a class="viewcode-back" href="../../api-docs/models.html#models.speech2text.Speech2Text._get_num_objects_per_step">[docs]</a>  <span class="k">def</span> <span class="nf">_get_num_objects_per_step</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">worker_id</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns number of audio frames in current batch.&quot;&quot;&quot;</span>

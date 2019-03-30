@@ -244,6 +244,7 @@
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">Decoder</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
         <span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">:</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># user defined function</span>
+        <span class="s1">&#39;infer_logits_to_pickle&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="FullyConnectedTimeDecoder.__init__"><a class="viewcode-back" href="../../api-docs/decoders.html#decoders.fc_decoders.FullyConnectedTimeDecoder.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
@@ -304,9 +305,11 @@
     <span class="p">)</span>
     <span class="c1"># converting to time_major=True shape</span>
     <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
-
+    <span class="k">if</span> <span class="s1">&#39;infer_logits_to_pickle&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;infer_logits_to_pickle&#39;</span><span class="p">]:</span>
+      <span class="n">logits</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="n">logits</span><span class="p">,</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">])</span>
     <span class="k">if</span> <span class="s1">&#39;logits_to_outputs_func&#39;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
       <span class="n">outputs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;logits_to_outputs_func&#39;</span><span class="p">](</span><span class="n">logits</span><span class="p">,</span> <span class="n">input_dict</span><span class="p">)</span>
+
       <span class="k">return</span> <span class="p">{</span>
           <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">outputs</span><span class="p">,</span>
           <span class="s1">&#39;logits&#39;</span><span class="p">:</span> <span class="n">logits</span><span class="p">,</span>

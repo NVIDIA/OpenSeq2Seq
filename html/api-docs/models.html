@@ -951,6 +951,44 @@ class <a class="reference internal" href="#models.encoder_decoder.EncoderDecoder
 <em class="property">class </em><code class="descclassname">models.speech2text.</code><code class="descname">Speech2Text</code><span class="sig-paren">(</span><em>params</em>, <em>mode='train'</em>, <em>hvd=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <a class="reference internal" href="#models.encoder_decoder.EncoderDecoderModel" title="models.encoder_decoder.EncoderDecoderModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">models.encoder_decoder.EncoderDecoderModel</span></code></a></p>
 <dl class="method">
+<dt id="models.speech2text.Speech2Text._build_forward_pass_graph">
+<code class="descname">_build_forward_pass_graph</code><span class="sig-paren">(</span><em>input_tensors</em>, <em>gpu_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text._build_forward_pass_graph"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text._build_forward_pass_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>TensorFlow graph for speech2text model is created here.
+This function connects encoder, decoder and loss together. As an input for
+encoder it will specify source tensors (as returned from
+the data layer). As an input for decoder it will specify target tensors
+as well as all output returned from encoder. For loss it
+will also specify target tensors and all output returned from
+decoder. Note that loss will only be built for mode == “train” or “eval”.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>input_tensors</strong> (<em>dict</em>) – <code class="docutils literal notranslate"><span class="pre">input_tensors</span></code> dictionary that has to contain
+<code class="docutils literal notranslate"><span class="pre">source_tensors</span></code> key with the list of all source tensors, and
+<code class="docutils literal notranslate"><span class="pre">target_tensors</span></code> with the list of all target tensors. Note that
+<code class="docutils literal notranslate"><span class="pre">target_tensors</span></code> only need to be provided if mode is
+“train” or “eval”.</li>
+<li><strong>gpu_id</strong> (<em>int</em><em>, </em><em>optional</em>) – id of the GPU where the current copy of the model
+is constructed. For Horovod this is always zero.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">tuple containing loss tensor as returned from
+<code class="docutils literal notranslate"><span class="pre">loss.compute_loss()</span></code> and list of outputs tensors, which is taken from
+<code class="docutils literal notranslate"><span class="pre">decoder.decode()['outputs']</span></code>. When <code class="docutils literal notranslate"><span class="pre">mode</span> <span class="pre">==</span> <span class="pre">'infer'</span></code>, loss will
+be None.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">tuple</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
 <dt id="models.speech2text.Speech2Text._get_num_objects_per_step">
 <code class="descname">_get_num_objects_per_step</code><span class="sig-paren">(</span><em>worker_id=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/models/speech2text.html#Speech2Text._get_num_objects_per_step"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#models.speech2text.Speech2Text._get_num_objects_per_step" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns number of audio frames in current batch.</p>

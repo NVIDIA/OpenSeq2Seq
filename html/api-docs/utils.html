@@ -694,6 +694,31 @@ config_module (dict): The raw config file processed by runpy</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="utils.utils.get_calibration_config">
+<code class="descclassname">utils.utils.</code><code class="descname">get_calibration_config</code><span class="sig-paren">(</span><em>arguments</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_calibration_config"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_calibration_config" title="Permalink to this definition">¶</a></dt>
+<dd><p>This function parses the command line arguments, reads the config file, and
+gets the base_model from the config.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>args</strong> (<em>str</em>) – The command line arguments</td>
+</tr>
+</tbody>
+</table>
+<dl class="docutils">
+<dt>Returns</dt>
+<dd><p class="first">args (dict): The arguments parsed into a dictionary
+base_config (dict): The config read from the file and ammended with the</p>
+<blockquote>
+<div>command line arguments</div></blockquote>
+<p class="last">base_model (OpenSeq2Seq model): The model specified in the config file
+config_module (dict): The raw config file processed by runpy</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="utils.utils.get_git_diff">
 <code class="descclassname">utils.utils.</code><code class="descname">get_git_diff</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/utils/utils.html#get_git_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#utils.utils.get_git_diff" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>

@@ -1,0 +1,293 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Generating time labels for words in speech &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="../_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+      <li>Generating time labels for words in speech</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/speech-recognition/speech-to-text-align.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="generating-time-labels-for-words-in-speech">
+<span id="speech-to-text-align"></span><h1>Generating time labels for words in speech<a class="headerlink" href="#generating-time-labels-for-words-in-speech" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="models">
+<h2>Models<a class="headerlink" href="#models" title="Permalink to this headline">¶</a></h2>
+<p>This approach aims at calculating the start and end time stamps of every word in a given speech sentence using the predictions from a speech recognition system. A speech recognition model (for example, Jasper) produces a probability distribution of possible characters for each time step of the spectrogram fed into it as input. Using CTC decoder we decode it to find the best sentence equivalent for the predicted distribution.</p>
+<p>We use the probability outputs at each time step alongwith out CTC decoder to output the start and end time for each word. However, after this we compensate an offset in the predicted vs actual timestamps of the words in the sentences. This could be induced due to the convolutional layers of the network and therefore we calibrate this using reference data.</p>
+</div>
+<div class="section" id="instructions-of-usage">
+<h2>Instructions of usage<a class="headerlink" href="#instructions-of-usage" title="Permalink to this headline">¶</a></h2>
+<ol class="arabic">
+<li><p class="first">In OpenSeq2Seq directory run:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">bash</span> <span class="n">scripts</span><span class="o">/</span><span class="n">get_calibration_files</span><span class="o">.</span><span class="n">sh</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>This script downloads Librispeech dev-clean, extracts it and converts to 16kHz wav files. You can also change the sampling rate by replacing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>python scripts/change_sample_rate.py --source_dir=$output_dir --target_dir=$target_dir
+</pre></div>
+</div>
+<p>with:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>python scripts/change_sample_rate.py --source_dir=$output_dir --target_dir=$target_dir --sample_rate=8000
+</pre></div>
+</div>
+<p>in scripts/get_calibration_files.sh</p>
+<ol class="arabic simple" start="2">
+<li>Run calibrate model with your model’s configuration file and checkpoint’s directory.</li>
+</ol>
+<p>Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">scripts</span><span class="o">/</span><span class="n">calibrate_model</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=&lt;</span><span class="n">your_model_config</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=&lt;</span><span class="n">your_model_checkpoint_directory</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will write a file <code class="docutils literal notranslate"><span class="pre">calibration.txt</span></code> with the calibration parameters.</p>
+<ol class="arabic" start="3">
+<li><p class="first">Get a dump with logits (predictions from your model). Please don’t forget to add <cite>‘infer_logits_to_pickle’: True</cite> in the <cite>decoder_params</cite> section of model’s configuration file. Example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="n">run</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">mode</span><span class="o">=</span><span class="n">infer</span> <span class="o">--</span><span class="n">config_file</span><span class="o">=&lt;</span><span class="n">your_model_config</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">logdir</span><span class="o">=&lt;</span><span class="n">yout_model_checkpoint_directory</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">infer_output_file</span><span class="o">=&lt;</span><span class="n">dump</span><span class="o">.</span><span class="n">pickle</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first">For the final alignments execute as follows:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">dump_to_time</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dumpfile</span><span class="o">=&lt;</span><span class="n">actual_model_output_pickle_file_path</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">calibration_file</span><span class="o">=&lt;</span><span class="n">path</span> <span class="n">of</span> <span class="n">calibration</span> <span class="n">data</span> <span class="n">file</span> <span class="n">received</span> <span class="ow">in</span> <span class="n">step</span> <span class="mi">2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+</li>
+</ol>
+<p>or:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">python</span> <span class="o">./</span><span class="n">scripts</span><span class="o">/</span><span class="n">dump_to_time</span><span class="o">.</span><span class="n">py</span> <span class="o">--</span><span class="n">dumpfile</span><span class="o">=&lt;</span><span class="n">actual_model_output_pickle_file_path</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">start_shift</span><span class="o">=&lt;</span><span class="n">start_shift_from_step2</span><span class="o">&gt;</span> <span class="o">--</span><span class="n">end_shift</span><span class="o">=&lt;</span><span class="n">end_shift_from_step2</span><span class="o">&gt;</span>
+</pre></div>
+</div>
+<p>This will give you a CSV file <code class="docutils literal notranslate"><span class="pre">default=sample.csv</span></code> with greedy transcripts, start time, end time per each word.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

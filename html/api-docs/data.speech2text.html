@@ -589,7 +589,7 @@ version of this audio
 
 <dl class="function">
 <dt id="data.speech2text.speech_utils.get_speech_features">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>apply_window=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
 <dd><p>Function to convert raw audio signal to numpy array of features.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -606,6 +606,8 @@ by <code class="docutils literal notranslate"><span class="pre">pad_to</span></c
 <li><strong>window_stride</strong> (<em>float</em>) – stride of analysis window in milli-seconds.</li>
 <li><strong>augmentation</strong> (<em>dict</em><em>, </em><em>optional</em>) – dictionary of augmentation parameters. See
 <a class="reference internal" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="data.speech2text.speech_utils.get_speech_features_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_speech_features_from_file()</span></code></a> for specification and example.</li>
+<li><strong>apply_window</strong> (<em>bool</em>) – whether to apply Hann window for mfcc and logfbank.
+python_speech_features version should accept winfunc if it is True.</li>
 </ul>
 </td>
 </tr>
@@ -623,7 +625,7 @@ audio_duration (float): duration of the signal in seconds</p>
 
 <dl class="function">
 <dt id="data.speech2text.speech_utils.get_speech_features_from_file">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>cache_features=False</em>, <em>cache_format='hdf5'</em>, <em>cache_regenerate=False</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>apply_window=False</em>, <em>cache_features=False</em>, <em>cache_format='hdf5'</em>, <em>cache_regenerate=False</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
 <dd><dl class="docutils">
 <dt>Function to get a numpy array of features, from an audio file.</dt>
 <dd>if params[‘cache_features’]==True, try load preprocessed data from
@@ -651,6 +653,8 @@ If not None, has to have ‘time_stretch_ratio’,
 </pre></div>
 </div>
 </li>
+<li><strong>apply_window</strong> (<em>bool</em>) – whether to apply Hann window for mfcc and logfbank.
+python_speech_features version should accept winfunc if it is True.</li>
 </ul>
 </td>
 </tr>

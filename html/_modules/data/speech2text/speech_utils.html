@@ -297,6 +297,7 @@
                                   <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
                                   <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
                                   <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                  <span class="n">apply_window</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                   <span class="n">cache_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                   <span class="n">cache_format</span><span class="o">=</span><span class="s2">&quot;hdf5&quot;</span><span class="p">,</span>
                                   <span class="n">cache_regenerate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
@@ -320,6 +321,8 @@
 <span class="sd">          &#39;noise_level_min&#39;: -90,</span>
 <span class="sd">          &#39;noise_level_max&#39;: -46,</span>
 <span class="sd">        }</span>
+<span class="sd">  apply_window (bool): whether to apply Hann window for mfcc and logfbank.</span>
+<span class="sd">        python_speech_features version should accept winfunc if it is True.</span>
 <span class="sd">Returns:</span>
 <span class="sd">  np.array: np.array of audio features with shape=[num_time_steps,</span>
 <span class="sd">  num_features].</span>
@@ -340,14 +343,14 @@
     <span class="n">sample_freq</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
         <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
-        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span> <span class="n">apply_window</span>
     <span class="p">)</span>
 
   <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">RegenerateCacheException</span><span class="p">):</span>
     <span class="n">sample_freq</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
     <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
         <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
-        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span> <span class="n">apply_window</span>
     <span class="p">)</span>
     <span class="n">preprocessed_data_path</span> <span class="o">=</span> <span class="n">get_preprocessed_data_path</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
     <span class="n">save_features</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">preprocessed_data_path</span><span class="p">,</span>
@@ -400,7 +403,8 @@
                         <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
                         <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
                         <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
-                        <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                        <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">apply_window</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Function to convert raw audio signal to numpy array of features.</span>
 
 <span class="sd">  Args:</span>
@@ -414,6 +418,8 @@
 <span class="sd">    window_stride (float): stride of analysis window in milli-seconds.</span>
 <span class="sd">    augmentation (dict, optional): dictionary of augmentation parameters. See</span>
 <span class="sd">        :func:`get_speech_features_from_file` for specification and example.</span>
+<span class="sd">    apply_window (bool): whether to apply Hann window for mfcc and logfbank.</span>
+<span class="sd">        python_speech_features version should accept winfunc if it is True.</span>
 
 <span class="sd">  Returns:</span>
 <span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
@@ -464,27 +470,52 @@
     <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features</span><span class="p">]</span>
 
   <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">:</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                        <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                        <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                        <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                        <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                        <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                        <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                        <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-                        <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                        <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_window</span><span class="p">:</span>
+      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                          <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                          <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                          <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                          <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                          <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+                          <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">winfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                          <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                          <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                          <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                          <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                          <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                          <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+                          <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                          <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
   <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">:</span>
-    <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                            <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                            <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                            <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                            <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                            <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                            <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                            <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">apply_window</span><span class="p">:</span>
+      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                              <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                              <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                              <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                              <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                              <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                              <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                              <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+                              <span class="n">winfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                              <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                              <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                              <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                              <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                              <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                              <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                              <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
 
   <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown features type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">features_type</span><span class="p">))</span>
