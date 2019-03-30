@@ -360,8 +360,8 @@ def get_speech_features(signal, sample_freq, num_features, pad_to=8,
   else:
     raise ValueError('Unknown features type: {}'.format(features_type))
 
-  if pad_to > 0:
-    assert features.shape[0] % pad_to == 0
+  # if pad_to > 0:
+  #   assert features.shape[0] % pad_to == 0
   mean = np.mean(features)
   std_dev = np.std(features)
   features = (features - mean) / std_dev
