@@ -225,7 +225,7 @@ class Speech2TextDataLayer(DataLayer):
         self._dataset = self._dataset.map(
             lambda x, x_len, idx, duration:
             [x, x_len, idx],
-            num_parallel_calls=8,
+            num_parallel_calls=16,
         )
         self._dataset = self._dataset.padded_batch(
             self.params['batch_size'],
