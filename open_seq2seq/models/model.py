@@ -70,6 +70,7 @@ class Model:
         'eval_steps': int,
         'finetune': bool,
         'eval_batch_size_per_gpu': int,
+        'hooks': list,
 
         'random_seed': int,
         'num_epochs': int,
