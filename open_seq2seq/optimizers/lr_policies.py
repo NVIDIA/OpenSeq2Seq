@@ -165,7 +165,6 @@ def transformer_policy(global_step, learning_rate, d_model, warmup_steps,
     return tf.minimum(max_lr, new_lr)
   return new_lr
 
-
 def inv_poly_decay(global_step, learning_rate, decay_steps, min_lr,
               power=1.0, begin_decay_at=0, warmup_steps=0,
               name="learning_rate"):
@@ -209,40 +208,8 @@ def inv_poly_decay(global_step, learning_rate, decay_steps, min_lr,
     denom = tf.pow(1. + scale * global_step , power)
     lr = tf.div(learning_rate,  denom, name=name)
 
-    return lr
-
-
-
-
-  # min_lr = max(min_lr, 1.e-8)
-  # min_lr = min(min_lr, learning_rate)
-  # begin_decay_at = max(warmup_steps, begin_decay_at)
-  # if warmup_steps > 0:
-  #   # g_step = tf.cast(global_step, dtype=tf.float32)
-  #   # warmup = tf.cast(warmup_steps, dtype=tf.float32)
-  #   learning_rate = tf.cond(
-  #     global_step < warmup_steps,
-  #     lambda: learning_rate*tf.cast(global_step,tf.float32)/
-  #             tf.cast(warmup_steps,tf.float32),
-  #     lambda: learning_rate,
-  #   )
-  # decay_rate = (learning_rate/min_lr - 1.) / 15. #/ tf.pow(tf.cast(decay_steps-begin_decay_at,tf.float32), power)
-  # power = float(power)
-  # # decay_rate = (learning_rate/min_lr-1.) / math.pow(float(decay_steps-begin_decay_at), power)
-  # # decay_rate = (learning_rate / min_lr - 1.0)/decay_steps
-  # print("!! inv_lr=", learning_rate, " min_lr=",  min_lr, " steps=", decay_steps, " decay=", decay_rate, " !!")
-  # lr = tf.cond(
-  #     global_step < begin_decay_at,
-  #     lambda: learning_rate,
-  #     lambda: tf.train.inverse_time_decay(
-  #         learning_rate,
-  #         # global_step=tf.pow(tf.cast(global_step-begin_decay_at,tf.float32),power), #global_step,
-  #         global_step=(global_step /decay_steps)* 15.,
-  #         decay_steps=1.0,
-  #         decay_rate=decay_rate,
-  #     ),
-  #   name="learning_rate",
-  # )
   return lr
+
+
 
 
