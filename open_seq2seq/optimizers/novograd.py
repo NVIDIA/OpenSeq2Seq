@@ -30,19 +30,19 @@ import tensorflow as tf
 class NovoGrad(MomentumOptimizer):
   """
   Optimizer that implements SGD with layer-wise normalized gradients,
-  when normalization is done by sqrt(ema(sqr(grads))), similar to ADAM
+  when normalization is done by sqrt(ema(sqr(grads))), similar to Adam
 
     ```
     Second moment = ema of Layer-wise  sqr of grads:
        v_t <-- beta2*v_{t-1} + (1-beta2)*(g_t)^2
 
     First momentum has two mode:
-    1. momentum of grads normalized by u_t:
+    1. moment of grads normalized by u_t:
        m_t <- beta1*m_{t-1} + lr_t * [ g_t/sqrt(v_t+epsilon)]
-    1. momentum is similar to Adam: ema of grads normalized by u_t:
+    1. moment similar to Adam: ema of grads normalized by u_t:
        m_t <- beta1*m_{t-1} + lr_t * [(1-beta1)*(g_t/sqrt(v_t+epsilon))]
 
-    if weight decay add it after grads are rescaled by 1/sqrt(v_t):
+    if weight decay add wd term after grads are rescaled by 1/sqrt(v_t):
        m_t <- beta1*m_{t-1} + lr_t * [g_t/sqrt(v_t+epsilon) + wd*w_{t-1}]
 
     Weight update:
@@ -76,8 +76,7 @@ class NovoGrad(MomentumOptimizer):
 
     """
     super(NovoGrad, self).__init__(learning_rate, momentum=beta1,
-                                   use_locking=use_locking, name=name,
-                                   use_nesterov=False)
+               use_locking=use_locking, name=name, use_nesterov=False)
     self._beta1 = beta1
     self._beta2 = beta2
     self._epsilon = epsilon
