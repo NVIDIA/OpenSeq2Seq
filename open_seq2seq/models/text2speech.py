@@ -5,12 +5,15 @@ from six import BytesIO
 from six.moves import range
 
 from scipy.io.wavfile import write
-
-import librosa
 import numpy as np
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
+
+try:
+  import librosa
+  import matplotlib as mpl
+  mpl.use('Agg')
+  import matplotlib.pyplot as plt
+except:
+  print("Librosa or matplotlib error")
 import tensorflow as tf
 
 from .encoder_decoder import EncoderDecoderModel

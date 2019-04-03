@@ -7,9 +7,12 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from six.moves import range
-import matplotlib as mpl
-mpl.use('Agg')
-import matplotlib.pyplot as plt
+try:
+  import matplotlib as mpl
+  mpl.use('Agg')
+  import matplotlib.pyplot as plt
+except:
+  print('Error importing matplotlib')
 from io import BytesIO
 
 from open_seq2seq.utils.utils import deco_print

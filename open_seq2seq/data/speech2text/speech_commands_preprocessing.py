@@ -2,7 +2,10 @@
 # and their labels for the chosen dataset
 import os
 import random
-import librosa
+try:
+	import librosa
+except:
+	print('Error importing librosa')
 import numpy as np
 
 

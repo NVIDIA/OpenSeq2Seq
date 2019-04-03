@@ -3,9 +3,12 @@ from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
 import numpy as np
-import librosa
-import librosa.filters
-import resampy as rs
+try:
+  import librosa
+  import librosa.filters
+  import resampy as rs
+except:
+  print('Error importing librosa')
 
 def get_speech_features_from_file(
     filename,

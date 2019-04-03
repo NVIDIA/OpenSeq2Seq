@@ -4,7 +4,10 @@ from __future__ import unicode_literals
 
 import os
 import six
-import librosa
+try:
+  import librosa
+except:
+  print('Error importing librosa')
 import numpy as np
 import tensorflow as tf
 import pandas as pd

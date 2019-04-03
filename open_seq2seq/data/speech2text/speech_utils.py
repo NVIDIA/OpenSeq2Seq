@@ -8,7 +8,10 @@ import os
 import h5py
 import numpy as np
 import python_speech_features as psf
-import resampy as rs
+try:
+  import resampy as rs
+except:
+  print('Error importing resampy')
 import scipy.io.wavfile as wave
 
 

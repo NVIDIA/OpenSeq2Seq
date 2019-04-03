@@ -3,7 +3,6 @@ import six
 import numpy as np
 import tensorflow as tf
 import pandas as pd
-import librosa
 
 from open_seq2seq.data.data_layer import DataLayer
 from open_seq2seq.data.text2speech.speech_utils import \
