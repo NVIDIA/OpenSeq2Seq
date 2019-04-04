@@ -18,7 +18,7 @@ data_root ="/data/librispeech/"
 
 base_model = Speech2Text
 
-layers_per_block = 10
+layers_per_block = 8
 
 base_params = {
     "random_seed": 0,
