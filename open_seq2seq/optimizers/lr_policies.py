@@ -8,7 +8,9 @@ value for the current step.
 from __future__ import absolute_import, division, print_function
 from __future__ import unicode_literals
 
+import math
 import tensorflow as tf
+from tensorflow.python.framework import ops
 
 
 def fixed_lr(global_step, learning_rate):
@@ -91,7 +93,7 @@ def exp_decay(global_step, learning_rate, decay_steps, decay_rate,
 
 
 def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
-               begin_decay_at=0, min_lr=0.0):
+               begin_decay_at=0, min_lr=0.0, warmup_steps=0):
   """Polynomial decay learning rate policy.
   This function is equivalent to ``tensorflow.train.polynomial_decay`` with
   some additional functionality. Namely, it adds ``begin_decay_at`` parameter
@@ -109,6 +111,15 @@ def poly_decay(global_step, learning_rate, decay_steps, power=1.0,
   Returns:
     learning rate at step ``global_step``.
   """
+  begin_decay_at = max(warmup_steps, begin_decay_at)
+  if warmup_steps > 0:
+    # g_step = tf.cast(global_step, dtype=tf.float32)
+    # warmup = tf.cast(warmup_steps, dtype=tf.float32)
+    learning_rate = tf.cond(
+      global_step < warmup_steps,
+      lambda: (learning_rate*tf.cast(global_step,tf.float32)/tf.cast(warmup_steps,tf.float32)),
+      lambda: learning_rate,
+    )
   lr = tf.cond(
       global_step < begin_decay_at,
       lambda: learning_rate,
@@ -153,3 +164,50 @@ def transformer_policy(global_step, learning_rate, d_model, warmup_steps,
   if max_lr is not None:
     return tf.minimum(max_lr, new_lr)
   return new_lr
+
+def inv_poly_decay(global_step, learning_rate, decay_steps, min_lr,
+              power=1.0, begin_decay_at=0, warmup_steps=0,
+              name="learning_rate"):
+  """Inverse poly decay learning rate policy.
+  lr  = initial lr / ( 1+ decay * t)^power
+  This function is similar to ``tensorflow.train.inv_time_decay`` with
+  some additional functionality. Namely, it adds :
+  ``min_lr`` - end learning rate  with 0.00001
+  ``power``  - power
+  ``begin_decay_at``-  first step to start decaying learning rate.
+
+  Args:
+    global_step: global step TensorFlow tensor.
+    learning_rate (float): initial learning rate to use.
+    decay_steps (int): number of steps to apply decay for.
+    power (float): power for inv_time_decay.
+    begin_decay_at (int): the first step to start decaying learning rate.
+    min_lr (float): minimal value of the learning rate
+        (same as ``end_learning_rate`` TensorFlow parameter).
+
+  Returns:
+    learning rate at step ``global_step``.
+  """
+  min_lr=max(min_lr, 1e-8)
+  min_lr=min(min_lr, learning_rate)
+  if power <= 0.:
+    raise ValueError("Inv poly decay requires power >  0.")
+  if global_step is None:
+    raise ValueError("Inv poly decay requires global_step")
+
+  with ops.name_scope(name, "InvDecay",
+                      [learning_rate, global_step]) as name:
+    scale = (math.pow(learning_rate / min_lr, 1./power) - 1.) / decay_steps
+
+    learning_rate = ops.convert_to_tensor(learning_rate, name="learning_rate")
+
+    decay_steps = tf.cast(decay_steps, tf.float32)
+    global_step = tf.cast(global_step, tf.float32)
+    denom = tf.pow(1. + scale * global_step , power)
+    lr = tf.div(learning_rate,  denom, name=name)
+
+  return lr
+
+
+
+

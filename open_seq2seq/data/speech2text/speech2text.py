@@ -238,10 +238,15 @@ class Speech2TextDataLayer(DataLayer):
               lambda x, x_len, idx, duration:
               tf.less_equal(duration, self.params['max_duration'])
           )
+        if self.params['min_duration'] > 0:
+            self._dataset = self._dataset.filter(
+              lambda x, x_len, y, y_len, duration:
+              tf.greater_equal(duration, self.params['min_duration'])
+          )
         self._dataset = self._dataset.map(
             lambda x, x_len, idx, duration:
             [x, x_len, idx],
-            num_parallel_calls=8,
+            num_parallel_calls=16,
         )
         self._dataset = self._dataset.padded_batch(
             self.params['batch_size'],
