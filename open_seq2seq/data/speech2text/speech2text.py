@@ -49,7 +49,7 @@ class Speech2TextDataLayer(DataLayer):
         'window_stride': float,
         'dither': float,
         'norm_per_feature': bool,
-        'window_type': ['hanning', 'hamming', 'none'],
+        'window': ['hanning', 'hamming', 'none'],
         'num_fft': int,
         'precompute_mel_basis': bool,
         'sample_freq': int,

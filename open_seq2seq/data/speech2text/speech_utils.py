@@ -136,7 +136,7 @@ def get_speech_features_from_file(filename,
                                   window_size=20e-3,
                                   window_stride=10e-3,
                                   augmentation=None,
-                                  window_fn=None,
+                                  window_fn=np.ones,
                                   dither=0,
                                   num_fft=None,
                                   norm_per_feature=False,
@@ -339,7 +339,7 @@ def get_speech_features(signal, sample_freq, num_features,
                 )
             )
         )
-    features = librosa.feature.mfcc(sr=sr, S=S,
+    features = librosa.feature.mfcc(sr=sample_freq, S=S,
         n_mfcc=num_features, n_mels=2*num_features).T
   elif features_type == 'logfbank':
     signal = preemphasis(signal,coeff=0.97)
