@@ -37,6 +37,7 @@ class Speech2TextDataLayer(DataLayer):
   @staticmethod
   def get_optional_params():
     return dict(DataLayer.get_optional_params(), **{
+        'backend': ['psf', 'librosa'],
         'augmentation': dict,
         'pad_to': int,
         'max_duration': float,
@@ -85,7 +86,6 @@ class Speech2TextDataLayer(DataLayer):
     """
     super(Speech2TextDataLayer, self).__init__(params, model,
                                                num_workers, worker_id)
-    self.window_fns = {"hanning": np.hanning, "hamming": np.hamming, "none": None}
     self.params['autoregressive'] = self.params.get('autoregressive', False)
     self.autoregressive = self.params['autoregressive']
     self.params['bpe'] = self.params.get('bpe', False)
@@ -140,7 +140,7 @@ class Speech2TextDataLayer(DataLayer):
     self.params['window_size'] = self.params.get('window_size', 20e-3)
     self.params['window_stride'] = self.params.get('window_stride', 10e-3)
 
-    self.mel_basis = None
+    mel_basis = None
     if (self.params.get("precompute_mel_basis", False) and 
         self.params["input_type"] == "logfbank"):
       num_fft = (
@@ -149,13 +149,14 @@ class Speech2TextDataLayer(DataLayer):
               self.params['window_size']*self.params["sample_freq"])
           )
       )
-      self.mel_basis = librosa.filters.mel(
+      mel_basis = librosa.filters.mel(
           self.params["sample_freq"],
           num_fft,
           n_mels=self.params["num_audio_features"],
           fmin=0,
           fmax=int(self.params["sample_freq"]/2)
       )
+    self.params['mel_basis'] = mel_basis
 
   def split_data(self, data):
     if self.params['mode'] != 'train' and self._num_workers is not None:
@@ -271,7 +272,8 @@ class Speech2TextDataLayer(DataLayer):
       x_length = tf.reshape(x_length, [self.params['batch_size']])
 
       pad_to = self.params.get("pad_to", 8)
-      if pad_to > 0:
+      if pad_to > 0 and self.params.get('backend') == 'librosa':
+        # we do padding with TF for librosa backend
         num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(x_length), pad_to), pad_to)
         x = tf.pad(x, [[0, 0], [0, num_pad], [0, 0]])
 
@@ -378,7 +380,13 @@ class Speech2TextDataLayer(DataLayer):
       audio_filename = audio_filename.format(np.random.choice(self.params["syn_subdirs"]))
 
     source, audio_duration = get_speech_features_from_file(
+        audio_filename,
+        params=self.params
+    )
+    '''
+
         audio_filename, self.params['num_audio_features'],
+        pad_to=self.pad_to,
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -393,6 +401,7 @@ class Speech2TextDataLayer(DataLayer):
         params=self.params,
         mel_basis=self.mel_basis
     )
+    '''
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
         np.int32(target), \
@@ -409,16 +418,7 @@ class Speech2TextDataLayer(DataLayer):
       sample id.
     """
     source, audio_duration = get_speech_features(
-        wav, 16000., self.params['num_audio_features'],
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")],
-        dither=self.params.get('dither', 0.0),
-        num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False),
-        mel_basis=self.mel_basis
+        wav, 16000., params
     )
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([0]), \
@@ -435,7 +435,11 @@ class Speech2TextDataLayer(DataLayer):
     """
     idx, audio_filename = id_and_audio_filename
     source, audio_duration = get_speech_features_from_file(
-        audio_filename, self.params['num_audio_features'],
+        audio_filename,
+        params=self.params
+    )
+    '''
+        self.params['num_audio_features'],
         features_type=self.params['input_type'],
         window_size=self.params['window_size'],
         window_stride=self.params['window_stride'],
@@ -447,6 +451,7 @@ class Speech2TextDataLayer(DataLayer):
         params=self.params,
         mel_basis=self.mel_basis
     )
+    '''
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \
         np.float32([audio_duration])

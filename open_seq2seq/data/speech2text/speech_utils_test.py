@@ -52,34 +52,33 @@ class SpeechUtilsTests(tf.test.TestCase):
               freq_s, signal = wave.read(filename)
               n_window_size = int(freq_s * window_size)
               n_window_stride = int(freq_s * window_stride)
-              length = 1 + signal.shape[0] // n_window_stride
-              # we don't pad in get_speech_features
-              # if length % 8 != 0:
-              #   length += 8 - length % 8
+              length = 1 + (signal.shape[0] - n_window_size)// n_window_stride
+              if length % 8 != 0:
+                length += 8 - length % 8
               right_shape = (length, num_features)
+              params = {}
+              params['num_audio_features'] = num_features
+              params['input_type'] = features_type
+              params['window_size'] = window_size
+              params['window_stride'] = window_stride
               input_features, _ = get_speech_features_from_file(
                   filename,
-                  num_features,
-                  features_type=features_type,
-                  window_size=window_size,
-                  window_stride=window_stride,
-                  # params={'sample_freq': freq_s}
+                  params
               )
-              # we don't pad in get_speech_features
-              # self.assertTrue(input_features.shape[0] % 8 == 0)
-
+              self.assertTrue(input_features.shape[0] % 8 == 0)
               self.assertTupleEqual(right_shape, input_features.shape)
               self.assertAlmostEqual(np.mean(input_features), 0.0, places=6)
               self.assertAlmostEqual(np.std(input_features), 1.0, places=6)
             # only for spectrogram
             with self.assertRaises(AssertionError):
+              params = {}
+              params['num_audio_features'] = n_window_size // 2 + 2
+              params['input_type'] = 'spectrogram'
+              params['window_size'] = window_size
+              params['window_stride'] = window_stride
               get_speech_features_from_file(
                   filename,
-                  num_features=n_window_size // 2 + 2,
-                  features_type='spectrogram',
-                  window_size=window_size,
-                  window_stride=window_stride,
-                  # params={'sample_freq': freq_s}
+                  params
               )
 
   def test_get_speech_features_from_file_augmentation(self):
@@ -90,11 +89,14 @@ class SpeechUtilsTests(tf.test.TestCase):
     }
     filename = 'open_seq2seq/test_utils/toy_speech_data/wav_files/46gc040q.wav'
     num_features = 161
+    params = {}
+    params['num_audio_features'] = num_features
     input_features_clean, _ = get_speech_features_from_file(
-        filename, num_features, augmentation=None,
+        filename, params
     )
+    params['augmentation'] = augmentation
     input_features_augm, _ = get_speech_features_from_file(
-        filename, num_features, augmentation=augmentation,
+        filename, params
     )
     # just checking that result is different with and without augmentation
     self.assertTrue(np.all(np.not_equal(input_features_clean,
@@ -105,8 +107,9 @@ class SpeechUtilsTests(tf.test.TestCase):
         'noise_level_min': -90,
         'noise_level_max': -46,
     }
+    params['augmentation'] = augmentation
     input_features_augm, _ = get_speech_features_from_file(
-        filename, num_features, augmentation=augmentation,
+        filename, params
     )
     self.assertNotEqual(
         input_features_clean.shape[0],
