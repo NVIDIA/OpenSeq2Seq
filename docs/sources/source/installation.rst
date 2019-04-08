@@ -172,7 +172,7 @@ Running tests
 In order to check that everything is installed correctly it is recommended to
 run unittests::
 
-   python -m unittest discover -s open_seq2seq -p '*_test.py'
+   bash scripts/run_all_tests.sh
 
 It might take up to 30 minutes. You should see a lot of output, but no errors
 in the end.

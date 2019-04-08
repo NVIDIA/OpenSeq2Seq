@@ -22,10 +22,10 @@ ds2\_encoder
     :undoc-members:
     :show-inheritance:
 
-w2l\_encoder
+tdnn\_encoder
 ----------------------------
 
-.. automodule:: encoders.w2l_encoder
+.. automodule:: encoders.tdnn_encoder
     :members:
     :undoc-members:
     :show-inheritance:

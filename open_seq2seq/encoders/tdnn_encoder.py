@@ -39,7 +39,7 @@ class TDNNEncoder(Encoder):
 
     Config parameters:
 
-    * **dropout_keep_prop** (float) --- keep probability for dropout.
+    * **dropout_keep_prob** (float) --- keep probability for dropout.
     * **convnet_layers** (list) --- list with the description of convolutional
       layers. For example::
         "convnet_layers": [
@@ -75,6 +75,9 @@ class TDNNEncoder(Encoder):
       Defaults to 0.0 which corresponds to training without dropping blocks.
     * **drop_block_index** (int) -- index of the block to drop on inference.
       Defaults to -1 which corresponds to keeping all blocks.
+    * **use_conv_mask** (bool) --- whether to apply a sequence mask prior to
+      convolution operations. Defaults to False for backwards compatibility.
+      Recommended to set as True
     """
     super(TDNNEncoder, self).__init__(params, model, name, mode)
 
