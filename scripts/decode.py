@@ -91,141 +91,166 @@ num_cpus = multiprocessing.cpu_count()
 
 
 def levenshtein(a, b):
-    """Calculates the Levenshtein distance between a and b.
-    The code was taken from: http://hetland.org/coding/python/levenshtein.py
-    """
-    n, m = len(a), len(b)
-    if n > m:
-        # Make sure n <= m, to use O(min(n,m)) space
-        a, b = b, a
-        n, m = m, n
-    current = list(range(n + 1))
-    for i in range(1, m + 1):
-        previous, current = current, [i] + [0] * n
-        for j in range(1, n + 1):
-            add, delete = previous[j] + 1, current[j - 1] + 1
-            change = previous[j - 1]
-            if a[j - 1] != b[i - 1]:
-                change = change + 1
-            current[j] = min(add, delete, change)
-    return current[n]
+  """Calculates the Levenshtein distance between a and b.
+  The code was taken from: http://hetland.org/coding/python/levenshtein.py
+  """
+  n, m = len(a), len(b)
+  if n > m:
+    # Make sure n <= m, to use O(min(n,m)) space
+    a, b = b, a
+    n, m = m, n
+  current = list(range(n + 1))
+  for i in range(1, m + 1):
+    previous, current = current, [i] + [0] * n
+    for j in range(1, n + 1):
+      add, delete = previous[j] + 1, current[j - 1] + 1
+      change = previous[j - 1]
+      if a[j - 1] != b[i - 1]:
+        change = change + 1
+      current[j] = min(add, delete, change)
+  return current[n]
+
 
 def load_dump(pickle_file):
-    with open(pickle_file, 'rb') as f:
-        data = pickle.load(f, encoding='bytes')
-    return data
+  with open(pickle_file, 'rb') as f:
+    data = pickle.load(f, encoding='bytes')
+  return data
+
+
+def get_logits(data, labels):
+  '''
+  Get logits from pickled data.
+  There are two versions of pickle file (and data):
+  1. raw logits NumPy array
+  2. dictionary with logits and additional meta information
+  '''
+  if isinstance(data, np.ndarray):
+    # convert NumPy array to dict format
+    logits = {}
+    for idx, line in enumerate(labels):
+      audio_filename = line[0]
+      logits[audio_filename] = data[idx]
+  else:
+    logits = data['logits']
+  return logits
+
 
 def load_labels(csv_file):
-    labels = np.loadtxt(csv_file, skiprows=1, delimiter=',', dtype=str)
-    return labels
-        
+  labels = np.loadtxt(csv_file, skiprows=1, delimiter=',', dtype=str)
+  return labels
+
+    
 def load_vocab(vocab_file):
-    vocab = []
-    with open(vocab_file, 'r') as f:
-        for line in f:
-            vocab.append(line[0])
-    vocab.append('_')
-    return vocab
+  vocab = []
+  with open(vocab_file, 'r') as f:
+    for line in f:
+      vocab.append(line[0])
+  vocab.append('_')
+  return vocab
+
 
 def greedy_decoder(logits, vocab, merge=True):
-    s = ''
-    c = ''
-    for i in range(logits.shape[0]):
-        c_i = vocab[np.argmax(logits[i])]
-        if merge and c_i == c:
-            continue 
-        s += c_i
-        c = c_i
-    if merge:
-        s = s.replace('_', '')
-    return s
+  s = ''
+  c = ''
+  for i in range(logits.shape[0]):
+    c_i = vocab[np.argmax(logits[i])]
+    if merge and c_i == c:
+      continue 
+    s += c_i
+    c = c_i
+  if merge:
+    s = s.replace('_', '')
+  return s
+
 
 def softmax(x):
-    m = np.expand_dims(np.max(x, axis=-1), -1)
-    e = np.exp(x - m)
-    return e / np.expand_dims(e.sum(axis=-1), -1)
+  m = np.expand_dims(np.max(x, axis=-1), -1)
+  e = np.exp(x - m)
+  return e / np.expand_dims(e.sum(axis=-1), -1)
+
 
 def evaluate_wer(data, labels, vocab, decoder):
-    total_dist = 0.0
-    total_count = 0.0
-    wer_per_sample = np.empty(shape=len(labels))
+  total_dist = 0.0
+  total_count = 0.0
+  wer_per_sample = np.empty(shape=len(labels))
     
-    empty_preds = 0
-    for idx, line in enumerate(labels):
-        label = line[-1]
-        pred = decoder(data[idx], vocab)
-        dist = levenshtein(label.lower().split(), pred.lower().split())
-        if pred=='':
-            empty_preds += 1
-        total_dist += dist
-        total_count += len(label.split())
-        wer_per_sample[idx] = dist / len(label.split())
-    print('# empty preds: {}'.format(empty_preds))
-    wer = total_dist / total_count
-    return wer, wer_per_sample
+  empty_preds = 0
+  for idx, line in enumerate(labels):
+    label = line[-1]
+    pred = decoder(data[idx], vocab)
+    dist = levenshtein(label.lower().split(), pred.lower().split())
+    if pred=='':
+      empty_preds += 1
+    total_dist += dist
+    total_count += len(label.split())
+    wer_per_sample[idx] = dist / len(label.split())
+  print('# empty preds: {}'.format(empty_preds))
+  wer = total_dist / total_count
+  return wer, wer_per_sample
 
 
 data = load_dump(args.logits)
 labels = load_labels(args.labels)
+logits = get_logits(data, labels)
 vocab = load_vocab(args.vocab)
 vocab[-1] = '_'
 
 probs_batch = []
-for idx in range(len(data)):
-    probs_batch.append(softmax(data[idx]))
+for line in labels:
+  audio_filename = line[0]
+  probs_batch.append(softmax(logits[audio_filename]))
 
 if args.mode == 'eval':
-    wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
-    print('Greedy WER = {:.4f}'.format(wer))
-    best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0, 'beams': None} 
-    for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
-        for beta in np.arange(args.beta, args.beta_max, args.beta_step):
-            scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
-
-            res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                                beam_size=args.beam_width, 
-                                                num_processes=num_cpus,
-                                                ext_scoring_func=scorer)
-            total_dist = 0.0
-            total_count = 0.0
-            for idx, line in enumerate(labels):
-                label = line[-1]
-                score, text = [v for v in zip(*res[idx])]
-                pred = text[0]
-                dist = levenshtein(label.lower().split(), pred.lower().split())
-                total_dist += dist
-                total_count += len(label.split())
-            wer = total_dist / total_count
-            if wer < best_result['wer']:
-                best_result['wer'] = wer
-                best_result['alpha'] = alpha
-                best_result['beta'] = beta
-                best_result['beams'] = res
-            print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
-    print('BEST: alpha={:.2f}, beta={:.2f}, WER={:.4f}'.format(
+  wer, _ = evaluate_wer(data, labels, vocab, greedy_decoder)
+  print('Greedy WER = {:.4f}'.format(wer))
+  best_result = {'wer': 1e6, 'alpha': 0.0, 'beta': 0.0, 'beams': None} 
+  for alpha in np.arange(args.alpha, args.alpha_max, args.alpha_step):
+    for beta in np.arange(args.beta, args.beta_max, args.beta_step):
+      scorer = Scorer(alpha, beta, model_path=args.lm, vocabulary=vocab[:-1])
+      res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                          beam_size=args.beam_width, 
+                                          num_processes=num_cpus,
+                                          ext_scoring_func=scorer)
+      total_dist = 0.0
+      total_count = 0.0
+      for idx, line in enumerate(labels):
+        label = line[-1]
+        score, text = [v for v in zip(*res[idx])]
+        pred = text[0]
+        dist = levenshtein(label.lower().split(), pred.lower().split())
+        total_dist += dist
+        total_count += len(label.split())
+      wer = total_dist / total_count
+      if wer < best_result['wer']:
+        best_result['wer'] = wer
+        best_result['alpha'] = alpha
+        best_result['beta'] = beta
+        best_result['beams'] = res
+      print('alpha={:.2f}, beta={:.2f}: WER={:.4f}'.format(alpha, beta, wer))
+  print('BEST: alpha={:.2f}, beta={:.2f}, WER={:.4f}'.format(
         best_result['alpha'], best_result['beta'], best_result['wer']))
     
-    if args.dump_all_beams_to:
-        with open(args.dump_all_beams_to, 'w') as f:
-            for beam in best_result['beams']:
-                f.write('B=>>>>>>>>\n')
-                for pred in beam:
-                    f.write('{} 0.0 0.0 {}\n'.format(pred[0], pred[1]))
-                f.write('E=>>>>>>>>\n')
-    
+  if args.dump_all_beams_to:
+   with open(args.dump_all_beams_to, 'w') as f:
+     for beam in best_result['beams']:
+       f.write('B=>>>>>>>>\n')
+       for pred in beam:
+         f.write('{} 0.0 0.0 {}\n'.format(pred[0], pred[1]))
+       f.write('E=>>>>>>>>\n')
 
 elif args.mode == 'infer':
-    scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
-    res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
-                                        beam_size=args.beam_width, 
-                                        num_processes=num_cpus,
-                                        ext_scoring_func=scorer)
-    infer_preds = np.empty(shape=(len(labels), 2), dtype=object)
-    for idx, line in enumerate(labels):
-        filename = line[0]
-        score, text = [v for v in zip(*res[idx])]
-        infer_preds[idx, 0] = filename
-        infer_preds[idx, 1] = text[0]
+  scorer = Scorer(args.alpha, args.beta, model_path=args.lm, vocabulary=vocab[:-1])
+  res = ctc_beam_search_decoder_batch(probs_batch, vocab[:-1], 
+                                      beam_size=args.beam_width, 
+                                      num_processes=num_cpus,
+                                      ext_scoring_func=scorer)
+  infer_preds = np.empty(shape=(len(labels), 2), dtype=object)
+  for idx, line in enumerate(labels):
+    filename = line[0]
+    score, text = [v for v in zip(*res[idx])]
+    infer_preds[idx, 0] = filename
+    infer_preds[idx, 1] = text[0]
     
-    np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',
-               header='wav_filename,transcript')
+  np.savetxt(args.infer_output_file, infer_preds, fmt='%s', delimiter=',',
+             header='wav_filename,transcript')
+
