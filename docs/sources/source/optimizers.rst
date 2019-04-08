@@ -6,7 +6,7 @@ Optimizers
 .. This section contain information about LARC and NovoGrad.
 
 
-OpenSeq2Seq supports two propretary optimizers: LARC and NovoGrad. 
+OpenSeq2Seq supports two new optimizers: LARC and NovoGrad. 
 
 
 Layer-wise Adaptive Rate Control (LARC)
