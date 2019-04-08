@@ -71,6 +71,10 @@ class TDNNEncoder(Encoder):
       Use None if you don't want to use normalization. Defaults to 'batch_norm'.
     * **bn_momentum** (float) --- momentum for batch norm. Defaults to 0.90.
     * **bn_epsilon** (float) --- epsilon for batch norm. Defaults to 1e-3.
+    * **drop_block_prob** (float) --- probability of dropping encoder blocks.
+      Defaults to 0.0 which corresponds to training without dropping blocks.
+    * **drop_block_index** (int) -- index of the block to drop on inference.
+      Defaults to -1 which corresponds to keeping all blocks.
     """
     super(TDNNEncoder, self).__init__(params, model, name, mode)
 
