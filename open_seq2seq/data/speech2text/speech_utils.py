@@ -163,7 +163,7 @@ def get_speech_features_from_file(filename, params):
             'noise_level_min': -90,
             'noise_level_max': -46,
           }
-      window_fn (bool): window function to apply, or None for no window
+      window (str): window function to apply
       dither (float): weight of Gaussian noise to apply to input signal for
           dithering/preventing quantization noise
       num_fft (int): size of fft window to use if features require fft,

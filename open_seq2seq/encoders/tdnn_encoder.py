@@ -102,7 +102,10 @@ class TDNNEncoder(Encoder):
     num_pad = tf.constant(0)
 
     if isinstance(self._model.get_data_layer(), Speech2TextDataLayer):
-      pad_to = self._model.get_data_layer().params.get("pad_to", 8)
+      pad_to = 0
+      if self._model.get_data_layer().params.get('backend', 'psf') == 'librosa':
+        pad_to = self._model.get_data_layer().params.get("pad_to", 8)
+        
       if pad_to > 0:
         num_pad = tf.mod(pad_to - tf.mod(tf.reduce_max(src_length), pad_to), pad_to)
     else:

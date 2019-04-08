@@ -5,6 +5,7 @@ pandas==0.23.0
 six
 mpi4py
 librosa
+python_speech_features
 matplotlib
 joblib==0.11
 sentencepiece

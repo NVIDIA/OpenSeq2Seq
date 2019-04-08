@@ -60,6 +60,8 @@ class Speech2TextDataLayer(DataLayer):
     """Speech-to-text data layer constructor.
     See parent class for arguments description.
     Config parameters:
+    * **backend** (str) --- audio pre-processing backend 
+      ('psf' [default] or librosa [recommended]).
     * **num_audio_features** (int) --- number of audio features to extract.
     * **input_type** (str) --- could be either "spectrogram" or "mfcc".
     * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.
@@ -74,12 +76,30 @@ class Speech2TextDataLayer(DataLayer):
         }
       For additional details on these parameters see
       :func:`data.speech2text.speech_utils.augment_audio_signal` function.
+    * **pad_to** (int) --- align audio sequence length to pad_to value.
+    * **max_duration** (float) --- drop all samples longer than 
+      **max_duration** (seconds)
+    * **min_duration** (float) --- drop all samples shorter than 
+      **min_duration** (seconds)
+    * **bpe** (bool) --- use BPE encodings
     * **autoregressive** (bool) --- boolean indicating whether the model is
       autoregressive.
     * **syn_enable** (bool) --- boolean indicating whether the model is
       using synthetic data.
     * **syn_subdirs** (list) --- must be defined if using synthetic mode.
       Contains a list of subdirectories that hold the synthetica wav files.
+    * **window_size** (float) --- window's duration (in seconds)
+    * **window_stride** (float) --- window's stride (in seconds)
+    * **dither** (float) --- weight of Gaussian noise to apply to input signal for
+          dithering/preventing quantization noise
+    * **num_fft** (int) --- size of fft window to use if features require fft,
+          defaults to smallest power of 2 larger than window size
+    * **norm_per_feature** (bool) --- if True, the output features will be normalized
+          (whitened) individually. if False, a global mean/std over all features
+          will be used for normalization
+    * **window** (str) --- window function to apply before FFT
+      ('hanning', 'hamming', 'none')
+    * **num_fft** (int) --- optional FFT size
     * **precompute_mel_basis** (bool) --- compute and store mel basis. If False,
       it will compute it for every get_speech_features call. Default: False
     * **sample_freq** (int) --- required for precompute_mel_basis
