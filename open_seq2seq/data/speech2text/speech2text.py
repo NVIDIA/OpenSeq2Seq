@@ -383,25 +383,6 @@ class Speech2TextDataLayer(DataLayer):
         audio_filename,
         params=self.params
     )
-    '''
-
-        audio_filename, self.params['num_audio_features'],
-        pad_to=self.pad_to,
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")],
-        cache_features=self.params.get('cache_features', False),
-        cache_format=self.params.get('cache_format', 'hdf5'),
-        cache_regenerate=self.params.get('cache_regenerate', False),
-        dither=self.params.get('dither', 0.0),
-        num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False),
-        params=self.params,
-        mel_basis=self.mel_basis
-    )
-    '''
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), \
         np.int32(target), \
@@ -438,20 +419,6 @@ class Speech2TextDataLayer(DataLayer):
         audio_filename,
         params=self.params
     )
-    '''
-        self.params['num_audio_features'],
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")],
-        dither=self.params.get('dither', 0.0),
-        num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False),
-        params=self.params,
-        mel_basis=self.mel_basis
-    )
-    '''
     return source.astype(self.params['dtype'].as_numpy_dtype()), \
         np.int32([len(source)]), np.int32([idx]), \
         np.float32([audio_duration])

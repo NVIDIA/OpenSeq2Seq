@@ -143,72 +143,38 @@ def get_preprocessed_data_path(filename, params):
 
 
 def get_speech_features_from_file(filename, params):
-  '''
-                                  num_features,
-                                  features_type='spectrogram',
-                                  window_size=20e-3,
-                                  window_stride=10e-3,
-                                  augmentation=None,
-                                  window_fn=np.ones,
-                                  dither=0,
-                                  num_fft=None,
-                                  norm_per_feature=False,
-                                  cache_features=False,
-                                  cache_format="hdf5",
-                                  cache_regenerate=False,
-                                  params={},
-                                  mel_basis=None):
-
-        audio_filename, self.params['num_audio_features'],
-        pad_to=self.pad_to,
-        features_type=self.params['input_type'],
-        window_size=self.params['window_size'],
-        window_stride=self.params['window_stride'],
-        augmentation=self.params.get('augmentation', None),
-        window_fn=self.window_fns[self.params.get('window', "hanning")],
-        cache_features=self.params.get('cache_features', False),
-        cache_format=self.params.get('cache_format', 'hdf5'),
-        cache_regenerate=self.params.get('cache_regenerate', False),
-        dither=self.params.get('dither', 0.0),
-        num_fft=self.params.get('num_fft', None),
-        norm_per_feature=self.params.get('norm_per_feature', False),
-        params=self.params,
-        mel_basis=self.mel_basis
-
-
-
-  '''
   """Function to get a numpy array of features, from an audio file.
       if params['cache_features']==True, try load preprocessed data from
       disk, or store after preprocesseng.
       else, perform preprocessing on-the-fly.
 
-Args:
-  filename (string): WAVE filename.
-  num_features (int): number of speech features in frequency domain.
-  features_type (string): 'mfcc' or 'spectrogram'.
-  window_size (float): size of analysis window in milli-seconds.
-  window_stride (float): stride of analysis window in milli-seconds.
-  augmentation (dict, optional): None or dictionary of augmentation parameters.
-      If not None, has to have 'time_stretch_ratio',
-      'noise_level_min', 'noise_level_max' fields, e.g.::
-        augmentation={
-          'time_stretch_ratio': 0.2,
-          'noise_level_min': -90,
-          'noise_level_max': -46,
-        }
-  window_fn (bool): window function to apply, or None for no window
-  dither (float): weight of Gaussian noise to apply to input signal for
-        dithering/preventing quantization noise
-  num_fft (int): size of fft window to use if features require fft,
-        defaults to smallest power of 2 larger than window size
-  norm_per_feature (bool): if True, the output features will be normalized
-        (whitened) individually. if False, a global mean/std over all features
-        will be used for normalization
-Returns:
-  np.array: np.array of audio features with shape=[num_time_steps,
-  num_features].
-"""
+  Args:
+    filename (string): WAVE filename.
+    params (dict): the following parameters
+      num_features (int): number of speech features in frequency domain.
+      features_type (string): 'mfcc' or 'spectrogram'.
+      window_size (float): size of analysis window in milli-seconds.
+      window_stride (float): stride of analysis window in milli-seconds.
+      augmentation (dict, optional): None or dictionary of augmentation parameters.
+        If not None, has to have 'time_stretch_ratio',
+        'noise_level_min', 'noise_level_max' fields, e.g.::
+          augmentation={
+            'time_stretch_ratio': 0.2,
+            'noise_level_min': -90,
+            'noise_level_max': -46,
+          }
+      window_fn (bool): window function to apply, or None for no window
+      dither (float): weight of Gaussian noise to apply to input signal for
+          dithering/preventing quantization noise
+      num_fft (int): size of fft window to use if features require fft,
+          defaults to smallest power of 2 larger than window size
+      norm_per_feature (bool): if True, the output features will be normalized
+          (whitened) individually. if False, a global mean/std over all features
+          will be used for normalization
+  Returns:
+    np.array: np.array of audio features with shape=[num_time_steps,
+    num_features].
+  """
   cache_features = params.get('cache_features', False)
   cache_format = params.get('cache_format', 'hdf5')
   cache_regenerate = params.get('cache_regenerate', False)
