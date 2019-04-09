@@ -106,6 +106,7 @@ class TDNNEncoder(Encoder):
 
     normalization_params = {}
 
+    mask = None
     if self.params.get("use_conv_mask", False):
       mask = tf.sequence_mask(
           lengths=src_length,
