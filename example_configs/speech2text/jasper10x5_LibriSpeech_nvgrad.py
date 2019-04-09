@@ -197,7 +197,7 @@ train_params = {
     "data_layer": Speech2TextDataLayer,
     "data_layer_params": {
         "augmentation": {
-            'time_stretch_ratio': 0.10,
+            'speed_perturbation_ratio': [-1.10, 1., 1.10],
         },
         "dataset_files": [
             "/data/librispeech/librivox-train-clean-100.csv",

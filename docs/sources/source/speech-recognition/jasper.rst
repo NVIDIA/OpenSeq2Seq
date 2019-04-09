@@ -28,7 +28,7 @@ We use Connectionist Temporal Classification (CTC) loss to train the model. The 
 Training
 ~~~~~~~~
 
-Our current best WER is a 54 layer model trained using synthetic data and using dense residual connections following the `DenseNet paper <https://arxiv.org/abs/1608.06993>`_. We achieved a WER of 4.10% on the librispeech test-clean dataset using greedy decoding:
+Our current best WER is a 54 layer model trained using speed perturbation and using dense residual connections. We achieved a WER of 3.64% on the librispeech test-clean dataset using greedy decoding:
 
 +----------------------------+-----------------------------------------------------------------------+
 | Model                      | LibriSpeech Dataset                                                   |
@@ -37,30 +37,22 @@ Our current best WER is a 54 layer model trained using synthetic data and using 
 +                            +--------+--------+--------+--------+--------+--------+--------+--------+
 |                            | Greedy |  Beam  | Greedy |  Beam  | Greedy |  Beam  | Greedy |  Beam  |
 +============================+========+========+========+========+========+========+========+========+
-| Jasper 10x3                | 5.10   | 4.37   | 15.49  | 13.46  | 5.10   | 5.14   | 16.21  | 14.35  |
-+----------------------------+--------+--------+--------+--------+--------+--------+--------+--------+
-| Jasper 10x5                | 4.51   | 3.77   | 13.88  | 12.20  | 4.59   | 4.46   | 14.34  | 12.79  |
-+----------------------------+--------+--------+--------+--------+--------+--------+--------+--------+
-| Jasper 10x5 syn            | 4.32   | 3.74   | 13.74  | 11.57  | 4.32   | 4.39   | 14.08  | 12.21  |
-+----------------------------+--------+--------+--------+--------+--------+--------+--------+--------+
-| Jasper 10x5 dense res syn  | 4.15   | 3.64   | 13.40  | 11.37  | 4.10   | 4.04   | 14.04  | 12.40  |
+| Jasper DR 10x5             | 3.64   | TBA    | 11.89  | TBA    | 3.86   | TBA    | 11.95  | TBA    |
 +----------------------------+--------+--------+--------+--------+--------+--------+--------+--------+
 
-We used Open SLR language model while decoding with beam search using a beam width of 128.
 
-The models were trained for 400 (200 for syn) epochs on 8 GPUs. We use:
+The models were trained for 400 epochs on 8 GPUs. We use:
 
 * SGD with momentum = 0.9
 * a learning rate with polynomial decay using an initial learning rate of 0.05
 * Layer-wise Adative Rate Control (LARC) with eta = 0.001
 * weight-decay = 0.001
 * dropout (varible per layer: 0.2-0.4)
+* 2-fold speed perturbation of +/- 10%
 
 Synthetic Data
 ~~~~~~~~~~~~~~
-All models with "syn" in their name are trained using a combined dataset of Librispeech and synthetic data.
-
-The training details can be found :ref:`here <synthetic_data>`.
+More details on older models trained with synthetic data see :ref:`here <synthetic_data>`.
 
 Mixed Precision
 ~~~~~~~~~~~~~~~
