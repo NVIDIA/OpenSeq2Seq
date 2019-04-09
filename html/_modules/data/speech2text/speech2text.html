@@ -86,12 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
@@ -168,10 +169,10 @@
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
 <span class="kn">import</span> <span class="nn">six</span>
+<span class="kn">import</span> <span class="nn">math</span>
+<span class="kn">import</span> <span class="nn">librosa</span>
 <span class="kn">from</span> <span class="nn">six</span> <span class="k">import</span> <span class="n">string_types</span>
 <span class="kn">from</span> <span class="nn">six.moves</span> <span class="k">import</span> <span class="nb">range</span>
-<span class="kn">import</span> <span class="nn">inspect</span>
-<span class="kn">import</span> <span class="nn">python_speech_features</span> <span class="k">as</span> <span class="nn">psf</span>
 
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.data_layer</span> <span class="k">import</span> <span class="n">DataLayer</span>
 <span class="kn">from</span> <span class="nn">open_seq2seq.data.utils</span> <span class="k">import</span> <span class="n">load_pre_existing_vocabulary</span>
@@ -196,51 +197,75 @@
 <div class="viewcode-block" id="Speech2TextDataLayer.get_optional_params"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_optional_params">[docs]</a>  <span class="nd">@staticmethod</span>
   <span class="k">def</span> <span class="nf">get_optional_params</span><span class="p">():</span>
     <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span><span class="n">DataLayer</span><span class="o">.</span><span class="n">get_optional_params</span><span class="p">(),</span> <span class="o">**</span><span class="p">{</span>
+        <span class="s1">&#39;backend&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;psf&#39;</span><span class="p">,</span> <span class="s1">&#39;librosa&#39;</span><span class="p">],</span>
         <span class="s1">&#39;augmentation&#39;</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="s1">&#39;pad_to&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
         <span class="s1">&#39;max_duration&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;min_duration&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s1">&#39;bpe&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;autoregressive&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;syn_enable&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="s1">&#39;syn_subdirs&#39;</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span>
         <span class="s1">&#39;window_size&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
         <span class="s1">&#39;window_stride&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;dither&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span>
+        <span class="s1">&#39;norm_per_feature&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;window&#39;</span><span class="p">:</span> <span class="p">[</span><span class="s1">&#39;hanning&#39;</span><span class="p">,</span> <span class="s1">&#39;hamming&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">],</span>
+        <span class="s1">&#39;num_fft&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="s1">&#39;precompute_mel_basis&#39;</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="s1">&#39;sample_freq&#39;</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
     <span class="p">})</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.__init__"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.__init__">[docs]</a>  <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Speech-to-text data layer constructor.</span>
 <span class="sd">    See parent class for arguments description.</span>
 <span class="sd">    Config parameters:</span>
+<span class="sd">    * **backend** (str) --- audio pre-processing backend</span>
+<span class="sd">      (&#39;psf&#39; [default] or librosa [recommended]).</span>
 <span class="sd">    * **num_audio_features** (int) --- number of audio features to extract.</span>
 <span class="sd">    * **input_type** (str) --- could be either &quot;spectrogram&quot; or &quot;mfcc&quot;.</span>
 <span class="sd">    * **vocab_file** (str) --- path to vocabulary file or sentencepiece model.</span>
 <span class="sd">    * **dataset_files** (list) --- list with paths to all dataset .csv files.</span>
 <span class="sd">    * **augmentation** (dict) --- optional dictionary with data augmentation</span>
-<span class="sd">      parameters. Can contain &quot;time_stretch_ratio&quot;, &quot;noise_level_min&quot; and</span>
+<span class="sd">      parameters. Can contain &quot;speed_perturbation_ratio&quot;, &quot;noise_level_min&quot; and</span>
 <span class="sd">      &quot;noise_level_max&quot; parameters, e.g.::</span>
 <span class="sd">        {</span>
-<span class="sd">          &#39;time_stretch_ratio&#39;: 0.05,</span>
+<span class="sd">          &#39;speed_perturbation_ratio&#39;: 0.05,</span>
 <span class="sd">          &#39;noise_level_min&#39;: -90,</span>
 <span class="sd">          &#39;noise_level_max&#39;: -60,</span>
 <span class="sd">        }</span>
 <span class="sd">      For additional details on these parameters see</span>
 <span class="sd">      :func:`data.speech2text.speech_utils.augment_audio_signal` function.</span>
+<span class="sd">    * **pad_to** (int) --- align audio sequence length to pad_to value.</span>
+<span class="sd">    * **max_duration** (float) --- drop all samples longer than</span>
+<span class="sd">      **max_duration** (seconds)</span>
+<span class="sd">    * **min_duration** (float) --- drop all samples shorter than</span>
+<span class="sd">      **min_duration** (seconds)</span>
+<span class="sd">    * **bpe** (bool) --- use BPE encodings</span>
 <span class="sd">    * **autoregressive** (bool) --- boolean indicating whether the model is</span>
 <span class="sd">      autoregressive.</span>
 <span class="sd">    * **syn_enable** (bool) --- boolean indicating whether the model is</span>
 <span class="sd">      using synthetic data.</span>
 <span class="sd">    * **syn_subdirs** (list) --- must be defined if using synthetic mode.</span>
 <span class="sd">      Contains a list of subdirectories that hold the synthetica wav files.</span>
+<span class="sd">    * **window_size** (float) --- window&#39;s duration (in seconds)</span>
+<span class="sd">    * **window_stride** (float) --- window&#39;s stride (in seconds)</span>
+<span class="sd">    * **dither** (float) --- weight of Gaussian noise to apply to input signal</span>
+<span class="sd">      for dithering/preventing quantization noise</span>
+<span class="sd">    * **num_fft** (int) --- size of fft window to use if features require fft,</span>
+<span class="sd">          defaults to smallest power of 2 larger than window size</span>
+<span class="sd">    * **norm_per_feature** (bool) --- if True, the output features will be</span>
+<span class="sd">      normalized (whitened) individually. if False, a global mean/std over all</span>
+<span class="sd">      features will be used for normalization.</span>
+<span class="sd">    * **window** (str) --- window function to apply before FFT</span>
+<span class="sd">      (&#39;hanning&#39;, &#39;hamming&#39;, &#39;none&#39;)</span>
+<span class="sd">    * **num_fft** (int) --- optional FFT size</span>
+<span class="sd">    * **precompute_mel_basis** (bool) --- compute and store mel basis. If False,</span>
+<span class="sd">      it will compute it for every get_speech_features call. Default: False</span>
+<span class="sd">    * **sample_freq** (int) --- required for precompute_mel_basis</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="nb">super</span><span class="p">(</span><span class="n">Speech2TextDataLayer</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">params</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span>
                                                <span class="n">num_workers</span><span class="p">,</span> <span class="n">worker_id</span><span class="p">)</span>
-    <span class="c1"># we need this until python_speech_features gets update on pypi.org</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">apply_window</span> <span class="o">=</span> <span class="s1">&#39;winfunc&#39;</span> <span class="ow">in</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-    <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">apply_window</span> <span class="ow">and</span> \
-        <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;mfcc&#39;</span> <span class="ow">or</span> \
-         <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">):</span>
-      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;WARNING: using python_speech_features WITHOUT windowing function&#39;</span><span class="p">)</span>
-      <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Please install the latest python_speech_features (from GitHub)&#39;</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">autoregressive</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;autoregressive&#39;</span><span class="p">]</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;bpe&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;bpe&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
@@ -290,9 +315,28 @@
     <span class="bp">self</span><span class="o">.</span><span class="n">_iterator</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="kc">None</span>
 
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_duration&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_size&#39;</span><span class="p">,</span> <span class="mf">20e-3</span><span class="p">)</span>
-    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_stride&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_stride&#39;</span><span class="p">,</span> <span class="mf">10e-3</span><span class="p">)</span></div>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;min_duration&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;max_duration&#39;</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_size&#39;</span><span class="p">,</span> <span class="mf">20e-3</span><span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_stride&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_stride&#39;</span><span class="p">,</span> <span class="mf">10e-3</span><span class="p">)</span>
+
+    <span class="n">mel_basis</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;precompute_mel_basis&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;input_type&quot;</span><span class="p">]</span> <span class="o">==</span> <span class="s2">&quot;logfbank&quot;</span><span class="p">):</span>
+      <span class="n">num_fft</span> <span class="o">=</span> <span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;num_fft&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span>
+          <span class="mi">2</span><span class="o">**</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span>
+              <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">]</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;sample_freq&quot;</span><span class="p">])</span>
+          <span class="p">)</span>
+      <span class="p">)</span>
+      <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;sample_freq&quot;</span><span class="p">],</span>
+          <span class="n">num_fft</span><span class="p">,</span>
+          <span class="n">n_mels</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;num_audio_features&quot;</span><span class="p">],</span>
+          <span class="n">fmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+          <span class="n">fmax</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;sample_freq&quot;</span><span class="p">]</span><span class="o">/</span><span class="mi">2</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mel_basis&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">mel_basis</span></div>
 
 <div class="viewcode-block" id="Speech2TextDataLayer.split_data"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.split_data">[docs]</a>  <span class="k">def</span> <span class="nf">split_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;train&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num_workers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -335,6 +379,11 @@
               <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
               <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">])</span>
           <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+          <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+              <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">])</span>
+          <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
             <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">],</span>
@@ -370,10 +419,15 @@
               <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
               <span class="n">tf</span><span class="o">.</span><span class="n">less_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;max_duration&#39;</span><span class="p">])</span>
           <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">filter</span><span class="p">(</span>
+              <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">y_len</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
+              <span class="n">tf</span><span class="o">.</span><span class="n">greater_equal</span><span class="p">(</span><span class="n">duration</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;min_duration&#39;</span><span class="p">])</span>
+          <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">map</span><span class="p">(</span>
             <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">duration</span><span class="p">:</span>
             <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x_len</span><span class="p">,</span> <span class="n">idx</span><span class="p">],</span>
-            <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+            <span class="n">num_parallel_calls</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span>
         <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dataset</span><span class="o">.</span><span class="n">padded_batch</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span>
@@ -396,6 +450,12 @@
       <span class="n">x</span><span class="o">.</span><span class="n">set_shape</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span>
                    <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]])</span>
       <span class="n">x_length</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">x_length</span><span class="p">,</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;batch_size&#39;</span><span class="p">]])</span>
+
+      <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;pad_to&quot;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+      <span class="k">if</span> <span class="n">pad_to</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;librosa&#39;</span><span class="p">:</span>
+        <span class="c1"># we do padding with TF for librosa backend</span>
+        <span class="n">num_pad</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">pad_to</span> <span class="o">-</span> <span class="n">tf</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">tf</span><span class="o">.</span><span class="n">reduce_max</span><span class="p">(</span><span class="n">x_length</span><span class="p">),</span> <span class="n">pad_to</span><span class="p">),</span> <span class="n">pad_to</span><span class="p">)</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">[[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">num_pad</span><span class="p">],</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]])</span>
 
       <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span> <span class="o">=</span> <span class="p">{}</span>
       <span class="bp">self</span><span class="o">.</span><span class="n">_input_tensors</span><span class="p">[</span><span class="s2">&quot;source_tensors&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span><span class="p">,</span> <span class="n">x_length</span><span class="p">]</span>
@@ -455,7 +515,7 @@
     <span class="n">max_len</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">audio_length_arr</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">audio</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">audio_arr</span><span class="p">):</span>
       <span class="n">audio</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">pad</span><span class="p">(</span>
-          <span class="n">audio</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_len</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">audio</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">)),</span>
+          <span class="n">audio</span><span class="p">,</span> <span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_len</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="n">audio</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)),</span>
           <span class="s2">&quot;constant&quot;</span><span class="p">,</span> <span class="n">constant_values</span><span class="o">=</span><span class="mf">0.</span>
       <span class="p">)</span>
       <span class="n">audio_arr</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">audio</span>
@@ -500,16 +560,7 @@
       <span class="n">audio_filename</span> <span class="o">=</span> <span class="n">audio_filename</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;syn_subdirs&quot;</span><span class="p">]))</span>
 
     <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
-        <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span>
-        <span class="n">pad_to</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">),</span>
-        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
-        <span class="n">window_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">],</span>
-        <span class="n">window_stride</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_stride&#39;</span><span class="p">],</span>
-        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">apply_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_window</span><span class="p">,</span>
-        <span class="n">cache_features</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_features&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
-        <span class="n">cache_format</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_format&#39;</span><span class="p">,</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">),</span>
-        <span class="n">cache_regenerate</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_regenerate&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">),</span>
+        <span class="n">audio_filename</span><span class="p">,</span>
         <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
@@ -527,14 +578,8 @@
 <span class="sd">      tuple: source audio features as ``np.array``, length of source sequence,</span>
 <span class="sd">      sample id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
-        <span class="n">wav</span><span class="p">,</span> <span class="mf">16000.</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
-        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
-        <span class="n">window_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">],</span>
-        <span class="n">window_stride</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_stride&#39;</span><span class="p">],</span>
-        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">apply_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_window</span>
+        <span class="n">wav</span><span class="p">,</span> <span class="mf">16000.</span><span class="p">,</span> <span class="n">params</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
         <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="mi">0</span><span class="p">]),</span> \
@@ -550,14 +595,9 @@
 <span class="sd">      sample id.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">idx</span><span class="p">,</span> <span class="n">audio_filename</span> <span class="o">=</span> <span class="n">id_and_audio_filename</span>
-    <span class="n">pad_to</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
     <span class="n">source</span><span class="p">,</span> <span class="n">audio_duration</span> <span class="o">=</span> <span class="n">get_speech_features_from_file</span><span class="p">(</span>
-        <span class="n">audio_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">],</span> <span class="n">pad_to</span><span class="p">,</span>
-        <span class="n">features_type</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;input_type&#39;</span><span class="p">],</span>
-        <span class="n">window_size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_size&#39;</span><span class="p">],</span>
-        <span class="n">window_stride</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;window_stride&#39;</span><span class="p">],</span>
-        <span class="n">augmentation</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span>
-        <span class="n">apply_window</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">apply_window</span>
+        <span class="n">audio_filename</span><span class="p">,</span>
+        <span class="n">params</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span>
     <span class="p">)</span>
     <span class="k">return</span> <span class="n">source</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">params</span><span class="p">[</span><span class="s1">&#39;dtype&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">as_numpy_dtype</span><span class="p">()),</span> \
         <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">source</span><span class="p">)]),</span> <span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">([</span><span class="n">idx</span><span class="p">]),</span> \
@@ -580,7 +620,6 @@
 <div class="viewcode-block" id="Speech2TextDataLayer.get_size_in_samples"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech2text.Speech2TextDataLayer.get_size_in_samples">[docs]</a>  <span class="k">def</span> <span class="nf">get_size_in_samples</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Returns the number of audio files.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_files</span><span class="p">)</span></div></div>
-
 </pre></div>
 
            </div>

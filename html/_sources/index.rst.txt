@@ -8,12 +8,13 @@
    installation
    machine-translation
    speech-recognition
+   speech-commands
    speech-synthesis
    language-model
    sentiment-analysis
-   speech-commands
    distr-training
    mixed-precision
+   optimizers
    in-depth-tutorials
    interactive-infer-demos
    api-docs/modules

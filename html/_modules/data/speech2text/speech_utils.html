@@ -86,12 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
@@ -167,9 +168,21 @@
 
 <span class="kn">import</span> <span class="nn">h5py</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
-<span class="kn">import</span> <span class="nn">python_speech_features</span> <span class="k">as</span> <span class="nn">psf</span>
 <span class="kn">import</span> <span class="nn">resampy</span> <span class="k">as</span> <span class="nn">rs</span>
 <span class="kn">import</span> <span class="nn">scipy.io.wavfile</span> <span class="k">as</span> <span class="nn">wave</span>
+<span class="n">BACKENDS</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">python_speech_features</span> <span class="k">as</span> <span class="nn">psf</span>
+  <span class="n">BACKENDS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;psf&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+  <span class="k">pass</span>
+<span class="k">try</span><span class="p">:</span>
+  <span class="kn">import</span> <span class="nn">librosa</span>
+  <span class="n">BACKENDS</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;librosa&#39;</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+  <span class="k">pass</span>
+
+<span class="n">WINDOWS_FNS</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;hanning&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">,</span> <span class="s2">&quot;hamming&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">hamming</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span> <span class="kc">None</span><span class="p">}</span>
 
 
 <div class="viewcode-block" id="PreprocessOnTheFlyException"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.PreprocessOnTheFlyException">[docs]</a><span class="k">class</span> <span class="nc">PreprocessOnTheFlyException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
@@ -247,7 +260,7 @@
 <span class="sd">      generated from the relevant preprocessing parameters.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="nb">bytes</span><span class="p">):</span>  <span class="c1"># convert binary string to normal string</span>
-      <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
+    <span class="n">filename</span> <span class="o">=</span> <span class="n">filename</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)</span>
 
   <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">realpath</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>  <span class="c1"># decode symbolic links</span>
 
@@ -290,43 +303,36 @@
   <span class="k">return</span> <span class="n">preprocessed_path</span></div>
 
 
-<div class="viewcode-block" id="get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span>
-                                  <span class="n">num_features</span><span class="p">,</span>
-                                  <span class="n">pad_to</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-                                  <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
-                                  <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
-                                  <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
-                                  <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                                  <span class="n">apply_window</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                  <span class="n">cache_features</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                  <span class="n">cache_format</span><span class="o">=</span><span class="s2">&quot;hdf5&quot;</span><span class="p">,</span>
-                                  <span class="n">cache_regenerate</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                                  <span class="n">params</span><span class="o">=</span><span class="p">{}):</span>
+<div class="viewcode-block" id="get_speech_features_from_file"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_from_file">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_from_file</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Function to get a numpy array of features, from an audio file.</span>
 <span class="sd">      if params[&#39;cache_features&#39;]==True, try load preprocessed data from</span>
 <span class="sd">      disk, or store after preprocesseng.</span>
 <span class="sd">      else, perform preprocessing on-the-fly.</span>
 
-<span class="sd">Args:</span>
-<span class="sd">  filename (string): WAVE filename.</span>
-<span class="sd">  num_features (int): number of speech features in frequency domain.</span>
-<span class="sd">  features_type (string): &#39;mfcc&#39; or &#39;spectrogram&#39;.</span>
-<span class="sd">  window_size (float): size of analysis window in milli-seconds.</span>
-<span class="sd">  window_stride (float): stride of analysis window in milli-seconds.</span>
-<span class="sd">  augmentation (dict, optional): None or dictionary of augmentation parameters.</span>
-<span class="sd">      If not None, has to have &#39;time_stretch_ratio&#39;,</span>
-<span class="sd">      &#39;noise_level_min&#39;, &#39;noise_level_max&#39; fields, e.g.::</span>
-<span class="sd">        augmentation={</span>
-<span class="sd">          &#39;time_stretch_ratio&#39;: 0.2,</span>
-<span class="sd">          &#39;noise_level_min&#39;: -90,</span>
-<span class="sd">          &#39;noise_level_max&#39;: -46,</span>
-<span class="sd">        }</span>
-<span class="sd">  apply_window (bool): whether to apply Hann window for mfcc and logfbank.</span>
-<span class="sd">        python_speech_features version should accept winfunc if it is True.</span>
-<span class="sd">Returns:</span>
-<span class="sd">  np.array: np.array of audio features with shape=[num_time_steps,</span>
-<span class="sd">  num_features].</span>
-<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Args:</span>
+<span class="sd">    filename (string): WAVE filename.</span>
+<span class="sd">    params (dict): the following parameters</span>
+<span class="sd">      num_features (int): number of speech features in frequency domain.</span>
+<span class="sd">      features_type (string): &#39;mfcc&#39; or &#39;spectrogram&#39;.</span>
+<span class="sd">      window_size (float): size of analysis window in milli-seconds.</span>
+<span class="sd">      window_stride (float): stride of analysis window in milli-seconds.</span>
+<span class="sd">      augmentation (dict, optional): dictionary of augmentation parameters. See</span>
+<span class="sd">        :func:`augment_audio_signal` for specification and example.</span>
+<span class="sd">      window (str): window function to apply</span>
+<span class="sd">      dither (float): weight of Gaussian noise to apply to input signal for</span>
+<span class="sd">          dithering/preventing quantization noise</span>
+<span class="sd">      num_fft (int): size of fft window to use if features require fft,</span>
+<span class="sd">          defaults to smallest power of 2 larger than window size</span>
+<span class="sd">      norm_per_feature (bool): if True, the output features will be normalized</span>
+<span class="sd">          (whitened) individually. if False, a global mean/std over all features</span>
+<span class="sd">          will be used for normalization</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
+<span class="sd">    num_features].</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">cache_features</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_features&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+  <span class="n">cache_format</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_format&#39;</span><span class="p">,</span> <span class="s1">&#39;hdf5&#39;</span><span class="p">)</span>
+  <span class="n">cache_regenerate</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;cache_regenerate&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
   <span class="k">try</span><span class="p">:</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">cache_features</span><span class="p">:</span>
       <span class="k">raise</span> <span class="n">PreprocessOnTheFlyException</span><span class="p">(</span>
@@ -341,17 +347,12 @@
 
   <span class="k">except</span> <span class="n">PreprocessOnTheFlyException</span><span class="p">:</span>
     <span class="n">sample_freq</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
-        <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
-        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span> <span class="n">apply_window</span>
-    <span class="p">)</span>
+    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
 
   <span class="k">except</span> <span class="p">(</span><span class="ne">OSError</span><span class="p">,</span> <span class="ne">FileNotFoundError</span><span class="p">,</span> <span class="n">RegenerateCacheException</span><span class="p">):</span>
     <span class="n">sample_freq</span><span class="p">,</span> <span class="n">signal</span> <span class="o">=</span> <span class="n">wave</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="n">filename</span><span class="p">)</span>
-    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span>
-        <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
-        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span> <span class="n">apply_window</span>
-    <span class="p">)</span>
+    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+
     <span class="n">preprocessed_data_path</span> <span class="o">=</span> <span class="n">get_preprocessed_data_path</span><span class="p">(</span><span class="n">filename</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
     <span class="n">save_features</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">duration</span><span class="p">,</span> <span class="n">preprocessed_data_path</span><span class="p">,</span>
                   <span class="n">data_format</span><span class="o">=</span><span class="n">cache_format</span><span class="p">)</span>
@@ -363,7 +364,7 @@
   <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">  Normalize float32 signal to [-1, 1] range</span>
 <span class="sd">  &quot;&quot;&quot;</span>
-  <span class="k">return</span> <span class="n">signal</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span></div>
+  <span class="k">return</span> <span class="n">signal</span> <span class="o">/</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">signal</span><span class="p">))</span> <span class="o">+</span> <span class="mf">1e-5</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="augment_audio_signal"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.augment_audio_signal">[docs]</a><span class="k">def</span> <span class="nf">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">):</span>
@@ -372,41 +373,116 @@
 <span class="sd">  Args:</span>
 <span class="sd">    signal (np.array): np.array containing raw audio signal.</span>
 <span class="sd">    sample_freq (float): frames per second.</span>
-<span class="sd">    augmentation (dict): dictionary of augmentation parameters. See</span>
-<span class="sd">        :func:`get_speech_features_from_file` for specification and example.</span>
+<span class="sd">    augmentation (dict, optional): None or dictionary of augmentation parameters.</span>
+<span class="sd">        If not None, has to have &#39;speed_perturbation_ratio&#39;,</span>
+<span class="sd">        &#39;noise_level_min&#39;, or &#39;noise_level_max&#39; fields, e.g.::</span>
+<span class="sd">          augmentation={</span>
+<span class="sd">            &#39;speed_perturbation_ratio&#39;: 0.2,</span>
+<span class="sd">            &#39;noise_level_min&#39;: -90,</span>
+<span class="sd">            &#39;noise_level_max&#39;: -46,</span>
+<span class="sd">          }</span>
+<span class="sd">        &#39;speed_perturbation_ratio&#39; can either be a list of possible speed</span>
+<span class="sd">        perturbation factors or a float. If float, a random value from </span>
+<span class="sd">        U[1-speed_perturbation_ratio, 1+speed_perturbation_ratio].</span>
 <span class="sd">  Returns:</span>
 <span class="sd">    np.array: np.array with augmented audio signal.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
   <span class="n">signal_float</span> <span class="o">=</span> <span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
 
-  <span class="k">if</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-    <span class="c1"># time stretch (might be slow)</span>
-    <span class="n">stretch_amount</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> \
-                     <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
+  <span class="k">if</span> <span class="s1">&#39;time_stretch_ratio&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;WARNING: Please update time_stretch_ratio to speed_perturbation_ratio&quot;</span><span class="p">)</span>
+    <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
+
+  <span class="k">if</span> <span class="s1">&#39;speed_perturbation_ratio&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">],</span> <span class="nb">list</span><span class="p">):</span>
+      <span class="n">stretch_amount</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+      <span class="c1"># time stretch (might be slow)</span>
+      <span class="n">stretch_amount</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">+</span> <span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">()</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span> <span class="o">*</span> \
+                       <span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">]</span>
     <span class="n">signal_float</span> <span class="o">=</span> <span class="n">rs</span><span class="o">.</span><span class="n">resample</span><span class="p">(</span>
         <span class="n">signal_float</span><span class="p">,</span>
         <span class="n">sample_freq</span><span class="p">,</span>
         <span class="nb">int</span><span class="p">(</span><span class="n">sample_freq</span> <span class="o">*</span> <span class="n">stretch_amount</span><span class="p">),</span>
-        <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;kaiser_fast&#39;</span><span class="p">,</span>
+        <span class="nb">filter</span><span class="o">=</span><span class="s1">&#39;kaiser_best&#39;</span><span class="p">,</span>
     <span class="p">)</span>
 
   <span class="c1"># noise</span>
-  <span class="n">noise_level_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_min&#39;</span><span class="p">],</span>
-                                     <span class="n">high</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_max&#39;</span><span class="p">])</span>
-  <span class="n">signal_float</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">signal_float</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> \
-                  <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">noise_level_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
+  <span class="k">if</span> <span class="s1">&#39;noise_level_min&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span> <span class="ow">and</span> <span class="s1">&#39;noise_level_max&#39;</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
+    <span class="n">noise_level_db</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randint</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_min&#39;</span><span class="p">],</span>
+                                       <span class="n">high</span><span class="o">=</span><span class="n">augmentation</span><span class="p">[</span><span class="s1">&#39;noise_level_max&#39;</span><span class="p">])</span>
+    <span class="n">signal_float</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="n">signal_float</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="o">*</span> \
+                    <span class="mf">10.0</span> <span class="o">**</span> <span class="p">(</span><span class="n">noise_level_db</span> <span class="o">/</span> <span class="mf">20.0</span><span class="p">)</span>
 
-  <span class="k">return</span> <span class="p">(</span><span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal_float</span><span class="p">)</span> <span class="o">*</span> <span class="mf">32767.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int16</span><span class="p">)</span></div>
+  <span class="k">return</span> <span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal_float</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="get_speech_features"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
-                        <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
-                        <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
-                        <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
-                        <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                        <span class="n">apply_window</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="preemphasis"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.preemphasis">[docs]</a><span class="k">def</span> <span class="nf">preemphasis</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="mf">0.97</span><span class="p">):</span>
+  <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">signal</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">signal</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">-</span> <span class="n">coeff</span> <span class="o">*</span> <span class="n">signal</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
+
+
+<div class="viewcode-block" id="get_speech_features"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">params</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">  Get speech features using either librosa (recommended) or</span>
+<span class="sd">  python_speech_features</span>
+<span class="sd">  Args:</span>
+<span class="sd">    signal (np.array): np.array containing raw audio signal</span>
+<span class="sd">    sample_freq (float): sample rate of the signal</span>
+<span class="sd">    params (dict): parameters of pre-processing</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
+<span class="sd">    num_features].</span>
+<span class="sd">    audio_duration (float): duration of the signal in seconds</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+
+  <span class="n">backend</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;backend&#39;</span><span class="p">,</span> <span class="s1">&#39;psf&#39;</span><span class="p">)</span>
+
+  <span class="n">features_type</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;input_type&#39;</span><span class="p">,</span> <span class="s1">&#39;spectrogram&#39;</span><span class="p">)</span>
+  <span class="n">num_features</span> <span class="o">=</span> <span class="n">params</span><span class="p">[</span><span class="s1">&#39;num_audio_features&#39;</span><span class="p">]</span>
+  <span class="n">window_size</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_size&#39;</span><span class="p">,</span> <span class="mf">20e-3</span><span class="p">)</span>
+  <span class="n">window_stride</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window_stride&#39;</span><span class="p">,</span> <span class="mf">10e-3</span><span class="p">)</span>
+  <span class="n">augmentation</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;augmentation&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">backend</span> <span class="o">==</span> <span class="s1">&#39;librosa&#39;</span><span class="p">:</span>
+    <span class="n">window_fn</span> <span class="o">=</span> <span class="n">WINDOWS_FNS</span><span class="p">[</span><span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;window&#39;</span><span class="p">,</span> <span class="s2">&quot;hanning&quot;</span><span class="p">)]</span>
+    <span class="n">dither</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;dither&#39;</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
+    <span class="n">num_fft</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;num_fft&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">norm_per_feature</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;norm_per_feature&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+    <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mel_basis&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">mel_basis</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">sample_freq</span> <span class="o">!=</span> <span class="n">params</span><span class="p">[</span><span class="s2">&quot;sample_freq&quot;</span><span class="p">]:</span>
+      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+          <span class="p">(</span><span class="s2">&quot;The sampling frequency set in params </span><span class="si">{}</span><span class="s2"> does not match the &quot;</span>
+           <span class="s2">&quot;frequency </span><span class="si">{}</span><span class="s2"> read from file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="s2">&quot;sample_freq&quot;</span><span class="p">],</span>
+                                                    <span class="n">sample_freq</span><span class="p">,</span> <span class="n">filename</span><span class="p">)</span>
+      <span class="p">)</span>
+    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features_librosa</span><span class="p">(</span>
+        <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">,</span> <span class="n">window_fn</span><span class="o">=</span><span class="n">window_fn</span><span class="p">,</span>
+        <span class="n">dither</span><span class="o">=</span><span class="n">dither</span><span class="p">,</span> <span class="n">norm_per_feature</span><span class="o">=</span><span class="n">norm_per_feature</span><span class="p">,</span> <span class="n">num_fft</span><span class="o">=</span><span class="n">num_fft</span><span class="p">,</span>
+        <span class="n">mel_basis</span><span class="o">=</span><span class="n">mel_basis</span>
+    <span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">pad_to</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;pad_to&#39;</span><span class="p">,</span> <span class="mi">8</span><span class="p">)</span>
+    <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> <span class="o">=</span> <span class="n">get_speech_features_psf</span><span class="p">(</span>
+        <span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span> <span class="n">pad_to</span><span class="p">,</span> <span class="n">features_type</span><span class="p">,</span>
+        <span class="n">window_size</span><span class="p">,</span> <span class="n">window_stride</span><span class="p">,</span> <span class="n">augmentation</span>
+    <span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">duration</span> </div>
+
+
+<div class="viewcode-block" id="get_speech_features_librosa"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_librosa">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_librosa</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span>
+                                <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
+                                <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
+                                <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
+                                <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">window_fn</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">,</span>
+                                <span class="n">num_fft</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                                <span class="n">dither</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                                <span class="n">norm_per_feature</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                <span class="n">mel_basis</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Function to convert raw audio signal to numpy array of features.</span>
-
+<span class="sd">  Backend: librosa</span>
 <span class="sd">  Args:</span>
 <span class="sd">    signal (np.array): np.array containing raw audio signal.</span>
 <span class="sd">    sample_freq (float): frames per second.</span>
@@ -417,25 +493,111 @@
 <span class="sd">    window_size (float): size of analysis window in milli-seconds.</span>
 <span class="sd">    window_stride (float): stride of analysis window in milli-seconds.</span>
 <span class="sd">    augmentation (dict, optional): dictionary of augmentation parameters. See</span>
-<span class="sd">        :func:`get_speech_features_from_file` for specification and example.</span>
-<span class="sd">    apply_window (bool): whether to apply Hann window for mfcc and logfbank.</span>
-<span class="sd">        python_speech_features version should accept winfunc if it is True.</span>
+<span class="sd">        :func:`augment_audio_signal` for specification and example.</span>
 
 <span class="sd">  Returns:</span>
 <span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
 <span class="sd">    num_features].</span>
 <span class="sd">    audio_duration (float): duration of the signal in seconds</span>
 <span class="sd">  &quot;&quot;&quot;</span>
+  <span class="k">if</span> <span class="n">augmentation</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">),</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">)</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span>
+
+  <span class="n">audio_duration</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">signal</span><span class="p">)</span> <span class="o">*</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="n">sample_freq</span>
+
+  <span class="n">n_window_size</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_freq</span> <span class="o">*</span> <span class="n">window_size</span><span class="p">)</span>
+  <span class="n">n_window_stride</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">sample_freq</span> <span class="o">*</span> <span class="n">window_stride</span><span class="p">)</span>
+  <span class="n">num_fft</span> <span class="o">=</span> <span class="n">num_fft</span> <span class="ow">or</span> <span class="mi">2</span><span class="o">**</span><span class="n">math</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">log2</span><span class="p">(</span><span class="n">window_size</span><span class="o">*</span><span class="n">sample_freq</span><span class="p">))</span>
+
+  <span class="k">if</span> <span class="n">dither</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">+=</span> <span class="n">dither</span><span class="o">*</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="o">*</span><span class="n">signal</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+  <span class="k">if</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;spectrogram&#39;</span><span class="p">:</span>
+    <span class="c1"># ignore 1/n_fft multiplier, since there is a post-normalization</span>
+    <span class="n">powspec</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span>
+        <span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">n_window_size</span><span class="p">,</span>
+        <span class="n">hop_length</span><span class="o">=</span><span class="n">n_window_stride</span><span class="p">,</span> <span class="n">win_length</span><span class="o">=</span><span class="n">n_window_size</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="n">window</span><span class="o">=</span><span class="n">window_fn</span><span class="p">)))</span>
+    <span class="c1"># remove small bins</span>
+    <span class="n">powspec</span><span class="p">[</span><span class="n">powspec</span> <span class="o">&lt;=</span> <span class="mf">1e-30</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1e-30</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="mi">10</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">(</span><span class="n">powspec</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+
+    <span class="k">assert</span> <span class="n">num_features</span> <span class="o">&lt;=</span> <span class="n">n_window_size</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> \
+      <span class="s2">&quot;num_features for spectrogram should be &lt;= (sample_freq * window_size // 2 + 1)&quot;</span>
+
+    <span class="c1"># cut high frequency part</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features</span><span class="p">]</span>
+
+  <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">preemphasis</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">coeff</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">square</span><span class="p">(</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span>
+                <span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">num_fft</span><span class="p">,</span>
+                                  <span class="n">hop_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">window_stride</span> <span class="o">*</span> <span class="n">sample_freq</span><span class="p">),</span>
+                                  <span class="n">win_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">window_size</span> <span class="o">*</span> <span class="n">sample_freq</span><span class="p">),</span>
+                                  <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window_fn</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">feature</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">sr</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span> <span class="n">S</span><span class="o">=</span><span class="n">S</span><span class="p">,</span>
+        <span class="n">n_mfcc</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span> <span class="n">n_mels</span><span class="o">=</span><span class="mi">2</span><span class="o">*</span><span class="n">num_features</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+  <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">:</span>
+    <span class="n">signal</span> <span class="o">=</span> <span class="n">preemphasis</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span><span class="n">coeff</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
+    <span class="n">S</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">librosa</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">stft</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">n_fft</span><span class="o">=</span><span class="n">num_fft</span><span class="p">,</span>
+                                 <span class="n">hop_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">window_stride</span> <span class="o">*</span> <span class="n">sample_freq</span><span class="p">),</span>
+                                 <span class="n">win_length</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">window_size</span> <span class="o">*</span> <span class="n">sample_freq</span><span class="p">),</span>
+                                 <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">window</span><span class="o">=</span><span class="n">window_fn</span><span class="p">))</span><span class="o">**</span><span class="mf">2.0</span>
+    <span class="k">if</span> <span class="n">mel_basis</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+      <span class="c1"># Build a Mel filter</span>
+      <span class="n">mel_basis</span> <span class="o">=</span> <span class="n">librosa</span><span class="o">.</span><span class="n">filters</span><span class="o">.</span><span class="n">mel</span><span class="p">(</span><span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_fft</span><span class="p">,</span> <span class="n">n_mels</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                                      <span class="n">fmin</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">fmax</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">sample_freq</span><span class="o">/</span><span class="mi">2</span><span class="p">))</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">mel_basis</span><span class="p">,</span> <span class="n">S</span><span class="p">)</span> <span class="o">+</span> <span class="mf">1e-20</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+  <span class="k">else</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown features type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">features_type</span><span class="p">))</span>
+
+  <span class="n">norm_axis</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">norm_per_feature</span> <span class="k">else</span> <span class="kc">None</span>
+  <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">norm_axis</span><span class="p">)</span>
+  <span class="n">std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">features</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">norm_axis</span><span class="p">)</span>
+  <span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_dev</span>
+
+  <span class="c1"># now it is safe to pad</span>
+  <span class="c1"># if pad_to &gt; 0:</span>
+  <span class="c1">#   if features.shape[0] % pad_to != 0:</span>
+  <span class="c1">#     pad_size = pad_to - features.shape[0] % pad_to</span>
+  <span class="c1">#     if pad_size != 0:</span>
+  <span class="c1">#         features = np.pad(features, ((0,pad_size), (0,0)), mode=&#39;constant&#39;)</span>
+  <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">audio_duration</span></div>
+
+
+<div class="viewcode-block" id="get_speech_features_psf"><a class="viewcode-back" href="../../../api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_psf">[docs]</a><span class="k">def</span> <span class="nf">get_speech_features_psf</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">num_features</span><span class="p">,</span>
+                            <span class="n">pad_to</span><span class="o">=</span><span class="mi">8</span><span class="p">,</span>
+                            <span class="n">features_type</span><span class="o">=</span><span class="s1">&#39;spectrogram&#39;</span><span class="p">,</span>
+                            <span class="n">window_size</span><span class="o">=</span><span class="mf">20e-3</span><span class="p">,</span>
+                            <span class="n">window_stride</span><span class="o">=</span><span class="mf">10e-3</span><span class="p">,</span>
+                            <span class="n">augmentation</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Function to convert raw audio signal to numpy array of features.</span>
+<span class="sd">  Backend: python_speech_features</span>
+<span class="sd">  Args:</span>
+<span class="sd">    signal (np.array): np.array containing raw audio signal.</span>
+<span class="sd">    sample_freq (float): frames per second.</span>
+<span class="sd">    num_features (int): number of speech features in frequency domain.</span>
+<span class="sd">    pad_to (int): if specified, the length will be padded to become divisible</span>
+<span class="sd">        by ``pad_to`` parameter.</span>
+<span class="sd">    features_type (string): &#39;mfcc&#39; or &#39;spectrogram&#39;.</span>
+<span class="sd">    window_size (float): size of analysis window in milli-seconds.</span>
+<span class="sd">    window_stride (float): stride of analysis window in milli-seconds.</span>
+<span class="sd">    augmentation (dict, optional): dictionary of augmentation parameters. See</span>
+<span class="sd">        :func:`augment_audio_signal` for specification and example.</span>
+<span class="sd">    apply_window (bool): whether to apply Hann window for mfcc and logfbank.</span>
+<span class="sd">        python_speech_features version should accept winfunc if it is True.</span>
+<span class="sd">  Returns:</span>
+<span class="sd">    np.array: np.array of audio features with shape=[num_time_steps,</span>
+<span class="sd">    num_features].</span>
+<span class="sd">    audio_duration (float): duration of the signal in seconds</span>
+<span class="sd">  &quot;&quot;&quot;</span>
   <span class="k">if</span> <span class="n">augmentation</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-    <span class="k">if</span> <span class="s1">&#39;time_stretch_ratio&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;time_stretch_ratio has to be included in augmentation &#39;</span>
-                       <span class="s1">&#39;when augmentation it is not None&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;noise_level_min&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;noise_level_min has to be included in augmentation &#39;</span>
-                       <span class="s1">&#39;when augmentation it is not None&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="s1">&#39;noise_level_max&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">augmentation</span><span class="p">:</span>
-      <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;noise_level_max has to be included in augmentation &#39;</span>
-                       <span class="s1">&#39;when augmentation it is not None&#39;</span><span class="p">)</span>
     <span class="n">signal</span> <span class="o">=</span> <span class="n">augment_audio_signal</span><span class="p">(</span><span class="n">signal</span><span class="p">,</span> <span class="n">sample_freq</span><span class="p">,</span> <span class="n">augmentation</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="n">signal</span> <span class="o">=</span> <span class="p">(</span><span class="n">normalize_signal</span><span class="p">(</span><span class="n">signal</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">))</span> <span class="o">*</span> <span class="mf">32767.0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span>
@@ -470,53 +632,27 @@
     <span class="n">features</span> <span class="o">=</span> <span class="n">features</span><span class="p">[:,</span> <span class="p">:</span><span class="n">num_features</span><span class="p">]</span>
 
   <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;mfcc&#39;</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">apply_window</span><span class="p">:</span>
-      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                          <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                          <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                          <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                          <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                          <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                          <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-                          <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                          <span class="n">winfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                          <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                          <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                          <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                          <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                          <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                          <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-                          <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
-                          <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">mfcc</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                        <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                        <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                        <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                        <span class="n">numcep</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                        <span class="n">nfilt</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                        <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                        <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                        <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
+                        <span class="n">ceplifter</span><span class="o">=</span><span class="mi">2</span> <span class="o">*</span> <span class="n">num_features</span><span class="p">,</span>
+                        <span class="n">appendEnergy</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
   <span class="k">elif</span> <span class="n">features_type</span> <span class="o">==</span> <span class="s1">&#39;logfbank&#39;</span><span class="p">:</span>
-    <span class="k">if</span> <span class="n">apply_window</span><span class="p">:</span>
-      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                              <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                              <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                              <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                              <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                              <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                              <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                              <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">,</span>
-                              <span class="n">winfunc</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">hanning</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span>
-      <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
-                              <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
-                              <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
-                              <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
-                              <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
-                              <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
-                              <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
-                              <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
-
+    <span class="n">features</span> <span class="o">=</span> <span class="n">psf</span><span class="o">.</span><span class="n">logfbank</span><span class="p">(</span><span class="n">signal</span><span class="o">=</span><span class="n">signal</span><span class="p">,</span>
+                            <span class="n">samplerate</span><span class="o">=</span><span class="n">sample_freq</span><span class="p">,</span>
+                            <span class="n">winlen</span><span class="o">=</span><span class="n">window_size</span><span class="p">,</span>
+                            <span class="n">winstep</span><span class="o">=</span><span class="n">window_stride</span><span class="p">,</span>
+                            <span class="n">nfilt</span><span class="o">=</span><span class="n">num_features</span><span class="p">,</span>
+                            <span class="n">nfft</span><span class="o">=</span><span class="mi">512</span><span class="p">,</span>
+                            <span class="n">lowfreq</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">highfreq</span><span class="o">=</span><span class="n">sample_freq</span> <span class="o">/</span> <span class="mi">2</span><span class="p">,</span>
+                            <span class="n">preemph</span><span class="o">=</span><span class="mf">0.97</span><span class="p">)</span>
   <span class="k">else</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown features type: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">features_type</span><span class="p">))</span>
 
@@ -525,7 +661,9 @@
   <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">std_dev</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">features</span><span class="p">)</span>
   <span class="n">features</span> <span class="o">=</span> <span class="p">(</span><span class="n">features</span> <span class="o">-</span> <span class="n">mean</span><span class="p">)</span> <span class="o">/</span> <span class="n">std_dev</span>
+
   <span class="k">return</span> <span class="n">features</span><span class="p">,</span> <span class="n">audio_duration</span></div>
+
 </pre></div>
 
            </div>

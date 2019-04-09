@@ -86,12 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
@@ -168,7 +169,9 @@
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">absolute_import</span><span class="p">,</span> <span class="n">division</span><span class="p">,</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">unicode_literals</span>
 
+<span class="kn">import</span> <span class="nn">math</span>
 <span class="kn">import</span> <span class="nn">tensorflow</span> <span class="k">as</span> <span class="nn">tf</span>
+<span class="kn">from</span> <span class="nn">tensorflow.python.framework</span> <span class="k">import</span> <span class="n">ops</span>
 
 
 <div class="viewcode-block" id="fixed_lr"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.lr_policies.fixed_lr">[docs]</a><span class="k">def</span> <span class="nf">fixed_lr</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">):</span>
@@ -251,7 +254,7 @@
 
 
 <div class="viewcode-block" id="poly_decay"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.lr_policies.poly_decay">[docs]</a><span class="k">def</span> <span class="nf">poly_decay</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">,</span> <span class="n">decay_steps</span><span class="p">,</span> <span class="n">power</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
-               <span class="n">begin_decay_at</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">min_lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+               <span class="n">begin_decay_at</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">min_lr</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">warmup_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
   <span class="sd">&quot;&quot;&quot;Polynomial decay learning rate policy.</span>
 <span class="sd">  This function is equivalent to ``tensorflow.train.polynomial_decay`` with</span>
 <span class="sd">  some additional functionality. Namely, it adds ``begin_decay_at`` parameter</span>
@@ -269,6 +272,15 @@
 <span class="sd">  Returns:</span>
 <span class="sd">    learning rate at step ``global_step``.</span>
 <span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">begin_decay_at</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">warmup_steps</span><span class="p">,</span> <span class="n">begin_decay_at</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">warmup_steps</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="c1"># g_step = tf.cast(global_step, dtype=tf.float32)</span>
+    <span class="c1"># warmup = tf.cast(warmup_steps, dtype=tf.float32)</span>
+    <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+      <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">warmup_steps</span><span class="p">,</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="p">(</span><span class="n">learning_rate</span><span class="o">*</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span><span class="o">/</span><span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">warmup_steps</span><span class="p">,</span><span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)),</span>
+      <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
+    <span class="p">)</span>
   <span class="n">lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
       <span class="n">global_step</span> <span class="o">&lt;</span> <span class="n">begin_decay_at</span><span class="p">,</span>
       <span class="k">lambda</span><span class="p">:</span> <span class="n">learning_rate</span><span class="p">,</span>
@@ -313,6 +325,53 @@
   <span class="k">if</span> <span class="n">max_lr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="k">return</span> <span class="n">tf</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">max_lr</span><span class="p">,</span> <span class="n">new_lr</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">new_lr</span></div>
+
+<div class="viewcode-block" id="inv_poly_decay"><a class="viewcode-back" href="../../api-docs/optimizers.html#optimizers.lr_policies.inv_poly_decay">[docs]</a><span class="k">def</span> <span class="nf">inv_poly_decay</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">,</span> <span class="n">decay_steps</span><span class="p">,</span> <span class="n">min_lr</span><span class="p">,</span>
+              <span class="n">power</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">begin_decay_at</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">warmup_steps</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+              <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">):</span>
+  <span class="sd">&quot;&quot;&quot;Inverse poly decay learning rate policy.</span>
+<span class="sd">  lr  = initial lr / ( 1+ decay * t)^power</span>
+<span class="sd">  This function is similar to ``tensorflow.train.inv_time_decay`` with</span>
+<span class="sd">  some additional functionality. Namely, it adds :</span>
+<span class="sd">  ``min_lr`` - end learning rate  with 0.00001</span>
+<span class="sd">  ``power``  - power</span>
+<span class="sd">  ``begin_decay_at``-  first step to start decaying learning rate.</span>
+
+<span class="sd">  Args:</span>
+<span class="sd">    global_step: global step TensorFlow tensor.</span>
+<span class="sd">    learning_rate (float): initial learning rate to use.</span>
+<span class="sd">    decay_steps (int): number of steps to apply decay for.</span>
+<span class="sd">    power (float): power for inv_time_decay.</span>
+<span class="sd">    begin_decay_at (int): the first step to start decaying learning rate.</span>
+<span class="sd">    min_lr (float): minimal value of the learning rate</span>
+<span class="sd">        (same as ``end_learning_rate`` TensorFlow parameter).</span>
+
+<span class="sd">  Returns:</span>
+<span class="sd">    learning rate at step ``global_step``.</span>
+<span class="sd">  &quot;&quot;&quot;</span>
+  <span class="n">min_lr</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="n">min_lr</span><span class="p">,</span> <span class="mf">1e-8</span><span class="p">)</span>
+  <span class="n">min_lr</span><span class="o">=</span><span class="nb">min</span><span class="p">(</span><span class="n">min_lr</span><span class="p">,</span> <span class="n">learning_rate</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">power</span> <span class="o">&lt;=</span> <span class="mf">0.</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inv poly decay requires power &gt;  0.&quot;</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">global_step</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Inv poly decay requires global_step&quot;</span><span class="p">)</span>
+
+  <span class="k">with</span> <span class="n">ops</span><span class="o">.</span><span class="n">name_scope</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="s2">&quot;InvDecay&quot;</span><span class="p">,</span>
+                      <span class="p">[</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">global_step</span><span class="p">])</span> <span class="k">as</span> <span class="n">name</span><span class="p">:</span>
+    <span class="n">scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">math</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="n">learning_rate</span> <span class="o">/</span> <span class="n">min_lr</span><span class="p">,</span> <span class="mf">1.</span><span class="o">/</span><span class="n">power</span><span class="p">)</span> <span class="o">-</span> <span class="mf">1.</span><span class="p">)</span> <span class="o">/</span> <span class="n">decay_steps</span>
+
+    <span class="n">learning_rate</span> <span class="o">=</span> <span class="n">ops</span><span class="o">.</span><span class="n">convert_to_tensor</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;learning_rate&quot;</span><span class="p">)</span>
+
+    <span class="n">decay_steps</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">decay_steps</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">global_step</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cast</span><span class="p">(</span><span class="n">global_step</span><span class="p">,</span> <span class="n">tf</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
+    <span class="n">denom</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">pow</span><span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="n">scale</span> <span class="o">*</span> <span class="n">global_step</span> <span class="p">,</span> <span class="n">power</span><span class="p">)</span>
+    <span class="n">lr</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">div</span><span class="p">(</span><span class="n">learning_rate</span><span class="p">,</span>  <span class="n">denom</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+
+  <span class="k">return</span> <span class="n">lr</span></div>
+
+
+
+
 </pre></div>
 
            </div>

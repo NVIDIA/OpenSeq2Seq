@@ -88,12 +88,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
@@ -540,6 +541,38 @@ value.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="optimizers.lr_policies.inv_poly_decay">
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">inv_poly_decay</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>decay_steps</em>, <em>min_lr</em>, <em>power=1.0</em>, <em>begin_decay_at=0</em>, <em>warmup_steps=0</em>, <em>name='learning_rate'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#inv_poly_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.inv_poly_decay" title="Permalink to this definition">¶</a></dt>
+<dd><p>Inverse poly decay learning rate policy.
+lr  = initial lr / ( 1+ decay * t)^power
+This function is similar to <code class="docutils literal notranslate"><span class="pre">tensorflow.train.inv_time_decay</span></code> with
+some additional functionality. Namely, it adds :
+<code class="docutils literal notranslate"><span class="pre">min_lr</span></code> - end learning rate  with 0.00001
+<code class="docutils literal notranslate"><span class="pre">power</span></code>  - power
+<code class="docutils literal notranslate"><span class="pre">begin_decay_at</span></code>-  first step to start decaying learning rate.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_step</strong> – global step TensorFlow tensor.</li>
+<li><strong>learning_rate</strong> (<em>float</em>) – initial learning rate to use.</li>
+<li><strong>decay_steps</strong> (<em>int</em>) – number of steps to apply decay for.</li>
+<li><strong>power</strong> (<em>float</em>) – power for inv_time_decay.</li>
+<li><strong>begin_decay_at</strong> (<em>int</em>) – the first step to start decaying learning rate.</li>
+<li><strong>min_lr</strong> (<em>float</em>) – minimal value of the learning rate
+(same as <code class="docutils literal notranslate"><span class="pre">end_learning_rate</span></code> TensorFlow parameter).</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last">learning rate at step <code class="docutils literal notranslate"><span class="pre">global_step</span></code>.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="optimizers.lr_policies.piecewise_constant">
 <code class="descclassname">optimizers.lr_policies.</code><code class="descname">piecewise_constant</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>boundaries</em>, <em>decay_rates</em>, <em>steps_per_epoch=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#piecewise_constant"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.piecewise_constant" title="Permalink to this definition">¶</a></dt>
 <dd><p>Piecewise constant learning rate decay.
@@ -573,7 +606,7 @@ boundaries are treated as epochs, otherwise as steps.</li>
 
 <dl class="function">
 <dt id="optimizers.lr_policies.poly_decay">
-<code class="descclassname">optimizers.lr_policies.</code><code class="descname">poly_decay</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>decay_steps</em>, <em>power=1.0</em>, <em>begin_decay_at=0</em>, <em>min_lr=0.0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#poly_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.poly_decay" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">optimizers.lr_policies.</code><code class="descname">poly_decay</code><span class="sig-paren">(</span><em>global_step</em>, <em>learning_rate</em>, <em>decay_steps</em>, <em>power=1.0</em>, <em>begin_decay_at=0</em>, <em>min_lr=0.0</em>, <em>warmup_steps=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/optimizers/lr_policies.html#poly_decay"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#optimizers.lr_policies.poly_decay" title="Permalink to this definition">¶</a></dt>
 <dd><p>Polynomial decay learning rate policy.
 This function is equivalent to <code class="docutils literal notranslate"><span class="pre">tensorflow.train.polynomial_decay</span></code> with
 some additional functionality. Namely, it adds <code class="docutils literal notranslate"><span class="pre">begin_decay_at</span></code> parameter

@@ -87,12 +87,13 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
@@ -235,6 +236,8 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding.__init__">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.__init__">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.tdnn_encoder.TDNNEncoder.__init__">(encoders.tdnn_encoder.TDNNEncoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.__init__">(encoders.wavenet_encoder.WavenetEncoder method)</a>
 </li>
@@ -385,6 +388,8 @@
         <li><a href="api-docs/encoders.html#encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding._encode">(encoders.rnn_encoders.UnidirectionalRNNEncoderWithEmbedding method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder._encode">(encoders.tacotron2_encoder.Tacotron2Encoder method)</a>
+</li>
+        <li><a href="api-docs/encoders.html#encoders.tdnn_encoder.TDNNEncoder._encode">(encoders.tdnn_encoder.TDNNEncoder method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder._encode">(encoders.wavenet_encoder.WavenetEncoder method)</a>
 </li>
@@ -913,15 +918,17 @@
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.encoder">encoders.encoder (module)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_blocks">encoders.resnet_blocks (module)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api-docs/encoders.html#module-encoders.resnet_encoder">encoders.resnet_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.rnn_encoders">encoders.rnn_encoders (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.tacotron2_encoder">encoders.tacotron2_encoder (module)</a>
+</li>
+      <li><a href="api-docs/encoders.html#module-encoders.tdnn_encoder">encoders.tdnn_encoder (module)</a>
 </li>
       <li><a href="api-docs/encoders.html#module-encoders.transformer_encoder">encoders.transformer_encoder (module)</a>
 </li>
@@ -1098,6 +1105,8 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.get_optional_params">(encoders.tacotron2_encoder.Tacotron2Encoder static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.tdnn_encoder.TDNNEncoder.get_optional_params">(encoders.tdnn_encoder.TDNNEncoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.transformer_encoder.TransformerEncoder.get_optional_params">(encoders.transformer_encoder.TransformerEncoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_optional_params">(encoders.wavenet_encoder.WavenetEncoder static method)</a>
@@ -1190,6 +1199,8 @@
 </li>
         <li><a href="api-docs/encoders.html#encoders.tacotron2_encoder.Tacotron2Encoder.get_required_params">(encoders.tacotron2_encoder.Tacotron2Encoder static method)</a>
 </li>
+        <li><a href="api-docs/encoders.html#encoders.tdnn_encoder.TDNNEncoder.get_required_params">(encoders.tdnn_encoder.TDNNEncoder static method)</a>
+</li>
         <li><a href="api-docs/encoders.html#encoders.transformer_encoder.TransformerEncoder.get_required_params">(encoders.transformer_encoder.TransformerEncoder static method)</a>
 </li>
         <li><a href="api-docs/encoders.html#encoders.wavenet_encoder.WavenetEncoder.get_required_params">(encoders.wavenet_encoder.WavenetEncoder static method)</a>
@@ -1247,6 +1258,10 @@
         <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.get_speech_features_from_file">(in module data.text2speech.speech_utils)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_librosa">get_speech_features_librosa() (in module data.speech2text.speech_utils)</a>
+</li>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.get_speech_features_psf">get_speech_features_psf() (in module data.speech2text.speech_utils)</a>
+</li>
       <li><a href="api-docs/models.html#models.model.Model.get_tf_dtype">get_tf_dtype() (models.model.Model method)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.glstm.GLSTMCell">GLSTMCell (class in parts.rnns.glstm)</a>
@@ -1331,6 +1346,8 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/optimizers.html#optimizers.lr_policies.inv_poly_decay">inv_poly_decay() (in module optimizers.lr_policies)</a>
+</li>
       <li><a href="api-docs/data.text2speech.html#data.text2speech.speech_utils.inverse_mel">inverse_mel() (in module data.text2speech.speech_utils)</a>
 </li>
       <li><a href="api-docs/utils.html#utils.utils.iterate_data">iterate_data() (in module utils.utils)</a>
@@ -1665,6 +1682,8 @@
         <li><a href="api-docs/decoders.html#decoders.transformer_decoder.TransformerDecoder.predict">(decoders.transformer_decoder.TransformerDecoder method)</a>
 </li>
       </ul></li>
+      <li><a href="api-docs/data.speech2text.html#data.speech2text.speech_utils.preemphasis">preemphasis() (in module data.speech2text.speech_utils)</a>
+</li>
       <li><a href="api-docs/decoders.html#decoders.tacotron2_decoder.Prenet">Prenet (class in decoders.tacotron2_decoder)</a>
 </li>
       <li><a href="api-docs/parts.transformer.html#parts.transformer.common.PrePostProcessingWrapper">PrePostProcessingWrapper (class in parts.transformer.common)</a>
@@ -1851,16 +1870,18 @@
 </li>
       <li><a href="api-docs/parts.tacotron.html#parts.tacotron.tacotron_helper.TacotronTrainingHelper">TacotronTrainingHelper (class in parts.tacotron.tacotron_helper)</a>
 </li>
+      <li><a href="api-docs/encoders.html#encoders.tdnn_encoder.TDNNEncoder">TDNNEncoder (class in encoders.tdnn_encoder)</a>
+</li>
       <li><a href="api-docs/models.html#models.text2speech.Text2Speech">Text2Speech (class in models.text2speech)</a>
 </li>
       <li><a href="api-docs/data.text2speech.html#data.text2speech.text2speech.Text2SpeechDataLayer">Text2SpeechDataLayer (class in data.text2speech.text2speech)</a>
 </li>
       <li><a href="api-docs/models.html#models.text2speech_wavenet.Text2SpeechWavenet">Text2SpeechWavenet (class in models.text2speech_wavenet)</a>
 </li>
-      <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api-docs/models.html#models.text2text.Text2Text">Text2Text (class in models.text2text)</a>
+</li>
       <li><a href="api-docs/utils.html#utils.utils.text_ids_to_string">text_ids_to_string() (in module utils.utils)</a>
 </li>
       <li><a href="api-docs/parts.rnns.html#parts.rnns.rnn_beam_search_decoder.tile_batch">tile_batch() (in module parts.rnns.rnn_beam_search_decoder)</a>

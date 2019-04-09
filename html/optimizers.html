@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Optimizers &mdash; OpenSeq2Seq 0.2 documentation</title>
+  
+
+  
+  
+    <link rel="shortcut icon" href="_static/favicon.ico"/>
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+  <link rel="stylesheet" href="_static/theme_override.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="In-depth Tutorials" href="in-depth-tutorials.html" />
+    <link rel="prev" title="Mixed Precision Training" href="mixed-precision.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> OpenSeq2Seq
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="index.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="machine-translation.html">Machine Translation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-commands.html">Speech Commands</a></li>
+<li class="toctree-l1"><a class="reference internal" href="speech-synthesis.html">Speech Synthesis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="language-model.html">Language Model</a></li>
+<li class="toctree-l1"><a class="reference internal" href="sentiment-analysis.html">Sentiment Analysis</a></li>
+<li class="toctree-l1"><a class="reference internal" href="distr-training.html">Multi-GPU and Distributed Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Optimizers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#layer-wise-adaptive-rate-control-larc">Layer-wise Adaptive Rate Control (LARC)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#notes">Notes</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#novograd">NovoGrad</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#references">References</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="in-depth-tutorials.html">In-depth Tutorials</a></li>
+<li class="toctree-l1"><a class="reference internal" href="interactive-infer-demos.html">Interactive Infer Mode</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api-docs/modules.html">API documentation</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">OpenSeq2Seq</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Optimizers</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/optimizers.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="optimizers">
+<span id="id1"></span><h1>Optimizers<a class="headerlink" href="#optimizers" title="Permalink to this headline">¶</a></h1>
+<p>OpenSeq2Seq supports two new optimizers: LARC and NovoGrad.</p>
+<div class="section" id="layer-wise-adaptive-rate-control-larc">
+<h2>Layer-wise Adaptive Rate Control (LARC)<a class="headerlink" href="#layer-wise-adaptive-rate-control-larc" title="Permalink to this headline">¶</a></h2>
+<p>The key idea of LARC is to adjust learning rate (LR) for each layer in such way that the magnitude of weight updates would be small compared to weights’ norm.</p>
+<p>Neural networks (NN-s) training is based on  Stochastic Gradient Descent (SGD). For example, for the “vanilla” SGD, a mini-batch of <em>B</em> samples <span class="math notranslate nohighlight">\(x_i\)</span> is selected from the training set at each step <em>t</em>. Then the stocahtsic gradient <span class="math notranslate nohighlight">\(g(t)\)</span> of loss function <span class="math notranslate nohighlight">\(\nabla L(x_i, w)\)</span> wrt weights is computed for a mini-batch:</p>
+<div class="math notranslate nohighlight">
+\[g_t = \frac{1}{B} {\sum}_{i=1}^{B} \nabla L(x_i,  w_t)\]</div>
+<p>and then weights <em>w</em> are updated based on this stochastic gradient:</p>
+<div class="math notranslate nohighlight">
+\[w_{t+1} = w_t - \lambda * g_t\]</div>
+<p>The standard SGD uses the same LR <span class="math notranslate nohighlight">\(\lambda\)</span> for all layers. We found that the ratio of the L2-norm of weights and gradients <span class="math notranslate nohighlight">\(\frac{| w |}{| g_t |}\)</span> varies significantly between weights and biases and between different layers. The ratio is high during the initial phase, and it is rapidly decreasing after few iterations. When <span class="math notranslate nohighlight">\(\lambda\)</span> is large, the update  <span class="math notranslate nohighlight">\(| \lambda * g_t |\)</span> can become much larger than  <span class="math notranslate nohighlight">\(| w |\)</span>, and this can cause divergence. This makes the initial phase of training highly sensitive to the weight initialization and initial LR.
+To stabilize training, we propose to clip the global LR <span class="math notranslate nohighlight">\(\gamma\)</span> for each layer <em>k</em>:</p>
+<div class="math notranslate nohighlight">
+\[\lambda^k = \min (\gamma, \eta * \frac{| w^k |}{| g^k |} )\]</div>
+<p>where  <span class="math notranslate nohighlight">\(\eta &lt; 1\)</span> is the LARC “trust” coeffcient. The coeffecient <span class="math notranslate nohighlight">\(\eta\)</span>  montonically increases with the batch size <em>B</em>.</p>
+<p>To use LARC you should add the following lines to model configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;larc_params&quot;</span><span class="p">:</span> <span class="p">{</span>
+  <span class="s2">&quot;larc_eta&quot;</span><span class="p">:</span> <span class="mf">0.002</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="section" id="notes">
+<h3>Notes<a class="headerlink" href="#notes" title="Permalink to this headline">¶</a></h3>
+<p>The idea of choosing different LR for each layer is known “trick” since 90-s. For example, LeCun etc [“Efficient Backprop” 1998, §4.7] suggested to use larger LR in lower layers than in higher layer, based on the observation that the second derivative of loss function is higher in the upper layers than in small layers. He scaled the global LR for fully-connected layer with <em>n</em> of incoming connections by <span class="math notranslate nohighlight">\(\frac{1}{\sqrt{n}}\)</span>. For convolutional layers, this method would scale global LR for layer <em>k</em> with <em>c</em> input channels and kernel size <span class="math notranslate nohighlight">\((k \times k)\)</span> will be <span class="math notranslate nohighlight">\(\lambda_k =  \frac{1}{\sqrt{c}*k}\)</span>.</p>
+</div>
+</div>
+<div class="section" id="novograd">
+<h2>NovoGrad<a class="headerlink" href="#novograd" title="Permalink to this headline">¶</a></h2>
+<p>NovoGrad is a first-order SGD-based algorithm, which computes second moments per layer instead of per weight as in Adam. Compared to Adam, NovoGrad takes less   memory, and we find it to be more numerically stable.</p>
+<p>NovoGrad computes the stochastic gradient <span class="math notranslate nohighlight">\(g_t\)</span> at each step <em>t</em>. Then the second-order moment <span class="math notranslate nohighlight">\(v^l_t\)</span> is computed for each layer <em>l</em>, similar to ND-Adam (Zhang 2017):</p>
+<div class="math notranslate nohighlight">
+\[v^l_t = \beta_2 \cdot v^l_{t-1} + (1-\beta_2) \cdot ||g^l_t||^2\]</div>
+<p>The moment <span class="math notranslate nohighlight">\(v^l_t\)</span> is used to re-scale gradients <span class="math notranslate nohighlight">\(g^l_t\)</span> before calculating the first-order moment <span class="math notranslate nohighlight">\(m^l_t\)</span>:</p>
+<div class="math notranslate nohighlight">
+\[m^l_t = \beta_1 \cdot m^l_{t-1} + \lambda_t \cdot \frac{g^l_t}{\sqrt{v^l_t+\epsilon}}\]</div>
+<p>where  <span class="math notranslate nohighlight">\(\lambda_t\)</span> is the current global learning rate. If L2-regularization is used, a weight decay term <span class="math notranslate nohighlight">\(d \cdot w_{t-1}\)</span> is added to the re-scaled gradient (as in AdamW, Loshchilov 2017):</p>
+<div class="math notranslate nohighlight">
+\[m^l_t = \beta_1 \cdot m^l_{t-1} + \alpha_t \cdot (\frac{g^l_t}{\sqrt{v^l_t + \epsilon}} + d \cdot w_{t-1})\]</div>
+<p>Finally, new weights are computed using</p>
+<div class="math notranslate nohighlight">
+\[w_t = w_{t-1} + m_t\]</div>
+<p>To use Novograd you should tun off the standard regularization and add the following lines to model configuration:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;optimizer&quot;</span><span class="p">:</span> <span class="n">NovoGrad</span><span class="p">,</span>
+<span class="s2">&quot;optimizer_params&quot;</span><span class="p">:</span> <span class="p">{</span>
+    <span class="s2">&quot;beta1&quot;</span><span class="p">:</span> <span class="mf">0.95</span><span class="p">,</span>
+    <span class="s2">&quot;beta2&quot;</span><span class="p">:</span> <span class="mf">0.98</span><span class="p">,</span>
+    <span class="s2">&quot;epsilon&quot;</span><span class="p">:</span> <span class="mf">1e-08</span><span class="p">,</span>
+    <span class="s2">&quot;weight_decay&quot;</span><span class="p">:</span> <span class="mf">0.001</span><span class="p">,</span>
+<span class="p">},</span>
+</pre></div>
+</div>
+<div class="section" id="references">
+<h3>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h3>
+<ol class="arabic simple">
+<li>Zhang Z.,  Ma L., Li Z., and  Wu C.,  Normalized direction-preserving Adam. arXiv e-prints, arXiv:1709.0454, 2018</li>
+<li>Loshchilov I. and Hutter F., Fixing weight decay regularization in Adam.   arXiv e-prints, arXiv:1711.0510, 2017</li>
+</ol>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="in-depth-tutorials.html" class="btn btn-neutral float-right" title="In-depth Tutorials" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="mixed-precision.html" class="btn btn-neutral" title="Mixed Precision Training" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2018, NVIDIA.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            LANGUAGE:'None',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          
+          SphinxRtdTheme.Navigation.enableSticky();
+          
+      });
+  </script>  
+  <style>
+    /* Sidebar header (and topbar for mobile) */
+    .wy-side-nav-search, .wy-nav-top {
+      background: #64d81c;
+    }
+    .wy-side-nav-search > div.version {
+      color: #ffffff;
+    }
+    .wy-side-nav-search > img {
+      max-width: 150px;
+    }
+    .wy-side-nav-search > a {
+      font-size: 23px;
+    }
+  </style>
+
+
+</body>
+</html>

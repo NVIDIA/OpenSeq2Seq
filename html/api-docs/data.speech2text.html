@@ -88,12 +88,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
@@ -204,16 +205,23 @@
 <dd><p>Speech-to-text data layer constructor.
 See parent class for arguments description.
 Config parameters:
-* <strong>num_audio_features</strong> (int) — number of audio features to extract.
-* <strong>input_type</strong> (str) — could be either “spectrogram” or “mfcc”.
-* <strong>vocab_file</strong> (str) — path to vocabulary file or sentencepiece model.
-* <strong>dataset_files</strong> (list) — list with paths to all dataset .csv files.
-* <strong>augmentation</strong> (dict) — optional dictionary with data augmentation</p>
+* <strong>backend</strong> (str) — audio pre-processing backend</p>
 <blockquote>
-<div><p>parameters. Can contain “time_stretch_ratio”, “noise_level_min” and
+<div>(‘psf’ [default] or librosa [recommended]).</div></blockquote>
+<ul>
+<li><p class="first"><strong>num_audio_features</strong> (int) — number of audio features to extract.</p>
+</li>
+<li><p class="first"><strong>input_type</strong> (str) — could be either “spectrogram” or “mfcc”.</p>
+</li>
+<li><p class="first"><strong>vocab_file</strong> (str) — path to vocabulary file or sentencepiece model.</p>
+</li>
+<li><p class="first"><strong>dataset_files</strong> (list) — list with paths to all dataset .csv files.</p>
+</li>
+<li><p class="first"><strong>augmentation</strong> (dict) — optional dictionary with data augmentation
+parameters. Can contain “speed_perturbation_ratio”, “noise_level_min” and
 “noise_level_max” parameters, e.g.:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-  <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
+  <span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">:</span> <span class="mf">0.05</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
   <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">60</span><span class="p">,</span>
 <span class="p">}</span>
@@ -221,14 +229,53 @@ Config parameters:
 </div>
 <p>For additional details on these parameters see
 <a class="reference internal" href="#data.speech2text.speech_utils.augment_audio_signal" title="data.speech2text.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">data.speech2text.speech_utils.augment_audio_signal()</span></code></a> function.</p>
-</div></blockquote>
-<ul class="simple">
-<li><strong>autoregressive</strong> (bool) — boolean indicating whether the model is
-autoregressive.</li>
-<li><strong>syn_enable</strong> (bool) — boolean indicating whether the model is
-using synthetic data.</li>
-<li><strong>syn_subdirs</strong> (list) — must be defined if using synthetic mode.
-Contains a list of subdirectories that hold the synthetica wav files.</li>
+</li>
+<li><p class="first"><strong>pad_to</strong> (int) — align audio sequence length to pad_to value.</p>
+</li>
+<li><p class="first"><strong>max_duration</strong> (float) — drop all samples longer than
+<strong>max_duration</strong> (seconds)</p>
+</li>
+<li><p class="first"><strong>min_duration</strong> (float) — drop all samples shorter than
+<strong>min_duration</strong> (seconds)</p>
+</li>
+<li><p class="first"><strong>bpe</strong> (bool) — use BPE encodings</p>
+</li>
+<li><p class="first"><strong>autoregressive</strong> (bool) — boolean indicating whether the model is
+autoregressive.</p>
+</li>
+<li><p class="first"><strong>syn_enable</strong> (bool) — boolean indicating whether the model is
+using synthetic data.</p>
+</li>
+<li><p class="first"><strong>syn_subdirs</strong> (list) — must be defined if using synthetic mode.
+Contains a list of subdirectories that hold the synthetica wav files.</p>
+</li>
+<li><p class="first"><strong>window_size</strong> (float) — window’s duration (in seconds)</p>
+</li>
+<li><p class="first"><strong>window_stride</strong> (float) — window’s stride (in seconds)</p>
+</li>
+<li><p class="first"><strong>dither</strong> (float) — weight of Gaussian noise to apply to input signal
+for dithering/preventing quantization noise</p>
+</li>
+<li><dl class="first docutils">
+<dt><strong>num_fft</strong> (int) — size of fft window to use if features require fft,</dt>
+<dd><p class="first last">defaults to smallest power of 2 larger than window size</p>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>norm_per_feature</strong> (bool) — if True, the output features will be
+normalized (whitened) individually. if False, a global mean/std over all
+features will be used for normalization.</p>
+</li>
+<li><p class="first"><strong>window</strong> (str) — window function to apply before FFT
+(‘hanning’, ‘hamming’, ‘none’)</p>
+</li>
+<li><p class="first"><strong>num_fft</strong> (int) — optional FFT size</p>
+</li>
+<li><p class="first"><strong>precompute_mel_basis</strong> (bool) — compute and store mel basis. If False,
+it will compute it for every get_speech_features call. Default: False</p>
+</li>
+<li><p class="first"><strong>sample_freq</strong> (int) — required for precompute_mel_basis</p>
+</li>
 </ul>
 </dd></dl>
 
@@ -561,8 +608,20 @@ The slowdown is especially apparent for small, fast NNs.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>signal</strong> (<em>np.array</em>) – np.array containing raw audio signal.</li>
 <li><strong>sample_freq</strong> (<em>float</em>) – frames per second.</li>
-<li><strong>augmentation</strong> (<em>dict</em>) – dictionary of augmentation parameters. See
-<a class="reference internal" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="data.speech2text.speech_utils.get_speech_features_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_speech_features_from_file()</span></code></a> for specification and example.</li>
+<li><strong>augmentation</strong> (<em>dict</em><em>, </em><em>optional</em>) – <p>None or dictionary of augmentation parameters.
+If not None, has to have ‘speed_perturbation_ratio’,
+‘noise_level_min’, or ‘noise_level_max’ fields, e.g.:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">augmentation</span><span class="o">=</span><span class="p">{</span>
+  <span class="s1">&#39;speed_perturbation_ratio&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
+  <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
+  <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>’speed_perturbation_ratio’ can either be a list of possible speed
+perturbation factors or a float. If float, a random value from
+U[1-speed_perturbation_ratio, 1+speed_perturbation_ratio].</p>
+</li>
 </ul>
 </td>
 </tr>
@@ -589,25 +648,102 @@ version of this audio
 
 <dl class="function">
 <dt id="data.speech2text.speech_utils.get_speech_features">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>apply_window=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
-<dd><p>Function to convert raw audio signal to numpy array of features.</p>
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get speech features using either librosa (recommended) or
+python_speech_features
+:param signal: np.array containing raw audio signal
+:type signal: np.array
+:param sample_freq: sample rate of the signal
+:type sample_freq: float
+:param params: parameters of pre-processing
+:type params: dict</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">np.array of audio features with shape=[num_time_steps,
+num_features].
+audio_duration (float): duration of the signal in seconds</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">np.array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.speech2text.speech_utils.get_speech_features_from_file">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="docutils">
+<dt>Function to get a numpy array of features, from an audio file.</dt>
+<dd>if params[‘cache_features’]==True, try load preprocessed data from
+disk, or store after preprocesseng.
+else, perform preprocessing on-the-fly.</dd>
+</dl>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>signal</strong> (<em>np.array</em>) – np.array containing raw audio signal.</li>
-<li><strong>sample_freq</strong> (<em>float</em>) – frames per second.</li>
-<li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
-<li><strong>pad_to</strong> (<em>int</em>) – if specified, the length will be padded to become divisible
-by <code class="docutils literal notranslate"><span class="pre">pad_to</span></code> parameter.</li>
+<li><strong>filename</strong> (<em>string</em>) – WAVE filename.</li>
+<li><strong>params</strong> (<em>dict</em>) – <p>the following parameters
+num_features (int): number of speech features in frequency domain.
+features_type (string): ‘mfcc’ or ‘spectrogram’.
+window_size (float): size of analysis window in milli-seconds.
+window_stride (float): stride of analysis window in milli-seconds.
+augmentation (dict, optional): dictionary of augmentation parameters. See</p>
+<blockquote>
+<div><a class="reference internal" href="#data.speech2text.speech_utils.augment_audio_signal" title="data.speech2text.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">augment_audio_signal()</span></code></a> for specification and example.</div></blockquote>
+<p>window (str): window function to apply
+dither (float): weight of Gaussian noise to apply to input signal for</p>
+<blockquote>
+<div>dithering/preventing quantization noise</div></blockquote>
+<dl class="docutils">
+<dt>num_fft (int): size of fft window to use if features require fft,</dt>
+<dd>defaults to smallest power of 2 larger than window size</dd>
+<dt>norm_per_feature (bool): if True, the output features will be normalized</dt>
+<dd>(whitened) individually. if False, a global mean/std over all features
+will be used for normalization</dd>
+</dl>
+</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
+num_features].</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="data.speech2text.speech_utils.get_speech_features_librosa">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_librosa</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>window_fn=&lt;function hanning&gt;</em>, <em>num_fft=None</em>, <em>dither=0.0</em>, <em>norm_per_feature=False</em>, <em>mel_basis=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_librosa"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_librosa" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert raw audio signal to numpy array of features.
+Backend: librosa
+:param signal: np.array containing raw audio signal.
+:type signal: np.array
+:param sample_freq: frames per second.
+:type sample_freq: float
+:param num_features: number of speech features in frequency domain.
+:type num_features: int
+:param pad_to: if specified, the length will be padded to become divisible</p>
+<blockquote>
+<div>by <code class="docutils literal notranslate"><span class="pre">pad_to</span></code> parameter.</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>features_type</strong> (<em>string</em>) – ‘mfcc’ or ‘spectrogram’.</li>
 <li><strong>window_size</strong> (<em>float</em>) – size of analysis window in milli-seconds.</li>
 <li><strong>window_stride</strong> (<em>float</em>) – stride of analysis window in milli-seconds.</li>
 <li><strong>augmentation</strong> (<em>dict</em><em>, </em><em>optional</em>) – dictionary of augmentation parameters. See
-<a class="reference internal" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="data.speech2text.speech_utils.get_speech_features_from_file"><code class="xref py py-func docutils literal notranslate"><span class="pre">get_speech_features_from_file()</span></code></a> for specification and example.</li>
-<li><strong>apply_window</strong> (<em>bool</em>) – whether to apply Hann window for mfcc and logfbank.
-python_speech_features version should accept winfunc if it is True.</li>
+<a class="reference internal" href="#data.speech2text.speech_utils.augment_audio_signal" title="data.speech2text.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">augment_audio_signal()</span></code></a> for specification and example.</li>
 </ul>
 </td>
 </tr>
@@ -624,42 +760,37 @@ audio_duration (float): duration of the signal in seconds</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="data.speech2text.speech_utils.get_speech_features_from_file">
-<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_from_file</code><span class="sig-paren">(</span><em>filename</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em>, <em>apply_window=False</em>, <em>cache_features=False</em>, <em>cache_format='hdf5'</em>, <em>cache_regenerate=False</em>, <em>params={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_from_file" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="docutils">
-<dt>Function to get a numpy array of features, from an audio file.</dt>
-<dd>if params[‘cache_features’]==True, try load preprocessed data from
-disk, or store after preprocesseng.
-else, perform preprocessing on-the-fly.</dd>
-</dl>
+<dt id="data.speech2text.speech_utils.get_speech_features_psf">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">get_speech_features_psf</code><span class="sig-paren">(</span><em>signal</em>, <em>sample_freq</em>, <em>num_features</em>, <em>pad_to=8</em>, <em>features_type='spectrogram'</em>, <em>window_size=0.02</em>, <em>window_stride=0.01</em>, <em>augmentation=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#get_speech_features_psf"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.get_speech_features_psf" title="Permalink to this definition">¶</a></dt>
+<dd><p>Function to convert raw audio signal to numpy array of features.
+Backend: python_speech_features
+:param signal: np.array containing raw audio signal.
+:type signal: np.array
+:param sample_freq: frames per second.
+:type sample_freq: float
+:param num_features: number of speech features in frequency domain.
+:type num_features: int
+:param pad_to: if specified, the length will be padded to become divisible</p>
+<blockquote>
+<div>by <code class="docutils literal notranslate"><span class="pre">pad_to</span></code> parameter.</div></blockquote>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>filename</strong> (<em>string</em>) – WAVE filename.</li>
-<li><strong>num_features</strong> (<em>int</em>) – number of speech features in frequency domain.</li>
 <li><strong>features_type</strong> (<em>string</em>) – ‘mfcc’ or ‘spectrogram’.</li>
 <li><strong>window_size</strong> (<em>float</em>) – size of analysis window in milli-seconds.</li>
 <li><strong>window_stride</strong> (<em>float</em>) – stride of analysis window in milli-seconds.</li>
-<li><strong>augmentation</strong> (<em>dict</em><em>, </em><em>optional</em>) – <p>None or dictionary of augmentation parameters.
-If not None, has to have ‘time_stretch_ratio’,
-‘noise_level_min’, ‘noise_level_max’ fields, e.g.:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">augmentation</span><span class="o">=</span><span class="p">{</span>
-  <span class="s1">&#39;time_stretch_ratio&#39;</span><span class="p">:</span> <span class="mf">0.2</span><span class="p">,</span>
-  <span class="s1">&#39;noise_level_min&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">90</span><span class="p">,</span>
-  <span class="s1">&#39;noise_level_max&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">46</span><span class="p">,</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</li>
+<li><strong>augmentation</strong> (<em>dict</em><em>, </em><em>optional</em>) – dictionary of augmentation parameters. See
+<a class="reference internal" href="#data.speech2text.speech_utils.augment_audio_signal" title="data.speech2text.speech_utils.augment_audio_signal"><code class="xref py py-func docutils literal notranslate"><span class="pre">augment_audio_signal()</span></code></a> for specification and example.</li>
 <li><strong>apply_window</strong> (<em>bool</em>) – whether to apply Hann window for mfcc and logfbank.
 python_speech_features version should accept winfunc if it is True.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">np.array of audio features with shape=[num_time_steps,
-num_features].</p>
+num_features].
+audio_duration (float): duration of the signal in seconds</p>
 </td>
 </tr>
 <tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">np.array</p>
@@ -683,6 +814,11 @@ num_features].</p>
 <code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">normalize_signal</code><span class="sig-paren">(</span><em>signal</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#normalize_signal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.normalize_signal" title="Permalink to this definition">¶</a></dt>
 <dd><p>Normalize float32 signal to [-1, 1] range</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="data.speech2text.speech_utils.preemphasis">
+<code class="descclassname">data.speech2text.speech_utils.</code><code class="descname">preemphasis</code><span class="sig-paren">(</span><em>signal</em>, <em>coeff=0.97</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/data/speech2text/speech_utils.html#preemphasis"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#data.speech2text.speech_utils.preemphasis" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="function">
 <dt id="data.speech2text.speech_utils.save_features">

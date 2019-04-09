@@ -28,20 +28,10 @@ Currently we support following models:
      - `w2l_plus_large_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/w2lplus_large_8gpus_mp.py>`_
      - `link <https://drive.google.com/file/d/10EYe040qVW6cfygSZz6HwGQDylahQNSa/view?usp=sharing>`_
 
-   * - :doc:`Jasper 10x3 </speech-recognition/jasper>`
-     - 5.10
-     - `jasper_10x3_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x3_8gpus_mp.py>`_
-     - `link <https://drive.google.com/a/nvidia.com/file/d/1hI9Rv_px5vqpuWQOCwfKmZzRVXMPiTtT/view?usp=sharing>`_
-
-   * - :doc:`Jasper 10x5 syn </speech-recognition/jasper>`
-     - 4.32
-     - `jasper_10x5_8gpus_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x5_8gpus_mp.py>`_
-     - `link <https://drive.google.com/a/nvidia.com/file/d/1b9CHczABFG4TRgtZg_jSaRQ-8oCjay76/view?usp=sharing>`_
-
-   * - :doc:`Jasper 10x5 dense res syn </speech-recognition/jasper>`
-     - 4.15
-     - `jasper_10x5_8gpus_dr_mp <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper_10x5_8gpus_dr_mp.py>`_
-     - `link <https://drive.google.com/a/nvidia.com/file/d/1QMIHurNukxcorgmU5n2v1pnghGlg7dDr/view?usp=sharing>`_
+   * - :doc:`Jasper DR 10x5 </speech-recognition/jasper>`
+     - 3.64
+     - `jasper10x5_LibriSpeech_nvgrad <https://github.com/NVIDIA/OpenSeq2Seq/blob/master/example_configs/speech2text/jasper10x5_LibriSpeech_nvgrad.py>`_
+     - `link <https://drive.google.com/a/nvidia.com/file/d/1gzGT8HoVNKY1i5HNQTKaSoCu7JHV4siR/view?usp=sharing>`_
 
 
 WER is the word error rate obtained on a dev-clean subset of LibriSpeech using
@@ -140,7 +130,8 @@ To train with Horovod on <N> GPUs, use the following command::
 Synthetic data
 ##############
 
-Our current best model was trained using synthetic data. The creation of the synthetic data and training process is described :ref:`here <synthetic_data>`.
+Speech recognition models can be optionally trained using synthetic data.
+The creation of the synthetic data and training process is described :ref:`here <synthetic_data>`.
 
 
 .. toctree::

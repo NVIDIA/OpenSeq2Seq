@@ -88,12 +88,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API documentation</a><ul class="current">
@@ -102,7 +103,7 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">encoders</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.encoder">encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.ds2_encoder">ds2_encoder</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#w2l-encoder">w2l_encoder</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-encoders.tdnn_encoder">tdnn_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.rnn_encoders">rnn_encoders</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.transformer_encoder">transformer_encoder</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encoders.convs2s_encoder">convs2s_encoder</a></li>
@@ -522,8 +523,146 @@ class <a class="reference internal" href="#encoders.ds2_encoder.DeepSpeech2Encod
 </dd></dl>
 
 </div>
-<div class="section" id="w2l-encoder">
-<h2>w2l_encoder<a class="headerlink" href="#w2l-encoder" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-encoders.tdnn_encoder">
+<span id="tdnn-encoder"></span><h2>tdnn_encoder<a class="headerlink" href="#module-encoders.tdnn_encoder" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="encoders.tdnn_encoder.TDNNEncoder">
+<em class="property">class </em><code class="descclassname">encoders.tdnn_encoder.</code><code class="descname">TDNNEncoder</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='w2l_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tdnn_encoder.html#TDNNEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tdnn_encoder.TDNNEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#encoders.encoder.Encoder" title="encoders.encoder.Encoder"><code class="xref py py-class docutils literal notranslate"><span class="pre">encoders.encoder.Encoder</span></code></a></p>
+<p>General time delay neural network (TDNN) encoder. Fully convolutional model</p>
+<dl class="method">
+<dt id="encoders.tdnn_encoder.TDNNEncoder.__init__">
+<code class="descname">__init__</code><span class="sig-paren">(</span><em>params</em>, <em>model</em>, <em>name='w2l_encoder'</em>, <em>mode='train'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tdnn_encoder.html#TDNNEncoder.__init__"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tdnn_encoder.TDNNEncoder.__init__" title="Permalink to this definition">¶</a></dt>
+<dd><p>TDNN encoder constructor.</p>
+<p>See parent class for arguments description.</p>
+<p>Config parameters:</p>
+<ul>
+<li><p class="first"><strong>dropout_keep_prob</strong> (float) — keep probability for dropout.</p>
+</li>
+<li><p class="first"><strong>convnet_layers</strong> (list) — list with the description of convolutional
+layers. For example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="s2">&quot;convnet_layers&quot;</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">5</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">250</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">3</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">32</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+  <span class="p">{</span>
+    <span class="s2">&quot;type&quot;</span><span class="p">:</span> <span class="s2">&quot;conv1d&quot;</span><span class="p">,</span> <span class="s2">&quot;repeat&quot;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;kernel_size&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s2">&quot;stride&quot;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;num_channels&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span> <span class="s2">&quot;padding&quot;</span><span class="p">:</span> <span class="s2">&quot;SAME&quot;</span>
+  <span class="p">},</span>
+<span class="p">]</span>
+</pre></div>
+</div>
+</li>
+<li><p class="first"><strong>activation_fn</strong> — activation function to use.</p>
+</li>
+<li><p class="first"><strong>data_format</strong> (string) — could be either “channels_first” or
+“channels_last”. Defaults to “channels_last”.</p>
+</li>
+<li><p class="first"><strong>normalization</strong> — normalization to use. Accepts [None, ‘batch_norm’].
+Use None if you don’t want to use normalization. Defaults to ‘batch_norm’.</p>
+</li>
+<li><p class="first"><strong>bn_momentum</strong> (float) — momentum for batch norm. Defaults to 0.90.</p>
+</li>
+<li><p class="first"><strong>bn_epsilon</strong> (float) — epsilon for batch norm. Defaults to 1e-3.</p>
+</li>
+<li><p class="first"><strong>drop_block_prob</strong> (float) — probability of dropping encoder blocks.
+Defaults to 0.0 which corresponds to training without dropping blocks.</p>
+</li>
+<li><p class="first"><strong>drop_block_index</strong> (int) – index of the block to drop on inference.
+Defaults to -1 which corresponds to keeping all blocks.</p>
+</li>
+<li><p class="first"><strong>use_conv_mask</strong> (bool) — whether to apply a sequence mask prior to
+convolution operations. Defaults to False for backwards compatibility.
+Recommended to set as True</p>
+</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="encoders.tdnn_encoder.TDNNEncoder._encode">
+<code class="descname">_encode</code><span class="sig-paren">(</span><em>input_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tdnn_encoder.html#TDNNEncoder._encode"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tdnn_encoder.TDNNEncoder._encode" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates TensorFlow graph for Wav2Letter like encoder.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>input_dict</strong> (<em>dict</em>) – <p>input dictionary that has to contain
+the following fields:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">input_dict</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="s2">&quot;source_tensors&quot;</span><span class="p">:</span> <span class="p">[</span>
+    <span class="n">src_sequence</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">num</span> <span class="n">features</span><span class="p">]),</span>
+    <span class="n">src_length</span> <span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">])</span>
+  <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with the following tensors:<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+  <span class="s1">&#39;outputs&#39;</span><span class="p">:</span> <span class="n">hidden</span> <span class="n">state</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">,</span> <span class="n">sequence</span> <span class="n">length</span><span class="p">,</span> <span class="n">n_hidden</span><span class="p">]</span>
+  <span class="s1">&#39;src_length&#39;</span><span class="p">:</span> <span class="n">tensor</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="p">[</span><span class="n">batch_size</span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.tdnn_encoder.TDNNEncoder.get_optional_params">
+<em class="property">static </em><code class="descname">get_optional_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tdnn_encoder.html#TDNNEncoder.get_optional_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tdnn_encoder.TDNNEncoder.get_optional_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of optional parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>can</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.tdnn_encoder.TDNNEncoder.__init__" title="encoders.tdnn_encoder.TDNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="encoders.tdnn_encoder.TDNNEncoder.get_required_params">
+<em class="property">static </em><code class="descname">get_required_params</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encoders/tdnn_encoder.html#TDNNEncoder.get_required_params"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#encoders.tdnn_encoder.TDNNEncoder.get_required_params" title="Permalink to this definition">¶</a></dt>
+<dd><p>Static method with description of required parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary containing all the parameters that <strong>have to</strong> be
+included into the <code class="docutils literal notranslate"><span class="pre">params</span></code> parameter of the
+class <a class="reference internal" href="#encoders.tdnn_encoder.TDNNEncoder.__init__" title="encoders.tdnn_encoder.TDNNEncoder.__init__"><code class="xref py py-meth docutils literal notranslate"><span class="pre">__init__()</span></code></a> method.</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
 </div>
 <div class="section" id="module-encoders.rnn_encoders">
 <span id="rnn-encoders"></span><h2>rnn_encoders<a class="headerlink" href="#module-encoders.rnn_encoders" title="Permalink to this headline">¶</a></h2>

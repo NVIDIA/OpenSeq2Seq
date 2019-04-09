@@ -86,12 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../api-docs/modules.html">API documentation</a></li>
@@ -178,7 +179,7 @@
 <span class="kn">from</span> <span class="nn">open_seq2seq.data</span> <span class="k">import</span> <span class="n">WKTDataLayer</span>
 
 
-<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug_port</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="train"><a class="viewcode-back" href="../../api-docs/utils.html#utils.funcs.train">[docs]</a><span class="k">def</span> <span class="nf">train</span><span class="p">(</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">debug_port</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">custom_hooks</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
   <span class="k">if</span> <span class="n">eval_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="s1">&#39;eval_steps&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">eval_model</span><span class="o">.</span><span class="n">params</span><span class="p">:</span>
     <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;eval_steps parameter has to be specified &quot;</span>
                      <span class="s2">&quot;if eval_model is provided&quot;</span><span class="p">)</span>
@@ -198,6 +199,10 @@
 
   <span class="c1"># defining necessary hooks</span>
   <span class="n">hooks</span> <span class="o">=</span> <span class="p">[</span><span class="n">tf</span><span class="o">.</span><span class="n">train</span><span class="o">.</span><span class="n">StopAtStepHook</span><span class="p">(</span><span class="n">last_step</span><span class="o">=</span><span class="n">train_model</span><span class="o">.</span><span class="n">last_step</span><span class="p">)]</span>
+  <span class="k">if</span> <span class="n">custom_hooks</span><span class="p">:</span>
+    <span class="k">for</span> <span class="n">custom_hook</span> <span class="ow">in</span> <span class="n">custom_hooks</span><span class="p">:</span>
+      <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">custom_hook</span><span class="p">(</span><span class="n">train_model</span><span class="o">=</span><span class="n">train_model</span><span class="p">,</span> <span class="n">eval_model</span><span class="o">=</span><span class="n">eval_model</span><span class="p">))</span>
+
   <span class="k">if</span> <span class="n">hvd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">hooks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">BroadcastGlobalVariablesHook</span><span class="p">(</span><span class="mi">0</span><span class="p">))</span>
 

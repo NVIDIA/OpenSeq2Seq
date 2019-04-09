@@ -86,12 +86,13 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation Instructions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../machine-translation.html">Machine Translation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-recognition.html">Speech Recognition</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../speech-synthesis.html">Speech Synthesis</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../language-model.html">Language Model</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../sentiment-analysis.html">Sentiment Analysis</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../speech-commands.html">Speech Commands</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../distr-training.html">Multi-GPU and Distributed Training</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../mixed-precision.html">Mixed Precision Training</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../optimizers.html">Optimizers</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../in-depth-tutorials.html">In-depth Tutorials</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../interactive-infer-demos.html">Interactive Infer Mode</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api-docs/modules.html">API documentation</a></li>
@@ -205,7 +206,8 @@
 <div class="viewcode-block" id="conv_bn_res_bn_actv"><a class="viewcode-back" href="../../../api-docs/parts.cnns.html#parts.cnns.conv_blocks.conv_bn_res_bn_actv">[docs]</a><span class="k">def</span> <span class="nf">conv_bn_res_bn_actv</span><span class="p">(</span><span class="n">layer_type</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">inputs</span><span class="p">,</span> <span class="n">res_inputs</span><span class="p">,</span> <span class="n">filters</span><span class="p">,</span>
                         <span class="n">kernel_size</span><span class="p">,</span> <span class="n">activation_fn</span><span class="p">,</span> <span class="n">strides</span><span class="p">,</span> <span class="n">padding</span><span class="p">,</span>
                         <span class="n">regularizer</span><span class="p">,</span> <span class="n">training</span><span class="p">,</span> <span class="n">data_format</span><span class="p">,</span> <span class="n">bn_momentum</span><span class="p">,</span>
-                        <span class="n">bn_epsilon</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+                        <span class="n">bn_epsilon</span><span class="p">,</span> <span class="n">dilation</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                        <span class="n">drop_block_prob</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">drop_block</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
   <span class="n">layer</span> <span class="o">=</span> <span class="n">layers_dict</span><span class="p">[</span><span class="n">layer_type</span><span class="p">]</span>
 
   <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res_inputs</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
@@ -244,7 +246,7 @@
       <span class="n">res</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
 
     <span class="n">res_aggregation</span> <span class="o">+=</span> <span class="n">res</span>
-  
+
   <span class="n">conv</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span>
       <span class="n">name</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="p">),</span>
       <span class="n">inputs</span><span class="o">=</span><span class="n">inputs</span><span class="p">,</span>
@@ -280,6 +282,17 @@
     <span class="n">bn</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(</span><span class="n">bn</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="n">axis</span><span class="p">)</span>
 
   <span class="n">output</span> <span class="o">=</span> <span class="n">bn</span> <span class="o">+</span> <span class="n">res_aggregation</span>
+
+  <span class="k">if</span> <span class="n">drop_block_prob</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="n">training</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">tf</span><span class="o">.</span><span class="n">cond</span><span class="p">(</span>
+        <span class="n">tf</span><span class="o">.</span><span class="n">random_uniform</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">[])</span> <span class="o">&lt;</span> <span class="n">drop_block_prob</span><span class="p">,</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">res_aggregation</span><span class="p">,</span>
+        <span class="k">lambda</span><span class="p">:</span> <span class="n">bn</span> <span class="o">+</span> <span class="n">res_aggregation</span>
+        <span class="p">)</span>
+    <span class="k">elif</span> <span class="n">drop_block</span><span class="p">:</span>
+      <span class="n">output</span> <span class="o">=</span> <span class="n">res_aggregation</span>
+
   <span class="k">if</span> <span class="n">activation_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">activation_fn</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
   <span class="k">return</span> <span class="n">output</span></div>
