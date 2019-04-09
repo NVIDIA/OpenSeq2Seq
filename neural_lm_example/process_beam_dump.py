@@ -46,7 +46,6 @@ def levenshtein(a, b):
   return current[n]
 
 def score_fun_linear(s1, s2, s3, s4):
-  #return random.random()
   return s4 + s1
 
 
@@ -54,7 +53,7 @@ class Scorer:
   def __init__(self, model, path_2_vocab, score_fn=score_fun_linear):
     self._model = model
     self._model.eval()
-    #self._vocab = Scorer._read_vocab(path_2_vocab)
+    self._model.crit.keep_order=True
     self._vocab = Vocab(vocab_file=path_2_vocab)
     self._vocab.build_vocab()
     self._score_fn = score_fn
@@ -67,44 +66,32 @@ class Scorer:
                                 'the crox jump a la glass'])
     print('---->>> Done testing model')
 
-  # @staticmethod
-  # def _read_vocab(path_2_vocab):
-  #   print('---->>> Reading vocabluary')
-  #   vocab = {}
-  #   count = 0
-  #   with open(path_2_vocab, 'r') as vf:
-  #     for line in vf:
-  #       parts = line.split()
-  #       #vocab[parts[0]] = int(parts[1])
-  #       vocab[parts[0]] = count
-  #       count += 1
-  #   print('---->>> Vocabluary read. Has {0} tokens'.format(len(vocab)))
-  #   return vocab
 
-  def nlm_compute(self, candidates):
-    # sents = self._vocab.encode_sents(
-    #   [['<S>'] + string.strip().lower().split() + ['<S>'] for string in
-    #    candidates])
-    # pad_val = self._vocab.get_idx('<S>')
-    # psents = pad_sequence(sents, padding_value=pad_val).cuda()
-    # mask = (psents[:-1, :] != pad_val).cuda()
-    # mems = tuple()
-    # ret = self._model(psents[:-1, :], psents[1:, :], *mems)
-    # loss, mems = ret[0], ret[1:]
-    # #loss = loss * mask.float()
-    # return torch.sum(loss, dim=0)
-    result = []
+  @staticmethod
+  def chunks(l, n):
+    for i in range(0, len(l), n):
+      yield l[i:i + n]
+
+
+  def nlm_compute(self, candidates_full, batch_size=256):
+    results = torch.zeros(len(candidates_full))
     with torch.no_grad():
-      sents = self._vocab.encode_sents(
-        [['<S>'] + string.strip().lower().split() + ['<S>'] for string in
-        candidates])
-      for sent in sents:
-        sent = sent[:, None].cuda()
+      for j, candidates in enumerate(self.chunks(candidates_full, batch_size)):
+        sents = self._vocab.encode_sents(
+          [['<S>'] + string.strip().lower().split() + ['<S>'] for string in candidates])
+        seq_lens = torch.tensor([x.shape[0] for x in sents], dtype=torch.long)
+        sents_th = torch.zeros(seq_lens.max(), seq_lens.shape[0],dtype=torch.long).cuda()
+        for i, sent in enumerate(sents):
+          sents_th[:seq_lens[i], i] = sent
+       
         mems = tuple()
-        ret = self._model(sent[:-1], sent[1:], *mems)
-        loss, mems = ret[0], ret[1:]
-        result.append(-1.0*torch.sum(loss).unsqueeze(0))    
-      return torch.cat(result, dim=0)
+        ret = self._model(sents_th[:-1], sents_th[1:], *mems)
+        max_len = seq_lens.max()-1
+        mask = torch.arange(max_len).expand(seq_lens.shape[0], max_len) >= seq_lens.unsqueeze(1)-1
+        result = -1 * ret[0].masked_fill(mask.transpose(0,1).to("cuda"), 0).sum(dim=0)
+        results[j*batch_size:j*batch_size + len(result)] = result
+    return results
+  
 
   def test_model(self, candidates):
     for item in zip(list(self.nlm_compute(candidates).cpu().detach().numpy()), candidates):
